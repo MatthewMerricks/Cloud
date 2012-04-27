@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 using GalaSoft.MvvmLight.Threading;
-using win_client.ViewModel;
+using win_client.ViewModels;
 
 namespace win_client
 {
