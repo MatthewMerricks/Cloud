@@ -4,6 +4,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:navigation="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls.Navigation"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.SL5"
     mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
     DataContext="{Binding PageCreateNewAccountViewModel, Source={StaticResource Locator}}" 
     Title="Create New Account" >
@@ -37,7 +39,7 @@
                 <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Images/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
-    	<Grid Grid.Column="1" Margin="48,93,37,0" Grid.RowSpan="3" Grid.ColumnSpan="4">
+        <Grid Grid.Column="1" Margin="48,93,37,0" Grid.RowSpan="3" Grid.ColumnSpan="4">
     		<Grid.RowDefinitions>
     			<RowDefinition Height="0.034*"/>
     			<RowDefinition Height="0.131*"/>
@@ -55,11 +57,16 @@
     			<ColumnDefinition Width="0.096*"/>
     		</Grid.ColumnDefinitions>
     		<Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="3" Grid.RowSpan="9" Margin="8,0,-8,0" RadiusX="5" RadiusY="5" Opacity="0.9"/>
-    		<TextBox TextAlignment="Left" Foreground="Gray" Margin="0,5" Grid.Column="1" Grid.Row="1" d:LayoutOverrides="Height"/>
-    		<TextBox TextAlignment="Left" Foreground="Gray" Margin="0,5" Grid.Row="2" Grid.Column="1" d:LayoutOverrides="Height"/>
-    		<TextBox TextAlignment="Left" Foreground="Gray" Margin="0,5" Grid.Row="4" Grid.Column="1" d:LayoutOverrides="Height"/>
-    		<TextBox TextAlignment="Left" Foreground="Gray" Margin="0,5" Grid.Row="5" Grid.Column="1" d:LayoutOverrides="Height"/>
-    		<TextBox TextAlignment="Left" Foreground="Gray" Margin="0,5" Grid.Row="7" Grid.Column="1" d:LayoutOverrides="Height"/>
+            <TextBox Name="tbEMail" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Column="1" Grid.Row="1" d:LayoutOverrides="Height" 
+                     Text="{Binding EMail, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="1" />
+            <TextBox Name="tbFullName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="2" Grid.Column="1" d:LayoutOverrides="Height" 
+                     Text="{Binding FullName, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="2" />
+            <PasswordBox Name="tbPassword" Foreground="Black" Margin="0,5" Grid.Row="4" Grid.Column="1" d:LayoutOverrides="Height" 
+                     Password="{Binding Password, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="3" />
+            <PasswordBox Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="5" Grid.Column="1" d:LayoutOverrides="Height" 
+                     Password="{Binding ConfirmPassword, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="4" />
+            <TextBox Name="tbComputerName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="7" Grid.Column="1" d:LayoutOverrides="Height" 
+                     Text="{Binding ComputerName, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="5" />
     		<TextBlock TextWrapping="Wrap" Text="EMail:" RenderTransformOrigin="0.5,0.5" 
     			Foreground="Black" FontSize="16" Margin="0,5,7,5" Grid.Row="1" TextAlignment="Right"/>
     		<TextBlock TextWrapping="Wrap" Text="Full Name:" RenderTransformOrigin="0.5,0.5" 
@@ -68,16 +75,16 @@
     			Foreground="Black" FontSize="16" Margin="0,5,7,5" Grid.Row="4" TextAlignment="Right"/>
     		<TextBlock TextWrapping="Wrap" Text="Confirm:" RenderTransformOrigin="0.5,0.5" 
     			Foreground="Black" FontSize="16" Margin="0,5,7,5" Grid.Row="5" TextAlignment="Right"/>
-    		<TextBlock TextWrapping="Wrap" Text="Computer Name:" RenderTransformOrigin="0.5,0.5" 
+    		<TextBlock TextWrapping="Wrap" Text="Computer Name:" RenderTransformOrigin="0.5,0.5"
     			Foreground="Black" FontSize="16" Margin="0,5,7,5" Grid.Row="7" TextAlignment="Right"/>
     	</Grid>
         <TextBlock TextWrapping="Wrap" Text="Let's create your Cloud account" RenderTransformOrigin="0.5,0.5" 
                             Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Top" Margin="48,44,94,0" d:LayoutOverrides="Width" Height="28"/>
 
-    	<Button Content="Back" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="53" FontSize="13.333" Background="#FF49C3FB" 
-    		Grid.Row="3" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageCreateNewAccount_BackCommand, Mode=OneWay}"/>
-    	<Button Content="Continue" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="53" FontSize="13.333" Background="#FF49C3FB" 
-    		Grid.Row="3" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageCreateNewAccount_ContinueCommand, Mode=OneWay}"/>
+        <Button Content="Back" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="53" FontSize="13.333" Background="#FF49C3FB" 
+    		        Grid.Row="3" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageCreateNewAccount_BackCommand, Mode=OneWay}" TabIndex="7" />
+        <Button Content="Continue" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="53" FontSize="13.333" Background="#FF49C3FB" 
+    		        Grid.Row="3" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageCreateNewAccount_ContinueCommand, Mode=OneWay}" TabIndex="6" />
 
     </Grid>
 

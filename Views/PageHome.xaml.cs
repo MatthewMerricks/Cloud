@@ -19,7 +19,8 @@ namespace win_client.Views
         public PageHome()
         {
             InitializeComponent();
-            Messenger.Default.Register<Uri>(this, "NavigationRequest", (uri) => NavigationService.Navigate(uri));
+            Messenger.Default.Register<Uri>(this, "NavigationRequest", 
+                (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
         }
 
         // Executes when the user navigates to this page.

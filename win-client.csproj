@@ -62,6 +62,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="exsportance.Silverlight.Common">
+      <HintPath>SourceBinaries\exsportance.Silverlight.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="exsportance.Silverlight.Validate">
+      <HintPath>SourceBinaries\exsportance.Silverlight.Validate.dll</HintPath>
+    </Reference>
     <Reference Include="GalaSoft.MvvmLight.SL5">
       <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\Silverlight5\GalaSoft.MvvmLight.SL5.dll</HintPath>
     </Reference>
@@ -75,7 +81,14 @@
     <Reference Include="Microsoft.Windows.Controls.WatermarkedTextBox, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>SourceBinaries\Microsoft.Windows.Controls.WatermarkedTextBox.dll</HintPath>
     </Reference>
+    <Reference Include="System.Windows.Controls, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Windows.Controls.Data, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Windows.Controls.Data.Input, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Windows.Controls.Input, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Windows.Controls.Navigation, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Windows.Controls.Toolkit">
+      <HintPath>..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v4.0\Toolkit\Apr10\Bin\System.Windows.Controls.Toolkit.dll</HintPath>
+    </Reference>
     <Reference Include="System.Windows.Interactivity">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\Silverlight5\System.Windows.Interactivity.dll</HintPath>
@@ -92,7 +105,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\AppMessages.cs" />
     <Compile Include="Design\DesignDataService.cs" />
+    <Compile Include="Common\RegexValidation.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -107,6 +122,7 @@
     </Compile>
     <Compile Include="ViewModels\PageCreateNewAccountViewModel.cs" />
     <Compile Include="ViewModels\PageHomeViewModel.cs" />
+    <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
     <Compile Include="Views\PageCreateNewAccount.xaml.cs">
       <DependentUpon>PageCreateNewAccount.xaml</DependentUpon>
@@ -160,7 +176,6 @@
   <ItemGroup>
     <Resource Include="Images\cl_wlcm_ptrn_logo.png" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Resource Include="Images\cl_inside_ptrn_logo_side.png" />
   </ItemGroup>

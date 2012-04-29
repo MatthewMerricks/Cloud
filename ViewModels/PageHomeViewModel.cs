@@ -5,6 +5,7 @@ using win_client.Model;
 using System;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Controls;
+using MVVMProductsDemo.ViewModels;
 
 namespace win_client.ViewModels
 {  
@@ -18,12 +19,11 @@ namespace win_client.ViewModels
     /// See http://www.galasoft.ch/mvvm/getstarted
     /// </para>
     /// </summary>
-    public class PageHomeViewModel : ViewModelBase
+    public class PageHomeViewModel : ValidatingViewModelBase
     {
         private readonly IDataService _dataService;
 
         private RelayCommand _pageHome_CreateNewAccountCommand;
-        private RelayCommand _pageCreateNewAccount_BackCommand;
 
         /// <summary>
         /// Initializes a new instance of the PageHomeViewModel class.
