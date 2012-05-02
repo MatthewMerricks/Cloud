@@ -66,7 +66,7 @@ namespace win_client.ViewModels
         /// </summary>
         protected void SendNavigationRequestMessage(Uri uri) 
         {
-            Messenger.Default.Send<Uri>(uri, "NavigationRequest");
+            Messenger.Default.Send<Uri>(uri, "PageHome_NavigationRequest");
         }
 
     }

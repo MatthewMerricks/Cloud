@@ -24,7 +24,7 @@ namespace win_client.Views
 
             this.Loaded += new RoutedEventHandler(Page_Loaded);
 
-            Messenger.Default.Register<Uri>(this, "NavigationRequest",
+            Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
             AppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
 

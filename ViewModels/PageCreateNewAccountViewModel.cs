@@ -232,7 +232,7 @@ namespace win_client.ViewModels
                                             }));
             }
         }
-
+        
         /// <summary>
         /// Continue command from the PageCreateNewAccount page.
         /// </summary>
@@ -247,7 +247,7 @@ namespace win_client.ViewModels
                                                 ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
                                                 if(!HasErrors)
                                                 {
-                                                    Uri nextPage = new System.Uri("/PageHome", System.UriKind.Relative);
+                                                    Uri nextPage = new System.Uri("/PageSelectStorageSize", System.UriKind.Relative);
                                                     SendNavigationRequestMessage(nextPage);
                                                 }
                                                 else
@@ -366,7 +366,7 @@ namespace win_client.ViewModels
         /// </summary>
         protected void SendNavigationRequestMessage(Uri uri) 
         {
-            Messenger.Default.Send<Uri>(uri, "NavigationRequest");
+            Messenger.Default.Send<Uri>(uri, "PageCreateNewAccount_NavigationRequest");
         }
 
         #endregion

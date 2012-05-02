@@ -62,25 +62,22 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="exsportance.Silverlight.Common">
-      <HintPath>SourceBinaries\exsportance.Silverlight.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="exsportance.Silverlight.Validate">
-      <HintPath>SourceBinaries\exsportance.Silverlight.Validate.dll</HintPath>
-    </Reference>
-    <Reference Include="GalaSoft.MvvmLight.SL5">
-      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\Silverlight5\GalaSoft.MvvmLight.SL5.dll</HintPath>
-    </Reference>
-    <Reference Include="GalaSoft.MvvmLight.Extras.SL5">
-      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\Silverlight5\GalaSoft.MvvmLight.Extras.SL5.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Practices.ServiceLocation">
+    <Reference Include="GalaSoft.MvvmLight.Extras.SL5, Version=4.0.21.25721, Culture=neutral, PublicKeyToken=e7f91b7703710fe7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\Silverlight5\Microsoft.Practices.ServiceLocation.dll</HintPath>
+      <HintPath>packages\MvvmLightLibsPreview.4.1.21\lib\SL5\GalaSoft.MvvmLight.Extras.SL5.dll</HintPath>
+    </Reference>
+    <Reference Include="GalaSoft.MvvmLight.SL5, Version=4.0.21.25722, Culture=neutral, PublicKeyToken=c114982fcf1a3a2e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>packages\MvvmLightLibsPreview.4.1.21\lib\SL5\GalaSoft.MvvmLight.SL5.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\MvvmLightLibsPreview.4.1.21\lib\SL5\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Windows.Controls.WatermarkedTextBox, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>SourceBinaries\Microsoft.Windows.Controls.WatermarkedTextBox.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Runtime.Serialization.Json, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Windows.Controls, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Windows.Controls.Data, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Windows.Controls.Data.Input, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
@@ -89,43 +86,54 @@
     <Reference Include="System.Windows.Controls.Toolkit">
       <HintPath>..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v4.0\Toolkit\Apr10\Bin\System.Windows.Controls.Toolkit.dll</HintPath>
     </Reference>
-    <Reference Include="System.Windows.Interactivity">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\Silverlight5\System.Windows.Interactivity.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System.Windows" />
     <Reference Include="system" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Interactivity, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\MvvmLightLibsPreview.4.1.21\lib\SL5\System.Windows.Interactivity.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Windows.Browser" />
+    <Reference Include="System.Xml.Serialization, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\AppMessages.cs" />
+    <Compile Include="Common\BinaryFormatter.cs" />
+    <Compile Include="Common\ExtensionMethods.cs" />
+    <Compile Include="DataModels\Settings\CLSettings.cs" />
     <Compile Include="Design\DesignDataService.cs" />
     <Compile Include="Common\RegexValidation.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Model\DataItem.cs" />
-    <Compile Include="Model\DataService.cs" />
-    <Compile Include="Model\IDataService.cs" />
+    <Compile Include="DataModels\DataItem.cs" />
+    <Compile Include="DataModels\DataService.cs" />
+    <Compile Include="DataModels\IDataService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="ViewModels\PageSetupSelectorViewModel.cs" />
+    <Compile Include="ViewModels\PageSelectStorageSizeViewModel.cs" />
     <Compile Include="ViewModels\PageCreateNewAccountViewModel.cs" />
     <Compile Include="ViewModels\PageHomeViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\PageSetupSelector.xaml.cs">
+      <DependentUpon>PageSetupSelector.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\PageCreateNewAccount.xaml.cs">
       <DependentUpon>PageCreateNewAccount.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageSelectStorageSize.xaml.cs">
+      <DependentUpon>PageSelectStorageSize.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PageHome.xaml.cs">
       <DependentUpon>PageHome.xaml</DependentUpon>
@@ -145,11 +153,85 @@
       <SubType>Designer</SubType>
       <ContainsDesignTimeResources>true</ContainsDesignTimeResources>
     </Page>
+    <Resource Include="Artwork\add.png" />
+    <Resource Include="Artwork\addFocus.png" />
+    <Resource Include="Artwork\addFocusPressed.png" />
+    <Resource Include="Artwork\back.png" />
+    <Resource Include="Artwork\backFocus.png" />
+    <Resource Include="Artwork\backFocusPressed.png" />
+    <Resource Include="Artwork\backPressed.png" />
+    <Resource Include="Artwork\cancel.png" />
+    <Resource Include="Artwork\cancelFocus.png" />
+    <Resource Include="Artwork\cancelFocusPressed.png" />
+    <Resource Include="Artwork\cancelPressed.png" />
+    <Resource Include="Artwork\cloud128.png" />
+    <Resource Include="Artwork\cloud256.png" />
+    <Resource Include="Artwork\cloud48.png" />
+    <Resource Include="Artwork\Cloud_Folder_In_Finder.png" />
+    <Resource Include="Artwork\cl_boxIcon_lrg.png" />
+    <Resource Include="Artwork\cl_boxIcon_med.png" />
+    <Resource Include="Artwork\cl_boxIcon_small.png" />
+    <Resource Include="Artwork\cl_cloud_basics.png" />
+    <Resource Include="Artwork\cl_div_main.png" />
+    <Resource Include="Artwork\cl_fade_main.png" />
+    <Resource Include="Artwork\cl_folder_icon.png" />
+    <Resource Include="Artwork\cl_go_btn_r.png" />
+    <Resource Include="Artwork\cl_go_btn_up.png" />
+    <Resource Include="Artwork\cl_group_bkg.png" />
+    <Resource Include="Artwork\cl_h_select_dis.png" />
+    <Resource Include="Artwork\cl_h_select_r.png" />
+    <Resource Include="Artwork\cl_icon_cog.png" />
+    <Resource Include="Artwork\cl_inside_ptrn_logo_side.png" />
+    <Resource Include="Artwork\cl_inside_region.png" />
+    <Resource Include="Artwork\cl_inside_region_transparent.png" />
+    <Resource Include="Artwork\cl_install_Complete.png" />
+    <Resource Include="Artwork\cl_join_btn_on.png" />
+    <Resource Include="Artwork\cl_select-frame_ON.png" />
+    <Resource Include="Artwork\cl_select-frame_up.png" />
+    <Resource Include="Artwork\cl_selectStorage_frame_ON.png" />
+    <Resource Include="Artwork\cl_selectStorage_frame_up.png" />
+    <Resource Include="Artwork\cl_size_select_dis.png" />
+    <Resource Include="Artwork\cl_size_select_r.png" />
+    <Resource Include="Artwork\cl_skipIcon.png" />
+    <Resource Include="Artwork\cl_skip_up.png" />
+    <Resource Include="Artwork\cl_tourIcon.png" />
+    <Resource Include="Artwork\cl_tour_1.png" />
+    <Resource Include="Artwork\cl_tour_2.png" />
+    <Resource Include="Artwork\cl_tour_3.png" />
+    <Resource Include="Artwork\cl_tour_4.png" />
+    <Resource Include="Artwork\cl_wlcm_div.png" />
+    <Resource Include="Artwork\cl_wlcm_ptrn.png" />
+    <Resource Include="Artwork\cl_wlcm_ptrn_logo-blue.png" />
+    <Resource Include="Artwork\cl_wlcm_ptrn_logo.png" />
+    <Resource Include="Artwork\cl_wlcm_ptrn_logo_large.png" />
+    <Resource Include="Artwork\continue.png" />
+    <Resource Include="Artwork\continueFocus.png" />
+    <Resource Include="Artwork\continueFocusPressed.png" />
+    <Resource Include="Artwork\continuePressed.png" />
+    <Resource Include="Artwork\facebook.png" />
+    <Resource Include="Artwork\moreInfo.png" />
+    <Resource Include="Artwork\moreInfoPressed.png" />
+    <Resource Include="Artwork\StatusItem-Offline-.png" />
+    <Resource Include="Artwork\StatusItem-Offline.png" />
+    <Resource Include="Artwork\StatusItem-Online-.png" />
+    <Resource Include="Artwork\StatusItem-Online.png" />
+    <Resource Include="Artwork\StatusItem-Selected-.png" />
+    <Resource Include="Artwork\StatusItem-Selected.png" />
+    <Resource Include="Artwork\StatusItem-Success.png" />
+    <Resource Include="Artwork\twitter.png" />
     <Resource Include="Skins\MainSkin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Resource>
+    <Page Include="Views\PageSetupSelector.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\PageCreateNewAccount.xaml">
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageSelectStorageSize.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -159,6 +241,17 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Artwork\.DS_Store" />
+    <None Include="Artwork\CloudMenu_Default.pdf" />
+    <None Include="Artwork\CloudMenu_Disabled.pdf" />
+    <None Include="Artwork\CloudMenu_Highlight.pdf" />
+    <None Include="Artwork\CloudSphere_1024.icns" />
+    <None Include="Artwork\cloud_folder.icns" />
+    <None Include="Artwork\GenericSharepoint.icns" />
+    <None Include="Artwork\PicturesFolderIcon.icns" />
+    <None Include="Artwork\PublicFolderIcon.icns" />
+    <None Include="Artwork\SidebarCloud.icns" />
+    <None Include="packages.config" />
     <None Include="Properties\AppManifest.xml">
       <SubType>Designer</SubType>
     </None>
@@ -178,6 +271,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\cl_inside_ptrn_logo_side.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

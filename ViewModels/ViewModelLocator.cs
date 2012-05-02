@@ -14,6 +14,7 @@ using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Practices.ServiceLocation;
 using win_client.Model;
 using win_client.Views;
+using GalaSoft.MvvmLight.Messaging;
 
 namespace win_client.ViewModels
 {
@@ -45,6 +46,8 @@ namespace win_client.ViewModels
 
             SimpleIoc.Default.Register<PageHomeViewModel>();
             SimpleIoc.Default.Register<PageCreateNewAccountViewModel>();
+            SimpleIoc.Default.Register<PageSelectStorageSizeViewModel>();
+            SimpleIoc.Default.Register<PageSetupSelectorViewModel>();
         }
 
         /// <summary>
@@ -74,11 +77,42 @@ namespace win_client.ViewModels
                 return ServiceLocator.Current.GetInstance<PageCreateNewAccountViewModel>();
             }
         }
+
+        /// <summary>
+        /// Gets the PageSelectStorageSizeViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public PageSelectStorageSizeViewModel PageSelectStorageSizeViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<PageSelectStorageSizeViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the PageSetupSelectorViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public PageSetupSelectorViewModel PageSetupSelectorViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<PageSetupSelectorViewModel>();
+            }
+        }
+
         /// <summary>
         /// Cleans up all the resources.
         /// </summary>
         public static void Cleanup()
         {
+            int i = 0;
+            i++;
         }
     }
 }

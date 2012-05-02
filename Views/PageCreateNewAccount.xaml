@@ -43,11 +43,12 @@
     		<Grid.RowDefinitions>
     			<RowDefinition Height="0.034*"/>
     			<RowDefinition Height="0.131*"/>
-    			<RowDefinition Height="0.134*"/>
-    			<RowDefinition Height="0.062*"/>
-    			<RowDefinition Height="0.127*"/>
-    			<RowDefinition Height="0.134*"/>
-    			<RowDefinition Height="0.096*"/>
+    			<RowDefinition Height="0.069*"/>
+    			<RowDefinition Height="0.144*"/>
+    			<RowDefinition Height="0.027*"/>
+    			<RowDefinition Height="0.131*"/>
+    			<RowDefinition Height="0.131*"/>
+    			<RowDefinition Height="0.052*"/>
     			<RowDefinition Height="0.134*"/>
     			<RowDefinition Height="0.148*"/>
     		</Grid.RowDefinitions>
@@ -56,27 +57,29 @@
     			<ColumnDefinition Width="0.556*"/>
     			<ColumnDefinition Width="0.096*"/>
     		</Grid.ColumnDefinitions>
-    		<Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="3" Grid.RowSpan="9" Margin="8,0,-8,0" RadiusX="5" RadiusY="5" Opacity="0.9"/>
+    		<Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="3" Grid.RowSpan="10" Margin="8,0,-8,0" RadiusX="5" RadiusY="5" Opacity="0.9"/>
             <TextBox Name="tbEMail" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Column="1" Grid.Row="1" d:LayoutOverrides="Height" 
                      Text="{Binding EMail, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="1" />
-            <TextBox Name="tbFullName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="2" Grid.Column="1" d:LayoutOverrides="Height" 
-                     Text="{Binding FullName, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="2" />
-            <PasswordBox Name="tbPassword" Foreground="Black" Margin="0,5" Grid.Row="4" Grid.Column="1" d:LayoutOverrides="Height" 
-                     Password="{Binding Password, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="3" />
-            <PasswordBox Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="5" Grid.Column="1" d:LayoutOverrides="Height" 
+            <TextBox Name="tbFullName" TextAlignment="Left" Foreground="Black" Grid.Row="3" Grid.Column="1" 
+                     Text="{Binding FullName, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="2" VerticalAlignment="Top" Margin="0,5,0,0" Height="29" />
+            <PasswordBox Name="tbPassword" Foreground="Black" Margin="0,5" Grid.Row="5" Grid.Column="1" 
+                     Password="{Binding Password, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="3" d:LayoutOverrides="Height" />
+            <PasswordBox Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="6" Grid.Column="1" d:LayoutOverrides="Height" 
                      Password="{Binding ConfirmPassword, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="4" />
-            <TextBox Name="tbComputerName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="7" Grid.Column="1" d:LayoutOverrides="Height" 
+            <TextBox Name="tbComputerName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="8" Grid.Column="1" d:LayoutOverrides="Height" 
                      Text="{Binding ComputerName, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="5" />
     		<TextBlock TextWrapping="Wrap" Text="EMail:" RenderTransformOrigin="0.5,0.5" 
-    			Foreground="Black" FontSize="16" Margin="0,5,7,5" Grid.Row="1" TextAlignment="Right"/>
+    			Foreground="Black" FontSize="16" Margin="0,8,7,2" Grid.Row="1" TextAlignment="Right"/>
     		<TextBlock TextWrapping="Wrap" Text="Full Name:" RenderTransformOrigin="0.5,0.5" 
-    			Foreground="Black" FontSize="16" Margin="0,5,7,5" Grid.Row="2" TextAlignment="Right"/>
+    			Foreground="Black" FontSize="16" Margin="-1,8,8,5" Grid.Row="3" TextAlignment="Right"/>
     		<TextBlock TextWrapping="Wrap" Text="Password:" RenderTransformOrigin="0.5,0.5" 
-    			Foreground="Black" FontSize="16" Margin="0,5,7,5" Grid.Row="4" TextAlignment="Right"/>
+    			Foreground="Black" FontSize="16" Margin="-1,8,8,3" Grid.Row="5" TextAlignment="Right"/>
     		<TextBlock TextWrapping="Wrap" Text="Confirm:" RenderTransformOrigin="0.5,0.5" 
-    			Foreground="Black" FontSize="16" Margin="0,5,7,5" Grid.Row="5" TextAlignment="Right"/>
+    			Foreground="Black" FontSize="16" Margin="-1,9,8,0" Grid.Row="6" TextAlignment="Right"/>
     		<TextBlock TextWrapping="Wrap" Text="Computer Name:" RenderTransformOrigin="0.5,0.5"
-    			Foreground="Black" FontSize="16" Margin="0,5,7,5" Grid.Row="7" TextAlignment="Right"/>
+    			Foreground="Black" FontSize="16" Margin="-1,8,8,2" Grid.Row="8" TextAlignment="Right"/>
+    		<TextBlock TextWrapping="Wrap" Text="This will be your user ID." RenderTransformOrigin="0.5,0.5" 
+    			Foreground="Black" FontSize="10.667" Margin="46,-5,61,-3" Grid.Row="2" TextAlignment="Right" Grid.Column="1"/>
     	</Grid>
         <TextBlock TextWrapping="Wrap" Text="Let's create your Cloud account" RenderTransformOrigin="0.5,0.5" 
                             Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Top" Margin="48,44,94,0" d:LayoutOverrides="Width" Height="28"/>

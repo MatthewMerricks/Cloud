@@ -19,13 +19,15 @@ namespace win_client.Views
         public PageHome()
         {
             InitializeComponent();
-            Messenger.Default.Register<Uri>(this, "NavigationRequest", 
+            Messenger.Default.Register<Uri>(this, "PageHome_NavigationRequest", 
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
         }
 
         // Executes when the user navigates to this page.
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
+            int i = 0;
+            i++;
         }
 
     }
