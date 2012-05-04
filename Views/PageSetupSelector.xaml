@@ -37,8 +37,8 @@
                 <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Images/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
-        <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneWay}" TabIndex="6" Margin="67,23,66,23" Grid.Row="1" />
-        <Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Background="#FF49C3FB" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneWay}" TabIndex="6" Margin="67,23,66,23" Height="50" Grid.Row="1" />
+        <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneWay}" TabIndex="3" Margin="67,23,66,23" Grid.Row="1" />
+        <Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Background="#FF49C3FB" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneWay}" TabIndex="4" Margin="67,23,66,23" Height="50" Grid.Row="1" />
         <Grid Grid.Column="1" Margin="48,85,37,8" Grid.ColumnSpan="4">
     		<Grid.RowDefinitions>
     			<RowDefinition Height="0.495*"/>
@@ -51,7 +51,9 @@
     		<Image Margin="0" Source="/win-client;component/Artwork/cl_select-frame_ON.png" Grid.Row="0" Grid.Column="0"/>
 			<StackPanel Margin="25,0,0,0" Width="Auto" Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
 				<Image Margin="0,0,-378,0" Source="/win-client;component/Artwork/cl_folder_icon.png" Height="50" HorizontalAlignment="Left"/>
-				<RadioButton Content="Default" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" FontSize="16" FontWeight="Bold" Foreground="#FF565656" VerticalContentAlignment="Top" Padding="4,-3,0,0"/>
+				<RadioButton Content="Default" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
+                             VerticalContentAlignment="Top" Padding="4,-3,0,0" TabIndex="1" IsChecked="{Binding IsDefaultSelected, Mode=TwoWay}" GroupName="grpSelections"
+                             />
 				<StackPanel Width="260" Margin="10,58,0,0">
 					<TextBlock TextWrapping="Wrap" Text="(we recommend this selection)" FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="20"/>
 					<TextBlock TextWrapping="Wrap" Text="Set up your Cloud with our recommended settings." FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
@@ -60,11 +62,13 @@
 			<Image Margin="0" Source="/win-client;component/Artwork/cl_select-frame_ON.png" Grid.Row="1" Grid.Column="0"/>
 			<StackPanel Margin="25,0,0,0" Width="Auto" Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
 				<Image Margin="0,0,-378,0" Source="/win-client;component/Artwork/cl_icon_cog.png" Height="50" HorizontalAlignment="Left"/>
-				<RadioButton VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" Content="Advanced" FontSize="16" FontWeight="Bold" Foreground="#FF565656" Padding="4,-3,0,0"/>
+				<RadioButton VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" Content="Advanced" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
+                             IsChecked="{Binding IsAdvancedSelected, Mode=TwoWay}" Padding="4,-3,0,0" TabIndex="2" GroupName="grpSelections"/>
 				<StackPanel Width="260" Margin="10,58,0,3">
 					<TextBlock TextWrapping="Wrap" Text="You get to choose your Cloud folder location and further sync options." FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 				</StackPanel>
 			</StackPanel>
+			<TextBlock Margin="206,0,218,-16" Grid.Row="1" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Bottom" d:LayoutOverrides="Width"/>
     	</Grid>
         <TextBlock TextWrapping="Wrap" Text="Select the setup option that works for you." RenderTransformOrigin="0.5,0.5" 
                             Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Top" Margin="48,44,94,0" d:LayoutOverrides="Width" Height="28"/>

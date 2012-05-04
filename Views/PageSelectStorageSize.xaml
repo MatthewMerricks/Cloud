@@ -38,43 +38,56 @@
             </Border.Background>
         </Border>
         <Grid Grid.Column="1" Margin="48,93,37,-32" Grid.ColumnSpan="4">
-    		<Grid.RowDefinitions>
-    			<RowDefinition Height="0.041*"/>
-    			<RowDefinition Height="0.661*"/>
-    			<RowDefinition Height="0.298*"/>
-    		</Grid.RowDefinitions>
-    		<Grid.ColumnDefinitions>
-    			<ColumnDefinition Width="0.056*"/>
-    			<ColumnDefinition Width="0.297*"/>
-    			<ColumnDefinition Width="0.299*"/>
-    			<ColumnDefinition Width="0.301*"/>
-    			<ColumnDefinition Width="0.046*"/>
-    		</Grid.ColumnDefinitions>
-    		<Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="5" RadiusX="8" RadiusY="8" Opacity="0.9" Grid.RowSpan="3"/>
-    		<Button x:Name="cmd5Gb" Content="5 GB - Free" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSelectStorageSize_5GbCommand, Mode=OneWay}" TabIndex="6" Grid.Row="2" Margin="15" Height="50" />
-            <Button x:Name="cmd50Gb" Content="50 GB" VerticalAlignment="Center" FontSize="13.333" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSelectStorageSize_50GbCommand, Mode=OneWay}" TabIndex="6" Grid.Row="2" Margin="15" Height="50" />
-            <Button x:Name="cmd500Gb" Content="500 GB" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13.333" Background="#FF49C3FB" Grid.Column="3" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSelectStorageSize_500GbCommand, Mode=OneWay}" TabIndex="6" Grid.Row="2" Margin="15" Height="50" />
-    		<Image Grid.Column="1" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
-			<Image Grid.Column="1" Margin="0,0,0,19" Grid.Row="1" Source="/win-client;component/Artwork/cl_boxIcon_small.png" Height="63" VerticalAlignment="Bottom"/>
-    		<Image Grid.Column="2" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
-			<Image Grid.Column="2" Margin="0,0,0,19" Grid.Row="1" Source="/win-client;component/Artwork/cl_boxIcon_med.png" Height="82" VerticalAlignment="Bottom"/>
-    		<Image Grid.Column="3" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
-			<Image Grid.Column="3" Margin="0,92,0,19" Grid.Row="1" Source="/win-client;component/Artwork/cl_boxIcon_lrg.png"/>
-			<TextBlock TextWrapping="Wrap" Text="GB" RenderTransformOrigin="0.5,0.5" 
-				Foreground="Black" FontSize="16" Margin="70,29,48,0" Height="28" VerticalAlignment="Top" Grid.Column="2" Grid.Row="1"/>
-			<TextBlock TextWrapping="Wrap" Text="50" RenderTransformOrigin="0.36,1.393" 
-				Foreground="Blue" FontSize="16" Margin="41,29,0,0" Height="28" VerticalAlignment="Top" Grid.Column="2" Grid.Row="1" TextAlignment="Right" HorizontalAlignment="Left" Width="25"/>
-			<TextBlock TextWrapping="Wrap" Text="Free" RenderTransformOrigin="0.36,1.393" 
-				Foreground="Blue" FontSize="16" Margin="51,57,37,0" Height="28" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" TextAlignment="Center"/>
-			<TextBlock TextWrapping="Wrap" Text="GB" RenderTransformOrigin="0.5,0.5" 
-				Foreground="Black" FontSize="16" Margin="0,29,42,0" Height="28" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1" HorizontalAlignment="Right" Width="25"/>
-			<TextBlock TextWrapping="Wrap" Text="500" RenderTransformOrigin="0.36,1.393" 
-				Foreground="Blue" FontSize="16" Margin="33,29,71,0" Height="28" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1" TextAlignment="Right"/>
-			<TextBlock TextWrapping="Wrap" Text="GB" RenderTransformOrigin="0.5,0.5" 
-				Foreground="Black" FontSize="16" Margin="0,29,37,0" Height="28" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right" Width="25"/>
-			<TextBlock TextWrapping="Wrap" Text="5" RenderTransformOrigin="0.36,1.393" 
-				Foreground="Blue" FontSize="16" Margin="51,29,66,0" Height="28" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" TextAlignment="Right"/>
-    	</Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.041*"/>
+                <RowDefinition Height="0.661*"/>
+                <RowDefinition Height="0.298*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.056*"/>
+                <ColumnDefinition Width="0.297*"/>
+                <ColumnDefinition Width="0.299*"/>
+                <ColumnDefinition Width="0.301*"/>
+                <ColumnDefinition Width="0.046*"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="5" RadiusX="8" RadiusY="8" Opacity="0.9" Grid.RowSpan="3"/>
+            <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
+                    Command="{Binding PageSelectStorageSize_BackCommand, Mode=OneWay}" TabIndex="6" Grid.Row="2" Margin="15" Height="50" />
+            <Button x:Name="cmdContinue" Content="Continue" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13.333" Background="#FF49C3FB" Grid.Column="3" Template="{StaticResource StyledButtonTemplate}" 
+                    Command="{Binding PageSelectStorageSize_ContinueCommand, Mode=OneWay}" TabIndex="6" Grid.Row="2" Margin="15" Height="50" />
+            <Image Grid.Column="1" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
+            <Image Grid.Column="1" Margin="0,0,0,19" Grid.Row="1" Source="/win-client;component/Artwork/cl_boxIcon_small.png" Height="63" VerticalAlignment="Bottom"/>
+            <Button x:Name="btnCovering5GbRadioButtonArea" Margin="0" d:LayoutOverrides="Height" Grid.Row="1" Grid.Column="1" 
+                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSelectStorageSize_5GbAreaCommand, Mode=OneWay}" />
+            <Image Grid.Column="2" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
+            <Image Grid.Column="2" Margin="0,0,0,19" Grid.Row="1" Source="/win-client;component/Artwork/cl_boxIcon_med.png" Height="82" VerticalAlignment="Bottom"/>
+            <Button x:Name="btnCovering50GbRadioButtonArea" Margin="0" Grid.Row="1" Grid.Column="2" 
+                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" d:LayoutOverrides="Height" Command="{Binding PageSelectStorageSize_50GbAreaCommand, Mode=OneWay}" />
+            <Image Grid.Column="3" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
+            <Image Grid.Column="3" Margin="0,92,0,19" Grid.Row="1" Source="/win-client;component/Artwork/cl_boxIcon_lrg.png"/>
+            <Button x:Name="btnCovering500GbRadioButtonArea" Margin="0" Grid.Row="1" Grid.Column="3" 
+                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" d:LayoutOverrides="Height" Command="{Binding PageSelectStorageSize_500GbAreaCommand, Mode=OneWay}" />
+            <TextBlock TextWrapping="Wrap" Text="GB" RenderTransformOrigin="0.5,0.5" 
+                Foreground="Black" FontSize="16" Margin="70,29,48,0" Height="28" VerticalAlignment="Top" Grid.Column="2" Grid.Row="1"/>
+            <TextBlock TextWrapping="Wrap" Text="50" RenderTransformOrigin="0.36,1.393" 
+                Foreground="Blue" FontSize="16" Margin="41,29,0,0" Height="28" VerticalAlignment="Top" Grid.Column="2" Grid.Row="1" TextAlignment="Right" HorizontalAlignment="Left" Width="25"/>
+            <TextBlock TextWrapping="Wrap" Text="Free" RenderTransformOrigin="0.36,1.393" 
+                Foreground="Blue" FontSize="16" Margin="60,57,28,0" Height="28" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" TextAlignment="Center"/>
+            <TextBlock TextWrapping="Wrap" Text="GB" RenderTransformOrigin="0.5,0.5" 
+                Foreground="Black" FontSize="16" Margin="0,29,42,0" Height="28" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1" HorizontalAlignment="Right" Width="25"/>
+            <TextBlock TextWrapping="Wrap" Text="500" RenderTransformOrigin="0.36,1.393" 
+                Foreground="Blue" FontSize="16" Margin="33,29,71,0" Height="28" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1" TextAlignment="Right"/>
+            <TextBlock TextWrapping="Wrap" Text="GB" RenderTransformOrigin="0.5,0.5" 
+                Foreground="Black" FontSize="16" Margin="0,29,37,0" Height="28" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right" Width="25"/>
+            <TextBlock TextWrapping="Wrap" Text="5" RenderTransformOrigin="0.36,1.393" 
+                Foreground="Blue" FontSize="16" Margin="51,29,66,0" Height="28" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" TextAlignment="Right"/>
+            <RadioButton d:LayoutOverrides="VerticalAlignment" RenderTransformOrigin="2.481,4.077" VerticalAlignment="Top" Grid.Column="1" HorizontalAlignment="Left" Margin="41,33,0,0" Grid.Row="1" 
+                         IsChecked="{Binding PageSelectStorageSize_SizeSelected, Mode=TwoWay, ConverterParameter=Size5Gb, Converter={StaticResource RadioButtonConverter}}" GroupName="Group1"/>
+            <RadioButton RenderTransformOrigin="2.481,4.077" VerticalAlignment="Top" Grid.Column="2" HorizontalAlignment="Left" Margin="21,33,0,0" Grid.Row="1" d:LayoutOverrides="VerticalAlignment" 
+                         IsChecked="{Binding PageSelectStorageSize_SizeSelected, Mode=TwoWay, ConverterParameter=Size50Gb, Converter={StaticResource RadioButtonConverter}}" GroupName="Group1"/>
+            <RadioButton RenderTransformOrigin="2.481,4.077" VerticalAlignment="Top" Grid.Column="3" HorizontalAlignment="Left" Margin="24,33,0,0" Grid.Row="1" d:LayoutOverrides="VerticalAlignment" 
+                         IsChecked="{Binding PageSelectStorageSize_SizeSelected, Mode=TwoWay, ConverterParameter=Size500Gb, Converter={StaticResource RadioButtonConverter}}" GroupName="Group1"/>
+        </Grid>
         <TextBlock TextWrapping="Wrap" Text="How much room do you need?" RenderTransformOrigin="0.5,0.5" 
                             Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Top" Margin="48,44,94,0" d:LayoutOverrides="Width" Height="28"/>
 

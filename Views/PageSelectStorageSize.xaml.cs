@@ -13,47 +13,68 @@ using System.Windows.Navigation;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
+using System.Globalization;
 
 namespace win_client.Views
 {
     public partial class PageSelectStorageSize : Page
     {
+        #region "Instance Variables"
+
+        private bool _isLoaded = false;
+
+        #endregion
+
         public PageSelectStorageSize()
         {
             InitializeComponent();
 
-            this.Loaded += new RoutedEventHandler(Page_Loaded);
+            Loaded += new RoutedEventHandler(PageSelectStorageSize_Loaded);
+            Unloaded += new RoutedEventHandler(PageSelectStorageSize_Unloaded);
 
             Messenger.Default.Register<Uri>(this, "PageSelectStorageSize_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
+            AppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
 
-            Messenger.Default.Register<DialogMessage>(
-                this,
-                msg =>
-                {
-                    var result = MessageBox.Show(
-                        msg.Content,
-                        msg.Caption,
-                        msg.Button);
-
-                    // Send callback
-                    msg.ProcessCallback(result);
-                });
         }
 
-        // Executes when the user navigates to this page.
+        #region "Message Handlers"
+
+        void PageSelectStorageSize_Loaded(object sender, RoutedEventArgs e)
+        {
+            _isLoaded = true;
+            cmdContinue.Focus();
+        }
+
+        void PageSelectStorageSize_Unloaded(object sender, RoutedEventArgs e)
+        {
+            Messenger.Default.Unregister(this);
+        }
+
+        private void SelectStorageSize_PresentMessageDialog(DialogMessage msg)
+        {
+            var result = MessageBox.Show(
+                msg.Content,
+                msg.Caption,
+                msg.Button);
+
+            msg.ProcessCallback(result);     // Send callback
+        }
+
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            int i = 0;
-            i++;
+            if (_isLoaded)
+            {
+                cmdContinue.Focus();
+            } 
         }
-
-        #region "Page Loaded"
-        private void Page_Loaded(object sender, RoutedEventArgs e)
-        {
-            cmd5Gb.Focus();
-        }
+ 
         #endregion
 
+
     }
+
+    #region "RadioButton Binding Converter"
+
+    #endregion
 }

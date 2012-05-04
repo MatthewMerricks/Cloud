@@ -24,9 +24,44 @@ namespace win_client.ViewModels
         #region Instance Variables
         private readonly IDataService _dataService;
 
-        private RelayCommand _pageSelectStorageSize_5GbCommand;
-        private RelayCommand _pageSelectStorageSize_50GbCommand;
-        private RelayCommand _pageSelectStorageSize_500GbCommand;
+        private RelayCommand _pageSelectStorageSize_BackCommand;
+        private RelayCommand _pageSelectStorageSize_ContinueCommand;
+        private RelayCommand _pageSelectStorageSize_5GbAreaCommand;
+        private RelayCommand _pageSelectStorageSize_50GbAreaCommand;
+        private RelayCommand _pageSelectStorageSize_500GbAreaCommand;
+
+        #endregion
+
+        #region "Bindable Properties"
+        /// <summary>
+        /// The <see cref="PageSelectStorageSize_SizeSelected" /> property's name.
+        /// </summary>
+        public const string PageSelectStorageSize_SizeSelectedPropertyName = "PageSelectStorageSize_SizeSelected";
+
+        private StorageSizeSelections _pageSelectStorageSize_SizeSelected = StorageSizeSelections.Size5Gb;
+
+        /// <summary>
+        /// Sets and gets the PageSelectStorageSize_SizeSelected property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public StorageSizeSelections PageSelectStorageSize_SizeSelected
+        {
+            get
+            {
+                return _pageSelectStorageSize_SizeSelected;
+            }
+
+            set
+            {
+                if (_pageSelectStorageSize_SizeSelected == value)
+                {
+                    return;
+                }
+
+                _pageSelectStorageSize_SizeSelected = value;
+                RaisePropertyChanged(PageSelectStorageSize_SizeSelectedPropertyName);
+            }
+        }
         #endregion
 
         #region Life Cycle
@@ -53,56 +88,97 @@ namespace win_client.ViewModels
         #region Commands
          
         /// <summary>
-        /// The user clicked the free 5 GB button on the PageSelectStorageSize page.
+        /// The user clicked the Back button on the PageSelectStorageSize page.
         /// </summary>
-        public RelayCommand PageSelectStorageSize_5GbCommand
+        public RelayCommand PageSelectStorageSize_BackCommand
         {
             get
             {
-                return _pageSelectStorageSize_5GbCommand
-                    ?? (_pageSelectStorageSize_5GbCommand = new RelayCommand(
+                return _pageSelectStorageSize_BackCommand
+                    ?? (_pageSelectStorageSize_BackCommand = new RelayCommand(
                                             () =>
-                                            {
-                                                // Store current storage selection
-                                                Settings.Instance.setCloudQuota(5);
-        
-                                                // begin setup
-                                                Uri nextPage = new System.Uri("/PageSetupSelector", System.UriKind.Relative);
+                                            {      
+                                                Uri nextPage = new System.Uri("/PageCreateNewAccount", System.UriKind.Relative);
                                                 SendNavigationRequestMessage(nextPage);
-                                            }));
-            }
-        }
-        
-        /// <summary>
-        /// The user clicked the 50 GB button on the PageSelectStorageSize page.
-        /// </summary>
-        public RelayCommand PageSelectStorageSize_50GbCommand
-        {
-            get
-            {
-                return _pageSelectStorageSize_50GbCommand
-                    ?? (_pageSelectStorageSize_50GbCommand = new RelayCommand(
-                                            () =>
-                                            {
-                                                // Not implemented, put up a dialog.
-                                                ToDoNeedCreditCardInfo();
                                             }));
             }
         }
 
         /// <summary>
-        /// The user clicked the 500 GB button on the PageSelectStorageSize page.
+        /// The user clicked the Continue button on the PageSelectStorageSize page.
         /// </summary>
-        public RelayCommand PageSelectStorageSize_500GbCommand
+        public RelayCommand PageSelectStorageSize_ContinueCommand
         {
             get
             {
-                return _pageSelectStorageSize_500GbCommand
-                    ?? (_pageSelectStorageSize_500GbCommand = new RelayCommand(
+                return _pageSelectStorageSize_ContinueCommand
+                    ?? (_pageSelectStorageSize_ContinueCommand = new RelayCommand(
                                             () =>
                                             {
-                                                // Not implemented, put up a dialog.
-                                                ToDoNeedCreditCardInfo();
+                                                // The user has decided.  Process based on the storage size selection.
+                                                switch (_pageSelectStorageSize_SizeSelected)
+                                                {
+                                                    case StorageSizeSelections.Size5Gb:
+                                                        Settings.Instance.setCloudQuota(5);
+
+                                                        Uri nextPage = new System.Uri("/PageSetupSelector", System.UriKind.Relative);
+                                                        SendNavigationRequestMessage(nextPage);
+                                                        break;
+                                                    case StorageSizeSelections.Size50Gb:
+                                                    case StorageSizeSelections.Size500Gb:
+                                                        // TODO: We need to collect credit card info.  
+                                                        // Not implemented, put up a dialog.
+                                                        ToDoNeedCreditCardInfo();
+                                                        break;
+                                                }
+                                            }));
+            }
+        }
+
+        /// <summary>
+        /// The user clicked the area over the 5Gb RadioButton on the PageSelectStorageSize page.
+        /// </summary>
+        public RelayCommand PageSelectStorageSize_5GbAreaCommand
+        {
+            get
+            {
+                return _pageSelectStorageSize_5GbAreaCommand
+                    ?? (_pageSelectStorageSize_5GbAreaCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                PageSelectStorageSize_SizeSelected = StorageSizeSelections.Size5Gb;
+                                            }));
+            }
+        }
+
+        /// <summary>
+        /// The user clicked the area over the 50Gb RadioButton on the PageSelectStorageSize page.
+        /// </summary>
+        public RelayCommand PageSelectStorageSize_50GbAreaCommand
+        {
+            get
+            {
+                return _pageSelectStorageSize_50GbAreaCommand
+                    ?? (_pageSelectStorageSize_50GbAreaCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                PageSelectStorageSize_SizeSelected = StorageSizeSelections.Size50Gb;
+                                            }));
+            }
+        }
+
+        /// <summary>
+        /// The user clicked the area over the 500Gb RadioButton on the PageSelectStorageSize page.
+        /// </summary>
+        public RelayCommand PageSelectStorageSize_500GbAreaCommand
+        {
+            get
+            {
+                return _pageSelectStorageSize_500GbAreaCommand
+                    ?? (_pageSelectStorageSize_500GbAreaCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                PageSelectStorageSize_SizeSelected = StorageSizeSelections.Size500Gb;
                                             }));
             }
         }
@@ -134,7 +210,7 @@ namespace win_client.ViewModels
                 Caption = "Not Available"
             };
 
-            Messenger.Default.Send(message);
+            AppMessages.SelectStorageSize_PresentMessageDialog.Send(message);
         }
 
 

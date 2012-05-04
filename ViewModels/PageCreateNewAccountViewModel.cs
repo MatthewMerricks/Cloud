@@ -350,6 +350,10 @@ namespace win_client.ViewModels
                     bindingExpression = ((TextBox)element).GetBindingExpression(TextBox.TextProperty);
                     break;
 
+                case "System.Windows.Controls.PasswordBox":
+                    bindingExpression = ((PasswordBox)element).GetBindingExpression(PasswordBox.PasswordProperty);
+                    break;
+
                 case "System.Windows.Controls.RadioButton":
                     bindingExpression = ((RadioButton)element).GetBindingExpression(RadioButton.IsCheckedProperty);
                     break;

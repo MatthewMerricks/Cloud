@@ -12,8 +12,9 @@ namespace win_client.Common
     {
         enum MessageTypes
         {
-            // CreateNewAccount View messages
             CreateNewAccount_FocusToError,
+            SelectStorageSize_PresentMessageDialog,
+            SetupSelector_PresentMessageDialog,
         }
 
         public static class CreateNewAccount_FocusToError
@@ -29,5 +30,30 @@ namespace win_client.Common
             }
         }
 
+        public static class SelectStorageSize_PresentMessageDialog
+        {
+            public static void Send(DialogMessage message)
+            {
+                Messenger.Default.Send(message, MessageTypes.SelectStorageSize_PresentMessageDialog);
+            }
+
+            public static void Register(object recipient, Action<DialogMessage> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.SelectStorageSize_PresentMessageDialog, action);
+            }
+        }
+
+        public static class SetupSelector_PresentMessageDialog
+        {
+            public static void Send(DialogMessage message)
+            {
+                Messenger.Default.Send(message, MessageTypes.SetupSelector_PresentMessageDialog);
+            }
+
+            public static void Register(object recipient, Action<DialogMessage> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.SetupSelector_PresentMessageDialog, action);
+            }
+        }
     }
 }

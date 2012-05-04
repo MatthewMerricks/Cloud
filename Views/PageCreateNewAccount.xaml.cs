@@ -18,27 +18,43 @@ namespace win_client.Views
 {
     public partial class PageCreateNewAccount : Page
     {
+        #region "Instance Variables"
+
+        private bool _isLoaded = false;
+
+        #endregion
+
+        #region "Life Cycle"
+
         public PageCreateNewAccount()
         {
             InitializeComponent();
 
-            this.Loaded += new RoutedEventHandler(Page_Loaded);
+            Loaded += new RoutedEventHandler(PageCreateNewAccount_Loaded);
+            Unloaded += new RoutedEventHandler(PageCreateNewAccount_Unloaded);
 
             Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
             AppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
-
         }
 
-        // Executes when the user navigates to this page.
+        void PageCreateNewAccount_Loaded(object sender, RoutedEventArgs e)
+        {
+            _isLoaded = true;
+            tbEMail.Focus();
+        }
+
+        void PageCreateNewAccount_Unloaded(object sender, RoutedEventArgs e)
+        {
+            Messenger.Default.Unregister(this);
+        }
+
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-        }
-
-        #region "Page Loaded"
-        private void Page_Loaded(object sender, RoutedEventArgs e)
-        {
-            tbEMail.Focus();
+            if (_isLoaded)
+            {
+                tbEMail.Focus();
+            }
         }
         #endregion
 
@@ -72,6 +88,7 @@ namespace win_client.Views
         }
 
         #endregion "ChangeScreenMessage"
+
 
 
     }

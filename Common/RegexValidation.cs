@@ -49,9 +49,21 @@ namespace win_client.Common
         /// Otherwise false.</returns>
         public static bool IsXOK(string password)
         {
-            if(password != null) return Regex.IsMatch(password, MatchStrongPassword);
-            else return false;
+            if (password != null)
+            {
+                if (password.Length != 0)
+                {
+                    return Regex.IsMatch(password, MatchStrongPassword);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
-
     }
 }

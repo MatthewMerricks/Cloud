@@ -13,44 +13,65 @@ using System.Windows.Navigation;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
+using win_client.ViewModels;
 
 namespace win_client.Views
 {
     public partial class PageSetupSelector : Page
     {
+        #region "Instance Variables"
+
+        private bool _isLoaded = false;
+
+        #endregion
+
         public PageSetupSelector()
         {
             InitializeComponent();
 
-            this.Loaded += new RoutedEventHandler(Page_Loaded);
+            Loaded += new RoutedEventHandler(PageSetupSelector_Loaded);
+            Unloaded += new RoutedEventHandler(PageSetupSelector_Unloaded);
 
             Messenger.Default.Register<Uri>(this, "PageSetupSelector_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-
-            Messenger.Default.Register<DialogMessage>(
-                this,
-                msg =>
-                {
-                    var result = MessageBox.Show(
-                        msg.Content,
-                        msg.Caption,
-                        msg.Button);
-
-                    // Send callback
-                    msg.ProcessCallback(result);
-                });
+            AppMessages.SetupSelector_PresentMessageDialog.Register(this, SetupSelector_PresentMessageDialog);
         }
 
-        // Executes when the user navigates to this page.
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-        }
+        #region "Message Handlers"
 
-        #region "Page Loaded"
-        private void Page_Loaded(object sender, RoutedEventArgs e)
+        void PageSetupSelector_Loaded(object sender, RoutedEventArgs e)
         {
+            _isLoaded = true;
             cmdContinue.Focus();
         }
+
+        void PageSetupSelector_Unloaded(object sender, RoutedEventArgs e)
+        {
+            Messenger.Default.Unregister(this);
+        }
+
+        private void SetupSelector_PresentMessageDialog(DialogMessage msg)
+        {
+            var result = MessageBox.Show(
+                msg.Content,
+                msg.Caption,
+                msg.Button);
+
+            msg.ProcessCallback(result);     // Send callback
+        }
+
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            if (_isLoaded)
+            {
+                cmdContinue.Focus();
+            } 
+
+            var vm = DataContext as PageSetupSelectorViewModel;
+            vm.PageSetupSelector_NavigatedToCommand.Execute(null);
+        }
+
         #endregion
 
     }
