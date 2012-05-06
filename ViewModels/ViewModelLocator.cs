@@ -1,4 +1,11 @@
-﻿/*
+﻿//
+//  ViewModelLocator.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+/*
   In App.xaml:
   <Application.Resources>
       <vm:ViewModelLocatorTemplate xmlns:vm="clr-namespace:win_client.ViewModels"

@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+//  PageCreateNewAccount.xaml.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,6 +20,7 @@ using System.Windows.Navigation;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
+using win_client.ViewModels;
 
 namespace win_client.Views
 {
@@ -55,6 +63,9 @@ namespace win_client.Views
             {
                 tbEMail.Focus();
             }
+
+            var vm = DataContext as PageCreateNewAccountViewModel;
+            vm.PageCreateNewAccount_NavigatedToCommand.Execute(null);
         }
         #endregion
 

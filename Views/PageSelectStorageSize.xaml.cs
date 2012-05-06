@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+//  PageSelectStorageSize.xaml.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -14,6 +21,7 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
 using System.Globalization;
+using win_client.ViewModels;
 
 namespace win_client.Views
 {
@@ -66,7 +74,10 @@ namespace win_client.Views
             if (_isLoaded)
             {
                 cmdContinue.Focus();
-            } 
+            }
+
+            var vm = DataContext as PageSelectStorageSizeViewModel;
+            vm.PageSelectStorageSize_NavigatedToCommand.Execute(null);
         }
  
         #endregion
@@ -74,7 +85,4 @@ namespace win_client.Views
 
     }
 
-    #region "RadioButton Binding Converter"
-
-    #endregion
 }

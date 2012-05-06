@@ -1,4 +1,11 @@
-﻿using GalaSoft.MvvmLight;
+﻿//
+//  PageCreateNewAccountViewModel.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using GalaSoft.MvvmLight;
 using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
@@ -11,6 +18,7 @@ using System.Windows.Controls;
 using win_client.Common;
 using System.Reflection;
 using System.Linq;
+using win_client.DataModels.Settings;
 
 namespace win_client.ViewModels
 {
@@ -31,6 +39,7 @@ namespace win_client.ViewModels
 
         private RelayCommand _pageCreateNewAccount_BackCommand;
         private RelayCommand _pageCreateNewAccount_ContinueCommand;
+        private RelayCommand _pageCreateNewAccount_NavigatedToCommand;        
 
         #endregion
 
@@ -50,6 +59,7 @@ namespace win_client.ViewModels
                         return;
                     }
 
+                    SetFieldsFromSettings();
                     //&&&&               WelcomeTitle = item.Title;
                 });
         }
@@ -84,6 +94,7 @@ namespace win_client.ViewModels
                 }
 
                 _eMail = value;
+                Settings.Instance.UserName = _eMail;
                 RaisePropertyChanged(EMailPropertyName);
             }
         }
@@ -115,6 +126,7 @@ namespace win_client.ViewModels
                 }
 
                 _fullName = value;
+                Settings.Instance.UserFullName = _fullName;
                 RaisePropertyChanged(FullNamePropertyName);
             }
         }
@@ -208,6 +220,7 @@ namespace win_client.ViewModels
                 }
 
                 _computerName = value;
+                Settings.Instance.DeviceName = _computerName;
                 RaisePropertyChanged(ComputerNamePropertyName);
             }
         }
@@ -244,7 +257,7 @@ namespace win_client.ViewModels
                     ?? (_pageCreateNewAccount_ContinueCommand = new RelayCommand(
                                             () =>
                                             {
-                                                ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
+                                                ExtensionMethods.ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
                                                 if(!HasErrors)
                                                 {
                                                     Uri nextPage = new System.Uri("/PageSelectStorageSize", System.UriKind.Relative);
@@ -258,7 +271,25 @@ namespace win_client.ViewModels
             }
         }
 
+
+        /// <summary>
+        /// The page was navigated to.
+        /// </summary>
+        public RelayCommand PageCreateNewAccount_NavigatedToCommand
+        {
+            get
+            {
+                return _pageCreateNewAccount_NavigatedToCommand
+                    ?? (_pageCreateNewAccount_NavigatedToCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                SetFieldsFromSettings();
+                                            }));
+            }
+        }
+        
         #endregion
+
         #region Validation
         /// <summary>
         /// Validate the EMail property.
@@ -331,39 +362,14 @@ namespace win_client.ViewModels
         #region Supporting Functions
 
         /// <summary>
-        /// Validate the whole UI tree.
+        /// Initialize the fields from the persistent settings.
         /// </summary>
-        private void ForceValidation(UIElement element)
+        protected void SetFieldsFromSettings() 
         {
-            for(int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
-            {
-                UIElement child = (UIElement)VisualTreeHelper.GetChild(element, i);
-                ForceValidation(child);
-            }
-
-            BindingExpression bindingExpression = null;
-
-            string uiElementType = element.GetType().ToString();
-            switch(uiElementType)
-            {
-                case "System.Windows.Controls.TextBox":
-                    bindingExpression = ((TextBox)element).GetBindingExpression(TextBox.TextProperty);
-                    break;
-
-                case "System.Windows.Controls.PasswordBox":
-                    bindingExpression = ((PasswordBox)element).GetBindingExpression(PasswordBox.PasswordProperty);
-                    break;
-
-                case "System.Windows.Controls.RadioButton":
-                    bindingExpression = ((RadioButton)element).GetBindingExpression(RadioButton.IsCheckedProperty);
-                    break;
-            }
-
-            if(bindingExpression == null || bindingExpression.ParentBinding == null) return;
-            if(!bindingExpression.ParentBinding.ValidatesOnNotifyDataErrors) return;
-
-            bindingExpression.UpdateSource();
-        }  
+            _eMail = Settings.Instance.UserName;
+            _fullName = Settings.Instance.UserFullName;
+            _computerName = Settings.Instance.DeviceName;
+        }
 
         /// <summary>
         /// Send a navigation request.

@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+//  DataService.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 
 namespace win_client.Model
 {

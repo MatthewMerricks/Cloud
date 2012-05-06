@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+//  AppMessages.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.IO;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Navigation;
@@ -13,6 +20,7 @@ namespace win_client.Common
         enum MessageTypes
         {
             CreateNewAccount_FocusToError,
+            Home_FocusToError,
             SelectStorageSize_PresentMessageDialog,
             SetupSelector_PresentMessageDialog,
         }
@@ -27,6 +35,19 @@ namespace win_client.Common
             public static void Register(object recipient, Action<string> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.CreateNewAccount_FocusToError, action);
+            }
+        }
+
+        public static class Home_FocusToError
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Home_FocusToError);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Home_FocusToError, action);
             }
         }
 

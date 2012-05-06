@@ -1,4 +1,11 @@
-﻿using GalaSoft.MvvmLight;
+﻿//
+//  PageSelectStorageSizeViewModel.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using GalaSoft.MvvmLight;
 using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
@@ -15,12 +22,21 @@ using win_client.DataModels.Settings;
 
 namespace win_client.ViewModels
 {
+    #region "Definitions"
+    public enum StorageSizeSelections
+    {
+        Size5Gb = 5,
+        Size50Gb = 50,
+        Size500Gb = 500,
+    }
+    #endregion
          
     /// <summary>
     /// Page to select the Cloud storage size desired by the user.
     /// </summary>
     public class PageSelectStorageSizeViewModel : ValidatingViewModelBase
     {
+
         #region Instance Variables
         private readonly IDataService _dataService;
 
@@ -29,6 +45,7 @@ namespace win_client.ViewModels
         private RelayCommand _pageSelectStorageSize_5GbAreaCommand;
         private RelayCommand _pageSelectStorageSize_50GbAreaCommand;
         private RelayCommand _pageSelectStorageSize_500GbAreaCommand;
+        private RelayCommand _pageSelectStorageSize_NavigatedToCommand;        
 
         #endregion
 
@@ -38,7 +55,7 @@ namespace win_client.ViewModels
         /// </summary>
         public const string PageSelectStorageSize_SizeSelectedPropertyName = "PageSelectStorageSize_SizeSelected";
 
-        private StorageSizeSelections _pageSelectStorageSize_SizeSelected = StorageSizeSelections.Size5Gb;
+        private StorageSizeSelections _pageSelectStorageSize_SizeSelected = (StorageSizeSelections)Settings.Instance.Quota;
 
         /// <summary>
         /// Sets and gets the PageSelectStorageSize_SizeSelected property.
@@ -53,12 +70,13 @@ namespace win_client.ViewModels
 
             set
             {
-                if (_pageSelectStorageSize_SizeSelected == value)
+                if (_pageSelectStorageSize_SizeSelected == (StorageSizeSelections)value)
                 {
                     return;
                 }
 
-                _pageSelectStorageSize_SizeSelected = value;
+                _pageSelectStorageSize_SizeSelected = (StorageSizeSelections)value;
+                Settings.Instance.Quota = (int)_pageSelectStorageSize_SizeSelected;
                 RaisePropertyChanged(PageSelectStorageSize_SizeSelectedPropertyName);
             }
         }
@@ -183,6 +201,21 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The page was navigated to.
+        /// </summary>
+        public RelayCommand PageSelectStorageSize_NavigatedToCommand
+        {
+            get
+            {
+                return _pageSelectStorageSize_NavigatedToCommand
+                    ?? (_pageSelectStorageSize_NavigatedToCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                PageSelectStorageSize_SizeSelected = (StorageSizeSelections)Settings.Instance.Quota;
+                                            }));
+            }
+        }
         #endregion
 
         #region "Callbacks"

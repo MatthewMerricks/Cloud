@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+//  ValidatingViewModelBase.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Net;
 using System.Windows;
 using System.Windows.Controls;

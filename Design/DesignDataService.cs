@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+//  DesignDataServices.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using win_client.Model;
 
 namespace win_client.Design

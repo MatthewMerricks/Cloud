@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+//  App.xaml.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Windows;
 using GalaSoft.MvvmLight.Threading;
 using win_client.ViewModels;

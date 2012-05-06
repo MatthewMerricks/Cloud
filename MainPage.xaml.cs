@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+//  MainPage.xaml.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -23,15 +30,12 @@ namespace win_client
         // Frame navigation event.
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            int i = 0;
-            i++;
+
         }
 
         // If an error occurs during navigation, show an error window
         private void ContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e)
         {
-            int i = 0;
-            i++;
            
         }
     }

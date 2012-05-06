@@ -104,8 +104,8 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\AppMessages.cs" />
-    <Compile Include="Common\BinaryFormatter.cs" />
     <Compile Include="Common\Converters.cs" />
+    <Compile Include="Common\DefaultButtons.cs" />
     <Compile Include="Common\ExtensionMethods.cs" />
     <Compile Include="DataModels\Settings\CLSettings.cs" />
     <Compile Include="Design\DesignDataService.cs" />

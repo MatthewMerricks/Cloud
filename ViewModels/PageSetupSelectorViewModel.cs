@@ -1,4 +1,11 @@
-﻿using GalaSoft.MvvmLight;
+﻿//
+//  PageSetupSelectorViewModel.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using GalaSoft.MvvmLight;
 using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
@@ -15,73 +22,65 @@ using win_client.DataModels.Settings;
 
 namespace win_client.ViewModels
 {
+    #region "Definitions"
+
+    public enum SetupSelectorOptions
+    {
+        OptionDefault,
+        OptionAdvanced,
+    }
+
+    #endregion
          
     /// <summary>
     /// Page to select the Cloud storage size desired by the user.
     /// </summary>
     public class PageSetupSelectorViewModel : ValidatingViewModelBase
     {
+
         #region Instance Variables
         private readonly IDataService _dataService;
 
         private RelayCommand _pageSetupSelector_NavigatedToCommand;        
         private RelayCommand _pageSetupSelector_BackCommand;
         private RelayCommand _pageSetupSelector_ContinueCommand;
+        private RelayCommand _pageSetupSelector_DefaultAreaCommand;
+        private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
         #endregion
 
         #region "Bindable Properties"
+        /// <summary>
+        /// The <see cref="PageSetupSelector_OptionSelected" /> property's name.
+        /// </summary>
+        public const string PageSetupSelector_OptionSelectedPropertyName = "PageSetupSelector_OptionSelected";
+
+        private SetupSelectorOptions _pageSetupSelector_OptionSelected = Settings.Instance.UseDefaultSetup ?
+                                                    SetupSelectorOptions.OptionDefault : SetupSelectorOptions.OptionAdvanced;
 
         /// <summary>
-        /// The <see cref="IsDefaultSelected" /> property's name.
+        /// Sets and gets the PageSetupSelector_OptionSelected property.  This is the setup option
+        /// chosen by the user. Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
-        public const string IsDefaultSelectedPropertyName = "IsDefaultSelected";
-        public const string IsAdvancedSelectedPropertyName = "IsAdvancedSelected";
-
-        private bool _isDefaultSelected = Settings.Instance.UseDefaultSetup;
-        private bool _isAdvancedSelected = !Settings.Instance.UseDefaultSetup;
-
-        /// <summary>
-        /// Indicates the state of the Default radio button selected by the user.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        public bool IsDefaultSelected
+        public SetupSelectorOptions PageSetupSelector_OptionSelected
         {
             get
             {
-                return _isDefaultSelected;
+                return _pageSetupSelector_OptionSelected;
             }
 
             set
             {
-                _isDefaultSelected = value;
-                _isAdvancedSelected = !_isDefaultSelected;
-                Settings.Instance.UseDefaultSetup = _isDefaultSelected;
-                RaisePropertyChanged(IsDefaultSelectedPropertyName);
-                RaisePropertyChanged(IsAdvancedSelectedPropertyName);
+                if(_pageSetupSelector_OptionSelected == value)
+                {
+                    return;
+                }
+
+                _pageSetupSelector_OptionSelected = value;
+                Settings.Instance.UseDefaultSetup = (_pageSetupSelector_OptionSelected == SetupSelectorOptions.OptionDefault);
+                RaisePropertyChanged(PageSetupSelector_OptionSelectedPropertyName);
             }
         }
-
-        /// <summary>
-        /// Indicates the state of the Advanced radio button selected by the user.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        public bool IsAdvancedSelected
-        {
-            get
-            {
-                return _isAdvancedSelected;
-            }
-
-            set
-            {
-                _isAdvancedSelected = value;
-                _isDefaultSelected = !_isAdvancedSelected;
-                Settings.Instance.UseDefaultSetup = _isDefaultSelected;
-                RaisePropertyChanged(IsDefaultSelectedPropertyName);
-                RaisePropertyChanged(IsAdvancedSelectedPropertyName);
-            }
-        }
-        #endregion
+        #endregion 
 
         #region Life Cycle
         /// <summary>
@@ -118,7 +117,8 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 // Load the current state from the persistent settings.
-                                                IsDefaultSelected = Settings.Instance.UseDefaultSetup;
+                                                PageSetupSelector_OptionSelected = Settings.Instance.UseDefaultSetup ? 
+                                                    SetupSelectorOptions.OptionDefault : SetupSelectorOptions.OptionAdvanced;
                                             }));
             }
         }
@@ -216,6 +216,38 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The user clicked the area over the Default radio button.
+        /// </summary>
+        public RelayCommand PageSetupSelector_DefaultAreaCommand
+        {
+            get
+            {
+                return _pageSetupSelector_DefaultAreaCommand
+                    ?? (_pageSetupSelector_DefaultAreaCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                PageSetupSelector_OptionSelected = SetupSelectorOptions.OptionDefault;
+                                            }));
+            }
+        }
+
+
+        /// <summary>
+        /// The user clicked the area over the Advanced radio button.
+        /// </summary>
+        public RelayCommand PageSetupSelector_AdvancedAreaCommand
+        {
+            get
+            {
+                return _pageSetupSelector_AdvancedAreaCommand
+                    ?? (_pageSetupSelector_AdvancedAreaCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                PageSetupSelector_OptionSelected = SetupSelectorOptions.OptionAdvanced;
+                                            }));
+            }
+        }
         #endregion
 
         #region "Callbacks"

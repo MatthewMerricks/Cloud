@@ -135,6 +135,42 @@ namespace win_client.DataModels.Settings
     /// </summary>
     public sealed class Settings
     {
+        // Constant strings
+        private const string kStartCloudAppWithSystem = @"start_cloud_app_with_system";
+        private const string kAnimateMenuBarForUpdates = @"animate_menu_bar_for_updates";
+        private const string kShowDesktopNotificationForUpdates = @"show_desktop_notification_for_updates";
+        private const string kCloudAppLanguage = @"cloud_app_language";
+        private const string kDateWeLastCheckedForSoftwareUpdate = @"date_we_last_checked_for_software_update";
+        private const string kUseDefaultSetup = @"use_default_setup";
+        private const string kUseLanForFileSync = @"use_lan_for_file_sync";
+        private const string kLimitDownloadSpeeds = @"limit_download_speeds";
+        private const string kDownloadSpeedLimit = @"download_speed_limit";
+        private const string kLimitUploadSpeeds = @"limit_upload_speeds";
+        private const string kUploadSpeedLimit = @"upload_speed_limit";
+        private const string kUseProxySetting = @"use_proxy_settings";
+        private const string kUseProxyType = @"use_proxy_type";
+        private const string kProxyServerAddress = @"proxy_server_address";
+        private const string kProxyServerPort = @"proxy_server_port";
+        private const string kProxyServerRequiresPassword = @"proxy_server_requires_password";
+        private const string kProxyServerUserName = @"proxy_server_user_name";
+        private const string kProxyServerPassword = @"proxy_server_password";
+        private const string kUserName = @"user_name";
+        private const string kUserFullName = @"user_full_name";
+        private const string kDeviceName = @"device_name";
+        private const string kUuid = @"uuid";
+        private const string kAKey = @"akey";
+        private const string kQuota = @"q";
+        private const string kUdidRegistered = @"r_udid";
+        private const string kCompletedSetup = @"cs";
+        private const string kCloudFolderPath = @"cloud_folder_path";
+        private const string kCloudFolderDescriptor = @"desktop_shortcut";
+        private const string kEid = @"eid";
+        private const string kSid = @"sid";
+        private const string kAddCloudFolderToDock = @"add_dock_folder";
+        private const string kAddCloudFolderToDesktop = @"add_cloud_folder_to_desktop";
+        private const string kRecentFileItems = @"recent_file_items";
+
+
         /// <summary>
         /// The persistent settings properties.
         /// </summary>
@@ -146,7 +182,7 @@ namespace win_client.DataModels.Settings
         set
             {
                 _startCloudAppWithSystem = value;
-                SettingsBase.Write<int>(@"start_cloud_app_with_system", value);
+                SettingsBase.Write<int>(kStartCloudAppWithSystem, value);
             }
         }
 
@@ -157,7 +193,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _animateMenuBarForUpdates = value;
-                SettingsBase.Write<int>(@"animate_menu_bar_for_updates", value);
+                SettingsBase.Write<int>(kAnimateMenuBarForUpdates, value);
             }
         }
 
@@ -168,7 +204,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _showDesktopNotificationForUpdates = value;
-                SettingsBase.Write<int>(@"show_desktop_notification_for_updates", value);
+                SettingsBase.Write<int>(kCloudAppLanguage, value);
             }
         }
 
@@ -179,7 +215,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _cloudAppLanguage = value;
-                SettingsBase.Write<int>(@"cloud_app_language", value);
+                SettingsBase.Write<int>(kCloudAppLanguage, value);
             }
         }
 
@@ -190,7 +226,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _dateWeLastCheckedForSoftwareUpdate = value;
-                SettingsBase.Write<DateTime>(@"date_we_last_checked_for_software_update", value);
+                SettingsBase.Write<DateTime>(kDateWeLastCheckedForSoftwareUpdate, value);
             }
         }
 
@@ -202,7 +238,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _useDefaultSetup = value;
-                SettingsBase.Write<Boolean>(@"use_default_setup", value);
+                SettingsBase.Write<Boolean>(kUseDefaultSetup, value);
             }
         }
 
@@ -214,7 +250,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _useLANForFileSync = value;
-                SettingsBase.Write<int>(@"use_lan_for_file_sync", value);
+                SettingsBase.Write<int>(kUseLanForFileSync, value);
             }
         }
 
@@ -225,7 +261,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _limitDownloadSpeeds = value;
-                SettingsBase.Write<int>(@"limit_download_speeds", value);
+                SettingsBase.Write<int>(kLimitDownloadSpeeds, value);
             }
         }
 
@@ -236,7 +272,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _downloadSpeedLimit = value;
-                SettingsBase.Write<int>(@"download_speed_limit", value);
+                SettingsBase.Write<int>(kDownloadSpeedLimit, value);
             }
         }
 
@@ -247,7 +283,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _limitUploadSpeeds = value;
-                SettingsBase.Write<int>(@"limit_upload_speeds", value);
+                SettingsBase.Write<int>(kLimitUploadSpeeds, value);
             }
         }
 
@@ -258,7 +294,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _uploadSpeedLimit = value;
-                SettingsBase.Write<int>(@"upload_speed_limit", value);
+                SettingsBase.Write<int>(kUploadSpeedLimit, value);
             }
         }
 
@@ -269,7 +305,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _useProxySetting = value;
-                SettingsBase.Write<int>(@"use_proxy_setting", value);
+                SettingsBase.Write<int>(kUseProxySetting, value);
             }
         }
 
@@ -280,7 +316,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _useProxyType = value;
-                SettingsBase.Write<int>(@"use_proxy_type", value);
+                SettingsBase.Write<int>(kUseProxyType, value);
             }
         }
 
@@ -291,7 +327,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _proxyServerAddress = value;
-                SettingsBase.Write<string>(@"proxy_server_address", value);
+                SettingsBase.Write<string>(kProxyServerAddress, value);
             }
         }
 
@@ -302,7 +338,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _proxyServerPort = value;
-                SettingsBase.Write<int>(@"proxy_server_port", value);
+                SettingsBase.Write<int>(kProxyServerPort, value);
             }
         }
 
@@ -313,7 +349,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _proxyServerRequiresPassword = value;
-                SettingsBase.Write<int>(@"proxy_server_requires_password", value);
+                SettingsBase.Write<int>(kProxyServerRequiresPassword, value);
             }
         }
 
@@ -324,7 +360,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _proxyServerUsername = value;
-                SettingsBase.Write<string>(@"proxy_server_user_name", value);
+                SettingsBase.Write<string>(kProxyServerUserName, value);
             }
         }
 
@@ -335,11 +371,11 @@ namespace win_client.DataModels.Settings
             set
             {
                 _proxyServerPassword = value;
-                SettingsBase.Write<string>(@"proxy_server_password", value);
+                SettingsBase.Write<string>(kProxyServerPassword, value);
             }
         }
 
-        // Account
+        // Account user name.  This is the user's email address.
         private string _userName;
         public string UserName
         {
@@ -347,7 +383,19 @@ namespace win_client.DataModels.Settings
             set
             {
                 _userName = value;
-                SettingsBase.Write<string>(@"user_name", value);
+                SettingsBase.Write<string>(kUserName, value);
+            }
+        }
+
+        // Account full name.  This is at least two space-separated words.
+        private string _userFullName;
+        public string UserFullName
+        {
+            get { return _userFullName; }
+            set
+            {
+                _userFullName = value;
+                SettingsBase.Write<string>(kUserFullName, value);
             }
         }
 
@@ -358,7 +406,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _deviceName = value;
-                SettingsBase.Write<string>(@"device_name", value);
+                SettingsBase.Write<string>(kDeviceName, value);
             }
         }
 
@@ -369,7 +417,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _uuid = value;
-                SettingsBase.Write<string>(@"uuid", value);
+                SettingsBase.Write<string>(kUuid, value);
             }
         }
 
@@ -380,7 +428,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _akey = value;
-                SettingsBase.Write<string>(@"akey", value);
+                SettingsBase.Write<string>(kAKey, value);
             }
         }
 
@@ -391,7 +439,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _quota = value;
-                SettingsBase.Write<int>(@"quota", value);
+                SettingsBase.Write<int>(kQuota, value);
             }
         }
 
@@ -402,7 +450,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _udidRegistered = value;
-                SettingsBase.Write<Boolean>(@"udid_registered", value);
+                SettingsBase.Write<Boolean>(kUdidRegistered, value);
             }
         }
 
@@ -413,7 +461,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _completedSetup = value;
-                SettingsBase.Write<Boolean>(@"cs", value);
+                SettingsBase.Write<Boolean>(kCompletedSetup, value);
             }
         }
 
@@ -425,7 +473,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _cloudFolderPath = value;
-                SettingsBase.Write<string>(@"cloud_folder_path", value);
+                SettingsBase.Write<string>(kCloudFolderPath, value);
             }
         }
 
@@ -436,7 +484,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _cloudFolderDescriptor = value;
-                SettingsBase.Write<FileStream>(@"cloud_folder_descriptor", value);
+                SettingsBase.Write<FileStream>(kCloudFolderDescriptor, value);
             }
         }
 
@@ -450,7 +498,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _eid = value;
-                SettingsBase.Write<int>(@"eid", value);
+                SettingsBase.Write<int>(kEid, value);
             }
         }
 
@@ -461,7 +509,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _sid = value;
-                SettingsBase.Write<string>(@"sid", value);
+                SettingsBase.Write<string>(kSid, value);
             }
         }
 
@@ -472,7 +520,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _addCloudFolderToDock = value;
-                SettingsBase.Write<Boolean>(@"add_cloud_folder_to_dock", value);
+                SettingsBase.Write<Boolean>(kAddCloudFolderToDock, value);
             }
         }
 
@@ -483,7 +531,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _addCloudFolderToDesktop = value;
-                SettingsBase.Write<Boolean>(@"add_cloud_folder_to_desktop", value);
+                SettingsBase.Write<Boolean>(kAddCloudFolderToDesktop, value);
             }
         }
 
@@ -494,7 +542,7 @@ namespace win_client.DataModels.Settings
             set
             {
                 _recentFileItems = value;
-                SettingsBase.Write<List<string>>(@"recent_file_items", value);
+                SettingsBase.Write<List<string>>(kRecentFileItems, value);
             }
         }
 
@@ -565,6 +613,7 @@ namespace win_client.DataModels.Settings
             _akey = @""; // only available when registered.
             _uuid = @""; // only available when registered.
             _userName = @"";
+            _userFullName = @"";
             _deviceName = @"";
             _quota = 0;
             _completedSetup = false;
@@ -590,33 +639,33 @@ namespace win_client.DataModels.Settings
 
             // General
             int temp;
-            Boolean isPresent = SettingsBase.ReadIfPresent<int>(@"start_cloud_app_with_system", out temp);
+            Boolean isPresent = SettingsBase.ReadIfPresent<int>(kStartCloudAppWithSystem, out temp);
             if (isPresent)
             {
                 _startCloudAppWithSystem = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"animate_menu_bar_for_updates", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kAnimateMenuBarForUpdates, out temp);
             if (isPresent)
             {
                 _animateMenuBarForUpdates = temp;
             }
 
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"show_desktop_notification_for_updates", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kShowDesktopNotificationForUpdates, out temp);
             if (isPresent)
             {
                 _showDesktopNotificationForUpdates = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"cloud_app_language", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kCloudAppLanguage, out temp);
             if (isPresent)
             {
                 _cloudAppLanguage = temp;
             }
 
             DateTime tempDate;
-            isPresent = SettingsBase.ReadIfPresent<DateTime>(@"date_we_last_checked_for_updates", out tempDate);
+            isPresent = SettingsBase.ReadIfPresent<DateTime>(kDateWeLastCheckedForSoftwareUpdate, out tempDate);
             if (isPresent)
             {
                 _dateWeLastCheckedForSoftwareUpdate = tempDate;
@@ -624,7 +673,7 @@ namespace win_client.DataModels.Settings
 
             // Setup
             Boolean tempBoolean;
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(@"use_default_setup", out tempBoolean);
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kUseDefaultSetup, out tempBoolean);
             if (isPresent)
             {
                 _useDefaultSetup = tempBoolean;
@@ -632,7 +681,7 @@ namespace win_client.DataModels.Settings
 
  
             // Network
-            isPresent = SettingsBase.ReadIfPresent<int>(@"use_lan_for_file_sync", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kUseLanForFileSync, out temp);
             if (isPresent)
             {
                 _useLANForFileSync = temp;
@@ -640,157 +689,163 @@ namespace win_client.DataModels.Settings
 
     
             // Bandwidth
-            isPresent = SettingsBase.ReadIfPresent<int>(@"limit_download_speeds", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kLimitDownloadSpeeds, out temp);
             if (isPresent)
             {
                 _limitDownloadSpeeds = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"download_speed_limit", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kDownloadSpeedLimit, out temp);
             if (isPresent)
             {
                 _downloadSpeedLimit = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"limit_upload_speeds", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kLimitUploadSpeeds, out temp);
             if (isPresent)
             {
                 _limitUploadSpeeds = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"upload_speed_limit", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kUploadSpeedLimit, out temp);
             if (isPresent)
             {
                 _uploadSpeedLimit = temp;
             }
     
             // Proxy
-            isPresent = SettingsBase.ReadIfPresent<int>(@"use_proxy_settings", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kUseProxySetting, out temp);
             if (isPresent)
             {
                 _useProxySetting = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"use_proxy_type", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kUseProxyType, out temp);
             if (isPresent)
             {
                 _useProxyType = temp;
             }
 
             string tempString;
-            isPresent = SettingsBase.ReadIfPresent<string>(@"proxy_server_address", out  tempString);
+            isPresent = SettingsBase.ReadIfPresent<string>(kProxyServerAddress, out  tempString);
             if (isPresent)
             {
                 _proxyServerAddress = tempString;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"proxy_server_port", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kProxyServerPort, out temp);
             if (isPresent)
             {
                 _proxyServerPort = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"proxy_server_requires_password", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kProxyServerRequiresPassword, out temp);
             if (isPresent)
             {
                 _proxyServerRequiresPassword = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<string>(@"proxy_server_username", out tempString);
+            isPresent = SettingsBase.ReadIfPresent<string>(kProxyServerUserName, out tempString);
             if (isPresent)
             {
                 _proxyServerUsername = tempString;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<string>(@"proxy_server_password", out tempString);
+            isPresent = SettingsBase.ReadIfPresent<string>(kProxyServerPassword, out tempString);
             if (isPresent)
             {
                 _proxyServerPassword = tempString;
             }
     
             // Account
-            isPresent = SettingsBase.ReadIfPresent<string>(@"akey", out tempString);
+            isPresent = SettingsBase.ReadIfPresent<string>(kAKey, out tempString);
             if (isPresent)
             {
                 _akey = tempString;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<string>(@"uuid", out tempString);
+            isPresent = SettingsBase.ReadIfPresent<string>(kUuid, out tempString);
             if (isPresent)
             {
                 _uuid = tempString;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<string>(@"user_name", out tempString);
+            isPresent = SettingsBase.ReadIfPresent<string>(kUserName, out tempString);
             if (isPresent)
             {
                 _userName = tempString;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<string>(@"device_name", out tempString);
+            isPresent = SettingsBase.ReadIfPresent<string>(kUserFullName, out tempString);
+            if(isPresent)
+            {
+                _userFullName = tempString;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<string>(kDeviceName, out tempString);
             if (isPresent)
             {
                 _deviceName = tempString;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(@"cs", out tempBoolean);  // 'cs' stands for "completed_setup", but we don't want to make it obvious.
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kCompletedSetup, out tempBoolean);  // 'cs' stands for "completed_setup", but we don't want to make it obvious.
             if (isPresent)
             {
                 _completedSetup = tempBoolean;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(@"r_udid", out tempBoolean);
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kUdidRegistered, out tempBoolean);
             if (isPresent)
             {
                 _udidRegistered = tempBoolean;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(@"q", out temp);      // q is not the most clear value, but we don't want to make it obvious.
+            isPresent = SettingsBase.ReadIfPresent<int>(kQuota, out temp);      // q is not the most clear value, but we don't want to make it obvious.
             if (isPresent)
             {
                 _quota = temp;
             }
 
             // Advanced
-            isPresent = SettingsBase.ReadIfPresent<string>(@"cloud_folder_path", out tempString);
+            isPresent = SettingsBase.ReadIfPresent<string>(kCloudFolderPath, out tempString);
             if (isPresent)
             {
                 _cloudFolderPath = tempString;
             }
 
             FileStream tempStream;
-            isPresent = SettingsBase.ReadIfPresent<FileStream>(@"cloud_folder_descriptor", out tempStream);
+            isPresent = SettingsBase.ReadIfPresent<FileStream>(kCloudFolderDescriptor, out tempStream);
             if (isPresent)
             {
                 _cloudFolderDescriptor = tempStream;
             }
     
             // Index Services
-            isPresent = SettingsBase.ReadIfPresent<int>(@"eid", out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kEid, out temp);
             if (isPresent)
             {
                 _eid = temp;
             }
     
             // Others
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(@"add_dock_folder", out tempBoolean);
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kAddCloudFolderToDock, out tempBoolean);
             if (isPresent)
             {
                 _addCloudFolderToDock = tempBoolean;
             }
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(@"desktop_shortcut", out tempBoolean);
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kCloudFolderDescriptor, out tempBoolean);
             if (isPresent)
             {
                 _addCloudFolderToDesktop = tempBoolean;
             }
-            isPresent = SettingsBase.ReadIfPresent<string>(@"sid", out tempString);
+            isPresent = SettingsBase.ReadIfPresent<string>(kSid, out tempString);
             if (isPresent)
             {
                 _sid = tempString;
             }
 
             List<string> tempList;
-            isPresent = SettingsBase.ReadIfPresent<List<string>>(@"recent_items", out tempList);
+            isPresent = SettingsBase.ReadIfPresent<List<string>>(kRecentFileItems, out tempList);
             if (isPresent)
             {
                 _recentFileItems = tempList;
@@ -817,11 +872,12 @@ namespace win_client.DataModels.Settings
         /// </summary>
         public void saveAccountSettings(Dictionary<string, object> accountInfo)
         {  
-            UserName = (string)accountInfo[@"user_name"];
-            DeviceName = (string)accountInfo[@"device_name"];
-            UdidRegistered = (Boolean)accountInfo[@"r_udid"];
-            Akey = (string)accountInfo[@"akey"];
-            Uuid = (string)accountInfo[@"uuid"];
+            UserName = (string)accountInfo[kUserName];
+            UserFullName = (string)accountInfo[kUserFullName];
+            DeviceName = (string)accountInfo[kDeviceName];
+            UdidRegistered = (Boolean)accountInfo[kUdidRegistered];
+            Akey = (string)accountInfo[kAKey];
+            Uuid = (string)accountInfo[kUuid];
         }
 
         /// <summary>
