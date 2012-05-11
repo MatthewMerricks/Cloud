@@ -19,6 +19,14 @@ using win_client.Common;
 using System.Reflection;
 using System.Linq;
 using win_client.DataModels.Settings;
+using System.IO;
+using System.Resources;
+using GalaSoft.MvvmLight.Ioc;
+using Dialog.Abstractions.Silverlight.Intefaces;
+using System.Collections.Generic;
+using win_client.Views;
+using win_client.AppDelegate;
+
 
 namespace win_client.ViewModels
 {
@@ -35,17 +43,53 @@ namespace win_client.ViewModels
     /// <summary>
     /// Page to select the Cloud storage size desired by the user.
     /// </summary>
-    public class PageSetupSelectorViewModel : ValidatingViewModelBase
+    public class PageSetupSelectorViewModel : ValidatingViewModelBase, ICleanup
     {
+        protected delegate void OnCloudSetupNotifyFolderLocationConflictResolvedDelegate(Dictionary<string, object> parameters);
 
         #region Instance Variables
-        private readonly IDataService _dataService;
 
+        private readonly IDataService _dataService;
         private RelayCommand _pageSetupSelector_NavigatedToCommand;        
         private RelayCommand _pageSetupSelector_BackCommand;
         private RelayCommand _pageSetupSelector_ContinueCommand;
         private RelayCommand _pageSetupSelector_DefaultAreaCommand;
         private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
+        private ResourceManager _rm;
+
+        #endregion
+
+        #region Life Cycle
+        /// <summary>
+        /// Initializes a new instance of the PageHomeViewModel class.
+        /// </summary>
+        public PageSetupSelectorViewModel(IDataService dataService)
+        {
+            _dataService = dataService;
+            _dataService.GetData(
+                (item, error) =>
+                {
+                    if (error != null)
+                    {
+                        // Report error here
+                        return;
+                    }
+
+                    //&&&&               WelcomeTitle = item.Title;
+                });
+            _rm = CLAppDelegate.Instance.ResourceManager;
+        }
+
+        /// <summary>
+        /// Clean up all resources allocated, and save state as needed.
+        /// </summary>
+        public override void Cleanup()
+        {
+            base.Cleanup();
+            _rm = null;
+            Messenger.Default.Unregister(this);
+        }
+
         #endregion
 
         #region "Bindable Properties"
@@ -80,28 +124,39 @@ namespace win_client.ViewModels
                 RaisePropertyChanged(PageSetupSelector_OptionSelectedPropertyName);
             }
         }
+        /// <summary>
+        /// The <see cref="IsMergingFolder" /> property's name.
+        /// Indicates whether the user has selected to merge an existing Cloud
+        /// folder with the new Cloud folder.
+        /// </summary>
+        public const string IsMergingFolderPropertyName = "IsMergingFolder";
+
+        private bool _isMergingFolder = false;
+
+        /// <summary>
+        /// Sets and gets the IsMergingFolder property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public bool IsMergingFolder
+        {
+            get
+            {
+                return _isMergingFolder;
+            }
+
+            set
+            {
+                if (_isMergingFolder == value)
+                {
+                    return;
+                }
+
+                _isMergingFolder = value;
+                RaisePropertyChanged(IsMergingFolderPropertyName);
+            }
+        }
         #endregion 
 
-        #region Life Cycle
-        /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
-        /// </summary>
-        public PageSetupSelectorViewModel(IDataService dataService)
-        {
-            _dataService = dataService;
-            _dataService.GetData(
-                (item, error) =>
-                {
-                    if (error != null)
-                    {
-                        // Report error here
-                        return;
-                    }
-
-                    //&&&&               WelcomeTitle = item.Title;
-                });
-        }
-        #endregion
       
         #region Commands
 
@@ -152,67 +207,9 @@ namespace win_client.ViewModels
                     ?? (_pageSetupSelector_ContinueCommand = new RelayCommand(
                                             () =>
                                             {
-                                                
-#if TRASH
-                                                if ([[self.continueButton title] isEqualToString:@"Install"]) {
-                
-                                                    if ([self checkCloudFolderExistsAtPath:[[CLSettings sharedSettings] cloudFolderPath]]
-                                                        && self.mergeFolders == NO) {
-            
-                                                        NSString *cloudFolderRoot = [[[CLSettings sharedSettings] cloudFolderPath] stringByDeletingLastPathComponent];
-                                                        NSString *updatedTextFieldWithPath = [NSString stringWithFormat:[self.folderExitTextFiled stringValue], cloudFolderRoot];
-                                                        [self.folderExitTextFiled setStringValue:updatedTextFieldWithPath];
-                                                        [NSApp beginSheet:self.folderExistPanel modalForWindow:[self.view window] modalDelegate:self didEndSelector:nil contextInfo:nil];
-            
-                                                        return; // if folder exists we will present some options to the user.
-                                                    }
-        
-                                                    // finish setup
-                                                    CLAppDelegate *delegate = [NSApp delegate];
-                                                    NSError *error = [delegate installCloudServices];
-        
-                                                    if (error) {
-            
-                                                        NSAlert *alert = [NSAlert alertWithMessageText:[error localizedDescription] defaultButton:@"Try Again" alternateButton:@"Dismiss" otherButton:nil informativeTextWithFormat:@""];
-                                                        [alert setIcon:[NSImage imageNamed:NSImageNameInfo]];            
-                                                        [alert beginSheetModalForWindow:[self.view window] modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) contextInfo:nil];
-            
-                                                    } else {
-            
-                                                        // setup successful. let's present go on to the tour.
-                                                        self.tourViewController = [[CLTourViewController alloc] initWithNibName:@"CLTourViewController" bundle:nil];
-                                                        [[[NSApp mainWindow] contentView] addSubview:self.tourViewController.view];
-            
-                                                        PushAnimation *animation = [[PushAnimation alloc] initWithDuration:0.25f animationCurve:NSAnimationLinear];
-                                                        [animation setNewDirection:RightDirection];
-                                                        [animation setStartingView:self.view];
-                                                        [animation setDestinationView:self.tourViewController.view];
-                                                        [animation setAnimationBlockingMode:NSAnimationNonblocking];
-                                                        [animation startAnimation];
-            
-                                                    }
-        
-                                                } else {
-        
-                                                    // remove oursevles from observing an event. (Oh I miss, viewWillAppear, viewWillDispear from UIKit). Sigh...
-                                                    [[NSNotificationCenter defaultCenter] removeObserver:self];
-
-                                                    // Move to advanced setup
-                                                    self.folderSelectionViewController = [[CLFolderSelectionViewController alloc] initWithNibName:@"CLFolderSelectionViewController" bundle:nil];
-                                                    [self.folderSelectionViewController setSetupSelectorViewController:self];
-            
-                                                    [[[NSApp mainWindow] contentView] addSubview:self.folderSelectionViewController.view];
-
-                                                    PushAnimation *animation = [[PushAnimation alloc] initWithDuration:0.25f animationCurve:NSAnimationLinear];
-                                                    [animation setNewDirection:RightDirection];
-                                                    [animation setStartingView:self.view];
-                                                    [animation setDestinationView:self.folderSelectionViewController.view];
-                                                    [animation setAnimationBlockingMode:NSAnimationNonblocking];
-                                                    [animation startAnimation];
-                                                }
-
-#endif  // end TRASH
-                                            }));
+                                                // Try to perform the installation
+                                                goForward();
+                                            }));                                              
             }
         }
 
@@ -250,17 +247,178 @@ namespace win_client.ViewModels
         }
         #endregion
 
-        #region "Callbacks"
+        #region "Installation"
 
         /// <summary>
-        /// Callback from the View's dialog box.
+        /// Try to install the Cloud folder and support.
         /// </summary>
-        private void DialogMessageCallback(MessageBoxResult result)
+        private void goForward()
         {
+            // Process by whether this is a default or advance installation
+            if (_pageSetupSelector_OptionSelected == SetupSelectorOptions.OptionDefault)
+            {
+                if (Directory.Exists(Settings.Instance.CloudFolderPath) && !_isMergingFolder)
+                {
+                    // Tell the user that there is already a Cloud folder at that location.  Allow him to choose 'Select new location' or 'Merge'.
+                    string cloudFolderRoot = Path.GetDirectoryName(Settings.Instance.CloudFolderPath);  // e.g., "c:/Users/<username>/Documents", if CloudFolderPath is "c:/Users/<username>/Documents/Cloud"
+                    string userMessageBody = _rm.GetString("folderExitTextFieldBody");
+                    userMessageBody = String.Format(userMessageBody, cloudFolderRoot);
+                    string userMessageTitle = _rm.GetString("folderExitTextFieldTitle");
+                    string userMessageHeader = _rm.GetString("folderExitTextFieldHeader");
+                    string userMessageButtonSelectNewLocation = _rm.GetString("folderExitTextFieldButtonSelectNewLocation");
+                    string userMessageButtonMerge = _rm.GetString("folderExitTextFieldButtonMerge");
+
+                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.dialog_box_CloudMessageBoxView);
+                    IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
+                    IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
+                    modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
+                    {
+                        CloudMessageBoxView_Title = userMessageTitle,
+                        CloudMessageBoxView_WindowWidth = 450,
+                        CloudMessageBoxView_WindowHeight = 225,
+                        CloudMessageBoxView_HeaderText = userMessageHeader,
+                        CloudMessageBoxView_BodyText = userMessageBody,
+                        CloudMessageBoxView_LeftButtonWidth = new GridLength(200),
+                        CloudMessageBoxView_LeftButtonMargin = new Thickness(30, 0, 0, 0),
+                        CloudMessageBoxView_LeftButtonContent = userMessageButtonSelectNewLocation,
+                        CloudMessageBoxView_RightButtonWidth = new GridLength(100),
+                        CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
+                        CloudMessageBoxView_RightButtonContent = userMessageButtonMerge,
+                    },
+                    returnedViewModelInstance =>
+                    {
+                        if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
+                        {
+                            // The user selected Merge.  The standard Cloud folder will be used, with the user's existing files in it.
+                            var notifyParms = new Dictionary<string, object>();
+                            notifyParms.Add(CLConstants.folder_location, @"");
+                            notifyParms.Add(CLConstants.merge_folders, true);
+                            OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
+                            Deployment.Current.Dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
+                        }
+                        else
+                        {
+                            // The user will select a new Cloud folder location.  Put up a modal dialog for now.
+                            // This dialog will allow the user to simply type in the location of the Cloud folder.
+                            // It will have Back and Continue buttons.  The Continue button will cause validation
+                            // and will save the selected Cloud folder location in the settings.
+                            //
+                            // TODO: We need the FolderBrowserDialog from WPF.  Either switch to WPF for the Windows
+                            // desktop, or implement a WPF ActiveX DLL to perform that function.
+                            var dialogFolderSelection = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.dialog_box_FolderSelectionSimpleView);
+                            modalDialogService.ShowDialog(dialogFolderSelection, new FolderSelectionSimpleViewModel
+                            {
+                                FolderSelectionSimpleViewModel_FolderLocationText = cloudFolderRoot,
+                            },
+                            returnedFolderSelectionSimpleViewModelInstance =>
+                            {
+                                if (dialogFolderSelection.DialogResult.HasValue && dialogFolderSelection.DialogResult.Value)
+                                {
+                                    // The user selected a new folder location.
+                                    var notifyParms = new Dictionary<string, object>();
+                                    notifyParms.Add(CLConstants.folder_location, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
+                                    notifyParms.Add(CLConstants.merge_folders, false);
+                                    OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
+                                    Deployment.Current.Dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
+                                }
+                                else
+                                {
+                                    // @@@@@ Do Nothing.  Just leave the user on the underlying SetupSelector dialog.
+                                }
+                            });
+                        }
+                    });
+
+                    return;
+                }
+
+                // Finish the setup.
+                CLError err = null;
+                CLAppDelegate.Instance.installCloudServices(out err);
+                if (err != null)
+                {
+                    // An error occurred.  Show the user an Oh Snap! modal dialog.
+                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.dialog_box_CloudMessageBoxView);
+                    IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
+                    IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
+                    modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
+                    {
+                        CloudMessageBoxView_Title = _rm.GetString("appDelegateErrorInstallingTitle"),
+                        CloudMessageBoxView_WindowWidth = 450,
+                        CloudMessageBoxView_WindowHeight = 225,
+                        CloudMessageBoxView_HeaderText = _rm.GetString("appDelegateErrorInstallingHeader"),
+                        CloudMessageBoxView_BodyText = _rm.GetString(err.errorDescriptionStringResourceKey),
+                        CloudMessageBoxView_LeftButtonWidth = new GridLength(200),
+                        CloudMessageBoxView_LeftButtonMargin = new Thickness(30, 0, 0, 0),
+                        CloudMessageBoxView_LeftButtonContent = _rm.GetString("appDelegateErrorInstallingButtonIgnore"),
+                        CloudMessageBoxView_RightButtonWidth = new GridLength(100),
+                        CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
+                        CloudMessageBoxView_RightButtonContent = _rm.GetString("appDelegateErrorInstallingButtonTryAgain"),
+                    },
+                    returnedViewModelInstance =>
+                    {
+                        if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
+                        {
+                            // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
+                            Deployment.Current.Dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
+                        }
+                        else
+                        {
+                            // @@@@@@@@@ DO NOTHING @@@@@ The user selected Ignore.  We will just leave them on the SetupSelection page.
+                        }
+                    });
+                }
+                else
+                {
+                    // Return to the storage size selector dialog
+                    Uri nextPage = new System.Uri("/PageTour1", System.UriKind.Relative);
+                    SendNavigationRequestMessage(nextPage);
+                }
+            }
+            else
+            {
+                // TODO: &&&&This is the advanced install
+                //remove ourselves from the notification subscription
+                //put up the advanced setup dialog in this window
+                //; CLFolderSelectionViewController
+#if TRASH           
+                                                    // remove oursevles from observing an event. (Oh I miss, viewWillAppear, viewWillDispear from UIKit). Sigh...
+                                                    [[NSNotificationCenter defaultCenter] removeObserver:self];
+
+                                                    // Move to advanced setup
+                                                    self.folderSelectionViewController = [[CLFolderSelectionViewController alloc] initWithNibName:@"CLFolderSelectionViewController" bundle:nil];
+                                                    [self.folderSelectionViewController setSetupSelectorViewController:self];
+            
+                                                    [[[NSApp mainWindow] contentView] addSubview:self.folderSelectionViewController.view];
+
+                                                    PushAnimation *animation = [[PushAnimation alloc] initWithDuration:0.25f animationCurve:NSAnimationLinear];
+                                                    [animation setNewDirection:RightDirection];
+                                                    [animation setStartingView:self.view];
+                                                    [animation setDestinationView:self.folderSelectionViewController.view];
+                                                    [animation setAnimationBlockingMode:NSAnimationNonblocking];
+                                                    [animation startAnimation];
+#endif  // end TRASH
+            }
         }
 
         #endregion
 
+        #region "Message Handlers"
+        /// <summary>
+        /// Event: The folder location conflict is resolved.
+        /// </summary>
+        protected void OnCloudSetupNotifyFolderLocationConflictResolved(Dictionary<string, object> parameters) 
+        {
+            IsMergingFolder = (bool)parameters[CLConstants.merge_folders];
+            if (!_isMergingFolder)
+            {
+                Settings.Instance.CloudFolderPath = (string)parameters[CLConstants.folder_location];        
+            }
+
+            goForward();
+        }
+
+        #endregion
 
         #region Supporting Functions
 

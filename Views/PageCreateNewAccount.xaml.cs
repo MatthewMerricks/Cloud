@@ -43,7 +43,7 @@ namespace win_client.Views
 
             Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-            AppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
+            CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
         }
 
         void PageCreateNewAccount_Loaded(object sender, RoutedEventArgs e)

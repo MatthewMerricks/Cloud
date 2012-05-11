@@ -622,7 +622,7 @@ namespace win_client.DataModels.Settings
             // Advanced
             //cloudFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"/Cloud";
             _cloudFolderPath = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));  // get the user's home directory.  e.g., C:\Users\<UserName>\
-            _cloudFolderPath = _cloudFolderPath + @"Cloud";
+            _cloudFolderPath = _cloudFolderPath + @"\Cloud";
 
             _cloudFolderDescriptor = null;
     
@@ -923,7 +923,7 @@ namespace win_client.DataModels.Settings
             tempRecents.AddRange(items);
 
             // Remove duplicates and removed files
-            List<String> copy = ExtensionMethods.DeepCopy(tempRecents);
+            List<String> copy = CLExtensionMethods.DeepCopy(tempRecents);
             for (int i = copy.Count - 1; i >= 0; i--) 
             { 
                 string fullPath = _cloudFolderPath + copy[i];
@@ -941,7 +941,7 @@ namespace win_client.DataModels.Settings
             }
 
             // Now keep only the last 8 of those.
-            List<string> recents = ExtensionMethods.DeepCopy(tempRecents);
+            List<string> recents = CLExtensionMethods.DeepCopy(tempRecents);
             if (recents.Count > 8)
             {
                 for (int i = 0; i < tempRecents.Count; i++)
@@ -954,7 +954,7 @@ namespace win_client.DataModels.Settings
             }
 
             // Now persist the result
-            _recentFileItems = ExtensionMethods.DeepCopy(recents);
+            _recentFileItems = CLExtensionMethods.DeepCopy(recents);
             SettingsBase.Write<List<string>>(@"recent_items", _recentFileItems);
         }
     }

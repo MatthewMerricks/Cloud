@@ -40,7 +40,7 @@ namespace win_client.Views
 
             Messenger.Default.Register<Uri>(this, "PageHome_NavigationRequest", 
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-            AppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
+            CLAppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
 
         }
 

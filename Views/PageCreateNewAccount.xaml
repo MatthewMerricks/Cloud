@@ -46,7 +46,7 @@
 
         <Border Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="6" Grid.RowSpan="4" RenderTransformOrigin="0.5,0.5">
             <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Images/cl_inside_ptrn_logo_side.png"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
         <Grid Grid.Column="1" Margin="48,93,37,0" Grid.RowSpan="3" Grid.ColumnSpan="4">

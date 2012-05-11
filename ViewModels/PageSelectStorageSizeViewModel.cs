@@ -243,7 +243,7 @@ namespace win_client.ViewModels
                 Caption = "Not Available"
             };
 
-            AppMessages.SelectStorageSize_PresentMessageDialog.Send(message);
+            CLAppMessages.SelectStorageSize_PresentMessageDialog.Send(message);
         }
 
 

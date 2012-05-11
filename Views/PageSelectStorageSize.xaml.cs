@@ -42,7 +42,7 @@ namespace win_client.Views
 
             Messenger.Default.Register<Uri>(this, "PageSelectStorageSize_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-            AppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
+            CLAppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
 
         }
 

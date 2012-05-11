@@ -257,7 +257,7 @@ namespace win_client.ViewModels
                     ?? (_pageCreateNewAccount_ContinueCommand = new RelayCommand(
                                             () =>
                                             {
-                                                ExtensionMethods.ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
+                                                CLExtensionMethods.ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
                                                 if(!HasErrors)
                                                 {
                                                     Uri nextPage = new System.Uri("/PageSelectStorageSize", System.UriKind.Relative);
@@ -265,7 +265,7 @@ namespace win_client.ViewModels
                                                 }
                                                 else
                                                 {
-                                                    AppMessages.CreateNewAccount_FocusToError.Send("");
+                                                    CLAppMessages.CreateNewAccount_FocusToError.Send("");
                                                 }
                                             }));
             }
@@ -297,7 +297,7 @@ namespace win_client.ViewModels
         private void ValidateEMail(string eMail)
         {
             RemoveAllErrorsForPropertyName("EMail");
-            if(!RegexValidation.IsEMail(eMail))
+            if(!CLRegexValidation.IsEMail(eMail))
             {
                 AddError("EMail", "Please enter your EMail address in the format 'yourname@yourmaildomain.com'.");
             }
@@ -321,7 +321,7 @@ namespace win_client.ViewModels
         private void ValidatePassword(string password)
         {
             RemoveAllErrorsForPropertyName("Password");
-            if(!RegexValidation.IsXOK(password))
+            if(!CLRegexValidation.IsXOK(password))
             {
                 AddError("Password", "Please enter a password with at least 8 characters, including a least one number, one lower case character and one upper case character.");
             }

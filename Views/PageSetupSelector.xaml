@@ -44,7 +44,7 @@
 
         <Border Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="6" Grid.RowSpan="2" RenderTransformOrigin="0.5,0.5">
             <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Images/cl_inside_ptrn_logo_side.png"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
         <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneWay}" TabIndex="4" Margin="67,23,66,23" Grid.Row="1" />

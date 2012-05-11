@@ -41,7 +41,6 @@ namespace win_client.Views
 
             Messenger.Default.Register<Uri>(this, "PageSetupSelector_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-            AppMessages.SetupSelector_PresentMessageDialog.Register(this, SetupSelector_PresentMessageDialog);
         }
 
         #region "Message Handlers"
@@ -56,17 +55,6 @@ namespace win_client.Views
         {
             Messenger.Default.Unregister(this);
         }
-
-        private void SetupSelector_PresentMessageDialog(DialogMessage msg)
-        {
-            var result = MessageBox.Show(
-                msg.Content,
-                msg.Caption,
-                msg.Button);
-
-            msg.ProcessCallback(result);     // Send callback
-        }
-
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {

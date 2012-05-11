@@ -21,7 +21,11 @@ using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Practices.ServiceLocation;
 using win_client.Model;
 using win_client.Views;
+using win_client.ViewModels;
+using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
+using Dialog.Abstractions.Silverlight.Intefaces;
+using Dialog.Implementors.Silverlight.MVVM.Services;
 
 namespace win_client.ViewModels
 {
@@ -55,6 +59,13 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<PageCreateNewAccountViewModel>();
             SimpleIoc.Default.Register<PageSelectStorageSizeViewModel>();
             SimpleIoc.Default.Register<PageSetupSelectorViewModel>();
+            SimpleIoc.Default.Register<PageTourViewModel>();
+
+            SimpleIoc.Default.Register<IModalDialogService, ModalDialogService>();
+            SimpleIoc.Default.Register<IMessageBoxService, MessageBoxService>();
+
+            SimpleIoc.Default.Register<IModalWindow>( () => new CloudMessageBoxView(), CLConstants.dialog_box_CloudMessageBoxView, false);
+            SimpleIoc.Default.Register<IModalWindow>(() => new FolderSelectionSimpleView(), CLConstants.dialog_box_FolderSelectionSimpleView, false);
         }
 
         /// <summary>
@@ -110,6 +121,62 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<PageSetupSelectorViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the PageTourViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public PageTourViewModel PageTourViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<PageTourViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the ModalDialogService property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public ModalDialogService ModalDialogService
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<ModalDialogService>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the MessageBoxService property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public MessageBoxService MessageBoxService
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<MessageBoxService>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the CloudMessageBoxView property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public CloudMessageBoxView CloudMessageBoxView
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<CloudMessageBoxView>();
             }
         }
 

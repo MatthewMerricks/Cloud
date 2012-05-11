@@ -21,7 +21,7 @@
     <win_client:BoolIsVisible2VisibilityConverter x:Key="BoolIsVisible2VisibilityConverter" />
     <win_client:DefaultButtonHub x:Key="defaultHub" />
 
-    <!-- Resource dictionary entries should be defined here. -->
+    <!-- Our own styled button. -->
     <ControlTemplate x:Key="StyledButtonTemplate" TargetType="Button">
         <Grid x:Name="MainGrid">
             <VisualStateManager.VisualStateGroups>
@@ -74,46 +74,46 @@
                     </VisualState>
                 </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
-            <Ellipse x:Name="OuterGlow" Fill="{TemplateBinding BorderBrush}" Opacity="0">
-                <Ellipse.Effect>
+            <Rectangle x:Name="OuterGlow" Fill="{TemplateBinding BorderBrush}" Opacity="0" RadiusX="5" RadiusY="5">
+                <Rectangle.Effect>
                     <BlurEffect/>
-                </Ellipse.Effect>
-            </Ellipse>
-            <Ellipse x:Name="Background" Fill="{TemplateBinding Background}"/>
-            <Ellipse x:Name="Lightener" Fill="#FFF4F4F5" Opacity="0"/>
-            <Ellipse x:Name="Darkener" Fill="Black" Opacity="0"/>
-            <Ellipse x:Name="InnerGlow" Fill="{TemplateBinding BorderBrush}" Margin="1">
-                <Ellipse.OpacityMask>
+                </Rectangle.Effect>
+            </Rectangle>
+            <Rectangle x:Name="Background" Fill="{TemplateBinding Background}" RadiusX="5" RadiusY="5"/>
+            <Rectangle x:Name="Lightener" Fill="#FFF4F4F5" Opacity="0" RadiusX="5" RadiusY="5"/>
+            <Rectangle x:Name="Darkener" Fill="Black" Opacity="0" RadiusX="5" RadiusY="5"/>
+            <Rectangle x:Name="InnerGlow" Fill="{TemplateBinding BorderBrush}" Margin="1" RadiusX="5" RadiusY="5">
+                <Rectangle.OpacityMask>
                     <RadialGradientBrush GradientOrigin="0.5,1" Center="0.5,1" RadiusX="0.8">
                         <GradientStop Color="Black" Offset="0"/>
                         <GradientStop Color="Transparent" Offset="1"/>
                     </RadialGradientBrush>
-                </Ellipse.OpacityMask>
-            </Ellipse>
-            <Ellipse x:Name="LowerHighlight" Grid.Row="1">
-                <Ellipse.Stroke>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle x:Name="LowerHighlight" Grid.Row="1" Margin="0" RadiusX="5" RadiusY="5">
+                <Rectangle.Stroke>
                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                         <GradientStop Color="#FFA3AEB9" Offset="0"/>
                         <GradientStop Color="#FF8399A9" Offset="0.375"/>
                         <GradientStop Color="#FF718597" Offset="0.375"/>
                         <GradientStop Color="#FF617584" Offset="1"/>
                     </LinearGradientBrush>
-                </Ellipse.Stroke>
-                <Ellipse.OpacityMask>
+                </Rectangle.Stroke>
+                <Rectangle.OpacityMask>
                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                         <GradientStop Offset="0.552"/>
                         <GradientStop Color="White" Offset="1"/>
                     </LinearGradientBrush>
-                </Ellipse.OpacityMask>
-            </Ellipse>
-            <Ellipse x:Name="UpperHighlight" Margin="1,1,1,0">
-                <Ellipse.Stroke>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle x:Name="UpperHighlight" Margin="1,1,1,0" RadiusX="5" RadiusY="5">
+                <Rectangle.Stroke>
                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                         <GradientStop Color="White" Offset="0"/>
                         <GradientStop Offset="0.453"/>
                     </LinearGradientBrush>
-                </Ellipse.Stroke>
-            </Ellipse>
+                </Rectangle.Stroke>
+            </Rectangle>
             <Grid x:Name="ShineGrid" Margin="2,1">
                 <Grid.RowDefinitions>
                     <RowDefinition/>

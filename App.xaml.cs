@@ -9,6 +9,9 @@ using System;
 using System.Windows;
 using GalaSoft.MvvmLight.Threading;
 using win_client.ViewModels;
+using win_client.AppDelegate;
+using win_client.Common;
+using System.Windows.Messaging;
 
 namespace win_client
 {
@@ -25,13 +28,38 @@ namespace win_client
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            var trace = CLTrace.Instance;
+            try
+            {
+                trace.writeToLog(0, "Cloud is starting...");
+
+                LocalMessageReceiver receiver = new LocalMessageReceiver("singleinstance");
+                receiver.Listen();
+                RootVisual = new MainPage();
+            }
+            catch (ListenFailedException)
+            {
+                trace.writeToLog(0, "Cloud is already running.  Exiting.");
+                return;
+            }
+
             RootVisual = new MainPage();
             DispatcherHelper.Initialize();
+
+            // Load and initilaize singleton classes
+            var appDelegate = CLAppDelegate.Instance;
         }
 
         private void Application_Exit(object sender, EventArgs e)
         {
+            var trace = CLTrace.Instance;
+            trace.writeToLog(0, "Cloud is exiting...");
+            trace.flush();
+
             ViewModelLocator.Cleanup();
+            var appDelegate = CLAppDelegate.Instance;
+            appDelegate.cleanUpAppDelegate();
+
         }
 
         private void Application_UnhandledException(object sender, ApplicationUnhandledExceptionEventArgs e)
