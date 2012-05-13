@@ -22,10 +22,11 @@ using win_client.DataModels.Settings;
 using System.IO;
 using System.Resources;
 using GalaSoft.MvvmLight.Ioc;
-using Dialog.Abstractions.Silverlight.Intefaces;
+using Dialog.Abstractions.Wpf.Intefaces;
 using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
+using System.Windows.Threading;
 
 
 namespace win_client.ViewModels
@@ -294,7 +295,12 @@ namespace win_client.ViewModels
                             notifyParms.Add(CLConstants.folder_location, @"");
                             notifyParms.Add(CLConstants.merge_folders, true);
                             OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-                            Deployment.Current.Dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
+#if _SILVERLIGHT 
+                            var dispatcher = Deployment.Current.Dispatcher; 
+#else 
+                            var dispatcher = Dispatcher.CurrentDispatcher; 
+#endif                      
+                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
                         }
                         else
                         {
@@ -319,7 +325,12 @@ namespace win_client.ViewModels
                                     notifyParms.Add(CLConstants.folder_location, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
                                     notifyParms.Add(CLConstants.merge_folders, false);
                                     OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-                                    Deployment.Current.Dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
+#if _SILVERLIGHT 
+                                    var dispatcher = Deployment.Current.Dispatcher; 
+#else
+                                    var dispatcher = Dispatcher.CurrentDispatcher;
+#endif
+                                    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
                                 }
                                 else
                                 {
@@ -360,7 +371,12 @@ namespace win_client.ViewModels
                         if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
                         {
                             // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
-                            Deployment.Current.Dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
+#if _SILVERLIGHT 
+                            var dispatcher = Deployment.Current.Dispatcher; 
+#else
+                            var dispatcher = Dispatcher.CurrentDispatcher;
+#endif
+                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
                         }
                         else
                         {

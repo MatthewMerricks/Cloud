@@ -18,6 +18,7 @@ using System.Windows.Shapes;
 using System.ComponentModel;
 using System.Collections.Generic;
 using GalaSoft.MvvmLight;
+using win_client.ValidationToolkit;
 
 namespace MVVMProductsDemo.ViewModels
 {

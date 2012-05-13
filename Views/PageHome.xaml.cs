@@ -38,8 +38,14 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageHome_Loaded);
             Unloaded += new RoutedEventHandler(PageHome_Unloaded);
 
-            Messenger.Default.Register<Uri>(this, "PageHome_NavigationRequest", 
+#if _SILVERLIGHT
+            Messenger.Default.Register<Uri>(this, "PageHome_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
+#else
+            Messenger.Default.Register<Uri>(this, "PageHome_NavigationRequest",
+                (uri) => { this.NavigationService.Navigate(uri); });
+#endif
+
             CLAppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
 
         }
@@ -49,15 +55,25 @@ namespace win_client.Views
         void PageHome_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
+#if !_SILVERLIGHT
+            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
+#endif
             tbEMail.Focus();
         }
 
         void PageHome_Unloaded(object sender, RoutedEventArgs e)
         {
+#if !_SILVERLIGHT
+            NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
+#endif
             Messenger.Default.Unregister(this);
         }
 
+#if _SILVERLIGHT
         protected override void OnNavigatedTo(NavigationEventArgs e)
+#else
+        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+#endif
         {
             if(_isLoaded)
             {
@@ -75,9 +91,9 @@ namespace win_client.Views
                 tbEMail.Focus();
                 return;
             }
-            if(Validation.GetHasError(pbPassword) == true)
+            if(Validation.GetHasError(tbPassword) == true)
             {
-                pbPassword.Focus();
+                tbPassword.Focus();
                 return;
             }
         }

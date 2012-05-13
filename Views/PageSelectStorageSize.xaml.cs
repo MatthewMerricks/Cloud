@@ -40,10 +40,15 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageSelectStorageSize_Loaded);
             Unloaded += new RoutedEventHandler(PageSelectStorageSize_Unloaded);
 
+#if _SILVERLIGHT
             Messenger.Default.Register<Uri>(this, "PageSelectStorageSize_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
+#else
+            Messenger.Default.Register<Uri>(this, "PageSelectStorageSize_NavigationRequest",
+                (uri) => { this.NavigationService.Navigate(uri); });
+#endif
             CLAppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
-
+            
         }
 
         #region "Message Handlers"
@@ -51,11 +56,17 @@ namespace win_client.Views
         void PageSelectStorageSize_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
+#if !_SILVERLIGHT
+            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
+#endif
             cmdContinue.Focus();
         }
 
         void PageSelectStorageSize_Unloaded(object sender, RoutedEventArgs e)
         {
+#if !_SILVERLIGHT
+            NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
+#endif
             Messenger.Default.Unregister(this);
         }
 
@@ -69,7 +80,11 @@ namespace win_client.Views
             msg.ProcessCallback(result);     // Send callback
         }
 
+#if _SILVERLIGHT
         protected override void OnNavigatedTo(NavigationEventArgs e)
+#else
+        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+#endif
         {
             if (_isLoaded)
             {

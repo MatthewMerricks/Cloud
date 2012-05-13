@@ -11,12 +11,12 @@ using GalaSoft.MvvmLight.Threading;
 using win_client.ViewModels;
 using win_client.AppDelegate;
 using win_client.Common;
-using System.Windows.Messaging;
 
 namespace win_client
 {
     public partial class App : Application
     {
+#if _SILVERLIGHT 
         public App()
         {
             Startup += Application_Startup;
@@ -94,5 +94,11 @@ namespace win_client
             {
             }
         }
+#else  // WPF
+        static App()
+        {
+            DispatcherHelper.Initialize();
+        }
+#endif  // end WPF
     }
 }

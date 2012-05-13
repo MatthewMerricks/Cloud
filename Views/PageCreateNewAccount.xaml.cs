@@ -41,23 +41,39 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageCreateNewAccount_Loaded);
             Unloaded += new RoutedEventHandler(PageCreateNewAccount_Unloaded);
 
+#if _SILVERLIGHT
             Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
+#else
+            Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
+                (uri) => { this.NavigationService.Navigate(uri); });
+#endif
+
             CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
         }
 
         void PageCreateNewAccount_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
+#if !_SILVERLIGHT
+            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
+#endif
             tbEMail.Focus();
         }
 
         void PageCreateNewAccount_Unloaded(object sender, RoutedEventArgs e)
         {
+#if !_SILVERLIGHT
+            NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
+#endif
             Messenger.Default.Unregister(this);
         }
 
+#if _SILVERLIGHT
         protected override void OnNavigatedTo(NavigationEventArgs e)
+#else
+        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+#endif
         {
             if (_isLoaded)
             {
@@ -81,8 +97,8 @@ namespace win_client.Views
                 tbFullName.Focus();
                 return;
             }
-            if(Validation.GetHasError(tbPassword) == true)
-            {
+            if(Validation.GetHasError(this.tbPassword) == true)
+                {
                 tbPassword.Focus();
                 return;
             }

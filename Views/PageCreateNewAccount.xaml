@@ -7,26 +7,24 @@
 //  Copyright (c) Cloud.com. All rights reserved.<ResourceDictionary
 -->
 
-<navigation:Page x:Class="win_client.Views.PageCreateNewAccount" 
+<Page x:Class="win_client.Views.PageCreateNewAccount" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:navigation="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls.Navigation"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.SL5"
     xmlns:common="clr-namespace:win_client.Common"
     mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
     DataContext="{Binding PageCreateNewAccountViewModel, Source={StaticResource Locator}}" 
-    Title="Create New Account" >
+    WindowTitle="Create New Account" >
 
-    <navigation:Page.Resources>
+    <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </navigation:Page.Resources>
+    </Page.Resources>
     
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
@@ -69,19 +67,19 @@
     		</Grid.ColumnDefinitions>
     		<Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="3" Grid.RowSpan="10" Margin="8,0,-8,0" RadiusX="5" RadiusY="5" Opacity="0.9"/>
             <TextBox Name="tbEMail" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Column="1" Grid.Row="1" d:LayoutOverrides="Height" 
-                     Text="{Binding EMail, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="1" FontSize="13.333"
+                     Text="{Binding EMail, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="13.333"
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
             <TextBox Name="tbFullName" TextAlignment="Left" Foreground="Black" Grid.Row="3" Grid.Column="1" 
-                     Text="{Binding FullName, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="2" VerticalAlignment="Top" Margin="0,5,0,0" Height="29" FontSize="13.333" 
+                     Text="{Binding FullName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="2" VerticalAlignment="Top" Margin="0,5,0,0" Height="29" FontSize="13.333" 
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
-            <PasswordBox Name="tbPassword" Foreground="Black" Margin="0,5" Grid.Row="5" Grid.Column="1" 
-                     Password="{Binding Password, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="3" d:LayoutOverrides="Height" FontSize="13.333" 
+            <common:SecurePasswordBox x:Name="tbPassword" Foreground="Black" Margin="0,5" Grid.Row="5" Grid.Column="1" 
+                     Text="{Binding Password, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="3" d:LayoutOverrides="Height" FontSize="13.333" 
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
-            <PasswordBox Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="6" Grid.Column="1" d:LayoutOverrides="Height" 
-                     Password="{Binding ConfirmPassword, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="4" FontSize="13.333" 
+            <common:SecurePasswordBox x:Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="6" Grid.Column="1" d:LayoutOverrides="Height" 
+                     Text="{Binding ConfirmPassword, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="4" FontSize="13.333" 
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
             <TextBox Name="tbComputerName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="8" Grid.Column="1" d:LayoutOverrides="Height" 
-                     Text="{Binding ComputerName, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}" TabIndex="5" FontSize="13.333"
+                     Text="{Binding ComputerName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="5" FontSize="13.333"
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
     		<TextBlock TextWrapping="Wrap" Text="EMail:" RenderTransformOrigin="0.5,0.5" 
     			Foreground="Black" FontSize="16" Margin="0,8,7,2" Grid.Row="1" TextAlignment="Right"/>
@@ -107,4 +105,4 @@
 
     </Grid>
 
-</navigation:Page>
+</Page>

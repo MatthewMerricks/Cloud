@@ -150,7 +150,12 @@ namespace win_client.ViewModels
                     ?? (_pageHome_SignInCommand = new RelayCommand(
                                           () =>
                                           {
+#if _SILVERLIGHT
                                               CLExtensionMethods.ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
+#else
+                                              var layoutRoot = LogicalTreeHelper.FindLogicalNode(Application.Current.MainWindow, "LayoutRoot") as UIElement; 
+                                              CLExtensionMethods.ForceValidation(layoutRoot);
+#endif
                                               if(!HasErrors)
                                               {
                                                   Uri nextPage = new System.Uri("/PageHome", System.UriKind.Relative);   //&&&& TODO: Begin the sign-in process.

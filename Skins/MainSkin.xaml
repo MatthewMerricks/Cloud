@@ -122,9 +122,6 @@
                 <Path x:Name="Shine" Data="M95.5,16.5 C95.5,25.336555 74.233528,17.250078 48,17.250078 C21.766474,17.250078 0.5,25.336555 0.5,16.5 C0.5,7.663444 21.766474,0.5 48,0.5 C74.233528,0.5 95.5,7.663444 95.5,16.5 z" Stretch="Fill" Margin="0" UseLayoutRounding="False">
                     <Path.Fill>
                         <RadialGradientBrush>
-                            <RadialGradientBrush.RelativeTransform>
-                                <CompositeTransform CenterY="0.5" CenterX="0.5" TranslateY="0.5" ScaleY="2"/>
-                            </RadialGradientBrush.RelativeTransform>
                             <GradientStop Color="#27FFFFFF" Offset="0"/>
                             <GradientStop Color="#7CFFFFFF" Offset="1"/>
                             <GradientStop Color="#2DFFFFFF" Offset="0.422"/>
@@ -208,7 +205,6 @@
                             </Grid>
                         </Border>
                         <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                            <Rectangle Fill="#FFFFFFFF" RadiusY="3" RadiusX="3" Opacity="0"/>
                         </ContentPresenter>
                         <Rectangle x:Name="DisabledVisualElement" Fill="#FFFFFFFF" IsHitTestVisible="false" Opacity="0" RadiusY="3" RadiusX="3"/>
                         <Rectangle x:Name="FocusVisualElement" IsHitTestVisible="false" Margin="1" Opacity="0" RadiusY="2" RadiusX="2" Stroke="#FF6DBDD1" StrokeThickness="1"/>

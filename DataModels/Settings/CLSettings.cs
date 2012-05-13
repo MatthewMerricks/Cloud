@@ -76,7 +76,11 @@ namespace win_client.DataModels.Settings
             Boolean rc = false;
             value = default(TT);
 
+#if _SILVERLIGHT
             IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
+#else
+            IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
+#endif
             if (settings != null && settings.Contains(name))
             {
                 value = (TT)settings[name];
@@ -91,10 +95,14 @@ namespace win_client.DataModels.Settings
         }   
       
         public static TT Read<TT>(string name, TT defaultValue)        
-        {            
+        {
+#if _SILVERLIGHT
             IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
-            TT value;            
-            if (settings == null || !settings.TryGetValue<TT>(name, out value)) 
+#else
+            IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
+#endif
+            TT value;
+            if(settings == null || !settings.TryGetValue<TT>(name, out value)) 
             {
                 return defaultValue;            
             }
@@ -102,8 +110,12 @@ namespace win_client.DataModels.Settings
         }    
      
         public static void Write<TT>(string name, TT value)        
-        {            
+        {
+#if _SILVERLIGHT
             IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
+#else
+            IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
+#endif
             if (settings == null) 
             {
                 return;           
@@ -121,8 +133,12 @@ namespace win_client.DataModels.Settings
         }    
 
         public static void Clear()        
-        {            
-            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;  
+        {
+#if _SILVERLIGHT
+            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
+#else
+            IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
+#endif
             settings.Clear();
             settings.Save();        
         }

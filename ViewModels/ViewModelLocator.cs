@@ -24,8 +24,8 @@ using win_client.Views;
 using win_client.ViewModels;
 using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
-using Dialog.Abstractions.Silverlight.Intefaces;
-using Dialog.Implementors.Silverlight.MVVM.Services;
+using Dialog.Abstractions.Wpf.Intefaces;
+using Dialog.Implementors.Wpf.MVVM.Services;
 
 namespace win_client.ViewModels
 {

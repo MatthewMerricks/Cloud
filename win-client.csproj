@@ -3,186 +3,245 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.50727</ProductVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{F5F0C1B9-639F-48BD-8B8E-3D3B000B1AB2}</ProjectGuid>
-    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{D47ED1EB-2327-4D35-97D5-42FC6239B925}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>win_client</RootNamespace>
     <AssemblyName>win-client</AssemblyName>
-    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
-    <SilverlightApplication>true</SilverlightApplication>
-    <XapOutputs>true</XapOutputs>
-    <GenerateSilverlightManifest>true</GenerateSilverlightManifest>
-    <XapFilename>win-client.xap</XapFilename>
-    <SilverlightManifestTemplate>Properties\AppManifest.xml</SilverlightManifestTemplate>
-    <SilverlightAppEntry>win_client.App</SilverlightAppEntry>
-    <TestPageFileName>TestPage.html</TestPageFileName>
-    <CreateTestPage>true</CreateTestPage>
-    <ValidateXaml>true</ValidateXaml>
-    <EnableOutOfBrowser>true</EnableOutOfBrowser>
-    <OutOfBrowserSettingsFile>Properties\OutOfBrowserSettings.xml</OutOfBrowserSettingsFile>
-    <UsePlatformExtensions>false</UsePlatformExtensions>
-    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
-    <LinkedServerProject>
-    </LinkedServerProject>
-    <InBrowserSettingsFile>Properties\InBrowserSettings.xml</InBrowserSettingsFile>
-    <RequireInBrowserElevation>true</RequireInBrowserElevation>
-    <Utf8Output>true</Utf8Output>
-    <ExpressionBlendVersion>4.1.20402.0</ExpressionBlendVersion>
-    <SupportedCultures>en-US;fr;</SupportedCultures>
-  </PropertyGroup>
-  <!-- This property group is only here to support building this project using the 
-       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
-       to set the TargetFrameworkVersion to v3.5 -->
-  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>Bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <SupportedCultures>en-US;fr;</SupportedCultures>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>Bin\Release</OutputPath>
-    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <SupportedCultures>en-US;fr;</SupportedCultures>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GalaSoft.MvvmLight.Extras.SL5, Version=4.0.21.21094, Culture=neutral, PublicKeyToken=e7f91b7703710fe7, processorArchitecture=MSIL" />
-    <Reference Include="GalaSoft.MvvmLight.SL5, Version=4.0.21.21094, Culture=neutral, PublicKeyToken=c114982fcf1a3a2e, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.CSharp, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.Expression.Controls, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.Expression.Effects, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.Expression.Interactions, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\MvvmLightLibsPreview.4.1.21\lib\SL5\Microsoft.Practices.ServiceLocation.dll</HintPath>
+    <Reference Include="GalaSoft.MvvmLight.WPF4">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\WPF4\GalaSoft.MvvmLight.WPF4.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Windows.Controls.WatermarkedTextBox, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>SourceBinaries\Microsoft.Windows.Controls.WatermarkedTextBox.dll</HintPath>
+    <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\WPF4\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ServiceLocation">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\WPF4\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Runtime.Serialization.Json, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="System.Windows.Controls, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="System.Windows.Controls.Data, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="System.Windows.Controls.Data.Input, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="System.Windows.Controls.Input, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="System.Windows.Controls.Navigation, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System.Windows" />
-    <Reference Include="system" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Net" />
-    <Reference Include="System.Windows.Interactivity, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\MvvmLightLibsPreview.4.1.21\lib\SL5\System.Windows.Interactivity.dll</HintPath>
+    <Reference Include="System.Windows.Interactivity">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\WPF4\System.Windows.Interactivity.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="System.Windows.Browser" />
-    <Reference Include="System.Xml.Serialization, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WPFToolkit.Extended, Version=1.6.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-    </Compile>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="AppDelegate\CLAppDelegate.cs" />
     <Compile Include="Common\CLAppMessages.cs" />
-    <Compile Include="Common\CLError.cs" />
     <Compile Include="Common\CLConstants.cs" />
     <Compile Include="Common\CLConverters.cs" />
     <Compile Include="Common\CLDefaultButtons.cs" />
+    <Compile Include="Common\CLError.cs" />
     <Compile Include="Common\CLExtensionMethods.cs" />
-    <Compile Include="Common\CLTrace.cs" />
-    <Compile Include="DataModels\Settings\CLSettings.cs" />
-    <Compile Include="AppDelegate\CLAppDelegate.cs" />
-    <Compile Include="Design\DesignDataService.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
-    <Compile Include="MainPage.xaml.cs">
-      <DependentUpon>MainPage.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Common\CLSecurePasswordBox.cs" />
+    <Compile Include="Common\CLTrace.cs" />
     <Compile Include="DataModels\DataItem.cs" />
     <Compile Include="DataModels\DataService.cs" />
     <Compile Include="DataModels\IDataService.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources\Resources.fr.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.fr.resx</DependentUpon>
+    <Compile Include="DataModels\Settings\CLSettings.cs" />
+    <Compile Include="DataModels\Settings\WpfIsolatedStorageSettings.cs" />
+    <Compile Include="Design\DesignDataService.cs" />
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Resources\Resources1.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
+    <Compile Include="NavigationWindow.xaml.cs">
+      <DependentUpon>NavigationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Resources\Resources.fr.Designer.cs" />
+    <Compile Include="Resources\Resources1.Designer.cs" />
     <Compile Include="ViewModels\CloudMessageBoxViewModel.cs" />
-    <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\FolderSelectionSimpleViewModel.cs" />
-    <Compile Include="ViewModels\PageSetupSelectorViewModel.cs" />
-    <Compile Include="ViewModels\PageSelectStorageSizeViewModel.cs" />
+    <Compile Include="ViewModels\NotifyPropertyChanged.cs" />
     <Compile Include="ViewModels\PageCreateNewAccountViewModel.cs" />
     <Compile Include="ViewModels\PageHomeViewModel.cs" />
+    <Compile Include="ViewModels\PageSelectStorageSizeViewModel.cs" />
+    <Compile Include="ViewModels\PageSetupSelectorViewModel.cs" />
+    <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
+    <Compile Include="ViewModels\ValidationToolkit\ControlValidation.cs" />
+    <Compile Include="ViewModels\ValidationToolkit\DataErrorsChangedEventArgs.cs" />
+    <Compile Include="ViewModels\ValidationToolkit\INotifyDataErrorInfo.cs" />
+    <Compile Include="ViewModels\ValidationToolkit\NotifyDataErrorInfoEventManager.cs" />
+    <Compile Include="ViewModels\ValidationToolkit\Validator.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
     <Compile Include="Views\CloudMessageBoxView.xaml.cs">
       <DependentUpon>CloudMessageBoxView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\PageInvisible.xaml.cs">
-      <DependentUpon>PageInvisible.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\PageTour5.xaml.cs">
-      <DependentUpon>PageTour5.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\PageTour4.xaml.cs">
-      <DependentUpon>PageTour4.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\PageTour3.xaml.cs">
-      <DependentUpon>PageTour3.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\PageTour2.xaml.cs">
-      <DependentUpon>PageTour2.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\PageTour1.xaml.cs">
-      <DependentUpon>PageTour1.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\FolderSelectionSimpleView.xaml.cs">
       <DependentUpon>FolderSelectionSimpleView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\PageSetupSelector.xaml.cs">
-      <DependentUpon>PageSetupSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PageCreateNewAccount.xaml.cs">
       <DependentUpon>PageCreateNewAccount.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\PageSelectStorageSize.xaml.cs">
-      <DependentUpon>PageSelectStorageSize.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\PageHome.xaml.cs">
       <DependentUpon>PageHome.xaml</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </ApplicationDefinition>
-    <Page Include="MainPage.xaml">
+    <Compile Include="Views\PageInvisible.xaml.cs">
+      <DependentUpon>PageInvisible.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageSelectStorageSize.xaml.cs">
+      <DependentUpon>PageSelectStorageSize.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageSetupSelector.xaml.cs">
+      <DependentUpon>PageSetupSelector.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageTour1.xaml.cs">
+      <DependentUpon>PageTour1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageTour2.xaml.cs">
+      <DependentUpon>PageTour2.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageTour3.xaml.cs">
+      <DependentUpon>PageTour3.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageTour4.xaml.cs">
+      <DependentUpon>PageTour4.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageTour5.xaml.cs">
+      <DependentUpon>PageTour5.xaml</DependentUpon>
+    </Compile>
+    <Page Include="NavigationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\CloudMessageBoxView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FolderSelectionSimpleView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageCreateNewAccount.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageHome.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageInvisible.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageSelectStorageSize.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageSetupSelector.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageTour1.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageTour2.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageTour3.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageTour4.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageTour5.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <EmbeddedResource Include="Resources\Resources.fr.resx" />
+    <EmbeddedResource Include="Resources\Resources.resx" />
+    <None Include="Artwork\.DS_Store" />
+    <None Include="Artwork\CloudMenu_Default.pdf" />
+    <None Include="Artwork\CloudMenu_Disabled.pdf" />
+    <None Include="Artwork\CloudMenu_Highlight.pdf" />
+    <None Include="Artwork\CloudSphere_1024.icns" />
+    <None Include="Artwork\cloud_folder.icns" />
+    <None Include="Artwork\GenericSharepoint.icns" />
+    <None Include="Artwork\PicturesFolderIcon.icns" />
+    <None Include="Artwork\PublicFolderIcon.icns" />
+    <None Include="Artwork\SidebarCloud.icns" />
+    <None Include="packages.config" />
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SourceBinaries\WPFToolkit.Extended.dll" />
     <Resource Include="Artwork\add.png" />
     <Resource Include="Artwork\addFocus.png" />
     <Resource Include="Artwork\addFocusPressed.png" />
@@ -249,108 +308,44 @@
     <Resource Include="Artwork\StatusItem-Selected.png" />
     <Resource Include="Artwork\StatusItem-Success.png" />
     <Resource Include="Artwork\twitter.png" />
-    <Resource Include="Skins\MainSkin.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Resource>
-    <Page Include="Views\CloudMessageBoxView.xaml">
-      <Generator>MSBuild:MarkupCompilePass1</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\PageInvisible.xaml">
-      <Generator>MSBuild:MarkupCompilePass1</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\PageTour5.xaml">
-      <Generator>MSBuild:MarkupCompilePass1</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\PageTour4.xaml">
-      <Generator>MSBuild:MarkupCompilePass1</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\PageTour3.xaml">
-      <Generator>MSBuild:MarkupCompilePass1</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\PageTour2.xaml">
-      <Generator>MSBuild:MarkupCompilePass1</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\PageTour1.xaml">
-      <Generator>MSBuild:MarkupCompilePass1</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\FolderSelectionSimpleView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\PageSetupSelector.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\PageCreateNewAccount.xaml">
-      <Generator>MSBuild:MarkupCompilePass1</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\PageSelectStorageSize.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\PageHome.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
+    <Content Include="SourceBinaries\Microsoft.Windows.Controls.WatermarkedTextBox.dll" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Artwork\.DS_Store" />
-    <None Include="Artwork\CloudMenu_Default.pdf" />
-    <None Include="Artwork\CloudMenu_Disabled.pdf" />
-    <None Include="Artwork\CloudMenu_Highlight.pdf" />
-    <None Include="Artwork\CloudSphere_1024.icns" />
-    <None Include="Artwork\cloud_folder.icns" />
-    <None Include="Artwork\GenericSharepoint.icns" />
-    <None Include="Artwork\PicturesFolderIcon.icns" />
-    <None Include="Artwork\PublicFolderIcon.icns" />
-    <None Include="Artwork\SidebarCloud.icns" />
-    <None Include="packages.config" />
-    <None Include="Properties\AppManifest.xml">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="SourceBinaries\Microsoft.Windows.Controls.WatermarkedTextBox.dll" />
+    <Folder Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Resources.resx">
-      <Generator>PublicResourceCodeGenerator</Generator>
-      <LastGenOutput>Resources1.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Resources.fr.resx">
-      <Generator>PublicResourceCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>Resources.fr.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Properties\OutOfBrowserSettings.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Properties\InBrowserSettings.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="Dialog.Abstractions.Silverlight\Dialog.Abstractions.Silverlight.csproj">
-      <Project>{E46BB8A0-103A-444D-A1A8-908B286DE47C}</Project>
-      <Name>Dialog.Abstractions.Silverlight</Name>
+    <ProjectReference Include="Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
+      <Project>{3697919F-7A1E-43BA-BFDB-3EEC2553DD44}</Project>
+      <Name>Dialog.Abstractions.Wpf</Name>
     </ProjectReference>
-    <ProjectReference Include="Dialog.Implementors.Silverlight\Dialog.Implementors.Silverlight.csproj">
-      <Project>{69E24A07-DB31-49A0-A2F4-379518D575C4}</Project>
-      <Name>Dialog.Implementors.Silverlight</Name>
+    <ProjectReference Include="Dialog.Implementors.Wpf\Dialog.Implementors.Wpf.csproj">
+      <Project>{D873958B-87F4-46F6-A6E8-B72FFB08835F}</Project>
+      <Name>Dialog.Implementors.Wpf</Name>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -358,11 +353,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ProjectExtensions>
-    <VisualStudio>
-      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
-        <SilverlightProjectProperties />
-      </FlavorProperties>
-    </VisualStudio>
-  </ProjectExtensions>
 </Project>
