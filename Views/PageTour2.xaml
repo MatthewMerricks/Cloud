@@ -1,0 +1,93 @@
+﻿<!--
+//
+//  PageSelectStorageSize.xaml
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.<ResourceDictionary
+-->
+
+<Page x:Class="win_client.Views.PageTour2" 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:common="clr-namespace:win_client.Common"
+    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    DataContext="{Binding PageTourViewModel, Source={StaticResource Locator}}" 
+    Title="Select Storage Size"  >
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+    
+    <Grid x:Name="LayoutRoot">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="48"/>
+            <ColumnDefinition  Width="45"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="22"/>
+            <ColumnDefinition Width="22"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50
+			"/>
+            <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+
+        <Border x:Name="borderFullBackground" Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="5" Grid.RowSpan="3" RenderTransformOrigin="0.5,0.5">
+            <Border.Background>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
+            </Border.Background>
+        </Border>
+
+        <Grid x:Name="gridNonButtonArea" Grid.Column="2" Width="Auto" >
+        	<Grid.RowDefinitions>
+        		<RowDefinition Height="30"/>
+        		<RowDefinition Height="40"/>
+        		<RowDefinition/>
+        		<RowDefinition Height="10"/>
+        	</Grid.RowDefinitions>
+        	<TextBlock x:Name="textBlockHeader" TextWrapping="Wrap" Text="Accessing your files from another computer." Grid.Row="1" Foreground="Black" FontSize="18.667" FontWeight="Bold"/>
+            <Grid x:Name="gridTransparentBackgroundContainer" Grid.Row="2" >
+            	<Border x:Name="borderTransparentImage" Width="Auto" CornerRadius="8" RenderTransformOrigin="0.5,0.5" Margin="0">
+            		<Border.Background>
+            			<ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_region_transparent.png"/>
+            		</Border.Background>
+            	</Border>
+            	<Grid x:Name="gridForegroundContainer" Margin="10">
+            		<Grid.RowDefinitions>
+            			<RowDefinition Height="Auto"/>
+            			<RowDefinition Height="*"/>
+            		</Grid.RowDefinitions>
+            		<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="16" Text="Need to access your files from another computer? No problem, just login to cloud.com where you can browse, download and upload your files securely from any browser, simple as that." Margin="6"/>
+            		<Border x:Name="borderInnerImageContainer" Grid.Row="2" CornerRadius="8">
+            		      <Border.Background>
+            			     <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_tour_2.png"/>
+            		      </Border.Background>
+                    </Border>
+            	
+                </Grid>
+            </Grid>
+        </Grid>
+        <Grid x:Name="gridButtonArea" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3">
+        	<Grid.ColumnDefinitions>
+        		<ColumnDefinition Width="146"/>
+        		<ColumnDefinition Width="0.419*"/>
+        		<ColumnDefinition Width="0.581*"/>
+        		<ColumnDefinition Width="22"/>
+        	</Grid.ColumnDefinitions>
+        	<Button x:Name="cmdBack" Content="Back" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
+        		Command="{Binding PageTour_BackCommand, Mode=OneWay}" TabIndex="1" HorizontalAlignment="Left"/>
+        	<Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
+        		Command="{Binding PageTour_ContinueCommand, Mode=OneWay}" TabIndex="0"
+        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" />
+        </Grid>
+    </Grid>
+</Page>
