@@ -55,17 +55,25 @@ namespace win_client.ViewModels
                 SimpleIoc.Default.Register<IDataService, DataService>();
             }
 
+            // Navigation pages
             SimpleIoc.Default.Register<PageHomeViewModel>();
             SimpleIoc.Default.Register<PageCreateNewAccountViewModel>();
             SimpleIoc.Default.Register<PageSelectStorageSizeViewModel>();
             SimpleIoc.Default.Register<PageSetupSelectorViewModel>();
             SimpleIoc.Default.Register<PageTourViewModel>();
 
+            // Modal dialog support
             SimpleIoc.Default.Register<IModalDialogService, ModalDialogService>();
             SimpleIoc.Default.Register<IMessageBoxService, MessageBoxService>();
 
-            SimpleIoc.Default.Register<IModalWindow>( () => new CloudMessageBoxView(), CLConstants.dialog_box_CloudMessageBoxView, false);
-            SimpleIoc.Default.Register<IModalWindow>(() => new FolderSelectionSimpleView(), CLConstants.dialog_box_FolderSelectionSimpleView, false);
+            // Modal dialogs
+            SimpleIoc.Default.Register<IModalWindow>( () => new CloudMessageBoxView(), CLConstants.kDialogBox_CloudMessageBoxView, false);
+            SimpleIoc.Default.Register<IModalWindow>( () => new FolderSelectionSimpleView(), CLConstants.kDialogBox_FolderSelectionSimpleView, false);
+
+            // Modal dialog view models
+            SimpleIoc.Default.Register<CloudMessageBoxViewModel>();
+            SimpleIoc.Default.Register<FolderSelectionSimpleViewModel>();
+
         }
 
         /// <summary>
@@ -176,7 +184,49 @@ namespace win_client.ViewModels
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<CloudMessageBoxView>();
+                return (CloudMessageBoxView)ServiceLocator.Current.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
+            }
+        }
+
+        /// <summary>
+        /// Gets the FolderSelectionSimpleView property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FolderSelectionSimpleView FolderSelectionSimpleView
+        {
+            get
+            {
+                return (FolderSelectionSimpleView)ServiceLocator.Current.GetInstance<FolderSelectionSimpleView>(CLConstants.kDialogBox_FolderSelectionSimpleView);
+            }
+        }
+
+        /// <summary>
+        /// Gets the CloudMessageBoxViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public CloudMessageBoxViewModel CloudMessageBoxViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<CloudMessageBoxViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the FolderSelectionSimpleViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FolderSelectionSimpleViewModel FolderSelectionSimpleViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FolderSelectionSimpleViewModel>();
             }
         }
 

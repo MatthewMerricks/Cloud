@@ -30,6 +30,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <Utf8Output>true</Utf8Output>
+    <ExpressionBlendVersion>4.0.20525.0</ExpressionBlendVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -50,25 +52,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GalaSoft.MvvmLight.WPF4">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\WPF4\GalaSoft.MvvmLight.WPF4.dll</HintPath>
-    </Reference>
-    <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\WPF4\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Practices.ServiceLocation">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\WPF4\Microsoft.Practices.ServiceLocation.dll</HintPath>
-    </Reference>
+    <Reference Include="GalaSoft.MvvmLight.Extras.WPF4, Version=4.0.21.12854, Culture=neutral, PublicKeyToken=1673db7d5906b0ad, processorArchitecture=MSIL" />
+    <Reference Include="GalaSoft.MvvmLight.WPF4, Version=4.0.21.12854, Culture=neutral, PublicKeyToken=63eb5c012e0b3c1c, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Windows.Interactivity">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\Laurent Bugnion (GalaSoft)\Mvvm Light Toolkit\Binaries\WPF4\System.Windows.Interactivity.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -81,7 +71,9 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="WPFToolkit.Extended, Version=1.6.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL" />
+    <Reference Include="WPFToolkit.Extended, Version=1.6.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\ExtendedWpfToolkitSource\wpftoolkit-88611\Main\Source\ExtendedWPFToolkitSolution\Src\WPFToolkit.Extended\bin\Debug\WPFToolkit.Extended.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -113,6 +105,9 @@
     </Compile>
     <Compile Include="Resources\Resources.fr.Designer.cs" />
     <Compile Include="Resources\Resources1.Designer.cs" />
+    <Compile Include="TestOnly\Page1.xaml.cs">
+      <DependentUpon>Page1.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\CloudMessageBoxViewModel.cs" />
     <Compile Include="ViewModels\FolderSelectionSimpleViewModel.cs" />
     <Compile Include="ViewModels\NotifyPropertyChanged.cs" />
@@ -122,11 +117,6 @@
     <Compile Include="ViewModels\PageSetupSelectorViewModel.cs" />
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
-    <Compile Include="ViewModels\ValidationToolkit\ControlValidation.cs" />
-    <Compile Include="ViewModels\ValidationToolkit\DataErrorsChangedEventArgs.cs" />
-    <Compile Include="ViewModels\ValidationToolkit\INotifyDataErrorInfo.cs" />
-    <Compile Include="ViewModels\ValidationToolkit\NotifyDataErrorInfoEventManager.cs" />
-    <Compile Include="ViewModels\ValidationToolkit\Validator.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
     <Compile Include="Views\CloudMessageBoxView.xaml.cs">
       <DependentUpon>CloudMessageBoxView.xaml</DependentUpon>
@@ -168,7 +158,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Skins\ErrorTemplates.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="TestOnly\Page1.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -241,7 +239,9 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SourceBinaries\WPFToolkit.Extended.dll" />
+    <Resource Include="Artwork\validationError.png" />
+    <Resource Include="Artwork\icon.png" />
+    <Resource Include="Artwork\StopBig.png" />
     <Resource Include="Artwork\add.png" />
     <Resource Include="Artwork\addFocus.png" />
     <Resource Include="Artwork\addFocusPressed.png" />

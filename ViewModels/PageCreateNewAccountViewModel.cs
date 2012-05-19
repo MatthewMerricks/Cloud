@@ -132,6 +132,28 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="Password2" /> property's name.
+        /// </summary>
+        public const string Password2PropertyName = "Password2";
+        private string _password2 = "";
+        /// <summary>
+        /// Sets the Password2 property.
+        /// This is the clear password. 
+        /// </summary>
+        public string Password2
+        {
+            get
+            {
+                return "";
+            }
+
+            set
+            {
+                _password2 = value;
+            }
+        }
+
+        /// <summary>
         /// The <see cref="Password" /> property's name.
         /// </summary>
         public const string PasswordPropertyName = "Password";
@@ -151,7 +173,15 @@ namespace win_client.ViewModels
 
             set
             {
-                ValidatePassword(value);
+                // The password is scrambled at this point because we don't want it in the visual tree for
+                // Snoop and other tools to see.  We need to get the password in the clear.  However, only the view knows how
+                // to get the clear password.  Send the view a message to cause it to set the clear
+                // password.  Upon receiving the message, the view will retrieve the password and invoke a
+                // public write-only property on this ViewModel object.  The whole process is synchronous, so
+                // we will have the clear password when the Send completes.
+                CLAppMessages.CreateNewAccount_GetClearPasswordField.Send("");
+                ValidatePassword(_password2);
+
                 if(_password == value)
                 {
                     return;
@@ -159,6 +189,28 @@ namespace win_client.ViewModels
 
                 _password = value;
                 RaisePropertyChanged(PasswordPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="ConfirmPassword2" /> property's name.
+        /// </summary>
+        public const string ConfirmPassword2PropertyName = "ConfirmPassword2";
+        private string _confirmPassword2 = "";
+        /// <summary>
+        /// Sets the ConfirmPassword2 property.
+        /// This is the clear password. 
+        /// </summary>
+        public string ConfirmPassword2
+        {
+            get
+            {
+                return "";
+            }
+
+            set
+            {
+                _confirmPassword2 = value;
             }
         }
 
@@ -182,7 +234,15 @@ namespace win_client.ViewModels
 
             set
             {
-                ValidateConfirmPassword(value);
+                // The password is scrambled at this point because we don't want it in the visual tree for
+                // Snoop and other tools to see.  We need to get the password in the clear.  However, only the view knows how
+                // to get the clear password.  Send the view a message to cause it to set the clear
+                // password.  Upon receiving the message, the view will retrieve the password and invoke a
+                // public write-only property on this ViewModel object.  The whole process is synchronous, so
+                // we will have the clear password when the Send completes.
+                CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Send("");
+                ValidateConfirmPassword(_confirmPassword2);
+
                 if(_confirmPassword == value)
                 {
                     return;
@@ -240,7 +300,7 @@ namespace win_client.ViewModels
                     ?? (_pageCreateNewAccount_BackCommand = new RelayCommand(
                                             () =>
                                             {
-                                                Uri nextPage = new System.Uri("/PageHome", System.UriKind.Relative);
+                                                Uri nextPage = new System.Uri(CLConstants.kPageHome, System.UriKind.Relative);
                                                 SendNavigationRequestMessage(nextPage);
                                             }));
             }
@@ -257,7 +317,7 @@ namespace win_client.ViewModels
                     ?? (_pageCreateNewAccount_ContinueCommand = new RelayCommand(
                                             () =>
                                             {
-#if _SILVERLIGHT
+#if SILVERLIGHT
                                                 CLExtensionMethods.ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
 #else
                                                 var layoutRoot = LogicalTreeHelper.FindLogicalNode(Application.Current.MainWindow, "LayoutRoot") as UIElement; 
@@ -265,7 +325,7 @@ namespace win_client.ViewModels
 #endif
                                                 if(!HasErrors)
                                                 {
-                                                    Uri nextPage = new System.Uri("/PageSelectStorageSize", System.UriKind.Relative);
+                                                    Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
                                                     SendNavigationRequestMessage(nextPage);
                                                 }
                                                 else
@@ -330,7 +390,7 @@ namespace win_client.ViewModels
             {
                 AddError("Password", "Please enter a password with at least 8 characters, including a least one number, one lower case character and one upper case character.");
             }
-            else if(ConfirmPassword.Length != 0 && !String.Equals(Password, ConfirmPassword, StringComparison.CurrentCulture))
+            else if(_confirmPassword2.Length != 0 && !String.Equals(password, _confirmPassword2, StringComparison.CurrentCulture))
             {
                 RemoveAllErrorsForPropertyName("ConfirmPassword");
                 AddError("ConfirmPassword", "The passwords don't match.");
@@ -343,8 +403,8 @@ namespace win_client.ViewModels
         private void ValidateConfirmPassword(string confirmPassword)
         {
             RemoveAllErrorsForPropertyName("ConfirmPassword");
-            if ((Password.Length > 0 && !String.Equals(Password, confirmPassword, StringComparison.CurrentCulture)) ||
-                (Password.Length == 0 && confirmPassword.Length != 0))
+            if ((_password2.Length > 0 && !String.Equals(_password2, confirmPassword, StringComparison.CurrentCulture)) ||
+                (_password2.Length == 0 && confirmPassword.Length != 0))
             {
                 AddError("ConfirmPassword", "The passwords don't match.");
             }

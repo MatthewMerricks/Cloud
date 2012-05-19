@@ -116,7 +116,7 @@ namespace win_client.ViewModels
                     ?? (_pageSelectStorageSize_BackCommand = new RelayCommand(
                                             () =>
                                             {      
-                                                Uri nextPage = new System.Uri("/PageCreateNewAccount", System.UriKind.Relative);
+                                                Uri nextPage = new System.Uri(CLConstants.kPageCreateNewAccount, System.UriKind.Relative);
                                                 SendNavigationRequestMessage(nextPage);
                                             }));
             }
@@ -139,7 +139,7 @@ namespace win_client.ViewModels
                                                     case StorageSizeSelections.Size5Gb:
                                                         Settings.Instance.setCloudQuota(5);
 
-                                                        Uri nextPage = new System.Uri("/PageSetupSelector", System.UriKind.Relative);
+                                                        Uri nextPage = new System.Uri(CLConstants.kPageSetupSelector, System.UriKind.Relative);
                                                         SendNavigationRequestMessage(nextPage);
                                                         break;
                                                     case StorageSizeSelections.Size50Gb:

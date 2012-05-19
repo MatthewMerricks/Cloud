@@ -28,7 +28,6 @@ using win_client.Views;
 using win_client.AppDelegate;
 using System.Windows.Threading;
 
-
 namespace win_client.ViewModels
 {
     #region "Definitions"
@@ -57,6 +56,7 @@ namespace win_client.ViewModels
         private RelayCommand _pageSetupSelector_DefaultAreaCommand;
         private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
         private ResourceManager _rm;
+        private CLTrace _trace = CLTrace.Instance;
 
         #endregion
 
@@ -88,12 +88,42 @@ namespace win_client.ViewModels
         {
             base.Cleanup();
             _rm = null;
-            Messenger.Default.Unregister(this);
         }
 
         #endregion
 
         #region "Bindable Properties"
+
+        /// <summary>
+        /// The <see cref="ViewGridContainer" /> property's name.
+        /// </summary>
+        public const string ViewGridContainerPropertyName = "ViewGridContainer";
+
+        private Grid _viewGridContainer = null;
+
+        /// <summary>
+        /// Sets and gets the ViewGridContainer property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public Grid ViewGridContainer
+        {
+            get
+            {
+                return _viewGridContainer;
+            }
+
+            set
+            {
+                if (_viewGridContainer == value)
+                {
+                    return;
+                }
+
+                _viewGridContainer = value;
+                RaisePropertyChanged(ViewGridContainerPropertyName);
+            }
+        }
+
         /// <summary>
         /// The <see cref="PageSetupSelector_OptionSelected" /> property's name.
         /// </summary>
@@ -191,7 +221,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 // Return to the storage size selector dialog
-                                                Uri nextPage = new System.Uri("/PageSelectStorageSize", System.UriKind.Relative);
+                                                Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
                                                 SendNavigationRequestMessage(nextPage);
                                             }));
             }
@@ -269,14 +299,16 @@ namespace win_client.ViewModels
                     string userMessageButtonSelectNewLocation = _rm.GetString("folderExitTextFieldButtonSelectNewLocation");
                     string userMessageButtonMerge = _rm.GetString("folderExitTextFieldButtonMerge");
 
-                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.dialog_box_CloudMessageBoxView);
+                    //Application.Current.MainWindow
+                    _trace.writeToLog(9, "goForward: Put up 'Select new location' or 'Merge' dialog.");
+                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
                     IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
                     IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
                     modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
                     {
                         CloudMessageBoxView_Title = userMessageTitle,
                         CloudMessageBoxView_WindowWidth = 450,
-                        CloudMessageBoxView_WindowHeight = 225,
+                        CloudMessageBoxView_WindowHeight = 250,
                         CloudMessageBoxView_HeaderText = userMessageHeader,
                         CloudMessageBoxView_BodyText = userMessageBody,
                         CloudMessageBoxView_LeftButtonWidth = new GridLength(200),
@@ -286,16 +318,19 @@ namespace win_client.ViewModels
                         CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
                         CloudMessageBoxView_RightButtonContent = userMessageButtonMerge,
                     },
+                    ViewGridContainer,
                     returnedViewModelInstance =>
                     {
+                        _trace.writeToLog(9, "goForward: returnedViewModelInstance: Entry.");
                         if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
                         {
                             // The user selected Merge.  The standard Cloud folder will be used, with the user's existing files in it.
+                            _trace.writeToLog(9, "goForward: User selected Merge.");
                             var notifyParms = new Dictionary<string, object>();
-                            notifyParms.Add(CLConstants.folder_location, @"");
-                            notifyParms.Add(CLConstants.merge_folders, true);
+                            notifyParms.Add(CLConstants.kFolderLocation, @"");
+                            notifyParms.Add(CLConstants.kMergeFolders, true);
                             OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-#if _SILVERLIGHT 
+#if SILVERLIGHT 
                             var dispatcher = Deployment.Current.Dispatcher; 
 #else 
                             var dispatcher = Dispatcher.CurrentDispatcher; 
@@ -311,21 +346,24 @@ namespace win_client.ViewModels
                             //
                             // TODO: We need the FolderBrowserDialog from WPF.  Either switch to WPF for the Windows
                             // desktop, or implement a WPF ActiveX DLL to perform that function.
-                            var dialogFolderSelection = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.dialog_box_FolderSelectionSimpleView);
+                            var dialogFolderSelection = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_FolderSelectionSimpleView);
                             modalDialogService.ShowDialog(dialogFolderSelection, new FolderSelectionSimpleViewModel
                             {
                                 FolderSelectionSimpleViewModel_FolderLocationText = cloudFolderRoot,
+                                FolderSelectionSimpleViewModel_ButtonLeftText = _rm.GetString("folderSelectionSimpleButtonLeftText"),
+                                FolderSelectionSimpleViewModel_ButtonRightText = _rm.GetString("folderSelectionSimpleButtonRightText"),
                             },
+                            ViewGridContainer,
                             returnedFolderSelectionSimpleViewModelInstance =>
                             {
                                 if (dialogFolderSelection.DialogResult.HasValue && dialogFolderSelection.DialogResult.Value)
                                 {
                                     // The user selected a new folder location.
                                     var notifyParms = new Dictionary<string, object>();
-                                    notifyParms.Add(CLConstants.folder_location, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
-                                    notifyParms.Add(CLConstants.merge_folders, false);
+                                    notifyParms.Add(CLConstants.kFolderLocation, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
+                                    notifyParms.Add(CLConstants.kMergeFolders, false);
                                     OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-#if _SILVERLIGHT 
+#if SILVERLIGHT 
                                     var dispatcher = Deployment.Current.Dispatcher; 
 #else
                                     var dispatcher = Dispatcher.CurrentDispatcher;
@@ -349,7 +387,7 @@ namespace win_client.ViewModels
                 if (err != null)
                 {
                     // An error occurred.  Show the user an Oh Snap! modal dialog.
-                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.dialog_box_CloudMessageBoxView);
+                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
                     IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
                     IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
                     modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
@@ -366,12 +404,13 @@ namespace win_client.ViewModels
                         CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
                         CloudMessageBoxView_RightButtonContent = _rm.GetString("appDelegateErrorInstallingButtonTryAgain"),
                     },
+                    ViewGridContainer,
                     returnedViewModelInstance =>
                     {
                         if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
                         {
                             // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
-#if _SILVERLIGHT 
+#if SILVERLIGHT 
                             var dispatcher = Deployment.Current.Dispatcher; 
 #else
                             var dispatcher = Dispatcher.CurrentDispatcher;
@@ -386,8 +425,9 @@ namespace win_client.ViewModels
                 }
                 else
                 {
-                    // Return to the storage size selector dialog
-                    Uri nextPage = new System.Uri("/PageTour1", System.UriKind.Relative);
+                    // Start the tour
+                    string nextPageName = string.Format(@"{0}{1}{2}", CLConstants.kPageTour, 1, CLConstants.kXamlSuffix);
+                    Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
                     SendNavigationRequestMessage(nextPage);
                 }
             }
@@ -425,10 +465,10 @@ namespace win_client.ViewModels
         /// </summary>
         protected void OnCloudSetupNotifyFolderLocationConflictResolved(Dictionary<string, object> parameters) 
         {
-            IsMergingFolder = (bool)parameters[CLConstants.merge_folders];
+            IsMergingFolder = (bool)parameters[CLConstants.kMergeFolders];
             if (!_isMergingFolder)
             {
-                Settings.Instance.CloudFolderPath = (string)parameters[CLConstants.folder_location];        
+                Settings.Instance.CloudFolderPath = (string)parameters[CLConstants.kFolderLocation];        
             }
 
             goForward();

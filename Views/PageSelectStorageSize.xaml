@@ -14,7 +14,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
-    mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
+    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageSelectStorageSizeViewModel, Source={StaticResource Locator}}" 
     Title="Select Storage Size" >
 

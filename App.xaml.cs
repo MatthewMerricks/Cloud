@@ -16,7 +16,7 @@ namespace win_client
 {
     public partial class App : Application
     {
-#if _SILVERLIGHT 
+#if SILVERLIGHT 
         public App()
         {
             Startup += Application_Startup;

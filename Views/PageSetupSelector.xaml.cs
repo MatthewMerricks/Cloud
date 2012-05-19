@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Navigation;
+using System.Windows.Threading;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
@@ -32,29 +33,65 @@ namespace win_client.Views
 
         #endregion
 
+        #region "Life Cycle
+
         public PageSetupSelector()
         {
             InitializeComponent();
 
+            // Remove the navigation bar
+            Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() =>
+            {
+                var navWindow = Window.GetWindow(this) as NavigationWindow;
+                if (navWindow != null)
+                {
+                    navWindow.ShowsNavigationUI = false;
+                }
+            }));
+
             Loaded += new RoutedEventHandler(PageSetupSelector_Loaded);
             Unloaded += new RoutedEventHandler(PageSetupSelector_Unloaded);
 
-#if _SILVERLIGHT
+#if SILVERLIGHT
             Messenger.Default.Register<Uri>(this, "PageSetupSelector_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
 #else
             Messenger.Default.Register<Uri>(this, "PageSetupSelector_NavigationRequest",
-                (uri) => { this.NavigationService.Navigate(uri); });
+                (uri) => 
+                {
+                    if (!_isLoaded)
+                    {
+                        int i = 0;
+                        i++;
+                    }
+                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
+                    this.NavigationService.Navigate(uri, UriKind.Relative); 
+                });
 #endif
-
+            PageSetupSelectorViewModel vm = (PageSetupSelectorViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
         }
+
+        #endregion
+
+        #region "Public Methods"
+        /// <summary>
+        /// Get this view instance. <See cref="getViewInstance" />
+        /// </summary>
+        public PageSetupSelector getViewInstance()
+        {
+            return this;
+        }
+
+        #endregion
+
 
         #region "Message Handlers"
 
         void PageSetupSelector_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-#if !_SILVERLIGHT
+#if !SILVERLIGHT
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
 #endif
             cmdContinue.Focus();
@@ -62,13 +99,18 @@ namespace win_client.Views
 
         void PageSetupSelector_Unloaded(object sender, RoutedEventArgs e)
         {
-#if !_SILVERLIGHT
-            NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
+            _isLoaded = false;
+
+#if !SILVERLIGHT
+            if (NavigationService != null)
+            {
+                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
+            }
 #endif
             Messenger.Default.Unregister(this);
         }
 
-#if _SILVERLIGHT
+#if SILVERLIGHT
         protected override void OnNavigatedTo(NavigationEventArgs e)
 #else
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)

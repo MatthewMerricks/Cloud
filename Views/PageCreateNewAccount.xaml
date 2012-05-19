@@ -14,7 +14,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
-    mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
+    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageCreateNewAccountViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Create New Account" >
 
@@ -22,6 +22,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/win-client;component/Skins/ErrorTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
@@ -68,20 +69,26 @@
     		<Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="3" Grid.RowSpan="10" Margin="8,0,-8,0" RadiusX="5" RadiusY="5" Opacity="0.9"/>
             <TextBox Name="tbEMail" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Column="1" Grid.Row="1" d:LayoutOverrides="Height" 
                      Text="{Binding EMail, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="13.333"
-                     common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
+                     Validation.ErrorTemplate="{StaticResource errorTemplate}"
+                     common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}">
+            </TextBox>
             <TextBox Name="tbFullName" TextAlignment="Left" Foreground="Black" Grid.Row="3" Grid.Column="1" 
                      Text="{Binding FullName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="2" VerticalAlignment="Top" Margin="0,5,0,0" Height="29" FontSize="13.333" 
+                     Validation.ErrorTemplate="{StaticResource errorTemplate}"
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
             <common:SecurePasswordBox x:Name="tbPassword" Foreground="Black" Margin="0,5" Grid.Row="5" Grid.Column="1" 
                      Text="{Binding Password, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="3" d:LayoutOverrides="Height" FontSize="13.333" 
+                     Validation.ErrorTemplate="{StaticResource errorTemplate}"
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
             <common:SecurePasswordBox x:Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="6" Grid.Column="1" d:LayoutOverrides="Height" 
                      Text="{Binding ConfirmPassword, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="4" FontSize="13.333" 
+                     Validation.ErrorTemplate="{StaticResource errorTemplate}"
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
             <TextBox Name="tbComputerName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="8" Grid.Column="1" d:LayoutOverrides="Height" 
-                     Text="{Binding ComputerName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="5" FontSize="13.333"
+                     Text="{Binding ComputerName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="5" FontSize="13.333" Style="{StaticResource controlHasErrorCheck}"
+                     Validation.ErrorTemplate="{StaticResource errorTemplate}"
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
-    		<TextBlock TextWrapping="Wrap" Text="EMail:" RenderTransformOrigin="0.5,0.5" 
+            <TextBlock TextWrapping="Wrap" Text="EMail:" RenderTransformOrigin="0.5,0.5"
     			Foreground="Black" FontSize="16" Margin="0,8,7,2" Grid.Row="1" TextAlignment="Right"/>
     		<TextBlock TextWrapping="Wrap" Text="Full Name:" RenderTransformOrigin="0.5,0.5" 
     			Foreground="Black" FontSize="16" Margin="-1,8,8,5" Grid.Row="3" TextAlignment="Right"/>

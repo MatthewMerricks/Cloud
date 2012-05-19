@@ -14,9 +14,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"            
-    mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
+    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageSetupSelectorViewModel, Source={StaticResource Locator}}" 
-    Title="Select Setup Options" >
+    Title="Select Setup Options"  >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -45,10 +45,10 @@
                 <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
-        <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneWay}" TabIndex="4" Margin="67,23,66,23" Grid.Row="1" />
+        <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneWay}" TabIndex="4" Grid.Row="1" Height="50" Padding="1" Margin="67,0" />
         <Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Background="#FF49C3FB" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" 
-                Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneWay}" TabIndex="1" Margin="67,23,66,23" Height="50" Grid.Row="1"
-                common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
+                Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneWay}" TabIndex="1" Height="50" Grid.Row="1"
+                common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="67,0" />
         <Grid Grid.Column="1" Margin="48,85,37,8" Grid.ColumnSpan="4">
     		<Grid.RowDefinitions>
     			<RowDefinition Height="0.495*"/>

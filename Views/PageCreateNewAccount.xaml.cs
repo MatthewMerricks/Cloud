@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Navigation;
+using System.Windows.Threading;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
@@ -29,6 +30,7 @@ namespace win_client.Views
         #region "Instance Variables"
 
         private bool _isLoaded = false;
+        private PageCreateNewAccountViewModel _viewModel = null;
 
         #endregion
 
@@ -38,24 +40,42 @@ namespace win_client.Views
         {
             InitializeComponent();
 
+            // Remove the navigation bar
+            Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() =>
+            {
+                var navWindow = Window.GetWindow(this) as NavigationWindow;
+                if (navWindow != null)
+                {
+                    navWindow.ShowsNavigationUI = false;
+                }
+            }));
+
             Loaded += new RoutedEventHandler(PageCreateNewAccount_Loaded);
             Unloaded += new RoutedEventHandler(PageCreateNewAccount_Unloaded);
 
-#if _SILVERLIGHT
+#if SILVERLIGHT
             Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
                 (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
 #else
             Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
-                (uri) => { this.NavigationService.Navigate(uri); });
+                (uri) =>
+                {
+                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
+                    this.NavigationService.Navigate(uri, UriKind.Relative); 
+                });
 #endif
 
             CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
+            CLAppMessages.CreateNewAccount_GetClearPasswordField.Register(this, OnCreateNewAccount_GetClearPasswordField);
+            CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Register(this, OnCreateNewAccount_GetClearConfirmPasswordField);
         }
 
         void PageCreateNewAccount_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-#if !_SILVERLIGHT
+            _viewModel = DataContext as PageCreateNewAccountViewModel;
+
+#if !SILVERLIGHT
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
 #endif
             tbEMail.Focus();
@@ -63,13 +83,18 @@ namespace win_client.Views
 
         void PageCreateNewAccount_Unloaded(object sender, RoutedEventArgs e)
         {
-#if !_SILVERLIGHT
-            NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
+            _isLoaded = false;
+
+#if !SILVERLIGHT
+            if (NavigationService != null)
+            {
+                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
+            }
 #endif
             Messenger.Default.Unregister(this);
         }
 
-#if _SILVERLIGHT
+#if SILVERLIGHT
         protected override void OnNavigatedTo(NavigationEventArgs e)
 #else
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
@@ -86,6 +111,24 @@ namespace win_client.Views
         #endregion
 
         #region "Message Handlers"
+
+        private void OnCreateNewAccount_GetClearPasswordField(string notUsed)
+        {
+            string clearPassword = tbPassword.Text;
+            if (_viewModel != null)
+            {
+                _viewModel.Password2 = clearPassword;
+            }
+        }
+
+        private void OnCreateNewAccount_GetClearConfirmPasswordField(string notUsed)
+        {
+            string clearConfirmPassword = tbConfirmPassword.Text;
+            if (_viewModel != null)
+            {
+                _viewModel.ConfirmPassword2 = clearConfirmPassword;
+            }
+        }
 
         private void OnCreateNewAccount_FocusToError_Message(string notUsed)
         {

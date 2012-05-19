@@ -15,7 +15,7 @@
            xmlns:common="clr-namespace:win_client.Common"
            mc:Ignorable="d"
            DataContext="{Binding PageHomeViewModel, Source={StaticResource Locator}}" 
-           d:DesignWidth="640" d:DesignHeight="480"
+           d:DesignWidth="624" d:DesignHeight="442"
            Title="Home Page">
 
     <Page.Resources>
@@ -56,9 +56,9 @@
                      Text="{Binding Password, Mode=TwoWay, ValidatesOnDataErrors=True}"
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
 
-        <Button x:Name="cmdCreateAccount" Content="Create Account" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="53" FontSize="13.333" Background="#FF49C3FB" 
+        <Button x:Name="cmdCreateAccount" Content="Create Account" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
                          Grid.Row="3" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_CreateNewAccountCommand, Mode=OneWay}"/>
-        <Button x:Name="cmdSignIn" Content="Sign In" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="53" FontSize="13.333" Background="#FF49C3FB" 
+        <Button x:Name="cmdSignIn" Content="Sign In" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
                          Grid.Row="3" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_SignInCommand, Mode=OneWay}"
                          common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
     </Grid>

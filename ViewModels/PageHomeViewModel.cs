@@ -133,7 +133,7 @@ namespace win_client.ViewModels
                     ?? (_pageHome_CreateNewAccountCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPage = new System.Uri("/PageCreateNewAccount", System.UriKind.Relative);
+                                              Uri nextPage = new System.Uri(CLConstants.kPageCreateNewAccount, System.UriKind.Relative);
                                               SendNavigationRequestMessage(nextPage);
                                           }));
             }
@@ -150,7 +150,7 @@ namespace win_client.ViewModels
                     ?? (_pageHome_SignInCommand = new RelayCommand(
                                           () =>
                                           {
-#if _SILVERLIGHT
+#if SILVERLIGHT
                                               CLExtensionMethods.ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
 #else
                                               var layoutRoot = LogicalTreeHelper.FindLogicalNode(Application.Current.MainWindow, "LayoutRoot") as UIElement; 
@@ -158,7 +158,7 @@ namespace win_client.ViewModels
 #endif
                                               if(!HasErrors)
                                               {
-                                                  Uri nextPage = new System.Uri("/PageHome", System.UriKind.Relative);   //&&&& TODO: Begin the sign-in process.
+                                                  Uri nextPage = new System.Uri(CLConstants.kPageHome, System.UriKind.Relative);   //&&&& TODO: Begin the sign-in process.
                                                   SendNavigationRequestMessage(nextPage);
                                               }
                                               else

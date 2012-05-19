@@ -76,7 +76,7 @@ namespace win_client.DataModels.Settings
             Boolean rc = false;
             value = default(TT);
 
-#if _SILVERLIGHT
+#if SILVERLIGHT
             IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
 #else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
@@ -96,7 +96,7 @@ namespace win_client.DataModels.Settings
       
         public static TT Read<TT>(string name, TT defaultValue)        
         {
-#if _SILVERLIGHT
+#if SILVERLIGHT
             IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
 #else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
@@ -111,7 +111,7 @@ namespace win_client.DataModels.Settings
      
         public static void Write<TT>(string name, TT value)        
         {
-#if _SILVERLIGHT
+#if SILVERLIGHT
             IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
 #else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
@@ -134,7 +134,7 @@ namespace win_client.DataModels.Settings
 
         public static void Clear()        
         {
-#if _SILVERLIGHT
+#if SILVERLIGHT
             IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
 #else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;

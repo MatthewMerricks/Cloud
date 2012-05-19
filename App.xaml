@@ -13,10 +13,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:win_client.ViewModels"
+             xmlns:common="clr-namespace:win_client.Common"
              StartupUri="NavigationWindow.xaml"
              mc:Ignorable="d">
     <Application.Resources>
         <!--Global View Model Locator-->
         <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
+        <common:DebugConverter x:Key="DebugConverter" />
+
     </Application.Resources>
 </Application>
