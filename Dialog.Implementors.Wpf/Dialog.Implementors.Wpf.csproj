@@ -31,7 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GalaSoft.MvvmLight.WPF4, Version=4.0.21.12854, Culture=neutral, PublicKeyToken=63eb5c012e0b3c1c, processorArchitecture=MSIL" />
+    <Reference Include="GalaSoft.MvvmLight.WPF4">
+      <HintPath>..\3rdParty\GalaSoft.MvvmLight.WPF4.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -47,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Comanding\DelegateCommand.cs" />
+    <Compile Include="Extensions\ChildWindowExtensions.cs" />
     <Compile Include="MVVM\Services\MessageBoxService.cs" />
     <Compile Include="MVVM\Services\ModalDialogService.cs" />
     <Compile Include="MVVM\ViewModel.cs" />
