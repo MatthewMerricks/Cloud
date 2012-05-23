@@ -1,0 +1,50 @@
+HKCR
+{
+	BadgeCOM.BadgeIconSyncing.1 = s 'BadgeIconSyncing Class'
+	{
+		CLSID = s '{37E0ECAE-BEA1-4096-9D84-440A7C9AC9E4}'
+	}
+	BadgeCOM.BadgeIconSyncing = s 'BadgeIconSyncing Class'
+	{
+		CLSID = s '{37E0ECAE-BEA1-4096-9D84-440A7C9AC9E4}'
+		CurVew = s 'BadgeCOM.BadgeIconSyncing.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {37E0ECAE-BEA1-4096-9D84-440A7C9AC9E4} = s 'BadgeIconSyncing Class'
+		{
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			TypeLib = s '{B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1}'
+			Version = s '1.0'
+		}
+	}
+}
+
+HKLM
+{
+  NoRemove SOFTWARE
+  {
+    NoRemove Microsoft
+    {
+      NoRemove Windows
+      {
+        NoRemove CurrentVersion
+        {
+          NoRemove Explorer
+          {
+            NoRemove ShellIconOverlayIdentifiers
+            {
+              ForceRemove BadgeIconSyncing = s '{37E0ECAE-BEA1-4096-9D84-440A7C9AC9E4}'
+              {
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

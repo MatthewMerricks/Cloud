@@ -1,0 +1,90 @@
+//
+// BadgeCOM.idl
+// Cloud Windows COM
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+// BadgeCOM.idl : IDL source for BadgeCOM
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (BadgeCOM.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(46991EC7-7E83-4E3A-8E21-757792BBA5C4),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IBadgeIconSyncing : IDispatch{
+};
+[
+	object,
+	uuid(0CC774F1-545A-4129-8B09-8655C5370F54),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IBadgeIconSynced : IDispatch{
+};
+[
+	object,
+	uuid(77D3D99A-1EF6-41F7-A247-229939ADC1D9),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IBadgeIconSelective : IDispatch{
+};
+[
+	object,
+	uuid(2A204983-6DE7-42D2-BBB1-FCD5FCBD8026),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IBadgeIconFailed : IDispatch{
+};
+[
+	uuid(B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1),
+	version(1.0),
+]
+library BadgeCOMLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(37E0ECAE-BEA1-4096-9D84-440A7C9AC9E4)		
+	]
+	coclass BadgeIconSyncing
+	{
+		[default] interface IBadgeIconSyncing;
+	};
+	[
+		uuid(16FDC851-D9B0-4591-B54A-9A50D58226CC)		
+	]
+	coclass BadgeIconSynced
+	{
+		[default] interface IBadgeIconSynced;
+	};
+	[
+		uuid(A46EB4D6-B7F7-4255-912F-C151D78E26F8)		
+	]
+	coclass BadgeIconSelective
+	{
+		[default] interface IBadgeIconSelective;
+	};
+	[
+		uuid(49C685C9-CD72-4588-8800-2B30C49723A1)		
+	]
+	coclass BadgeIconFailed
+	{
+		[default] interface IBadgeIconFailed;
+	};
+};
+
+import "shobjidl.idl";

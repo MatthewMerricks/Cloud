@@ -1,0 +1,15 @@
+;
+; BadgeCOMps.def
+; Cloud Windows COM
+;
+; Created By DavidBruck.
+; Copyright (c) Cloud.com. All rights reserved.
+
+
+LIBRARY
+
+EXPORTS
+	DllGetClassObject		PRIVATE
+	DllCanUnloadNow			PRIVATE
+	DllRegisterServer		PRIVATE
+	DllUnregisterServer		PRIVATE
