@@ -52,9 +52,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GalaSoft.MvvmLight.Extras.WPF4, Version=4.0.21.12854, Culture=neutral, PublicKeyToken=1673db7d5906b0ad, processorArchitecture=MSIL" />
-    <Reference Include="GalaSoft.MvvmLight.WPF4, Version=4.0.21.12854, Culture=neutral, PublicKeyToken=63eb5c012e0b3c1c, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
+      <HintPath>3rdParty\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
+    </Reference>
+    <Reference Include="GalaSoft.MvvmLight.WPF4">
+      <HintPath>3rdParty\GalaSoft.MvvmLight.WPF4.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>3rdParty\Microsoft.Practices.ServiceLocation.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -72,7 +78,7 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WPFToolkit.Extended, Version=1.6.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
-      <HintPath>..\ExtendedWpfToolkitSource\wpftoolkit-88611\Main\Source\ExtendedWPFToolkitSolution\Src\WPFToolkit.Extended\bin\Debug\WPFToolkit.Extended.dll</HintPath>
+      <HintPath>3rdParty\WPFToolkit.Extended.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -105,9 +111,7 @@
     </Compile>
     <Compile Include="Resources\Resources.fr.Designer.cs" />
     <Compile Include="Resources\Resources1.Designer.cs" />
-    <Compile Include="TestOnly\Page1.xaml.cs">
-      <DependentUpon>Page1.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="ViewModels\ChildWindowExtensions.cs" />
     <Compile Include="ViewModels\CloudMessageBoxViewModel.cs" />
     <Compile Include="ViewModels\FolderSelectionSimpleViewModel.cs" />
     <Compile Include="ViewModels\NotifyPropertyChanged.cs" />
@@ -163,10 +167,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\MainSkin.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="TestOnly\Page1.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
