@@ -11,6 +11,7 @@ using GalaSoft.MvvmLight.Threading;
 using win_client.ViewModels;
 using win_client.AppDelegate;
 using win_client.Common;
+using BadgeNET;
 
 namespace win_client
 {
@@ -97,6 +98,12 @@ namespace win_client
 #else  // WPF
         static App()
         {
+            // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
+            // before the initial list is passed (via InitializeOrReplace)
+            IconOverlay.Initialize();
+
+            // Todo: add call to IconOverlay.Shutdown() when the application terminates/closes/receives unhandled exception
+
             DispatcherHelper.Initialize();
         }
 #endif  // end WPF
