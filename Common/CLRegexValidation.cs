@@ -24,16 +24,16 @@ namespace win_client.Common
         /// <summary>
         /// Regular expression, which is used to validate an E-Mail address.
         /// </summary>
-        private const string MatchEmailPattern = @"^.+?@.+$";
-//           @"^(([\w-]+\.)+[\w-]+|([a-zA-Z]{1}|[\w-]{2,}))@"
-//           + @"((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\.([0-1]?
+        private const string MatchEmailPattern = "^.+?@.+$";
+//           "^(([\w-]+\.)+[\w-]+|([a-zA-Z]{1}|[\w-]{2,}))@"
+//           + "((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\.([0-1]?
 //                [0-9]{1,2}|25[0-5]|2[0-4][0-9])\."
-//           + @"([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\.([0-1]?
+//           + "([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\.([0-1]?
 //                [0-9]{1,2}|25[0-5]|2[0-4][0-9])){1}|"
-//           + @"([a-zA-Z]+[\w-]+\.)+[a-zA-Z]{2,4})$";
+//           + "([a-zA-Z]+[\w-]+\.)+[a-zA-Z]{2,4})$";
 
         private const string MatchStrongPassword =
-            @"^(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?!.*s).*$";
+            "^(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?!.*s).*$";
 
         /// <summary>
         /// Checks whether the given Email-Parameter is a valid E-Mail address.

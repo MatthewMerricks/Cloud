@@ -132,6 +132,9 @@
   <data name="appDelegateExceptionCreatingFolder" xml:space="preserve">
     <value>An exception occurred while creating the Cloud folder.</value>
   </data>
+  <data name="createNewAccountErrorHeader" xml:space="preserve">
+    <value>Error creating your account.</value>
+  </data>
   <data name="folderExitTextFieldBody" xml:space="preserve">
     <value>There's already a folder called Cloud in {0}.  Do you want to merge all the existing files in that folder to your Cloud folder, or select a new Cloud folder location?</value>
   </data>
@@ -152,5 +155,33 @@
   </data>
   <data name="folderSelectionSimpleButtonRightText" xml:space="preserve">
     <value>Continue</value>
+  </data>
+  <data name="generalCancelButtonContent" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="generalErrorTitle" xml:space="preserve">
+    <value>Oh Snap!  Something happened.</value>
+  </data>
+  <data name="generalOkButtonContent" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="SystemTrayIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Artwork\cloud.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tourPage1Greeting" xml:space="preserve">
+    <value>Greetings {0}!  Welcome to Cloud!</value>
+  </data>
+  <data name="SystemTrayContextMenuExit" xml:space="preserve">
+    <value>E&amp;xit</value>
+  </data>
+  <data name="SystemTrayContextMenuHeader" xml:space="preserve">
+    <value>Cloud</value>
+  </data>
+  <data name="SystemTrayContextMenuPreferences" xml:space="preserve">
+    <value>&amp;Preferences...</value>
+  </data>
+  <data name="SystemTrayContextMenuCheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
   </data>
 </root>

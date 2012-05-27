@@ -68,7 +68,8 @@
         		Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click" TabIndex="1"
         		Grid.Column="1"
         		Margin="{Binding CloudMessageBoxView_LeftButtonMargin, Mode=TwoWay}"  
-        		Content="{Binding CloudMessageBoxView_LeftButtonContent, Mode=TwoWay}" />
+        		Content="{Binding CloudMessageBoxView_LeftButtonContent, Mode=TwoWay}" 
+                Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=TwoWay}"/>
         	<Button x:Name="btnOK" FontSize="13.333" Background="#FF49C3FB" Grid.Column="3"
         		Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click"
         		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="0"

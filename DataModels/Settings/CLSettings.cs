@@ -5,6 +5,7 @@
 //  Created by BobS on 4/30/12.
 //  Copyright (c) Cloud.com. All rights reserved.
 //
+
 using System.IO.IsolatedStorage;
 using System;
 using System.IO;
@@ -152,39 +153,39 @@ namespace win_client.DataModels.Settings
     public sealed class Settings
     {
         // Constant strings
-        private const string kStartCloudAppWithSystem = @"start_cloud_app_with_system";
-        private const string kAnimateMenuBarForUpdates = @"animate_menu_bar_for_updates";
-        private const string kShowDesktopNotificationForUpdates = @"show_desktop_notification_for_updates";
-        private const string kCloudAppLanguage = @"cloud_app_language";
-        private const string kDateWeLastCheckedForSoftwareUpdate = @"date_we_last_checked_for_software_update";
-        private const string kUseDefaultSetup = @"use_default_setup";
-        private const string kUseLanForFileSync = @"use_lan_for_file_sync";
-        private const string kLimitDownloadSpeeds = @"limit_download_speeds";
-        private const string kDownloadSpeedLimit = @"download_speed_limit";
-        private const string kLimitUploadSpeeds = @"limit_upload_speeds";
-        private const string kUploadSpeedLimit = @"upload_speed_limit";
-        private const string kUseProxySetting = @"use_proxy_settings";
-        private const string kUseProxyType = @"use_proxy_type";
-        private const string kProxyServerAddress = @"proxy_server_address";
-        private const string kProxyServerPort = @"proxy_server_port";
-        private const string kProxyServerRequiresPassword = @"proxy_server_requires_password";
-        private const string kProxyServerUserName = @"proxy_server_user_name";
-        private const string kProxyServerPassword = @"proxy_server_password";
-        private const string kUserName = @"user_name";
-        private const string kUserFullName = @"user_full_name";
-        private const string kDeviceName = @"device_name";
-        private const string kUuid = @"uuid";
-        private const string kAKey = @"akey";
-        private const string kQuota = @"q";
-        private const string kUdidRegistered = @"r_udid";
-        private const string kCompletedSetup = @"cs";
-        private const string kCloudFolderPath = @"cloud_folder_path";
-        private const string kCloudFolderDescriptor = @"desktop_shortcut";
-        private const string kEid = @"eid";
-        private const string kSid = @"sid";
-        private const string kAddCloudFolderToDock = @"add_dock_folder";
-        private const string kAddCloudFolderToDesktop = @"add_cloud_folder_to_desktop";
-        private const string kRecentFileItems = @"recent_file_items";
+        public const string kStartCloudAppWithSystem = "start_cloud_app_with_system";
+        public const string kAnimateMenuBarForUpdates = "animate_menu_bar_for_updates";
+        public const string kShowDesktopNotificationForUpdates = "show_desktop_notification_for_updates";
+        public const string kCloudAppLanguage = "cloud_app_language";
+        public const string kDateWeLastCheckedForSoftwareUpdate = "date_we_last_checked_for_software_update";
+        public const string kUseDefaultSetup = "use_default_setup";
+        public const string kUseLanForFileSync = "use_lan_for_file_sync";
+        public const string kLimitDownloadSpeeds = "limit_download_speeds";
+        public const string kDownloadSpeedLimit = "download_speed_limit";
+        public const string kLimitUploadSpeeds = "limit_upload_speeds";
+        public const string kUploadSpeedLimit = "upload_speed_limit";
+        public const string kUseProxySetting = "use_proxy_settings";
+        public const string kUseProxyType = "use_proxy_type";
+        public const string kProxyServerAddress = "proxy_server_address";
+        public const string kProxyServerPort = "proxy_server_port";
+        public const string kProxyServerRequiresPassword = "proxy_server_requires_password";
+        public const string kProxyServerUserName = "proxy_server_user_name";
+        public const string kProxyServerPassword = "proxy_server_password";
+        public const string kUserName = "user_name";
+        public const string kUserFullName = "user_full_name";
+        public const string kDeviceName = "device_name";
+        public const string kUuid = "uuid";
+        public const string kAKey = "akey";
+        public const string kQuota = "q";
+        public const string kUdidRegistered = "r_udid";
+        public const string kCompletedSetup = "cs";
+        public const string kCloudFolderPath = "cloud_folder_path";
+        public const string kCloudFolderDescriptor = "desktop_shortcut";
+        public const string kEid = "eid";
+        public const string kSid = "sid";
+        public const string kAddCloudFolderToDock = "add_dock_folder";
+        public const string kAddCloudFolderToDesktop = "add_cloud_folder_to_desktop";
+        public const string kRecentFileItems = "recent_file_items";
 
 
         /// <summary>
@@ -565,8 +566,8 @@ namespace win_client.DataModels.Settings
         /// <summary>
         /// Allocate ourselves. We have a private constructor, so no one else can.
         /// </summary>
-        static readonly Settings _instance = new Settings();
-        private static Boolean _isLoaded = false;
+        private static Settings _instance = null;
+        private static object InstanceLocker = new object();
 
         /// <summary>
         /// Access SiteStructure.Instance to get the singleton object.
@@ -576,10 +577,13 @@ namespace win_client.DataModels.Settings
         {
     	    get 
             {
-                if (!_isLoaded)
+                lock (InstanceLocker)
                 {
-                    _isLoaded = true;
-                    _instance.loadSettings();
+                    if (_instance == null)
+                    {
+                        _instance = new Settings();
+                        _instance.loadSettings();
+                    }
                 }
                 return _instance;
             }
@@ -619,24 +623,23 @@ namespace win_client.DataModels.Settings
             _uploadSpeedLimit = 10;
             _useProxySetting = (int)useProxySettingType.useProxySettingAutoDetect;
             _useProxyType = (int)useProxyTypes.useProxyHTTP;
-            _proxyServerAddress = @"";
+            _proxyServerAddress = "";
             _proxyServerPort = 8080;
             _proxyServerRequiresPassword = (int)buttonState.stateOFF;
-            _proxyServerUsername = @"";
-            _proxyServerPassword = @"";
+            _proxyServerUsername = "";
+            _proxyServerPassword = "";
     
             // Account
-            _akey = @""; // only available when registered.
-            _uuid = @""; // only available when registered.
-            _userName = @"";
-            _userFullName = @"";
-            _deviceName = @"";
+            _akey = ""; // only available when registered.
+            _uuid = ""; // only available when registered.
+            _userName = "";
+            _userFullName = "";
+            _deviceName = "";
             _quota = 0;
             _completedSetup = false;
             _udidRegistered = false;
     
             // Advanced
-            //cloudFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"/Cloud";
             _cloudFolderPath = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));  // get the user's home directory.  e.g., C:\Users\<UserName>\
             _cloudFolderPath = _cloudFolderPath + @"\Cloud";
 
@@ -648,7 +651,7 @@ namespace win_client.DataModels.Settings
             // Others
             _addCloudFolderToDock = true;
             _addCloudFolderToDesktop = false;
-            _sid = @"0";
+            _sid = "0";
             _recentFileItems.Clear(); 
     
             // Override default options with user preferences
@@ -889,9 +892,9 @@ namespace win_client.DataModels.Settings
         public void saveAccountSettings(Dictionary<string, object> accountInfo)
         {  
             UserName = (string)accountInfo[kUserName];
-            UserFullName = (string)accountInfo[kUserFullName];
+            //UserFullName = (string)accountInfo[kUserFullName];
             DeviceName = (string)accountInfo[kDeviceName];
-            UdidRegistered = (Boolean)accountInfo[kUdidRegistered];
+            UdidRegistered = ((string)accountInfo[kUdidRegistered]) == "1" ? true : false;
             Akey = (string)accountInfo[kAKey];
             Uuid = (string)accountInfo[kUuid];
         }
@@ -971,7 +974,7 @@ namespace win_client.DataModels.Settings
 
             // Now persist the result
             _recentFileItems = CLExtensionMethods.DeepCopy(recents);
-            SettingsBase.Write<List<string>>(@"recent_items", _recentFileItems);
+            SettingsBase.Write<List<string>>("recent_items", _recentFileItems);
         }
     }
 

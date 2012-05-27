@@ -53,7 +53,7 @@
         		<RowDefinition/>
         		<RowDefinition Height="10"/>
         	</Grid.RowDefinitions>
-        	<TextBlock x:Name="textBlockHeader" TextWrapping="Wrap" Text="Greetings Gus, welcome to Cloud!" Grid.Row="1" Foreground="Black" FontSize="18.667" FontWeight="Bold"/>
+            <TextBlock x:Name="textBlockHeader" TextWrapping="Wrap" Text="{Binding PageTour_GreetingText, Mode=OneWay}" Grid.Row="1" Foreground="Black" FontSize="18.667" FontWeight="Bold"/>
             <Grid x:Name="gridTransparentBackgroundContainer" Grid.Row="2" >
             	<Border x:Name="borderTransparentImage" Width="Auto" CornerRadius="8" RenderTransformOrigin="0.5,0.5" Margin="0">
             		<Border.Background>
@@ -83,9 +83,9 @@
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
         	<Button x:Name="cmdSkipTour" Content="Skip Tour" FontSize="13.333" Width="125" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageTour_BackCommand, Mode=OneWay}" TabIndex="1" HorizontalAlignment="Left"/>
+        		Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Left"/>
         	<Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageTour_ContinueCommand, Mode=OneWay}" TabIndex="0"
+        		Command="{Binding PageTour_ContinueCommand, Mode=OneTime}" TabIndex="0"
         		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" />
         </Grid>
     </Grid>

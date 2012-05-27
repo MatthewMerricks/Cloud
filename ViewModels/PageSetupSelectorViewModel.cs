@@ -27,6 +27,8 @@ using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
 using System.Windows.Threading;
+using CloudApi;
+using CloudApi.Support;
 
 namespace win_client.ViewModels
 {
@@ -37,7 +39,7 @@ namespace win_client.ViewModels
         OptionDefault,
         OptionAdvanced,
     }
-
+    
     #endregion
          
     /// <summary>
@@ -56,7 +58,7 @@ namespace win_client.ViewModels
         private RelayCommand _pageSetupSelector_DefaultAreaCommand;
         private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
         private ResourceManager _rm;
-        private CLTrace _trace = CLTrace.Instance;
+        private CLSptTrace _trace = CLSptTrace.Instance;
 
         #endregion
 
@@ -79,6 +81,7 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
             _rm = CLAppDelegate.Instance.ResourceManager;
+            _trace = CLSptTrace.Instance;
         }
 
         /// <summary>
@@ -327,7 +330,7 @@ namespace win_client.ViewModels
                             // The user selected Merge.  The standard Cloud folder will be used, with the user's existing files in it.
                             _trace.writeToLog(9, "goForward: User selected Merge.");
                             var notifyParms = new Dictionary<string, object>();
-                            notifyParms.Add(CLConstants.kFolderLocation, @"");
+                            notifyParms.Add(CLConstants.kFolderLocation, "");
                             notifyParms.Add(CLConstants.kMergeFolders, true);
                             OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
 #if SILVERLIGHT 
@@ -382,7 +385,7 @@ namespace win_client.ViewModels
                 }
 
                 // Finish the setup.
-                CLError err = null;
+                CLApiError err = null;
                 CLAppDelegate.Instance.installCloudServices(out err);
                 if (err != null)
                 {
@@ -396,7 +399,7 @@ namespace win_client.ViewModels
                         CloudMessageBoxView_WindowWidth = 450,
                         CloudMessageBoxView_WindowHeight = 225,
                         CloudMessageBoxView_HeaderText = _rm.GetString("appDelegateErrorInstallingHeader"),
-                        CloudMessageBoxView_BodyText = _rm.GetString(err.errorDescriptionStringResourceKey),
+                        CloudMessageBoxView_BodyText = err.errorDescription,
                         CloudMessageBoxView_LeftButtonWidth = new GridLength(200),
                         CloudMessageBoxView_LeftButtonMargin = new Thickness(30, 0, 0, 0),
                         CloudMessageBoxView_LeftButtonContent = _rm.GetString("appDelegateErrorInstallingButtonIgnore"),
@@ -426,7 +429,7 @@ namespace win_client.ViewModels
                 else
                 {
                     // Start the tour
-                    string nextPageName = string.Format(@"{0}{1}{2}", CLConstants.kPageTour, 1, CLConstants.kXamlSuffix);
+                    string nextPageName = string.Format("{0}{1}{2}", CLConstants.kPageTour, 1, CLConstants.kXamlSuffix);
                     Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
                     SendNavigationRequestMessage(nextPage);
                 }
@@ -442,7 +445,7 @@ namespace win_client.ViewModels
                                                     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
                                                     // Move to advanced setup
-                                                    self.folderSelectionViewController = [[CLFolderSelectionViewController alloc] initWithNibName:@"CLFolderSelectionViewController" bundle:nil];
+                                                    self.folderSelectionViewController = [[CLFolderSelectionViewController alloc] initWithNibName:(LFolderSelectionViewController" bundle:nil];
                                                     [self.folderSelectionViewController setSetupSelectorViewController:self];
             
                                                     [[[NSApp mainWindow] contentView] addSubview:self.folderSelectionViewController.view];

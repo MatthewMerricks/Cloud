@@ -57,9 +57,9 @@
                      common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
 
         <Button x:Name="cmdCreateAccount" Content="Create Account" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
-                         Grid.Row="3" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_CreateNewAccountCommand, Mode=OneWay}"/>
+                         Grid.Row="3" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_CreateNewAccountCommand, Mode=OneTime}"/>
         <Button x:Name="cmdSignIn" Content="Sign In" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
-                         Grid.Row="3" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_SignInCommand, Mode=OneWay}"
+                         Grid.Row="3" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_SignInCommand, Mode=OneTime}"
                          common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
     </Grid>
 </Page>

@@ -68,6 +68,10 @@ namespace win_client.Views
             CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
             CLAppMessages.CreateNewAccount_GetClearPasswordField.Register(this, OnCreateNewAccount_GetClearPasswordField);
             CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Register(this, OnCreateNewAccount_GetClearConfirmPasswordField);
+
+            PageCreateNewAccountViewModel vm = (PageCreateNewAccountViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
+
         }
 
         void PageCreateNewAccount_Loaded(object sender, RoutedEventArgs e)

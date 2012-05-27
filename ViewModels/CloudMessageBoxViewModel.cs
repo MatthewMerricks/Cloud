@@ -27,7 +27,7 @@ namespace win_client.ViewModels
         /// </summary>
         public const string CloudMessageBoxView_TitlePropertyName = "CloudMessageBoxView_Title";
 
-        private string _cloudMessageBoxView_Title = @"Title";
+        private string _cloudMessageBoxView_Title = "Title";
 
         /// <summary>
         /// Sets and gets the CloudMessageBoxView_Title property.
@@ -116,7 +116,7 @@ namespace win_client.ViewModels
         /// </summary>
         public const string CloudMessageBoxView_HeaderTextPropertyName = "CloudMessageBoxView_HeaderText";
 
-        private string _cloudMessageBoxView_HeaderText = @"";
+        private string _cloudMessageBoxView_HeaderText = "";
 
         /// <summary>
         /// Sets and gets the CloudMessageBoxView_HeaderText property.
@@ -146,7 +146,7 @@ namespace win_client.ViewModels
         /// </summary>
         public const string CloudMessageBoxView_BodyTextPropertyName = "CloudMessageBoxView_BodyText";
 
-        private string _cloudMessageBoxView_BodyText = @"";
+        private string _cloudMessageBoxView_BodyText = "";
 
         /// <summary>
         /// Sets and gets the CloudMessageBoxView_BodyText property.
@@ -236,7 +236,7 @@ namespace win_client.ViewModels
         /// </summary>
         public const string CloudMessageBoxView_LeftButtonContentPropertyName = "CloudMessageBoxView_LeftButtonContent";
 
-        private string _cloudMessageBoxView_LeftButtonContent = @"";
+        private string _cloudMessageBoxView_LeftButtonContent = "";
 
         /// <summary>
         /// Sets and gets the CloudMessageBoxView_LeftButtonContent property.
@@ -258,6 +258,36 @@ namespace win_client.ViewModels
 
                 _cloudMessageBoxView_LeftButtonContent = value;
                 RaisePropertyChanged(CloudMessageBoxView_LeftButtonContentPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="CloudMessageBoxView_LeftButtonVisibility" /> property's name.
+        /// </summary>
+        public const string CloudMessageBoxView_LeftButtonVisibilityPropertyName = "CloudMessageBoxView_LeftButtonVisibility";
+
+        private Visibility _cloudMessageBoxView_LeftButtonVisibility = Visibility.Visible;
+
+        /// <summary>
+        /// Sets and gets the CloudMessageBoxView_LeftButtonVisibility property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public Visibility CloudMessageBoxView_LeftButtonVisibility
+        {
+            get
+            {
+                return _cloudMessageBoxView_LeftButtonVisibility;
+            }
+
+            set
+            {
+                if (_cloudMessageBoxView_LeftButtonVisibility == value)
+                {
+                    return;
+                }
+
+                _cloudMessageBoxView_LeftButtonVisibility = value;
+                RaisePropertyChanged(CloudMessageBoxView_LeftButtonVisibilityPropertyName);
             }
         }
 
@@ -326,7 +356,7 @@ namespace win_client.ViewModels
         /// </summary>
         public const string CloudMessageBoxView_RightButtonContentPropertyName = "CloudMessageBoxView_RightButtonContent";
 
-        private string _cloudMessageBoxView_RightButtonContent = @"";
+        private string _cloudMessageBoxView_RightButtonContent = "";
 
         /// <summary>
         /// Sets and gets the CloudMessageBoxView_RightButtonContent property.

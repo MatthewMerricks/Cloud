@@ -19,6 +19,13 @@ using win_client.Common;
 using System.Reflection;
 using System.Linq;
 using win_client.DataModels.Settings;
+using CloudApi;
+using CloudApi.Support;
+using System.Collections.Generic;
+using GalaSoft.MvvmLight.Ioc;
+using Dialog.Abstractions.Wpf.Intefaces;
+using System.Resources;
+using win_client.AppDelegate;
 
 namespace win_client.ViewModels
 {
@@ -36,6 +43,8 @@ namespace win_client.ViewModels
     {
         #region Instance Variables
         private readonly IDataService _dataService;
+        private CLSptTrace _trace = CLSptTrace.Instance;
+        private ResourceManager _rm;
 
         private RelayCommand _pageCreateNewAccount_BackCommand;
         private RelayCommand _pageCreateNewAccount_ContinueCommand;
@@ -62,10 +71,43 @@ namespace win_client.ViewModels
                     SetFieldsFromSettings();
                     //&&&&               WelcomeTitle = item.Title;
                 });
+            _rm =  CLAppDelegate.Instance.ResourceManager;
+            _trace = CLSptTrace.Instance;
+
         }
         #endregion
 
         #region Bindable Properties
+
+        /// <summary>
+        /// The <see cref="ViewGridContainer" /> property's name.
+        /// </summary>
+        public const string ViewGridContainerPropertyName = "ViewGridContainer";
+
+        private Grid _viewGridContainer = null;
+
+        /// <summary>
+        /// Sets and gets the ViewGridContainer property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public Grid ViewGridContainer
+        {
+            get
+            {
+                return _viewGridContainer;
+            }
+
+            set
+            {
+                if (_viewGridContainer == value)
+                {
+                    return;
+                }
+
+                _viewGridContainer = value;
+                RaisePropertyChanged(ViewGridContainerPropertyName);
+            }
+        }
          
         /// <summary>
         /// The <see cref="EMail" /> property's name.
@@ -285,6 +327,66 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The <see cref="IsBusy" /> property's name.
+        /// </summary>
+        public const string IsBusyPropertyName = "IsBusy";
+
+        private bool _isBusy = false;
+
+        /// <summary>
+        /// Sets and gets the IsBusy property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public bool IsBusy
+        {
+            get
+            {
+                return _isBusy;
+            }
+
+            set
+            {
+                if (_isBusy == value)
+                {
+                    return;
+                }
+
+                _isBusy = value;
+                RaisePropertyChanged(IsBusyPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="BusyContent" /> property's name.
+        /// </summary>
+        public const string BusyContentPropertyName = "BusyContent";
+
+        private bool _busyContent = false;
+
+        /// <summary>
+        /// Sets and gets the BusyContent property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+          /// </summary>
+        public bool BusyContent
+        {
+            get
+            {
+                return _busyContent;
+            }
+
+            set
+            {
+                if (_busyContent == value)
+                {
+                    return;
+                }
+
+                _busyContent = value;
+                RaisePropertyChanged(BusyContentPropertyName);
+            }
+        }
+
         #endregion
       
         #region Commands
@@ -325,8 +427,8 @@ namespace win_client.ViewModels
 #endif
                                                 if(!HasErrors)
                                                 {
-                                                    Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
-                                                    SendNavigationRequestMessage(nextPage);
+                                                    // The user's entries are correct.  Process the form.
+                                                    RequestNewRegistrationAsync();              // includes ProcessRegistration()
                                                 }
                                                 else
                                                 {
@@ -336,6 +438,102 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// Register this user.
+        /// </summary>
+        private void RequestNewRegistrationAsync()
+        {
+            IsBusy = true;                      // show the busy indicatorde
+    
+            // Get first and last name
+            string[] names = FullName.Split(CLConstants.kDelimiterChars);
+            string firstName = names[0];
+            string lastName = names[names.Count() - 1];
+
+            // Create cloud account obj
+            CLApiAccount clAccount =  new CLApiAccount(EMail, firstName, lastName, _password2);
+    
+            // Create cloud device obj
+            CLApiDevice clDevice = new CLApiDevice(ComputerName);
+    
+            // Request registration from Cloud SDK
+            CLApiRegistration clRegistration = new CLApiRegistration();
+    
+            clRegistration.CreateNewAccountAsync(clAccount, clDevice, CreateNewAccountCompleteCallback, 30.0, clRegistration);
+        }
+
+        /// <summary>
+        /// The request to the server has completed.
+        /// This callback will occur on the main thread.
+        /// </summary>
+        private void CreateNewAccountCompleteCallback(CLApiRegistration clRegistration, bool isSuccess, CLApiError error)
+        {
+            IsBusy = false;                      // take the busy indicator down
+            if (isSuccess)
+            {
+        
+                // Save the information we have received.
+                string akey = clRegistration.Token;
+                string uuid = clRegistration.Uuid;
+                string devn = clRegistration.LinkedDeviceName;
+                CLApiAccount acct = clRegistration.LinkedAccount;
+                saveAccountInformationWithAccount(acct, devn, uuid, akey);
+
+                // Navigate to the SelectStorage page.
+                Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
+                SendNavigationRequestMessage(nextPage);
+            } 
+            else
+            {
+                // There was an error registering this user.  Display the error and leave the user on the same page.
+                DisplayErrorMessage(error);
+            }
+        }
+
+        /// <summary>
+        /// Display an error message.
+        /// </summary>
+        private void DisplayErrorMessage(CLApiError error)
+        {
+            _trace.writeToLog(1, "PageCreateNewAccountViewModel: DisplayErrorMessage:  Error: {0}.", error.errorDescription);
+
+            var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
+            IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
+            IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
+            modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
+            {
+                CloudMessageBoxView_Title = _rm.GetString("generalErrorTitle"),
+                CloudMessageBoxView_WindowWidth = 450,
+                CloudMessageBoxView_WindowHeight = 230,
+                CloudMessageBoxView_HeaderText = _rm.GetString("createNewAccountErrorHeader"),
+                CloudMessageBoxView_BodyText = error.errorDescription,
+                CloudMessageBoxView_LeftButtonVisibility = Visibility.Collapsed,
+                CloudMessageBoxView_RightButtonWidth = new GridLength(100),
+                CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
+                CloudMessageBoxView_RightButtonContent = _rm.GetString("generalOkButtonContent"),
+            },
+            ViewGridContainer,
+            returnedViewModelInstance =>
+            {
+                // User clicked OK.  Do nothing here.  Leave the user on the CreateNewAccount page.
+            });
+        }
+
+
+        /// <summary>
+        /// Save the registration information to persistent settings.
+        /// </summary>
+        private void saveAccountInformationWithAccount(CLApiAccount account, string deviceName, string uuid, string akey)
+        {
+            string userName = account.FullName + String.Format(@" ({0})", account.UserName);
+            Dictionary<string, object> accountDict = new Dictionary<string,object>();
+            accountDict.Add(Settings.kUserName, userName);
+            accountDict.Add(Settings.kDeviceName, deviceName);
+            accountDict.Add(Settings.kAKey, akey);
+            accountDict.Add(Settings.kUdidRegistered, @"1");
+            accountDict.Add(Settings.kUuid, uuid);
+            Settings.Instance.saveAccountSettings(accountDict);
+        }
 
         /// <summary>
         /// The page was navigated to.

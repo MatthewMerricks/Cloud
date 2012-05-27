@@ -14,7 +14,7 @@ using win_client.Common;
 
 namespace win_client
 {
-    public partial class App : Application
+    public sealed partial class App : Application
     {
 #if SILVERLIGHT 
         public App()
@@ -28,7 +28,7 @@ namespace win_client
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            var trace = CLTrace.Instance;
+            var trace = CLSptTrace.Instance;
             try
             {
                 trace.writeToLog(0, "Cloud is starting...");
@@ -52,7 +52,7 @@ namespace win_client
 
         private void Application_Exit(object sender, EventArgs e)
         {
-            var trace = CLTrace.Instance;
+            var trace = CLSptTrace.Instance;
             trace.writeToLog(0, "Cloud is exiting...");
             trace.flush();
 
@@ -86,7 +86,7 @@ namespace win_client
             try
             {
                 string errorMsg = e.ExceptionObject.Message + e.ExceptionObject.StackTrace;
-                errorMsg = errorMsg.Replace('"', '\'').Replace("\r\n", @"\n");
+                errorMsg = errorMsg.Replace('"', '\'').Replace("\r\n", "\n");
 
                 System.Windows.Browser.HtmlPage.Window.Eval("throw new Error(\"Unhandled Error in Silverlight Application " + errorMsg + "\");");
             }
@@ -95,10 +95,40 @@ namespace win_client
             }
         }
 #else  // WPF
+
         static App()
         {
             DispatcherHelper.Initialize();
+
         }
+
+        public App()
+        { }
+
+        private void Application_Startup(object sender, StartupEventArgs e) 
+        {
+            CLAppDelegate app = CLAppDelegate.Instance;                 // fire up the singleton
+
+            // Choose the window to display.
+            if (CLAppDelegate.Instance.IsAlreadyRunning)
+            {
+                ((App)Application.Current).StartupUri = new Uri("/Views/WindowCloudAlreadyRunning.xaml", UriKind.Relative);
+            }
+            else if (CLAppDelegate.Instance.IsFirstTimeSetupNeeded)
+            {
+                ((App)Application.Current).StartupUri = new Uri("NavigationWindow.xaml", UriKind.Relative);
+            }
+            else
+            {
+                ((App)Application.Current).StartupUri = new Uri("/Views/WindowInvisible.xaml", UriKind.Relative);
+            }
+        }
+
+        private void Application_Exit(object sender, ExitEventArgs e) 
+        { 
+            //TODO: Clean up...
+        }
+
 #endif  // end WPF
     }
 }

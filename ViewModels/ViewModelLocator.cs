@@ -23,9 +23,11 @@ using win_client.Model;
 using win_client.Views;
 using win_client.ViewModels;
 using win_client.Common;
+using win_client.Services.Notification;
 using GalaSoft.MvvmLight.Messaging;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Dialog.Implementors.Wpf.MVVM.Services;
+
 
 namespace win_client.ViewModels
 {
@@ -62,6 +64,10 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<PageSetupSelectorViewModel>();
             SimpleIoc.Default.Register<PageTourViewModel>();
 
+            // Window pages
+            SimpleIoc.Default.Register<CloudAlreadyRunningViewModel>();
+            SimpleIoc.Default.Register<WindowInvisibleViewModel>();
+
             // Modal dialog support
             SimpleIoc.Default.Register<IModalDialogService, ModalDialogService>();
             SimpleIoc.Default.Register<IMessageBoxService, MessageBoxService>();
@@ -73,6 +79,9 @@ namespace win_client.ViewModels
             // Modal dialog view models
             SimpleIoc.Default.Register<CloudMessageBoxViewModel>();
             SimpleIoc.Default.Register<FolderSelectionSimpleViewModel>();
+
+            // Growls
+            SimpleIoc.Default.Register<FancyBalloon>();
 
         }
 
@@ -143,6 +152,34 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<PageTourViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the CloudAlreadyRunningViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public CloudAlreadyRunningViewModel CloudAlreadyRunningViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<CloudAlreadyRunningViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the WindowInvisibleViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public WindowInvisibleViewModel WindowInvisibleViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<WindowInvisibleViewModel>();
             }
         }
 
@@ -231,12 +268,25 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// Gets the FancyBalloon property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FancyBalloon FancyBalloon
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FancyBalloon>();
+            }
+        }
+
+        /// <summary>
         /// Cleans up all the resources.
         /// </summary>
         public static void Cleanup()
         {
-            int i = 0;
-            i++;
+            //TODO: Clean up all of the view models.
         }
     }
 }
