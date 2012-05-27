@@ -11,7 +11,8 @@
     <RootNamespace>win_client</RootNamespace>
     <AssemblyName>win-client</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -51,6 +52,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
       <HintPath>3rdParty\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
@@ -61,9 +65,24 @@
     <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>3rdParty\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
+      <HintPath>packages\System.Json.4.0.20126.16343\lib\net40\System.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>packages\System.Net.Http.2.0.20126.16343\lib\net40\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting">
+      <HintPath>packages\System.Net.Http.Formatting.4.0.20126.16343\lib\net40\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>packages\System.Net.Http.2.0.20126.16343\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -77,7 +96,7 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="WPFToolkit.Extended, Version=1.6.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+    <Reference Include="WPFToolkit.Extended">
       <HintPath>3rdParty\WPFToolkit.Extended.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -88,14 +107,14 @@
     </ApplicationDefinition>
     <Compile Include="AppDelegate\CLAppDelegate.cs" />
     <Compile Include="Common\CLAppMessages.cs" />
+    <Compile Include="Common\CLBalloonTooltipNotification.cs" />
     <Compile Include="Common\CLConstants.cs" />
     <Compile Include="Common\CLConverters.cs" />
     <Compile Include="Common\CLDefaultButtons.cs" />
-    <Compile Include="Common\CLError.cs" />
     <Compile Include="Common\CLExtensionMethods.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
-    <Compile Include="Common\CLTrace.cs" />
+    <Compile Include="Common\CLGrowlNotification.cs" />
     <Compile Include="DataModels\DataItem.cs" />
     <Compile Include="DataModels\DataService.cs" />
     <Compile Include="DataModels\IDataService.cs" />
@@ -109,9 +128,43 @@
     <Compile Include="NavigationWindow.xaml.cs">
       <DependentUpon>NavigationWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Resources\Resources.fr.Designer.cs" />
-    <Compile Include="Resources\Resources1.Designer.cs" />
+    <Compile Include="Resources\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Resources.fr1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.fr.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Services\Badging\CLBadgingService.cs" />
+    <Compile Include="Services\CloudFolderMonitoring\CLCFMonitoringService.cs" />
+    <Compile Include="Services\FileSystemMonitoring\CLFSMonitoringService.cs" />
+    <Compile Include="Services\NetworkMonitoring\CLNetworkMonitorService.cs" />
+    <Compile Include="Services\Notification\CLNotificationService.cs" />
+    <Compile Include="Services\Notification\FancyBalloon.xaml.cs">
+      <DependentUpon>FancyBalloon.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Services\Notification\FancyPopup.xaml.cs">
+      <DependentUpon>FancyPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Services\Notification\FancyToolTip.xaml.cs">
+      <DependentUpon>FancyToolTip.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Services\Notification\WelcomeBalloon.xaml.cs">
+      <DependentUpon>WelcomeBalloon.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Services\ServicesManager\CLServicesManager.cs" />
+    <Compile Include="Services\Indexing\CLIndexingService.cs" />
+    <Compile Include="Services\Sync\CLSyncService.cs" />
+    <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
+    <Compile Include="SystemTray\HookWrapper.cs" />
+    <Compile Include="SystemTray\TrayIcon.cs" />
+    <Compile Include="ViewModels\BusyIndicatorViewModel.cs" />
     <Compile Include="ViewModels\CloudMessageBoxViewModel.cs" />
+    <Compile Include="ViewModels\CloudAlreadyRunningViewModel.cs" />
+    <Compile Include="ViewModels\WindowInvisibleViewModel.cs" />
     <Compile Include="ViewModels\FolderSelectionSimpleViewModel.cs" />
     <Compile Include="ViewModels\NotifyPropertyChanged.cs" />
     <Compile Include="ViewModels\PageCreateNewAccountViewModel.cs" />
@@ -124,6 +177,9 @@
     <Compile Include="Views\CloudMessageBoxView.xaml.cs">
       <DependentUpon>CloudMessageBoxView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\WindowCloudAlreadyRunning.xaml.cs">
+      <DependentUpon>WindowCloudAlreadyRunning.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\FolderSelectionSimpleView.xaml.cs">
       <DependentUpon>FolderSelectionSimpleView.xaml</DependentUpon>
     </Compile>
@@ -133,8 +189,8 @@
     <Compile Include="Views\PageHome.xaml.cs">
       <DependentUpon>PageHome.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\PageInvisible.xaml.cs">
-      <DependentUpon>PageInvisible.xaml</DependentUpon>
+    <Compile Include="Views\WindowInvisible.xaml.cs">
+      <DependentUpon>WindowInvisible.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PageSelectStorageSize.xaml.cs">
       <DependentUpon>PageSelectStorageSize.xaml</DependentUpon>
@@ -161,6 +217,26 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Services\Notification\FancyBalloon.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Services\Notification\FancyPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Services\Notification\FancyToolTip.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Services\Notification\WelcomeBalloon.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Skins\NotifyIconResources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Skins\ErrorTemplates.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -170,6 +246,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\CloudMessageBoxView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\WindowCloudAlreadyRunning.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -185,7 +265,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\PageInvisible.xaml">
+    <Page Include="Views\WindowInvisible.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -222,8 +302,17 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <EmbeddedResource Include="Resources\Resources.fr.resx" />
-    <EmbeddedResource Include="Resources\Resources.resx" />
+    <EmbeddedResource Include="Resources\Resources.fr.resx">
+      <LastGenOutput>Resources.fr1.Designer.cs</LastGenOutput>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Artwork\.DS_Store" />
     <None Include="Artwork\CloudMenu_Default.pdf" />
     <None Include="Artwork\CloudMenu_Disabled.pdf" />
@@ -307,6 +396,12 @@
     <Resource Include="Artwork\StatusItem-Selected.png" />
     <Resource Include="Artwork\StatusItem-Success.png" />
     <Resource Include="Artwork\twitter.png" />
+    <Resource Include="Artwork\cloud.ico" />
+    <Resource Include="Artwork\AddNotifyIconSample.png" />
+    <Resource Include="Artwork\RemoveNotifyIconSample.png" />
+    <Resource Include="Artwork\CloseNotifyIconSample.png" />
+    <Resource Include="Artwork\InfoNotifyIconSample.png" />
+    <Resource Include="Artwork\PreferencesNotifyIconSample.png" />
     <Content Include="SourceBinaries\Microsoft.Windows.Controls.WatermarkedTextBox.dll" />
   </ItemGroup>
   <ItemGroup>

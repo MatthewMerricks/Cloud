@@ -88,7 +88,7 @@ namespace win_client.ViewModels
         /// </summary>
         public const string FolderSelectionSimpleViewModel_FolderLocationTextPropertyName = "FolderSelectionSimpleViewModel_FolderLocationText";
 
-        private string _folderSelectionSimpleViewModel_FolderLocationText = @"";
+        private string _folderSelectionSimpleViewModel_FolderLocationText = "";
 
         /// <summary>
         /// Sets and gets the FolderSelectionSimpleViewModel_FolderLocationText property.

@@ -26,6 +26,7 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
+using CloudApi.Support;
 
 
 namespace win_client.ViewModels
@@ -65,6 +66,8 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
             _rm = CLAppDelegate.Instance.ResourceManager;
+
+            _pageTour_GreetingText = String.Format(_rm.GetString("tourPage1Greeting"), Settings.Instance.UserName.Split(CLConstants.kDelimiterChars)[0]);
         }
 
         /// <summary>
@@ -79,6 +82,36 @@ namespace win_client.ViewModels
         #endregion
 
         #region "Bindable Properties"
+
+        /// <summary>
+        /// The <see cref="PageTour_GreetingText" /> property's name.
+        /// </summary>
+        public const string PageTour_GreetingTextPropertyName = "PageTour_GreetingText";
+
+        private string _pageTour_GreetingText = "";
+
+        /// <summary>
+        /// Sets and gets the PageTour_GreetingText property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public string PageTour_GreetingText
+        {
+            get
+            {
+                return _pageTour_GreetingText;
+            }
+
+            set
+            {
+                if (_pageTour_GreetingText == value)
+                {
+                    return;
+                }
+
+                _pageTour_GreetingText = value;
+                RaisePropertyChanged(PageTour_GreetingTextPropertyName);
+            }
+        }
 
         /// <summary>
         /// The <see cref="TourPageNumber" /> property's name.
@@ -131,20 +164,21 @@ namespace win_client.ViewModels
                                                 RaisePropertyChanged(TourPageNumberPropertyName);
                                                 if (_tourPageNumber <= 0)
                                                 {
-                                                    nextPageName = CLConstants.kPageInvisible;
+                                                    // Make the current window invisible.
+                                                    MakeMainWindowInvisible();
                                                 }
                                                 else
                                                 {
-                                                    nextPageName = string.Format(@"{0}{1}{2}", CLConstants.kPageTour, _tourPageNumber.ToString(), CLConstants.kXamlSuffix);
+                                                    // Go to the next page
+                                                    nextPageName = string.Format("{0}{1}{2}", CLConstants.kPageTour, _tourPageNumber.ToString(), CLConstants.kXamlSuffix);
+                                                    Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
+                                                    SendNavigationRequestMessage(nextPage);
                                                 }
 
-                                                // Go to that page
-                                                Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
-                                                SendNavigationRequestMessage(nextPage);
                                             }));
             }
         }
-        
+
         /// <summary>
         /// The user clicked has selected a choice and will continue.
         /// </summary>
@@ -162,18 +196,31 @@ namespace win_client.ViewModels
                                                 RaisePropertyChanged(TourPageNumberPropertyName);
                                                 if (_tourPageNumber > 5)
                                                 {
-                                                    nextPageName = CLConstants.kPageInvisible;
+                                                    // Make the current window invisible.
+                                                    MakeMainWindowInvisible();
                                                 }
                                                 else
                                                 {
-                                                    nextPageName = string.Format(@"{0}{1}{2}", CLConstants.kPageTour, _tourPageNumber.ToString(), CLConstants.kXamlSuffix);
+                                                    // Go to the next page
+                                                    nextPageName = string.Format("{0}{1}{2}", CLConstants.kPageTour, _tourPageNumber.ToString(), CLConstants.kXamlSuffix);
+                                                    Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
+                                                    SendNavigationRequestMessage(nextPage);
                                                 }
 
-                                                // Go to that page
-                                                Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
-                                                SendNavigationRequestMessage(nextPage);
                                             }));                                              
             }
+        }
+
+        /// <summary>
+        /// Make the application main window invisible.  The application is running in the system tray now.
+        /// </summary>
+        private static void MakeMainWindowInvisible()
+        {
+            Application.Current.MainWindow.Height = 0;
+            Application.Current.MainWindow.Width = 0;
+            Application.Current.MainWindow.WindowStyle = WindowStyle.None;
+            Application.Current.MainWindow.ShowInTaskbar = false;
+            Application.Current.MainWindow.ShowActivated = false;
         }
 
         #endregion

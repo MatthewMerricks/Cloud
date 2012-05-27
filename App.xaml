@@ -14,12 +14,19 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:win_client.ViewModels"
              xmlns:common="clr-namespace:win_client.Common"
-             StartupUri="NavigationWindow.xaml"
-             mc:Ignorable="d">
+             mc:Ignorable="d"
+             Startup="Application_Startup"
+             Exit="Application_Exit"
+             >
     <Application.Resources>
-        <!--Global View Model Locator-->
-        <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
-        <common:DebugConverter x:Key="DebugConverter" />
-
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Skins/NotifyIconResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <!--Global View Model Locator-->
+            <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
+            <common:DebugConverter x:Key="DebugConverter" />
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
+

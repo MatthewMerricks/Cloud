@@ -1,8 +1,6 @@
 ﻿<NavigationWindow x:Class="win_client.MyNavigationWindow"
-        x:Name="TheNavigationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Cloud" Height="480" Width="640" MinHeight="480" MinWidth="640"
-        Source="/Views/PageHome.xaml">
-
+        Source="/Views/PageHome.xaml" SourceInitialized="Window_SourceInitialized" StateChanged="Window_StateChanged">
 </NavigationWindow>

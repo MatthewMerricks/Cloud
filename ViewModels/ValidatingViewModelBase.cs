@@ -132,7 +132,7 @@ namespace MVVMProductsDemo.ViewModels
         { 
             get
             {
-                return @"";
+                return "";
             }
         }
 
@@ -147,7 +147,7 @@ namespace MVVMProductsDemo.ViewModels
                 {
                     return errorList[columnName][0];
                 }
-                return @"";
+                return "";
             }
         }
 

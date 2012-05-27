@@ -45,9 +45,9 @@
                 <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
-        <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneWay}" TabIndex="4" Grid.Row="1" Height="50" Padding="1" Margin="67,0" />
+        <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneTime}" TabIndex="4" Grid.Row="1" Height="50" Padding="1" Margin="67,0" />
         <Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Background="#FF49C3FB" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" 
-                Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneWay}" TabIndex="1" Height="50" Grid.Row="1"
+                Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneTime}" TabIndex="1" Height="50" Grid.Row="1"
                 common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="67,0" />
         <Grid Grid.Column="1" Margin="48,85,37,8" Grid.ColumnSpan="4">
     		<Grid.RowDefinitions>
@@ -73,7 +73,7 @@
 				</StackPanel>
 			</StackPanel>
             <Button x:Name="btnCoveringDefaultRadioButtonArea" Margin="0" d:LayoutOverrides="Height" Grid.Row="0" Grid.Column="0" 
-                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSetupSelector_DefaultAreaCommand, Mode=OneWay}" IsTabStop="False" />
+                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSetupSelector_DefaultAreaCommand, Mode=OneTime}" IsTabStop="False" />
 			<Image Margin="0" Source="/win-client;component/Artwork/cl_select-frame_ON.png" Grid.Row="1" Grid.Column="0"/>
             <Rectangle x:Name="rectShowUnselectedAreaAdvanced" Fill="#99FFFFFF" Margin="0" RadiusY="8" Grid.Row="1" RadiusX="8" Stroke="#34000000" Grid.Column="0" IsHitTestVisible="False"
                        Visibility="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionAdvanced, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
@@ -88,7 +88,7 @@
 				</StackPanel>
 			</StackPanel>
             <Button x:Name="btnCoveringAdvancedRadioButtonArea" Margin="0" d:LayoutOverrides="Height" Grid.Row="1" Grid.Column="0" 
-                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSetupSelector_AdvancedAreaCommand, Mode=OneWay}" IsTabStop="False" />
+                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSetupSelector_AdvancedAreaCommand, Mode=OneTime}" IsTabStop="False" />
     	</Grid>
         <TextBlock TextWrapping="Wrap" Text="Select the setup option that works for you." RenderTransformOrigin="0.5,0.5" 
                             Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Top" Margin="48,44,94,0" d:LayoutOverrides="Width" Height="28"/>

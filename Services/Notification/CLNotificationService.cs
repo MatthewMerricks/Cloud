@@ -1,0 +1,122 @@
+﻿////  CLNotificationService.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
+using System.Windows;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using CloudApi.Support;
+using Hardcodet.Wpf.TaskbarNotification;
+using System.Windows.Media;
+using win_client.ViewModels;
+using win_client.Common;
+using Microsoft.Practices.ServiceLocation;
+using GalaSoft.MvvmLight.Ioc;
+using GalaSoft.MvvmLight.Messaging;
+using System.Windows.Threading;
+using System.Windows.Forms;
+
+namespace win_client.Services.Notification
+{
+    public sealed class CLNotificationService
+    {
+        private static CLNotificationService _instance = null;
+        private static object _instanceLocker = new object();
+        private static CLSptTrace _trace;
+        private System.Threading.Timer _pollTimer = null;
+        private uint _timerTestCount = 0;               //&&&& testing
+
+
+
+        /// <summary>
+        /// Access Instance to get the singleton object.
+        /// Then call methods on that instance.
+        /// </summary>
+        public static CLNotificationService Instance
+        {
+            get
+            {
+                lock (_instanceLocker)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new CLNotificationService();
+
+                        // Initialize at first Instance access here
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        /// <summary>
+        /// This is a private constructor, meaning no outsiders have access.
+        /// </summary>
+        private CLNotificationService()
+        {
+            // Initialize members, etc. here (at static initialization time).
+            _trace = CLSptTrace.Instance;
+        }
+
+        /// <summary>
+        /// Start the notification service.
+        /// </summary>
+        public void BeginNotificationService()
+        {
+            // Start a timer for testing.
+            _pollTimer = new System.Threading.Timer((s) => { TimerFiredCallback(); }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(1));
+
+            WindowInvisibleViewModel vmWindowInvisible =   SimpleIoc.Default.GetInstance<WindowInvisibleViewModel>();
+            vmWindowInvisible.TaskbarIconVisibility = System.Windows.Visibility.Visible;
+            
+        }
+
+        /// <summary>
+        /// Stop the notification service.
+        /// </summary>
+        public void DisconnectPushNotificationServer()
+        {
+            _pollTimer.Dispose();
+
+        }
+
+        /// <summary>
+        /// Test timer callback
+        /// </summary>
+        public void TimerFiredCallback()
+        {
+            // One second timer tick...
+            _trace.writeToLog(9, "CLNotificationService.cs: TimerFiredCallback: Timer fired.");
+            ++_timerTestCount;
+
+            if(_timerTestCount == 5)
+            {
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    // Put up a test balloon tooltip.  It will automatically fade.
+                    CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
+                    Messenger.Default.Send<CLBalloonTooltipNotification>(tooltipInfo, "Message_BalloonTooltipSystemTrayNotification");
+                }));
+            }
+
+            if(_timerTestCount == 25)
+            {
+                // Put up a growl notification.  It will automatically fade.
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    var window = SimpleIoc.Default.GetInstance<FancyBalloon>();
+                    window.BalloonText = "Hello Cloud!";
+                    CLGrowlNotification growlInfo = new CLGrowlNotification(window, System.Windows.Controls.Primitives.PopupAnimation.Slide, 2500);
+                    Messenger.Default.Send<CLGrowlNotification>(growlInfo, "Message_GrowlSystemTrayNotification");
+                }));
+            }
+        }
+
+    }
+}
+

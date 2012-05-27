@@ -27,6 +27,9 @@ namespace win_client.Common
             Home_FocusToError,
             SelectStorageSize_PresentMessageDialog,
             SetupSelector_PresentMessageDialog,
+            Message_ReachabilityChangedNotification,
+            Message_BalloonTooltipSystemTrayNotification,
+            Message_GrowlSystemTrayNotification,
         }
 
         public static class CreateNewAccount_GetClearPasswordField
@@ -91,6 +94,45 @@ namespace win_client.Common
             public static void Register(object recipient, Action<DialogMessage> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.SelectStorageSize_PresentMessageDialog, action);
+            }
+        }
+
+        public static class Message_ReachabilityChangedNotification
+        {
+            public static void Send(DialogMessage message)
+            {
+                Messenger.Default.Send(message, MessageTypes.Message_ReachabilityChangedNotification);
+            }
+
+            public static void Register(object recipient, Action<DialogMessage> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_ReachabilityChangedNotification, action);
+            }
+        }
+
+        public static class Message_BalloonTooltipSystemTrayNotification
+        {
+            public static void Send(CLBalloonTooltipNotification tooltipInfo)
+            {
+                Messenger.Default.Send(tooltipInfo, MessageTypes.Message_BalloonTooltipSystemTrayNotification);
+            }
+
+            public static void Register(object recipient, Action<CLBalloonTooltipNotification> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_BalloonTooltipSystemTrayNotification, action);
+            }
+        }
+
+        public static class Message_GrowlSystemTrayNotification
+        {
+            public static void Send(CLGrowlNotification growlInfo)
+            {
+                Messenger.Default.Send(growlInfo, MessageTypes.Message_GrowlSystemTrayNotification);
+            }
+
+            public static void Register(object recipient, Action<CLGrowlNotification> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_GrowlSystemTrayNotification, action);
             }
         }
     }
