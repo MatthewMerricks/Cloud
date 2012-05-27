@@ -62,9 +62,14 @@
     <Reference Include="GalaSoft.MvvmLight.WPF4">
       <HintPath>3rdParty\GalaSoft.MvvmLight.WPF4.dll</HintPath>
     </Reference>
+    <Reference Include="Hardcodet.Wpf.TaskbarNotification, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>3rdParty\Bin\Debug\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>3rdParty\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Json">
       <HintPath>packages\System.Json.4.0.20126.16343\lib\net40\System.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Management" />
@@ -433,6 +438,10 @@
     <ProjectReference Include="BadgeNET\BadgeNET.csproj">
       <Project>{77014147-1A34-4BF6-8FC4-3C85984F8E2E}</Project>
       <Name>BadgeNET</Name>
+    </ProjectReference>
+    <ProjectReference Include="CloudApiClassLibrary\CloudApiClassLibrary.csproj">
+      <Project>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</Project>
+      <Name>CloudApiClassLibrary</Name>
     </ProjectReference>
     <ProjectReference Include="Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
       <Project>{3697919F-7A1E-43BA-BFDB-3EEC2553DD44}</Project>
