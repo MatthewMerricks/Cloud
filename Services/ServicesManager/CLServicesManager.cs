@@ -6,14 +6,16 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 using System;
-using CloudApi;
-using CloudApi.Support;
+using CloudApiPublic;
+using CloudApiPublic.Support;
+using CloudApiPublic.Model;
 using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
 using win_client.Services.Badging;
 using win_client.Services.UiActivity;
 using win_client.Services.Indexing;
 using win_client.Services.Notification;
+using win_client.Services.FileSystemMonitoring;
 
 namespace win_client.Services.ServicesManager
 {
@@ -24,7 +26,7 @@ namespace win_client.Services.ServicesManager
     {
         private static CLServicesManager _instance = null;
         private static object _instanceLocker = new object();
-        private static CLSptTrace _trace;
+        private static CLTrace _trace;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -54,7 +56,7 @@ namespace win_client.Services.ServicesManager
         private CLServicesManager()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLSptTrace.Instance;
+            _trace = CLTrace.Instance;
         }
         
         /// <summary>
@@ -62,7 +64,7 @@ namespace win_client.Services.ServicesManager
         /// </summary>
         public void StartCoreServices()
         {
-            CLApiError error;
+            CLError error;
             _trace.writeToLog(9, "CLServicesManager: startCoreServices: Entry.");
             bool success = RunShellIntegrationServicesAndSetError(out error);
             if (!success) {
@@ -133,7 +135,7 @@ namespace win_client.Services.ServicesManager
 #endif  // TRASH
         }
 
-        public bool RunShellIntegrationServicesAndSetError(out CLApiError error)
+        public bool RunShellIntegrationServicesAndSetError(out CLError error)
         {
             _trace.writeToLog(9, "CLServicesManager: runShellIntegrationServicesAndSetError: Entry.");
 

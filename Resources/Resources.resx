@@ -173,13 +173,13 @@
     <value>Greetings {0}!  Welcome to Cloud!</value>
   </data>
   <data name="SystemTrayContextMenuExit" xml:space="preserve">
-    <value>E&amp;xit</value>
+    <value>Exit</value>
   </data>
   <data name="SystemTrayContextMenuHeader" xml:space="preserve">
     <value>Cloud</value>
   </data>
   <data name="SystemTrayContextMenuPreferences" xml:space="preserve">
-    <value>&amp;Preferences...</value>
+    <value>Preferences...</value>
   </data>
   <data name="SystemTrayContextMenuCheckForUpdates" xml:space="preserve">
     <value>Check for updates</value>

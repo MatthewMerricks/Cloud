@@ -26,7 +26,7 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
-using CloudApi.Support;
+using CloudApiPublic.Support;
 
 
 namespace win_client.ViewModels
@@ -185,7 +185,6 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 // Show the preferences page
-                                                int i = 0;
                                             }));
             }
         }
@@ -202,7 +201,6 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 // Check for updates
-                                                int i = 0;
                                             }));                                              
             }
         }

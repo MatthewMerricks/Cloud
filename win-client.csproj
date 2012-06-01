@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>win_client</RootNamespace>
     <AssemblyName>win-client</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -43,6 +43,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -51,11 +52,15 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AsyncCtpLibrary">
+      <HintPath>packages\AsyncCTP.0.3\lib\net40\AsyncCtpLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
       <HintPath>3rdParty\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
     </Reference>
@@ -117,6 +122,7 @@
     <Compile Include="Common\CLConverters.cs" />
     <Compile Include="Common\CLDefaultButtons.cs" />
     <Compile Include="Common\CLExtensionMethods.cs" />
+    <Compile Include="Common\CLOperationQueue.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />
@@ -145,7 +151,9 @@
     </Compile>
     <Compile Include="Services\Badging\CLBadgingService.cs" />
     <Compile Include="Services\CloudFolderMonitoring\CLCFMonitoringService.cs" />
+    <Compile Include="Services\FileSystemDispatcher\CLFSDispatcher.cs" />
     <Compile Include="Services\FileSystemMonitoring\CLFSMonitoringService.cs" />
+    <Compile Include="Services\Indexing\FileSystemItem.cs" />
     <Compile Include="Services\NetworkMonitoring\CLNetworkMonitorService.cs" />
     <Compile Include="Services\Notification\CLNotificationService.cs" />
     <Compile Include="Services\Notification\FancyBalloon.xaml.cs">
@@ -410,6 +418,7 @@
     <Content Include="SourceBinaries\Microsoft.Windows.Controls.WatermarkedTextBox.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="DataModels\Metadata\" />
     <Folder Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
@@ -439,9 +448,13 @@
       <Project>{77014147-1A34-4BF6-8FC4-3C85984F8E2E}</Project>
       <Name>BadgeNET</Name>
     </ProjectReference>
-    <ProjectReference Include="CloudApiClassLibrary\CloudApiClassLibrary.csproj">
+    <ProjectReference Include="CloudApiPrivate\CloudApiPrivate.csproj">
+      <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
+      <Name>CloudApiPrivate</Name>
+    </ProjectReference>
+    <ProjectReference Include="CloudApiPublic\CloudSdkPublic.csproj">
       <Project>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</Project>
-      <Name>CloudApiClassLibrary</Name>
+      <Name>CloudSdkPublic</Name>
     </ProjectReference>
     <ProjectReference Include="Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
       <Project>{3697919F-7A1E-43BA-BFDB-3EEC2553DD44}</Project>

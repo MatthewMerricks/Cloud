@@ -9,7 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApi.Support;
+using CloudApiPublic.Support;
+using BadgeNET;
 
 namespace win_client.Services.Badging
 {
@@ -17,7 +18,7 @@ namespace win_client.Services.Badging
     {
         private static CLBadgingService _instance = null;
         private static object _instanceLocker = new object();
-        private static CLSptTrace _trace;
+        private static CLTrace _trace;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -46,7 +47,7 @@ namespace win_client.Services.Badging
         private CLBadgingService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLSptTrace.Instance;
+            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -54,7 +55,10 @@ namespace win_client.Services.Badging
         /// </summary>
         public void BeginBadgingServices()
         {
-        
+            if(!IconOverlay.IsBadgingInitialized())
+            {
+                IconOverlay.Initialize();
+            }
         }
 
         /// <summary>
@@ -62,7 +66,7 @@ namespace win_client.Services.Badging
         /// </summary>
         public void EndBadgingServices()
         {
-
+            IconOverlay.Shutdown();
         }
     }
 }

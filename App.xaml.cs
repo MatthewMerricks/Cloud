@@ -29,7 +29,7 @@ namespace win_client
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            var trace = CLSptTrace.Instance;
+            var trace = CLTrace.Instance;
             try
             {
                 trace.writeToLog(0, "Cloud is starting...");
@@ -53,7 +53,7 @@ namespace win_client
 
         private void Application_Exit(object sender, EventArgs e)
         {
-            var trace = CLSptTrace.Instance;
+            var trace = CLTrace.Instance;
             trace.writeToLog(0, "Cloud is exiting...");
             trace.flush();
 

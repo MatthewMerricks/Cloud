@@ -101,7 +101,25 @@ namespace BadgeNET
                 NotifySystemForBadgeUpdate();
             }
         }
+
+        // Property to determine whether initialized
+        public static bool IsBadgingInitialized()
+        {
+            return Instance.IsInitialized;
+        }
         private bool isInitialized = false;
+        private bool IsInitialized 
+        { 
+            get
+            {
+                bool rc;
+                lock(this)
+                {
+                    rc = isInitialized;
+                }
+                return rc;
+            }
+        }
 
         /// <summary>
         /// Runs Initialize if IconOverlay has not started processing with the provided list
@@ -161,7 +179,7 @@ namespace BadgeNET
         {
             Instance.pSetOrRemoveBadge(filePath, newType);
         }
-        public void pSetOrRemoveBadge(string filePath, Nullable<BadgeType> newType)
+        private void pSetOrRemoveBadge(string filePath, Nullable<BadgeType> newType)
         {
             // ensure this is initialized
             lock (this)

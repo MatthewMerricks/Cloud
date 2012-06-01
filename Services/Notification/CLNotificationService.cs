@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using CloudApi.Support;
+using CloudApiPublic.Support;
 using Hardcodet.Wpf.TaskbarNotification;
 using System.Windows.Media;
 using win_client.ViewModels;
@@ -27,7 +27,7 @@ namespace win_client.Services.Notification
     {
         private static CLNotificationService _instance = null;
         private static object _instanceLocker = new object();
-        private static CLSptTrace _trace;
+        private static CLTrace _trace;
         private System.Threading.Timer _pollTimer = null;
         private uint _timerTestCount = 0;               //&&&& testing
 
@@ -60,7 +60,7 @@ namespace win_client.Services.Notification
         private CLNotificationService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLSptTrace.Instance;
+            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -81,8 +81,11 @@ namespace win_client.Services.Notification
         /// </summary>
         public void DisconnectPushNotificationServer()
         {
-            _pollTimer.Dispose();
-
+            if (_pollTimer != null)
+            {
+                _pollTimer.Dispose();
+                _pollTimer = null;
+            }
         }
 
         /// <summary>

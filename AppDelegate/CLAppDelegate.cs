@@ -20,8 +20,9 @@ using win_client.Common;
 using System.Windows;
 using System.Resources;
 using System.Reflection;
-using CloudApi;
-using CloudApi.Support;
+using CloudApiPublic;
+using CloudApiPublic.Support;
+using CloudApiPublic.Model;
 using System.Security.Permissions;
 using System.Windows.Media.Imaging;
 using win_client.SystemTray.TrayIcon;
@@ -43,7 +44,7 @@ namespace win_client.AppDelegate
         /// </summary>
         private static CLAppDelegate _instance = null;
         private static object InstanceLocker = new object();
-        private static CLSptTrace _trace;
+        private static CLTrace _trace;
         private bool _isAlreadyRunning = false;
         private bool _isFirstTimeSetupNeeded = false;
         private ResourceManager _resourceManager = null;
@@ -103,7 +104,7 @@ namespace win_client.AppDelegate
         private CLAppDelegate()
         {
             // Initialize members, etc. here.
-            _trace = CLSptTrace.Instance;
+            _trace = CLTrace.Instance;
             Assembly assembly = Assembly.GetExecutingAssembly();
             _resourceManager = new ResourceManager(CLConstants.kResourcesName, assembly);
         }
@@ -275,7 +276,7 @@ namespace win_client.AppDelegate
         /// <summary>
         /// Perform one-time installation (cloud folder, and any OS support)
         /// </summary>
-        public void installCloudServices(out CLApiError error)
+        public void installCloudServices(out CLError error)
         {
             error = null;
 
@@ -327,7 +328,7 @@ namespace win_client.AppDelegate
         /// <summary>
         /// Perform one-time installation (cloud folder, and any OS support)
         /// </summary>
-        private void createCloudFolder(string cloudFolderPath, out CLApiError error)
+        private void createCloudFolder(string cloudFolderPath, out CLError error)
         {
             error = null;
 
@@ -349,12 +350,12 @@ namespace win_client.AppDelegate
             }
             catch (Exception e)
             {
-                CLApiError err = new CLApiError();
-                err.errorDomain = CLApiError.ErrorDomain_Application;
+                CLError err = new CLError();
+                err.errorDomain = CLError.ErrorDomain_Application;
                 err.errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("appDelegateExceptionCreatingFolder");
-                err.errorCode = (int)CLApiError.ErrorCodes.Exception;
+                err.errorCode = (int)CLError.ErrorCodes.Exception;
                 err.errorInfo = new Dictionary<string,object>();
-                err.errorInfo.Add(CLApiError.ErrorInfo_Exception, e);
+                err.errorInfo.Add(CLError.ErrorInfo_Exception, e);
                 error = err;
                 return;
             }

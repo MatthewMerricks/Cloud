@@ -17,7 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using win_client.Common;
-using CloudApi.Support;
+using CloudApiPublic.Support;
 
 
 namespace win_client.Common
@@ -48,7 +48,7 @@ namespace win_client.Common
         /// </summary>
         public static void ForceValidation(object element)
         {
-            var trace = CLSptTrace.Instance;
+            var trace = CLTrace.Instance;
             trace.writeToLog(0, "ForceValidation: Entry.  element: {0}.", element.ToString());
             for(int i = 0; i < VisualTreeHelper.GetChildrenCount((DependencyObject)element); i++)
             {

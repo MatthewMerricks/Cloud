@@ -27,8 +27,9 @@ using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
 using System.Windows.Threading;
-using CloudApi;
-using CloudApi.Support;
+using CloudApiPublic;
+using CloudApiPublic.Support;
+using CloudApiPublic.Model;
 
 namespace win_client.ViewModels
 {
@@ -58,7 +59,7 @@ namespace win_client.ViewModels
         private RelayCommand _pageSetupSelector_DefaultAreaCommand;
         private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
         private ResourceManager _rm;
-        private CLSptTrace _trace = CLSptTrace.Instance;
+        private CLTrace _trace = CLTrace.Instance;
 
         #endregion
 
@@ -81,7 +82,7 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
             _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLSptTrace.Instance;
+            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -385,7 +386,7 @@ namespace win_client.ViewModels
                 }
 
                 // Finish the setup.
-                CLApiError err = null;
+                CLError err = null;
                 CLAppDelegate.Instance.installCloudServices(out err);
                 if (err != null)
                 {

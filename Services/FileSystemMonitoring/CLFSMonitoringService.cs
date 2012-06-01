@@ -9,15 +9,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApi.Support;
+using CloudApiPublic.Support;
+using CloudApiPublic.Model;
 
-namespace win_client.Services.Badging
+namespace win_client.Services.FileSystemMonitoring
 {
     public sealed class CLFSMonitoringService
     {
         static readonly CLFSMonitoringService _instance = new CLFSMonitoringService();
         private static Boolean _isLoaded = false;
-        private static CLSptTrace _trace;
+        private static CLTrace _trace;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -43,7 +44,7 @@ namespace win_client.Services.Badging
         private CLFSMonitoringService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLSptTrace.Instance;
+            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -60,6 +61,25 @@ namespace win_client.Services.Badging
         public void EndFileSystemMonitoring()
         {
 
+        }
+
+        public void CheckWithFSMForEvents()
+        {
+#if TRASH
+            if ([self.fileSystemEvents count] > 0) 
+            {
+                dispatch_async(get_cloud_FSM_queue(), ^{
+                    [self postEventsWithEventId:self.lastKnownEventId];
+                });
+                
+            }
+            else
+            {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self fireSimulatedPushNotification];
+                });
+            }
+#endif  // end TRASH
         }
     }
 }

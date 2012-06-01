@@ -19,8 +19,9 @@ using win_client.Common;
 using System.Reflection;
 using System.Linq;
 using win_client.DataModels.Settings;
-using CloudApi;
-using CloudApi.Support;
+using CloudApiPublic;
+using CloudApiPublic.Support;
+using CloudApiPublic.Model;
 using System.Collections.Generic;
 using GalaSoft.MvvmLight.Ioc;
 using Dialog.Abstractions.Wpf.Intefaces;
@@ -43,7 +44,7 @@ namespace win_client.ViewModels
     {
         #region Instance Variables
         private readonly IDataService _dataService;
-        private CLSptTrace _trace = CLSptTrace.Instance;
+        private CLTrace _trace = CLTrace.Instance;
         private ResourceManager _rm;
 
         private RelayCommand _pageCreateNewAccount_BackCommand;
@@ -72,7 +73,7 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
             _rm =  CLAppDelegate.Instance.ResourceManager;
-            _trace = CLSptTrace.Instance;
+            _trace = CLTrace.Instance;
 
         }
         #endregion
@@ -451,13 +452,13 @@ namespace win_client.ViewModels
             string lastName = names[names.Count() - 1];
 
             // Create cloud account obj
-            CLApiAccount clAccount =  new CLApiAccount(EMail, firstName, lastName, _password2);
+            CLAccount clAccount =  new CLAccount(EMail, firstName, lastName, _password2);
     
             // Create cloud device obj
-            CLApiDevice clDevice = new CLApiDevice(ComputerName);
+            CLDevice clDevice = new CLDevice(ComputerName);
     
             // Request registration from Cloud SDK
-            CLApiRegistration clRegistration = new CLApiRegistration();
+            CLRegistration clRegistration = new CLRegistration();
     
             clRegistration.CreateNewAccountAsync(clAccount, clDevice, CreateNewAccountCompleteCallback, 30.0, clRegistration);
         }
@@ -466,7 +467,7 @@ namespace win_client.ViewModels
         /// The request to the server has completed.
         /// This callback will occur on the main thread.
         /// </summary>
-        private void CreateNewAccountCompleteCallback(CLApiRegistration clRegistration, bool isSuccess, CLApiError error)
+        private void CreateNewAccountCompleteCallback(CLRegistration clRegistration, bool isSuccess, CLError error)
         {
             IsBusy = false;                      // take the busy indicator down
             if (isSuccess)
@@ -476,7 +477,7 @@ namespace win_client.ViewModels
                 string akey = clRegistration.Token;
                 string uuid = clRegistration.Uuid;
                 string devn = clRegistration.LinkedDeviceName;
-                CLApiAccount acct = clRegistration.LinkedAccount;
+                CLAccount acct = clRegistration.LinkedAccount;
                 saveAccountInformationWithAccount(acct, devn, uuid, akey);
 
                 // Navigate to the SelectStorage page.
@@ -493,7 +494,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Display an error message.
         /// </summary>
-        private void DisplayErrorMessage(CLApiError error)
+        private void DisplayErrorMessage(CLError error)
         {
             _trace.writeToLog(1, "PageCreateNewAccountViewModel: DisplayErrorMessage:  Error: {0}.", error.errorDescription);
 
@@ -523,7 +524,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Save the registration information to persistent settings.
         /// </summary>
-        private void saveAccountInformationWithAccount(CLApiAccount account, string deviceName, string uuid, string akey)
+        private void saveAccountInformationWithAccount(CLAccount account, string deviceName, string uuid, string akey)
         {
             string userName = account.FullName + String.Format(@" ({0})", account.UserName);
             Dictionary<string, object> accountDict = new Dictionary<string,object>();

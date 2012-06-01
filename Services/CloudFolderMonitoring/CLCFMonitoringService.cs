@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApi.Support;
+using CloudApiPublic.Support;
 
 namespace win_client.Services.Badging
 {
@@ -17,7 +17,7 @@ namespace win_client.Services.Badging
     {
         private static CLCFMonitoringService _instance = null;
         private static object _instanceLocker = new object();
-        private static CLSptTrace _trace;
+        private static CLTrace _trace;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -46,7 +46,7 @@ namespace win_client.Services.Badging
         private CLCFMonitoringService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLSptTrace.Instance;
+            _trace = CLTrace.Instance;
         }
 
         /// <summary>
