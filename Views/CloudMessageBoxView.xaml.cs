@@ -26,7 +26,7 @@ using Xceed.Wpf.Toolkit;
 
 namespace win_client.Views
 {
-    public partial class CloudMessageBoxView : IModalWindow
+    public partial class CloudMessageBoxView : ChildWindow, IModalWindow
     {
         public CloudMessageBoxView()
         {

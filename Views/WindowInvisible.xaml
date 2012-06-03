@@ -62,7 +62,8 @@
 
         <tb:TaskbarIcon.TrayToolTip>
             <!-- the control will be put into a tooltip with an explicit DataContext -->
-            <local:FancyToolTip Opacity="0.85" InfoText="{Binding Path=ToolTipText}" />
+            <!-- <local:FancyToolTip Opacity="0.85" InfoText="{Binding Path=ToolTipText}" /> -->
+            <local:FancyToolTip Opacity="0.85" InfoText="Not Used!" />
         </tb:TaskbarIcon.TrayToolTip>
 
         </tb:TaskbarIcon>

@@ -5,10 +5,15 @@
     xmlns:debugConverter="clr-namespace:win_client.Common"
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:mvvmExtra="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
+    xmlns:vm="clr-namespace:win_client.ViewModels"
     xmlns:p="clr-namespace:win_client.Resources"
-  >
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+>
     <debugConverter:DebugConverter x:Key="DebugConverter" />
-    
+    <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
+
     <LinearGradientBrush x:Key="MenuBackground" EndPoint="0.5,1" StartPoint="0.5,0">
         <GradientStop Color="#FFFFD892" Offset="1"/>
         <GradientStop Color="#FFFFF3DD" Offset="0.259"/>

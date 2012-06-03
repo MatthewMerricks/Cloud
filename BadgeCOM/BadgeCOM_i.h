@@ -3,11 +3,11 @@
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
 
- /* File created by MIDL compiler version 7.00.0555 */
-/* at Fri Jun 01 10:27:59 2012
+ /* File created by MIDL compiler version 8.00.0594 */
+/* at Sun Jun 03 13:45:32 2012
  */
 /* Compiler settings for BadgeCOM.idl:
-    Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 7.00.0555 
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0594 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
@@ -48,24 +48,28 @@
 #ifndef __IBadgeIconSyncing_FWD_DEFINED__
 #define __IBadgeIconSyncing_FWD_DEFINED__
 typedef interface IBadgeIconSyncing IBadgeIconSyncing;
+
 #endif 	/* __IBadgeIconSyncing_FWD_DEFINED__ */
 
 
 #ifndef __IBadgeIconSynced_FWD_DEFINED__
 #define __IBadgeIconSynced_FWD_DEFINED__
 typedef interface IBadgeIconSynced IBadgeIconSynced;
+
 #endif 	/* __IBadgeIconSynced_FWD_DEFINED__ */
 
 
 #ifndef __IBadgeIconSelective_FWD_DEFINED__
 #define __IBadgeIconSelective_FWD_DEFINED__
 typedef interface IBadgeIconSelective IBadgeIconSelective;
+
 #endif 	/* __IBadgeIconSelective_FWD_DEFINED__ */
 
 
 #ifndef __IBadgeIconFailed_FWD_DEFINED__
 #define __IBadgeIconFailed_FWD_DEFINED__
 typedef interface IBadgeIconFailed IBadgeIconFailed;
+
 #endif 	/* __IBadgeIconFailed_FWD_DEFINED__ */
 
 
@@ -144,6 +148,7 @@ EXTERN_C const IID IID_IBadgeIconSyncing;
     public:
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IBadgeIconSyncingVtbl
@@ -154,7 +159,7 @@ EXTERN_C const IID IID_IBadgeIconSyncing;
             IBadgeIconSyncing * This,
             /* [in] */ REFIID riid,
             /* [annotation][iid_is][out] */ 
-            __RPC__deref_out  void **ppvObject);
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IBadgeIconSyncing * This);
@@ -182,14 +187,22 @@ EXTERN_C const IID IID_IBadgeIconSyncing;
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IBadgeIconSyncing * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
     } IBadgeIconSyncingVtbl;
@@ -255,6 +268,7 @@ EXTERN_C const IID IID_IBadgeIconSynced;
     public:
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IBadgeIconSyncedVtbl
@@ -265,7 +279,7 @@ EXTERN_C const IID IID_IBadgeIconSynced;
             IBadgeIconSynced * This,
             /* [in] */ REFIID riid,
             /* [annotation][iid_is][out] */ 
-            __RPC__deref_out  void **ppvObject);
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IBadgeIconSynced * This);
@@ -293,14 +307,22 @@ EXTERN_C const IID IID_IBadgeIconSynced;
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IBadgeIconSynced * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
     } IBadgeIconSyncedVtbl;
@@ -366,6 +388,7 @@ EXTERN_C const IID IID_IBadgeIconSelective;
     public:
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IBadgeIconSelectiveVtbl
@@ -376,7 +399,7 @@ EXTERN_C const IID IID_IBadgeIconSelective;
             IBadgeIconSelective * This,
             /* [in] */ REFIID riid,
             /* [annotation][iid_is][out] */ 
-            __RPC__deref_out  void **ppvObject);
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IBadgeIconSelective * This);
@@ -404,14 +427,22 @@ EXTERN_C const IID IID_IBadgeIconSelective;
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IBadgeIconSelective * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
     } IBadgeIconSelectiveVtbl;
@@ -477,6 +508,7 @@ EXTERN_C const IID IID_IBadgeIconFailed;
     public:
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IBadgeIconFailedVtbl
@@ -487,7 +519,7 @@ EXTERN_C const IID IID_IBadgeIconFailed;
             IBadgeIconFailed * This,
             /* [in] */ REFIID riid,
             /* [annotation][iid_is][out] */ 
-            __RPC__deref_out  void **ppvObject);
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IBadgeIconFailed * This);
@@ -515,14 +547,22 @@ EXTERN_C const IID IID_IBadgeIconFailed;
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IBadgeIconFailed * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
     } IBadgeIconFailedVtbl;

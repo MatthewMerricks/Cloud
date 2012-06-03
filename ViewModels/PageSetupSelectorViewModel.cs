@@ -1,5 +1,4 @@
-﻿//
-//  PageSetupSelectorViewModel.cs
+﻿//  PageSetupSelectorViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
