@@ -66,7 +66,7 @@ namespace CloudApiPublic.Model
             }
         }
 
-        CLEvent()
+        public CLEvent()
         {
         }
 

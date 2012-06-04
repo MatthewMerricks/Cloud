@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using win_client.Common;
+using CloudApiPublic.Model;
 
 namespace win_client.Services.Indexing
 {
@@ -148,13 +149,13 @@ namespace win_client.Services.Indexing
             string md5hash = item.Md5hash == null ? "" : item.Md5hash;
             string size = item.Size == null ? "0" : item.Size;
             bool isPending = item.IsPending;
-            metadataItem.Add(CLConstants.CLMetadataCloudPath, path);
-            metadataItem.Add(CLConstants.CLMetadataFileHash, md5hash);
-            metadataItem.Add(CLConstants.CLMetadataFileRevision, revision);
-            metadataItem.Add(CLConstants.CLMetadataFileCreateDate, createDate);
-            metadataItem.Add(CLConstants.CLMetadataFileModifiedDate, modifiedDate);
-            metadataItem.Add(CLConstants.CLMetadataFileSize, size);
-            metadataItem.Add(CLConstants.CLMetadataIsPending, isPending);
+            metadataItem.Add(CLDefinitions.CLMetadataCloudPath, path);
+            metadataItem.Add(CLDefinitions.CLMetadataFileHash, md5hash);
+            metadataItem.Add(CLDefinitions.CLMetadataFileRevision, revision);
+            metadataItem.Add(CLDefinitions.CLMetadataFileCreateDate, createDate);
+            metadataItem.Add(CLDefinitions.CLMetadataFileModifiedDate, modifiedDate);
+            metadataItem.Add(CLDefinitions.CLMetadataFileSize, size);
+            metadataItem.Add(CLDefinitions.CLMetadataIsPending, isPending);
             return metadataItem;
         }
 

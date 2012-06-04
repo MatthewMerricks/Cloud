@@ -25,7 +25,7 @@ namespace win_client.Services.Badging
 {
     public sealed class CLSyncService
     {
-        #region "Static fields ans properties"
+        #region "Static fields and properties"
         private static CLSyncService _instance = null;
         private static object _instanceLocker = new object();
         private static CLTrace _trace = null;
@@ -35,7 +35,7 @@ namespace win_client.Services.Badging
         private static List<object> _recentItems = null;
         private static int _syncItemsQueueCount = 0;
         private static List<object> _activeDownloadQueue = null;
-        private static List<object> _currentSids = null;
+        private static List<string> _currentSids = null;
         private static bool _waitingForCloudResponse = false;
         private static bool _needSyncFromCloud = false;
         private static bool _waitingForFSMResponse = false;
@@ -112,12 +112,12 @@ namespace win_client.Services.Badging
         /// </summary>
         public void BeginSyncServices()
         {
-            this.ServiceStarted = true;
+            _serviceStarted = true;
             _recentItems = new List<object>();
             _restClient = new CLPrivateRestClient();
             _activeDownloadQueue = new List<object>();
             _activeSyncQueue = new List<object>();
-            _currentSids = new List<object>();
+            _currentSids = new List<string>();
             _trace.writeToLog(1, "BeginSyncServices: Cloud Sync has Started for Cloud Folder at Path: {0}.", Settings.Instance.CloudFolderPath);
             if (_wasOffline == true) 
             {
@@ -134,20 +134,150 @@ namespace win_client.Services.Badging
         /// </summary>
         public void StopSyncServices()
         {
-            //this.ServiceStarted = false;
-            //if (_syncItemsQueueCount > 0) {
-            //    AnimateUIForSyncWithStatusMessageSyncActivityCount(false, (int) menuItemActivityLabelType.menuItemActivityLabelSynced, 0);
-            //    _activeSyncQueue.Clear();
-            //    _activeDownloadQueue.Clear();
-            //    _currentSids.Clear();
-            //    _downloadOperationQueue.CancelAllOperations();
-            //    UploadOperationQueue.CancelAllOperations();
-            //}
+            _serviceStarted = false;
+
+            // Stop receiving callbacks
+            // Note: Not necessary since this is a singleton.  We'll just drive the methods directly.
+            //[[CLNotificationServices sharedService] setDelegate:nil];
+            //[[CLFSMonitoringService sharedService] setDelegate:nil];
+
+#if TRASH
+           if (_syncItemsQueueCount > 0) {
+                //TODO: Clear the number of synced files to zero in the UI system tray status.
+                // AnimateUIForSyncWithStatusMessageSyncActivityCount(false, (int) menuItemActivityLabelType.menuItemActivityLabelSynced, 0);
+
+                _activeSyncQueue.Clear();
+                _activeDownloadQueue.Clear();
+                _currentSids.Clear();
+                _downloadOperationQueue.CancelAllOperations();
+                _uploadOperationQueue.CancelAllOperations();
+            }
 
             _trace.writeToLog(1, "BeginSyncServices: Cloud Sync has Eneded for Cloud Folder at Path: {0}.", Settings.Instance.CloudFolderPath);
         }
+        Array /*NSMutableArray*/ UpdateMetadataForFileEvents(Array /*NSMutableArray*/ events)
+        {
+            //events.EnumerateObjectsUsingBlock(^ (object obj, NSUInteger idx, bool stop) {
+            //    CLEvent Myevent = obj;
+            //    NSDictionary metadata;
+            //    if ((Myevent.Action).IsEqualToString(CLEventTypeAddFile) || (Myevent.Action).IsEqualToString(CLEventTypeModifyFile)) {
+            //        int do_try = 0;
+            //        do {
+            //            string fileSystemPath = ((CLSettings.SharedSettings()).CloudFolderPath()).StringByAppendingPathComponent(Myevent.Metadata.Path);
+            //            metadata = NSDictionary.AttributesForItemAtPath(fileSystemPath);
+            //            Myevent.Metadata.CreateDate = metadata.ObjectForKey("created_date");
+            //            Myevent.Metadata.ModifiedDate = metadata.ObjectForKey("modified_date");
+            //            Myevent.Metadata.Revision = metadata.ObjectForKey("revision");
+            //            Myevent.Metadata.Hash = metadata.ObjectForKey("file_hash");
+            //            Myevent.Metadata.Size = metadata.ObjectForKey("file_size");
+            //            do_try++;
+            //        }
+            //        while ((Myevent.Metadata.CreateDate).RangeOfString("190").Location != NSNotFound && do_try < 1000);
 
-        void SyncFromFileSystemMonitorWithGroupedUserEvents(CLFSMonitoringService fsm, Dictionary<string, object> /*NSDictionary*/ events)
+            //    }
+
+            //    if ((Myevent.Action).RangeOfString(CLEventTypeFileRange).Location != NSNotFound) {
+            //        string cloudPath = Myevent.Metadata.Path;
+            //        if ((Myevent.Action).IsEqualToString(CLEventTypeMoveFile) || (Myevent.Action).IsEqualToString(CLEventTypeRenameFile)) {
+            //            cloudPath = Myevent.Metadata.FromPath;
+            //        }
+
+            //        CLMetadata indexedMetadata = CLIndexingServices.MetadataForItemAtCloudPathInContext(cloudPath, NSManagedObjectContext.
+            //          ContextForCurrentThread());
+            //        if (indexedMetadata != null) {
+            //            if ((Myevent.Action).IsEqualToString(CLEventTypeAddFile)) {
+            //                if ((Myevent.Metadata.Hash).IsEqualToString(indexedMetadata.Hash) == false && (Myevent.Metadata.Revision).IsEqualToString(
+            //                  indexedMetadata.Revision) == false) {
+            //                    Myevent.Metadata.Revision = indexedMetadata.Revision;
+            //                    Myevent.Action = CLEventTypeModifyFile;
+            //                }
+
+            //            }
+            //            else if ((Myevent.Action).IsEqualToString(CLEventTypeModifyFile)) {
+            //                Myevent.Metadata.Revision = indexedMetadata.Revision;
+            //            }
+            //            else {
+            //                Myevent.Metadata.Revision = indexedMetadata.Revision;
+            //                Myevent.Metadata.Hash = indexedMetadata.Hash;
+            //                Myevent.Metadata.CreateDate = indexedMetadata.CreateDate;
+            //                Myevent.Metadata.ModifiedDate = indexedMetadata.ModifiedDate;
+            //                Myevent.Metadata.Size = indexedMetadata.Size;
+            //            }
+
+            //        }
+
+            //    }
+
+            //}
+            //);
+            //return events;
+            return new int[3];
+    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        CLEvent *event = obj;
+        NSDictionary *metadata;
+        
+        // for new files we get the current file metadata from the file system.
+        if ([event.action isEqualToString:CLEventTypeAddFile] || [event.action isEqualToString:CLEventTypeModifyFile]) {
+            
+            int do_try = 0;
+            
+            do {
+                @autoreleasepool {
+                    NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:event.metadata.path];
+                    metadata = [NSDictionary attributesForItemAtPath:fileSystemPath];
+                    
+                    event.metadata.createDate = [metadata objectForKey:@"created_date"];
+                    event.metadata.modifiedDate = [metadata objectForKey:@"modified_date"];
+                    event.metadata.revision = [metadata objectForKey:@"revision"];
+                    event.metadata.hash = [metadata objectForKey:@"file_hash"];
+                    event.metadata.size = [metadata objectForKey:@"file_size"];
+                }
+                do_try ++;
+            }
+            while ( [event.metadata.createDate rangeOfString:@"190"].location != NSNotFound && do_try < 3000); // 1 second. TODO: This hack sucks!
+        }
+        
+        // all other file events we get stored index data for this event item.
+        if ([event.action rangeOfString:CLEventTypeFileRange].location != NSNotFound) {
+
+            NSString *cloudPath = event.metadata.path;
+            
+            if ([event.action isEqualToString:CLEventTypeMoveFile] || [event.action isEqualToString:CLEventTypeRenameFile]) {
+                cloudPath = event.metadata.fromPath;
+            }
+            
+            CLMetadata *indexedMetadata = [CLIndexingServices metadataForItemAtCloudPath:cloudPath];
+            
+            if (indexedMetadata != nil) { // we have an object indexed for this event.
+
+                // for add events, if the darn thing already exists in the index, it means that FSM failed to pick up the event as a modify
+                // let's make sure of that and if it turns out to be true, then we need to change the event to become a modify type.
+                if ([event.action isEqualToString:CLEventTypeAddFile]) {
+                    if ([event.metadata.hash isEqualToString:indexedMetadata.hash] == NO &&
+                        [event.metadata.revision isEqualToString:indexedMetadata.revision] == NO) {
+                        event.metadata.revision = indexedMetadata.revision;
+                        event.action = CLEventTypeModifyFile;
+                    }
+                }
+                else if ([event.action isEqualToString:CLEventTypeModifyFile]) { // for modify we only want to revision
+                    event.metadata.revision = indexedMetadata.revision;
+                }
+                else { // we want it all for all other cases.
+                    event.metadata.revision = indexedMetadata.revision;
+                    event.metadata.hash = indexedMetadata.hash;
+                    event.metadata.createDate = indexedMetadata.createDate;
+                    event.metadata.modifiedDate = indexedMetadata.modifiedDate;
+                    event.metadata.size = indexedMetadata.size;
+                }
+            }
+        }
+    }];
+    
+    return events;
+#endif // TRASH
+        }
+
+        void SyncFromFileSystemMonitorWithGroupedUserEvents(CLFSMonitoringService fsm, Dictionary<string, object> events)
         {
             //string sid;
             //if ((this.CurrentSIDs).LastObject() != null) {
@@ -212,9 +342,108 @@ namespace win_client.Services.Badging
 
             //}
 
+            string sid;
+            if (_currentSids.Last<object>() != null)
+            {
+                sid = _currentSids.Last<string>();
+            }
+            else
+            {
+                sid = Settings.Instance.Sid;
+            }
+
+            long eid = (long)events[CLDefinitions.CLEventKey];
+            List<object> eventList = (List<object>)events[CLDefinitions.CLSyncEvents];
+            List<object> fsmEvents = new List<object>();
+
+            // Filtering duplicate events
+            List<object> filteredEvents = eventList.Distinct().ToList();
+    
+            if (eventList.Count > 0)
+            {
+                // Update UI with activity.
+                //TODO: Update the UI with zero synced files.
+                //[self animateUIForSync:YES withStatusMessage:menuItemActivityLabelPreSync syncActivityCount:0];
+
+                // Generate FSM CLEvents 
+                filteredEvents.ForEach((fileSystemEvent) =>
+                {
+                    string s = "";
+                    CLEvent evt = new CLEvent();
+                    CLMetadata fsEventMetadata = new CLMetadata((Dictionary<string, object>)((Dictionary<string, object>)fileSystemEvent)[CLDefinitions.CLSyncEventMetadata]);
+                    evt.Metadata = fsEventMetadata;
+                    evt.IsMDSEvent = false;
+                    evt.Action = (string)((Dictionary<string, object>)fileSystemEvent)[CLDefinitions.CLSyncEvent];
+                });
+
+                // Update events with metadata.
+                fsmEvents = UpdateMetadataForFileEvents(fsmEvents);
+#if TRASH
+                // Sorting.
+                NSDictionary *sortedEvents = [self sortSyncEventsByType:fsmEvents];
+        
+                // Preprocess Index (may filter out duplicate events based on existing index items)
+                sortedEvents = [self indexSortedEvents:sortedEvents];
+            
+                if ([sortedEvents count] > 0) { // we may have eliminated events while filtering them thru our index.
+
+                    NSMutableArray *sortedFSMEvents = [NSMutableArray array];
+                    // Adding objects to our active sync queue
+                    [sortedFSMEvents addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeAdd]];
+                    [sortedFSMEvents addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeModify]];
+                    [sortedFSMEvents addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeRenameMove]];
+                    [sortedFSMEvents addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeDelete]];
+
+                    NSMutableDictionary *fsmEventsDictionary = [[CLEvent fsmDictionaryForCLEvents:fsmEvents] mutableCopy];
+            
+                    NSDictionary *syncFormCalls = [NSDictionary dictionaryWithObjectsAndKeys:sid, CLSyncID, nil];
+                    [fsmEventsDictionary addEntriesFromDictionary:syncFormCalls];
+            
+                    NSLog(@"Requesting Sync To Cloud: \n\n%@\n\n", fsmEventsDictionary);
+
+                    [self.restClient syncToCloud:fsmEventsDictionary completionHandler:^(NSDictionary *metadata, NSError *error) {
+                
+                        if (error == nil) {
+                    
+                            NSLog(@"Response From Sync To Cloud: \n\n%@\n\n", metadata);
+                    
+                            if ([[metadata objectForKey:CLSyncEvents] count] > 0) {
+                        
+                                // override with sid sent by phil
+                                NSString *newSid = [metadata objectForKey:CLSyncID];
+                                if ([self.currentSIDs containsObject:newSid] == NO) {
+                                    [self.currentSIDs addObject:newSid];
+                                }
+                        
+                                // add received events.
+                                NSArray *mdsEvents = [metadata objectForKey:@"events"];
+                                NSMutableArray *events = [NSMutableArray array];
+                        
+                                [mdsEvents enumerateObjectsUsingBlock:^(id mdsEvent, NSUInteger idx, BOOL *stop) {
+                            
+                                    // if status is not found, metadata is null.
+                                    if (![[[mdsEvent objectForKey:@"sync_header"] objectForKey:@"status"] isEqualToString:@"not_found"]) { 
+                                        // check for valid dictionary
+                                        if ([[mdsEvent objectForKey:@"metadata"] isKindOfClass:[NSDictionary class]]){
+                                            [events addObject:[CLEvent eventFromMDSEvent:mdsEvent]];
+                                        }
+                                    }
+                                }];
+                        
+                                // Dispatch for processing.
+                                NSMutableDictionary *eventIds = [NSMutableDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, newSid, CLSyncID, nil];
+                                [self performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
+                            }
+                        }else {
+                            NSLog(@"%s - %@", __FUNCTION__, error);
+                        }
+                    } onQueue:get_cloud_sync_queue()];
+                }
+ #endif // TRASH
+           }
         }
 
-        Array /*NSMutableArray*/ UpdateMetadataForFileEvents(Array /*NSMutableArray*/ events)
+        List<object> /*NSMutableArray*/ UpdateMetadataForFileEvents( List<object> /*NSMutableArray*/ events)
         {
             //events.EnumerateObjectsUsingBlock(^ (object obj, NSUInteger idx, bool stop) {
             //    CLEvent Myevent = obj;
@@ -270,7 +499,7 @@ namespace win_client.Services.Badging
             //}
             //);
             //return events;
-            return new int[3];
+            return new List<object>();
         }
 
         void NotificationServiceDidReceivePushNotificationFromServer(bool /*CLNotificationServices*/ ns, string notification)
@@ -354,22 +583,6 @@ namespace win_client.Services.Badging
             //(this.ActiveSyncQueue).RemoveAllObjects();
             //this.SaveSyncStateWithSIDAndEID(ids.ObjectForKey(CLSyncID), ids.ObjectForKey(CLSyncEventID));
             //this.AnimateUIForSyncWithStatusMessageSyncActivityCount(false, (int) menuItemActivityLabelType.MenuItemActivityLabelSynced, 0);
-        }
-
-        Array /*NSArray*/ FilterDuplicateEvents(Array /*NSArray*/ events)
-        {
-            //NSMutableArray eventList = events.MutableCopy();
-            //NSArray eventListCopy = events.Copy();
-            //NSInteger index = eventListCopy.Count() - 1;
-            //foreach (object Myobject in eventListCopy.ReverseObjectEnumerator()) {
-            //    if (eventList.IndexOfObjectInRange(Myobject, NSMakeRange(0, index)) != NSNotFound) {
-            //        eventList.RemoveObjectAtIndex(index);
-            //    }
-
-            //    index--;
-            //}
-            //return eventList;
-            return new int[3];
         }
 
         Dictionary<string, object> /*NSDictionary*/ SortSyncEventsByType(Array /*NSArray*/ events)

@@ -224,22 +224,21 @@ namespace CloudApiPublic.Model
 
         public CLMetadata(Dictionary<string, object> json)
         {
-            //if (json.Count() > 0) {
-            //    this.Path = json.ObjectForKey("path");
-            //    this.ToPath = json.ObjectForKey("to_path");
-            //    this.FromPath = json.ObjectForKey("from_path");
-            //    this.Revision = json.ObjectForKey("revision");
-            //    this.CreateDate = json.ObjectForKey("created_date");
-            //    this.ModifiedDate = json.ObjectForKey("modified_date");
-            //    this.IsDeleted = (json.ObjectForKey("is_deleted")).BoolValue();
-            //    this.IsDirectory = (json.ObjectForKey("is_folder")).BoolValue();
-            //    this.Hash = json.ObjectForKey("file_hash");
-            //    this.Size = NSString.StringWithFormat("%@", json.ObjectForKey("file_size"));
-            //    this.Version = json.ObjectForKey("version");
-            //    this.Storage_key = json.ObjectForKey("storage_key");
-            //    this.LastEventID = (json.ObjectForKey("last_event_id")).StringValue();
-            //}
-
+            if (json.Count() > 0) {
+                this.Path = (string)json[CLDefinitions.CLMetadataCloudPath];
+                this.ToPath = (string)json[CLDefinitions.CLMetadataToPath];
+                this.FromPath = (string)json[CLDefinitions.CLMetadataFromPath];
+                this.Revision = (string)json[CLDefinitions.CLMetadataFileRevision];
+                this.CreateDate = (string)json[CLDefinitions.CLMetadataFileCreateDate];
+                this.ModifiedDate = (string)json[CLDefinitions.CLMetadataFileModifiedDate];
+                this.IsDeleted = (bool)json[CLDefinitions.CLMetadataFileIsDeleted];
+                this.IsDirectory = (bool)json[CLDefinitions.CLMetadataFileIsDirectory];
+                this.Hash = (string)json[CLDefinitions.CLMetadataFileHash];
+                this.Size = (string)json[CLDefinitions.CLMetadataFileSize];
+                this.Version = (string)json[CLDefinitions.CLMetadataVersion];
+                this.Storage_key = (string)json[CLDefinitions.CLMetadataStorageKey];
+                this.LastEventID = (string)json[CLDefinitions.CLMetadataLastEventID];
+            }
         }
 
         public CLMetadata(bool /*FileSystemItem*/ fsItem)
