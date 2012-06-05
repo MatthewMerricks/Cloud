@@ -44,6 +44,18 @@ namespace FileMonitor
         Created,
         Modified,
         Deleted,
-        Renamed
+        Renamed,
+        /// <summary>
+        /// Denotes a creation event, but an error occurred while reading the file for an MD5 checksum
+        /// </summary>
+        CreatedWithError,
+        /// <summary>
+        /// Denotes a modified event, but an error occurred while reading the file for an MD5 checksum
+        /// </summary>
+        ModifiedWithError,
+        /// <summary>
+        /// Denotes a renamed event, but an error occurred while reading the file for an MD5 checksum
+        /// </summary>
+        RenamedWithError
     }
 }

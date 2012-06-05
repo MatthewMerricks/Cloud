@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+// Helpers.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -151,7 +158,8 @@ namespace FileMonitor
         #region public methods
         /// <summary>
         /// Call this first to start monitoring file system while initial indexing/synchronization occur,
-        /// BeginProcessing(initialList) must be called before monitored events begin processing (even after calling Stop() and Start() again)
+        /// BeginProcessing(initialList) must be called before monitored events begin processing
+        /// (call BeginProcessing again after calling Stop() and Start() as well)
         /// </summary>
         /// <param name="status">Returns whether monitor is started or if it had already been started</param>
         /// <returns>Error if it occurred</returns>
@@ -530,13 +538,16 @@ namespace FileMonitor
                                 {
                                     // retrieve stored index
                                     FileMetadata previousMetadata = AllPaths[filePath];
+                                    // store if error occurred retrieving MD5 checksum
+                                    bool md5Error;
                                     // compare stored index with values from file info
                                     FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
                                         filePath,
                                         isFolder,
                                         lastTime,
                                         creationTime,
-                                        isFolder ? (Nullable<long>)null : file.Length);
+                                        isFolder ? (Nullable<long>)null : file.Length,
+                                        out md5Error);
                                     // if new metadata came back after comparison, queue file change for modify
                                     if (newMetadata != null)
                                     {
@@ -547,7 +558,7 @@ namespace FileMonitor
                                         {
                                             NewPath = filePath,
                                             Metadata = newMetadata,
-                                            Type = FileChangeType.Modified
+                                            Type = md5Error ? FileChangeType.ModifiedWithError : FileChangeType.Modified
                                         });
                                     }
                                 }
@@ -555,6 +566,8 @@ namespace FileMonitor
                             // if index did not already exist
                             else
                             {
+                                // store if error occurred retrieving file MD5
+                                bool md5Error;
                                 // add new index
                                 AllPaths.Add(filePath,
                                     new FileMetadata()
@@ -563,14 +576,14 @@ namespace FileMonitor
                                             lastTime,
                                             creationTime,
                                             isFolder ? (Nullable<long>)null : file.Length),
-                                        MD5 = isFolder ? null : GetMD5(filePath)
+                                        MD5 = isFolder ? NullByteArrayWithFalseOutput(out md5Error) : GetMD5(filePath, out md5Error)
                                     });
                                 // queue file change for create
                                 QueueFileChange(new FileChange()
                                 {
                                     NewPath = filePath,
                                     Metadata = AllPaths[filePath],
-                                    Type = FileChangeType.Created
+                                    Type = md5Error ? FileChangeType.CreatedWithError : FileChangeType.Created
                                 });
                             }
                         }
@@ -626,33 +639,56 @@ namespace FileMonitor
                         // if index exists at current path (irrespective of last condition on previous path index)
                         if (AllPaths.ContainsKey(filePath))
                         {
-                            // No need to send modified events for folders
-                            // so check if event is on a file or if folder modifies are not ignored
-                            if (!isFolder
-                                || !IgnoreFolderModifies)
+                            // if file or folder exists
+                            if (exists)
                             {
-                                // retrieve stored index at current path
-                                FileMetadata previousMetadata = AllPaths[filePath];
-                                // compare stored index with values from file info
-                                FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
-                                    filePath,
-                                    isFolder,
-                                    lastTime,
-                                    creationTime,
-                                    isFolder ? (Nullable<long>)null : file.Length);
-                                // if new metadata came back after comparison, queue file change for modify
-                                if (newMetadata != null)
+                                // No need to send modified events for folders
+                                // so check if event is on a file or if folder modifies are not ignored
+                                if (!isFolder
+                                    || !IgnoreFolderModifies)
                                 {
-                                    // replace index at current path
-                                    AllPaths[filePath] = newMetadata;
-                                    // queue file change for modify
-                                    QueueFileChange(new FileChange()
+                                    // retrieve stored index at current path
+                                    FileMetadata previousMetadata = AllPaths[filePath];
+                                    // store if error occurred retrieving MD5 checksum
+                                    bool md5Error;
+                                    // compare stored index with values from file info
+                                    FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
+                                        filePath,
+                                        isFolder,
+                                        lastTime,
+                                        creationTime,
+                                        isFolder ? (Nullable<long>)null : file.Length,
+                                        out md5Error);
+                                    // if new metadata came back after comparison, queue file change for modify
+                                    if (newMetadata != null)
                                     {
-                                        NewPath = filePath,
-                                        Metadata = newMetadata,
-                                        Type = FileChangeType.Modified
-                                    });
+                                        // replace index at current path
+                                        AllPaths[filePath] = newMetadata;
+                                        // queue file change for modify
+                                        QueueFileChange(new FileChange()
+                                        {
+                                            NewPath = filePath,
+                                            Metadata = newMetadata,
+                                            Type = md5Error ? FileChangeType.ModifiedWithError : FileChangeType.Modified
+                                        });
+                                    }
                                 }
+                            }
+                            // else file does not exist
+                            else
+                            {
+                                // queue file change for delete at new path
+                                QueueFileChange(new FileChange()
+                                {
+                                    NewPath = filePath,
+                                    Metadata = AllPaths[filePath],
+                                    Type = FileChangeType.Deleted
+                                });
+                                // remove index for new path
+                                AllPaths.Remove(filePath);
+
+                                // no need to continue and check possibeRename since it required exists to be true, return now
+                                return;
                             }
                             // if precursor condition was set for a file change for rename
                             // (but an index already exists at the new path)
@@ -675,13 +711,16 @@ namespace FileMonitor
                         {
                             // retrieve index at previous path
                             FileMetadata previousMetadata = AllPaths[oldPath];
+                            // store if error occurred retrieving MD5 checksum
+                            bool md5Error;
                             // compare stored index from previous path with values from current change
                             FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
                                 filePath,
                                 isFolder,
                                 lastTime,
                                 creationTime,
-                                isFolder ? (Nullable<long>)null : file.Length);
+                                isFolder ? (Nullable<long>)null : file.Length,
+                                out md5Error);
                             // remove index at the previous path
                             AllPaths.Remove(oldPath);
                             // add an index for the current path either from the changed metadata if it exists otherwise the previous metadata
@@ -692,7 +731,31 @@ namespace FileMonitor
                                 NewPath = filePath,
                                 OldPath = oldPath,
                                 Metadata = newMetadata ?? previousMetadata,
-                                Type = FileChangeType.Renamed
+                                Type = md5Error ? FileChangeType.RenamedWithError : FileChangeType.Renamed
+                            });
+                        }
+                        // if index does not exist at either the old nor new paths and the file exists
+                        else
+                        {
+
+                            // store if error occurred retrieving file MD5
+                            bool md5Error;
+                            // add new index at new path
+                            AllPaths.Add(filePath,
+                                new FileMetadata()
+                                {
+                                    HashableProperties = new FileMetadataHashableProperties(isFolder,
+                                        lastTime,
+                                        creationTime,
+                                        isFolder ? (Nullable<long>)null : file.Length),
+                                    MD5 = isFolder ? NullByteArrayWithFalseOutput(out md5Error) : GetMD5(filePath, out md5Error)
+                                });
+                            // queue file change for create for new path
+                            QueueFileChange(new FileChange()
+                            {
+                                NewPath = filePath,
+                                Metadata = AllPaths[filePath],
+                                Type = md5Error ? FileChangeType.CreatedWithError : FileChangeType.Created
                             });
                         }
                     }
@@ -712,13 +775,16 @@ namespace FileMonitor
                             {
                                 // retrieve stored index at current path
                                 FileMetadata previousMetadata = AllPaths[filePath];
+                                // store if error occurred retrieving MD5 checksum
+                                bool md5Error;
                                 // compare stored index with values from file info
                                 FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
                                     filePath,
                                     isFolder,
                                     lastTime,
                                     creationTime,
-                                    isFolder ? (Nullable<long>)null : file.Length);
+                                    isFolder ? (Nullable<long>)null : file.Length,
+                                    out md5Error);
                                 // if new metadata came back after comparison, queue file change for modify
                                 if (newMetadata != null)
                                 {
@@ -729,7 +795,7 @@ namespace FileMonitor
                                     {
                                         NewPath = filePath,
                                         Metadata = newMetadata,
-                                        Type = FileChangeType.Modified
+                                        Type = md5Error ? FileChangeType.ModifiedWithError : FileChangeType.Modified
                                     });
                                 }
                             }
@@ -820,7 +886,8 @@ namespace FileMonitor
             bool isFolder,
             DateTime lastTime,
             DateTime creationTime,
-            Nullable<long> size)
+            Nullable<long> size,
+            out bool md5ErrorOccurred)
         {
             // Segment out the properties that are used for comparison (before recalculating the MD5)
             FileMetadataHashableProperties forCompare = new FileMetadataHashableProperties(isFolder,
@@ -836,10 +903,21 @@ namespace FileMonitor
                 return new FileMetadata()
                 {
                     HashableProperties = forCompare,
-                    MD5 = isFolder ? null : GetMD5(filePath)
+                    MD5 = isFolder ? NullByteArrayWithFalseOutput(out md5ErrorOccurred) : GetMD5(filePath, out md5ErrorOccurred)
                 };
             }
-            // No metadata change detected, return null
+            // No metadata change detected, thus no error occurred, also return null
+            md5ErrorOccurred = false;
+            return null;
+        }
+        /// <summary>
+        /// Used to simultaneously set a false out parameter and return null
+        /// </summary>
+        /// <param name="willBeFalse"></param>
+        /// <returns></returns>
+        private byte[] NullByteArrayWithFalseOutput(out bool willBeFalse)
+        {
+            willBeFalse = false;
             return null;
         }
 
@@ -889,7 +967,7 @@ namespace FileMonitor
                 // The following two 'else ifs' checks for matching metadata between creation/deletion events to associate together as a rename
 
                 // Existing FileChange is a Deleted event and the incoming event is a matching Created event which has not yet completed
-                else if (toChange.Type == FileChangeType.Created
+                else if ((toChange.Type == FileChangeType.Created || toChange.Type == FileChangeType.CreatedWithError)
                         && QueuedChangesByMetadata.ContainsKey(toChange.Metadata.HashableProperties)
                         && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Deleted
                         && !matchedFileChangeForRename.DelayCompleted)
@@ -898,6 +976,14 @@ namespace FileMonitor
                     // Instead of starting a new processing delay, update the FileChange information
                     // Then restart the delay timer
                     startDelay = false;
+                    if (toChange.Type == FileChangeType.CreatedWithError)
+                    {
+                        matchedFileChangeForRename.Type = FileChangeType.RenamedWithError;
+                    }
+                    else
+                    {
+                        matchedFileChangeForRename.Type = FileChangeType.Renamed;
+                    }
                     matchedFileChangeForRename.Type = FileChangeType.Renamed;
                     matchedFileChangeForRename.OldPath = matchedFileChangeForRename.NewPath;
                     matchedFileChangeForRename.NewPath = toChange.NewPath;
@@ -913,14 +999,22 @@ namespace FileMonitor
                 // Existing FileChange is a Created event and the incoming event is a matching Deleted event which has not yet completed
                 else if (toChange.Type == FileChangeType.Deleted
                         && QueuedChangesByMetadata.ContainsKey(toChange.Metadata.HashableProperties)
-                        && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Created
+                        && ((matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Created
+                            || matchedFileChangeForRename.Type == FileChangeType.CreatedWithError)
                         && !matchedFileChangeForRename.DelayCompleted)
                 {
                     // FileChange already exists
                     // Instead of starting a new processing delay, update the FileChange information
                     // Then restart the delay timer
                     startDelay = false;
-                    matchedFileChangeForRename.Type = FileChangeType.Renamed;
+                    if (matchedFileChangeForRename.Type == FileChangeType.CreatedWithError)
+                    {
+                        matchedFileChangeForRename.Type = FileChangeType.RenamedWithError;
+                    }
+                    else
+                    {
+                        matchedFileChangeForRename.Type = FileChangeType.Renamed;
+                    }
                     matchedFileChangeForRename.OldPath = toChange.NewPath;
                     if (QueuedChanges.ContainsKey(matchedFileChangeForRename.NewPath))
                     {
@@ -1052,15 +1146,40 @@ namespace FileMonitor
         /// </summary>
         /// <param name="filePath">Location of file to generate checksum</param>
         /// <returns>Returns byte[16] representing the MD5 data</returns>
-        private byte[] GetMD5(string filePath)
+        private byte[] GetMD5(string filePath, out bool md5ErrorOccurred)
         {
-            // Filestream will fail if reading is blocked or permissions don't allow read,
-            // exception will bubble up to CheckMetadataAgainstFile for handling
-            using (FileStream mD5Stream = new FileStream(filePath,
-                FileMode.Open))
+            try
             {
-                // compute hash and return using static instance of MD5
-                return MD5Hasher.ComputeHash(mD5Stream);
+                // Filestream will fail if reading is blocked or permissions don't allow read,
+                // exception will bubble up to CheckMetadataAgainstFile for handling
+                using (FileStream mD5Stream = new FileStream(filePath,
+                    FileMode.Open))
+                {
+                    // compute hash and return using static instance of MD5
+                    byte[] toReturn = MD5Hasher.ComputeHash(mD5Stream);
+                    // an error did not occur, output as such and return
+                    md5ErrorOccurred = false;
+                    return toReturn;
+                }
+            }
+            catch
+            {
+                // error did occur
+
+                // output that error occurred
+                md5ErrorOccurred = true;
+                bool badgingIsInitialized;
+                // check if badging is initialized, if so then set badge as failed
+                // error not handled, although the output boolean will be false on error so it will not run attempt to badge
+                CLError isInitializedError = BadgeNET.IconOverlay.IsBadgingInitialized(out badgingIsInitialized);
+                if (badgingIsInitialized)
+                {
+                    // set badge at path for error
+                    // error not handled
+                    CLError badgingError = BadgeNET.IconOverlay.setBadgeType(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeFailed, filePath);
+                }
+                // return nothing (common occurance when file is locked externally)
+                return null;
             }
         }
 
