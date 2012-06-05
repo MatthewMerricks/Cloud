@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="FileCreation"
+    targetNamespace="http://Cloud.com/FileCreation.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://Cloud.com/FileCreation.xsd"
+    xmlns:mstns="http://Cloud.com/FileCreation.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:appinfo>Cloud.com FileCreation XML Schema</xs:appinfo>
+    <xs:documentation xml:lang="en-us">
+      FileCreation.xsd and resulting generated code
+      Cloud
+      
+      Created by DavidBruck.
+      
+      Copyright (c) Cloud.com. All rights reserved.
+      
+      Manually copy this copyright declaration to the header of any generated code files created from this schema
+    </xs:documentation>
+  </xs:annotation>
+  <xs:simpleType name="FileOperationType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Create" />
+      <xs:enumeration value="Rename" />
+      <xs:enumeration value="Delete" />
+      <xs:enumeration value="LockedModify" />
+      <xs:enumeration value="UnlockedAppend" />
+      <xs:enumeration value="Stream" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="ChangedData">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="SizeDelta" type="xs:unsignedInt" minOccurs="0" maxOccurs="1" />
+      <xs:element name="SpecificData" type="xs:string" minOccurs="0" maxOccurs="1" />
+    </xs:all>
+  </xs:complexType>
+  <xs:complexType name="SingleFileOperation">
+    <xs:all>
+      <xs:element name="NewRelativePath" type="xs:string" minOccurs="1" maxOccurs="1" />
+      <xs:element name="OldRelativePath" type="xs:string" minOccurs="0" maxOccurs="1" />
+      <xs:element name="IsFolder" type="xs:boolean" minOccurs="1" maxOccurs="1" />
+      <xs:element name="Type" type="FileOperationType" minOccurs="1" maxOccurs="1" />
+      <xs:element name="Data" type="ChangedData" minOccurs="0" maxOccurs="1" />
+      <xs:element name="StreamIterations" type="xs:unsignedInt" minOccurs="0" maxOccurs="1" />
+      <xs:element name="MillisecondDelayBetweenStreamIterations" type="xs:unsignedInt" minOccurs="0" maxOccurs="1" />
+      <xs:element name="WaitOnStreamCompletion" type="xs:boolean" minOccurs="0" maxOccurs="1" />
+      <xs:element name="MinimumWaitOnLockedModify" type="xs:int" minOccurs="0" maxOccurs="1" />
+    </xs:all>
+  </xs:complexType>
+  <xs:complexType name="ParallelFileOperationSet">
+    <xs:choice minOccurs="1" maxOccurs="unbounded">
+      <xs:element type="SingleFileOperation" name="SingleFileOperation" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element type="xs:int" name="Sleep" minOccurs="0" maxOccurs="1" />
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="Copyright">
+    <xs:sequence>
+      <xs:element name="FileName" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Copyright" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Implementation of FileCreation.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved." />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Creator" minOccurs="1" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="FileCreation">
+    <xs:complexType>
+      <xs:choice minOccurs="1" maxOccurs="unbounded">
+        <xs:element type="Copyright" name="Copyright" minOccurs="1" maxOccurs="1" />
+        <xs:element type="ParallelFileOperationSet" name="ParallelFileOperationSet" minOccurs="0" maxOccurs="unbounded" />
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

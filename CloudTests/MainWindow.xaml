@@ -1,0 +1,70 @@
+﻿<Window x:Class="CloudTests.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525"
+        xmlns:fileDialogs="clr-namespace:Microsoft.Win32;assembly=PresentationFramework"
+        xmlns:folderDialogs="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms">
+    <!--
+    // MainWindow.xaml
+    // Cloud Windows
+    //
+    // Created By DavidBruck.
+    // Copyright (c) Cloud.com. All rights reserved. -->
+    <Window.Resources>
+        <fileDialogs:OpenFileDialog x:Key="OpenFile" />
+        <folderDialogs:FolderBrowserDialog x:Key="OpenFolder">
+            <folderDialogs:FolderBrowserDialog.SelectedPath>C:\Users\Public\Documents</folderDialogs:FolderBrowserDialog.SelectedPath>
+        </folderDialogs:FolderBrowserDialog>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="20" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Label Content="Badging:" />
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Label Name="OpenFileText" PreviewMouseDown="OpenFileText_PreviewMouseDown" Content="Click here to select file" />
+                <ComboBox Name="BadgeTypeDropDown" Grid.Column="1">
+                    <ComboBoxItem Content="Syncing" IsSelected="True" />
+                    <ComboBoxItem Content="Synced" />
+                    <ComboBoxItem Content="Selective" />
+                    <ComboBoxItem Content="Failed" />
+                </ComboBox>
+            </Grid>
+            <Button Name="BadgeFileButton" Content="Badge/Unbadge File" Click="BadgeFileButton_Click" Grid.Row="2" />
+            <Button Name="RotateBadgesOnCurrentFile" Content="Rotate Badges on Current File" Click="RotateBadgesOnCurrentFile_Click" Grid.Row="3" />
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Label Content="File System Monitoring:" />
+            <Label Name="OpenFolderText" PreviewMouseDown="OpenFolderText_PreviewMouseDown" Content="Click here to select folder" Grid.Row="1" />
+            <Button Name="MonitorFileSystemButton" Content="Monitor File System" Click="MonitorFileSystemButton_Click" Grid.Row="2" />
+            <Button Name="CreateTestFiles" Content="Create Test Files" Click="CreateTestFiles_Click" Grid.Row="3" />
+            <Button Name="FinalizeMonitorAgentTestLog" Content="Finalize Monitor Agent Test Log" Click="FinalizeMonitorAgentTestLog_Click" Grid.Row="4" />
+            <Button Name="ClearFolderAndLog" Content="Clear Folder and Log" Click="ClearFolderAndLog_Click" Grid.Row="5" />
+            <ScrollViewer Grid.Row="6">
+                <TextBlock Name="MonitorText" />
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Window>
