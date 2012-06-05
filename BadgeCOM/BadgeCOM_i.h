@@ -4,10 +4,10 @@
 
 
  /* File created by MIDL compiler version 8.00.0594 */
-/* at Tue Jun 05 09:30:34 2012
+/* at Tue Jun 05 18:06:28 2012
  */
 /* Compiler settings for BadgeCOM.idl:
-    Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.00.0594 
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0594 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 

@@ -69,7 +69,7 @@ STDMETHODIMP CBadgeIconSynced::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 	//default return value is false (no icon overlay)
 	HRESULT r = S_FALSE;
 	// identify which COM object this is
-	wchar_t const* pipeForCurrentBadgeType = L"\\\\.\\Pipe\\BadgeCOMSynced";
+	wchar_t const* pipeForCurrentBadgeType = L"\\\\.\\Pipe\\BadgeCOMcloudAppBadgeSynced";
 	//copy input path to local unicode char
 	wchar_t *s = _wcsdup(pwszPath);
 	try
