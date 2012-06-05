@@ -22,7 +22,7 @@ namespace BadgeNET
         /// </summary>
         public string FilePath { get; private set; }
 
-        public BadgeType Type
+        public cloudAppIconBadgeType Type
         {
             get
             {
@@ -37,7 +37,7 @@ namespace BadgeNET
                 }
             }
         }
-        private BadgeType _type = BadgeType.Syncing;
+        private cloudAppIconBadgeType _type = cloudAppIconBadgeType.cloudAppBadgeSyncing;
         #endregion
 
         #region INotifyPropertyChanged members
@@ -54,7 +54,7 @@ namespace BadgeNET
         }
         #endregion
 
-        public BadgedObject(string filePath, BadgeType initialType, PropertyChangedEventHandler changeHandler)
+        public BadgedObject(string filePath, cloudAppIconBadgeType initialType, PropertyChangedEventHandler changeHandler)
         {
             if (string.IsNullOrEmpty(filePath))
                 throw new Exception("filePath cannot be null nor empty");

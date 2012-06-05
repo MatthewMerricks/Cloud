@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using CloudApiPublic.Support;
 using BadgeNET;
+using CloudApiPublic.Model;
 
 namespace win_client.Services.Badging
 {
@@ -55,9 +56,13 @@ namespace win_client.Services.Badging
         /// </summary>
         public void BeginBadgingServices()
         {
-            if(!IconOverlay.IsBadgingInitialized())
+            bool isBadgingInitialized;
+            CLError badgingInitializedError = IconOverlay.IsBadgingInitialized(out isBadgingInitialized);
+            // error not handled above
+            if(!isBadgingInitialized)
             {
-                IconOverlay.Initialize();
+                CLError initializeError = IconOverlay.Initialize();
+                // error not handled above
             }
         }
 

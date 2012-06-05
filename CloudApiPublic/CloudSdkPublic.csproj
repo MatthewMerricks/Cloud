@@ -85,6 +85,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.fr.resx</DependentUpon>
     </Compile>
+    <Compile Include="Static\Helpers.cs" />
     <Compile Include="Support\CLSptHttpConnectionOperation.cs" />
     <Compile Include="Support\CLSptNSOperation.cs" />
     <Compile Include="Support\CLSptGrandCentralDispatch.cs" />
@@ -113,9 +114,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Static\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

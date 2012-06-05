@@ -48,6 +48,12 @@
     <Compile Include="IconOverlay.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
+      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
+      <Name>CloudSdkPublic</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

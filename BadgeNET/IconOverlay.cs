@@ -13,6 +13,8 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.IO.Pipes;
 using System.Threading;
+using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 
 namespace BadgeNET
 {
@@ -54,58 +56,87 @@ namespace BadgeNET
         /// ¡¡ Do not call this method a second time nor after InitializeOrReplace has been called !!
         /// </summary>
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
-        public static void Initialize(IEnumerable<KeyValuePair<string, BadgeType>> initialList = null)
+        public static CLError Initialize(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList = null)
         {
-            Instance.pInitialize(initialList);
+            return Instance.pInitialize(initialList);
         }
-        private void pInitialize(IEnumerable<KeyValuePair<string, BadgeType>> initialList = null)
+        private CLError pInitialize(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList = null)
         {
-            // ensure IconOverlay is only ever initialized once
-            lock (this)
+            try
             {
-                if (isInitialized)
-                    throw new Exception("IconOverlay Instance already initialized");
-                isInitialized = true;
-            }
-
-            bool initialListContainsItem = false;
-
-            // I don't want to enumerate the initialList for both counting and copying, so I define an array for storage
-            KeyValuePair<string, BadgeType>[] initialListArray;
-            // initial list contained values for badging; preload dictionary and notify system of global change
-            if (initialList != null
-                && (initialListArray = initialList.ToArray()).Length > 0)
-            {
-                // store that initial list contained an item so system can be notified later
-                initialListContainsItem = true;
-
-                // loop through initial list for badged objects to add to local dictionary
-                for (int initialListCounter = 0; initialListCounter < initialListArray.Length; initialListCounter++)
+                // ensure IconOverlay is only ever initialized once
+                lock (this)
                 {
-                    // populate each initial badged object into local dictionary
-                    // throws exception if file path (Key) is null or empty
-                    // do not need to lock on allBadges since listening threads don't start until after this
-                    allBadges.Add(initialListArray[initialListCounter].Key,
-                        new BadgedObject(initialListArray[initialListCounter].Key,
-                            initialListArray[initialListCounter].Value,
-                            BadgedObject_PropertyChanged));
+                    if (isInitialized)
+                        throw new Exception("IconOverlay Instance already initialized");
+                    isInitialized = true;
+                }
+
+                bool initialListContainsItem = false;
+
+                // I don't want to enumerate the initialList for both counting and copying, so I define an array for storage
+                KeyValuePair<string, cloudAppIconBadgeType>[] initialListArray;
+                // initial list contained values for badging; preload dictionary and notify system of global change
+                if (initialList != null
+                    && (initialListArray = initialList.ToArray()).Length > 0)
+                {
+                    // store that initial list contained an item so system can be notified later
+                    initialListContainsItem = true;
+
+                    // loop through initial list for badged objects to add to local dictionary
+                    for (int initialListCounter = 0; initialListCounter < initialListArray.Length; initialListCounter++)
+                    {
+                        // only keep track of badges that are not "none"
+                        if (initialListArray[initialListCounter].Value != cloudAppIconBadgeType.cloudAppBadgeNone)
+                        {
+                            // populate each initial badged object into local dictionary
+                            // throws exception if file path (Key) is null or empty
+                            // do not need to lock on allBadges since listening threads don't start until after this
+                            allBadges.Add(initialListArray[initialListCounter].Key,
+                                new BadgedObject(initialListArray[initialListCounter].Key,
+                                    initialListArray[initialListCounter].Value,
+                                    BadgedObject_PropertyChanged));
+                        }
+                    }
+                }
+
+                StartBadgeCOMPipes();
+
+                // initial list contained an item so notify the system to update
+                if (initialListContainsItem)
+                {
+                    //Parameterless call to notify will force OS to update all icons
+                    NotifySystemForBadgeUpdate();
                 }
             }
-
-            StartBadgeCOMPipes();
-
-            // initial list contained an item so notify the system to update
-            if (initialListContainsItem)
+            catch (Exception ex)
             {
-                //Parameterless call to notify will force OS to update all icons
-                NotifySystemForBadgeUpdate();
+                return ex;
             }
+            return null;
         }
 
-        // Property to determine whether initialized
-        public static bool IsBadgingInitialized()
+        /// <summary>
+        /// Returns whether IconOverlay is already initialized. If it is initialized, do not initialize it again.
+        /// </summary>
+        /// <param name="isInitialized">Return value</param>
+        /// <returns>Error if it exists</returns>
+        public static CLError IsBadgingInitialized(out bool isInitialized)
         {
-            return Instance.IsInitialized;
+            return Instance.pIsBadgingInitialized(out isInitialized);
+        }
+        private CLError pIsBadgingInitialized(out bool isInitialized)
+        {
+            try
+            {
+                isInitialized = this.IsInitialized;
+            }
+            catch (Exception ex)
+            {
+                isInitialized = (bool)Helpers.DefaultForType(typeof(bool));
+                return ex;
+            }
+            return null;
         }
         private bool isInitialized = false;
         private bool IsInitialized 
@@ -126,48 +157,60 @@ namespace BadgeNET
         /// or replaces existing list with provided list. Can be run multiple times
         /// </summary>
         /// <param name="initialList">list to start with for badged objects, all filepaths in keys must not be null nor empty</param>
-        public static void InitializeOrReplace(IEnumerable<KeyValuePair<string, BadgeType>> initialList)
+        public static CLError InitializeOrReplace(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList)
         {
-            Instance.pInitializeOrReplace(initialList);
+            return Instance.pInitializeOrReplace(initialList);
         }
-        private void pInitializeOrReplace(IEnumerable<KeyValuePair<string, BadgeType>> initialList)
+        private CLError pInitializeOrReplace(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList)
         {
-            bool listProcessed = false;
-
-            // ensure IconOverlay is only ever initialized once
-            lock (this)
+            try
             {
-                // run initialize instead if it has not been run
-                if (!isInitialized)
-                {
-                    Initialize(initialList);
-                    // store that list was already processed by initialization
-                    listProcessed = true;
-                }
-            }
+                bool listProcessed = false;
 
-            // if list was not already processed by initialization
-            if (!listProcessed)
-            {
-                // lock internal list during modification
-                lock (allBadges)
+                // ensure IconOverlay is only ever initialized once
+                lock (this)
                 {
-                    // empty list before adding in all replacement items
-                    allBadges.Clear();
-                    foreach (KeyValuePair<string, BadgeType> currentReplacedItem in initialList ?? new KeyValuePair<string, BadgeType>[0])
+                    // run initialize instead if it has not been run
+                    if (!isInitialized)
                     {
-                        // populate each replaced badged object into local dictionary
-                        // throws exception if file path (Key) is null or empty
-                        allBadges.Add(currentReplacedItem.Key,
-                            new BadgedObject(currentReplacedItem.Key,
-                                currentReplacedItem.Value,
-                                BadgedObject_PropertyChanged));
+                        Initialize(initialList);
+                        // store that list was already processed by initialization
+                        listProcessed = true;
                     }
                 }
 
-                //Parameterless call to notify will force OS to update all icons
-                NotifySystemForBadgeUpdate();
+                // if list was not already processed by initialization
+                if (!listProcessed)
+                {
+                    // lock internal list during modification
+                    lock (allBadges)
+                    {
+                        // empty list before adding in all replacement items
+                        allBadges.Clear();
+                        foreach (KeyValuePair<string, cloudAppIconBadgeType> currentReplacedItem in initialList ?? new KeyValuePair<string, cloudAppIconBadgeType>[0])
+                        {
+                            // only keep track of badges that are not "none"
+                            if (currentReplacedItem.Value != cloudAppIconBadgeType.cloudAppBadgeNone)
+                            {
+                                // populate each replaced badged object into local dictionary
+                                // throws exception if file path (Key) is null or empty
+                                allBadges.Add(currentReplacedItem.Key,
+                                    new BadgedObject(currentReplacedItem.Key,
+                                        currentReplacedItem.Value,
+                                        BadgedObject_PropertyChanged));
+                            }
+                        }
+                    }
+
+                    //Parameterless call to notify will force OS to update all icons
+                    NotifySystemForBadgeUpdate();
+                }
             }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
 
         /// <summary>
@@ -175,73 +218,81 @@ namespace BadgeNET
         /// </summary>
         /// <param name="filePath">path of file to badge/unbadge, must not be null nor empty</param>
         /// <param name="newType">new badge type (use null to remove badge)</param>
-        public static void SetOrRemoveBadge(string filePath, Nullable<BadgeType> newType)
+        public static CLError setBadgeType(Nullable<cloudAppIconBadgeType> type, string forFileAtPath)
         {
-            Instance.pSetOrRemoveBadge(filePath, newType);
+            return Instance.pSetBadgeType(forFileAtPath, type == cloudAppIconBadgeType.cloudAppBadgeNone ? null : type);
         }
-        private void pSetOrRemoveBadge(string filePath, Nullable<BadgeType> newType)
+        private CLError pSetBadgeType(string filePath, Nullable<cloudAppIconBadgeType> newType)
         {
-            // ensure this is initialized
-            lock (this)
+            try
             {
-                if (!isInitialized)
-                    throw new Exception("IconOverlay must be initialized before setting badges");
-            }
-
-            // store whether system needs to be notified
-            bool notifySystemOfFileUpdate = false;
-
-            // lock internal list during modification
-            lock (allBadges)
-            {
-                // newType is null means remove badge
-                if (newType == null)
+                // ensure this is initialized
+                lock (this)
                 {
-                    // if internal list contains the badge to be removed, remove it
-                    if (allBadges.ContainsKey(filePath))
-                    {
-                        // remove badge
-                        allBadges.Remove(filePath);
-                        // system needs to be notified
-                        notifySystemOfFileUpdate = true;
-                    }
+                    if (!isInitialized)
+                        throw new Exception("IconOverlay must be initialized before setting badges");
                 }
-                // newType is not null, set badge
-                else
+
+                // store whether system needs to be notified
+                bool notifySystemOfFileUpdate = false;
+
+                // lock internal list during modification
+                lock (allBadges)
                 {
-                    // badge already exists in internal list, needs to be updated
-                    if (allBadges.ContainsKey(filePath))
+                    // newType is null means remove badge
+                    if (newType == null)
                     {
-                        // grab badge object from internal list
-                        BadgedObject existingObject = allBadges[filePath];
-                        // check if badge type needs to be changed
-                        if (!existingObject.Type.Equals((BadgeType)newType))
+                        // if internal list contains the badge to be removed, remove it
+                        if (allBadges.ContainsKey(filePath))
                         {
-                            // badge type needs to be changed, this automatically will notify system for update
-                            existingObject.Type = (BadgeType)newType;
+                            // remove badge
+                            allBadges.Remove(filePath);
+                            // system needs to be notified
+                            notifySystemOfFileUpdate = true;
                         }
                     }
-                    // badge is new, needs to be added to internal list
+                    // newType is not null, set badge
                     else
                     {
-                        // populate a new badged object into local dictionary
-                        // throws exception if file path (Key) is null or empty
-                        allBadges.Add(filePath,
-                            new BadgedObject(filePath,
-                                (BadgeType)newType,
-                                BadgedObject_PropertyChanged));
+                        // badge already exists in internal list, needs to be updated
+                        if (allBadges.ContainsKey(filePath))
+                        {
+                            // grab badge object from internal list
+                            BadgedObject existingObject = allBadges[filePath];
+                            // check if badge type needs to be changed
+                            if (!existingObject.Type.Equals((cloudAppIconBadgeType)newType))
+                            {
+                                // badge type needs to be changed, this automatically will notify system for update
+                                existingObject.Type = (cloudAppIconBadgeType)newType;
+                            }
+                        }
+                        // badge is new, needs to be added to internal list
+                        else
+                        {
+                            // populate a new badged object into local dictionary
+                            // throws exception if file path (Key) is null or empty
+                            allBadges.Add(filePath,
+                                new BadgedObject(filePath,
+                                    (cloudAppIconBadgeType)newType,
+                                    BadgedObject_PropertyChanged));
 
-                        // system needs to be notified
-                        notifySystemOfFileUpdate = true;
+                            // system needs to be notified
+                            notifySystemOfFileUpdate = true;
+                        }
                     }
                 }
-            }
 
-            // notify system as necessary for current badge
-            if (notifySystemOfFileUpdate)
-            {
-                NotifySystemForBadgeUpdate(filePath);
+                // notify system as necessary for current badge
+                if (notifySystemOfFileUpdate)
+                {
+                    NotifySystemForBadgeUpdate(filePath);
+                }
             }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
 
         /// <summary>
@@ -249,77 +300,95 @@ namespace BadgeNET
         /// </summary>
         /// <param name="filePath">path of file to check</param>
         /// <returns></returns>
-        public static Nullable<BadgeType> FindBadge(string filePath)
+        public static CLError getBadgeTypeForFileAtPath(string path, out cloudAppIconBadgeType badgeType)
         {
-            return Instance.pFindBadge(filePath);
+            return Instance.pFindBadge(path, out badgeType);
         }
-        private Nullable<BadgeType> pFindBadge(string filePath)
+        private CLError pFindBadge(string filePath, out cloudAppIconBadgeType badgeType)
         {
-            // lock on dictionary so it is not modified during lookup
-            lock (allBadges)
+            try
             {
-                // return badgetype if it exists, otherwise null
-                return allBadges.ContainsKey(filePath)
-                    ? allBadges[filePath].Type
-                    : (Nullable<BadgeType>)null;
+                // lock on dictionary so it is not modified during lookup
+                lock (allBadges)
+                {
+                    // return badgetype if it exists, otherwise null
+                    badgeType = allBadges.ContainsKey(filePath)
+                        ? allBadges[filePath].Type
+                        : cloudAppIconBadgeType.cloudAppBadgeNone;
+                }
             }
+            catch (Exception ex)
+            {
+                badgeType = (cloudAppIconBadgeType)Helpers.DefaultForType(typeof(cloudAppIconBadgeType));
+                return ex;
+            }
+            return null;
         }
 
+        // The functionality of clearAllBadges is implemented by shutting down the badge service (confirmed with Gus/Steve that badging only stops when service is killed)
         /// <summary>
         /// Call this on application shutdown to clean out open named pipes to badge COM objects
         /// and to notify the system immediately to remove badges. Do not initialize again after shutting down
         /// </summary>
-        public static void Shutdown()
+        public static CLError Shutdown()
         {
-            Instance.pShutdown();
+            return Instance.pShutdown();
         }
-        public void pShutdown()
+        public CLError pShutdown()
         {
-            // locks on this in case initialization is occurring simultaneously
-            lock (this)
+            try
             {
-                // only need to shutdown if it was initialized
-                if (isInitialized)
+                // locks on this in case initialization is occurring simultaneously
+                lock (this)
                 {
-                    // lock on object containing intial pipe connection running state
-                    lock (pipeLocker)
+                    // only need to shutdown if it was initialized
+                    if (isInitialized)
                     {
-                        // set runningstate to off
-                        pipeLocker.pipeRunning = false;
-
-                        foreach (KeyValuePair<BadgeType, NamedPipeServerStream> currentStreamToKill in pipeServerStreams)
+                        // lock on object containing intial pipe connection running state
+                        lock (pipeLocker)
                         {
-                            try
-                            {
-                                // cleanup initial pipe connection
+                            // set runningstate to off
+                            pipeLocker.pipeRunning = false;
 
+                            foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToKill in pipeServerStreams)
+                            {
                                 try
                                 {
-                                    currentStreamToKill.Value.Dispose();
+                                    // cleanup initial pipe connection
+
+                                    try
+                                    {
+                                        currentStreamToKill.Value.Dispose();
+                                    }
+                                    catch
+                                    {
+                                    }
+
+                                    //The following is not a fallacy in logic:
+                                    //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
+                                    //so we try to connect to it just in case (will most likely give an unauthorized exception)
+                                    using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
+                                        PipeName + currentStreamToKill.Key,
+                                        PipeDirection.Out,
+                                        PipeOptions.None))
+                                    {
+                                        connectionKillerStream.Connect(100);
+                                    }
                                 }
                                 catch
                                 {
                                 }
-
-                                //The following is not a fallacy in logic:
-                                //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
-                                //so we try to connect to it just in case (will most likely give an unauthorized exception)
-                                using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
-                                    PipeName + currentStreamToKill.Key,
-                                    PipeDirection.Out,
-                                    PipeOptions.None))
-                                {
-                                    connectionKillerStream.Connect(100);
-                                }
                             }
-                            catch
-                            {
-                            }
+                            pipeServerStreams.Clear();
                         }
-                        pipeServerStreams.Clear();
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
         #endregion
 
@@ -673,24 +742,24 @@ namespace BadgeNET
         /// <summary>
         /// Creates the named pipe server streams to handle badge type communications from the COM object icon overlays
         /// </summary>
-        private readonly Dictionary<BadgeType, NamedPipeServerStream> pipeServerStreams = new Dictionary<BadgeType, NamedPipeServerStream>()
+        private readonly Dictionary<cloudAppIconBadgeType, NamedPipeServerStream> pipeServerStreams = new Dictionary<cloudAppIconBadgeType, NamedPipeServerStream>()
         {
-            { BadgeType.Syncing, new NamedPipeServerStream(PipeName + BadgeType.Syncing,
+            { cloudAppIconBadgeType.cloudAppBadgeSyncing, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncing,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) },
-            { BadgeType.Synced, new NamedPipeServerStream(PipeName + BadgeType.Synced,
+            { cloudAppIconBadgeType.cloudAppBadgeSynced, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeSynced,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) },
-            { BadgeType.Selective, new NamedPipeServerStream(PipeName + BadgeType.Selective,
+            { cloudAppIconBadgeType.cloudAppBadgeSyncSelective, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncSelective,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) },
-            { BadgeType.Failed, new NamedPipeServerStream(PipeName + BadgeType.Failed,
+            { cloudAppIconBadgeType.cloudAppBadgeFailed, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeFailed,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
@@ -704,7 +773,7 @@ namespace BadgeNET
         {
             public NamedPipeServerStream serverStream { get; set; }
             public pipeRunningHolder serverLocker { get; set; }
-            public BadgeType currentBadgeType { get; set; }
+            public cloudAppIconBadgeType currentBadgeType { get; set; }
         }
 
         /// <summary>
@@ -742,7 +811,7 @@ namespace BadgeNET
         private void StartBadgeCOMPipes()
         {
             // create the processing threads for each server stream (one for each badge type)
-            foreach (KeyValuePair<BadgeType, NamedPipeServerStream> currentStreamToProcess in pipeServerStreams)
+            foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToProcess in pipeServerStreams)
             {
                 // important
                 // store a userstate for the thread that processes initial pipe connections with pipe server

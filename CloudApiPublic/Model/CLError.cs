@@ -13,10 +13,9 @@ namespace CloudApiPublic.Model
     public class CLError
     {
         // Common error codes
-        public enum ErrorCodes
+        public enum ErrorCodes : int
         {
-            OK = 0,
-            Exception = 9999,
+            Exception = 9999
         }
 
         // Error domains
@@ -36,6 +35,20 @@ namespace CloudApiPublic.Model
             errorDescription = "";
             errorCode = 0;
             errorInfo = null;
+        }
+
+        public static implicit operator CLError(Exception ex)
+        {
+            return new CLError()
+            {
+                errorCode = (int)CLError.ErrorCodes.Exception,
+                errorDescription = ex.Message,
+                errorDomain = CLError.ErrorDomain_Application,
+                errorInfo = new Dictionary<string, object>(1)
+                    {
+                        { CLError.ErrorInfo_Exception, ex }
+                    }
+            };
         }
     }
 }
