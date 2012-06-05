@@ -1,0 +1,6 @@
+C:\Source\Projects\win-client\3rdParty\bin\Debug\GalaSoft.MvvmLight.WPF4.dll
+C:\Source\Projects\win-client\3rdParty\bin\Debug\GalaSoft.MvvmLight.WPF4.pdb
+C:\Source\Projects\win-client\3rdParty\bin\Debug\GalaSoft.MvvmLight.WPF4.XML
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight (NET4)\obj\Debug\GalaSoft.MvvmLight (NET4).csprojResolveAssemblyReference.cache
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight (NET4)\obj\Debug\GalaSoft.MvvmLight.WPF4.dll
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight (NET4)\obj\Debug\GalaSoft.MvvmLight.WPF4.pdb

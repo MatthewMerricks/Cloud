@@ -1,0 +1,15 @@
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\bin\Debug\Samples.Infrastructure.dll
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\bin\Debug\Samples.Infrastructure.pdb
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\bin\Debug\Microsoft.Practices.Prism.dll
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\bin\Debug\Microsoft.Practices.Unity.dll
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\bin\Debug\Microsoft.Practices.ServiceLocation.dll
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\Samples.Infrastructure.csprojResolveAssemblyReference.cache
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\Samples.Infrastructure_MarkupCompile.cache
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\Samples.Infrastructure_MarkupCompile.lref
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\Themes\Generic.baml
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\Samples.Infrastructure.g.resources
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\Samples.Infrastructure.Properties.Resources.resources
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\Samples.Infrastructure.csproj.GenerateResource.Cache
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\Samples.Infrastructure.dll
+C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\Samples.Infrastructure.pdb

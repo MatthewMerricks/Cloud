@@ -1,0 +1,8 @@
+C:\Source\Projects\win-client\3rdParty\Bin\Debug\Hardcodet.Wpf.TaskbarNotification.dll
+C:\Source\Projects\win-client\3rdParty\Bin\Debug\Hardcodet.Wpf.TaskbarNotification.pdb
+C:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\NotifyIconWpf.csprojResolveAssemblyReference.cache
+C:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.g.resources
+C:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.Properties.Resources.resources
+C:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\NotifyIconWpf.csproj.GenerateResource.Cache
+C:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.dll
+C:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.pdb
