@@ -44,7 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BadgedObject.cs" />
-    <Compile Include="BadgeType.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="IconOverlay.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
