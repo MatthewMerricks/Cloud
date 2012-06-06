@@ -55,5 +55,16 @@ namespace win_client.Common
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = "https://upd.cloudburrito.com";
 
+        // Values for the setBadgeType type parameter
+        //TODO: These will be defined in BadgeNET.  Remove this when they are available.
+        public enum CloudAppIconBadgeType
+        {
+            cloudAppBadgeNone                   = 0, // clears a badge overlay, if any.
+            cloudAppBadgeSynced                 = 1, // sets a badge with a checkmark or similar metaphor.
+            cloudAppBadgeSyncing                = 2, // sets a badge indicating circular motion, active sync.
+            cloudAppBadgeFailed                 = 3, // sets a badge with an x indicating failure to sync.
+            cloudAppBadgeSyncSelective          = 4, // sets a badge with an x indicating failure to sync.
+            cloudAppBadgeMaxIndexPlusOne             // Maximum index plus one.  Add new values above this line.
+        };
     }
 }

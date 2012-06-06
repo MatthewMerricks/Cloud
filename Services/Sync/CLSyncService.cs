@@ -412,7 +412,7 @@ namespace win_client.Services.Badging
 
                                 // In this case we badged the file
                                 //TODO: Reference the BadgeNet assembly to get the badge type enumeration.
-                                this.BadgeFileAtCloudPathWithBadge(addEvent.Metadata.Path, (int)CloudAppIconBadgeType.CloudAppBadgeSynced);
+                                this.BadgeFileAtCloudPathWithBadge(addEvent.Metadata.Path, (int)CLConstants.CloudAppIconBadgeType.cloudAppBadgeSynced);
                             }
 
                         }
@@ -437,7 +437,7 @@ namespace win_client.Services.Badging
 
                             // In this case we badged the file
                             //TODO: Reference the BadgeNet assembly to get the badge type enumeration.
-                            this.BadgeFileAtCloudPathWithBadge(addEvent.Metadata.Path, (int)CloudAppIconBadgeType.CloudAppBadgeSynced);
+                            this.BadgeFileAtCloudPathWithBadge(addEvent.Metadata.Path, (int)CLConstants.CloudAppIconBadgeType.cloudAppBadgeSynced);
                         }
                     }
                 }
