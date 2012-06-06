@@ -222,7 +222,7 @@ namespace CloudTests
                     }
                     else
                     {
-                        MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath, out folderMonitor, logProcessing:true);
+                        MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath, out folderMonitor, FileChange_OnQueueing, true);
                         MonitorStatus returnStatus;
                         folderMonitor.Start(out returnStatus);
 
@@ -236,6 +236,68 @@ namespace CloudTests
             {
                 MessageBox.Show("Please select a folder first");
             }
+        }
+
+        private void FileChange_OnQueueing(MonitorAgent sender, FileChange args)
+        {
+            lock (queuedChanges)
+            {
+                queuedChanges.Add(args);
+            }
+        }
+        private List<FileChange> queuedChanges = new List<FileChange>();
+
+        private void LogQueuedChanges()
+        {
+            foreach (FileChange sender in queuedChanges)
+            {
+                //<FileChange>
+                //  <NewPath>[path for current change]</NewPath>
+                //
+                //  <!--Only present if the previous path exists:-->
+                //  <OldPath>[path for previous location for moves/renames]</OldPath>
+                //
+                //  <IsFolder>[true for folders, false for files]</IsFolder>
+                //  <Type>[type of change that occurred]</Type>
+                //  <LastTime>[number of ticks from the DateTime of when the file/folder was last changed]</LastTime>
+                //  <CreationTime>[number of ticks from the DateTime of when the file/folder was created]</CreationTime>
+                //
+                //  <!--Only present if the change has a file size-->
+                //  <Size>[hex string of MD5 file checksum]</Size>
+                //
+                //</FileChange>
+                AppendFileChangeProcessedLogXmlString(new XElement("FileChange",
+                    new XElement("NewPath", new XText(sender.NewPath)),
+                    sender.OldPath == null ? null : new XElement("OldPath", new XText(sender.OldPath)),
+                    new XElement("IsFolder", new XText(sender.Metadata.HashableProperties.IsFolder.ToString())),
+                    new XElement("Type", new XText(sender.Type.ToString())),
+                    new XElement("LastTime", new XText(sender.Metadata.HashableProperties.LastTime.Ticks.ToString())),
+                    new XElement("CreationTime", new XText(sender.Metadata.HashableProperties.CreationTime.Ticks.ToString())),
+                    sender.Metadata.HashableProperties.Size == null ? null : new XElement("Size", new XText(sender.Metadata.HashableProperties.Size.Value.ToString())),
+                    sender.Metadata.MD5 == null ? null : new XElement("MD5", new XText(sender.Metadata.MD5
+                        .Select(md5Byte => string.Format("{0:x2}", md5Byte))
+                        .Aggregate((previousBytes, newByte) => previousBytes + newByte)))).ToString() + Environment.NewLine);
+            }
+            File.AppendAllText(testFilePath, "</root>");
+        }
+
+        /// <summary>
+        /// Path to write processed FileChange log
+        /// </summary>
+        private const string testFilePath = "C:\\Users\\Public\\Documents\\MonitorAgentOnQueueing.xml";
+        /// <summary>
+        /// Writes the xml string generated after processing a FileChange event to the log file at 'testFilePath' location
+        /// </summary>
+        /// <param name="toWrite"></param>
+        private static void AppendFileChangeProcessedLogXmlString(string toWrite)
+        {
+            // If file does not exist, create it with an xml declaration and the beginning of a root tag
+            if (!File.Exists(testFilePath))
+            {
+                File.AppendAllText(testFilePath, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + Environment.NewLine + "<root>" + Environment.NewLine);
+            }
+            // Append current xml string to log file
+            File.AppendAllText(testFilePath, toWrite);
         }
 
         // for testing
@@ -664,6 +726,9 @@ namespace CloudTests
                 if (folderMonitoringStarted)
                     MonitorFileSystemButton_Click(MonitorFileSystemButton, new RoutedEventArgs(e.RoutedEvent, sender));
 
+                LogQueuedChanges();
+                queuedChanges.Clear();
+
                 MessageBox.Show("Logs written to \"C:\\Users\\Public\\Documents\\\"");
             }
             else
@@ -680,6 +745,8 @@ namespace CloudTests
                     File.Delete("C:\\Users\\Public\\Documents\\MonitorAgentOutput.xml");
                 if (File.Exists("C:\\Users\\Public\\Documents\\TestFileCreationsFinal.xml"))
                     File.Delete("C:\\Users\\Public\\Documents\\TestFileCreationsFinal.xml");
+                if (File.Exists(testFilePath))
+                    File.Delete(testFilePath);
                 if (Directory.Exists(OpenFolder.SelectedPath))
                 {
                     Directory.Delete(OpenFolder.SelectedPath, true);
