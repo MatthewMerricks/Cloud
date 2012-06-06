@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Folder>
+  <Name>C:\Users\Public\Documents\CreateFileTests\CreateFileTests</Name>
+  <LastTime>634745894946102074</LastTime>
+  <CreationTime>634745894879282074</CreationTime>
+  <InnerFolders>
+    <Folder>
+      <Name>MyFolder</Name>
+      <LastTime>634745894935942074</LastTime>
+      <CreationTime>634745894935802074</CreationTime>
+      <Files>
+        <File>
+          <Name>StreamingFile.txt</Name>
+          <LastTime>634745894935942074</LastTime>
+          <CreationTime>634745894935942074</CreationTime>
+          <Size>600</Size>
+          <MD5>0a81b59b75b8f57aa8e2954496c9919b</MD5>
+        </File>
+      </Files>
+    </Folder>
+  </InnerFolders>
+  <Files>
+    <File>
+      <Name>File1.txt</Name>
+      <LastTime>634745894946112074</LastTime>
+      <CreationTime>634745894935852074</CreationTime>
+      <Size>17</Size>
+      <MD5>0efc6bc4b177e7ec44ff7fafb8204671</MD5>
+    </File>
+    <File>
+      <Name>UnlockedFile.txt</Name>
+      <LastTime>634745894935842074</LastTime>
+      <CreationTime>634745894935842074</CreationTime>
+      <Size>14</Size>
+      <MD5>66cc411dbac6e67be85fac9ea158e668</MD5>
+    </File>
+  </Files>
+</Folder>

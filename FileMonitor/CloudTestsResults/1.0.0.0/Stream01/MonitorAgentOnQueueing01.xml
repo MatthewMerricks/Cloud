@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+<FileChange>
+  <NewPath>C:\Users\Public\Documents\CreateFileTests\MyFolder</NewPath>
+  <IsFolder>True</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634745868785974074</LastTime>
+  <CreationTime>634745868785974074</CreationTime>
+</FileChange>
+<FileChange>
+  <NewPath>C:\Users\Public\Documents\CreateFileTests\UnlockedFile.txt</NewPath>
+  <IsFolder>False</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634745868786034074</LastTime>
+  <CreationTime>634745868786014074</CreationTime>
+  <Size>14</Size>
+  <MD5>66cc411dbac6e67be85fac9ea158e668</MD5>
+</FileChange>
+<FileChange>
+  <NewPath>C:\Users\Public\Documents\CreateFileTests\File1.txt</NewPath>
+  <IsFolder>False</IsFolder>
+  <Type>Modified</Type>
+  <LastTime>634745868796464074</LastTime>
+  <CreationTime>634745868786034074</CreationTime>
+  <Size>17</Size>
+  <MD5>0efc6bc4b177e7ec44ff7fafb8204671</MD5>
+</FileChange>
+<FileChange>
+  <NewPath>C:\Users\Public\Documents\CreateFileTests\MyFolder\File1.txt</NewPath>
+  <IsFolder>False</IsFolder>
+  <Type>Deleted</Type>
+  <LastTime>634745868786124074</LastTime>
+  <CreationTime>634745868786114074</CreationTime>
+  <Size>7</Size>
+  <MD5>0eceeb45861f9585dd7a97a3e36f85c6</MD5>
+</FileChange>
+<FileChange>
+  <NewPath>C:\Users\Public\Documents\CreateFileTests\MyFolder\StreamingFile.txt</NewPath>
+  <IsFolder>False</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634745868786124074</LastTime>
+  <CreationTime>634745868786124074</CreationTime>
+  <Size>600</Size>
+  <MD5>0a81b59b75b8f57aa8e2954496c9919b</MD5>
+</FileChange>
+</root>
