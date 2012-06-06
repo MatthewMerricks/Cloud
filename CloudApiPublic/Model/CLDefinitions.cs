@@ -9,8 +9,29 @@ namespace CloudApiPublic.Model
 {
     public class CLDefinitions
     {
-        //public const string CLRegistrationCreateRequestURLString = "http://10.15.36.88:4000/user/create.json";
+        // Registration
         public const string CLRegistrationCreateRequestURLString = "https://auth.cloudburrito.com/user/create.json";
+        public const string CLRegistrationCreateRequestBodyString = "user[first_name]=%@&user[last_name]=%@&user[email]=%@&user[password]=%@&device[friendly_name]=%@&device[device_uuid]=%@&device[os_type]=%@&device[os_version]=%@&device[app_version]=%@";
+
+        // Link/Unlink
+        public const string CLRegistrationUnlinkRequestURLString = "https://auth.cloudburrito.com/device/unlink.json";
+        public const string CLRegistrationUnlinkRequestBodyString = "access_token=%@";
+        public const string CLRegistrationLinkRequestURLString = "https://auth.cloudburrito.com/device/link.json";
+        public const string CLRegistrationLinkRequestBodyString = "email=%@&password=%@&device[friendly_name]=%@&device[device_uuid]=%@&device[os_type]=%@&device[os_version]=%@&device[app_version]=%@";
+
+        // Meta Data
+        public const string CLMetaDataServerURL = "https://mds2.cloudburrito.com";
+
+        // Notifications
+        public const string CLNotificationServerURL = "ws://23.22.69.142:80";
+
+        // Error Domain
+        public const string CLCloudAppRestAPIErrorDomain = "com.cloudapp.networking.error";
+
+        // Upload/Download Server
+        public const string CLUploadDownloadServerURL = "https://upd.cloudburrito.com";
+
+
 
         // Sync Header
         public const string CLSyncEventMetadata = "metadata";

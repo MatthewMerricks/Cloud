@@ -33,28 +33,6 @@ namespace win_client.Common
         // Delimiters for parsing names into tokens
         public static char[] kDelimiterChars = { ' ', ',', '.', ':', '\t' };
 
-        // Registration
-        public const string CLRegistrationCreateRequestURLString  = "https://auth.cloudburrito.com/user/create.json";
-        public const string CLRegistrationCreateRequestBodyString = "user[first_name]=%@&user[last_name]=%@&user[email]=%@&user[password]=%@&device[friendly_name]=%@&device[device_uuid]=%@&device[os_type]=%@&device[os_version]=%@&device[app_version]=%@";
-
-        // Link/Unlink
-        public const string CLRegistrationUnlinkRequestURLString  = "https://auth.cloudburrito.com/device/unlink.json";
-        public const string CLRegistrationUnlinkRequestBodyString = "access_token=%@";
-        public const string CLRegistrationLinkRequestURLString    = "https://auth.cloudburrito.com/device/link.json";
-        public const string CLRegistrationLinkRequestBodyString   = "email=%@&password=%@&device[friendly_name]=%@&device[device_uuid]=%@&device[os_type]=%@&device[os_version]=%@&device[app_version]=%@";
-
-        // Meta Data
-        public const string CLMetaDataServerURL = "https://mds2.cloudburrito.com";
-
-        // Notifications
-        public const string CLNotificationServerURL = "ws://23.22.69.142:80";
-
-        // Error Domain
-        public const string CLCloudAppRestAPIErrorDomain = "com.cloudapp.networking.error";
-
-        // Upload/Download Server
-        public const string CLUploadDownloadServerURL = "https://upd.cloudburrito.com";
-
         // Values for the setBadgeType type parameter
         //TODO: These will be defined in BadgeNET.  Remove this when they are available.
         public enum CloudAppIconBadgeType

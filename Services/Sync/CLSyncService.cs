@@ -20,7 +20,7 @@ using CloudApiPublic;
 using CloudApiPrivate;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
-using win_client.DataModels.Settings;
+using CloudApiPrivate.DataModels.Settings;
 using BadgeNET;
 
 namespace win_client.Services.Badging
@@ -541,7 +541,6 @@ namespace win_client.Services.Badging
                 //}];
                 filteredEvents.ForEach((fileSystemEvent) =>
                 {
-                    string s = "";
                     CLEvent evt = new CLEvent();
                     CLMetadata fsEventMetadata = new CLMetadata((Dictionary<string, object>)((Dictionary<string, object>)fileSystemEvent)[CLDefinitions.CLSyncEventMetadata]);
                     evt.Metadata = fsEventMetadata;
@@ -551,7 +550,8 @@ namespace win_client.Services.Badging
 
                 // Update events with metadata.
                 // fsmEvents = [self updateMetadataForFileEvents:fsmEvents];
-                fsmEvents = UpdateMetadataForFileEvents(fsmEvents);
+                //TODO: The Windows file system monitor has already retrieved the file metadata.  The following processing should not be necessary.
+                //fsmEvents = UpdateMetadataForFileEvents(fsmEvents);
 
                 // Sorting.
                 // NSDictionary *sortedEvents = [self sortSyncEventsByType:fsmEvents];
@@ -676,65 +676,75 @@ namespace win_client.Services.Badging
            }
         }
 
+        //TODO: The Windows file system monitor has already retrieved the file metadata.  The following processing should not be necessary.
         // - (NSMutableArray *)updateMetadataForFileEvents:(NSMutableArray *)events
-        List<CLEvent> UpdateMetadataForFileEvents(List<CLEvent> events)
-        {
-            //events.EnumerateObjectsUsingBlock(^ (object obj, NSUInteger idx, bool stop) {
-            //    CLEvent Myevent = obj;
-            //    NSDictionary metadata;
-            //    if ((Myevent.Action).IsEqualToString(CLEventTypeAddFile) || (Myevent.Action).IsEqualToString(CLEventTypeModifyFile)) {
-            //        int do_try = 0;
-            //        do {
-            //            string fileSystemPath = ((CLSettings.SharedSettings()).CloudFolderPath()).StringByAppendingPathComponent(Myevent.Metadata.Path);
-            //            metadata = NSDictionary.AttributesForItemAtPath(fileSystemPath);
-            //            Myevent.Metadata.CreateDate = metadata.ObjectForKey("created_date");
-            //            Myevent.Metadata.ModifiedDate = metadata.ObjectForKey("modified_date");
-            //            Myevent.Metadata.Revision = metadata.ObjectForKey("revision");
-            //            Myevent.Metadata.Hash = metadata.ObjectForKey("file_hash");
-            //            Myevent.Metadata.Size = metadata.ObjectForKey("file_size");
-            //            do_try++;
-            //        }
-            //        while ((Myevent.Metadata.CreateDate).RangeOfString("190").Location != NSNotFound && do_try < 1000);
+        //List<CLEvent> UpdateMetadataForFileEvents(List<CLEvent> events)
+        //{
+            //events.ForEach(evt =>
+            //{
+                //  NSDictionary metadata;
+                //Dictionary<string, object> metadata;
 
-            //    }
+                //if ((Myevent.Action).IsEqualToString(CLEventTypeAddFile) || (Myevent.Action).IsEqualToString(CLEventTypeModifyFile)) {
+                //    int do_try = 0;
+                //    do {
+                //        string fileSystemPath = ((CLSettings.SharedSettings()).CloudFolderPath()).StringByAppendingPathComponent(Myevent.Metadata.Path);
+                //        metadata = NSDictionary.AttributesForItemAtPath(fileSystemPath);
+                //        Myevent.Metadata.CreateDate = metadata.ObjectForKey(CLMetadataFileCreateDate);
+                //        Myevent.Metadata.ModifiedDate = metadata.ObjectForKey(CLMetadataFileModifiedDate);
+                //        Myevent.Metadata.Revision = metadata.ObjectForKey(CLMetadataFileRevision);
+                //        Myevent.Metadata.Hash = metadata.ObjectForKey(CLMetadataFileHash);
+                //        Myevent.Metadata.Size = metadata.ObjectForKey(CLMetadataFileSize);
+                //        do_try++;
+                //    }
+                //    while ((Myevent.Metadata.CreateDate).RangeOfString("190").Location != NSNotFound && do_try < 3000);  // 3 seconds.  TODO: This hack sucks!
+                //}
 
-            //    if ((Myevent.Action).RangeOfString(CLEventTypeFileRange).Location != NSNotFound) {
-            //        string cloudPath = Myevent.Metadata.Path;
-            //        if ((Myevent.Action).IsEqualToString(CLEventTypeMoveFile) || (Myevent.Action).IsEqualToString(CLEventTypeRenameFile)) {
-            //            cloudPath = Myevent.Metadata.FromPath;
-            //        }
+                // All other file events we get stored index data for this event item.
+                //if ((Myevent.Action).RangeOfString(CLEventTypeFileRange).Location != NSNotFound) {
+                //    string cloudPath = Myevent.Metadata.Path;
+                //    if ((Myevent.Action).IsEqualToString(CLEventTypeMoveFile) || (Myevent.Action).IsEqualToString(CLEventTypeRenameFile)) {
+                //        cloudPath = Myevent.Metadata.FromPath;
+                //    }
 
-            //        CLMetadata indexedMetadata = CLIndexingServices.MetadataForItemAtCloudPathInContext(cloudPath, NSManagedObjectContext.
-            //          ContextForCurrentThread());
-            //        if (indexedMetadata != null) {
-            //            if ((Myevent.Action).IsEqualToString(CLEventTypeAddFile)) {
-            //                if ((Myevent.Metadata.Hash).IsEqualToString(indexedMetadata.Hash) == false && (Myevent.Metadata.Revision).IsEqualToString(
-            //                  indexedMetadata.Revision) == false) {
-            //                    Myevent.Metadata.Revision = indexedMetadata.Revision;
-            //                    Myevent.Action = CLEventTypeModifyFile;
-            //                }
+                //    CLMetadata indexedMetadata = CLIndexingServices.MetadataForItemAtCloudPath(cloudPath);
+                //    if (indexedMetadata != null) {
+                //        // For add events, if the darn thing already exists in the index, it means that FSM failed to pick up the event as a modify.
+                //        // Let's make sure of that and if it turns out to be true, then we need to change the event to become a modify type.
+                //        if ((Myevent.Action).IsEqualToString(CLEventTypeAddFile)) {
+                //            if ((Myevent.Metadata.Hash).IsEqualToString(indexedMetadata.Hash) == false && (Myevent.Metadata.Revision).IsEqualToString(
+                //                indexedMetadata.Revision) == false) {
+                //                Myevent.Metadata.Revision = indexedMetadata.Revision;
+                //                Myevent.Action = CLEventTypeModifyFile;
+                //            }
 
-            //            }
-            //            else if ((Myevent.Action).IsEqualToString(CLEventTypeModifyFile)) {
-            //                Myevent.Metadata.Revision = indexedMetadata.Revision;
-            //            }
-            //            else {
-            //                Myevent.Metadata.Revision = indexedMetadata.Revision;
-            //                Myevent.Metadata.Hash = indexedMetadata.Hash;
-            //                Myevent.Metadata.CreateDate = indexedMetadata.CreateDate;
-            //                Myevent.Metadata.ModifiedDate = indexedMetadata.ModifiedDate;
-            //                Myevent.Metadata.Size = indexedMetadata.Size;
-            //            }
+                //        }
+                //        else if ((Myevent.Action).IsEqualToString(CLEventTypeModifyFile)) {
+                //            Myevent.Metadata.Revision = indexedMetadata.Revision;
+                //        }
+                //        else {   // we want it all for all other cases.
+                //            Myevent.Metadata.Revision = indexedMetadata.Revision;
+                //            Myevent.Metadata.Hash = indexedMetadata.Hash;
+                //            Myevent.Metadata.CreateDate = indexedMetadata.CreateDate;
+                //            Myevent.Metadata.ModifiedDate = indexedMetadata.ModifiedDate;
+                //            Myevent.Metadata.Size = indexedMetadata.Size;
+                //        }
 
-            //        }
+                //    }
 
-            //    }
+                //}
 
-            //}
-            //);
-            //return events;
-            return new List<CLEvent>();
-        }
+                // check if this item is a symblink, if this object is a in fact a link, the utility method will return YES.
+                /*NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:cloudPath];
+                CLAppDelegate *appDelegate = [NSApp delegate];
+                if ([appDelegate isFileAliasAtPath:fileSystemPath]) {
+                    // symblink events are always recognized as files, therefore simply replace the occurence of the word file with link in the event type.
+                    event.action = [event.action stringByReplacingCharactersInRange:[event.action rangeOfString:CLEventTypeFileRange] withString:@"link"];
+                } */
+            //});
+            // return events;
+            //return new List<CLEvent>();
+        //}
 
         void NotificationServiceDidReceivePushNotificationFromServer(bool /*CLNotificationServices*/ ns, string notification)
         {

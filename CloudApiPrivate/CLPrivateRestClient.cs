@@ -7,6 +7,7 @@ using System.Net.Http;
 using CloudApiPublic;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
+using CloudApiPrivate.DataModels.Settings;
 
 namespace CloudApiPrivate
 {
@@ -18,9 +19,25 @@ namespace CloudApiPrivate
 
     public class CLPrivateRestClient
     {
+        private HttpClient _client = null;
+        private Uri _uri = null;
+        private Dictionary<string, string> _JSONParams = null;
+
         public CLPrivateRestClient()
         {
-      
+
+
+            //_urlConstructor = [[CLURLRequestConstructor alloc] initWithBaseURL:[NSURL URLWithString:CLMetaDataServerURL]];
+            //[_urlConstructor setAuthorizationHeaderWithToken:[[CLSettings sharedSettings] aKey]];
+            // NSLog(@"%s - Key:%@",__FUNCTION__, [[CLSettings sharedSettings] aKey] );
+            //_urlConstructor.parameterEncoding = AFJSONParameterEncoding;
+            //_JSONParams = [NSDictionary dictionaryWithObjectsAndKeys:@"Content-Type",@"application/json", nil];      
+            _client = new HttpClient();
+            _uri = new Uri(CLDefinitions.CLMetaDataServerURL);
+            _client.BaseAddress = _uri;
+            _client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", Settings.Instance.Akey);
+            _JSONParams.Add("Content-Type", "application/json");
         }
 
         /// <summary>

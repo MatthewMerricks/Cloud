@@ -12,7 +12,8 @@
            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-           xmlns:common="clr-namespace:win_client.Common"
+           xmlns:common="clr-namespace:CloudApiPrivate.Common;assembly=CloudApiPrivate"
+           xmlns:commonClient="clr-namespace:win_client.Common"
            mc:Ignorable="d"
            DataContext="{Binding PageHomeViewModel, Source={StaticResource Locator}}" 
            d:DesignWidth="624" d:DesignHeight="442"
@@ -51,15 +52,15 @@
                             Foreground="#FF817E7E" FontSize="12" Grid.ColumnSpan="4" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         <TextBox Name="tbEMail" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Stretch" TextAlignment="Left" Foreground="Black" Margin="0,0,0,0"
                  Text="{Binding EMail, Mode=TwoWay, ValidatesOnDataErrors=True}"
-                 common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
+                 commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
         <common:SecurePasswordBox x:Name="tbPassword" VerticalAlignment="Center" Grid.Column="4" Grid.Row="2" HorizontalAlignment="Stretch" Foreground="Black" Margin="0,0,0,0"
                      Text="{Binding Password, Mode=TwoWay, ValidatesOnDataErrors=True}"
-                     common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
+                     commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
 
         <Button x:Name="cmdCreateAccount" Content="Create Account" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
                          Grid.Row="3" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_CreateNewAccountCommand, Mode=OneTime}"/>
         <Button x:Name="cmdSignIn" Content="Sign In" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
                          Grid.Row="3" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_SignInCommand, Mode=OneTime}"
-                         common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
+                         commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
     </Grid>
 </Page>

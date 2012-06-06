@@ -124,16 +124,12 @@
     <Compile Include="Common\CLConstants.cs" />
     <Compile Include="Common\CLConverters.cs" />
     <Compile Include="Common\CLDefaultButtons.cs" />
-    <Compile Include="Common\CLExtensionMethods.cs" />
     <Compile Include="Common\CLOperationQueue.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
-    <Compile Include="Common\CLSecurePasswordBox.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />
     <Compile Include="DataModels\DataItem.cs" />
     <Compile Include="DataModels\DataService.cs" />
     <Compile Include="DataModels\IDataService.cs" />
-    <Compile Include="DataModels\Settings\CLSettings.cs" />
-    <Compile Include="DataModels\Settings\WpfIsolatedStorageSettings.cs" />
     <Compile Include="Design\DesignDataService.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>

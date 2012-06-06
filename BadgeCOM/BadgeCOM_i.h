@@ -4,7 +4,7 @@
 
 
  /* File created by MIDL compiler version 8.00.0594 */
-/* at Tue Jun 05 15:41:35 2012
+/* at Wed Jun 06 13:58:51 2012
  */
 /* Compiler settings for BadgeCOM.idl:
     Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0594 
