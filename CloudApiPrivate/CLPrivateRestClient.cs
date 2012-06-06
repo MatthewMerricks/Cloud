@@ -21,7 +21,7 @@ namespace CloudApiPrivate
     {
         private HttpClient _client = null;
         private Uri _uri = null;
-        private Dictionary<string, string> _JSONParams = null;
+        private Dictionary<string, object> _JSONParams = null;
 
         public CLPrivateRestClient()
         {
@@ -179,7 +179,70 @@ namespace CloudApiPrivate
         /// <param name="queue">The GCD queue.</param>
         public void SyncFromCloud_WithCompletionHandler_OnQueue(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueue queue)
         {
+            //NSString *methodPath = @"/sync/from_cloud";
+            //NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
+            //[syncRequest setTimeoutInterval:120]; // 2 mins.
+            //[syncRequest setHTTPBody:[NSJSONSerialization dataWithJSONObject:metadata options:NSJSONWritingPrettyPrinted error:nil]];
+            //syncRequest = [self addCurrentClientVersionValueToHeaderFieldInRequest:syncRequest];
+    
+            //NSLog(@"%s - Headers:%@",__FUNCTION__, [syncRequest allHTTPHeaderFields]);
+    
+            //[NSURLConnection sendAsynchronousRequest:syncRequest queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         
+            //    NSDictionary* jsonResult;
+            //    if (!error) {
+            //        if (([(NSHTTPURLResponse *)response statusCode] == 200)) {
+            //            NSError *jsonParsingError;
+            //            jsonResult = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
+            //            if (jsonParsingError) {
+            //                NSLog(@"Error parsing JSON in %s with error: %@", __FUNCTION__, [jsonParsingError description]);
+            //            }
+            //        }else {
+            //            NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
+            //            [userInfo setValue:[NSString stringWithFormat:NSLocalizedString(@"Expected status code 200, got %d", nil), [(NSHTTPURLResponse *)response statusCode]] forKey:NSLocalizedDescriptionKey];
+            //            [userInfo setValue:[syncRequest URL] forKey:NSURLErrorFailingURLErrorKey];
+            //            error = [[NSError alloc]initWithDomain:CLCloudAppRestAPIErrorDomain code:[(NSHTTPURLResponse *)response statusCode] userInfo:userInfo];
+            //        }
+            //    }
+            //    dispatch_async(queue, ^{
+            //        handler(jsonResult, error);
+            //    });
+            //}];
+            string methodPath = "/sync/from_cloud";
+
+            HttpRequestMessage syncRequest = new HttpRequestMessage(HttpMethod.Post, new Uri(methodPath, UriKind.Relative));
+            syncRequest.
+
+            
+
+            NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
+            [syncRequest setTimeoutInterval:120]; // 2 mins.
+            [syncRequest setHTTPBody:[NSJSONSerialization dataWithJSONObject:metadata options:NSJSONWritingPrettyPrinted error:nil]];
+            syncRequest = [self addCurrentClientVersionValueToHeaderFieldInRequest:syncRequest];
+
+            NSLog(@"%s - Headers:%@",__FUNCTION__, [syncRequest allHTTPHeaderFields]);
+
+            [NSURLConnection sendAsynchronousRequest:syncRequest queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+
+                NSDictionary* jsonResult;
+                if (!error) {
+                    if (([(NSHTTPURLResponse *)response statusCode] == 200)) {
+                        NSError *jsonParsingError;
+                        jsonResult = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
+                        if (jsonParsingError) {
+                            NSLog(@"Error parsing JSON in %s with error: %@", __FUNCTION__, [jsonParsingError description]);
+                        }
+                    }else {
+                        NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
+                        [userInfo setValue:[NSString stringWithFormat:NSLocalizedString(@"Expected status code 200, got %d", nil), [(NSHTTPURLResponse *)response statusCode]] forKey:NSLocalizedDescriptionKey];
+                        [userInfo setValue:[syncRequest URL] forKey:NSURLErrorFailingURLErrorKey];
+                        error = [[NSError alloc]initWithDomain:CLCloudAppRestAPIErrorDomain code:[(NSHTTPURLResponse *)response statusCode] userInfo:userInfo];
+                    }
+                }
+                dispatch_async(queue, ^{
+                    handler(jsonResult, error);
+                });
+            }];        
         }
 
         /// <summary>
