@@ -26,6 +26,7 @@ using win_client.ViewModels;
 using win_client.AppDelegate;
 using System.Windows.Forms;
 using Hardcodet.Wpf.TaskbarNotification;
+using CloudApiPrivate.Static;
 
 namespace win_client.Views
 {

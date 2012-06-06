@@ -14,5 +14,9 @@ namespace CloudApiPublic.Model
 {
     public class CLSyncHeader
     {
+        public string Action { get; set; }
+        public string EventID { get; set; }
+        public string Sid { get; set; }
+        public string Status { get; set; }
     }
 }

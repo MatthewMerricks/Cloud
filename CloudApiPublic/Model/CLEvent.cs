@@ -112,20 +112,46 @@ namespace CloudApiPublic.Model
             //});
         }
 
-        public static Dictionary<string, object> FsmDictionaryForCLEvents(Array events)
+        //+ (NSDictionary *)fsmDictionaryForCLEvents:(NSArray *)events
+        public static Dictionary<string, object> FsmDictionaryForCLEvents(List<CLEvent> events)
         {
-            //NSMutableArray dictArray = NSMutableArray.Array();
-            //events.EnumerateObjectsUsingBlock(^ (object obj, NSUInteger idx, bool stop) {
-            //    CLEvent Myevent = obj;
-            //    if (Myevent.IsMDSEvent == false) {
-            //        NSDictionary metadata = CLMetadata.DictionaryFromMetadataItem(Myevent.Metadata);
-            //        NSDictionary dicEvent = NSDictionary.DictionaryWithObjectsAndKeys(metadata, CLSyncEventMetadata, Myevent.Action, CLSyncEvent, null);
-            //        dictArray.AddObject(dicEvent);
-            //    }
+            //__block NSMutableArray *dictArray = [NSMutableArray array];
+    
+            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 
-            //});
-            //return NSDictionary.DictionaryWithObjectForKey(dictArray, CLSyncEvents);
-            return new Dictionary<string, object>();
+            //CLEvent *event = obj;
+
+            //    if (event.isMDSEvent == NO) {
+            
+            //        NSDictionary *metadata = [CLMetadata dictionaryFromMetadataItem:event.metadata];
+            //        NSDictionary *dicEvent = [NSDictionary dictionaryWithObjectsAndKeys:metadata, CLSyncEventMetadata, event.action, CLSyncEvent, nil];
+            //        [dictArray addObject:dicEvent];
+            //    }
+            //}];
+
+            //return [NSDictionary dictionaryWithObject:dictArray forKey:CLSyncEvents];
+
+            List<object> dictArray = new List<object>();
+            events.ForEach(obj =>
+            {
+                CLEvent evt = obj;
+
+                if (!evt.IsMDSEvent) 
+                {
+                    Dictionary<string, object> metadata = new Dictionary<string,object>(CLMetadata.DictionaryFromMetadataItem(evt.Metadata));
+                    Dictionary<string, object> dicEvent = new Dictionary<string, object>()
+                    {
+                        {CLDefinitions.CLSyncEventMetadata, metadata},
+                        {CLDefinitions.CLSyncEvent, evt.Action},
+                    };
+                    dictArray.Add(dicEvent);
+                }
+            });
+
+            return new Dictionary<string, object>()
+            {
+                {CLDefinitions.CLSyncEvents, dictArray}
+            };
         }
 
         public static CLEvent EventFromMDSEvent(Dictionary<string, object> mdsEvent)

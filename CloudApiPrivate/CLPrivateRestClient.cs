@@ -7,6 +7,7 @@ using System.Net.Http;
 using CloudApiPublic;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
+using CloudApiPrivate.DataModels.Settings;
 
 namespace CloudApiPrivate
 {
@@ -18,9 +19,25 @@ namespace CloudApiPrivate
 
     public class CLPrivateRestClient
     {
+        private HttpClient _client = null;
+        private Uri _uri = null;
+        private Dictionary<string, string> _JSONParams = null;
+
         public CLPrivateRestClient()
         {
-      
+
+
+            //_urlConstructor = [[CLURLRequestConstructor alloc] initWithBaseURL:[NSURL URLWithString:CLMetaDataServerURL]];
+            //[_urlConstructor setAuthorizationHeaderWithToken:[[CLSettings sharedSettings] aKey]];
+            // NSLog(@"%s - Key:%@",__FUNCTION__, [[CLSettings sharedSettings] aKey] );
+            //_urlConstructor.parameterEncoding = AFJSONParameterEncoding;
+            //_JSONParams = [NSDictionary dictionaryWithObjectsAndKeys:@"Content-Type",@"application/json", nil];      
+            _client = new HttpClient();
+            _uri = new Uri(CLDefinitions.CLMetaDataServerURL);
+            _client.BaseAddress = _uri;
+            _client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", Settings.Instance.Akey);
+            _JSONParams.Add("Content-Type", "application/json");
         }
 
         /// <summary>
@@ -31,7 +48,7 @@ namespace CloudApiPrivate
         /// <param name="path">the system file path as a string. This needs to be the full file path not just the cloud folder.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// TODO: Deprecated?
-        void RequestToAddFile_WithCompletionHandler(string path,  Action<Dictionary<string, object>, CLError> completionHandler)
+        public void RequestToAddFile_WithCompletionHandler(string path, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         }
 
@@ -46,7 +63,7 @@ namespace CloudApiPrivate
         ///  404 – Not Found – if the file referenced in the metadata is not found.
         ///  </remarks>
         /// TODO: Deprecated?
-        void UploadFile_WithCompletionHandler(string filePath, Action<Dictionary<string, object>, CLError> completionHandler)
+        public void UploadFile_WithCompletionHandler(string filePath, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         
         }
@@ -57,7 +74,7 @@ namespace CloudApiPrivate
         /// <param name="path"> the path to the item to delete.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// TODO: Deprecated?
-        void DeleteFile_WithCompletionHandler(string path, Action<Dictionary<string, object>, CLError> completionHandler)
+        public void DeleteFile_WithCompletionHandler(string path, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         
         }
@@ -68,7 +85,7 @@ namespace CloudApiPrivate
         /// <param name="path"> the path to the item to modify.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// TODO: Deprecated?
-        void RequestToModifyFile_WithCompletionHandler(string path, Action<Dictionary<string, object>, CLError> completionHandler)
+        public void RequestToModifyFile_WithCompletionHandler(string path, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         
         }
@@ -80,7 +97,7 @@ namespace CloudApiPrivate
         /// <param name="toPath"> the new path to the item.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// TODO: Deprecated?
-        void MoveFileFromPath_ToPath_WithCompletionHandler(string fromPath, string toPath, Action<Dictionary<string, object>, CLError> completionHandler)
+        public void MoveFileFromPath_ToPath_WithCompletionHandler(string fromPath, string toPath, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         
         }
@@ -92,7 +109,7 @@ namespace CloudApiPrivate
         /// <param name="toPath"> the new path to the item.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// TODO: Deprecated?
-        void RenameFileFromPath_ToPath_WithCompletionHandler(string fromPath, string toPath, Action<Dictionary<string, object>, CLError> completionHandler)
+        public void RenameFileFromPath_ToPath_WithCompletionHandler(string fromPath, string toPath, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         
         }
@@ -103,7 +120,7 @@ namespace CloudApiPrivate
         /// <param name="path"> the path to the item.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// TODO: Deprecated?
-        void AddFolder_WithCompletionHandler(string path, Action<Dictionary<string, object>, CLError> completionHandler)
+        public void AddFolder_WithCompletionHandler(string path, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         
         }
@@ -114,7 +131,7 @@ namespace CloudApiPrivate
         /// <param name="path"> the path to the item.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// TODO: Deprecated?
-        void DeleteFolder_WithCompletionHandler(string path, Action<Dictionary<string, object>, CLError> completionHandler)
+        public void DeleteFolder_WithCompletionHandler(string path, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         
         }
@@ -126,7 +143,7 @@ namespace CloudApiPrivate
         /// <param name="toPath"> the new path to the item.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// TODO: Deprecated?
-        void MoveFolderFromPath_ToPath_WithCompletionHandler(string fromPath, string toPath, Action<Dictionary<string, object>, CLError> completionHandler)
+        public void MoveFolderFromPath_ToPath_WithCompletionHandler(string fromPath, string toPath, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         
         }
@@ -138,7 +155,7 @@ namespace CloudApiPrivate
         /// <param name="toPath"> the new path to the item.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// TODO: Deprecated?
-        void RenameFolderFromPath_ToPath_WithCompletionHandler(string fromPath, string toPath, Action<Dictionary<string, object>, CLError> completionHandler)
+        public void RenameFolderFromPath_ToPath_WithCompletionHandler(string fromPath, string toPath, Action<Dictionary<string, object>, CLError> completionHandler)
         {
         
         }
@@ -149,7 +166,7 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync to the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        void SyncToCloud_WithCompletionHandler_OnQueue(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueue queue)
+        public void SyncToCloud_WithCompletionHandler_OnQueue(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueue queue)
         {
     
         }
@@ -160,7 +177,7 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync from the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        void SyncFromCloud_WithCompletionHandler_OnQueue(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueue queue)
+        public void SyncFromCloud_WithCompletionHandler_OnQueue(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueue queue)
         {
         
         }
@@ -172,7 +189,7 @@ namespace CloudApiPrivate
         /// <param name="storageKey">The file's storage key.</param>
         /// <param name="queue">The GCD queue.</param>
         /// TODO: Deprecated?
-        CLHTTPConnectionOperation UploadOperationForFile_WithStorageKey(string path, string storageKey)
+        public CLHTTPConnectionOperation UploadOperationForFile_WithStorageKey(string path, string storageKey)
         {
             HttpRequestMessage request = null;
             return new CLHTTPConnectionOperation(request, "");
@@ -185,7 +202,7 @@ namespace CloudApiPrivate
         /// <param name="path">The path to the file.</param>
         /// <param name="fileSize">The size of the file.</param>
         /// <param name="hash">The MD5 hash of the file.</param>
-        CLHTTPConnectionOperation StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string fileSize, string hash)
+        public CLHTTPConnectionOperation StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string fileSize, string hash)
         {
             HttpRequestMessage request = null;
             return new CLHTTPConnectionOperation(request, "");
@@ -199,7 +216,7 @@ namespace CloudApiPrivate
         /// <param name="path">The path to the file.</param>
         /// <param name="fileSize">The size of the file.</param>
         /// <param name="hash">The MD5 hash of the file.</param>
-        CLHTTPConnectionOperation StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string fileSize, string hash)
+        public CLHTTPConnectionOperation StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string fileSize, string hash)
         {
             HttpRequestMessage request = null;
             return new CLHTTPConnectionOperation(request, "");

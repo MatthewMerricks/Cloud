@@ -253,7 +253,7 @@ namespace CloudApiPublic.Model
             //this.IsPending = (fsItem.IsPending).BoolValue();
             //this.Size = fsItem.Size;
         }
-        public static object DictionaryFromMetadataItem(CLMetadata item)
+        public static Dictionary<string, object> DictionaryFromMetadataItem(CLMetadata item)
         {
             //NSMutableDictionary metadata = NSMutableDictionary.Dictionary();
             //if (item.Path != null) {
@@ -309,7 +309,7 @@ namespace CloudApiPublic.Model
             //}
 
             //return metadata;
-            return new object();
+            return new Dictionary<string, object>();
         }
 
     }
