@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CloudApiPublic.Model
 {
@@ -45,10 +46,20 @@ namespace CloudApiPublic.Model
                 errorDescription = ex.Message,
                 errorDomain = CLError.ErrorDomain_Application,
                 errorInfo = new Dictionary<string, object>(1)
-                    {
-                        { CLError.ErrorInfo_Exception, ex }
-                    }
+                {
+                    { CLError.ErrorInfo_Exception, ex }
+                }
             };
+        }
+
+        public void AddException(Exception ex, bool replaceErrorDescription = false)
+        {
+            this.errorInfo.Add(CLError.ErrorInfo_Exception + this.errorInfo.Count(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)).ToString(),
+                ex);
+            if (replaceErrorDescription)
+            {
+                this.errorDescription = ex.Message;
+            }
         }
     }
 }
