@@ -20,7 +20,7 @@ using CloudApiPublic;
 using CloudApiPrivate;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
-using CloudApiPrivate.DataModels.Settings;
+using CloudApiPrivate.Model.Settings;
 using BadgeNET;
 
 namespace win_client.Services.Badging
@@ -32,8 +32,8 @@ namespace win_client.Services.Badging
         private static object _instanceLocker = new object();
         private static CLTrace _trace = null;
         private static CLPrivateRestClient _restClient = null;
-        private static CLOperationQueue _uploadOperationQueue = null;       // this is the upload queue used by the REST client.
-        private static CLOperationQueue _downloadOperationQueue = null;     // this is the download queue used by the REST client.
+        private static CLSptNSOperationQueue _uploadOperationQueue = null;       // this is the upload queue used by the REST client.
+        private static CLSptNSOperationQueue _downloadOperationQueue = null;     // this is the download queue used by the REST client.
         private static List<object> _recentItems = null;
         private static int _syncItemsQueueCount = 0;
         private static List<object> _activeDownloadQueue = null;
@@ -1033,7 +1033,7 @@ namespace win_client.Services.Badging
             //Console.WriteLine("%s", __FUNCTION__);
             //NSMutableArray operations = NSMutableArray.Array();
             //if (this.UploadOperationQueue == null) {
-            //    this.UploadOperationQueue = new CLOperationQueue();
+            //    this.UploadOperationQueue = new CLSptNsOperationQueue();
             //    this.UploadOperationQueue.MaxConcurrentOperationCount = 6;
             //}
 
@@ -1094,7 +1094,7 @@ namespace win_client.Services.Badging
             //Console.WriteLine("%s", __FUNCTION__);
             //NSMutableArray operations = NSMutableArray.Array();
             //if (this.DownloadOperationQueue == null) {
-            //    this.DownloadOperationQueue = new CLOperationQueue();
+            //    this.DownloadOperationQueue = new CLSptNSOperationQueue();
             //    this.DownloadOperationQueue.MaxConcurrentOperationCount = 6;
             //}
 

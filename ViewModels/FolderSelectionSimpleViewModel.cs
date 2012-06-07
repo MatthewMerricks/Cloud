@@ -11,7 +11,7 @@ using GalaSoft.MvvmLight.Command;
 using Dialog.Implementors.Wpf.MVVM;
 using MVVMProductsDemo.ViewModels;
 using win_client.Model;
-using CloudApiPrivate.DataModels.Settings;
+using CloudApiPrivate.Model.Settings;
 using System.Windows;
 
 namespace win_client.ViewModels

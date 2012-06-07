@@ -156,7 +156,6 @@ namespace CloudApiPublic.Model
                               "1.0");
             HttpContent content = new StringContent(body, Encoding.UTF8);
             content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
-            //content.Headers.Add("Accept", "*/*");
 
             // Perform the Post and wait for the result synchronously.
             var result = client.PostAsync(CLDefinitions.CLRegistrationCreateRequestURLString, content).Result;

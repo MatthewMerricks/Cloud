@@ -17,7 +17,7 @@ using System.Windows.Controls;
 using win_client.Common;
 using System.Reflection;
 using System.Linq;
-using CloudApiPrivate.DataModels.Settings;
+using CloudApiPrivate.Model.Settings;
 using System.IO;
 using System.Resources;
 using GalaSoft.MvvmLight.Ioc;

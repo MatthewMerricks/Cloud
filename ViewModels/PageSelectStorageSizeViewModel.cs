@@ -18,7 +18,7 @@ using System.Windows.Controls;
 using win_client.Common;
 using System.Reflection;
 using System.Linq;
-using CloudApiPrivate.DataModels.Settings;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.ViewModels
 {

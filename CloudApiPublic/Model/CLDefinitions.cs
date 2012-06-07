@@ -1,5 +1,5 @@
 //
-//  CLConstants.cs
+//  CLDefinitions.cs
 //  Cloud SDK Windows 
 //
 //  Created by BobS.
