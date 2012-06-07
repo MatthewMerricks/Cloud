@@ -759,5 +759,37 @@ namespace CloudTests
                 MessageBox.Show("Please select a folder first");
             }
         }
+
+        private void GenericTests_Click(object sender, RoutedEventArgs e)
+        {
+            string basePath = "C:\\Users\\Public\\Documents\\CreateFileTests";
+            FilePathDictionary<FileMetadata> myData = new FilePathDictionary<FileMetadata>(new DirectoryInfo(basePath),
+                RecursiveDeleteCallback,
+                null);
+
+            myData.Add(new DirectoryInfo(basePath + "\\A"), new FileMetadata());
+            myData.Add(new DirectoryInfo(basePath + "\\A\\B"), new FileMetadata());
+
+
+            foreach (FilePath currentTest in myData.Keys)
+            {
+            }
+
+            foreach (FileMetadata currentTest in myData.Values)
+            {
+            }
+
+            foreach (KeyValuePair<FilePath, FileMetadata> currentTest in myData)
+            {
+
+            }
+
+            myData.Add(new DirectoryInfo(basePath + "\\A\\C.txt"), new FileMetadata());
+            myData.Add(new DirectoryInfo(basePath + "\\A\\B\\D.txt"), new FileMetadata());
+        }
+
+        private void RecursiveDeleteCallback(FilePath sender, FileMetadata args)
+        {
+        }
     }
 }

@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="CLPrivateRestClient.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
+    <Compile Include="Common\CombinedCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataModels\Settings\CLSettings.cs" />
     <Compile Include="DataModels\Settings\WpfIsolatedStorageSettings.cs" />
