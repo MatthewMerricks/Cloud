@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="Model\CLAccount.cs" />
     <Compile Include="Model\CLDevice.cs" />
+    <Compile Include="Model\CLJsonResultWithError.cs" />
     <Compile Include="Model\CLRegistration.cs" />
     <Compile Include="Model\CLEvent.cs" />
     <Compile Include="Model\CLMetadata.cs" />
@@ -88,7 +89,6 @@
     <Compile Include="Static\Helpers.cs" />
     <Compile Include="Support\CLSptHttpConnectionOperation.cs" />
     <Compile Include="Support\CLSptNSOperation.cs" />
-    <Compile Include="Support\CLSptGrandCentralDispatch.cs" />
     <Compile Include="Support\CLSptNSOperationQueue.cs" />
     <Compile Include="Support\CLSptResourceManager.cs" />
     <Compile Include="Support\CLSptJson.cs" />
@@ -97,6 +97,7 @@
     <Compile Include="Support\CLSptConstants.cs" />
     <Compile Include="Support\CLSptOsVersion.cs" />
     <Compile Include="Support\CLSptTrace.cs" />
+    <Compile Include="Support\CLSptGrandCentralDispatch.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.resx">

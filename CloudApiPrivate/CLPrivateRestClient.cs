@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using CloudApiPublic;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
@@ -165,7 +166,7 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync to the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        public void SyncToCloud_WithCompletionHandler_OnQueue(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueue queue)
+        public void SyncToCloud_WithCompletionHandler_OnQueue(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueueGeneric queue)
         {
     
         }
@@ -176,7 +177,7 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync from the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        public async void SyncFromCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueue queue)
+        public async void SyncFromCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue)
         {
             //NSString *methodPath = @"/sync/from_cloud";
             //NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
@@ -220,13 +221,12 @@ namespace CloudApiPrivate
 
             // Send the request asynchronously
             _client.Timeout = TimeSpan.FromMinutes(2.0);
-            _client.SendAsync(syncRequest).ContinueWith(task =>
+            await _client.SendAsync(syncRequest).ContinueWith(task =>
             {
                 Dictionary<string, object> jsonResult = null;
                 HttpResponseMessage response = null;
                 CLError error = null;
                 bool isSuccess = true;
-                DispatchQueue localQueue = queue;
 
                 Exception ex = task.Exception;
                 if (ex == null)
@@ -237,26 +237,33 @@ namespace CloudApiPrivate
                 if (ex != null)
                 {
                     // Exception
-                    error = new CLError();
-                    error.AddException(ex, replaceErrorDescription:true);
+                    error = ex;
                     isSuccess = false;
                 }
                 else if (response == null)
                 {
-                    error = new CLError();
-                    error.errorDomain = CLError.ErrorDomain_Application;
-                    error.errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("ErrorPostingSyncFromServer");
-                    error.errorCode = -1;
+                    error = new CLError()
+                    {
+                        errorDomain = CLError.ErrorDomain_Application,
+                        errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("ErrorPostingSyncFromServer"),
+                        errorCode = -1
+                    };
                     isSuccess = false;
                 }
 
                 if (isSuccess)
                 {
                     jsonResult = JsonConvert.DeserializeObject<Dictionary<string, object>>(response.Content.ToString());
-                    Dispatch.Async(localQueue, completionHandler);
+                    CLJsonResultWithError userstate = new CLJsonResultWithError()
+                    {
+                        JsonResult = jsonResult,
+                        Error = error
+                    };
+
+                    Dispatch.Async(queue, completionHandler, userstate);
+                    
                 }
-
-
+#if TRASH
                 if (!error) {
                     if (([(NSHTTPURLResponse *)response statusCode] == 200)) {
                         NSError *jsonParsingError;
@@ -273,10 +280,11 @@ namespace CloudApiPrivate
                 }
                 dispatch_async(queue, ^{
                     handler(jsonResult, error);
-                });            });
+                });
+#endif // TRASH
+            });
 
-
-            
+#if TRASH            
 
             NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
             [syncRequest setTimeoutInterval:120]; // 2 mins.
@@ -289,6 +297,7 @@ namespace CloudApiPrivate
 
                 //completion removed
             }];        
+#endif // TRASH
         }
 
         /// <summary>

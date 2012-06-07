@@ -43,8 +43,8 @@ namespace win_client.Services.Badging
         private static bool _waitingForFSMResponse = false;
         private static List<object> _activeSyncQueue = null;
 
-        static DispatchQueue _com_cloud_sync_queue = null;
-        static DispatchQueue get_cloud_sync_queue () {
+        static DispatchQueueGeneric _com_cloud_sync_queue = null;
+        static DispatchQueueGeneric get_cloud_sync_queue () {
             if (_com_cloud_sync_queue == null) {
                 _com_cloud_sync_queue =  Dispatch.Queue_Create();
             }
@@ -121,12 +121,13 @@ namespace win_client.Services.Badging
             _activeSyncQueue = new List<object>();
             _currentSids = new List<string>();
             _trace.writeToLog(1, "BeginSyncServices: Cloud Sync has Started for Cloud Folder at Path: {0}.", Settings.Instance.CloudFolderPath);
+
             if (_wasOffline == true) 
             {
-                Dispatch.Async(_com_cloud_sync_queue, () =>
+                Dispatch.Async(_com_cloud_sync_queue, new Action<object>((x) =>
                 {
                     CLFSMonitoringService.Instance.CheckWithFSMForEvents();
-                });
+                }), null);
                 _wasOffline = false;
             }
         }

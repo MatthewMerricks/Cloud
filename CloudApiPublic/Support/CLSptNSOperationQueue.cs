@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace CloudApiPublic.Support
 {
-    class CLSptNSOperationQueue : IDisposable
+    public class CLSptNSOperationQueue : IDisposable
     {
         private LinkedList<CLSptNSOperation> _operationQueue = null;
         private int _numberOfActiveOperations = 0;
