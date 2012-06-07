@@ -7,7 +7,8 @@ using System.Net.Http;
 using CloudApiPublic;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
-using CloudApiPrivate.DataModels.Settings;
+using CloudApiPrivate.Model.Settings;
+using Newtonsoft.Json;
 
 namespace CloudApiPrivate
 {
@@ -21,7 +22,6 @@ namespace CloudApiPrivate
     {
         private HttpClient _client = null;
         private Uri _uri = null;
-        private Dictionary<string, object> _JSONParams = null;
 
         public CLPrivateRestClient()
         {
@@ -37,7 +37,6 @@ namespace CloudApiPrivate
             _client.BaseAddress = _uri;
             _client.DefaultRequestHeaders.Add("Content-Type", "application/json");
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", Settings.Instance.Akey);
-            _JSONParams.Add("Content-Type", "application/json");
         }
 
         /// <summary>
@@ -177,7 +176,7 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync from the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        public void SyncFromCloud_WithCompletionHandler_OnQueue(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueue queue)
+        public async void SyncFromCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueue queue)
         {
             //NSString *methodPath = @"/sync/from_cloud";
             //NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
@@ -209,22 +208,55 @@ namespace CloudApiPrivate
             //    });
             //}];
             string methodPath = "/sync/from_cloud";
+            string json = JsonConvert.SerializeObject(metadata, Formatting.Indented);
 
+            // Build the request
             HttpRequestMessage syncRequest = new HttpRequestMessage(HttpMethod.Post, new Uri(methodPath, UriKind.Relative));
-            syncRequest.
+            syncRequest.Headers.Add("Content-Type", "application/json");
+            syncRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            
+            // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
+            syncRequest.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
-            NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
-            [syncRequest setTimeoutInterval:120]; // 2 mins.
-            [syncRequest setHTTPBody:[NSJSONSerialization dataWithJSONObject:metadata options:NSJSONWritingPrettyPrinted error:nil]];
-            syncRequest = [self addCurrentClientVersionValueToHeaderFieldInRequest:syncRequest];
+            // Send the request asynchronously
+            _client.Timeout = TimeSpan.FromMinutes(2.0);
+            _client.SendAsync(syncRequest).ContinueWith(task =>
+            {
+                Dictionary<string, object> jsonResult = null;
+                HttpResponseMessage response = null;
+                CLError error = null;
+                bool isSuccess = true;
+                DispatchQueue localQueue = queue;
 
-            NSLog(@"%s - Headers:%@",__FUNCTION__, [syncRequest allHTTPHeaderFields]);
+                Exception ex = task.Exception;
+                if (ex == null)
+                {
+                    response = task.Result;
+                }
 
-            [NSURLConnection sendAsynchronousRequest:syncRequest queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+                if (ex != null)
+                {
+                    // Exception
+                    error = new CLError();
+                    error.AddException(ex, replaceErrorDescription:true);
+                    isSuccess = false;
+                }
+                else if (response == null)
+                {
+                    error = new CLError();
+                    error.errorDomain = CLError.ErrorDomain_Application;
+                    error.errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("ErrorPostingSyncFromServer");
+                    error.errorCode = -1;
+                    isSuccess = false;
+                }
 
-                NSDictionary* jsonResult;
+                if (isSuccess)
+                {
+                    jsonResult = JsonConvert.DeserializeObject<Dictionary<string, object>>(response.Content.ToString());
+                    Dispatch.Async(localQueue, completionHandler);
+                }
+
+
                 if (!error) {
                     if (([(NSHTTPURLResponse *)response statusCode] == 200)) {
                         NSError *jsonParsingError;
@@ -241,7 +273,21 @@ namespace CloudApiPrivate
                 }
                 dispatch_async(queue, ^{
                     handler(jsonResult, error);
-                });
+                });            });
+
+
+            
+
+            NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
+            [syncRequest setTimeoutInterval:120]; // 2 mins.
+            [syncRequest setHTTPBody:[NSJSONSerialization dataWithJSONObject:metadata options:NSJSONWritingPrettyPrinted error:nil]];
+            syncRequest = [self addCurrentClientVersionValueToHeaderFieldInRequest:syncRequest];
+
+            NSLog(@"%s - Headers:%@",__FUNCTION__, [syncRequest allHTTPHeaderFields]);
+
+            [NSURLConnection sendAsynchronousRequest:syncRequest queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+
+                //completion removed
             }];        
         }
 

@@ -14,7 +14,7 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Controls;
 using MVVMProductsDemo.ViewModels;
 using win_client.Common;
-using CloudApiPrivate.DataModels.Settings;
+using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Static;
 using System.Windows;
 using System.Windows.Media;

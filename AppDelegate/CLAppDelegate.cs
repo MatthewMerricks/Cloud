@@ -10,7 +10,7 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using CloudApiPrivate.DataModels.Settings;
+using CloudApiPrivate.Model.Settings;
 using System.Windows.Threading;
 using System.Diagnostics;
 using System.Linq;

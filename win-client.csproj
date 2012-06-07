@@ -124,12 +124,11 @@
     <Compile Include="Common\CLConstants.cs" />
     <Compile Include="Common\CLConverters.cs" />
     <Compile Include="Common\CLDefaultButtons.cs" />
-    <Compile Include="Common\CLOperationQueue.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />
-    <Compile Include="DataModels\DataItem.cs" />
-    <Compile Include="DataModels\DataService.cs" />
-    <Compile Include="DataModels\IDataService.cs" />
+    <Compile Include="Model\DataItem.cs" />
+    <Compile Include="Model\DataService.cs" />
+    <Compile Include="Model\IDataService.cs" />
     <Compile Include="Design\DesignDataService.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
@@ -414,10 +413,9 @@
     <Resource Include="Artwork\CloseNotifyIconSample.png" />
     <Resource Include="Artwork\InfoNotifyIconSample.png" />
     <Resource Include="Artwork\PreferencesNotifyIconSample.png" />
-    <Content Include="SourceBinaries\Microsoft.Windows.Controls.WatermarkedTextBox.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DataModels\Metadata\" />
+    <Folder Include="Model\Metadata\" />
     <Folder Include="Service References\" />
   </ItemGroup>
   <ItemGroup>

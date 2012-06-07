@@ -15,7 +15,7 @@ using CloudApiPrivate;
 using CloudApiPrivate.Static;
 
 
-namespace CloudApiPrivate.DataModels.Settings
+namespace CloudApiPrivate.Model.Settings
 {
     #region "Enums"
 
