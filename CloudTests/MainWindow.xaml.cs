@@ -17,6 +17,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using CloudApiPrivate.Common;
 using FileMonitor;
 
 namespace CloudTests
@@ -760,35 +761,31 @@ namespace CloudTests
             }
         }
 
+        private static XmlSerializer FilePathSerializer = new XmlSerializer(typeof(FilePathHolder.FilePathOperations));
         private void GenericTests_Click(object sender, RoutedEventArgs e)
         {
             string basePath = "C:\\Users\\Public\\Documents\\CreateFileTests";
             FilePathDictionary<FileMetadata> myData = new FilePathDictionary<FileMetadata>(new DirectoryInfo(basePath),
                 RecursiveDeleteCallback,
+                null,
                 null);
 
-            myData.Add(new DirectoryInfo(basePath + "\\A"), new FileMetadata());
-            myData.Add(new DirectoryInfo(basePath + "\\A\\B"), new FileMetadata());
-
-
-            foreach (FilePath currentTest in myData.Keys)
+            FilePathHolder.FilePathOperations operations;
+            using (FileStream pathStream = new FileStream("TestFilePaths.xml", FileMode.Open))
             {
+                using (StreamReader pathReader = new StreamReader(pathStream))
+                {
+                    operations = (FilePathHolder.FilePathOperations)FilePathSerializer.Deserialize(pathReader);
+                }
             }
 
-            foreach (FileMetadata currentTest in myData.Values)
-            {
-            }
-
-            foreach (KeyValuePair<FilePath, FileMetadata> currentTest in myData)
+            foreach (FilePathHolder.FilePathOperationsFilePathOperation in operations)
             {
 
             }
-
-            myData.Add(new DirectoryInfo(basePath + "\\A\\C.txt"), new FileMetadata());
-            myData.Add(new DirectoryInfo(basePath + "\\A\\B\\D.txt"), new FileMetadata());
         }
 
-        private void RecursiveDeleteCallback(FilePath sender, FileMetadata args)
+        private void RecursiveDeleteCallback(FilePath sender, RecursiveDeleteArgs<FileMetadata> args)
         {
         }
     }
