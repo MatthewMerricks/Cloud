@@ -568,9 +568,104 @@ namespace win_client.Services.Sync
             return rc;
         }
 
-        //- (void)syncFromFileSystemMonitor:(CLFSMonitoringService *)fsm withGroupedUserEvents:(NSDictionary *)events
+        private class EventHolder
+        {
+            public int Count { get; set; }
+            public Dictionary<string, object> Event { get; set; }
+        }
+        private class EventComparer : IEqualityComparer<EventHolder>
+        {
+            public static EventComparer Instance
+            {
+                get
+                {
+                    lock (InstanceLocker)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new EventComparer();
+                        }
+                        return _instance;
+                    }
+                }
+            }
+            private static EventComparer _instance = null;
+            private static object InstanceLocker = new object();
+
+            private EventComparer() { }
+
+            #region IEqualityComparer<EventHolder> members
+            public bool Equals(EventHolder x, EventHolder y)
+            {
+                Dictionary<string, object> xDict = x.Event as Dictionary<string, object>;
+                Dictionary<string, object> yDict = y.Event as Dictionary<string, object>;
+                if (xDict == null && yDict == null)
+                    return true;
+                if (xDict == null || yDict == null)
+                    return false;
+                if (!xDict.ContainsKey("event")
+                    || !xDict.ContainsKey("metadata")
+                    || !yDict.ContainsKey("event")
+                    || !yDict.ContainsKey("metadata"))
+                    return false;
+                Dictionary<string, object> xMetadata;
+                Dictionary<string, object> yMetadata;
+                if (!(xDict["event"] is string)
+                    || (xMetadata = xDict["metadata"] as Dictionary<string, object>) != null
+                    || !(yDict["event"] is string)
+                    || (yMetadata = yDict["metadata"] as Dictionary<string, object>) != null)
+                    return false;
+                if (!((string)xDict["event"]).Equals((string)yDict["event"], StringComparison.InvariantCulture))
+                    return false;
+                if (xMetadata.ContainsKey("path"))
+                {
+                    if (!yMetadata.ContainsKey("path"))
+                        return false;
+                    if (!(xMetadata["path"] is string)
+                        || !(yMetadata["path"] is string))
+                        return false;
+                    return ((string)xMetadata["path"]).Equals((string)yMetadata["path"], StringComparison.InvariantCulture);
+                }
+                else if (xMetadata.ContainsKey("from_path")
+                    && xMetadata.ContainsKey("to_path"))
+                {
+                    if (!yMetadata.ContainsKey("from_path")
+                        || !yMetadata.ContainsKey("to_path"))
+                        return false;
+                    if (!(xMetadata["from_path"] is string)
+                        || !(xMetadata["to_path"] is string)
+                        || !(yMetadata["from_path"] is string)
+                        || !(yMetadata["to_path"] is string))
+                        return false;
+                    return ((string)xMetadata["from_path"]).Equals((string)yMetadata["from_path"], StringComparison.InvariantCulture)
+                        && ((string)xMetadata["to_path"]).Equals((string)yMetadata["to_path"], StringComparison.InvariantCulture);
+                }
+                return false;
+            }
+
+            public int GetHashCode(EventHolder obj)
+            {
+                return obj.Event.GetHashCode();
+            }
+            #endregion
+        }
+
+        //- (void)syncFromFileSystemMonitor: (CLFSMonitoringService *)fsm withGroupedUserEvents:(NSDictionary *)events
         public void SyncFromFileSystemMonitorWithGroupedUserEvents(Dictionary<string, object> eventsDictionary)
         {
+            IEnumerable<Dictionary<string, object>> distictEvents = null;
+            object eventsValue = eventsDictionary["events"];
+            Array castEvents = eventsValue as Array;
+            if (castEvents != null)
+            {
+                distictEvents = castEvents.OfType<Dictionary<string, object>>()
+                    .Where(currentEvent => currentEvent.ContainsKey("event")
+                        && currentEvent.ContainsKey("metadata"))
+                    .Select((currentEvent, count) => new EventHolder() { Count = count, Event = currentEvent })
+                    .Distinct(EventComparer.Instance)
+                    .OrderBy(currentEvent => currentEvent.Count)
+                    .Select(currentEvent => currentEvent.Event);
+            }
 
             // NSString *sid;
             // if ([self.currentSIDs lastObject] != nil) {
@@ -579,7 +674,7 @@ namespace win_client.Services.Sync
             //    sid = [[CLSettings sharedSettings] sid];
             // }
             string sid;
-            if (_currentSids.Last<object>() != null)
+            if (_currentSids.Count > 0 && _currentSids.Last<string>() != null)
             {
                 sid = _currentSids.Last<string>();
             }
@@ -591,13 +686,15 @@ namespace win_client.Services.Sync
             // NSNumber *eid = [events objectForKey:@"event_id"];
             // NSMutableArray *eventList = [events objectForKey:CLSyncEvents];
             // NSMutableArray *fsmEvents = [NSMutableArray array];
-            long eid = (long)eventsDictionary[CLDefinitions.CLEventKey];
-            List<object> eventList = (List<object>)eventsDictionary[CLDefinitions.CLSyncEvents];
+            int eid = (int)eventsDictionary[CLDefinitions.CLEventKey];
+            Dictionary<string, object> eventList = (Dictionary<string, object>)eventsDictionary[CLDefinitions.CLSyncEvents];
             List<CLEvent> fsmEvents = new List<CLEvent>();
+
+            
 
             // Filtering duplicate events
             // NSArray *filteredEvents = [self filterDuplicateEvents:eventList];
-            List<object> filteredEvents = eventList.Distinct().ToList();
+            Dictionary<string, object> filteredEvents = eventList.Distinct();
     
             // if ([eventList count] > 0) {
             if (eventList.Count > 0)
