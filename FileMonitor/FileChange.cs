@@ -19,6 +19,8 @@ namespace FileMonitor
     /// </summary>
     public class FileChange : DelayProcessable<FileChange>
     {
+        private static int eventIdCounter = 0;
+
         /// <summary>
         /// Current path associated with the file system event
         /// </summary>
@@ -35,5 +37,15 @@ namespace FileMonitor
         /// Type of file system event
         /// </summary>
         public FileChangeType Type { get; set; }
+        /// <summary>
+        /// Event ID
+        /// </summary>
+        public int EventId
+        {
+            get
+            {
+                return eventIdCounter++;
+            }
+        }
     }
 }

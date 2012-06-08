@@ -17,6 +17,7 @@ using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
 using System.Xml.Linq;
+using System.Globalization;
 
 namespace FileMonitor
 {
@@ -57,6 +58,9 @@ namespace FileMonitor
         #region private fields and property
         // stores the optional FileChange queueing callback intialization parameter
         private Action<MonitorAgent, FileChange> OnQueueing;
+
+        // stores the callback used to process a group of events.  Passed via an intialization parameter
+        private Action<Dictionary<string, object>> OnProcessEventGroupCallback;
 
         // store the optional logging boolean initialization parameter
         private bool LogProcessingFileChanges;
@@ -125,14 +129,15 @@ namespace FileMonitor
         /// </summary>
         /// <param name="folderPath">path of root folder to be monitored</param>
         /// <param name="newAgent">returned MonitorAgent</param>
+        /// <param name="onProcessEventGroupCallback">action to be executed when a group of events is to be processed</param>
         /// <param name="onQueueingCallback">(optional) action to be executed evertime a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns></returns>
-        public static CLError CreateNewAndInitialize(string folderPath, out MonitorAgent newAgent, Action<MonitorAgent, FileChange> onQueueingCallback = null, bool logProcessing = false)
+        public static CLError CreateNewAndInitialize(string folderPath, out MonitorAgent newAgent, Action<Dictionary<string, object>> onProcessEventGroupCallback, Action<MonitorAgent, FileChange> onQueueingCallback = null, bool logProcessing = false)
         {
             try
             {
-                newAgent = new MonitorAgent(folderPath, onQueueingCallback, logProcessing);
+                newAgent = new MonitorAgent(folderPath, onProcessEventGroupCallback, onQueueingCallback, logProcessing);
             }
             catch (Exception ex)
             {
@@ -141,7 +146,8 @@ namespace FileMonitor
             }
             return null;
         }
-        private MonitorAgent(string folderPath, Action<MonitorAgent, FileChange> onQueueingCallback, bool logProcessing)
+
+        private MonitorAgent(string folderPath, Action<Dictionary<string, object>> onProcessEventGroupCallback, Action<MonitorAgent, FileChange> onQueueingCallback, bool logProcessing)
         {
             if (string.IsNullOrEmpty(folderPath))
                 throw new Exception("Folder path cannot be null nor empty");
@@ -152,6 +158,7 @@ namespace FileMonitor
             
             // assign local fields with optional initialization parameters
             this.OnQueueing = onQueueingCallback;
+            this.OnProcessEventGroupCallback = onProcessEventGroupCallback;
             this.LogProcessingFileChanges = logProcessing;
         }
 
@@ -1088,6 +1095,8 @@ namespace FileMonitor
             }
 
             // Todo: Put in the code to handle processing a file change through the sync service
+            ProcessFileChangeGroup(sender);
+
 
             // if optional initialization parameter for logging was passed as true, log an xml file describing the processed FileChange
             if (LogProcessingFileChanges)
@@ -1118,6 +1127,78 @@ namespace FileMonitor
                     sender.Metadata.MD5 == null ? null : new XElement("MD5", new XText(sender.Metadata.MD5
                         .Select(md5Byte => string.Format("{0:x2}", md5Byte))
                         .Aggregate((previousBytes, newByte) => previousBytes + newByte)))).ToString() + Environment.NewLine);
+            }
+        }
+
+        private void ProcessFileChangeGroup(FileChange sender)
+        {
+            if (this.OnProcessEventGroupCallback != null)
+            {
+                //TODO: For now, we are sending groups of file system events to sync, where the
+                // group has only a single event.
+                // The FileChange must be converted to the single CLEvent we will send
+                CLEvent evt = new CLEvent();
+                switch (sender.Type)
+                {
+                    case FileChangeType.Created:
+                    case FileChangeType.CreatedWithError:
+                        if (sender.Metadata.HashableProperties.IsFolder)
+                        {
+                            evt.Action = CLDefinitions.CLEventTypeAddFolder;
+                        }
+                        else
+                        {
+                            evt.Action = CLDefinitions.CLEventTypeAddFile;
+                        }
+                        break;
+                    case FileChangeType.Deleted:
+                        if (sender.Metadata.HashableProperties.IsFolder)
+                        {
+                            evt.Action = CLDefinitions.CLEventTypeDeleteFolder;
+                        }
+                        else
+                        {
+                            evt.Action = CLDefinitions.CLEventTypeDeleteFile;
+                        }
+                        break;
+                    case FileChangeType.Modified:
+                    case FileChangeType.ModifiedWithError:
+                        evt.Action = CLDefinitions.CLEventTypeModifyFile;
+                        break;
+                    case FileChangeType.Renamed:
+                    case FileChangeType.RenamedWithError:
+                        if (sender.Metadata.HashableProperties.IsFolder)
+                        {
+                            evt.Action = CLDefinitions.CLEventTypeRenameFolder;
+                        }
+                        else
+                        {
+                            evt.Action = CLDefinitions.CLEventTypeRenameFile;
+                        }
+                        break;
+                }
+
+                // Build the metadata dictionary
+                Dictionary<string, string> metadata = new Dictionary<string, string>();
+                // Format the time like "2012-03-20T19:50:25Z"
+                metadata.Add(CLDefinitions.CLMetadataFileCreateDate, sender.Metadata.HashableProperties.CreationTime.ToString("yyyy-mm-ddThh:mm:ssZ", CultureInfo.InvariantCulture));
+                metadata.Add(CLDefinitions.CLMetadataFromPath, sender.OldPath);
+                metadata.Add(CLDefinitions.CLMetadataCloudPath, sender.NewPath);
+                metadata.Add(CLDefinitions.CLMetadataToPath, "");       // not used?
+
+                // Build the events dictionary
+                Dictionary<string, object> events = new Dictionary<string, object>();
+                events.Add(CLDefinitions.CLSyncEvent, evt);             // just one in the group for now.
+
+                // Build the dictionary to return.  Start by adding the last EventId and an event count of one.
+                Dictionary<string, object> eventsDictionary = new Dictionary<string, object>();
+                eventsDictionary.Add(CLDefinitions.CLEventKey, sender.EventId);
+                eventsDictionary.Add(CLDefinitions.CLEventCount, 1);
+                eventsDictionary.Add(CLDefinitions.CLSyncEvents, events);
+                eventsDictionary.Add(CLDefinitions.CLSyncEventMetadata, metadata);
+
+                // Feed this group of one to the sync service.
+                this.OnProcessEventGroupCallback(eventsDictionary);
             }
         }
 

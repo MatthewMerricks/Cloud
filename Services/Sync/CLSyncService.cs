@@ -23,7 +23,7 @@ using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using BadgeNET;
 
-namespace win_client.Services.Badging
+namespace win_client.Services.Sync
 {
     public sealed class CLSyncService
     {
@@ -117,7 +117,7 @@ namespace win_client.Services.Badging
             _serviceStarted = true;
             _recentItems = new List<object>();
             _restClient = new CLPrivateRestClient();
-            _activeDownloadQueue = new List<object>();
+            _activeDownloadQueue = new List<object>(); 
             _activeSyncQueue = new List<object>();
             _currentSids = new List<string>();
             _trace.writeToLog(1, "BeginSyncServices: Cloud Sync has Started for Cloud Folder at Path: {0}.", Settings.Instance.CloudFolderPath);
@@ -144,7 +144,6 @@ namespace win_client.Services.Badging
             //[[CLNotificationServices sharedService] setDelegate:nil];
             //[[CLFSMonitoringService sharedService] setDelegate:nil];
 
-#if TRASH
            if (_syncItemsQueueCount > 0) {
                 //TODO: Clear the number of synced files to zero in the UI system tray status.
                 // AnimateUIForSyncWithStatusMessageSyncActivityCount(false, (int) menuItemActivityLabelType.menuItemActivityLabelSynced, 0);
@@ -158,8 +157,116 @@ namespace win_client.Services.Badging
 
             _trace.writeToLog(1, "BeginSyncServices: Cloud Sync has Eneded for Cloud Folder at Path: {0}.", Settings.Instance.CloudFolderPath);
         }
+
+
         Array /*NSMutableArray*/ UpdateMetadataForFileEvents(Array /*NSMutableArray*/ events)
         {
+#if TRASH
+    __block NSMutableArray *eventsToBeRemoved = [NSMutableArray array];
+    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+
+        CLEvent *event = obj;
+        NSDictionary *metadata;
+        NSString *cloudPath = event.metadata.path;
+        
+        if ([event.action isEqualToString:CLEventTypeMoveFile] || [event.action isEqualToString:CLEventTypeRenameFile]) {
+            cloudPath = event.metadata.fromPath;
+        }
+
+        // for new files we get the current file metadata from the file system.
+        if ([event.action isEqualToString:CLEventTypeAddFile] || [event.action isEqualToString:CLEventTypeModifyFile]) {
+
+            // Check if this file item is a symblink, if this object is a in fact a link, the utility method will return a valid target path.
+            NSString *fileSystemPath =[[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:cloudPath];
+            CLAppDelegate *appDelegate = [NSApp delegate];
+            if ([appDelegate isFileAliasAtPath:fileSystemPath] == YES) {
+                // get the target path
+                NSString *targetPath = [fileSystemPath stringByIterativelyResolvingSymlinkOrAlias];
+                if (targetPath != nil) {
+                    // symblink events are always recognized as files, therefore simply replace the occurence of the word file with link for the event action.
+                    event.action = [event.action stringByReplacingCharactersInRange:[event.action rangeOfString:CLEventTypeFileRange] withString:@"link"];
+
+                    if ([targetPath rangeOfString:[[CLSettings sharedSettings] cloudFolderPath]].location == NSNotFound) {
+                        targetPath = [NSString stringWithFormat:@"/%@", targetPath];
+                    }
+
+                    event.metadata.targetPath = targetPath;
+                    
+                    // this link is useless, if path target matches the link path, then we don't have a valid link resolutions. (see NSString+CloudUtilities.m)
+                    if ([targetPath isEqualToString:fileSystemPath]) {
+                        [eventsToBeRemoved addObject:events];
+                    }
+                }
+            }
+            else { // all regular file events
+                int do_try = 0;
+                
+                do {
+                    @autoreleasepool {
+                        NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:event.metadata.path];
+                        metadata = [NSDictionary attributesForItemAtPath:fileSystemPath];
+                        
+                        event.metadata.createDate = [metadata objectForKey:CLMetadataFileCreateDate];
+                        event.metadata.modifiedDate = [metadata objectForKey:CLMetadataFileModifiedDate];
+                        event.metadata.revision = [metadata objectForKey:CLMetadataFileRevision];
+                        event.metadata.hash = [metadata objectForKey:CLMetadataFileHash];
+                        event.metadata.size = [metadata objectForKey:CLMetadataFileSize];
+                        event.metadata.customAttributes = nil;
+                        if ([event.metadata.createDate rangeOfString:@"190"].location == NSNotFound) {
+                            event.metadata.customAttributes = [CLExtendedAttributes archiveAndEncodeExtendedAttributesAtPath:fileSystemPath];
+                        }
+                    }
+                    
+                    do_try ++;
+                }
+                while ( [event.metadata.createDate rangeOfString:@"190"].location != NSNotFound && do_try < 3000); // 1 second. TODO: This hack sucks!
+            }
+        }
+        
+        // all other file events we get stored index data for this event item.
+        if ([event.action rangeOfString:CLEventTypeFileRange].location != NSNotFound) {
+
+            CLMetadata *indexedMetadata = [CLIndexingServices metadataForItemAtCloudPath:cloudPath];
+            
+            if (indexedMetadata != nil) { // we have an object indexed for this event.
+
+                // for add events, if the darn thing already exists in the index, it means that FSM failed to pick up the event as a modify
+                // let's make sure of that and if it turns out to be true, then we need to change the event to become a modify type.
+                if ([event.action isEqualToString:CLEventTypeAddFile]) {
+                    if ([event.metadata.hash isEqualToString:indexedMetadata.hash] == NO &&
+                        [event.metadata.revision isEqualToString:indexedMetadata.revision] == NO) {
+                        event.metadata.revision = indexedMetadata.revision;
+                        event.action = CLEventTypeModifyFile;
+                    }
+                }
+                else if ([event.action isEqualToString:CLEventTypeModifyFile]) { // for modify we only want to revision
+                    event.metadata.revision = indexedMetadata.revision;
+                }
+                else { // we want it all for all other cases.
+                    
+                    event.metadata.revision = indexedMetadata.revision;
+                    event.metadata.hash = indexedMetadata.hash;
+                    event.metadata.createDate = indexedMetadata.createDate;
+                    event.metadata.modifiedDate = indexedMetadata.modifiedDate;
+                    event.metadata.size = indexedMetadata.size;
+                }
+
+                if (indexedMetadata.targetPath != nil) { // we have a link object, convert
+                    // symblink events are always recognized as files, therefore simply replace the occurence of the word file with link for the event action.
+                    event.action = [event.action stringByReplacingCharactersInRange:[event.action rangeOfString:CLEventTypeFileRange] withString:@"link"];
+                    event.metadata.targetPath = indexedMetadata.targetPath;
+                }
+            }
+        }
+    }];
+
+    // discard events that we don't care for (like invalid symblinks).
+    if ([eventsToBeRemoved count] > 0) {
+        [events removeObjectsInArray:eventsToBeRemoved];
+    }
+    
+    return events;
+#endif // TRASH
             //events.EnumerateObjectsUsingBlock(^ (object obj, NSUInteger idx, bool stop) {
             //    CLEvent Myevent = obj;
             //    NSDictionary metadata;
@@ -215,74 +322,46 @@ namespace win_client.Services.Badging
             //);
             //return events;
             return new int[3];
-    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        CLEvent *event = obj;
-        NSDictionary *metadata;
-        
-        // for new files we get the current file metadata from the file system.
-        if ([event.action isEqualToString:CLEventTypeAddFile] || [event.action isEqualToString:CLEventTypeModifyFile]) {
-            
-            int do_try = 0;
-            
-            do {
-                @autoreleasepool {
-                    NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:event.metadata.path];
-                    metadata = [NSDictionary attributesForItemAtPath:fileSystemPath];
-                    
-                    event.metadata.createDate = [metadata objectForKey:@"created_date"];
-                    event.metadata.modifiedDate = [metadata objectForKey:@"modified_date"];
-                    event.metadata.revision = [metadata objectForKey:@"revision"];
-                    event.metadata.hash = [metadata objectForKey:@"file_hash"];
-                    event.metadata.size = [metadata objectForKey:@"file_size"];
-                }
-                do_try ++;
-            }
-            while ( [event.metadata.createDate rangeOfString:@"190"].location != NSNotFound && do_try < 3000); // 1 second. TODO: This hack sucks!
-        }
-        
-        // all other file events we get stored index data for this event item.
-        if ([event.action rangeOfString:CLEventTypeFileRange].location != NSNotFound) {
-
-            NSString *cloudPath = event.metadata.path;
-            
-            if ([event.action isEqualToString:CLEventTypeMoveFile] || [event.action isEqualToString:CLEventTypeRenameFile]) {
-                cloudPath = event.metadata.fromPath;
-            }
-            
-            CLMetadata *indexedMetadata = [CLIndexingServices metadataForItemAtCloudPath:cloudPath];
-            
-            if (indexedMetadata != nil) { // we have an object indexed for this event.
-
-                // for add events, if the darn thing already exists in the index, it means that FSM failed to pick up the event as a modify
-                // let's make sure of that and if it turns out to be true, then we need to change the event to become a modify type.
-                if ([event.action isEqualToString:CLEventTypeAddFile]) {
-                    if ([event.metadata.hash isEqualToString:indexedMetadata.hash] == NO &&
-                        [event.metadata.revision isEqualToString:indexedMetadata.revision] == NO) {
-                        event.metadata.revision = indexedMetadata.revision;
-                        event.action = CLEventTypeModifyFile;
-                    }
-                }
-                else if ([event.action isEqualToString:CLEventTypeModifyFile]) { // for modify we only want to revision
-                    event.metadata.revision = indexedMetadata.revision;
-                }
-                else { // we want it all for all other cases.
-                    event.metadata.revision = indexedMetadata.revision;
-                    event.metadata.hash = indexedMetadata.hash;
-                    event.metadata.createDate = indexedMetadata.createDate;
-                    event.metadata.modifiedDate = indexedMetadata.modifiedDate;
-                    event.metadata.size = indexedMetadata.size;
-                }
-            }
-        }
-    }];
-    
-    return events;
-#endif // TRASH
         }
 
         // - (NSDictionary *)sortSyncEventsByType:(NSArray *)events
         Dictionary<string, object> SortSyncEventsByType(List<CLEvent> events)
         {
+#if TRASH
+    NSLog(@"%s", __FUNCTION__);
+    NSMutableArray * addEvents = [NSMutableArray array];
+    NSMutableArray * modifyEvents = [NSMutableArray array];
+    NSMutableArray * moveRenameEvents = [NSMutableArray array];
+    NSMutableArray * deleteEvents = [NSMutableArray array];
+    
+    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        
+        CLEvent *event = obj;        
+        NSString *eventAction = event.action;
+        if (event.isMDSEvent) {
+            eventAction = event.syncHeader.action;
+        }
+        
+        if ([eventAction rangeOfString:CLEventTypeAddRange].location != NSNotFound) {
+            [addEvents addObject:event];
+        }
+        if ([eventAction rangeOfString:CLEventTypeModifyFile].location != NSNotFound) {
+            [modifyEvents addObject:event];
+        }
+        if ([eventAction rangeOfString:CLEventTypeRenameRange].location != NSNotFound) {
+            [moveRenameEvents addObject:event];
+        }
+        if ([eventAction rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
+            [moveRenameEvents addObject:event];
+        }
+        if ([eventAction rangeOfString:CLEventTypeDeleteRange].location != NSNotFound) {
+            [deleteEvents addObject:event];
+        }
+    }];
+    
+    return [NSDictionary dictionaryWithObjectsAndKeys:addEvents, CLEventTypeAdd, modifyEvents ,CLEventTypeModify, moveRenameEvents,  CLEventTypeRenameMove, deleteEvents, CLEventTypeDelete, nil];
+#endif // TRASH
+
             _trace.writeToLog(9, "CLSyncService: SortSyncEventsByType: Entry.");
 
             List<CLEvent> addEvents = new List<CLEvent>();
@@ -325,8 +404,6 @@ namespace win_client.Services.Badging
                 }
             });
 
-            //return NSDictionary.DictionaryWithObjectsAndKeys(addEvents, CLEventTypeAdd, modifyEvents, CLEventTypeModify, moveRenameEvents, CLEventTypeRenameMove
-            //  , deleteEvents, CLEventTypeDelete, null);
             Dictionary<string, object> rc = new Dictionary<string, object>()
             {
                 {CLDefinitions.CLEventTypeAdd, addEvents},
@@ -492,7 +569,7 @@ namespace win_client.Services.Badging
         }
 
         //- (void)syncFromFileSystemMonitor:(CLFSMonitoringService *)fsm withGroupedUserEvents:(NSDictionary *)events
-        void SyncFromFileSystemMonitorWithGroupedUserEvents(CLFSMonitoringService fsm, Dictionary<string, object> eventsDictionary)
+        public void SyncFromFileSystemMonitorWithGroupedUserEvents(Dictionary<string, object> eventsDictionary)
         {
 
             // NSString *sid;

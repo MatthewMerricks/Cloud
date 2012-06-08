@@ -461,6 +461,10 @@
       <Project>{D873958B-87F4-46F6-A6E8-B72FFB08835F}</Project>
       <Name>Dialog.Implementors.Wpf</Name>
     </ProjectReference>
+    <ProjectReference Include="FileMonitor\FileMonitor.csproj">
+      <Project>{dfe16278-70b2-4b6c-84c0-1d41b04bebde}</Project>
+      <Name>FileMonitor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -36,7 +36,6 @@ namespace CloudApiPrivate
             _client = new HttpClient();
             _uri = new Uri(CLDefinitions.CLMetaDataServerURL);
             _client.BaseAddress = _uri;
-            _client.DefaultRequestHeaders.Add("Content-Type", "application/json");
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", Settings.Instance.Akey);
         }
 

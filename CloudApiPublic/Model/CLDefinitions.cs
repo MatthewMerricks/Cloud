@@ -91,6 +91,7 @@ namespace CloudApiPublic.Model
 
         // Sync dictionaries
         public const string CLEventKey = "event_id";
+        public const string CLEventCount = "event_count";
 
     }
 }

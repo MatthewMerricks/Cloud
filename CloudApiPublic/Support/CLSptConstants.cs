@@ -9,7 +9,7 @@ namespace CloudApiPublic.Support
 {
     public class CLSptConstants
     {
-        public static string kResourcesName = "CloudApiClassLibrary.Resources.Resources";
+        public static string kResourcesName = "CloudApiPublic.Resources.Resources";
 
         // Registration
         public const string CLRegistrationCreateRequestURLString  = "http://api.cloudburrito.com/user/create.json";

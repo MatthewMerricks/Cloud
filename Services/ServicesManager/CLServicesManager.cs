@@ -12,6 +12,7 @@ using CloudApiPublic.Model;
 using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
 using win_client.Services.Badging;
+using win_client.Services.Sync;
 using win_client.Services.UiActivity;
 using win_client.Services.Indexing;
 using win_client.Services.Notification;
