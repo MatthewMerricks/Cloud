@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FilePathOperations xmlns="http://Cloud.com/FilePath.xsd">
+  <Copyright>
+    <FileName>TestFilePaths.xml</FileName>
+    <Copyright>Implementation of FileCreation.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved.</Copyright>
+    <Creator>DavidBruck</Creator>
+  </Copyright>
+  <FilePathOperation>
+    <Path>C:\myDir\</Path>
+    <Operation>Add</Operation>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Path>C:\myDir\file.txt</Path>
+    <Operation>Add</Operation>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Path>C:\myDir\innerDir</Path>
+    <Operation>Add</Operation>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Path>C:\myDir\innerDir\file.txt</Path>
+    <PreviousPath>C:\myDir\file.txt</PreviousPath>
+    <Operation>Rename</Operation>
+  </FilePathOperation>
+</FilePathOperations>
