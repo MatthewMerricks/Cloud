@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using CloudApiPublic.Support;
 using CloudApiPrivate.Common;
+using System.Collections.Generic;
 
 
 namespace CloudApiPrivate.Static
@@ -150,7 +151,7 @@ namespace CloudApiPrivate.Static
         /// Extend DependencyObject: Finds a Child of a given item in the visual tree.  
         /// </summary> 
         /// <param name="parent">A direct parent of the queried item.</param> 
-        /// <typeparam name="T">The type of the queried item.</typeparam> 
+        /// <typeparam name="T">The type of the queried item.  This must be a DependencyObject.</typeparam> 
         /// <param name="childName">x:Name or Name of child. </param> 
         /// <returns>The first parent item that matches the submitted type parameter.  
         /// If not matching item can be found,  
@@ -159,8 +160,7 @@ namespace CloudApiPrivate.Static
         /// Call like this:
         /// TextBox foundTextBox =  UIHelper.FindChild<TextBox>(Application.Current.MainWindow, "myTextBoxName"); 
         /// 
-        public static T FindChild<T>(DependencyObject parent, string childName)
-           where T : DependencyObject
+        public static T FindChild<T>(DependencyObject parent, string childName) where T : DependencyObject
         {
             // Confirm parent and childName are valid.  
             if(parent == null) return null;
@@ -201,8 +201,6 @@ namespace CloudApiPrivate.Static
             }
 
             return foundChild;
-        } 
-
+        }
     }
-
 }

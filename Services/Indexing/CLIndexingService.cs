@@ -76,7 +76,7 @@ namespace win_client.Services.Indexing
         public CLMetadata MetadataForItemAtCloudPath(string path)
         {
             //TODO: Implement this method
-            return new CLMetadata(true);
+            return null;
         }
     }
 }

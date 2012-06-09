@@ -524,7 +524,7 @@ namespace win_client.Services.Sync
 
             // [[deleteEvents copy] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
             List<CLEvent> deleteEventsCopy = new List<CLEvent>(deleteEvents);
-            addEventsCopy.ForEach(obj =>
+            deleteEventsCopy.ForEach(obj =>
             {
                 //    CLEvent deleteEvent = obj;
                 //    string eventAction = deleteEvent.Action;
@@ -650,22 +650,28 @@ namespace win_client.Services.Sync
             #endregion
         }
 
+
+        /// <summary>
+        /// This is a callback from the file system monitor.  FSM is presenting us with a list of events.
+        /// These are not CLEvents.  The eventsDictionary parameter is in a special format like:
+        ///     Dictionary
+	    ///         "event_count", 99999  // number of events in the group
+	    ///         "event_id", 99999     // last eid in group
+        ///         "events", Array
+        ///             Dictionary
+        ///                 "event", string (event name: One of the CLEventType* strings listed above)
+        ///                 "metadata", Dictionary
+        ///                     if eventName is RenameFile/Folder or MoveFile/Folder
+        ///                         "from_path", oldPath of the item (without the Cloud folder root)
+        ///                         "to_path", path of the item (without the Cloud folder root)
+        ///                     else eventName is NOT one of RenameFile/Folder or MoveFile/Folder
+        ///                         "path", path of the item (without the Cloud folder root)
+        ///                     endelse eventName is NOT one of RenameFile/Folder or MoveFile/Folder
+        /// <param name="eventsDictionary">Events in the format described above.</param>
+        /// </summary>
         //- (void)syncFromFileSystemMonitor: (CLFSMonitoringService *)fsm withGroupedUserEvents:(NSDictionary *)events
-        public void SyncFromFileSystemMonitorWithGroupedUserEvents(Dictionary<string, object> eventsDictionary)
+        public void SyncFromFileSystemMonitorWithGroupedUserEventsCallback(Dictionary<string, object> eventsDictionary)
         {
-            IEnumerable<Dictionary<string, object>> distictEvents = null;
-            object eventsValue = eventsDictionary["events"];
-            Array castEvents = eventsValue as Array;
-            if (castEvents != null)
-            {
-                distictEvents = castEvents.OfType<Dictionary<string, object>>()
-                    .Where(currentEvent => currentEvent.ContainsKey("event")
-                        && currentEvent.ContainsKey("metadata"))
-                    .Select((currentEvent, count) => new EventHolder() { Count = count, Event = currentEvent })
-                    .Distinct(EventComparer.Instance)
-                    .OrderBy(currentEvent => currentEvent.Count)
-                    .Select(currentEvent => currentEvent.Event);
-            }
 
             // NSString *sid;
             // if ([self.currentSIDs lastObject] != nil) {
@@ -687,17 +693,33 @@ namespace win_client.Services.Sync
             // NSMutableArray *eventList = [events objectForKey:CLSyncEvents];
             // NSMutableArray *fsmEvents = [NSMutableArray array];
             int eid = (int)eventsDictionary[CLDefinitions.CLEventKey];
-            Dictionary<string, object> eventList = (Dictionary<string, object>)eventsDictionary[CLDefinitions.CLSyncEvents];
-            List<CLEvent> fsmEvents = new List<CLEvent>();
 
-            
+            IEnumerable<Dictionary<string, object>> filteredEvents = null;
+            object eventsValue = eventsDictionary["events"];
+            Array castEvents = eventsValue as Array;
+
+            List<CLEvent> fsmEvents = new List<CLEvent>();
 
             // Filtering duplicate events
             // NSArray *filteredEvents = [self filterDuplicateEvents:eventList];
-            Dictionary<string, object> filteredEvents = eventList.Distinct();
-    
+            if (castEvents != null)
+            {
+                filteredEvents = castEvents.OfType<Dictionary<string, object>>()
+                    .Where(currentEvent => currentEvent.ContainsKey("event")
+                        && currentEvent.ContainsKey("metadata"))
+                    .Select((currentEvent, count) => new EventHolder() { Count = count, Event = currentEvent })
+                    .Distinct(EventComparer.Instance)
+                    .OrderBy(currentEvent => currentEvent.Count)
+                    .Select(currentEvent => currentEvent.Event);
+            }
+            else
+            {
+                _trace.writeToLog(1, "CLSyncService: SyncFromFileSystemMonitorWithGroupedUserEvents: ERROR: No events from file system monitor.");
+                return;
+            }
+
             // if ([eventList count] > 0) {
-            if (eventList.Count > 0)
+            if (filteredEvents.Count<Dictionary<string, object>>() > 0)
             {
                 // Update UI with activity.
                 //TODO: Update the UI with zero synced files.
@@ -714,14 +736,27 @@ namespace win_client.Services.Sync
                 //        [fsmEvents addObject:event];
                 //    }
                 //}];
-                filteredEvents.ForEach((fileSystemEvent) =>
+                // At this point, filteredEvents is an IEnumerable of Dictionary<string, object>, where each
+                // Dictionary looks like:
+                //             Dictionary
+                //                 "event", string (event name: One of the CLEventType* strings listed above)
+                //                 "metadata", Dictionary
+                //                     if eventName is RenameFile/Folder or MoveFile/Folder
+                //                         "from_path", oldPath of the item (without the Cloud folder root)
+                //                         "to_path", path of the item (without the Cloud folder root)
+                //                     else eventName is NOT one of RenameFile/Folder or MoveFile/Folder
+                //                         "path", path of the item (without the Cloud folder root)
+                //                     endelse eventName is NOT one of RenameFile/Folder or MoveFile/Folder
+                // We will iterate over this collection and build a CLEvent from each Dictionary.
+                foreach(Dictionary<string, object> fileSystemEvent in filteredEvents)
                 {
                     CLEvent evt = new CLEvent();
-                    CLMetadata fsEventMetadata = new CLMetadata((Dictionary<string, object>)((Dictionary<string, object>)fileSystemEvent)[CLDefinitions.CLSyncEventMetadata]);
+                    CLMetadata fsEventMetadata = new CLMetadata((Dictionary<string, object>)fileSystemEvent[CLDefinitions.CLSyncEventMetadata]);
                     evt.Metadata = fsEventMetadata;
                     evt.IsMDSEvent = false;
-                    evt.Action = (string)((Dictionary<string, object>)fileSystemEvent)[CLDefinitions.CLSyncEvent];
-                });
+                    evt.Action = (string)fileSystemEvent[CLDefinitions.CLSyncEvent];
+                    fsmEvents.Add(evt);
+                }
 
                 // Update events with metadata.
                 // fsmEvents = [self updateMetadataForFileEvents:fsmEvents];
@@ -729,6 +764,12 @@ namespace win_client.Services.Sync
                 //fsmEvents = UpdateMetadataForFileEvents(fsmEvents);
 
                 // Sorting.
+                // This results in the following:
+                //      Dictionary<string, object>
+                //          "type_add", List<CLEvent>  // list of add events
+                //          "type_modify", List<CLEvent>  // list of modify events
+                //          "type_rename_move", List<CLEvent>  // list of modify events
+                //          "type_delete", List<CLEvent>  // list of modify events
                 // NSDictionary *sortedEvents = [self sortSyncEventsByType:fsmEvents];
                 Dictionary<string, object> sortedEvents = SortSyncEventsByType(fsmEvents);
         
@@ -740,19 +781,19 @@ namespace win_client.Services.Sync
                 if (sortedEvents.Count > 0)
                 {                                       // we may have eliminated events while filtering them thru our index.
 
+                    // Adding objects to our active sync queue
+                    // This builds a new List<CLEvent> with all of the adds at the front, followed 
+                    // by the modifies, rename/moves and finally the deleted.
                     //NSMutableArray *sortedFSMEvents = [NSMutableArray array];
-                    //// Adding objects to our active sync queue
                     //[sortedFSMEvents addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeAdd]];
                     //[sortedFSMEvents addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeModify]];
                     //[sortedFSMEvents addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeRenameMove]];
                     //[sortedFSMEvents addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeDelete]];
                     List<CLEvent> sortedFsmEvents = new List<CLEvent>();
-
-                    // Adding objects to our active sync queue
-                    sortedFsmEvents.Add((CLEvent)sortedEvents[CLDefinitions.CLEventTypeAdd]);
-                    sortedFsmEvents.Add((CLEvent)sortedEvents[CLDefinitions.CLEventTypeModify]);
-                    sortedFsmEvents.Add((CLEvent)sortedEvents[CLDefinitions.CLEventTypeRenameMove]);
-                    sortedFsmEvents.Add((CLEvent)sortedEvents[CLDefinitions.CLEventTypeDelete]);
+                    sortedFsmEvents.AddRange((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeAdd]);
+                    sortedFsmEvents.AddRange((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeModify]);
+                    sortedFsmEvents.AddRange((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeRenameMove]);
+                    sortedFsmEvents.AddRange((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeDelete]);
 
                     // Dictionary< NSMutableDictionary *fsmEventsDictionary = [[CLEvent fsmDictionaryForCLEvents:fsmEvents] mutableCopy];
                     Dictionary<string, object> fsmEventsDictionary =  CLEvent.FsmDictionaryForCLEvents(fsmEvents);

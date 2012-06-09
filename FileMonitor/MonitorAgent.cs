@@ -1179,23 +1179,27 @@ namespace FileMonitor
                 }
 
                 // Build the metadata dictionary
-                Dictionary<string, string> metadata = new Dictionary<string, string>();
+                Dictionary<string, object> metadata = new Dictionary<string, object>();
                 // Format the time like "2012-03-20T19:50:25Z"
-                metadata.Add(CLDefinitions.CLMetadataFileCreateDate, sender.Metadata.HashableProperties.CreationTime.ToString("yyyy-mm-ddThh:mm:ssZ", CultureInfo.InvariantCulture));
+                metadata.Add(CLDefinitions.CLMetadataFileCreateDate, sender.Metadata.HashableProperties.CreationTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
                 metadata.Add(CLDefinitions.CLMetadataFromPath, sender.OldPath);
                 metadata.Add(CLDefinitions.CLMetadataCloudPath, sender.NewPath);
-                metadata.Add(CLDefinitions.CLMetadataToPath, "");       // not used?
+                metadata.Add(CLDefinitions.CLMetadataToPath, String.Empty);       // not used?
 
                 // Build the events dictionary
                 Dictionary<string, object> events = new Dictionary<string, object>();
                 events.Add(CLDefinitions.CLSyncEvent, action);             // just one in the group for now.
                 events.Add(CLDefinitions.CLSyncEventMetadata, metadata);
 
+                // Add this as an array of Dictionaries.
+                Dictionary<string, object>[] eventsArray = new Dictionary<string, object>[1];
+                eventsArray[0] = events;
+
                 // Build the dictionary to return.  Start by adding the last EventId and an event count of one.
                 Dictionary<string, object> eventsDictionary = new Dictionary<string, object>();
                 eventsDictionary.Add(CLDefinitions.CLEventKey, sender.EventId);
                 eventsDictionary.Add(CLDefinitions.CLEventCount, 1);
-                eventsDictionary.Add(CLDefinitions.CLSyncEvents, events);
+                eventsDictionary.Add(CLDefinitions.CLSyncEvents, eventsArray);
 
                 // Feed this group of one to the sync service.
                 this.OnProcessEventGroupCallback(eventsDictionary);

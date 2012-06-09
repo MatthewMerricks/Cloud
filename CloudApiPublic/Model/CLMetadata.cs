@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CloudApiPublic.Static;
 
 namespace CloudApiPublic.Model
 {
@@ -225,24 +226,25 @@ namespace CloudApiPublic.Model
         public CLMetadata(Dictionary<string, object> json)
         {
             if (json.Count() > 0) {
-                this.Path = (string)json[CLDefinitions.CLMetadataCloudPath];
-                this.ToPath = (string)json[CLDefinitions.CLMetadataToPath];
-                this.FromPath = (string)json[CLDefinitions.CLMetadataFromPath];
-                this.Revision = (string)json[CLDefinitions.CLMetadataFileRevision];
-                this.CreateDate = (string)json[CLDefinitions.CLMetadataFileCreateDate];
-                this.ModifiedDate = (string)json[CLDefinitions.CLMetadataFileModifiedDate];
-                this.IsDeleted = (bool)json[CLDefinitions.CLMetadataFileIsDeleted];
-                this.IsDirectory = (bool)json[CLDefinitions.CLMetadataFileIsDirectory];
-                this.Hash = (string)json[CLDefinitions.CLMetadataFileHash];
-                this.Size = (string)json[CLDefinitions.CLMetadataFileSize];
-                this.Version = (string)json[CLDefinitions.CLMetadataVersion];
-                this.Storage_key = (string)json[CLDefinitions.CLMetadataStorageKey];
-                this.LastEventID = (string)json[CLDefinitions.CLMetadataLastEventID];
+                this.Path = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataCloudPath, null);
+                this.ToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataToPath, null);
+                this.FromPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFromPath, null);
+                this.Revision = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileRevision, null);
+                this.CreateDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileCreateDate, null);
+                this.ModifiedDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileModifiedDate, null);
+                this.IsDeleted = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDeleted, false);
+                this.IsDirectory = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDirectory, false);
+                this.Hash = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileHash, null);
+                this.Size = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, null);
+                this.Version = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataVersion, null);
+                this.Storage_key = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataStorageKey, null);
+                this.LastEventID = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, null);
             }
         }
 
         public CLMetadata(bool /*FileSystemItem*/ fsItem)
         {
+            //TODO: Implement this constructor when we have a FileSystemItem from the index service.
             //this.Path = fsItem.Path;
             //this.CreateDate = fsItem.CreateDate;
             //this.ModifiedDate = fsItem.ModifiedDate;
@@ -255,6 +257,7 @@ namespace CloudApiPublic.Model
         }
         public static Dictionary<string, object> DictionaryFromMetadataItem(CLMetadata item)
         {
+            //TODO: Implement this method.
             //NSMutableDictionary metadata = NSMutableDictionary.Dictionary();
             //if (item.Path != null) {
             //    metadata.SetObjectForKey(item.Path, "path");
