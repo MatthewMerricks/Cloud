@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="FilePath"
+    targetNamespace="http://Cloud.com/FilePath.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://Cloud.com/FilePath.xsd"
+    xmlns:mstns="http://Cloud.com/FilePath.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:appinfo>Cloud.com FilePath XML Schema</xs:appinfo>
+    <xs:documentation xml:lang="en-us">
+      FilePath.xsd and resulting generated code
+      Cloud
+
+      Created by DavidBruck.
+
+      Copyright (c) Cloud.com. All rights reserved.
+
+      Manually copy this copyright declaration to the header of any generated code files created from this schema
+    </xs:documentation>
+  </xs:annotation>
+  <xs:complexType name="Copyright">
+    <xs:sequence>
+      <xs:element name="FileName" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Copyright" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Implementation of FileCreation.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved." />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Creator" minOccurs="1" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="FilePathOperations">
+    <xs:complexType>
+      <xs:choice minOccurs="2" maxOccurs="unbounded">
+        <xs:element type="Copyright" name="Copyright" minOccurs="1" maxOccurs="1" />
+        <xs:element type="xs:string" name="RootPath" minOccurs="1" maxOccurs="1" />
+        <xs:element name="FilePathOperation" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="Path" type="xs:string" minOccurs="1" />
+              <xs:element name="PreviousPath" type="xs:string" minOccurs="0" />
+              <xs:element name="Operation" minOccurs="1">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="Add" />
+                    <xs:enumeration value="Remove" />
+                    <xs:enumeration value="Replace" />
+                    <xs:enumeration value="Rename" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

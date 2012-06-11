@@ -54,7 +54,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Label Content="File System Monitoring:" />
             <Label Name="OpenFolderText" PreviewMouseDown="OpenFolderText_PreviewMouseDown" Content="Click here to select folder" Grid.Row="1" />
@@ -62,9 +62,7 @@
             <Button Name="CreateTestFiles" Content="Create Test Files" Click="CreateTestFiles_Click" Grid.Row="3" />
             <Button Name="FinalizeMonitorAgentTestLog" Content="Finalize Monitor Agent Test Log" Click="FinalizeMonitorAgentTestLog_Click" Grid.Row="4" />
             <Button Name="ClearFolderAndLog" Content="Clear Folder and Log" Click="ClearFolderAndLog_Click" Grid.Row="5" />
-            <ScrollViewer Grid.Row="6">
-                <TextBlock Name="MonitorText" />
-            </ScrollViewer>
+            <Button Name="FilePathTests" Content="File Path Tests" Click="FilePathTests_Click" Grid.Row="6" />
         </Grid>
     </Grid>
 </Window>

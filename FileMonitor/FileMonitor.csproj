@@ -43,6 +43,12 @@
     <Compile Include="Enums.cs" />
     <Compile Include="FileChange.cs" />
     <Compile Include="FileMetadata.cs" />
+    <Compile Include="FilePath\FilePath.cs" />
+    <Compile Include="FilePath\FilePathComparer.cs" />
+    <Compile Include="FilePath\FilePathDictionary.cs" />
+    <Compile Include="FilePath\FlattenedFilePathDictionaryKeys.cs" />
+    <Compile Include="FilePath\FlattenedFilePathDictionaryPairs.cs" />
+    <Compile Include="FilePath\FlattenedFilePathDictionaryValues.cs" />
     <Compile Include="MonitorAgent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -61,6 +67,10 @@
     <ProjectReference Include="..\BadgeNET\BadgeNET.csproj">
       <Project>{77014147-1a34-4bf6-8fc4-3c85984f8e2e}</Project>
       <Name>BadgeNET</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CloudApiPrivate\CloudApiPrivate.csproj">
+      <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
+      <Name>CloudApiPrivate</Name>
     </ProjectReference>
     <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>

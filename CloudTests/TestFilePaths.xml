@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FilePathOperations xmlns="http://Cloud.com/FilePath.xsd">
+  <Copyright>
+    <FileName>TestFilePaths.xml</FileName>
+    <Copyright>Implementation of FileCreation.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved.</Copyright>
+    <Creator>DavidBruck</Creator>
+  </Copyright>
+  <RootPath>C:\</RootPath>
+  <FilePathOperation>
+    <Operation>Add</Operation>
+    <Path>C:\A</Path>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Add</Operation>
+    <Path>C:\B</Path>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Add</Operation>
+    <Path>C:\A\C\D.txt</Path>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Remove</Operation>
+    <Path>C:\B</Path>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Rename</Operation>
+    <Path>C:\B</Path>
+    <PreviousPath>C:\A\C</PreviousPath>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Add</Operation>
+    <Path>C:\B\C</Path>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Add</Operation>
+    <Path>C:\B\C\E.txt</Path>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Rename</Operation>
+    <Path>C:\A\F</Path>
+    <PreviousPath>C:\B</PreviousPath>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Remove</Operation>
+    <Path>C:\A\F\C</Path>
+  </FilePathOperation>
+</FilePathOperations>
