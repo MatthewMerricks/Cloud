@@ -17,30 +17,36 @@ namespace FileMonitor
             }
         }
         private string _name;
-        public FilePath Parent
-        {
-            get
-            {
-                return _parent;
-            }
-        }
-        private FilePath _parent;
+        public FilePath Parent { get; set; }
 
         public FilePath(string name, FilePath parent = null)
         {
             this._name = name;
-            this._parent = parent;
+            this.Parent = parent;
+        }
+
+        public FilePath Copy()
+        {
+            if (this.Parent == null)
+            {
+                return new FilePath(this.Name);
+            }
+            else
+            {
+                return new FilePath(this.Name,
+                    this.Parent.Copy());
+            }
         }
 
         public override string ToString()
         {
-            if (_parent == null)
+            if (this.Parent == null)
             {
                 return Name;
             }
             else
             {
-                return ((FilePath)_parent).ToString() + "\\" + Name;
+                return ((FilePath)this.Parent).ToString() + "\\" + Name;
             }
         }
 

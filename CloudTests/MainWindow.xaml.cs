@@ -18,6 +18,7 @@ using System.Windows.Shapes;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using CloudApiPrivate.Common;
+using CloudApiPublic.Model;
 using FileMonitor;
 
 namespace CloudTests
@@ -761,15 +762,27 @@ namespace CloudTests
             }
         }
 
-        private static XmlSerializer FilePathSerializer = new XmlSerializer(typeof(FilePathHolder.FilePathOperations));
-        private void GenericTests_Click(object sender, RoutedEventArgs e)
+        private class IntHolder
         {
-            string basePath = "C:\\Users\\Public\\Documents\\CreateFileTests";
-            FilePathDictionary<FileMetadata> myData = new FilePathDictionary<FileMetadata>(new DirectoryInfo(basePath),
-                RecursiveDeleteCallback,
-                null,
-                null);
+            public int Value { get; set; }
+            public static int NewValue
+            {
+                get
+                {
+                    lock (NewValueLocker)
+                    {
+                        _valueCounter++;
+                        return _valueCounter;
+                    }
+                }
+            }
+            private static int _valueCounter = 0;
+            private static object NewValueLocker = new object();
+        }
 
+        private static XmlSerializer FilePathSerializer = new XmlSerializer(typeof(FilePathHolder.FilePathOperations));
+        private void FilePathTests_Click(object sender, RoutedEventArgs e)
+        {
             FilePathHolder.FilePathOperations operations;
             using (FileStream pathStream = new FileStream("TestFilePaths.xml", FileMode.Open))
             {
@@ -778,14 +791,58 @@ namespace CloudTests
                     operations = (FilePathHolder.FilePathOperations)FilePathSerializer.Deserialize(pathReader);
                 }
             }
-
-            foreach (FilePathHolder.FilePathOperationsFilePathOperation in operations)
+            string basePath = null;
+            foreach (object currentOperationObject in operations.Items)
             {
+                if (currentOperationObject is string)
+                {
+                    basePath = (string)currentOperationObject;
+                    break;
+                }
+            }
 
+            FilePathDictionary<IntHolder> myData;
+            CLError dictionaryCreationError = FilePathDictionary<IntHolder>.CreateAndInitialize(new DirectoryInfo(basePath),
+                out myData,
+                RecursiveDeleteCallback,
+                RecursiveRenameCallback,
+                null);
+
+            foreach (object currentOperationObject in operations.Items)
+            {
+                FilePathHolder.FilePathOperationsFilePathOperation castOperation = currentOperationObject as FilePathHolder.FilePathOperationsFilePathOperation;
+                if (castOperation != null)
+                {
+                    switch (castOperation.Operation)
+                    {
+                        case FilePathHolder.FilePathOperationsFilePathOperationOperation.Add:
+                            myData.Add(new FileInfo(castOperation.Path), new IntHolder()
+                            {
+                                Value = IntHolder.NewValue
+                            });
+                            break;
+                        case FilePathHolder.FilePathOperationsFilePathOperationOperation.Remove:
+                            myData.Remove(new FileInfo(castOperation.Path));
+                            break;
+                        case FilePathHolder.FilePathOperationsFilePathOperationOperation.Rename:
+                            myData.Rename(new FileInfo(castOperation.PreviousPath), new FileInfo(castOperation.Path));
+                            foreach (KeyValuePair<FilePath, IntHolder> afterRename in myData)
+                            {
+                            }
+                            break;
+                        case FilePathHolder.FilePathOperationsFilePathOperationOperation.Replace:
+                            myData[new FileInfo(castOperation.Path)] = new IntHolder() { Value = IntHolder.NewValue };
+                            break;
+                    }
+                }
             }
         }
 
-        private void RecursiveDeleteCallback(FilePath sender, RecursiveDeleteArgs<FileMetadata> args)
+        private void RecursiveDeleteCallback(FilePath path, IntHolder args)
+        {
+        }
+
+        private void RecursiveRenameCallback(FilePath oldPath, FilePath newPath, IntHolder args)
         {
         }
     }

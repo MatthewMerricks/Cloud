@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CloudApiPrivate.Common;
+using CloudApiPublic.Model;
 
 namespace FileMonitor
 {
@@ -13,8 +14,8 @@ namespace FileMonitor
         #region private members
         private FilePath CurrentFilePath;
         private T CurrentValue;
-        private Action<FilePath, RecursiveDeleteArgs<T>> recursiveDeleteCallback;
-        private Action<FilePath, RecursiveRenameArgs<T>> recursiveRenameCallback;
+        private Action<FilePath, T> recursiveDeleteCallback;
+        private Action<FilePath, FilePath, T> recursiveRenameCallback;
         #endregion
 
         #region private collection members
@@ -23,97 +24,105 @@ namespace FileMonitor
         private int _count;
         #endregion
 
-        public FilePathDictionary(FilePath rootPath,
-            Action<FilePath, RecursiveDeleteArgs<T>> recursiveDeleteCallback = null,
-            Action<FilePath, RecursiveRenameArgs<T>> recursiveRenameCallback = null,
-            T valueAtFolder = null)
-        {
-            this.CurrentFilePath = rootPath;
-            this.CurrentValue = valueAtFolder;
-            if (this.CurrentValue == null)
-            {
-                _count = 0;
-            }
-            else
-            {
-                _count = 1;
-            }
-            this.recursiveDeleteCallback = recursiveDeleteCallback;
-            this.recursiveRenameCallback = recursiveRenameCallback;
-        }
+        private FilePathDictionary() { }
 
         #region non-interface public methods
-        public void Rename(FilePath oldPath, FilePath newPath)
+        public static CLError CreateAndInitialize(FilePath rootPath,
+            out FilePathDictionary<T> pathDictionary,
+            Action<FilePath, T> recursiveDeleteCallback = null,
+            Action<FilePath, FilePath, T> recursiveRenameCallback = null,
+            T valueAtFolder = null)
         {
-            if (FilePathComparer.Instance.Equals(oldPath, newPath))
+            try
             {
-                throw new Exception("oldPath and newPath cannot be the same");
+                pathDictionary = new FilePathDictionary<T>();
             }
-            if (FilePathComparer.Instance.Equals(CurrentFilePath, oldPath))
+            catch (Exception ex)
             {
-                CurrentFilePath = newPath;
+                pathDictionary = null;
+                return ex;
+            }
+            try
+            {
+                if (rootPath == null)
+                {
+                    throw new Exception("rootPath cannot be null");
+                }
+                pathDictionary.CurrentFilePath = rootPath;
+                pathDictionary.CurrentValue = valueAtFolder;
+                if (pathDictionary.CurrentValue == null)
+                {
+                    pathDictionary._count = 0;
+                }
+                else
+                {
+                    pathDictionary._count = 1;
+                }
+                pathDictionary.recursiveDeleteCallback = recursiveDeleteCallback;
+                pathDictionary.recursiveRenameCallback = recursiveRenameCallback;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
 
-                if (pathsAtCurrentLevel != null)
-                {
-                    foreach (KeyValuePair<FilePath, T> currentLevelPath in pathsAtCurrentLevel.ToArray())
-                    {
-                        recursiveRenameCallback(currentLevelPath.Key, currentLevelPath.Value);
-                        if (pathsAtCurrentLevel.Remove(currentLevelPath))
-                        {
-                            
-                        }
-                        else
-                        {
-                        }
-                    }
-                }
-            }
-            else if (pathsAtCurrentLevel != null && pathsAtCurrentLevel.ContainsKey(oldPath))
+        public CLError Rename(FilePath oldPath, FilePath newPath)
+        {
+            try
             {
-                T oldValue = pathsAtCurrentLevel[oldPath];
-                if (pathsAtCurrentLevel.Remove(oldPath))
+                if (oldPath == null)
                 {
-                    pathsAtCurrentLevel.Add(newPath, oldValue);
+                    throw new Exception("oldPath cannot be null");
+                }
+                if (newPath == null)
+                {
+                    throw new Exception("newPath cannot be null");
+                }
+                if (FilePathComparer.Instance.Equals(oldPath, newPath))
+                {
+                    throw new Exception("oldPath and newPath cannot be the same");
+                }
+
+                Func<FilePath, FilePath, FilePath> findOverlappingPath = (anonOldPath, anonNewPath) =>
+                    {
+                        FilePath recurseOldPath;
+                        FilePath recurseNewPath = anonNewPath;
+                        while (recurseNewPath != null)
+                        {
+                            recurseOldPath = anonOldPath;
+                            while (recurseOldPath != null)
+                            {
+                                if (FilePathComparer.Instance.Equals(recurseOldPath, recurseNewPath))
+                                {
+                                    return recurseNewPath;
+                                }
+
+                                recurseOldPath = recurseOldPath.Parent;
+                            }
+
+                            recurseNewPath = recurseNewPath.Parent;
+                        }
+                        return null;
+                    };
+
+                FilePath overlappingPath = findOverlappingPath(oldPath, newPath);
+
+                if (FilePathComparer.Instance.Equals(overlappingPath, this.CurrentFilePath))
+                {
+                    Rename(oldPath, newPath, null, this, this);
                 }
                 else
                 {
-                    throw new Exception("Removal of path at current level by key returned false");
+                    Rename(oldPath, newPath, overlappingPath, null, this);
                 }
             }
-            else if (innerFolders != null)
+            catch (Exception ex)
             {
-                if (innerFolders.ContainsKey(oldPath))
-                {
-                    FilePathDictionary<T> oldValue = innerFolders[oldPath];
-                    if (recursiveRenameCallback != null)
-                    {
-                        foreach (FilePath innerPath in oldValue.Keys)
-                        {
-                            
-                        }
-                        
-                        foreach (KeyValuePair<FilePath, T> innerPath in oldValue)
-                        {
-                            recursiveRenameCallback(innerPath.Key, new RecursiveRenameArgs<T>(innerPath.Value));
-                        }
-                    }
-                    if (innerFolders.Remove(oldPath))
-                    {
-                        innerFolders.Add(newPath, oldValue);
-                    }
-                    else
-                    {
-                        throw new Exception("Removal of inner folder path by key returned false");
-                    }
-                }
-                else
-                {
-                }
+                return ex;
             }
-            else
-            {
-                throw new Exception("oldPath not found in dictionary");
-            }
+            return null;
         }
         #endregion
 
@@ -124,25 +133,31 @@ namespace FileMonitor
         {
             get
             {
+                FilePath[] currentKeyAsArray = this.CurrentValue == null
+                    ? new FilePath[0]
+                    : new FilePath[] { this.CurrentFilePath };
                 if (innerFolders == null)
                 {
                     if (pathsAtCurrentLevel == null)
                     {
-                        return new FilePath[0];
+                        return currentKeyAsArray;
                     }
                     else
                     {
-                        return pathsAtCurrentLevel.Keys;
+                        return new CombinedCollection<FilePath>(pathsAtCurrentLevel.Keys,
+                            currentKeyAsArray);
                     }
                 }
                 else if (pathsAtCurrentLevel == null)
                 {
-                    return new FlattenedFilePathDictionaryKeys<T>(innerFolders.Values);
+                    return new CombinedCollection<FilePath>(new FlattenedFilePathDictionaryKeys<T>(innerFolders.Values),
+                        currentKeyAsArray);
                 }
                 else
                 {
-                    return new CombinedCollection<FilePath>(new FlattenedFilePathDictionaryKeys<T>(innerFolders.Values),
-                        pathsAtCurrentLevel.Keys);
+                    return new CombinedCollection<FilePath>(new CombinedCollection<FilePath>(new FlattenedFilePathDictionaryKeys<T>(innerFolders.Values),
+                            pathsAtCurrentLevel.Keys),
+                        currentKeyAsArray);
                 }
             }
         }
@@ -219,14 +234,14 @@ namespace FileMonitor
                 {
                     throw new Exception("Cannot set index to null value");
                 }
-                Exception notFoundException = new Exception("Previous value not found for provided FilePath key");
+                Func<Exception> notFoundException = () => new Exception("Previous value not found for provided FilePath key");
                 if (pathsAtCurrentLevel != null && pathsAtCurrentLevel.ContainsKey(key))
                 {
                     pathsAtCurrentLevel[key] = value;
                 }
                 else if (innerFolders == null)
                 {
-                    throw notFoundException;
+                    throw notFoundException();
                 }
                 else if (innerFolders.ContainsKey(key))
                 {
@@ -250,7 +265,7 @@ namespace FileMonitor
                     }
                     if (recurseParent == null)
                     {
-                        throw notFoundException;
+                        throw notFoundException();
                     }
                 }
             }
@@ -281,10 +296,10 @@ namespace FileMonitor
                 rootChild = rootSearch;
                 rootSearch = rootSearch.Parent;
             }
-            Exception alreadyExistsException = new Exception("FilePath key already exists in collection");
+            Func<Exception> alreadyExistsException = () => new Exception("FilePath key already exists in collection");
             if (!rootSearchStarted)
             {
-                throw alreadyExistsException;
+                throw alreadyExistsException();
             }
             if (existingInnerFolder == null)
             {
@@ -305,8 +320,15 @@ namespace FileMonitor
                         {
                             innerFolders = new Dictionary<FilePath, FilePathDictionary<T>>(FilePathComparer.Instance);
                         }
-                        FilePathDictionary<T> innerFolder = new FilePathDictionary<T>(rootChild,
-                            this.recursiveDeleteCallback);
+                        FilePathDictionary<T> innerFolder;
+                        CLError innerFolderError = FilePathDictionary<T>.CreateAndInitialize(rootChild,
+                            out innerFolder,
+                            this.recursiveDeleteCallback,
+                            this.recursiveRenameCallback);
+                        if (innerFolderError != null)
+                        {
+                            throw (Exception)innerFolderError.errorInfo[CLError.ErrorInfo_Exception];
+                        }
                         innerFolder.Add(key, value);
                         _count++;
                         innerFolders.Add(rootChild, innerFolder);
@@ -314,7 +336,7 @@ namespace FileMonitor
                 }
                 else if (FilePathComparer.Instance.Equals(existingCurrentPath, key))
                 {
-                    throw alreadyExistsException;
+                    throw alreadyExistsException();
                 }
                 else
                 {
@@ -322,23 +344,43 @@ namespace FileMonitor
                     {
                         innerFolders = new Dictionary<FilePath, FilePathDictionary<T>>(FilePathComparer.Instance);
                     }
-                    FilePathDictionary<T> innerFolder = new FilePathDictionary<T>(rootChild,
+                    FilePathDictionary<T> innerFolder;
+                    CLError innerFolderError = FilePathDictionary<T>.CreateAndInitialize(rootChild,
+                        out innerFolder,
                         this.recursiveDeleteCallback,
                         this.recursiveRenameCallback,
                         pathsAtCurrentLevel[existingCurrentPath]);
+                    if (innerFolderError != null)
+                    {
+                        throw (Exception)innerFolderError.errorInfo[CLError.ErrorInfo_Exception];
+                    }
+                    _count++;
                     innerFolder.Add(key, value);
                     innerFolders.Add(rootChild, innerFolder);
                     pathsAtCurrentLevel.Remove(rootChild);
                 }
             }
-            else if (FilePathComparer.Instance.Equals((FilePath)existingInnerFolder, key))
-            {
-                throw alreadyExistsException;
-            }
             else
             {
-                _count++;
-                innerFolders[(FilePath)existingInnerFolder].Add(key, value);
+                FilePathDictionary<T> checkCurrentValue = innerFolders[(FilePath)existingInnerFolder];
+                if (FilePathComparer.Instance.Equals((FilePath)existingInnerFolder, key))
+                {
+                    if (checkCurrentValue.CurrentValue == null)
+                    {
+                        _count++;
+                        checkCurrentValue._count++;
+                        checkCurrentValue.CurrentValue = value;
+                    }
+                    else
+                    {
+                        throw alreadyExistsException();
+                    }
+                }
+                else
+                {
+                    _count++;
+                    checkCurrentValue.Add(key, value);
+                }
             }
         }
 
@@ -465,7 +507,7 @@ namespace FileMonitor
             {
                 foreach (KeyValuePair<FilePath, T> currentLevelPath in pathsAtCurrentLevel)
                 {
-                    recursiveDeleteCallback(currentLevelPath.Key, new RecursiveDeleteArgs<T>(currentLevelPath.Value));
+                    recursiveDeleteCallback(currentLevelPath.Key, currentLevelPath.Value);
                 }
                 pathsAtCurrentLevel.Clear();
             }
@@ -475,7 +517,7 @@ namespace FileMonitor
                 {
                     if (currentInnerFolder.CurrentValue != null)
                     {
-                        recursiveDeleteCallback(currentInnerFolder.CurrentFilePath, new RecursiveDeleteArgs<T>(currentInnerFolder.CurrentValue));
+                        recursiveDeleteCallback(currentInnerFolder.CurrentFilePath, currentInnerFolder.CurrentValue);
                     }
                     currentInnerFolder.Clear();
                 }
@@ -562,6 +604,197 @@ namespace FileMonitor
                 return new CombinedCollection<KeyValuePair<FilePath, T>>(new CombinedCollection<KeyValuePair<FilePath, T>>(new FlattenedFilePathDictionaryPairs<T>(innerFolders.Values),
                         pathsAtCurrentLevel),
                     currentValueAsArray);
+            }
+        }
+
+        private void Rename(FilePath oldPath, FilePath newPath, FilePath overlappingPath, FilePathDictionary<T> overlappingRoot, FilePathDictionary<T> globalRoot)
+        {
+            Func<Exception> oldPathNotFound = () => new Exception("oldPath not found in dictionary");
+            if (overlappingPath == null)
+            {
+                if (overlappingRoot == null)
+                {
+                    if (FilePathComparer.Instance.Equals(oldPath, this.CurrentFilePath))
+                    {
+                        //Todo: add support for a rename of the root path
+                        throw new NotSupportedException("Moving or renaming root directly not supported");
+                    }
+                    else
+                    {
+                        throw new Exception("Cannot move file or folder outside root path");
+                    }
+                }
+                else if (pathsAtCurrentLevel != null && pathsAtCurrentLevel.ContainsKey(oldPath))
+                {
+                    if (overlappingRoot.ContainsKey(newPath))
+                    {
+                        throw new Exception("Item already exists at newPath");
+                    }
+                    T previousValue = pathsAtCurrentLevel[oldPath];
+
+                    // Need to manually decrease the _count variable from the overlappiongRoot on down since we cannot remove
+                    FilePathDictionary<T> manualCountDecrement = overlappingRoot;
+                    while (manualCountDecrement != this)
+                    {
+                        if (manualCountDecrement.innerFolders == null)
+                        {
+                            throw new Exception("Internal dictionary error, ensure synchronized access");
+                        }
+                        manualCountDecrement._count--;
+
+                        FilePath recurseCountDecrement = oldPath.Parent;
+                        while (recurseCountDecrement != null)
+                        {
+                            if (manualCountDecrement.innerFolders.ContainsKey(recurseCountDecrement))
+                            {
+                                manualCountDecrement = manualCountDecrement.innerFolders[recurseCountDecrement];
+                                break;
+                            }
+
+                            recurseCountDecrement = recurseCountDecrement.Parent;
+                        }
+                    }
+                    this._count--;
+                    pathsAtCurrentLevel.Remove(oldPath);
+
+                    globalRoot.Add(newPath, previousValue);
+                }
+                else if (innerFolders == null)
+                {
+                    throw oldPathNotFound();
+                }
+                else if (innerFolders.ContainsKey(oldPath))
+                {
+                    FilePathDictionary<T> innerFolder = innerFolders[oldPath];
+                    Action<FilePathDictionary<T>, FilePathDictionary<T>, FilePathDictionary<T>, KeyValuePair<FilePath, T>, FilePath, FilePath, Action<FilePath, FilePath, T>> processInnerRename =
+                        (renameRoot, renameFolder, renameGlobal, renamePair, renameNewPath, renameOldPath, renameCallback) =>
+                        {
+                            FilePath rebuiltNewPath, oldPathChild;
+                            rebuiltNewPath = oldPathChild = renamePair.Key.Copy();
+                            while (oldPathChild.Parent != null)
+                            {
+                                if (FilePathComparer.Instance.Equals(renameOldPath, oldPathChild.Parent))
+                                {
+                                    break;
+                                }
+
+                                oldPathChild = oldPathChild.Parent;
+                            }
+                            if (oldPathChild.Parent == null)
+                            {
+                                throw new Exception("Internal dictionary error, ensure synchronized access");
+                            }
+                            oldPathChild.Parent = renameNewPath;
+
+                            renameFolder.Rename(renamePair.Key,
+                                rebuiltNewPath,
+                                null,
+                                renameRoot,
+                                renameGlobal);
+
+                            if (renameCallback != null
+                                && renamePair.Value != null)
+                            {
+                                renameCallback(renamePair.Key, rebuiltNewPath, renamePair.Value);
+                            }
+                        };
+                    if (innerFolder.innerFolders != null)
+                    {
+                        foreach (KeyValuePair<FilePath, FilePathDictionary<T>> recurseRename in innerFolder.innerFolders.ToArray())
+                        {
+                            processInnerRename(overlappingRoot,
+                                innerFolder,
+                                globalRoot,
+                                new KeyValuePair<FilePath, T>(recurseRename.Key, recurseRename.Value.CurrentValue),
+                                newPath,
+                                oldPath,
+                                recursiveRenameCallback);
+                        }
+                    }
+                    if (innerFolder.pathsAtCurrentLevel != null)
+                    {
+                        foreach (KeyValuePair<FilePath, T> recurseRename in innerFolder.pathsAtCurrentLevel.ToArray())
+                        {
+                            processInnerRename(overlappingRoot,
+                                innerFolder,
+                                globalRoot,
+                                recurseRename,
+                                newPath,
+                                oldPath,
+                                recursiveRenameCallback);
+                        }
+                    }
+                    if (innerFolder.CurrentValue != null)
+                    {
+                        T storeCurrentValue = innerFolder.CurrentValue;
+                        if (!globalRoot.Remove(oldPath))
+                        {
+                            throw new Exception("Internal dictionary error, ensure synchronized access");
+                        }
+                        globalRoot.Add(newPath, storeCurrentValue);
+                    }
+                }
+                else
+                {
+                    FilePath recurseOldPath = oldPath.Parent;
+                    while (recurseOldPath != null)
+                    {
+                        if (innerFolders.ContainsKey(recurseOldPath))
+                        {
+                            innerFolders[recurseOldPath].Rename(oldPath,
+                                newPath,
+                                null,
+                                overlappingRoot,
+                                globalRoot);
+                            break;
+                        }
+
+                        recurseOldPath = recurseOldPath.Parent;
+                    }
+                    if (recurseOldPath == null)
+                    {
+                        throw oldPathNotFound();
+                    }
+                }
+            }
+            else if (this.innerFolders == null)
+            {
+                throw oldPathNotFound();
+            }
+            else
+            {
+                bool innerFolderIsOverlappingRoot = true;
+                FilePath recurseOverlappingPath = overlappingPath;
+                while (recurseOverlappingPath != null)
+                {
+                    if (this.innerFolders.ContainsKey(recurseOverlappingPath))
+                    {
+                        FilePathDictionary<T> newOverlappingRoot = this.innerFolders[recurseOverlappingPath];
+                        if (innerFolderIsOverlappingRoot)
+                        {
+                            newOverlappingRoot.Rename(oldPath,
+                                newPath,
+                                null,
+                                newOverlappingRoot,
+                                globalRoot);
+                        }
+                        else
+                        {
+                            newOverlappingRoot.Rename(oldPath,
+                                newPath,
+                                overlappingPath,
+                                null,
+                                globalRoot);
+                        }
+                    }
+                    innerFolderIsOverlappingRoot = false;
+
+                    recurseOverlappingPath = recurseOverlappingPath.Parent;
+                }
+                if (recurseOverlappingPath == null)
+                {
+                    throw oldPathNotFound();
+                }
             }
         }
         #endregion

@@ -5,21 +5,43 @@
     <Copyright>Implementation of FileCreation.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved.</Copyright>
     <Creator>DavidBruck</Creator>
   </Copyright>
+  <RootPath>C:\</RootPath>
   <FilePathOperation>
-    <Path>C:\myDir\</Path>
     <Operation>Add</Operation>
+    <Path>C:\A</Path>
   </FilePathOperation>
   <FilePathOperation>
-    <Path>C:\myDir\file.txt</Path>
     <Operation>Add</Operation>
+    <Path>C:\B</Path>
   </FilePathOperation>
   <FilePathOperation>
-    <Path>C:\myDir\innerDir</Path>
     <Operation>Add</Operation>
+    <Path>C:\A\C\D.txt</Path>
   </FilePathOperation>
   <FilePathOperation>
-    <Path>C:\myDir\innerDir\file.txt</Path>
-    <PreviousPath>C:\myDir\file.txt</PreviousPath>
+    <Operation>Remove</Operation>
+    <Path>C:\B</Path>
+  </FilePathOperation>
+  <FilePathOperation>
     <Operation>Rename</Operation>
+    <Path>C:\B</Path>
+    <PreviousPath>C:\A\C</PreviousPath>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Add</Operation>
+    <Path>C:\B\C</Path>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Add</Operation>
+    <Path>C:\B\C\E.txt</Path>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Rename</Operation>
+    <Path>C:\A\F</Path>
+    <PreviousPath>C:\B</PreviousPath>
+  </FilePathOperation>
+  <FilePathOperation>
+    <Operation>Remove</Operation>
+    <Path>C:\A\F\C</Path>
   </FilePathOperation>
 </FilePathOperations>

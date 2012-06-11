@@ -98,10 +98,6 @@ namespace FileMonitor
                         {
                             yield return itemFromInnerCollection;
                         }
-                        if (currentInnerCollection.CurrentValue != null)
-                        {
-                            yield return currentInnerCollection.CurrentFilePath;
-                        }
                     }
                 }
             }
