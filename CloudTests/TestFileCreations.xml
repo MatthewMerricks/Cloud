@@ -11,51 +11,62 @@
       <IsFolder>true</IsFolder>
       <Type>Create</Type>
     </SingleFileOperation>
+  </ParallelFileOperationSet>
+  <ParallelFileOperationSet>
     <SingleFileOperation>
-      <NewRelativePath>file1.txt</NewRelativePath>
+      <NewRelativePath>MyFolder\StreamingFile.txt</NewRelativePath>
       <IsFolder>false</IsFolder>
-      <Type>Create</Type>
+      <Type>Stream</Type>
       <Data>
-        <SpecificData>AddMe</SpecificData>
+        <SpecificData>AppendStream</SpecificData>
+      </Data>
+      <MillisecondDelayBetweenStreamIterations>50</MillisecondDelayBetweenStreamIterations>
+      <StreamIterations>5000</StreamIterations>
+    </SingleFileOperation>
+    <SingleFileOperation>
+      <NewRelativePath>UnlockedFile.txt</NewRelativePath>
+      <IsFolder>false</IsFolder>
+      <Type>UnlockedAppend</Type>
+      <Data>
+        <SpecificData>AppendUnlocked</SpecificData>
       </Data>
     </SingleFileOperation>
   </ParallelFileOperationSet>
   <ParallelFileOperationSet>
     <SingleFileOperation>
-      <NewRelativePath>MyFolder\file1.txt</NewRelativePath>
-      <OldRelativePath>file1.txt</OldRelativePath>
+      <NewRelativePath>File1.txt</NewRelativePath>
+      <IsFolder>false</IsFolder>
+      <Type>LockedModify</Type>
+      <Data>
+        <SpecificData>AppendLocked</SpecificData>
+      </Data>
+      <MinimumWaitOnLockedModify>1000</MinimumWaitOnLockedModify>
+    </SingleFileOperation>
+    <SingleFileOperation>
+      <NewRelativePath>MyFolder\File1.txt</NewRelativePath>
+      <IsFolder>false</IsFolder>
+      <Type>Create</Type>
+      <Data>
+        <SpecificData>Created</SpecificData>
+      </Data>
+    </SingleFileOperation>
+  </ParallelFileOperationSet>
+  <ParallelFileOperationSet>
+    <SingleFileOperation>
+      <NewRelativePath>File1.txt</NewRelativePath>
+      <OldRelativePath>MyFolder\File1.txt</OldRelativePath>
       <IsFolder>false</IsFolder>
       <Type>Rename</Type>
     </SingleFileOperation>
   </ParallelFileOperationSet>
   <ParallelFileOperationSet>
     <SingleFileOperation>
-      <NewRelativePath>file1.txt</NewRelativePath>
-      <OldRelativePath>MyFolder\file1.txt</OldRelativePath>
+      <NewRelativePath>File1.txt</NewRelativePath>
       <IsFolder>false</IsFolder>
-      <Type>Rename</Type>
-    </SingleFileOperation>
-  </ParallelFileOperationSet>
-  <ParallelFileOperationSet>
-    <SingleFileOperation>
-      <NewRelativePath>file.txt</NewRelativePath>
-      <OldRelativePath>file1.txt</OldRelativePath>
-      <IsFolder>false</IsFolder>
-      <Type>Rename</Type>
-    </SingleFileOperation>
-    <SingleFileOperation>
-      <NewRelativePath>AnotherFolder</NewRelativePath>
-      <OldRelativePath>MyFolder</OldRelativePath>
-      <IsFolder>true</IsFolder>
-      <Type>Rename</Type>
-    </SingleFileOperation>
-  </ParallelFileOperationSet>
-  <ParallelFileOperationSet>
-    <SingleFileOperation>
-      <NewRelativePath>AnotherFolder\file.txt</NewRelativePath>
-      <OldRelativePath>file.txt</OldRelativePath>
-      <IsFolder>false</IsFolder>
-      <Type>Rename</Type>
+      <Type>UnlockedAppend</Type>
+      <Data>
+        <SpecificData>AppendAfterRename</SpecificData>
+      </Data>
     </SingleFileOperation>
   </ParallelFileOperationSet>
 </FileCreation>

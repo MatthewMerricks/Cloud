@@ -21,10 +21,6 @@ namespace FileMonitor
         /// Section of comparable properties used to determine uniqueness of a file change
         /// </summary>
         public FileMetadataHashableProperties HashableProperties { get; set; }
-        /// <summary>
-        /// MD5 checksum for file identity (null for folders)
-        /// </summary>
-        public byte[] MD5 { get; set; }
     }
     /// <summary>
     /// Comparable properties used to determine uniqueness of a file change

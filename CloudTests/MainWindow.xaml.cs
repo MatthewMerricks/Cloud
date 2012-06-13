@@ -276,16 +276,14 @@ namespace CloudTests
                 //
                 //</FileChange>
                 AppendFileChangeProcessedLogXmlString(new XElement("FileChange",
-                    new XElement("NewPath", new XText(sender.NewPath)),
-                    sender.OldPath == null ? null : new XElement("OldPath", new XText(sender.OldPath)),
+                    new XElement("NewPath", new XText(sender.NewPath.ToString())),
+                    sender.OldPath == null ? null : new XElement("OldPath", new XText(sender.OldPath.ToString())),
                     new XElement("IsFolder", new XText(sender.Metadata.HashableProperties.IsFolder.ToString())),
                     new XElement("Type", new XText(sender.Type.ToString())),
                     new XElement("LastTime", new XText(sender.Metadata.HashableProperties.LastTime.Ticks.ToString())),
                     new XElement("CreationTime", new XText(sender.Metadata.HashableProperties.CreationTime.Ticks.ToString())),
-                    sender.Metadata.HashableProperties.Size == null ? null : new XElement("Size", new XText(sender.Metadata.HashableProperties.Size.Value.ToString())),
-                    sender.Metadata.MD5 == null ? null : new XElement("MD5", new XText(sender.Metadata.MD5
-                        .Select(md5Byte => string.Format("{0:x2}", md5Byte))
-                        .Aggregate((previousBytes, newByte) => previousBytes + newByte)))).ToString() + Environment.NewLine);
+                    sender.Metadata.HashableProperties.Size == null ? null : new XElement("Size", new XText(sender.Metadata.HashableProperties.Size.Value.ToString())))
+                    .ToString() + Environment.NewLine);
             }
             File.AppendAllText(testFilePath, "</root>");
         }

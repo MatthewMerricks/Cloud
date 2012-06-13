@@ -24,11 +24,11 @@ namespace FileMonitor
         /// <summary>
         /// Current path associated with the file system event
         /// </summary>
-        public string NewPath { get; set; }
+        public FilePath NewPath { get; set; }
         /// <summary>
         /// For rename events only, this is the old path
         /// </summary>
-        public string OldPath { get; set; }
+        public FilePath OldPath { get; set; }
         /// <summary>
         /// Contains data used to compare the file or folder and establish its identity
         /// </summary>
@@ -47,5 +47,12 @@ namespace FileMonitor
                 return eventIdCounter++;
             }
         }
+
+        /// <summary>
+        /// Constructor with required fields of abstract base class,
+        /// DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean
+        /// </summary>
+        /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
+        public FileChange(object DelayCompletedLocker) : base(DelayCompletedLocker) { }
     }
 }

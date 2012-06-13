@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CloudApiPrivate.Common;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 
 namespace FileMonitor
 {
@@ -89,7 +90,7 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
-                pathDictionary = null;
+                pathDictionary = (FilePathDictionary<T>)Helpers.DefaultForType(typeof(FilePathDictionary<T>));
                 return ex;
             }
             // Take the created dictionary and initialize it, any exception will be returned as a CLError

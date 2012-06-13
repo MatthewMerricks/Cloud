@@ -23,12 +23,13 @@ namespace FileMonitor
             // check local Name property first
             // if Parents are null then both are roots and along with equal name represents equality
             // otherwise if both Parents are not null but running Equals recursively returns true then FilePaths are also equal
-            return x.Name == y.Name
-                && ((x.Parent == null
-                        && y.Parent == null)
-                    || (x.Parent != null
-                        && y.Parent != null
-                        && Equals((FilePath)x.Parent, (FilePath)y.Parent)));
+            return x.Equals(y)// if object references are equal we're sure the FilePaths match, otherwise continue on to deep level compare
+                || (x.Name == y.Name
+                    && ((x.Parent == null
+                            && y.Parent == null)
+                        || (x.Parent != null
+                            && y.Parent != null
+                            && Equals((FilePath)x.Parent, (FilePath)y.Parent))));
         }
         /// <summary>
         /// Overridden GetHashCode that gets a hash from the underlying full path string,

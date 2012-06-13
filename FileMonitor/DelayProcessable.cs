@@ -19,7 +19,7 @@ namespace FileMonitor
     /// with completion notification via property DelayCompleted
     /// </summary>
     /// <typeparam name="T">Use the same type of class as the generic-typed parameter</typeparam>
-    public abstract class DelayProcessable<T> where T : DelayProcessable<T>
+    public abstract class DelayProcessable<T> : IDisposable where T : DelayProcessable<T>
     {
         #region public property
         /// <summary>
@@ -38,7 +38,25 @@ namespace FileMonitor
         private AutoResetEvent delayEvent = new AutoResetEvent(false);
         // boolean to store whether call to reset delay has begun waiting for a pulse-back from processing thread
         private bool waitingForReset = false;
+        // field where the synchronization locker is stored (locked when DelayCompleted boolean is read or written to)
+        private object DelayCompletedLocker;
         #endregion
+
+        /// <summary>
+        /// Abstract constructor to ensure required parameters are available for instance methods,
+        /// DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean
+        /// </summary>
+        /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
+        protected DelayProcessable(object DelayCompletedLocker)
+        {
+            // Ensure locker is passed in constructor
+            if (DelayCompletedLocker == null)
+            {
+                throw new NullReferenceException("DelayCompletedLocker cannot be null");
+            }
+            // Store locker to field
+            this.DelayCompletedLocker = DelayCompletedLocker;
+        }
 
         #region public methods
         /// <summary>
@@ -50,8 +68,7 @@ namespace FileMonitor
         /// <param name="userstate">Optional userstate passed upon processing the action</param>
         /// <param name="millisecondWait">Wait time in milliseconds before action is processed</param>
         /// <param name="maxDelays">Maximum times processing can be delayed before it processes anyways</param>
-        /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
-        public void ProcessAfterDelay(Action<T, object> toProcess, object userstate, int millisecondWait, int maxDelays, object DelayCompletedLocker)
+        public void ProcessAfterDelay(Action<T, object> toProcess, object userstate, int millisecondWait, int maxDelays)
         {
             // lock on this to prevent reset from firing and checking the boolean simultaneously
             lock (this)
@@ -78,6 +95,12 @@ namespace FileMonitor
                         && (maxDelays < 0
                             || delayCounter < maxDelays))
                     {
+                        // break out of loop if delay already completed (such as on dispose)
+                        if (DelayCompleted)
+                        {
+                            break;
+                        }
+
                         // If timer was reset on another thread and the delay counter is less than the amount allowed,
                         // Prepare timer for another waiting round
 
@@ -105,14 +128,23 @@ namespace FileMonitor
                         break;
                     }
                 }
+                // Field for whether delay already completed
+                // (true if object was disposed)
+                bool storeDelayAlreadyCompleted;
                 // Lock on external object (passed as parameter) to synchronize with containing collection operations
                 lock (DelayCompletedLocker)
                 {
+                    // Store if delay was already completed
+                    storeDelayAlreadyCompleted = DelayCompleted;
                     // Mark that delay completed for external synchronization
                     DelayCompleted = true;
                 }
-                // Process action
-                toProcess((T)this, userstate);
+                // Only process the action if the delay had not previously been completed
+                if (!storeDelayAlreadyCompleted)
+                {
+                    // Process action
+                    toProcess((T)this, userstate);
+                }
                 // Lock on AutoResetEvent to synchronize with reset thread
                 lock (delayEvent)
                 {
@@ -152,6 +184,20 @@ namespace FileMonitor
                         Monitor.Wait(delayEvent);
                     }
                 }
+            }
+        }
+        #endregion
+
+        #region IDisposable members
+        public void Dispose()
+        {
+            // lock on this to prevent disposal during resets
+            lock (this)
+            {
+                // set delay completed so processing will not fire
+                DelayCompleted = true;
+                // trigger processing thread to break out
+                delayEvent.Set();
             }
         }
         #endregion

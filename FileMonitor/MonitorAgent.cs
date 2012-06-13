@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -94,32 +93,12 @@ namespace FileMonitor
         private bool Disposed = false;
 
         // Storage of current file indexes, keyed by file path
-        private Dictionary<string, FileMetadata> AllPaths = new Dictionary<string, FileMetadata>();
+        private FilePathDictionary<FileMetadata> AllPaths;
 
         // Storage of changes queued to process (QueuedChanges used as the locker for both and keyed by file path, QueuedChangesByMetadata keyed by the hashable metadata properties)
-        private Dictionary<string, FileChange> QueuedChanges = new Dictionary<string, FileChange>();
+        private FilePathDictionary<FileChange> QueuedChanges;
         private static readonly FileMetadataHashableComparer QueuedChangesMetadataComparer = new FileMetadataHashableComparer();// Comparer has improved hashing by using only the fastest changing bits
         private Dictionary<FileMetadataHashableProperties, FileChange> QueuedChangesByMetadata = new Dictionary<FileMetadataHashableProperties, FileChange>(QueuedChangesMetadataComparer);// Use custom comparer for improved hashing
-
-        /// <summary>
-        /// Global hashing provider for MD5 checksums
-        /// </summary>
-        private static MD5 MD5Hasher
-        {
-            get
-            {
-                lock (MD5HasherLocker)
-                {
-                    if (_mD5Hasher == null)
-                    {
-                        _mD5Hasher = new MD5CryptoServiceProvider();
-                    }
-                }
-                return _mD5Hasher;
-            }
-        }
-        private static MD5 _mD5Hasher;
-        private static object MD5HasherLocker = new object();
         #endregion
 
         /// <summary>
@@ -137,30 +116,55 @@ namespace FileMonitor
         {
             try
             {
-                newAgent = new MonitorAgent(folderPath, onProcessEventGroupCallback, onQueueingCallback, logProcessing);
+                newAgent = new MonitorAgent();
             }
             catch (Exception ex)
             {
                 newAgent = (MonitorAgent)Helpers.DefaultForType(typeof(MonitorAgent));
                 return ex;
             }
+            try
+            {
+                if (string.IsNullOrEmpty(folderPath))
+                    throw new Exception("Folder path cannot be null nor empty");
+                DirectoryInfo folderInfo = new DirectoryInfo(folderPath);
+                if (!folderInfo.Exists)
+                    throw new Exception("Folder not found at provided folder path");
+
+                // Initialize storage dictionaries
+                CLError queuedChangesError = FilePathDictionary<FileChange>.CreateAndInitialize(folderInfo,
+                    out newAgent.QueuedChanges,
+                    newAgent.QueuedChange_RecursiveDelete,
+                    newAgent.QueuedChange_RecursiveRename);
+                if (queuedChangesError != null)
+                {
+                    return queuedChangesError;
+                }
+                CLError allPathsError = FilePathDictionary<FileMetadata>.CreateAndInitialize(folderInfo,
+                    out newAgent.AllPaths,
+                    newAgent.MetadataPath_RecursiveDelete,
+                    newAgent.MetadataPath_RecursiveRename);
+                if (allPathsError != null)
+                {
+                    return allPathsError;
+                }
+
+                // Initialize folder paths
+                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = folderPath;
+
+                // assign local fields with optional initialization parameters
+                newAgent.OnQueueing = onQueueingCallback;
+                newAgent.OnProcessEventGroupCallback = onProcessEventGroupCallback;
+                newAgent.LogProcessingFileChanges = logProcessing;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
             return null;
         }
 
-        private MonitorAgent(string folderPath, Action<Dictionary<string, object>> onProcessEventGroupCallback, Action<MonitorAgent, FileChange> onQueueingCallback, bool logProcessing)
-        {
-            if (string.IsNullOrEmpty(folderPath))
-                throw new Exception("Folder path cannot be null nor empty");
-            if (!(new DirectoryInfo(folderPath)).Exists)
-                throw new Exception("Folder not found at provided folder path");
-            // Initialize folder paths
-            this.CurrentFolderPath = this.InitialFolderPath = folderPath;
-            
-            // assign local fields with optional initialization parameters
-            this.OnQueueing = onQueueingCallback;
-            this.OnProcessEventGroupCallback = onProcessEventGroupCallback;
-            this.LogProcessingFileChanges = logProcessing;
-        }
+        private MonitorAgent() { }
 
         #region public methods
         /// <summary>
@@ -408,7 +412,7 @@ namespace FileMonitor
             try
             {
                 // rebuild filePath from current root path and the relative path portion of the change event
-                string filePath = CurrentFolderPath + e.FullPath.Substring(InitialFolderPath.Length);
+                string newPath = CurrentFolderPath + e.FullPath.Substring(InitialFolderPath.Length);
                 // previous path for renames only
                 string oldPath;
                 // set previous path only if change is a rename
@@ -427,7 +431,7 @@ namespace FileMonitor
                     oldPath = null;
                 }
                 // Processes the file system event against the file data and current file index
-                CheckMetadataAgainstFile(filePath, oldPath, e.ChangeType, folderOnly);
+                CheckMetadataAgainstFile(newPath, oldPath, e.ChangeType, folderOnly);
             }
             catch
             {
@@ -442,20 +446,25 @@ namespace FileMonitor
         /// <summary>
         /// Resolve changes to queue from file system events against the file data and current file index
         /// </summary>
-        /// <param name="filePath">Path where the change was observed</param>
+        /// <param name="newPath">Path where the change was observed</param>
         /// <param name="oldPath">Previous path if change was a rename</param>
         /// <param name="changeType">Type of file system event</param>
         /// <param name="folderOnly">Specificity from routing of file system event</param>
-        private void CheckMetadataAgainstFile(string filePath, string oldPath, WatcherChangeTypes changeType, bool folderOnly)
+        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly)
         {
             // object for gathering folder info at current path
-            DirectoryInfo folder = new DirectoryInfo(filePath);
+            FilePath pathObject;
+            DirectoryInfo folder;
+            pathObject = folder = new DirectoryInfo(newPath);
+
             // object for gathering file info (set conditionally later in case we know change is not a file)
             FileInfo file = null;
             // field used to determine if change is a file or folder
             bool isFolder;
             // field used to determine if file/folder exists
             bool exists;
+            // field for file length
+            Nullable<long> fileLength = null;
 
             // if file system event was folder-specific, store that change is folder and determine if folder exists
             if (folderOnly)
@@ -481,9 +490,25 @@ namespace FileMonitor
                 // since we did not find a folder, assume change is on a file
                 isFolder = false;
                 // set object for gathering file info at current path
-                file = new FileInfo(filePath);
+                file = new FileInfo(newPath);
                 // check and store if file exists
                 exists = file.Exists;
+                // ran into a condition where the file was moved between checking if it existed and finding its length,
+                // fixed by storing the length inside a try/catch and handling the not found exception by flipping exists
+                if (exists)
+                {
+                    try
+                    {
+                        fileLength = file.Length;
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        exists = false;
+                    }
+                    catch
+                    {
+                    }
+                }
             }
 
             // Only process file/folder event if it does not exist or if its FileAttributes does not contain any unwanted attributes
@@ -536,7 +561,7 @@ namespace FileMonitor
                         if (exists)
                         {
                             // if index exists at specified path
-                            if (AllPaths.ContainsKey(filePath))
+                            if (AllPaths.ContainsKey(pathObject))
                             {
                                 // No need to send modified events for folders
                                 // so check if event is on a file or if folder modifies are not ignored
@@ -544,28 +569,24 @@ namespace FileMonitor
                                     || !IgnoreFolderModifies)
                                 {
                                     // retrieve stored index
-                                    FileMetadata previousMetadata = AllPaths[filePath];
-                                    // store if error occurred retrieving MD5 checksum
-                                    bool md5Error;
+                                    FileMetadata previousMetadata = AllPaths[pathObject];
                                     // compare stored index with values from file info
                                     FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
-                                        filePath,
                                         isFolder,
                                         lastTime,
                                         creationTime,
-                                        isFolder ? (Nullable<long>)null : file.Length,
-                                        out md5Error);
+                                        fileLength);
                                     // if new metadata came back after comparison, queue file change for modify
                                     if (newMetadata != null)
                                     {
                                         // replace index at current path
-                                        AllPaths[filePath] = newMetadata;
+                                        AllPaths[pathObject] = newMetadata;
                                         // queue file change for modify
-                                        QueueFileChange(new FileChange()
+                                        QueueFileChange(new FileChange(QueuedChanges)
                                         {
-                                            NewPath = filePath,
+                                            NewPath = pathObject,
                                             Metadata = newMetadata,
-                                            Type = md5Error ? FileChangeType.ModifiedWithError : FileChangeType.Modified
+                                            Type = FileChangeType.Modified
                                         });
                                     }
                                 }
@@ -573,48 +594,47 @@ namespace FileMonitor
                             // if index did not already exist
                             else
                             {
-                                // store if error occurred retrieving file MD5
-                                bool md5Error;
                                 // add new index
-                                AllPaths.Add(filePath,
+                                AllPaths.Add(pathObject,
                                     new FileMetadata()
                                     {
                                         HashableProperties = new FileMetadataHashableProperties(isFolder,
                                             lastTime,
                                             creationTime,
-                                            isFolder ? (Nullable<long>)null : file.Length),
-                                        MD5 = isFolder ? NullByteArrayWithFalseOutput(out md5Error) : GetMD5(filePath, out md5Error)
+                                            fileLength)
                                     });
                                 // queue file change for create
-                                QueueFileChange(new FileChange()
+                                QueueFileChange(new FileChange(QueuedChanges)
                                 {
-                                    NewPath = filePath,
-                                    Metadata = AllPaths[filePath],
-                                    Type = md5Error ? FileChangeType.CreatedWithError : FileChangeType.Created
+                                    NewPath = pathObject,
+                                    Metadata = AllPaths[pathObject],
+                                    Type = FileChangeType.Created
                                 });
                             }
                         }
                         // if file file does not exist, but an index exists
-                        else if (AllPaths.ContainsKey(filePath))
+                        else if (AllPaths.ContainsKey(pathObject))
                         {
                             // queue file change for delete
-                            QueueFileChange(new FileChange()
+                            QueueFileChange(new FileChange(QueuedChanges)
                             {
-                                NewPath = filePath,
-                                Metadata = AllPaths[filePath],
+                                NewPath = pathObject,
+                                Metadata = AllPaths[pathObject],
                                 Type = FileChangeType.Deleted
                             });
                             // remove index
-                            AllPaths.Remove(filePath);
+                            AllPaths.Remove(pathObject);
                         }
                     }
                     // for file system events marked as rename
                     else if ((changeType & WatcherChangeTypes.Renamed) == WatcherChangeTypes.Renamed)
                     {
+                        FilePath oldPathObject = oldPath;
+
                         // store a boolean which may be set to true to notify a condition when a rename operation may need to be queued
                         bool possibleRename = false;
                         // if index exists at the previous path
-                        if (AllPaths.ContainsKey(oldPath))
+                        if (AllPaths.ContainsKey(oldPathObject))
                         {
                             // if a file or folder exists at the previous path
                             if (File.Exists(oldPath)
@@ -633,20 +653,20 @@ namespace FileMonitor
                             else
                             {
                                 // queue file change for delete at previous path
-                                QueueFileChange(new FileChange()
+                                QueueFileChange(new FileChange(QueuedChanges)
                                 {
-                                    NewPath = oldPath,
-                                    Metadata = AllPaths[oldPath],
+                                    NewPath = oldPathObject,
+                                    Metadata = AllPaths[oldPathObject],
                                     Type = FileChangeType.Deleted
                                 });
                                 // remove index at previous path
-                                AllPaths.Remove(oldPath);
+                                AllPaths.Remove(oldPathObject);
                             }
                         }
                         // if index exists at current path (irrespective of last condition on previous path index)
-                        if (AllPaths.ContainsKey(filePath))
+                        if (AllPaths.ContainsKey(pathObject))
                         {
-                            // if file or folder exists
+                            // if file or folder exists at the current path
                             if (exists)
                             {
                                 // No need to send modified events for folders
@@ -655,28 +675,24 @@ namespace FileMonitor
                                     || !IgnoreFolderModifies)
                                 {
                                     // retrieve stored index at current path
-                                    FileMetadata previousMetadata = AllPaths[filePath];
-                                    // store if error occurred retrieving MD5 checksum
-                                    bool md5Error;
+                                    FileMetadata previousMetadata = AllPaths[pathObject];
                                     // compare stored index with values from file info
                                     FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
-                                        filePath,
                                         isFolder,
                                         lastTime,
                                         creationTime,
-                                        isFolder ? (Nullable<long>)null : file.Length,
-                                        out md5Error);
+                                        fileLength);
                                     // if new metadata came back after comparison, queue file change for modify
                                     if (newMetadata != null)
                                     {
                                         // replace index at current path
-                                        AllPaths[filePath] = newMetadata;
+                                        AllPaths[pathObject] = newMetadata;
                                         // queue file change for modify
-                                        QueueFileChange(new FileChange()
+                                        QueueFileChange(new FileChange(QueuedChanges)
                                         {
-                                            NewPath = filePath,
+                                            NewPath = pathObject,
                                             Metadata = newMetadata,
-                                            Type = md5Error ? FileChangeType.ModifiedWithError : FileChangeType.Modified
+                                            Type = FileChangeType.Modified
                                         });
                                     }
                                 }
@@ -685,14 +701,14 @@ namespace FileMonitor
                             else
                             {
                                 // queue file change for delete at new path
-                                QueueFileChange(new FileChange()
+                                QueueFileChange(new FileChange(QueuedChanges)
                                 {
-                                    NewPath = filePath,
-                                    Metadata = AllPaths[filePath],
+                                    NewPath = pathObject,
+                                    Metadata = AllPaths[pathObject],
                                     Type = FileChangeType.Deleted
                                 });
                                 // remove index for new path
-                                AllPaths.Remove(filePath);
+                                AllPaths.Remove(pathObject);
 
                                 // no need to continue and check possibeRename since it required exists to be true, return now
                                 return;
@@ -702,10 +718,10 @@ namespace FileMonitor
                             if (possibleRename)
                             {
                                 // queue file change for delete at previous path
-                                QueueFileChange(new FileChange()
+                                QueueFileChange(new FileChange(QueuedChanges)
                                 {
                                     NewPath = oldPath,
-                                    Metadata = AllPaths[oldPath],
+                                    Metadata = AllPaths[oldPathObject],
                                     Type = FileChangeType.Deleted
                                 });
                                 // remove index at the previous path
@@ -718,51 +734,43 @@ namespace FileMonitor
                         {
                             // retrieve index at previous path
                             FileMetadata previousMetadata = AllPaths[oldPath];
-                            // store if error occurred retrieving MD5 checksum
-                            bool md5Error;
                             // compare stored index from previous path with values from current change
                             FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
-                                filePath,
                                 isFolder,
                                 lastTime,
                                 creationTime,
-                                isFolder ? (Nullable<long>)null : file.Length,
-                                out md5Error);
+                                fileLength);
                             // remove index at the previous path
                             AllPaths.Remove(oldPath);
                             // add an index for the current path either from the changed metadata if it exists otherwise the previous metadata
-                            AllPaths.Add(filePath, newMetadata ?? previousMetadata);
+                            AllPaths.Add(pathObject, newMetadata ?? previousMetadata);
                             // queue file change for rename (use changed metadata if it exists otherwise the previous metadata)
-                            QueueFileChange(new FileChange()
+                            QueueFileChange(new FileChange(QueuedChanges)
                             {
-                                NewPath = filePath,
+                                NewPath = pathObject,
                                 OldPath = oldPath,
                                 Metadata = newMetadata ?? previousMetadata,
-                                Type = md5Error ? FileChangeType.RenamedWithError : FileChangeType.Renamed
+                                Type = FileChangeType.Renamed
                             });
                         }
                         // if index does not exist at either the old nor new paths and the file exists
                         else
                         {
-
-                            // store if error occurred retrieving file MD5
-                            bool md5Error;
                             // add new index at new path
-                            AllPaths.Add(filePath,
+                            AllPaths.Add(pathObject,
                                 new FileMetadata()
                                 {
                                     HashableProperties = new FileMetadataHashableProperties(isFolder,
                                         lastTime,
                                         creationTime,
-                                        isFolder ? (Nullable<long>)null : file.Length),
-                                    MD5 = isFolder ? NullByteArrayWithFalseOutput(out md5Error) : GetMD5(filePath, out md5Error)
+                                        fileLength)
                                 });
                             // queue file change for create for new path
-                            QueueFileChange(new FileChange()
+                            QueueFileChange(new FileChange(QueuedChanges)
                             {
-                                NewPath = filePath,
-                                Metadata = AllPaths[filePath],
-                                Type = md5Error ? FileChangeType.CreatedWithError : FileChangeType.Created
+                                NewPath = pathObject,
+                                Metadata = AllPaths[pathObject],
+                                Type = FileChangeType.Created
                             });
                         }
                     }
@@ -773,7 +781,7 @@ namespace FileMonitor
                         if (exists)
                         {
                             // if index exists and check for folder modify passes
-                            if (AllPaths.ContainsKey(filePath)
+                            if (AllPaths.ContainsKey(pathObject)
                                 &&
                                 // No need to send modified events for folders
                                 // so check if event is on a file or if folder modifies are not ignored
@@ -781,44 +789,40 @@ namespace FileMonitor
                                     || !IgnoreFolderModifies))
                             {
                                 // retrieve stored index at current path
-                                FileMetadata previousMetadata = AllPaths[filePath];
-                                // store if error occurred retrieving MD5 checksum
-                                bool md5Error;
+                                FileMetadata previousMetadata = AllPaths[pathObject];
                                 // compare stored index with values from file info
                                 FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
-                                    filePath,
                                     isFolder,
                                     lastTime,
                                     creationTime,
-                                    isFolder ? (Nullable<long>)null : file.Length,
-                                    out md5Error);
+                                    fileLength);
                                 // if new metadata came back after comparison, queue file change for modify
                                 if (newMetadata != null)
                                 {
                                     // replace index at current path
-                                    AllPaths[filePath] = newMetadata;
+                                    AllPaths[pathObject] = newMetadata;
                                     // queue file change for modify
-                                    QueueFileChange(new FileChange()
+                                    QueueFileChange(new FileChange(QueuedChanges)
                                     {
-                                        NewPath = filePath,
+                                        NewPath = pathObject,
                                         Metadata = newMetadata,
-                                        Type = md5Error ? FileChangeType.ModifiedWithError : FileChangeType.Modified
+                                        Type = FileChangeType.Modified
                                     });
                                 }
                             }
                         }
                         // if file or folder does not exist but index exists for current path
-                        else if (AllPaths.ContainsKey(filePath))
+                        else if (AllPaths.ContainsKey(pathObject))
                         {
                             // queue file change for delete
-                            QueueFileChange(new FileChange()
+                            QueueFileChange(new FileChange(QueuedChanges)
                             {
-                                NewPath = filePath,
-                                Metadata = AllPaths[filePath],
+                                NewPath = pathObject,
+                                Metadata = AllPaths[pathObject],
                                 Type = FileChangeType.Deleted
                             });
                             // remove index
-                            AllPaths.Remove(filePath);
+                            AllPaths.Remove(pathObject);
                         }
                     }
 
@@ -889,12 +893,10 @@ namespace FileMonitor
         /// <param name="size">File size for file or null for folder</param>
         /// <returns>Returns null if a difference was not found, otherwise the new metadata to use</returns>
         private FileMetadata ReplacementMetadataIfDifferent(FileMetadata previousMetadata,
-            string filePath,
             bool isFolder,
             DateTime lastTime,
             DateTime creationTime,
-            Nullable<long> size,
-            out bool md5ErrorOccurred)
+            Nullable<long> size)
         {
             // Segment out the properties that are used for comparison (before recalculating the MD5)
             FileMetadataHashableProperties forCompare = new FileMetadataHashableProperties(isFolder,
@@ -909,12 +911,9 @@ namespace FileMonitor
                 // metadata change detected
                 return new FileMetadata()
                 {
-                    HashableProperties = forCompare,
-                    MD5 = isFolder ? NullByteArrayWithFalseOutput(out md5ErrorOccurred) : GetMD5(filePath, out md5ErrorOccurred)
+                    HashableProperties = forCompare
                 };
             }
-            // No metadata change detected, thus no error occurred, also return null
-            md5ErrorOccurred = false;
             return null;
         }
         /// <summary>
@@ -939,8 +938,29 @@ namespace FileMonitor
             {
                 // define FileChange for rename if a previous change needs to be compared
                 FileChange matchedFileChangeForRename;
-                // store that the delay needs to be started (leading to the processing action)
-                bool startDelay = true;
+
+                // function to move the file change to the metadata-keyed queue and start the delayed processing
+                Action<FileChange> StartDelay = toDelay =>
+                {
+                    // move the file change to the metadata-keyed queue if it does not already exist
+                    if (!QueuedChangesByMetadata.ContainsKey(toDelay.Metadata.HashableProperties))
+                    {
+                        // add file change to metadata-keyed queue
+                        QueuedChangesByMetadata.Add(toDelay.Metadata.HashableProperties, toDelay);
+                    }
+
+                    // If onQueueingCallback was set on initialization of the monitor agent, fire the callback with the new FileChange
+                    if (OnQueueing != null)
+                    {
+                        OnQueueing(this, toDelay);
+                    }
+
+                    // start delayed processing of file change
+                    toDelay.ProcessAfterDelay(ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
+                        null,// Userstate if needed on callback (unused)
+                        ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
+                        ProcessingDelayMaxResets);// number of processing delay resets before it will process the file anyways
+                };
                 // if queue already contains a file change at the same path,
                 // either replace change and start the new one if the old one is currently processing
                 // otherwise change the existing file change properties to match the new ones and restart the delay timer
@@ -954,6 +974,8 @@ namespace FileMonitor
                     {
                         // replace file change in the queue at the same location with the new change
                         QueuedChanges[toChange.NewPath] = toChange;
+
+                        StartDelay(toChange);
                     }
                     // file change has not already started processing
                     else
@@ -961,12 +983,117 @@ namespace FileMonitor
                         // FileChange already exists
                         // Instead of starting a new processing delay, update the FileChange information
                         // Then restart the delay timer
-                        startDelay = false;
-                        previousChange.NewPath = toChange.NewPath;
-                        previousChange.OldPath = toChange.OldPath;
-                        previousChange.Metadata = toChange.Metadata;
-                        previousChange.Type = toChange.Type;
-                        QueuedChanges[toChange.NewPath].SetDelayBackToInitialValue();
+
+                        switch (toChange.Type)
+                        {
+                            case FileChangeType.Created:
+                                switch (previousChange.Type)
+                                {
+                                    case FileChangeType.Created:
+                                        // error condition
+                                        break;
+                                    case FileChangeType.Deleted:
+                                        previousChange.Type = FileChangeType.Modified;
+                                        previousChange.Metadata = toChange.Metadata;
+                                        previousChange.SetDelayBackToInitialValue();
+                                        break;
+                                    case FileChangeType.Modified:
+                                        // error condition
+                                        break;
+                                    case FileChangeType.Renamed:
+                                        // error condition
+                                        break;
+                                }
+                                break;
+                            case FileChangeType.Deleted:
+                                switch (previousChange.Type)
+                                {
+                                    case FileChangeType.Created:
+                                        FileChange toCompare;
+                                        if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
+                                            && toCompare.Equals(previousChange))
+                                        {
+                                            QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties);
+                                        }
+                                        QueuedChanges.Remove(toChange.NewPath);
+                                        previousChange.Dispose();
+                                        break;
+                                    case FileChangeType.Deleted:
+                                        // error condition
+                                        break;
+                                    case FileChangeType.Modified:
+                                        previousChange.Type = FileChangeType.Deleted;
+                                        previousChange.Metadata = toChange.Metadata;
+                                        previousChange.SetDelayBackToInitialValue();
+                                        break;
+                                    case FileChangeType.Renamed:
+                                        previousChange.NewPath = previousChange.OldPath;
+                                        previousChange.OldPath = null;
+                                        previousChange.Type = FileChangeType.Deleted;
+                                        previousChange.Metadata = toChange.Metadata;
+                                        previousChange.SetDelayBackToInitialValue();
+                                        break;
+                                }
+                                break;
+                            case FileChangeType.Modified:
+                                switch (previousChange.Type)
+                                {
+                                    case FileChangeType.Created:
+                                        previousChange.Metadata = toChange.Metadata;
+                                        previousChange.SetDelayBackToInitialValue();
+                                        break;
+                                    case FileChangeType.Deleted:
+                                        // error condition
+                                        break;
+                                    case FileChangeType.Modified:
+                                        previousChange.Metadata = toChange.Metadata;
+                                        previousChange.SetDelayBackToInitialValue();
+                                        break;
+                                    case FileChangeType.Renamed:
+                                        previousChange.Metadata = toChange.Metadata;
+                                        previousChange.SetDelayBackToInitialValue();
+                                        break;
+                                }
+                                break;
+                            case FileChangeType.Renamed:
+                                switch (previousChange.Type)
+                                {
+                                    case FileChangeType.Created:
+                                        // error condition
+                                        break;
+                                    case FileChangeType.Deleted:
+                                        if (QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
+                                        {
+                                            previousChange.NewPath = toChange.OldPath;
+                                            previousChange.Metadata = toChange.Metadata;
+                                            previousChange.SetDelayBackToInitialValue();
+                                        }
+                                        else
+                                        {
+                                            previousChange.Metadata = toChange.Metadata;
+                                            previousChange.Type = FileChangeType.Modified;
+                                            previousChange.SetDelayBackToInitialValue();
+
+                                            FileChange oldLocationDelete = new FileChange(QueuedChanges)
+                                                {
+                                                    NewPath = toChange.OldPath,
+                                                    Type = FileChangeType.Deleted,
+                                                    Metadata = toChange.Metadata
+                                                };
+                                            QueuedChanges.Add(toChange.OldPath,
+                                                oldLocationDelete);
+                                            StartDelay(oldLocationDelete);
+                                        }
+                                        break;
+                                    case FileChangeType.Modified:
+                                        // error condition
+                                        break;
+                                    case FileChangeType.Renamed:
+                                        // error condition
+                                        break;
+                                }
+                                break;
+                        }
                     }
                 }
 
@@ -974,7 +1101,7 @@ namespace FileMonitor
                 // The following two 'else ifs' checks for matching metadata between creation/deletion events to associate together as a rename
 
                 // Existing FileChange is a Deleted event and the incoming event is a matching Created event which has not yet completed
-                else if ((toChange.Type == FileChangeType.Created || toChange.Type == FileChangeType.CreatedWithError)
+                else if (toChange.Type == FileChangeType.Created
                         && QueuedChangesByMetadata.ContainsKey(toChange.Metadata.HashableProperties)
                         && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Deleted
                         && !matchedFileChangeForRename.DelayCompleted)
@@ -982,15 +1109,7 @@ namespace FileMonitor
                     // FileChange already exists
                     // Instead of starting a new processing delay, update the FileChange information
                     // Then restart the delay timer
-                    startDelay = false;
-                    if (toChange.Type == FileChangeType.CreatedWithError)
-                    {
-                        matchedFileChangeForRename.Type = FileChangeType.RenamedWithError;
-                    }
-                    else
-                    {
-                        matchedFileChangeForRename.Type = FileChangeType.Renamed;
-                    }
+                    matchedFileChangeForRename.Type = FileChangeType.Renamed;
                     matchedFileChangeForRename.Type = FileChangeType.Renamed;
                     matchedFileChangeForRename.OldPath = matchedFileChangeForRename.NewPath;
                     matchedFileChangeForRename.NewPath = toChange.NewPath;
@@ -1006,22 +1125,13 @@ namespace FileMonitor
                 // Existing FileChange is a Created event and the incoming event is a matching Deleted event which has not yet completed
                 else if (toChange.Type == FileChangeType.Deleted
                         && QueuedChangesByMetadata.ContainsKey(toChange.Metadata.HashableProperties)
-                        && ((matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Created
-                            || matchedFileChangeForRename.Type == FileChangeType.CreatedWithError)
+                        && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Created
                         && !matchedFileChangeForRename.DelayCompleted)
                 {
                     // FileChange already exists
                     // Instead of starting a new processing delay, update the FileChange information
                     // Then restart the delay timer
-                    startDelay = false;
-                    if (matchedFileChangeForRename.Type == FileChangeType.CreatedWithError)
-                    {
-                        matchedFileChangeForRename.Type = FileChangeType.RenamedWithError;
-                    }
-                    else
-                    {
-                        matchedFileChangeForRename.Type = FileChangeType.Renamed;
-                    }
+                    matchedFileChangeForRename.Type = FileChangeType.Renamed;
                     matchedFileChangeForRename.OldPath = toChange.NewPath;
                     if (QueuedChanges.ContainsKey(matchedFileChangeForRename.NewPath))
                     {
@@ -1043,30 +1153,8 @@ namespace FileMonitor
                 {
                     // add file change to the queue
                     QueuedChanges.Add(toChange.NewPath, toChange);
-                }
 
-                // unless the delay was explicitly changed to not start, move the file change to the metadata-keyed queue and start the delayed processing
-                if (startDelay)
-                {
-                    // move the file change to the metadata-keyed queue if it does not already exist
-                    if (!QueuedChangesByMetadata.ContainsKey(toChange.Metadata.HashableProperties))
-                    {
-                        // add file change to metadata-keyed queue
-                        QueuedChangesByMetadata.Add(toChange.Metadata.HashableProperties, toChange);
-                    }
-
-                    // If onQueueingCallback was set on initialization of the monitor agent, fire the callback with the new FileChange
-                    if (OnQueueing != null)
-                    {
-                        OnQueueing(this, toChange);
-                    }
-
-                    // start delayed processing of file change
-                    toChange.ProcessAfterDelay(ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
-                        null,// Userstate if needed on callback (unused)
-                        ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
-                        ProcessingDelayMaxResets,// number of processing delay resets before it will process the file anyways
-                        QueuedChanges);// timer thread needs to lock on the parent dictionary prevent an event change simultaneously with processing, locked code sets DelayCompleted property to true
+                    StartDelay(toChange);
                 }
             }
         }
@@ -1112,21 +1200,16 @@ namespace FileMonitor
                 //  <LastTime>[number of ticks from the DateTime of when the file/folder was last changed]</LastTime>
                 //  <CreationTime>[number of ticks from the DateTime of when the file/folder was created]</CreationTime>
                 //
-                //  <!--Only present if the change has a file size-->
-                //  <Size>[hex string of MD5 file checksum]</Size>
-                //
                 //</FileChange>
                 AppendFileChangeProcessedLogXmlString(new XElement("FileChange",
-                    new XElement("NewPath", new XText(sender.NewPath)),
-                    sender.OldPath == null ? null : new XElement("OldPath", new XText(sender.OldPath)),
+                    new XElement("NewPath", new XText(sender.NewPath.ToString())),
+                    sender.OldPath == null ? null : new XElement("OldPath", new XText(sender.OldPath.ToString())),
                     new XElement("IsFolder", new XText(sender.Metadata.HashableProperties.IsFolder.ToString())),
                     new XElement("Type", new XText(sender.Type.ToString())),
                     new XElement("LastTime", new XText(sender.Metadata.HashableProperties.LastTime.Ticks.ToString())),
                     new XElement("CreationTime", new XText(sender.Metadata.HashableProperties.CreationTime.Ticks.ToString())),
-                    sender.Metadata.HashableProperties.Size == null ? null : new XElement("Size", new XText(sender.Metadata.HashableProperties.Size.Value.ToString())),
-                    sender.Metadata.MD5 == null ? null : new XElement("MD5", new XText(sender.Metadata.MD5
-                        .Select(md5Byte => string.Format("{0:x2}", md5Byte))
-                        .Aggregate((previousBytes, newByte) => previousBytes + newByte)))).ToString() + Environment.NewLine);
+                    sender.Metadata.HashableProperties.Size == null ? null : new XElement("Size", new XText(sender.Metadata.HashableProperties.Size.Value.ToString())))
+                    .ToString() + Environment.NewLine);
             }
         }
 
@@ -1141,7 +1224,6 @@ namespace FileMonitor
                 switch (sender.Type)
                 {
                     case FileChangeType.Created:
-                    case FileChangeType.CreatedWithError:
                         if (sender.Metadata.HashableProperties.IsFolder)
                         {
                             action = CLDefinitions.CLEventTypeAddFolder;
@@ -1162,11 +1244,9 @@ namespace FileMonitor
                         }
                         break;
                     case FileChangeType.Modified:
-                    case FileChangeType.ModifiedWithError:
                         action = CLDefinitions.CLEventTypeModifyFile;
                         break;
                     case FileChangeType.Renamed:
-                    case FileChangeType.RenamedWithError:
                         if (sender.Metadata.HashableProperties.IsFolder)
                         {
                             action = CLDefinitions.CLEventTypeRenameFolder;
@@ -1224,48 +1304,6 @@ namespace FileMonitor
             }
             // Append current xml string to log file
             File.AppendAllText(testFilePath, toWrite);
-        }
-
-        /// <summary>
-        /// Retrieves MD5 checksum for a given file path
-        /// </summary>
-        /// <param name="filePath">Location of file to generate checksum</param>
-        /// <returns>Returns byte[16] representing the MD5 data</returns>
-        private byte[] GetMD5(string filePath, out bool md5ErrorOccurred)
-        {
-            try
-            {
-                // Filestream will fail if reading is blocked or permissions don't allow read,
-                // exception will bubble up to CheckMetadataAgainstFile for handling
-                using (FileStream mD5Stream = new FileStream(filePath,
-                    FileMode.Open))
-                {
-                    // compute hash and return using static instance of MD5
-                    byte[] toReturn = MD5Hasher.ComputeHash(mD5Stream);
-                    // an error did not occur, output as such and return
-                    md5ErrorOccurred = false;
-                    return toReturn;
-                }
-            }
-            catch
-            {
-                // error did occur
-
-                // output that error occurred
-                md5ErrorOccurred = true;
-                bool badgingIsInitialized;
-                // check if badging is initialized, if so then set badge as failed
-                // error not handled, although the output boolean will be false on error so it will not run attempt to badge
-                CLError isInitializedError = BadgeNET.IconOverlay.IsBadgingInitialized(out badgingIsInitialized);
-                if (badgingIsInitialized)
-                {
-                    // set badge at path for error
-                    // error not handled
-                    CLError badgingError = BadgeNET.IconOverlay.setBadgeType(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeFailed, filePath);
-                }
-                // return nothing (common occurance when file is locked externally)
-                return null;
-            }
         }
 
         /// <summary>
@@ -1328,6 +1366,44 @@ namespace FileMonitor
             }
             // dispose watcher
             toDispose.Dispose();
+        }
+
+        /// <summary>
+        /// Callback fired when a subsequent delete operation occurs in QueuedChanges
+        /// </summary>
+        /// <param name="deletePath">Path where file or folder was deleted</param>
+        /// <param name="value">Previous value at deleted path</param>
+        private void QueuedChange_RecursiveDelete(FilePath deletePath, FileChange value)
+        {
+        }
+
+        /// <summary>
+        /// Callback fired when a subsequent rename operation occurs in QueuedChanges
+        /// </summary>
+        /// <param name="oldPath">Previous path of file or folder</param>
+        /// <param name="newPath">New path of file or folder</param>
+        /// <param name="value">Value for renamed file or folder</param>
+        private void QueuedChange_RecursiveRename(FilePath oldPath, FilePath newPath, FileChange value)
+        {
+        }
+
+        /// <summary>
+        /// Callback fired when a subsequent delete operation occurs in AllPaths
+        /// </summary>
+        /// <param name="deletePath">Path where file or folder was deleted</param>
+        /// <param name="value">Previous value at deleted path</param>
+        private void MetadataPath_RecursiveDelete(FilePath deletePath, FileMetadata value)
+        {
+        }
+
+        /// <summary>
+        /// Callback fired when a subsequent rename operation occurs in AllPaths
+        /// </summary>
+        /// <param name="oldPath">Previous path of file or folder</param>
+        /// <param name="newPath">New path of file or folder</param>
+        /// <param name="value">Value for renamed file or folder</param>
+        private void MetadataPath_RecursiveRename(FilePath oldPath, FilePath newPath, FileMetadata value)
+        {
         }
         #endregion
     }
