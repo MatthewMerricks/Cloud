@@ -165,9 +165,58 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync to the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        public void SyncToCloud_WithCompletionHandler_OnQueue(Dictionary<string, object> metadata, Action<Dictionary<string, object>, CLError> completionHandler, DispatchQueueGeneric queue)
+        public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue)
         {
+            //NSString *methodPath = [NSString stringWithFormat:@"%@?user_id=%@", @"/sync/to_cloud", [[CLSettings sharedSettings] uuid]];
+            //NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
     
+            //[syncRequest setTimeoutInterval:180]; // 3 mins.
+            //[syncRequest setHTTPBody:[NSJSONSerialization dataWithJSONObject:metadata options:NSJSONWritingPrettyPrinted error:nil]];
+            //syncRequest = [self addCurrentClientVersionValueToHeaderFieldInRequest:syncRequest];
+    
+            //NSLog(@"%s - Headers:%@",__FUNCTION__, [syncRequest allHTTPHeaderFields]);
+            //NSLog(@"Request size: %li", [syncRequest.HTTPBody length]);
+    
+            //[NSURLConnection sendAsynchronousRequest:syncRequest queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+       
+            //    NSDictionary* jsonResult;
+            //    if (!error) {
+            //        if (([(NSHTTPURLResponse *)response statusCode] == 200)) {
+            //            NSError *jsonParsingError;
+            //            jsonResult = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&jsonParsingError];
+            //            if (jsonParsingError) {
+            //                NSLog(@"Error parsing JSON in %s with error: %@", __FUNCTION__, [jsonParsingError description]);
+            //            }
+            //        }else {
+            //            NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
+            //            [userInfo setValue:[NSString stringWithFormat:NSLocalizedString(@"Expected status code 200, got %d", nil), [(NSHTTPURLResponse *)response statusCode]] forKey:NSLocalizedDescriptionKey];
+            //            [userInfo setValue:[syncRequest URL] forKey:NSURLErrorFailingURLErrorKey];
+            //            error = [[NSError alloc]initWithDomain:CLCloudAppRestAPIErrorDomain code:[(NSHTTPURLResponse *)response statusCode] userInfo:userInfo];
+            //        }
+            //    }
+        
+            //    dispatch_async(queue, ^{
+            //        handler(jsonResult, error);
+            //    });
+            //}];
+
+            string methodPath = String.Format("{0}?user_id={1}", "/sync/to_cloud", Settings.Instance.Uuid);
+            string json = JsonConvert.SerializeObject(metadata, Formatting.Indented);
+
+            // Build the request
+            HttpRequestMessage syncRequest = new HttpRequestMessage(HttpMethod.Post, new Uri(methodPath, UriKind.Relative));
+            syncRequest.Headers.Add("Content-Type", "application/json");
+            syncRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            // Add the client type and version.  For the W{indows client, it will be Wnn.  e.g., W01 for the 0.1 client.
+            syncRequest.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
+
+            // Send the request asynchronously
+            _client.Timeout = TimeSpan.FromMinutes(3.0);
+            await _client.SendAsync(syncRequest).ContinueWith(task =>
+            {
+                HandleResponseFromServerCallback(completionHandler, queue, task, "ErrorPostingSyncToServer");
+            });
         }
 
         /// <summary>
@@ -207,6 +256,7 @@ namespace CloudApiPrivate
             //        handler(jsonResult, error);
             //    });
             //}];
+
             string methodPath = "/sync/from_cloud";
             string json = JsonConvert.SerializeObject(metadata, Formatting.Indented);
 
@@ -222,9 +272,17 @@ namespace CloudApiPrivate
             _client.Timeout = TimeSpan.FromMinutes(2.0);
             await _client.SendAsync(syncRequest).ContinueWith(task =>
             {
+                HandleResponseFromServerCallback(completionHandler, queue, task, "ErrorPostingSyncFromServer");
+            });
+        }
+
+        private static void HandleResponseFromServerCallback(Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue, Task<HttpResponseMessage> task,
+                                string resourceErrorMessageKey)
+        {
                 Dictionary<string, object> jsonResult = null;
                 HttpResponseMessage response = null;
-                CLError error = null;
+                CLError error = new Exception(CLSptResourceManager.Instance.ResMgr.GetString(resourceErrorMessageKey));  // init error which may not be used
+                bool isError = false;       // T: an error was posted
                 bool isSuccess = true;
 
                 Exception ex = task.Exception;
@@ -236,67 +294,50 @@ namespace CloudApiPrivate
                 if (ex != null)
                 {
                     // Exception
-                    error = ex;
+                    isError = true;
+                    error.AddException(ex);
                     isSuccess = false;
                 }
                 else if (response == null)
                 {
-                    error = new CLError()
-                    {
-                        errorDomain = CLError.ErrorDomain_Application,
-                        errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("ErrorPostingSyncFromServer"),
-                        errorCode = -1
-                    };
+                    isError = true;
+                    error.AddException(new Exception("Response from server was null"));
                     isSuccess = false;
                 }
 
                 if (isSuccess)
                 {
-                    jsonResult = JsonConvert.DeserializeObject<Dictionary<string, object>>(response.Content.ToString());
-                    CLJsonResultWithError userstate = new CLJsonResultWithError()
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        JsonResult = jsonResult,
-                        Error = error
-                    };
-
-                    Dispatch.Async(queue, completionHandler, userstate);
-                    
-                }
-#if TRASH
-                if (!error) {
-                    if (([(NSHTTPURLResponse *)response statusCode] == 200)) {
-                        NSError *jsonParsingError;
-                        jsonResult = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
-                        if (jsonParsingError) {
-                            NSLog(@"Error parsing JSON in %s with error: %@", __FUNCTION__, [jsonParsingError description]);
-                        }
-                    }else {
-                        NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
-                        [userInfo setValue:[NSString stringWithFormat:NSLocalizedString(@"Expected status code 200, got %d", nil), [(NSHTTPURLResponse *)response statusCode]] forKey:NSLocalizedDescriptionKey];
-                        [userInfo setValue:[syncRequest URL] forKey:NSURLErrorFailingURLErrorKey];
-                        error = [[NSError alloc]initWithDomain:CLCloudAppRestAPIErrorDomain code:[(NSHTTPURLResponse *)response statusCode] userInfo:userInfo];
+                        try 
+	                    {
+		                    jsonResult = JsonConvert.DeserializeObject<Dictionary<string, object>>(response.Content.ToString());
+	                    }
+	                    catch (Exception exInner)
+	                    {
+                            isError = true;
+                            error.AddException(exInner);
+		                }
                     }
+                    else
+                    {
+                        isError = true;
+                        error.AddException(new Exception(String.Format("Expected status code 200 from server.  Got: {0}", response.StatusCode)));
+                    }  
                 }
-                dispatch_async(queue, ^{
-                    handler(jsonResult, error);
-                });
-#endif // TRASH
-            });
 
-#if TRASH            
+                if (!isError)
+                {
+                    error = null;
+                }
 
-            NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
-            [syncRequest setTimeoutInterval:120]; // 2 mins.
-            [syncRequest setHTTPBody:[NSJSONSerialization dataWithJSONObject:metadata options:NSJSONWritingPrettyPrinted error:nil]];
-            syncRequest = [self addCurrentClientVersionValueToHeaderFieldInRequest:syncRequest];
-
-            NSLog(@"%s - Headers:%@",__FUNCTION__, [syncRequest allHTTPHeaderFields]);
-
-            [NSURLConnection sendAsynchronousRequest:syncRequest queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-
-                //completion removed
-            }];        
-#endif // TRASH
+                CLJsonResultWithError userstate = new CLJsonResultWithError()
+                {
+                    JsonResult = jsonResult,
+                    Error = error
+                }; 
+                
+                Dispatch.Async(queue, completionHandler, userstate);
         }
 
         /// <summary>

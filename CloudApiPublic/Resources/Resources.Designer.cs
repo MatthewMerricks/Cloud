@@ -70,6 +70,15 @@ namespace CloudApiPublic.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Oops.  We&apos;re sorry, it seems that something went wrong while syncing files to the server..
+        /// </summary>
+        internal static string ErrorPostingSyncToServer {
+            get {
+                return ResourceManager.GetString("ErrorPostingSyncToServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while creating your account..
         /// </summary>
         internal static string ExceptionCreatingUserRegistration {
