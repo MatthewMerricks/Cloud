@@ -1,4 +1,11 @@
-﻿using System;
+﻿//FlattenedFilePathDictionaryKeys.cs
+//Cloud Windows
+
+//Created by DavidBruck.
+
+//Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +16,10 @@ namespace FileMonitor
 {
     public partial class FilePathDictionary<T>
     {
+        /// <summary>
+        /// Used to flatten the keys from each FilePathDictionary in a collection of FilePathDictionaries into a collection of all keys
+        /// </summary>
+        /// <typeparam name="InnerT">Generic type of the FilePathDictionary to flatten</typeparam>
         private class FlattenedFilePathDictionaryKeys<InnerT> : ICollection<FilePath> where InnerT : class
         {
             ICollection<FilePathDictionary<InnerT>> unflattenedCollection;
@@ -16,7 +27,7 @@ namespace FileMonitor
             {
                 if (unflattenedCollection == null)
                 {
-                    throw new Exception("unflattenedCollection parameter cannot be null");
+                    throw new ArgumentException("unflattenedCollection parameter cannot be null");
                 }
                 this.unflattenedCollection = unflattenedCollection;
             }
@@ -40,12 +51,12 @@ namespace FileMonitor
 
             public void Add(FilePath item)
             {
-                throw new Exception("Cannot add to read-only collection");
+                throw new NotSupportedException("Cannot add to read-only collection");
             }
 
             public void Clear()
             {
-                throw new Exception("Cannot clear read-only collection");
+                throw new NotSupportedException("Cannot clear read-only collection");
             }
 
             public bool Contains(FilePath item)
@@ -57,11 +68,11 @@ namespace FileMonitor
             {
                 if (arrayIndex < 0)
                 {
-                    throw new Exception("arrayIndex must be non-negative");
+                    throw new ArgumentException("arrayIndex must be non-negative");
                 }
                 if ((array.Length - arrayIndex) < this.Count)
                 {
-                    throw new Exception("Not enough room to copy into array");
+                    throw new ArgumentException("Not enough room to copy into array");
                 }
                 int currentDestinationIndex = arrayIndex;
                 foreach (FilePathDictionary<InnerT> currentInnerCollection in unflattenedCollection)
@@ -84,7 +95,7 @@ namespace FileMonitor
 
             public bool Remove(FilePath item)
             {
-                throw new Exception("Cannot remove from read-only collection");
+                throw new NotSupportedException("Cannot remove from read-only collection");
             }
             #endregion
 

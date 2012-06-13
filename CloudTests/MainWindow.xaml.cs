@@ -1,4 +1,11 @@
-﻿using System;
+﻿//MainWindow.xaml.cs
+//Cloud Windows
+
+//Created by DavidBruck.
+
+//Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -224,7 +231,7 @@ namespace CloudTests
                     }
                     else
                     {
-                        MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath, out folderMonitor, FileChange_OnQueueing, true);
+                        MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath, out folderMonitor, processedDict => { }, FileChange_OnQueueing, true);
                         MonitorStatus returnStatus;
                         folderMonitor.Start(out returnStatus);
 
@@ -826,9 +833,6 @@ namespace CloudTests
                             break;
                         case FilePathHolder.FilePathOperationsFilePathOperationOperation.Rename:
                             myData.Rename(new FileInfo(castOperation.PreviousPath), new FileInfo(castOperation.Path));
-                            foreach (KeyValuePair<FilePath, IntHolder> afterRename in myData)
-                            {
-                            }
                             break;
                         case FilePathHolder.FilePathOperationsFilePathOperationOperation.Replace:
                             myData[new FileInfo(castOperation.Path)] = new IntHolder() { Value = IntHolder.NewValue };

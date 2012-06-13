@@ -6,10 +6,23 @@ using System.Threading.Tasks;
 
 namespace FileMonitor
 {
+    /// <summary>
+    /// Comparer to be used in all dictionaries or hashsets on FilePath objects,
+    /// also used to perform a deep compare between FilePath objects manually
+    /// </summary>
     public class FilePathComparer : EqualityComparer<FilePath>
     {
+        /// <summary>
+        /// Overridden Equals for comparing FilePaths by deep compare
+        /// </summary>
+        /// <param name="x">First FilePath to compare</param>
+        /// <param name="y">Second FilePath to compare</param>
+        /// <returns>Returns true for equality, otherwise false</returns>
         public override bool Equals(FilePath x, FilePath y)
         {
+            // check local Name property first
+            // if Parents are null then both are roots and along with equal name represents equality
+            // otherwise if both Parents are not null but running Equals recursively returns true then FilePaths are also equal
             return x.Name == y.Name
                 && ((x.Parent == null
                         && y.Parent == null)
@@ -17,10 +30,20 @@ namespace FileMonitor
                         && y.Parent != null
                         && Equals((FilePath)x.Parent, (FilePath)y.Parent)));
         }
+        /// <summary>
+        /// Overridden GetHashCode that gets a hash from the underlying full path string,
+        /// could be improved for efficiency
+        /// </summary>
+        /// <param name="obj">FilePath to hash</param>
+        /// <returns>Returns hashcode of underlying full path string</returns>
         public override int GetHashCode(FilePath obj)
         {
+            // Grabs the full path string representing a FilePath object and uses that to return a hashcode
             return obj.ToString().GetHashCode();
         }
+        /// <summary>
+        /// Public static instance to be used everywhere the FilePathComparer is needed
+        /// </summary>
         public static FilePathComparer Instance
         {
             get
@@ -37,6 +60,9 @@ namespace FileMonitor
         }
         private static FilePathComparer _instance = null;
         private static object InstanceLocker = new object();
+        /// <summary>
+        /// Private constructor to ensure other classes only use the public static Instance
+        /// </summary>
         private FilePathComparer() { }
     }
 }

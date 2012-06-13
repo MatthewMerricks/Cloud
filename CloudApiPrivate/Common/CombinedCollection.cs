@@ -1,4 +1,11 @@
-﻿using System;
+﻿//CombinedCollection.cs
+//Cloud Windows
+
+//Created by DavidBruck.
+
+//Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +14,10 @@ using System.Threading.Tasks;
 
 namespace CloudApiPrivate.Common
 {
+    /// <summary>
+    /// Used to represent a new collection from two composite collections
+    /// </summary>
+    /// <typeparam name="T">Generic type for both composite collections</typeparam>
     public class CombinedCollection<T> : ICollection<T>
     {
         private ICollection<T> collectionOne;
@@ -16,11 +27,11 @@ namespace CloudApiPrivate.Common
         {
             if (collectionOne == null)
             {
-                throw new Exception("First collection must not be null");
+                throw new ArgumentException("First collection must not be null");
             }
             if (collectionTwo == null)
             {
-                throw new Exception("Second collection must not be null");
+                throw new ArgumentException("Second collection must not be null");
             }
             this.collectionOne = collectionOne;
             this.collectionTwo = collectionTwo;
@@ -45,12 +56,12 @@ namespace CloudApiPrivate.Common
 
         public void Add(T item)
         {
-            throw new Exception("Cannot add to read-only collection");
+            throw new NotSupportedException("Cannot add to read-only collection");
         }
 
         public void Clear()
         {
-            throw new Exception("Cannot clear read-only collection");
+            throw new NotSupportedException("Cannot clear read-only collection");
         }
 
         public bool Contains(T item)
@@ -63,11 +74,11 @@ namespace CloudApiPrivate.Common
         {
             if (arrayIndex < 0)
             {
-                throw new Exception("arrayIndex must be non-negative");
+                throw new ArgumentException("arrayIndex must be non-negative");
             }
             if ((array.Length - arrayIndex) < this.Count)
             {
-                throw new Exception("Not enough room to copy into array");
+                throw new ArgumentException("Not enough room to copy into array");
             }
             int currentTargetIndex = arrayIndex;
             foreach (T currentCollectionOneItem in collectionOne)
@@ -84,7 +95,7 @@ namespace CloudApiPrivate.Common
 
         public bool Remove(T item)
         {
-            throw new Exception("Cannot remove from read-only collection");
+            throw new NotSupportedException("Cannot remove from read-only collection");
         }
         #endregion
 
