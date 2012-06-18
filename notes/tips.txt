@@ -2670,6 +2670,25 @@ work.  Renamed variables and modules for consistency.
     - Stepping through the code.  I built a dictionary helper: Dictionary<>.GetValueOrDefault().  It tests for keys and
       prevents exceptions.
     - Sync depends on the index server which has not yet been started.  I will need to dummy it up as I test.
+  o Lost this file 6/15/12.  Recovered to 6/9/12 Sat. evening.
+  o 6/10/12 Sun:
+    - 7:00 - 15:00 (plane)
+    - Filling out CLSyncService.
+  o 6/12/12 Tue (WWDC)
+    - Filling out CLSyncService.
+    - About 1/2 hour.
+  o 6/13/12 Wed (WWDC)
+    - Ditto, about 2 hours.
+  o 6/14/12 Thu (WWDC)
+    - Switched onto the Mac to get Finder context menu working.
+    - About 2 hours.
+  o 6/15/12 Fri (WWDC)
+    - About 1 hour.
+    - Run Applescript from ObjC: http://stackoverflow.com/questions/4909702/run-applescript-from-cocoa-application
+    - Applescript reference: https://developer.apple.com/library/mac/#documentation/applescript/conceptual/applescriptlangguide/conceptual/ASLR_fundamentals.html#//apple_ref/doc/uid/TP40000983-CH218-SW2
+    - Source to look through Finder windows, using FSRef: http://code.google.com/p/cdto/source/browse/main.m
+    - 
+
 
     
       
@@ -2949,9 +2968,9 @@ MORE GIT (3/7/12)
     . git commit...
     . git push origin <branch>
     . To delete.
-    . git checkout master
-    . git branch -D <branch>  (locally).
-    . git push origin :<branch> (remote).
+      - git checkout master
+      - git branch -D <branch>  (locally).
+      - git push origin :<branch> (remote).
   - Checking out a remote branch and creating a new branch on this client:
          git checkout -b newdesign origin/newdesign  
   

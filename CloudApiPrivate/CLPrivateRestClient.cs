@@ -362,6 +362,36 @@ namespace CloudApiPrivate
         /// <param name="hash">The MD5 hash of the file.</param>
         public CLHTTPConnectionOperation StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string fileSize, string hash)
         {
+            //CLURLRequestConstructor *uploadURLConstructor = [[CLURLRequestConstructor alloc] initWithBaseURL:[NSURL URLWithString:CLUploadDownloadServerURL]];
+            //[uploadURLConstructor setAuthorizationHeaderWithToken:[[CLSettings sharedSettings] aKey]];
+    
+            //[uploadURLConstructor setDefaultHeader:@"X-Ctx-Storage-Key" value:storageKey];
+            //[uploadURLConstructor setDefaultHeader:@"Content-MD5" value:hash];
+            //[uploadURLConstructor setDefaultHeader:@"Content-Length"  value:size];
+    
+            //NSMutableURLRequest *request = [uploadURLConstructor requestWithMethod:@"PUT" path:@"/put_file" parameters:nil];
+            //request = [self addCurrentClientVersionValueToHeaderFieldInRequest:request];
+            //CLHTTPConnectionOperation *operation = [[CLHTTPConnectionOperation alloc] initForStreamingUploadWithRequest:request andFileSystemPath:fileSystemPath];
+            //return operation;
+
+            //&&&&
+            string methodPath = "/put_file";
+
+            // Build the request
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, new Uri(methodPath, UriKind.Relative));
+            request.Headers.Add("X-Ctx-Storage-Key", storageKey);
+            request.Content =  new StreamContent(  new StringContent(json, Encoding.UTF8, "application/json");
+
+            // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
+            request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
+
+            // Send the request asynchronously
+            _client.Timeout = TimeSpan.FromMinutes(2.0);
+            await _client.SendAsync(request).ContinueWith(task =>
+            {
+                HandleResponseFromServerCallback(completionHandler, queue, task, "ErrorPostingSyncFromServer");
+            });
+            //&&&&
             HttpRequestMessage request = null;
             return new CLHTTPConnectionOperation(request, "");
         

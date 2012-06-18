@@ -1342,11 +1342,13 @@ namespace win_client.Services.Sync
             // [self processAddFolderSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
             ProcessAddFolderSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeAdd]);
 
-            //// Rename/Move Folders
-            //[self processRenameMoveFolderSyncEvents:[sortedEvents objectForKey:CLEventTypeRenameMove]];
+            // Rename/Move Folders
+            // [self processRenameMoveFolderSyncEvents:[sortedEvents objectForKey:CLEventTypeRenameMove]];
+            ProcessRenameMoveFolderSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeRenameMove]);
 
-            //// Add Files
-            //[self processAddFileSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
+            // Add Files
+            // [self processAddFileSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
+            ProcessAddFileSyncEvents(sortedEvents[CLDefinitions.CLEventTypeAdd]);
 
             //// Modify Files
             //[self processModifyFileSyncEvents:[sortedEvents objectForKey:CLEventTypeModify]];
@@ -1377,6 +1379,236 @@ namespace win_client.Services.Sync
 
             //// Update UI with activity.
             //[self animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
+
+        }
+
+        //- (void)processAddFileSyncEvents:(NSArray *)events
+        void ProcessAddFileSyncEvents(List<CLEvent> events)
+        {
+            //    NSLog(@"%s", __FUNCTION__);
+            
+            //    // Break down upload and downloads
+            //    NSMutableArray *uploadEvents = [NSMutableArray array];
+            //    NSMutableArray *downloadEvents = [NSMutableArray array];
+    
+            //    // Add File events.
+            //    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        
+            //        CLEvent *event = obj;
+        
+            //        if (event.isMDSEvent) {
+            //            NSString *actionType = event.syncHeader.action;
+            //            NSString *status = event.syncHeader.status;
+            
+            //            // file events only.
+            //            if ([actionType isEqualToString:CLEventTypeAddFile]) {
+                
+            //                if (status == nil) { // MDS origin, Philis told us we need to do this.
+                    
+            //                    // we need to download this file.
+            //                    [downloadEvents addObject:event];
+                    
+            //                } else { //FSM origin, we created this file, need to check for upload.
+                    
+            //                    if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
+                        
+            //                        [uploadEvents addObject:event];
+            //                    }
+                    
+            //                    if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate]) { // we do not need to upload this file.
+                        
+            //                        // update ui.
+            //                        [self performUpdateForSyncEvent:event success:YES];
+            //                    }
+                    
+            //                    if ([status isEqualToString:CLEventTypeConflict]) {
+                        
+            //                        // TODO: handle conflict here.
+                        
+            //                        // update ui.
+            //                        [self performUpdateForSyncEvent:event success:YES];
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }];
+    
+            //    // execute upload and download events.
+            //    if ([uploadEvents count] > 0) {
+            //        [self dispatchUploadEvents:uploadEvents];
+            //    }
+    
+            //    if ([downloadEvents count] > 0) {
+            //        [self dispatchDownloadEvents:downloadEvents];
+            //    }
+
+            //&&&&
+
+            _trace.writeToLog(9, "CLSyncService: ProcessAddFileSyncEvents: Entry.");
+
+            // Break down upload and downloads
+            // NSMutableArray *uploadEvents = [NSMutableArray array];
+            // NSMutableArray *downloadEvents = [NSMutableArray array];
+            List<CLEvent> uploadEvents = new List<CLEvent>();
+            List<CLEvent> downloadEvents = new List<CLEvent>();
+
+            // Add File events.
+            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            events.ForEach(obj =>
+            {
+                // CLEvent *event = obj;
+                CLEvent evt = obj;
+
+                if (evt.IsMDSEvent)
+                {
+                    // NSString *actionType = event.syncHeader.action;
+                    // NSString *status = event.syncHeader.status;
+                    string actionType = evt.SyncHeader.Action;
+                    string status = evt.SyncHeader.Status;
+
+                    // File events only.
+                    // if ([actionType isEqualToString:CLEventTypeAddFile]) {
+                    if (actionType.Equals(CLDefinitions.CLEventTypeAddFile, StringComparison.InvariantCulture))
+                    {
+                        if (status == null)                    // MDS origin, Philis told us we need to do this.
+                        {
+
+                            // We need to download this file.
+                            // [downloadEvents addObject:event];
+
+                        }
+                        else
+                        {                                       //FSM origin, we created this file, need to check for upload.
+                            // if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
+                            if (status.Equals(CLDefinitions.CLEventTypeUpload, StringComparison.InvariantCulture) ||
+                                status.Equals(CLDefinitions.CLEventTypeUploading, StringComparison.InvariantCulture))
+                            {
+                                // [uploadEvents addObject:event];
+                                uploadEvents.Add(evt);
+                            }
+
+                            // if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate]) { // we do not need to upload this file.
+                            if (status.Equals(CLDefinitions.CLEventTypeExists, StringComparison.InvariantCulture) ||
+                                status.Equals(CLDefinitions.CLEventTypeDuplicate, StringComparison.InvariantCulture))
+                            {
+                                // Update ui.
+                                // [self performUpdateForSyncEvent:event success:YES];
+                                PerformUpdateForSyncEventSuccess(evt, success: true);
+                            }
+
+                            // if ([status isEqualToString:CLEventTypeConflict]) {
+                            if (status.Equals(CLDefinitions.CLEventTypeConflict))
+                            {
+                                // TODO: handle conflict here.
+                                // Update ui.
+                                // [self performUpdateForSyncEvent:event success:YES];
+                                PerformUpdateForSyncEventSuccess(evt, success: true);
+                            }
+
+                        }
+                    }
+                }
+            });
+
+            // Execute upload and download events.
+            // if ([uploadEvents count] > 0) {
+            //     [self dispatchUploadEvents:uploadEvents];
+            // }
+            if (uploadEvents.Count() > 0)
+            {
+                DispatchUploadEvents(uploadEvents);
+            }
+
+            // if ([downloadEvents count] > 0) {
+            //    [self dispatchDownloadEvents:downloadEvents];
+            // }
+            if (downloadEvents.Count() > 0)
+            {
+                DispatchDownloadEvents(downloadEvents);
+            }
+
+        }
+
+        //- (void)processRenameMoveFolderSyncEvents:(NSArray *)events
+        void ProcessRenameMoveFolderSyncEvents(List<CLEvent> events)
+        {
+            //    NSLog(@"%s", __FUNCTION__);
+    
+            //    // Rename/Move Folders events.
+            //    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        
+            //        CLEvent *event = obj;
+            //        NSString *actionType = event.syncHeader.action;
+            //        NSString *status = event.syncHeader.status;
+            //        NSString *toPath = event.metadata.toPath;
+            //        NSString *fromPath = event.metadata.fromPath;
+        
+            //        // folder events first.
+            //        if ([actionType rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
+            
+            //            if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
+            //                [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
+                
+            //                BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+                
+            //                if (status == nil) { // MDS origin, Philis told us we need to do this.
+            //                    success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
+            //                }
+                
+            //                // update ui.
+            //                [self performUpdateForSyncEvent:event success:success];
+            //            }
+            //        }
+            //    }];
+
+            //&&&&
+            _trace.writeToLog(9, "CLSyncService: ProcessRenameMoveFolderSyncEvents: Entry.");
+
+            // Rename/Move Folders events.
+            //    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            events.ForEach(obj =>
+            {
+                // CLEvent *event = obj;
+                CLEvent evt = obj;
+
+                // NSString *actionType = event.syncHeader.action;
+                // NSString *status = event.syncHeader.status;
+                // NSString *toPath = event.metadata.toPath;
+                // NSString *fromPath = event.metadata.fromPath;
+                string actionType = evt.SyncHeader.Action;
+                string status = evt.SyncHeader.Status;
+                string toPath = evt.Metadata.ToPath;
+                string fromPath = evt.Metadata.FromPath;
+
+                // Folder events first.
+                // if ([actionType rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
+                if (actionType.Contains(CLDefinitions.CLEventTypeFolderRange))
+                {
+
+                    // if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
+                    //          [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
+                    if (actionType.Contains(CLDefinitions.CLEventTypeRenameRange) ||
+                        actionType.Contains(CLDefinitions.CLEventTypeMoveRange))
+                    {
+
+                        // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+                        bool success = true;
+
+                        // if (status == nil) { // MDS origin, Philis told us we need to do this.
+                        //     success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
+                        // }
+                        if (status == null)
+                        {
+                            CLError error = null;
+                            success = CLFSDispatcher.Instance.MoveItemAtPath(fromPath, toPath, out error);
+                        }
+
+                        // update ui.
+                        // [self performUpdateForSyncEvent:event success:success];
+                        PerformUpdateForSyncEventSuccess(evt, success);
+                    }
+                }
+            });
 
         }
 
@@ -1788,68 +2020,199 @@ namespace win_client.Services.Sync
             //);
         }
 
-        void DispatchUploadEvents(Array events)
+        void DispatchUploadEvents(List<CLEvent> events)
         {
-            //Console.WriteLine("%s", __FUNCTION__);
-            //NSMutableArray operations = NSMutableArray.Array();
-            //if (this.UploadOperationQueue == null) {
-            //    this.UploadOperationQueue = new CLSptNsOperationQueue();
-            //    this.UploadOperationQueue.MaxConcurrentOperationCount = 6;
+            //NSLog(@"%s", __FUNCTION__);
+            //NSMutableArray *operations = [NSMutableArray array];
+    
+            //if (self.uploadOperationQueue == nil) {
+            //    self.uploadOperationQueue = [[CLOperationQueue alloc] init];
+            //    self.uploadOperationQueue.maxConcurrentOperationCount = 6;
+            //}
+    
+            //NSLog(@"Number of uploads to start: %lu", [events count]);
+    
+            //__block NSInteger totalExpectedUploadBytes = 0;
+            //__block NSInteger totalUploadedBytes = 0;
+            //__block NSTimeInterval start;
+
+            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        
+            //    CLEvent *event = obj;
+            //    NSString *path = event.metadata.path;
+            //    NSString *storageKey = event.metadata.storage_key;
+            //    NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
+        
+            //    totalExpectedUploadBytes = totalExpectedUploadBytes +[event.metadata.size integerValue];
+
+            //    NSLog(@"File to be uploaded: %@, Storage Key: %@", path, storageKey);
+        
+            //    __block CLHTTPConnectionOperation *uploadOperation = [self.restClient streamingUploadOperationForStorageKey:storageKey withFileSystemPath:fileSystemPath fileSize:event.metadata.size andMD5Hash:event.metadata.hash];
+        
+            //    [uploadOperation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
+            
+            //        totalUploadedBytes = totalUploadedBytes + bytesWritten;
+            
+            
+            //        NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+            //        double elapsedSeconds = now - start;
+            //        double secondsLeft = (((double)totalExpectedUploadBytes - (double)totalUploadedBytes) / ((double)totalUploadedBytes / elapsedSeconds));
+            //        double progress = (double)totalUploadedBytes / (double)totalExpectedUploadBytes;
+            
+            //        //NSLog(@"Sent %ld of %ld bytes - Progress: %f", totalUploadedBytes, totalExpectedUploadBytes, progress);
+            
+            //        [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
+            //                                                                    timeLeft:secondsLeft
+            //                                                                      bytes:(double)totalUploadedBytes
+            //                                                               ofTotalBytes:(double)totalExpectedUploadBytes
+            //                                                                  fileCount:[self.uploadOperationQueue operationCount]
+            //                                                            andActivityType:activityViewLabelUpload];
+            //    }];
+        
+            //    [uploadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
+            
+            //        NSLog(@"Upload Status: %li", [operation.response statusCode]);
+            
+            //        if ([operation.response statusCode] == 201) {
+                
+            //            NSLog(@"Upload Completed for File: %@", path);
+            //            NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
+            //            // update index and ui.
+            //            [self performUpdateForSyncEvent:event success:YES];
+                
+            //        } else if ([operation.response statusCode] == 304){
+                
+            //            NSLog(@"The file already exists on the server");
+            //            // update index and ui.
+            //            [self performUpdateForSyncEvent:event success:YES];
+                
+            //        }else {
+            //            NSLog(@"Upload Failed with status:%li for File: %@",[operation.response statusCode], path);
+            //        }
+            
+            //        if (error) {
+                
+            //            // Error handler (back processor). Likely to happen due to network interruptions.
+            //            // TODO: Handle the upload failure -- for now update the index to not pending.. we need to handle the error!!
+            //            NSLog(@"Failed to Upload File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
+            //            NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
+                
+            //            // update index and ui.
+            //            [self performUpdateForSyncEvent:event success:NO];
+            //        }
+            
+            //        if ([self.uploadOperationQueue operationCount] <= 0) {
+                
+            //            [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
+            //        }
+            
+            //    }];
+        
+            //    [operations addObject:uploadOperation];
+            //}];
+    
+            //NSLog(@"Starting Upload Operarions");
+            //start = [NSDate timeIntervalSinceReferenceDate];
+            //[self.uploadOperationQueue addOperations:operations waitUntilFinished:YES];
+            //NSLog(@"Finished Upload Operarions");
+
+            //&&&&&&&&&&&&&
+            _trace.writeToLog(9," CLSyncService: DispatchUploadEvents: EntryPointNotFoundException.");
+            //NSMutableArray *operations = [NSMutableArray array];
+
+            //if (self.uploadOperationQueue == nil) {
+            //    self.uploadOperationQueue = [[CLOperationQueue alloc] init];
+            //    self.uploadOperationQueue.maxConcurrentOperationCount = 6;
             //}
 
-            //Console.WriteLine("Number of uploads to start: %lu", events.Count());
-            //NSInteger totalExpectedUploadBytes = 0;
-            //NSInteger totalUploadedBytes = 0;
-            //events.EnumerateObjectsUsingBlock(^ (object obj, NSUInteger idx, bool stop) {
-            //    CLEvent Myevent = obj;
-            //    string path = Myevent.Metadata.Path;
-            //    string storageKey = Myevent.Metadata.Storage_key;
-            //    string fileSystemPath = ((CLSettings.SharedSettings()).CloudFolderPath()).StringByAppendingPathComponent(path);
-            //    totalExpectedUploadBytes = totalExpectedUploadBytes + (Myevent.Metadata.Size).IntegerValue();
-            //    Console.WriteLine("File to be uploaded: %@, Storage Key: %@", path, storageKey);
-            //    CLHTTPConnectionOperation uploadOperation = (this.RestClient).StreamingUploadOperationForStorageKeyWithFileSystemPathFileSizeAndMD5Hash(
-            //      storageKey, fileSystemPath, Myevent.Metadata.Size, Myevent.Metadata.Hash);
-            //    uploadOperation.SetUploadProgressBlock(^ (NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
+            //NSLog(@"Number of uploads to start: %lu", [events count]);
+
+            //__block NSInteger totalExpectedUploadBytes = 0;
+            //__block NSInteger totalUploadedBytes = 0;
+            //__block NSTimeInterval start;
+
+            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+
+            //    CLEvent *event = obj;
+            //    NSString *path = event.metadata.path;
+            //    NSString *storageKey = event.metadata.storage_key;
+            //    NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
+
+            //    totalExpectedUploadBytes = totalExpectedUploadBytes +[event.metadata.size integerValue];
+
+            //    NSLog(@"File to be uploaded: %@, Storage Key: %@", path, storageKey);
+
+            //    __block CLHTTPConnectionOperation *uploadOperation = [self.restClient streamingUploadOperationForStorageKey:storageKey withFileSystemPath:fileSystemPath fileSize:event.metadata.size andMD5Hash:event.metadata.hash];
+
+            //    [uploadOperation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
+
             //        totalUploadedBytes = totalUploadedBytes + bytesWritten;
-            //        double progress = (double) totalUploadedBytes / (double) totalExpectedUploadBytes;
-            //        (CLUIActivityService.SharedService()).UpdateActivityViewWithProgressBytesOfTotalBytesFileCountAndActivityType(progress, (double)
-            //          totalUploadedBytes, (double) totalExpectedUploadBytes, (this.UploadOperationQueue).OperationCount(), activityViewLabelUpload);
-            //    }
-            //    );
-            //    uploadOperation.SetOperationCompletionBlock(^ (CLHTTPConnectionOperation operation, object responseObject, NSError error) {
-            //        Console.WriteLine("Upload Status: %li", (operation.Response).StatusCode());
-            //        if ((operation.Response).StatusCode() == 201) {
-            //            Console.WriteLine("Upload Completed for File: %@", path);
-            //            Console.WriteLine("Opperations remaining: %lu", ((this.UploadOperationQueue).Operations()).Count());
-            //            this.PerformUpdateForSyncEventSuccess(Myevent, true);
-            //        }
-            //        else if ((operation.Response).StatusCode() == 304) {
-            //            Console.WriteLine("The file already exists on the server");
-            //            this.PerformUpdateForSyncEventSuccess(Myevent, true);
+
+
+            //        NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+            //        double elapsedSeconds = now - start;
+            //        double secondsLeft = (((double)totalExpectedUploadBytes - (double)totalUploadedBytes) / ((double)totalUploadedBytes / elapsedSeconds));
+            //        double progress = (double)totalUploadedBytes / (double)totalExpectedUploadBytes;
+
+            //        //NSLog(@"Sent %ld of %ld bytes - Progress: %f", totalUploadedBytes, totalExpectedUploadBytes, progress);
+
+            //        [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
+            //                                                                    timeLeft:secondsLeft
+            //                                                                      bytes:(double)totalUploadedBytes
+            //                                                               ofTotalBytes:(double)totalExpectedUploadBytes
+            //                                                                  fileCount:[self.uploadOperationQueue operationCount]
+            //                                                            andActivityType:activityViewLabelUpload];
+            //    }];
+
+            //    [uploadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
+
+            //        NSLog(@"Upload Status: %li", [operation.response statusCode]);
+
+            //        if ([operation.response statusCode] == 201) {
+
+            //            NSLog(@"Upload Completed for File: %@", path);
+            //            NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
+            //            // update index and ui.
+            //            [self performUpdateForSyncEvent:event success:YES];
+
+            //        } else if ([operation.response statusCode] == 304){
+
+            //            NSLog(@"The file already exists on the server");
+            //            // update index and ui.
+            //            [self performUpdateForSyncEvent:event success:YES];
+
+            //        }else {
+            //            NSLog(@"Upload Failed with status:%li for File: %@",[operation.response statusCode], path);
             //        }
 
             //        if (error) {
-            //            Console.WriteLine("Failed to Upload File: %@. Error: %@, Code: %ld", path, error.LocalizedDescription(), error.Code());
-            //            Console.WriteLine("Opperations remaining: %lu", ((this.UploadOperationQueue).Operations()).Count());
-            //            this.PerformUpdateForSyncEventSuccess(Myevent, false);
+
+            //            // Error handler (back processor). Likely to happen due to network interruptions.
+            //            // TODO: Handle the upload failure -- for now update the index to not pending.. we need to handle the error!!
+            //            NSLog(@"Failed to Upload File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
+            //            NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
+
+            //            // update index and ui.
+            //            [self performUpdateForSyncEvent:event success:NO];
             //        }
 
-            //        if ((this.UploadOperationQueue).OperationCount() <= 0) {
-            //            (CLUIActivityService.SharedService()).UpdateActivityViewWithProgressBytesOfTotalBytesFileCountAndActivityType(1, 0, 0, 0,
-            //              activityViewLabelSynced);
+            //        if ([self.uploadOperationQueue operationCount] <= 0) {
+
+            //            [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
             //        }
 
-            //    }
-            //    );
-            //    operations.AddObject(uploadOperation);
-            //}
-            //);
-            //Console.WriteLine("Starting Upload Operarions");
-            //(this.UploadOperationQueue).AddOperationsWaitUntilFinished(operations, true);
-            //Console.WriteLine("Finished Upload Operarions");
+            //    }];
+
+            //    [operations addObject:uploadOperation];
+            //}];
+
+            //NSLog(@"Starting Upload Operarions");
+            //start = [NSDate timeIntervalSinceReferenceDate];
+            //[self.uploadOperationQueue addOperations:operations waitUntilFinished:YES];
+            //NSLog(@"Finished Upload Operarions");
         }
 
-        void DispatchDownloadEvents(Array events)
+        void DispatchDownloadEvents(List<CLEvent> events)
         {
             //Console.WriteLine("%s", __FUNCTION__);
             //NSMutableArray operations = NSMutableArray.Array();

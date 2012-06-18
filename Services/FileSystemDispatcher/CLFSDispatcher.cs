@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CloudApiPublic.Model;
 using CloudApiPublic.Support;
 
 namespace win_client.Services.FileSystemDispatcher
@@ -60,6 +61,36 @@ namespace win_client.Services.FileSystemDispatcher
         public void EndFileSystemMonitoring()
         {
 
+        }
+
+
+        //- (BOOL)moveItemAtPath:(NSString *)path to:(NSString *)newPath error:( NSError* __strong *)error
+        public bool MoveItemAtPath(string fromPath, string toPath, out CLError error)
+        
+        {
+            //TODO: Implement this
+            //    __block BOOL rc = NO;
+            //    __block NSError *err = nil;
+
+            //    path = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingString:path];
+            //    newPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingString:newPath];
+    
+            //    dispatch_sync(get_cloud_FSD_queue(), ^(void) {
+            //        if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+            //            rc = [[NSFileManager defaultManager] moveItemAtPath:path toPath:newPath error:&err];
+            //        } else {
+            //            rc = YES;
+            //        }
+            //    });
+
+            //    if (err != nil) {
+            //        error = &err;
+            //        NSLog(@"%s - Error: %@, Code: %ld", __FUNCTION__, [err localizedDescription], [err code]);
+            //    }
+
+            //    return rc;
+            error = null;
+            return true;
         }
     }
 }
