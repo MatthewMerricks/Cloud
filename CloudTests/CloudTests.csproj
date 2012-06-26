@@ -104,7 +104,9 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BadgeNET\BadgeNET.csproj">
@@ -122,6 +124,10 @@
     <ProjectReference Include="..\FileMonitor\FileMonitor.csproj">
       <Project>{dfe16278-70b2-4b6c-84c0-1d41b04bebde}</Project>
       <Name>FileMonitor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SQLIndexer\SQLIndexer.csproj">
+      <Project>{5ea44f8a-a8ff-48ab-b6f6-c523793e342e}</Project>
+      <Name>SQLIndexer</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

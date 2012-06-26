@@ -78,6 +78,7 @@ namespace FileMonitor
         // Implicitly converts DirectoryInfo to FilePath, loses all data except the path itself
         public static implicit operator FilePath(DirectoryInfo directory)
         {
+            // Null check and return for nulls
             if (directory == null)
             {
                 return null;
@@ -89,6 +90,7 @@ namespace FileMonitor
         // Implicitly converts FileInfo to FilePath, loses all data except the path itself
         public static implicit operator FilePath(FileInfo file)
         {
+            // Null check and return for nulls
             if (file == null)
             {
                 return null;
@@ -101,6 +103,11 @@ namespace FileMonitor
         // (which is then implicitly converted)
         public static implicit operator FilePath(string fullPath)
         {
+            // Null check and return for nulls
+            if (fullPath == null)
+            {
+                return null;
+            }
             // Must use DirectoryInfo implicit converter instead of FileInfo because
             // "C:\\" produces a FileInfo without a name
             return new DirectoryInfo(fullPath);

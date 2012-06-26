@@ -27,6 +27,7 @@ using System.Xml.Serialization;
 using CloudApiPrivate.Common;
 using CloudApiPublic.Model;
 using FileMonitor;
+using SQLIndexer;
 
 namespace CloudTests
 {
@@ -231,9 +232,19 @@ namespace CloudTests
                     }
                     else
                     {
-                        MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath, out folderMonitor, processedDict => { }, FileChange_OnQueueing, true);
+                        IndexingAgent indexer;
+                        IndexingAgent.CreateNewAndInitialize(out indexer);
+                        MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath,
+                            out folderMonitor,
+                            processedDict => { },
+                            indexer.AddEvent,
+                            FileChange_OnQueueing,
+                            true);
                         MonitorStatus returnStatus;
                         folderMonitor.Start(out returnStatus);
+
+                        indexer.StartInitialIndexing(folderMonitor.BeginProcessing,
+                            folderMonitor.GetCurrentPath);
 
                         folderMonitoringStarted = true;
 

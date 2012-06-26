@@ -46,4 +46,9 @@ namespace FileMonitor
         Deleted,
         Renamed
     }
+
+    public static class FileConstants
+    {
+        public const long InvalidUtcTimeTicks = 504911232000000000;
+    }
 }

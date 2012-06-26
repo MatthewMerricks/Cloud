@@ -22,10 +22,12 @@ namespace FileMonitor
 {
     public class MonitorAgent : IDisposable
     {
-        #region public property
+        #region public properties
         /// <summary>
         /// Retrieves running status of monitor as enum for each part (file and folder)
         /// </summary>
+        /// <param name="status">Returned running status</param>
+        /// <returns>Error while retrieving status, if any</returns>
         public CLError GetRunningStatus(out MonitorRunning status)
         {
             try
@@ -52,6 +54,34 @@ namespace FileMonitor
                         : MonitorRunning.FileOnlyRunning);
             }
         }
+        /// <summary>
+        /// Retrieves current folder path of monitored root
+        /// </summary>
+        /// <returns>Root path</returns>
+        public string GetCurrentPath()
+        {
+            return CurrentFolderPath;
+        }
+        /// <summary>
+        /// Retrieves locker for the initial indexing
+        /// (before file monitor changes process)
+        /// </summary>
+        /// <param name="initialIndexLocker">Returned index locker</param>
+        /// <returns>Error while returning locker, if any</returns>
+        public CLError GetInitialIndexLocker(out ReaderWriterLockSlim initialIndexLocker)
+        {
+            try
+            {
+                initialIndexLocker = InitialIndexLocker;
+            }
+            catch (Exception ex)
+            {
+                initialIndexLocker = (ReaderWriterLockSlim)Helpers.DefaultForType(typeof(ReaderWriterLockSlim));
+                return ex;
+            }
+            return null;
+        }
+        private ReaderWriterLockSlim InitialIndexLocker = new ReaderWriterLockSlim();
         #endregion
 
         #region private fields and property
@@ -60,6 +90,9 @@ namespace FileMonitor
 
         // stores the callback used to process a group of events.  Passed via an intialization parameter
         private Action<Dictionary<string, object>> OnProcessEventGroupCallback;
+
+        // stores the callback used to add the processed event to the SQL index
+        private Func<FileChange, int> ProcessAppendToSQL;
 
         // store the optional logging boolean initialization parameter
         private bool LogProcessingFileChanges;
@@ -99,6 +132,23 @@ namespace FileMonitor
         private FilePathDictionary<FileChange> QueuedChanges;
         private static readonly FileMetadataHashableComparer QueuedChangesMetadataComparer = new FileMetadataHashableComparer();// Comparer has improved hashing by using only the fastest changing bits
         private Dictionary<FileMetadataHashableProperties, FileChange> QueuedChangesByMetadata = new Dictionary<FileMetadataHashableProperties, FileChange>(QueuedChangesMetadataComparer);// Use custom comparer for improved hashing
+
+        // Queue of file monitor events that occur while initial index is processing
+        private Queue<ChangesQueueHolder> ChangesQueueForInitialIndexing = new Queue<ChangesQueueHolder>();
+        // Storage class for required parameters to 
+        private class ChangesQueueHolder
+        {
+            public string newPath { get; set; }
+            public string oldPath { get; set; }
+            public WatcherChangeTypes changeType { get; set; }
+            public bool folderOnly { get; set; }
+        }
+
+        /// <summary>
+        /// Stores whether initial indexing has yet to complete,
+        /// lock on InitialIndexLocker
+        /// </summary>
+        private bool IsInitialIndex = true;
         #endregion
 
         /// <summary>
@@ -112,7 +162,12 @@ namespace FileMonitor
         /// <param name="onQueueingCallback">(optional) action to be executed evertime a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns></returns>
-        public static CLError CreateNewAndInitialize(string folderPath, out MonitorAgent newAgent, Action<Dictionary<string, object>> onProcessEventGroupCallback, Action<MonitorAgent, FileChange> onQueueingCallback = null, bool logProcessing = false)
+        public static CLError CreateNewAndInitialize(string folderPath,
+            out MonitorAgent newAgent,
+            Action<Dictionary<string, object>> onProcessEventGroupCallback,
+            Func<FileChange, int> onProcessAppendToSQL,
+            Action<MonitorAgent, FileChange> onQueueingCallback = null,
+            bool logProcessing = false)
         {
             try
             {
@@ -155,6 +210,7 @@ namespace FileMonitor
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;
                 newAgent.OnProcessEventGroupCallback = onProcessEventGroupCallback;
+                newAgent.ProcessAppendToSQL = onProcessAppendToSQL;
                 newAgent.LogProcessingFileChanges = logProcessing;
             }
             catch (Exception ex)
@@ -167,6 +223,64 @@ namespace FileMonitor
         private MonitorAgent() { }
 
         #region public methods
+        ///// <summary>
+        ///// Notify completion of indexing;
+        ///// sets IsInitialIndex to false,
+        ///// combines index with queued changes,
+        ///// and processes changes
+        ///// </summary>
+        ///// <returns></returns>
+        public void BeginProcessing(IEnumerable<KeyValuePair<FilePath, FileMetadata>> initialList, IEnumerable<FileChange> newChanges = null)
+        {
+            InitialIndexLocker.EnterWriteLock();
+            try
+            {
+                if (initialList == null)
+                {
+                    throw new NullReferenceException("initialList cannot be null");
+                }
+                lock (AllPaths)
+                {
+                    foreach (KeyValuePair<FilePath, FileMetadata> currentItem in initialList)
+                    {
+                        AllPaths.Add(currentItem);
+                    }
+                    lock (QueuedChanges)
+                    {
+                        if (newChanges != null)
+                        {
+                            foreach (FileChange currentChange in newChanges)
+                            {
+                                AllPaths[currentChange.NewPath] = currentChange.Metadata;
+                                QueueFileChange(new FileChange(QueuedChanges)
+                                    {
+                                        NewPath = currentChange.NewPath,
+                                        OldPath = currentChange.OldPath,
+                                        Metadata = currentChange.Metadata,
+                                        Type = currentChange.Type,
+                                        DoNotAddToSQLIndex = currentChange.DoNotAddToSQLIndex
+                                    });
+                            }
+                        }
+                    }
+                }
+                while (ChangesQueueForInitialIndexing.Count > 0)
+                {
+                    ChangesQueueHolder currentChange = ChangesQueueForInitialIndexing.Dequeue();
+                    CheckMetadataAgainstFile(currentChange.newPath,
+                        currentChange.oldPath,
+                        currentChange.changeType,
+                        currentChange.folderOnly);
+                }
+                ChangesQueueForInitialIndexing = null;
+                IsInitialIndex = false;
+            }
+            finally
+            {
+                InitialIndexLocker.ExitWriteLock();
+            }
+        }
+
         /// <summary>
         /// Call this first to start monitoring file system while initial indexing/synchronization occur,
         /// BeginProcessing(initialList) must be called before monitored events begin processing
@@ -452,382 +566,403 @@ namespace FileMonitor
         /// <param name="folderOnly">Specificity from routing of file system event</param>
         private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly)
         {
-            // object for gathering folder info at current path
-            FilePath pathObject;
-            DirectoryInfo folder;
-            pathObject = folder = new DirectoryInfo(newPath);
-
-            // object for gathering file info (set conditionally later in case we know change is not a file)
-            FileInfo file = null;
-            // field used to determine if change is a file or folder
-            bool isFolder;
-            // field used to determine if file/folder exists
-            bool exists;
-            // field for file length
-            Nullable<long> fileLength = null;
-
-            // if file system event was folder-specific, store that change is folder and determine if folder exists
-            if (folderOnly)
+            InitialIndexLocker.EnterReadLock();
+            try
             {
-                // store that change is a folder
-                isFolder = true;
-                // check and store if folder exists
-                exists = folder.Exists;
-            }
-            // if file system event was not folder-specific, but a folder exists at the specified path anyways
-            // then store that change is a folder and that the folder exists
-            else if (folder.Exists)
-            {
-                // store that change is a folder
-                isFolder = true;
-                // store that folder exists
-                exists = true;
-            }
-            // if change was not folder-specific and a folder didn't exist at the specified path,
-            // set object for gathering file info and use that object to determine if file exists
-            else
-            {
-                // since we did not find a folder, assume change is on a file
-                isFolder = false;
-                // set object for gathering file info at current path
-                file = new FileInfo(newPath);
-                // check and store if file exists
-                exists = file.Exists;
-                // ran into a condition where the file was moved between checking if it existed and finding its length,
-                // fixed by storing the length inside a try/catch and handling the not found exception by flipping exists
-                if (exists)
+                if (IsInitialIndex)
                 {
-                    try
+                    ChangesQueueForInitialIndexing.Enqueue(new ChangesQueueHolder()
                     {
-                        fileLength = file.Length;
-                    }
-                    catch (FileNotFoundException)
-                    {
-                        exists = false;
-                    }
-                    catch
-                    {
-                    }
+                        newPath = newPath,
+                        oldPath = oldPath,
+                        changeType = changeType,
+                        folderOnly = folderOnly
+                    });
                 }
-            }
-
-            // Only process file/folder event if it does not exist or if its FileAttributes does not contain any unwanted attributes
-            // Also ensure if it is a file that the file is not a shortcut
-            if (!exists// file/folder does not exist so no need to check attributes
-                || ((FileAttributes)0 ==// compare bitwise and of FileAttributes and all unwanted attributes to '0'
-                    ((isFolder// need to grab FileAttributes based on whether change is on a file or folder
-                    ? folder.Attributes// change is on folder, grab folder attributes
-                    : file.Attributes)// change is on file, grab file attributes
-                        & (FileAttributes.Hidden// ignore hidden files
-                            | FileAttributes.Offline// ignore offline files (data is not available on them)
-                            | FileAttributes.System// ignore system files
-                            | FileAttributes.Temporary// ignore temporary files
-                            ))
-                    && (isFolder ? true : !FileIsShortcut(file))))// allow change if it is a folder or if it is a file that is not a shortcut
-            {
-                DateTime lastTime;
-                DateTime creationTime;
-                // set last time and creation time from appropriate info based on whether change is on a folder or file
-                if (isFolder)
-                {
-                    // last time is the greater of the the last access time and the last write time
-                    lastTime = DateTime.Compare(folder.LastAccessTimeUtc, folder.LastWriteTimeUtc) > 0
-                        ? folder.LastAccessTimeUtc
-                        : folder.LastWriteTimeUtc;
-                    // creation time is pulled directly
-                    creationTime = folder.CreationTimeUtc;
-                }
-                // change was not a folder, grab times based on file
                 else
                 {
-                    // last time is the greater of the the last access time and the last write time
-                    lastTime = DateTime.Compare(file.LastAccessTimeUtc, file.LastWriteTimeUtc) > 0
-                        ? file.LastAccessTimeUtc
-                        : file.LastWriteTimeUtc;
-                    // creation time is pulled directly
-                    creationTime = file.CreationTimeUtc;
-                }
+                    // object for gathering folder info at current path
+                    FilePath pathObject;
+                    DirectoryInfo folder;
+                    pathObject = folder = new DirectoryInfo(newPath);
 
-                // most paths modify the list of current indexes, so lock it from other reads/changes
-                lock (AllPaths)
-                {
-                    #region file system event, current file status, and current recorded index state flow
+                    // object for gathering file info (set conditionally later in case we know change is not a file)
+                    FileInfo file = null;
+                    // field used to determine if change is a file or folder
+                    bool isFolder;
+                    // field used to determine if file/folder exists
+                    bool exists;
+                    // field for file length
+                    Nullable<long> fileLength = null;
 
-                    // for file system events marked as file/folder changes or additions
-                    if ((changeType & WatcherChangeTypes.Changed) == WatcherChangeTypes.Changed
-                        || (changeType & WatcherChangeTypes.Created) == WatcherChangeTypes.Created)
+                    // if file system event was folder-specific, store that change is folder and determine if folder exists
+                    if (folderOnly)
                     {
-                        // if file/folder actually exists
+                        // store that change is a folder
+                        isFolder = true;
+                        // check and store if folder exists
+                        exists = folder.Exists;
+                    }
+                    // if file system event was not folder-specific, but a folder exists at the specified path anyways
+                    // then store that change is a folder and that the folder exists
+                    else if (folder.Exists)
+                    {
+                        // store that change is a folder
+                        isFolder = true;
+                        // store that folder exists
+                        exists = true;
+                    }
+                    // if change was not folder-specific and a folder didn't exist at the specified path,
+                    // set object for gathering file info and use that object to determine if file exists
+                    else
+                    {
+                        // since we did not find a folder, assume change is on a file
+                        isFolder = false;
+                        // set object for gathering file info at current path
+                        file = new FileInfo(newPath);
+                        // check and store if file exists
+                        exists = file.Exists;
+                        // ran into a condition where the file was moved between checking if it existed and finding its length,
+                        // fixed by storing the length inside a try/catch and handling the not found exception by flipping exists
                         if (exists)
                         {
-                            // if index exists at specified path
-                            if (AllPaths.ContainsKey(pathObject))
+                            try
                             {
-                                // No need to send modified events for folders
-                                // so check if event is on a file or if folder modifies are not ignored
-                                if (!isFolder
-                                    || !IgnoreFolderModifies)
-                                {
-                                    // retrieve stored index
-                                    FileMetadata previousMetadata = AllPaths[pathObject];
-                                    // compare stored index with values from file info
-                                    FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
-                                        isFolder,
-                                        lastTime,
-                                        creationTime,
-                                        fileLength);
-                                    // if new metadata came back after comparison, queue file change for modify
-                                    if (newMetadata != null)
-                                    {
-                                        // replace index at current path
-                                        AllPaths[pathObject] = newMetadata;
-                                        // queue file change for modify
-                                        QueueFileChange(new FileChange(QueuedChanges)
-                                        {
-                                            NewPath = pathObject,
-                                            Metadata = newMetadata,
-                                            Type = FileChangeType.Modified
-                                        });
-                                    }
-                                }
+                                fileLength = file.Length;
                             }
-                            // if index did not already exist
-                            else
+                            catch (FileNotFoundException)
                             {
-                                // add new index
-                                AllPaths.Add(pathObject,
-                                    new FileMetadata()
-                                    {
-                                        HashableProperties = new FileMetadataHashableProperties(isFolder,
-                                            lastTime,
-                                            creationTime,
-                                            fileLength)
-                                    });
-                                // queue file change for create
-                                QueueFileChange(new FileChange(QueuedChanges)
-                                {
-                                    NewPath = pathObject,
-                                    Metadata = AllPaths[pathObject],
-                                    Type = FileChangeType.Created
-                                });
+                                exists = false;
                             }
-                        }
-                        // if file file does not exist, but an index exists
-                        else if (AllPaths.ContainsKey(pathObject))
-                        {
-                            // queue file change for delete
-                            QueueFileChange(new FileChange(QueuedChanges)
+                            catch
                             {
-                                NewPath = pathObject,
-                                Metadata = AllPaths[pathObject],
-                                Type = FileChangeType.Deleted
-                            });
-                            // remove index
-                            AllPaths.Remove(pathObject);
+                            }
                         }
                     }
-                    // for file system events marked as rename
-                    else if ((changeType & WatcherChangeTypes.Renamed) == WatcherChangeTypes.Renamed)
+
+                    // Only process file/folder event if it does not exist or if its FileAttributes does not contain any unwanted attributes
+                    // Also ensure if it is a file that the file is not a shortcut
+                    if (!exists// file/folder does not exist so no need to check attributes
+                        || ((FileAttributes)0 ==// compare bitwise and of FileAttributes and all unwanted attributes to '0'
+                            ((isFolder// need to grab FileAttributes based on whether change is on a file or folder
+                            ? folder.Attributes// change is on folder, grab folder attributes
+                            : file.Attributes)// change is on file, grab file attributes
+                                & (FileAttributes.Hidden// ignore hidden files
+                                    | FileAttributes.Offline// ignore offline files (data is not available on them)
+                                    | FileAttributes.System// ignore system files
+                                    | FileAttributes.Temporary// ignore temporary files
+                                    ))
+                            && (isFolder ? true : !FileIsShortcut(file))))// allow change if it is a folder or if it is a file that is not a shortcut
                     {
-                        FilePath oldPathObject = oldPath;
-
-                        // store a boolean which may be set to true to notify a condition when a rename operation may need to be queued
-                        bool possibleRename = false;
-                        // if index exists at the previous path
-                        if (AllPaths.ContainsKey(oldPathObject))
+                        DateTime lastTime;
+                        DateTime creationTime;
+                        // set last time and creation time from appropriate info based on whether change is on a folder or file
+                        if (isFolder)
                         {
-                            // if a file or folder exists at the previous path
-                            if (File.Exists(oldPath)
-                                || Directory.Exists(oldPath))
-                            {
-                                // recurse once on this current function to process the previous path as a file system modified event
-                                CheckMetadataAgainstFile(oldPath, null, WatcherChangeTypes.Changed, false);
-                            }
-                            // if no file nor folder exists at the previous path and a file or folder does exist at the current path
-                            else if (exists)
-                            {
-                                // set precursor condition for queueing a file change for rename
-                                possibleRename = true;
-                            }
-                            // if no file nor folder exists at either the previous or current path
-                            else
-                            {
-                                // queue file change for delete at previous path
-                                QueueFileChange(new FileChange(QueuedChanges)
-                                {
-                                    NewPath = oldPathObject,
-                                    Metadata = AllPaths[oldPathObject],
-                                    Type = FileChangeType.Deleted
-                                });
-                                // remove index at previous path
-                                AllPaths.Remove(oldPathObject);
-                            }
+                            // last time is the greater of the the last access time and the last write time
+                            lastTime = DateTime.Compare(folder.LastAccessTimeUtc, folder.LastWriteTimeUtc) > 0
+                                ? folder.LastAccessTimeUtc
+                                : folder.LastWriteTimeUtc;
+                            // creation time is pulled directly
+                            creationTime = folder.CreationTimeUtc;
                         }
-                        // if index exists at current path (irrespective of last condition on previous path index)
-                        if (AllPaths.ContainsKey(pathObject))
-                        {
-                            // if file or folder exists at the current path
-                            if (exists)
-                            {
-                                // No need to send modified events for folders
-                                // so check if event is on a file or if folder modifies are not ignored
-                                if (!isFolder
-                                    || !IgnoreFolderModifies)
-                                {
-                                    // retrieve stored index at current path
-                                    FileMetadata previousMetadata = AllPaths[pathObject];
-                                    // compare stored index with values from file info
-                                    FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
-                                        isFolder,
-                                        lastTime,
-                                        creationTime,
-                                        fileLength);
-                                    // if new metadata came back after comparison, queue file change for modify
-                                    if (newMetadata != null)
-                                    {
-                                        // replace index at current path
-                                        AllPaths[pathObject] = newMetadata;
-                                        // queue file change for modify
-                                        QueueFileChange(new FileChange(QueuedChanges)
-                                        {
-                                            NewPath = pathObject,
-                                            Metadata = newMetadata,
-                                            Type = FileChangeType.Modified
-                                        });
-                                    }
-                                }
-                            }
-                            // else file does not exist
-                            else
-                            {
-                                // queue file change for delete at new path
-                                QueueFileChange(new FileChange(QueuedChanges)
-                                {
-                                    NewPath = pathObject,
-                                    Metadata = AllPaths[pathObject],
-                                    Type = FileChangeType.Deleted
-                                });
-                                // remove index for new path
-                                AllPaths.Remove(pathObject);
-
-                                // no need to continue and check possibeRename since it required exists to be true, return now
-                                return;
-                            }
-                            // if precursor condition was set for a file change for rename
-                            // (but an index already exists at the new path)
-                            if (possibleRename)
-                            {
-                                // queue file change for delete at previous path
-                                QueueFileChange(new FileChange(QueuedChanges)
-                                {
-                                    NewPath = oldPath,
-                                    Metadata = AllPaths[oldPathObject],
-                                    Type = FileChangeType.Deleted
-                                });
-                                // remove index at the previous path
-                                AllPaths.Remove(oldPath);
-                            }
-                        }
-                        // if precursor condition was set for a file change for rename
-                        // and an index does not exist at the new path
-                        else if (possibleRename)
-                        {
-                            // retrieve index at previous path
-                            FileMetadata previousMetadata = AllPaths[oldPath];
-                            // compare stored index from previous path with values from current change
-                            FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
-                                isFolder,
-                                lastTime,
-                                creationTime,
-                                fileLength);
-                            // remove index at the previous path
-                            AllPaths.Remove(oldPath);
-                            // add an index for the current path either from the changed metadata if it exists otherwise the previous metadata
-                            AllPaths.Add(pathObject, newMetadata ?? previousMetadata);
-                            // queue file change for rename (use changed metadata if it exists otherwise the previous metadata)
-                            QueueFileChange(new FileChange(QueuedChanges)
-                            {
-                                NewPath = pathObject,
-                                OldPath = oldPath,
-                                Metadata = newMetadata ?? previousMetadata,
-                                Type = FileChangeType.Renamed
-                            });
-                        }
-                        // if index does not exist at either the old nor new paths and the file exists
+                        // change was not a folder, grab times based on file
                         else
                         {
-                            // add new index at new path
-                            AllPaths.Add(pathObject,
-                                new FileMetadata()
-                                {
-                                    HashableProperties = new FileMetadataHashableProperties(isFolder,
-                                        lastTime,
-                                        creationTime,
-                                        fileLength)
-                                });
-                            // queue file change for create for new path
-                            QueueFileChange(new FileChange(QueuedChanges)
-                            {
-                                NewPath = pathObject,
-                                Metadata = AllPaths[pathObject],
-                                Type = FileChangeType.Created
-                            });
+                            // last time is the greater of the the last access time and the last write time
+                            lastTime = DateTime.Compare(file.LastAccessTimeUtc, file.LastWriteTimeUtc) > 0
+                                ? file.LastAccessTimeUtc
+                                : file.LastWriteTimeUtc;
+                            // creation time is pulled directly
+                            creationTime = file.CreationTimeUtc;
                         }
-                    }
-                    // for file system events marked as delete
-                    else if ((changeType & WatcherChangeTypes.Deleted) == WatcherChangeTypes.Deleted)
-                    {
-                        // if file or folder exists
-                        if (exists)
+
+                        // most paths modify the list of current indexes, so lock it from other reads/changes
+                        lock (AllPaths)
                         {
-                            // if index exists and check for folder modify passes
-                            if (AllPaths.ContainsKey(pathObject)
-                                &&
-                                // No need to send modified events for folders
-                                // so check if event is on a file or if folder modifies are not ignored
-                                (!isFolder
-                                    || !IgnoreFolderModifies))
+                            #region file system event, current file status, and current recorded index state flow
+
+                            // for file system events marked as file/folder changes or additions
+                            if ((changeType & WatcherChangeTypes.Changed) == WatcherChangeTypes.Changed
+                                || (changeType & WatcherChangeTypes.Created) == WatcherChangeTypes.Created)
                             {
-                                // retrieve stored index at current path
-                                FileMetadata previousMetadata = AllPaths[pathObject];
-                                // compare stored index with values from file info
-                                FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
-                                    isFolder,
-                                    lastTime,
-                                    creationTime,
-                                    fileLength);
-                                // if new metadata came back after comparison, queue file change for modify
-                                if (newMetadata != null)
+                                // if file/folder actually exists
+                                if (exists)
                                 {
-                                    // replace index at current path
-                                    AllPaths[pathObject] = newMetadata;
-                                    // queue file change for modify
+                                    // if index exists at specified path
+                                    if (AllPaths.ContainsKey(pathObject))
+                                    {
+                                        // No need to send modified events for folders
+                                        // so check if event is on a file or if folder modifies are not ignored
+                                        if (!isFolder
+                                            || !IgnoreFolderModifies)
+                                        {
+                                            // retrieve stored index
+                                            FileMetadata previousMetadata = AllPaths[pathObject];
+                                            // compare stored index with values from file info
+                                            FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
+                                                isFolder,
+                                                lastTime,
+                                                creationTime,
+                                                fileLength);
+                                            // if new metadata came back after comparison, queue file change for modify
+                                            if (newMetadata != null)
+                                            {
+                                                // replace index at current path
+                                                AllPaths[pathObject] = newMetadata;
+                                                // queue file change for modify
+                                                QueueFileChange(new FileChange(QueuedChanges)
+                                                {
+                                                    NewPath = pathObject,
+                                                    Metadata = newMetadata,
+                                                    Type = FileChangeType.Modified
+                                                });
+                                            }
+                                        }
+                                    }
+                                    // if index did not already exist
+                                    else
+                                    {
+                                        // add new index
+                                        AllPaths.Add(pathObject,
+                                            new FileMetadata()
+                                            {
+                                                HashableProperties = new FileMetadataHashableProperties(isFolder,
+                                                    lastTime,
+                                                    creationTime,
+                                                    fileLength)
+                                            });
+                                        // queue file change for create
+                                        QueueFileChange(new FileChange(QueuedChanges)
+                                        {
+                                            NewPath = pathObject,
+                                            Metadata = AllPaths[pathObject],
+                                            Type = FileChangeType.Created
+                                        });
+                                    }
+                                }
+                                // if file file does not exist, but an index exists
+                                else if (AllPaths.ContainsKey(pathObject))
+                                {
+                                    // queue file change for delete
                                     QueueFileChange(new FileChange(QueuedChanges)
                                     {
                                         NewPath = pathObject,
-                                        Metadata = newMetadata,
-                                        Type = FileChangeType.Modified
+                                        Metadata = AllPaths[pathObject],
+                                        Type = FileChangeType.Deleted
+                                    });
+                                    // remove index
+                                    AllPaths.Remove(pathObject);
+                                }
+                            }
+                            // for file system events marked as rename
+                            else if ((changeType & WatcherChangeTypes.Renamed) == WatcherChangeTypes.Renamed)
+                            {
+                                FilePath oldPathObject = oldPath;
+
+                                // store a boolean which may be set to true to notify a condition when a rename operation may need to be queued
+                                bool possibleRename = false;
+                                // if index exists at the previous path
+                                if (AllPaths.ContainsKey(oldPathObject))
+                                {
+                                    // if a file or folder exists at the previous path
+                                    if (File.Exists(oldPath)
+                                        || Directory.Exists(oldPath))
+                                    {
+                                        // recurse once on this current function to process the previous path as a file system modified event
+                                        CheckMetadataAgainstFile(oldPath, null, WatcherChangeTypes.Changed, false);
+                                    }
+                                    // if no file nor folder exists at the previous path and a file or folder does exist at the current path
+                                    else if (exists)
+                                    {
+                                        // set precursor condition for queueing a file change for rename
+                                        possibleRename = true;
+                                    }
+                                    // if no file nor folder exists at either the previous or current path
+                                    else
+                                    {
+                                        // queue file change for delete at previous path
+                                        QueueFileChange(new FileChange(QueuedChanges)
+                                        {
+                                            NewPath = oldPathObject,
+                                            Metadata = AllPaths[oldPathObject],
+                                            Type = FileChangeType.Deleted
+                                        });
+                                        // remove index at previous path
+                                        AllPaths.Remove(oldPathObject);
+                                    }
+                                }
+                                // if index exists at current path (irrespective of last condition on previous path index)
+                                if (AllPaths.ContainsKey(pathObject))
+                                {
+                                    // if file or folder exists at the current path
+                                    if (exists)
+                                    {
+                                        // No need to send modified events for folders
+                                        // so check if event is on a file or if folder modifies are not ignored
+                                        if (!isFolder
+                                            || !IgnoreFolderModifies)
+                                        {
+                                            // retrieve stored index at current path
+                                            FileMetadata previousMetadata = AllPaths[pathObject];
+                                            // compare stored index with values from file info
+                                            FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
+                                                isFolder,
+                                                lastTime,
+                                                creationTime,
+                                                fileLength);
+                                            // if new metadata came back after comparison, queue file change for modify
+                                            if (newMetadata != null)
+                                            {
+                                                // replace index at current path
+                                                AllPaths[pathObject] = newMetadata;
+                                                // queue file change for modify
+                                                QueueFileChange(new FileChange(QueuedChanges)
+                                                {
+                                                    NewPath = pathObject,
+                                                    Metadata = newMetadata,
+                                                    Type = FileChangeType.Modified
+                                                });
+                                            }
+                                        }
+                                    }
+                                    // else file does not exist
+                                    else
+                                    {
+                                        // queue file change for delete at new path
+                                        QueueFileChange(new FileChange(QueuedChanges)
+                                        {
+                                            NewPath = pathObject,
+                                            Metadata = AllPaths[pathObject],
+                                            Type = FileChangeType.Deleted
+                                        });
+                                        // remove index for new path
+                                        AllPaths.Remove(pathObject);
+
+                                        // no need to continue and check possibeRename since it required exists to be true, return now
+                                        return;
+                                    }
+                                    // if precursor condition was set for a file change for rename
+                                    // (but an index already exists at the new path)
+                                    if (possibleRename)
+                                    {
+                                        // queue file change for delete at previous path
+                                        QueueFileChange(new FileChange(QueuedChanges)
+                                        {
+                                            NewPath = oldPath,
+                                            Metadata = AllPaths[oldPathObject],
+                                            Type = FileChangeType.Deleted
+                                        });
+                                        // remove index at the previous path
+                                        AllPaths.Remove(oldPath);
+                                    }
+                                }
+                                // if precursor condition was set for a file change for rename
+                                // and an index does not exist at the new path
+                                else if (possibleRename)
+                                {
+                                    // retrieve index at previous path
+                                    FileMetadata previousMetadata = AllPaths[oldPath];
+                                    // compare stored index from previous path with values from current change
+                                    FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
+                                        isFolder,
+                                        lastTime,
+                                        creationTime,
+                                        fileLength);
+                                    // remove index at the previous path
+                                    AllPaths.Remove(oldPath);
+                                    // add an index for the current path either from the changed metadata if it exists otherwise the previous metadata
+                                    AllPaths.Add(pathObject, newMetadata ?? previousMetadata);
+                                    // queue file change for rename (use changed metadata if it exists otherwise the previous metadata)
+                                    QueueFileChange(new FileChange(QueuedChanges)
+                                    {
+                                        NewPath = pathObject,
+                                        OldPath = oldPath,
+                                        Metadata = newMetadata ?? previousMetadata,
+                                        Type = FileChangeType.Renamed
+                                    });
+                                }
+                                // if index does not exist at either the old nor new paths and the file exists
+                                else
+                                {
+                                    // add new index at new path
+                                    AllPaths.Add(pathObject,
+                                        new FileMetadata()
+                                        {
+                                            HashableProperties = new FileMetadataHashableProperties(isFolder,
+                                                lastTime,
+                                                creationTime,
+                                                fileLength)
+                                        });
+                                    // queue file change for create for new path
+                                    QueueFileChange(new FileChange(QueuedChanges)
+                                    {
+                                        NewPath = pathObject,
+                                        Metadata = AllPaths[pathObject],
+                                        Type = FileChangeType.Created
                                     });
                                 }
                             }
-                        }
-                        // if file or folder does not exist but index exists for current path
-                        else if (AllPaths.ContainsKey(pathObject))
-                        {
-                            // queue file change for delete
-                            QueueFileChange(new FileChange(QueuedChanges)
+                            // for file system events marked as delete
+                            else if ((changeType & WatcherChangeTypes.Deleted) == WatcherChangeTypes.Deleted)
                             {
-                                NewPath = pathObject,
-                                Metadata = AllPaths[pathObject],
-                                Type = FileChangeType.Deleted
-                            });
-                            // remove index
-                            AllPaths.Remove(pathObject);
+                                // if file or folder exists
+                                if (exists)
+                                {
+                                    // if index exists and check for folder modify passes
+                                    if (AllPaths.ContainsKey(pathObject)
+                                        &&
+                                        // No need to send modified events for folders
+                                        // so check if event is on a file or if folder modifies are not ignored
+                                        (!isFolder
+                                            || !IgnoreFolderModifies))
+                                    {
+                                        // retrieve stored index at current path
+                                        FileMetadata previousMetadata = AllPaths[pathObject];
+                                        // compare stored index with values from file info
+                                        FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
+                                            isFolder,
+                                            lastTime,
+                                            creationTime,
+                                            fileLength);
+                                        // if new metadata came back after comparison, queue file change for modify
+                                        if (newMetadata != null)
+                                        {
+                                            // replace index at current path
+                                            AllPaths[pathObject] = newMetadata;
+                                            // queue file change for modify
+                                            QueueFileChange(new FileChange(QueuedChanges)
+                                            {
+                                                NewPath = pathObject,
+                                                Metadata = newMetadata,
+                                                Type = FileChangeType.Modified
+                                            });
+                                        }
+                                    }
+                                }
+                                // if file or folder does not exist but index exists for current path
+                                else if (AllPaths.ContainsKey(pathObject))
+                                {
+                                    // queue file change for delete
+                                    QueueFileChange(new FileChange(QueuedChanges)
+                                    {
+                                        NewPath = pathObject,
+                                        Metadata = AllPaths[pathObject],
+                                        Type = FileChangeType.Deleted
+                                    });
+                                    // remove index
+                                    AllPaths.Remove(pathObject);
+                                }
+                            }
+
+                            #endregion
                         }
                     }
-
-                    #endregion
                 }
+            }
+            finally
+            {
+                InitialIndexLocker.ExitReadLock();
             }
         }
 
@@ -968,6 +1103,10 @@ namespace FileMonitor
                 {
                     // grab existing file change from the queue
                     FileChange previousChange = QueuedChanges[toChange.NewPath];
+                    // DoNotAddToSQLIndex should only be true for events already in the SQL index,
+                    // and existing events from the index only reprocess once therefore second events
+                    // mean a new change has occurred to add to database
+                    toChange.DoNotAddToSQLIndex = previousChange.DoNotAddToSQLIndex = false;
                     // if the file change is already marked that it started processing,
                     // need to replace the file change in the queue (which will start it's own processing later on a new delay)
                     if (previousChange.DelayCompleted)
@@ -1147,7 +1286,7 @@ namespace FileMonitor
                     }
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
                 }
-                
+
                 // if file change does not exist in the queue at the same file path and the change was not marked to be converted to a rename
                 else
                 {
@@ -1181,6 +1320,10 @@ namespace FileMonitor
                     QueuedChangesByMetadata.Remove(sender.Metadata.HashableProperties);
                 }
             }
+
+            // Add the new change as an event in the SQL index,
+            // store the new event id
+            sender.EventId = ProcessAppendToSQL(sender);
 
             // Todo: Put in the code to handle processing a file change through the sync service
             ProcessFileChangeGroup(sender);

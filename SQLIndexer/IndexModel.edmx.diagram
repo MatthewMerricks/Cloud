@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="6c3d49e233c1477d9f550f2a60a38a7f" Name="Diagram1">
+        <EntityTypeShape EntityType="IndexDBModel.EnumCategory" Width="1.5" PointX="1.5" PointY="7.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="IndexDBModel.SQLEnum" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="IndexDBModel.Event" Width="1.5" PointX="3" PointY="3.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="IndexDBModel.FileSystemObject" Width="1.5" PointX="0.75" PointY="3.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="IndexDBModel.Sync" Width="1.5" PointX="0.75" PointY="9.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="IndexDBModel.SyncState" Width="1.5" PointX="6" PointY="3.75" IsExpanded="true" />
+        <AssociationConnector Association="IndexDBModel.FK_EnumCategoryId_EnumCategoryId" ManuallyRouted="false" />
+        <AssociationConnector Association="IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId" ManuallyRouted="false" />
+        <AssociationConnector Association="IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId" ManuallyRouted="false" />
+        <AssociationConnector Association="IndexDBModel.FK_SyncId_SyncId" ManuallyRouted="false" />
+        <AssociationConnector Association="IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" ManuallyRouted="false" />
+        <AssociationConnector Association="IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" ManuallyRouted="false" />
+        <AssociationConnector Association="IndexDBModel.FK_SyncStates_SyncId_SyncId" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

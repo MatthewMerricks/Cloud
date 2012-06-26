@@ -19,8 +19,6 @@ namespace FileMonitor
     /// </summary>
     public class FileChange : DelayProcessable<FileChange>
     {
-        private static int eventIdCounter = 0;
-
         /// <summary>
         /// Current path associated with the file system event
         /// </summary>
@@ -40,13 +38,24 @@ namespace FileMonitor
         /// <summary>
         /// Event ID
         /// </summary>
-        public int EventId
+        public int EventId { get; set; }
+
+        /// <summary>
+        /// Boolean set when already indexed events are requeued in the FileMonitor,
+        /// defaults to false
+        /// </summary>
+        public bool DoNotAddToSQLIndex
         {
             get
             {
-                return eventIdCounter++;
+                return _doNotAddToSQLIndex;
+            }
+            set
+            {
+                _doNotAddToSQLIndex = value;
             }
         }
+        private bool _doNotAddToSQLIndex = false;
 
         /// <summary>
         /// Constructor with required fields of abstract base class,
@@ -54,5 +63,10 @@ namespace FileMonitor
         /// </summary>
         /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
         public FileChange(object DelayCompletedLocker) : base(DelayCompletedLocker) { }
+        /// <summary>
+        /// Constructor for an object to store parameters,
+        /// but not be delay-processable
+        /// </summary>
+        public FileChange() : base() { }
     }
 }

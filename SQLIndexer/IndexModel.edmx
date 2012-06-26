@@ -1,0 +1,467 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="IndexDBModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityContainer Name="IndexDBModelStoreContainer">
+          <EntitySet Name="EnumCategories" EntityType="IndexDBModel.Store.EnumCategories" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Enums" EntityType="IndexDBModel.Store.Enums" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Events" EntityType="IndexDBModel.Store.Events" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="FileSystemObjects" EntityType="IndexDBModel.Store.FileSystemObjects" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Syncs" EntityType="IndexDBModel.Store.Syncs" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="SyncStates" EntityType="IndexDBModel.Store.SyncStates" store:Type="Tables" Schema="dbo" />
+          <AssociationSet Name="FK_EnumCategoryId_EnumCategoryId" Association="IndexDBModel.Store.FK_EnumCategoryId_EnumCategoryId">
+            <End Role="EnumCategories" EntitySet="EnumCategories" />
+            <End Role="Enums" EntitySet="Enums" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId" Association="IndexDBModel.Store.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId">
+            <End Role="Enums" EntitySet="Enums" />
+            <End Role="Events" EntitySet="Events" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FileSystemObjectId_FileSystemObjectId" Association="IndexDBModel.Store.FK_FileSystemObjectId_FileSystemObjectId">
+            <End Role="FileSystemObjects" EntitySet="FileSystemObjects" />
+            <End Role="Events" EntitySet="Events" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SyncId_SyncId" Association="IndexDBModel.Store.FK_SyncId_SyncId">
+            <End Role="Syncs" EntitySet="Syncs" />
+            <End Role="Events" EntitySet="Events" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SyncStates_FileSystemObjectId_FileSystemObjectId" Association="IndexDBModel.Store.FK_SyncStates_FileSystemObjectId_FileSystemObjectId">
+            <End Role="FileSystemObjects" EntitySet="FileSystemObjects" />
+            <End Role="SyncStates" EntitySet="SyncStates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" Association="IndexDBModel.Store.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId">
+            <End Role="FileSystemObjects" EntitySet="FileSystemObjects" />
+            <End Role="SyncStates" EntitySet="SyncStates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SyncStates_SyncId_SyncId" Association="IndexDBModel.Store.FK_SyncStates_SyncId_SyncId">
+            <End Role="Syncs" EntitySet="Syncs" />
+            <End Role="SyncStates" EntitySet="SyncStates" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="EnumCategories">
+          <Key>
+            <PropertyRef Name="EnumCategoryId" />
+          </Key>
+          <Property Name="EnumCategoryId" Type="int" Nullable="false" />
+          <Property Name="Name" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Enums">
+          <Key>
+            <PropertyRef Name="EnumId" />
+            <PropertyRef Name="EnumCategoryId" />
+          </Key>
+          <Property Name="EnumId" Type="int" Nullable="false" />
+          <Property Name="EnumCategoryId" Type="int" Nullable="false" />
+          <Property Name="Name" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Events">
+          <Key>
+            <PropertyRef Name="EventId" />
+          </Key>
+          <Property Name="EventId" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="SyncId" Type="uniqueidentifier" />
+          <Property Name="FileChangeTypeCategoryId" Type="int" Nullable="false" />
+          <Property Name="FileChangeTypeEnumId" Type="int" Nullable="false" />
+          <Property Name="PreviousPath" Type="nvarchar(max)" />
+          <Property Name="FileSystemObjectId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FileSystemObjects">
+          <Key>
+            <PropertyRef Name="FileSystemObjectId" />
+          </Key>
+          <Property Name="FileSystemObjectId" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="Path" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="LastTime" Type="datetime2" />
+          <Property Name="CreationTime" Type="datetime2" />
+          <Property Name="IsFolder" Type="bit" Nullable="false" />
+          <Property Name="MD5" Type="binary" MaxLength="15" />
+          <Property Name="Size" Type="bigint" />
+        </EntityType>
+        <EntityType Name="Syncs">
+          <Key>
+            <PropertyRef Name="SyncId" />
+          </Key>
+          <Property Name="SyncId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="RootPath" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="SyncStates">
+          <Key>
+            <PropertyRef Name="SyncStateId" />
+          </Key>
+          <Property Name="SyncStateId" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="SyncId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="FileSystemObjectId" Type="int" Nullable="false" />
+          <Property Name="ServerLinkedFileSystemObjectId" Type="int" />
+        </EntityType>
+        <Association Name="FK_EnumCategoryId_EnumCategoryId">
+          <End Role="EnumCategories" Type="IndexDBModel.Store.EnumCategories" Multiplicity="1" />
+          <End Role="Enums" Type="IndexDBModel.Store.Enums" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EnumCategories">
+              <PropertyRef Name="EnumCategoryId" />
+            </Principal>
+            <Dependent Role="Enums">
+              <PropertyRef Name="EnumCategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId">
+          <End Role="Enums" Type="IndexDBModel.Store.Enums" Multiplicity="1" />
+          <End Role="Events" Type="IndexDBModel.Store.Events" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Enums">
+              <PropertyRef Name="EnumId" />
+              <PropertyRef Name="EnumCategoryId" />
+            </Principal>
+            <Dependent Role="Events">
+              <PropertyRef Name="FileChangeTypeEnumId" />
+              <PropertyRef Name="FileChangeTypeCategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FileSystemObjectId_FileSystemObjectId">
+          <End Role="FileSystemObjects" Type="IndexDBModel.Store.FileSystemObjects" Multiplicity="1" />
+          <End Role="Events" Type="IndexDBModel.Store.Events" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FileSystemObjects">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Principal>
+            <Dependent Role="Events">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SyncId_SyncId">
+          <End Role="Syncs" Type="IndexDBModel.Store.Syncs" Multiplicity="0..1" />
+          <End Role="Events" Type="IndexDBModel.Store.Events" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Syncs">
+              <PropertyRef Name="SyncId" />
+            </Principal>
+            <Dependent Role="Events">
+              <PropertyRef Name="SyncId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SyncStates_FileSystemObjectId_FileSystemObjectId">
+          <End Role="FileSystemObjects" Type="IndexDBModel.Store.FileSystemObjects" Multiplicity="1" />
+          <End Role="SyncStates" Type="IndexDBModel.Store.SyncStates" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FileSystemObjects">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Principal>
+            <Dependent Role="SyncStates">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId">
+          <End Role="FileSystemObjects" Type="IndexDBModel.Store.FileSystemObjects" Multiplicity="0..1" />
+          <End Role="SyncStates" Type="IndexDBModel.Store.SyncStates" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FileSystemObjects">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Principal>
+            <Dependent Role="SyncStates">
+              <PropertyRef Name="ServerLinkedFileSystemObjectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SyncStates_SyncId_SyncId">
+          <End Role="Syncs" Type="IndexDBModel.Store.Syncs" Multiplicity="1" />
+          <End Role="SyncStates" Type="IndexDBModel.Store.SyncStates" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Syncs">
+              <PropertyRef Name="SyncId" />
+            </Principal>
+            <Dependent Role="SyncStates">
+              <PropertyRef Name="SyncId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="IndexDBModel" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="IndexDBEntities" p1:LazyLoadingEnabled="true">
+          <EntitySet Name="EnumCategories" EntityType="IndexDBModel.EnumCategory" />
+          <EntitySet Name="SQLEnums" EntityType="IndexDBModel.SQLEnum" />
+          <EntitySet Name="Events" EntityType="IndexDBModel.Event" />
+          <EntitySet Name="FileSystemObjects" EntityType="IndexDBModel.FileSystemObject" />
+          <EntitySet Name="Syncs" EntityType="IndexDBModel.Sync" />
+          <EntitySet Name="SyncStates" EntityType="IndexDBModel.SyncState" />
+          <AssociationSet Name="FK_EnumCategoryId_EnumCategoryId" Association="IndexDBModel.FK_EnumCategoryId_EnumCategoryId">
+            <End Role="EnumCategories" EntitySet="EnumCategories" />
+            <End Role="Enums" EntitySet="SQLEnums" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId" Association="IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId">
+            <End Role="Enums" EntitySet="SQLEnums" />
+            <End Role="Events" EntitySet="Events" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FileSystemObjectId_FileSystemObjectId" Association="IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId">
+            <End Role="FileSystemObjects" EntitySet="FileSystemObjects" />
+            <End Role="Events" EntitySet="Events" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SyncId_SyncId" Association="IndexDBModel.FK_SyncId_SyncId">
+            <End Role="Syncs" EntitySet="Syncs" />
+            <End Role="Events" EntitySet="Events" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SyncStates_FileSystemObjectId_FileSystemObjectId" Association="IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId">
+            <End Role="FileSystemObjects" EntitySet="FileSystemObjects" />
+            <End Role="SyncStates" EntitySet="SyncStates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" Association="IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId">
+            <End Role="FileSystemObjects" EntitySet="FileSystemObjects" />
+            <End Role="SyncStates" EntitySet="SyncStates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SyncStates_SyncId_SyncId" Association="IndexDBModel.FK_SyncStates_SyncId_SyncId">
+            <End Role="Syncs" EntitySet="Syncs" />
+            <End Role="SyncStates" EntitySet="SyncStates" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="EnumCategory">
+          <Key>
+            <PropertyRef Name="EnumCategoryId" />
+          </Key>
+          <Property Name="EnumCategoryId" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Enums" Relationship="IndexDBModel.FK_EnumCategoryId_EnumCategoryId" FromRole="EnumCategories" ToRole="Enums" />
+        </EntityType>
+        <EntityType Name="SQLEnum">
+          <Key>
+            <PropertyRef Name="EnumId" />
+            <PropertyRef Name="EnumCategoryId" />
+          </Key>
+          <Property Name="EnumId" Type="Int32" Nullable="false" />
+          <Property Name="EnumCategoryId" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="EnumCategory" Relationship="IndexDBModel.FK_EnumCategoryId_EnumCategoryId" FromRole="Enums" ToRole="EnumCategories" />
+          <NavigationProperty Name="Events" Relationship="IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId" FromRole="Enums" ToRole="Events" />
+        </EntityType>
+        <EntityType Name="Event">
+          <Key>
+            <PropertyRef Name="EventId" />
+          </Key>
+          <Property Name="EventId" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="SyncId" Type="Guid" />
+          <Property Name="FileChangeTypeCategoryId" Type="Int32" Nullable="false" />
+          <Property Name="FileChangeTypeEnumId" Type="Int32" Nullable="false" />
+          <Property Name="PreviousPath" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="FileSystemObjectId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Enum" Relationship="IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId" FromRole="Events" ToRole="Enums" />
+          <NavigationProperty Name="FileSystemObject" Relationship="IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId" FromRole="Events" ToRole="FileSystemObjects" />
+          <NavigationProperty Name="Sync" Relationship="IndexDBModel.FK_SyncId_SyncId" FromRole="Events" ToRole="Syncs" />
+        </EntityType>
+        <EntityType Name="FileSystemObject">
+          <Key>
+            <PropertyRef Name="FileSystemObjectId" />
+          </Key>
+          <Property Name="FileSystemObjectId" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="Path" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="LastTime" Type="DateTime" Precision="7" />
+          <Property Name="CreationTime" Type="DateTime" Precision="7" />
+          <Property Name="IsFolder" Type="Boolean" Nullable="false" />
+          <Property Name="MD5" Type="Binary" MaxLength="15" FixedLength="true" />
+          <NavigationProperty Name="Events" Relationship="IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="Events" />
+          <NavigationProperty Name="SyncStates" Relationship="IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
+          <NavigationProperty Name="ServerLinkedSyncStates" Relationship="IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
+          <Property Type="Int64" Name="Size" />
+        </EntityType>
+        <EntityType Name="Sync">
+          <Key>
+            <PropertyRef Name="SyncId" />
+          </Key>
+          <Property Name="SyncId" Type="Guid" Nullable="false" />
+          <NavigationProperty Name="Events" Relationship="IndexDBModel.FK_SyncId_SyncId" FromRole="Syncs" ToRole="Events" />
+          <NavigationProperty Name="SyncStates" Relationship="IndexDBModel.FK_SyncStates_SyncId_SyncId" FromRole="Syncs" ToRole="SyncStates" />
+          <Property Type="String" Name="RootPath" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="SyncState">
+          <Key>
+            <PropertyRef Name="SyncStateId" />
+          </Key>
+          <Property Name="SyncStateId" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="SyncId" Type="Guid" Nullable="false" />
+          <Property Name="FileSystemObjectId" Type="Int32" Nullable="false" />
+          <Property Name="ServerLinkedFileSystemObjectId" Type="Int32" />
+          <NavigationProperty Name="FileSystemObject" Relationship="IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
+          <NavigationProperty Name="ServerLinkedFileSystemObject" Relationship="IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
+          <NavigationProperty Name="Sync" Relationship="IndexDBModel.FK_SyncStates_SyncId_SyncId" FromRole="SyncStates" ToRole="Syncs" />
+        </EntityType>
+        <Association Name="FK_EnumCategoryId_EnumCategoryId">
+          <End Role="EnumCategories" Type="IndexDBModel.EnumCategory" Multiplicity="1" />
+          <End Role="Enums" Type="IndexDBModel.SQLEnum" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EnumCategories">
+              <PropertyRef Name="EnumCategoryId" />
+            </Principal>
+            <Dependent Role="Enums">
+              <PropertyRef Name="EnumCategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId">
+          <End Role="Enums" Type="IndexDBModel.SQLEnum" Multiplicity="1" />
+          <End Role="Events" Type="IndexDBModel.Event" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Enums">
+              <PropertyRef Name="EnumId" />
+              <PropertyRef Name="EnumCategoryId" />
+            </Principal>
+            <Dependent Role="Events">
+              <PropertyRef Name="FileChangeTypeEnumId" />
+              <PropertyRef Name="FileChangeTypeCategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FileSystemObjectId_FileSystemObjectId">
+          <End Role="FileSystemObjects" Type="IndexDBModel.FileSystemObject" Multiplicity="1" />
+          <End Role="Events" Type="IndexDBModel.Event" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FileSystemObjects">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Principal>
+            <Dependent Role="Events">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SyncId_SyncId">
+          <End Role="Syncs" Type="IndexDBModel.Sync" Multiplicity="0..1" />
+          <End Role="Events" Type="IndexDBModel.Event" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Syncs">
+              <PropertyRef Name="SyncId" />
+            </Principal>
+            <Dependent Role="Events">
+              <PropertyRef Name="SyncId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SyncStates_FileSystemObjectId_FileSystemObjectId">
+          <End Role="FileSystemObjects" Type="IndexDBModel.FileSystemObject" Multiplicity="1" />
+          <End Role="SyncStates" Type="IndexDBModel.SyncState" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FileSystemObjects">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Principal>
+            <Dependent Role="SyncStates">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId">
+          <End Role="FileSystemObjects" Type="IndexDBModel.FileSystemObject" Multiplicity="0..1" />
+          <End Role="SyncStates" Type="IndexDBModel.SyncState" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FileSystemObjects">
+              <PropertyRef Name="FileSystemObjectId" />
+            </Principal>
+            <Dependent Role="SyncStates">
+              <PropertyRef Name="ServerLinkedFileSystemObjectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SyncStates_SyncId_SyncId">
+          <End Role="Syncs" Type="IndexDBModel.Sync" Multiplicity="1" />
+          <End Role="SyncStates" Type="IndexDBModel.SyncState" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Syncs">
+              <PropertyRef Name="SyncId" />
+            </Principal>
+            <Dependent Role="SyncStates">
+              <PropertyRef Name="SyncId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="IndexDBModelStoreContainer" CdmEntityContainer="IndexDBEntities">
+          <EntitySetMapping Name="EnumCategories">
+            <EntityTypeMapping TypeName="IndexDBModel.EnumCategory">
+              <MappingFragment StoreEntitySet="EnumCategories">
+                <ScalarProperty Name="EnumCategoryId" ColumnName="EnumCategoryId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SQLEnums">
+            <EntityTypeMapping TypeName="IndexDBModel.SQLEnum">
+              <MappingFragment StoreEntitySet="Enums">
+                <ScalarProperty Name="EnumId" ColumnName="EnumId" />
+                <ScalarProperty Name="EnumCategoryId" ColumnName="EnumCategoryId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Events">
+            <EntityTypeMapping TypeName="IndexDBModel.Event">
+              <MappingFragment StoreEntitySet="Events">
+                <ScalarProperty Name="EventId" ColumnName="EventId" />
+                <ScalarProperty Name="SyncId" ColumnName="SyncId" />
+                <ScalarProperty Name="FileChangeTypeCategoryId" ColumnName="FileChangeTypeCategoryId" />
+                <ScalarProperty Name="FileChangeTypeEnumId" ColumnName="FileChangeTypeEnumId" />
+                <ScalarProperty Name="PreviousPath" ColumnName="PreviousPath" />
+                <ScalarProperty Name="FileSystemObjectId" ColumnName="FileSystemObjectId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FileSystemObjects">
+            <EntityTypeMapping TypeName="IndexDBModel.FileSystemObject">
+              <MappingFragment StoreEntitySet="FileSystemObjects">
+                <ScalarProperty Name="Size" ColumnName="Size" />
+                <ScalarProperty Name="FileSystemObjectId" ColumnName="FileSystemObjectId" />
+                <ScalarProperty Name="Path" ColumnName="Path" />
+                <ScalarProperty Name="LastTime" ColumnName="LastTime" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="IsFolder" ColumnName="IsFolder" />
+                <ScalarProperty Name="MD5" ColumnName="MD5" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Syncs">
+            <EntityTypeMapping TypeName="IndexDBModel.Sync">
+              <MappingFragment StoreEntitySet="Syncs">
+                <ScalarProperty Name="RootPath" ColumnName="RootPath" />
+                <ScalarProperty Name="SyncId" ColumnName="SyncId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SyncStates">
+            <EntityTypeMapping TypeName="IndexDBModel.SyncState">
+              <MappingFragment StoreEntitySet="SyncStates">
+                <ScalarProperty Name="SyncStateId" ColumnName="SyncStateId" />
+                <ScalarProperty Name="SyncId" ColumnName="SyncId" />
+                <ScalarProperty Name="FileSystemObjectId" ColumnName="FileSystemObjectId" />
+                <ScalarProperty Name="ServerLinkedFileSystemObjectId" ColumnName="ServerLinkedFileSystemObjectId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

@@ -40,6 +40,9 @@ namespace FileMonitor
         private bool waitingForReset = false;
         // field where the synchronization locker is stored (locked when DelayCompleted boolean is read or written to)
         private object DelayCompletedLocker;
+        // stores whether to throw errors when running the process-related methods
+        // (set if the constructor is passed a locker parameter)
+        private bool IsProcessable = false;
         #endregion
 
         /// <summary>
@@ -47,12 +50,12 @@ namespace FileMonitor
         /// DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean
         /// </summary>
         /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
-        protected DelayProcessable(object DelayCompletedLocker)
+        protected DelayProcessable(object DelayCompletedLocker = null)
         {
             // Ensure locker is passed in constructor
-            if (DelayCompletedLocker == null)
+            if (DelayCompletedLocker != null)
             {
-                throw new NullReferenceException("DelayCompletedLocker cannot be null");
+                IsProcessable = true;
             }
             // Store locker to field
             this.DelayCompletedLocker = DelayCompletedLocker;
@@ -70,6 +73,12 @@ namespace FileMonitor
         /// <param name="maxDelays">Maximum times processing can be delayed before it processes anyways</param>
         public void ProcessAfterDelay(Action<T, object> toProcess, object userstate, int millisecondWait, int maxDelays)
         {
+            // Throw error when object is not processable
+            if (!IsProcessable)
+            {
+                throw new NullReferenceException("DelayCompletedLocker cannot be null");
+            }
+
             // lock on this to prevent reset from firing and checking the boolean simultaneously
             lock (this)
             {
@@ -159,6 +168,12 @@ namespace FileMonitor
         /// </summary>
         public void SetDelayBackToInitialValue()
         {
+            // Throw error when object is not processable
+            if (!IsProcessable)
+            {
+                throw new NullReferenceException("DelayCompletedLocker cannot be null");
+            }
+
             // lock on this to prevent reset from firing and checking the startedDelay boolean simultaneously
             lock (this)
             {
