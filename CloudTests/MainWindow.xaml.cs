@@ -851,11 +851,11 @@ namespace CloudTests
             }
         }
 
-        private void RecursiveDeleteCallback(FilePath path, IntHolder args)
+        private void RecursiveDeleteCallback(FilePath path, IntHolder args, FilePath basePath)
         {
         }
 
-        private void RecursiveRenameCallback(FilePath oldPath, FilePath newPath, IntHolder args)
+        private void RecursiveRenameCallback(FilePath oldPath, FilePath newPath, IntHolder args, FilePath basePathOld, FilePath basePathNew)
         {
         }
     }

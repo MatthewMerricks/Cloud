@@ -32,12 +32,12 @@ namespace FileMonitor
         /// Store callback to fire on subsequent deletions;
         /// fire with path of subsequent change with its value
         /// </summary>
-        private Action<FilePath, T> recursiveDeleteCallback;
+        private Action<FilePath, T, FilePath> recursiveDeleteCallback;
         /// <summary>
         /// Store callback to fire oon subsequent renames;
         /// fire with old path of subsequent change, new path of subsequent change, and its value
         /// </summary>
-        private Action<FilePath, FilePath, T> recursiveRenameCallback;
+        private Action<FilePath, FilePath, T, FilePath, FilePath> recursiveRenameCallback;
         #endregion
 
         #region private collection members
@@ -78,8 +78,8 @@ namespace FileMonitor
         /// <returns>Returns a CLError if an exception occurred, otherwise returns null</returns>
         public static CLError CreateAndInitialize(FilePath rootPath,
             out FilePathDictionary<T> pathDictionary,
-            Action<FilePath, T> recursiveDeleteCallback = null,
-            Action<FilePath, FilePath, T> recursiveRenameCallback = null,
+            Action<FilePath, T, FilePath> recursiveDeleteCallback = null,
+            Action<FilePath, FilePath, T, FilePath, FilePath> recursiveRenameCallback = null,
             T valueAtFolder = null)
         {
             // First create the dictionary in its own block so that if a subsequent exception is thrown,
@@ -151,37 +151,8 @@ namespace FileMonitor
                     throw new ArgumentException("oldPath and newPath cannot be the same");
                 }
 
-                // Function to find the common root path between the old and new paths.
-                // This was created as an anonymous function to provide a clean way to
-                // break out of a double while loop when the overlapping path was found.
-                // Example of function:
-                // For an oldPath of "C:\A\B\C\D.txt"
-                // and a newPath of "C:\A\B\E\F.txt",
-                // the common root is "C:\A\B"
-                Func<FilePath, FilePath, FilePath> findOverlappingPath = (anonOldPath, anonNewPath) =>
-                    {
-                        FilePath recurseOldPath;
-                        FilePath recurseNewPath = anonNewPath;
-                        while (recurseNewPath != null)
-                        {
-                            recurseOldPath = anonOldPath;
-                            while (recurseOldPath != null)
-                            {
-                                if (FilePathComparer.Instance.Equals(recurseOldPath, recurseNewPath))
-                                {
-                                    return recurseNewPath;
-                                }
-
-                                recurseOldPath = recurseOldPath.Parent;
-                            }
-
-                            recurseNewPath = recurseNewPath.Parent;
-                        }
-                        return null;
-                    };
-
                 // Run function to retrieve overlapping path
-                FilePath overlappingPath = findOverlappingPath(oldPath, newPath);
+                FilePath overlappingPath = oldPath.FindOverlappingPath(newPath);
 
                 // If the current dictionary already represents the overlapping path,
                 // then call the private Rename function using this as the overlapping root,
@@ -189,11 +160,11 @@ namespace FileMonitor
                 // (this will recursively call rename on inner folders until the overlapping root is found)
                 if (FilePathComparer.Instance.Equals(overlappingPath, this.CurrentFilePath))
                 {
-                    Rename(oldPath, newPath, null, this, this);
+                    Rename(oldPath, newPath, null, this, this, oldPath, newPath);
                 }
                 else
                 {
-                    Rename(oldPath, newPath, overlappingPath, null, this);
+                    Rename(oldPath, newPath, overlappingPath, null, this, oldPath, newPath);
                 }
             }
             catch (Exception ex)
@@ -599,55 +570,8 @@ namespace FileMonitor
 
         public bool Remove(FilePath key)
         {
-            // if the key to remove matches the current path (or is null),
-            // then Clear this dictionary and return true
-            if (key == null
-                || FilePathComparer.Instance.Equals(CurrentFilePath, key))
-            {
-                Clear();
-                return true;
-            }
-            // if pathsAtCurrentLevel contains the key,
-            // then if pathAtCurrentLevel can remove the key
-            // decrement counter and return true
-            // if not returned true, return false
-            if (pathsAtCurrentLevel != null && pathsAtCurrentLevel.ContainsKey(key))
-            {
-                if (pathsAtCurrentLevel.Remove(key))
-                {
-                    _count--;
-                    return true;
-                }
-                return false;
-            }
-            // check innerFolders next if it exists
-            if (innerFolders != null)
-            {
-                // recurse key paths to find parent contained in innerFolders;
-                // if an innerFolder is found attempt to recursively call Remove at the recursed path with the key
-                // for succesful recursive Remove, decrement the count and return true
-                // if inner folder is found but returned false on Remove, return false
-                FilePath recursePath = key;
-                while (recursePath != null)
-                {
-                    if (innerFolders.ContainsKey(recursePath))
-                    {
-                        FilePathDictionary<T> innerFolder = innerFolders[recursePath];
-                        int previousInnerCount = innerFolder._count;
-                        if (innerFolder.Remove(key))
-                        {
-                            _count -= (previousInnerCount - innerFolder._count);
-                            return true;
-                        }
-                        return false;
-                    }
-
-                    recursePath = recursePath.Parent;
-                }
-            }
-            // for fallthrough if an innerFolder was not found on the recursed parent key paths,
-            // return false
-            return false;
+            // Forward call to private method which keeps track of the original change root for callbacks even through recursion
+            return this.Remove(key, key);
         }
 
         public bool TryGetValue(FilePath key, out T value)
@@ -728,39 +652,14 @@ namespace FileMonitor
 
         public void Add(KeyValuePair<FilePath, T> item)
         {
+            // Forward call to existing, implemented add method
             Add(item.Key, item.Value);
         }
 
         public void Clear()
         {
-            // loop through all inner objects and recursively call delete callbacks on each item;
-            // for each innerFolder, also recursively call Clear
-            // nullify the current value and set count to zero
-
-            if (pathsAtCurrentLevel != null)
-            {
-                foreach (KeyValuePair<FilePath, T> currentLevelPath in pathsAtCurrentLevel)
-                {
-                    if (recursiveDeleteCallback != null)
-                    {
-                        recursiveDeleteCallback(currentLevelPath.Key, currentLevelPath.Value);
-                    }
-                }
-                pathsAtCurrentLevel.Clear();
-            }
-            if (innerFolders != null)
-            {
-                foreach (FilePathDictionary<T> currentInnerFolder in innerFolders.Values)
-                {
-                    if (currentInnerFolder.CurrentValue != null)
-                    {
-                        recursiveDeleteCallback(currentInnerFolder.CurrentFilePath, currentInnerFolder.CurrentValue);
-                    }
-                    currentInnerFolder.Clear();
-                }
-            }
-            this.CurrentValue = null;
-            _count = 0;
+            // Forward call to private clear method that takes a change root path to return on callbacks
+            Clear(this.CurrentFilePath);
         }
 
         public bool Contains(KeyValuePair<FilePath, T> item)
@@ -875,7 +774,9 @@ namespace FileMonitor
         /// <param name="overlappingPath">The part of the new and old path that overlaps, null if the overlapping root is already found</param>
         /// <param name="overlappingRoot">The FilePathDictionary at the root of the overlap between the old path and new path</param>
         /// <param name="globalRoot">The FilePathDictionary passed in representing the instance from the original public Rename overload</param>
-        private void Rename(FilePath oldPath, FilePath newPath, FilePath overlappingPath, FilePathDictionary<T> overlappingRoot, FilePathDictionary<T> globalRoot)
+        /// <param name="changeRootOld">The original previous path that triggered recursive changes</param>
+        /// <param name="changeRootNew">The original new path that triggered recursive changes</param>
+        private void Rename(FilePath oldPath, FilePath newPath, FilePath overlappingPath, FilePathDictionary<T> overlappingRoot, FilePathDictionary<T> globalRoot, FilePath changeRootOld, FilePath changeRootNew)
         {
             // Function to return path not found exception if it needs to be thrown
             Func<ArgumentException> oldPathNotFound = () => new ArgumentException("oldPath not found in dictionary");
@@ -987,7 +888,9 @@ namespace FileMonitor
                                 new KeyValuePair<FilePath, T>(recurseRename.Key, recurseRename.Value.CurrentValue),
                                 newPath,
                                 oldPath,
-                                recursiveRenameCallback);
+                                recursiveRenameCallback,
+                                changeRootOld,
+                                changeRootNew);
                         }
                     }
                     // if pathsAtCurrentLevel exists within the innerFolder
@@ -1002,7 +905,9 @@ namespace FileMonitor
                                 recurseRename,
                                 newPath,
                                 oldPath,
-                                recursiveRenameCallback);
+                                recursiveRenameCallback,
+                                changeRootOld,
+                                changeRootNew);
                         }
                     }
                     // if the inner folder has a current value:
@@ -1033,7 +938,9 @@ namespace FileMonitor
                                 newPath,
                                 null,
                                 overlappingRoot,
-                                globalRoot);
+                                globalRoot,
+                                changeRootOld,
+                                changeRootNew);
                             break;
                         }
 
@@ -1072,7 +979,9 @@ namespace FileMonitor
                                 newPath,
                                 null,
                                 newOverlappingRoot,
-                                globalRoot);
+                                globalRoot,
+                                changeRootOld,
+                                changeRootNew);
                         }
                         else
                         {
@@ -1080,7 +989,9 @@ namespace FileMonitor
                                 newPath,
                                 overlappingPath,
                                 null,
-                                globalRoot);
+                                globalRoot,
+                                changeRootOld,
+                                changeRootNew);
                         }
                     }
                     innerFolderIsOverlappingRoot = false;
@@ -1112,7 +1023,9 @@ namespace FileMonitor
             KeyValuePair<FilePath, T> renamePair,
             FilePath renameNewPath,
             FilePath renameOldPath,
-            Action<FilePath, FilePath, T> renameCallback)
+            Action<FilePath, FilePath, T, FilePath, FilePath> renameCallback,
+            FilePath changeRootOld,
+            FilePath changeRootNew)
         {
             // make a copy of the key in the old pair so that it can have one of
             // its recursed parents replaced with the newly named one
@@ -1144,14 +1057,113 @@ namespace FileMonitor
                 rebuiltNewPath,
                 null,
                 renameRoot,
-                renameGlobal);
+                renameGlobal,
+                changeRootOld,
+                changeRootNew);
 
             // fire the callback for rename if it exists and if the item pair has a value
             if (renameCallback != null
                 && renamePair.Value != null)
             {
-                renameCallback(renamePair.Key, rebuiltNewPath, renamePair.Value);
+                renameCallback(renamePair.Key, rebuiltNewPath, renamePair.Value, changeRootOld, changeRootNew);
             }
+        }
+        
+        /// <summary>
+        /// Private method to implement the action of the public Remove call,
+        /// recurses on itself as needed for inner paths
+        /// </summary>
+        /// <param name="key">Current FilePath to remove for this recursion</param>
+        /// <param name="changeRoot">Original FilePath removed that triggered recursions</param>
+        /// <returns></returns>
+        private bool Remove(FilePath key, FilePath changeRoot)
+        {
+            // if the key to remove matches the current path (or is null),
+            // then Clear this dictionary and return true
+            if (key == null
+                || FilePathComparer.Instance.Equals(CurrentFilePath, key))
+            {
+                Clear(changeRoot);
+                return true;
+            }
+            // if pathsAtCurrentLevel contains the key,
+            // then if pathAtCurrentLevel can remove the key
+            // decrement counter and return true
+            // if not returned true, return false
+            if (pathsAtCurrentLevel != null && pathsAtCurrentLevel.ContainsKey(key))
+            {
+                if (pathsAtCurrentLevel.Remove(key))
+                {
+                    _count--;
+                    return true;
+                }
+                return false;
+            }
+            // check innerFolders next if it exists
+            if (innerFolders != null)
+            {
+                // recurse key paths to find parent contained in innerFolders;
+                // if an innerFolder is found attempt to recursively call Remove at the recursed path with the key
+                // for succesful recursive Remove, decrement the count and return true
+                // if inner folder is found but returned false on Remove, return false
+                FilePath recursePath = key;
+                while (recursePath != null)
+                {
+                    if (innerFolders.ContainsKey(recursePath))
+                    {
+                        FilePathDictionary<T> innerFolder = innerFolders[recursePath];
+                        int previousInnerCount = innerFolder._count;
+                        if (innerFolder.Remove(key, changeRoot))
+                        {
+                            _count -= (previousInnerCount - innerFolder._count);
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    recursePath = recursePath.Parent;
+                }
+            }
+            // for fallthrough if an innerFolder was not found on the recursed parent key paths,
+            // return false
+            return false;
+        }
+
+        /// <summary>
+        /// Private method to implement public Clear,
+        /// recurses on itself for clearing inner paths
+        /// </summary>
+        /// <param name="changeRoot">Original FilePath removed or cleared that triggered recursion</param>
+        private void Clear(FilePath changeRoot)
+        {
+            // loop through all inner objects and recursively call delete callbacks on each item;
+            // for each innerFolder, also recursively call Clear
+            // nullify the current value and set count to zero
+
+            if (pathsAtCurrentLevel != null)
+            {
+                foreach (KeyValuePair<FilePath, T> currentLevelPath in pathsAtCurrentLevel)
+                {
+                    if (recursiveDeleteCallback != null)
+                    {
+                        recursiveDeleteCallback(currentLevelPath.Key, currentLevelPath.Value, changeRoot);
+                    }
+                }
+                pathsAtCurrentLevel.Clear();
+            }
+            if (innerFolders != null)
+            {
+                foreach (FilePathDictionary<T> currentInnerFolder in innerFolders.Values)
+                {
+                    if (currentInnerFolder.CurrentValue != null)
+                    {
+                        recursiveDeleteCallback(currentInnerFolder.CurrentFilePath, currentInnerFolder.CurrentValue, changeRoot);
+                    }
+                    currentInnerFolder.Clear();
+                }
+            }
+            this.CurrentValue = null;
+            _count = 0;
         }
         #endregion
     }

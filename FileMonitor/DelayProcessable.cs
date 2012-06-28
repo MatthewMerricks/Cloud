@@ -43,6 +43,7 @@ namespace FileMonitor
         // stores whether to throw errors when running the process-related methods
         // (set if the constructor is passed a locker parameter)
         private bool IsProcessable = false;
+        private Queue<Action> SynchronizedPreprocessingActions = new Queue<Action>();
         #endregion
 
         /// <summary>
@@ -137,22 +138,28 @@ namespace FileMonitor
                         break;
                     }
                 }
-                // Field for whether delay already completed
-                // (true if object was disposed)
-                bool storeDelayAlreadyCompleted;
                 // Lock on external object (passed as parameter) to synchronize with containing collection operations
                 lock (DelayCompletedLocker)
                 {
                     // Store if delay was already completed
-                    storeDelayAlreadyCompleted = DelayCompleted;
+                    bool storeDelayAlreadyCompleted = DelayCompleted;
                     // Mark that delay completed for external synchronization
                     DelayCompleted = true;
-                }
-                // Only process the action if the delay had not previously been completed
-                if (!storeDelayAlreadyCompleted)
-                {
-                    // Process action
-                    toProcess((T)this, userstate);
+                    // Run any preprocessing actions queued in the synchronized context
+                    if (SynchronizedPreprocessingActions != null)
+                    {
+                        while (SynchronizedPreprocessingActions.Count > 0)
+                        {
+                            SynchronizedPreprocessingActions.Dequeue()();
+                        }
+                    }
+
+                    // Only process the action if the delay had not previously been completed
+                    if (!storeDelayAlreadyCompleted)
+                    {
+                        // Process action
+                        toProcess((T)this, userstate);
+                    }
                 }
                 // Lock on AutoResetEvent to synchronize with reset thread
                 lock (delayEvent)
@@ -200,6 +207,37 @@ namespace FileMonitor
                     }
                 }
             }
+        }
+        /// <summary>
+        /// Adds an action to run before the primary action which will synchronize on the DelayCompletedLocker
+        /// </summary>
+        /// <param name="toEnqueue">Action to run on preprocessing</param>
+        /// <returns>Returns true if action is accepted for preprocessing, otherwise false means action will not be run</returns>
+        public bool EnqueuePreprocessingAction(Action toEnqueue)
+        {
+            // Throw error when object is not processable
+            if (!IsProcessable)
+            {
+                throw new NullReferenceException("DelayCompletedLocker cannot be null");
+            }
+
+            // lock on the same synchronization object as the DelayCompleted boolean to check
+            lock (DelayCompletedLocker)
+            {
+                // if DelayCompleted is true then processing already started and the enqueued action would not process
+                if (DelayCompleted)
+                {
+                    return false;
+                }
+                // create the queue if necessary
+                if (SynchronizedPreprocessingActions == null)
+                {
+                    SynchronizedPreprocessingActions = new Queue<Action>();
+                }
+                // enqueue the action to run before normal processing
+                SynchronizedPreprocessingActions.Enqueue(toEnqueue);
+            }
+            return true;
         }
         #endregion
 

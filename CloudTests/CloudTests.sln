@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudTests", "CloudTests.csproj", "{EB4E62FB-0B26-46F4-A82C-C2D882B3D7F9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5EA44F8A-A8FF-48AB-B6F6-C523793E342E} = {5EA44F8A-A8FF-48AB-B6F6-C523793E342E}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BadgeCOM", "..\BadgeCOM\BadgeCOM.vcxproj", "{84373324-5261-45D7-AA92-5C4A88C07233}"
 EndProject

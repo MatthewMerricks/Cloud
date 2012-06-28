@@ -94,13 +94,11 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.Config" />
     <EntityDeploy Include="IndexModel.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>IndexModel.Designer.cs</LastGenOutput>
     </EntityDeploy>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.Config" />
     <None Include="IndexModel.edmx.diagram">
       <DependentUpon>IndexModel.edmx</DependentUpon>
     </None>

@@ -112,5 +112,51 @@ namespace FileMonitor
             // "C:\\" produces a FileInfo without a name
             return new DirectoryInfo(fullPath);
         }
+
+        /// <summary>
+        /// Returns the overlap of two paths, if any
+        /// </summary>
+        /// <param name="firstPath">First path to attempt overlap</param>
+        /// <param name="secondPath">Second path to attempt overlap</param>
+        /// <returns>Returns overlapped path, if any</returns>
+        public static FilePath FindOverlappingPath(FilePath firstPath, FilePath secondPath)
+        {
+            // Function to find the common root path between the old and new paths.
+            // This was created as an seperate function to provide a clean way to
+            // break out of a double while loop when the overlapping path was found.
+            // Example of function:
+            // For an oldPath of "C:\A\B\C\D.txt"
+            // and a newPath of "C:\A\B\E\F.txt",
+            // the common root is "C:\A\B"
+
+            FilePath recurseOldPath;
+            FilePath recurseNewPath = secondPath;
+            while (recurseNewPath != null)
+            {
+                recurseOldPath = firstPath;
+                while (recurseOldPath != null)
+                {
+                    if (FilePathComparer.Instance.Equals(recurseOldPath, recurseNewPath))
+                    {
+                        return recurseNewPath;
+                    }
+
+                    recurseOldPath = recurseOldPath.Parent;
+                }
+
+                recurseNewPath = recurseNewPath.Parent;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the overlap of current path with another path, if any
+        /// </summary>
+        /// <param name="otherPath">Another path to attempt overlap</param>
+        /// <returns>Returns overlapped path, if any</returns>
+        public FilePath FindOverlappingPath(FilePath otherPath)
+        {
+            return FindOverlappingPath(this, otherPath);
+        }
     }
 }

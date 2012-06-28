@@ -19,13 +19,13 @@ using System.Xml.Serialization;
 [assembly: EdmSchemaAttribute()]
 #region EDM Relationship Metadata
 
-[assembly: EdmRelationshipAttribute("IndexDBModel", "FK_EnumCategoryId_EnumCategoryId", "EnumCategories", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.EnumCategory), "Enums", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.SQLEnum), true)]
-[assembly: EdmRelationshipAttribute("IndexDBModel", "FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.SQLEnum), "Events", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.Event), true)]
-[assembly: EdmRelationshipAttribute("IndexDBModel", "FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.FileSystemObject), "Events", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.Event), true)]
-[assembly: EdmRelationshipAttribute("IndexDBModel", "FK_SyncId_SyncId", "Syncs", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(SQLIndexer.Sync), "Events", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.Event), true)]
-[assembly: EdmRelationshipAttribute("IndexDBModel", "FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.FileSystemObject), "SyncStates", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.SyncState), true)]
-[assembly: EdmRelationshipAttribute("IndexDBModel", "FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(SQLIndexer.FileSystemObject), "SyncStates", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.SyncState), true)]
-[assembly: EdmRelationshipAttribute("IndexDBModel", "FK_SyncStates_SyncId_SyncId", "Syncs", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.Sync), "SyncStates", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.SyncState), true)]
+[assembly: EdmRelationshipAttribute("SQLIndexer", "FK_EnumCategoryId_EnumCategoryId", "EnumCategories", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.EnumCategory), "Enums", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.SQLEnum), true)]
+[assembly: EdmRelationshipAttribute("SQLIndexer", "FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.SQLEnum), "Events", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.Event), true)]
+[assembly: EdmRelationshipAttribute("SQLIndexer", "FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.FileSystemObject), "Events", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.Event), true)]
+[assembly: EdmRelationshipAttribute("SQLIndexer", "FK_SyncCounter_SyncCounter", "Syncs", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(SQLIndexer.Sync), "Events", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.Event), true)]
+[assembly: EdmRelationshipAttribute("SQLIndexer", "FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.FileSystemObject), "SyncStates", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.SyncState), true)]
+[assembly: EdmRelationshipAttribute("SQLIndexer", "FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(SQLIndexer.FileSystemObject), "SyncStates", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.SyncState), true)]
+[assembly: EdmRelationshipAttribute("SQLIndexer", "FK_SyncStates_SyncCounter_SyncCounter", "Syncs", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(SQLIndexer.Sync), "SyncStates", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(SQLIndexer.SyncState), true)]
 
 #endregion
 
@@ -236,7 +236,7 @@ namespace SQLIndexer
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="IndexDBModel", Name="EnumCategory")]
+    [EdmEntityTypeAttribute(NamespaceName="SQLIndexer", Name="EnumCategory")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class EnumCategory : EntityObject
@@ -321,18 +321,18 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_EnumCategoryId_EnumCategoryId", "Enums")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_EnumCategoryId_EnumCategoryId", "Enums")]
         public EntityCollection<SQLEnum> Enums
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<SQLEnum>("IndexDBModel.FK_EnumCategoryId_EnumCategoryId", "Enums");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<SQLEnum>("SQLIndexer.FK_EnumCategoryId_EnumCategoryId", "Enums");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<SQLEnum>("IndexDBModel.FK_EnumCategoryId_EnumCategoryId", "Enums", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<SQLEnum>("SQLIndexer.FK_EnumCategoryId_EnumCategoryId", "Enums", value);
                 }
             }
         }
@@ -344,7 +344,7 @@ namespace SQLIndexer
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="IndexDBModel", Name="Event")]
+    [EdmEntityTypeAttribute(NamespaceName="SQLIndexer", Name="Event")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Event : EntityObject
@@ -404,24 +404,24 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
         [DataMemberAttribute()]
-        public Nullable<global::System.Guid> SyncId
+        public Nullable<global::System.Int32> SyncCounter
         {
             get
             {
-                return _SyncId;
+                return _SyncCounter;
             }
             set
             {
-                OnSyncIdChanging(value);
-                ReportPropertyChanging("SyncId");
-                _SyncId = StructuralObject.SetValidValue(value, "SyncId");
-                ReportPropertyChanged("SyncId");
-                OnSyncIdChanged();
+                OnSyncCounterChanging(value);
+                ReportPropertyChanging("SyncCounter");
+                _SyncCounter = StructuralObject.SetValidValue(value, "SyncCounter");
+                ReportPropertyChanged("SyncCounter");
+                OnSyncCounterChanged();
             }
         }
-        private Nullable<global::System.Guid> _SyncId;
-        partial void OnSyncIdChanging(Nullable<global::System.Guid> value);
-        partial void OnSyncIdChanged();
+        private Nullable<global::System.Int32> _SyncCounter;
+        partial void OnSyncCounterChanging(Nullable<global::System.Int32> value);
+        partial void OnSyncCounterChanged();
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -529,16 +529,16 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums")]
         public SQLEnum Enum
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<SQLEnum>("IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<SQLEnum>("SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<SQLEnum>("IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<SQLEnum>("SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums").Value = value;
             }
         }
         /// <summary>
@@ -550,13 +550,13 @@ namespace SQLIndexer
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<SQLEnum>("IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<SQLEnum>("SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<SQLEnum>("IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<SQLEnum>("SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Enums", value);
                 }
             }
         }
@@ -567,16 +567,16 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects")]
         public FileSystemObject FileSystemObject
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value = value;
             }
         }
         /// <summary>
@@ -588,13 +588,13 @@ namespace SQLIndexer
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<FileSystemObject>("IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<FileSystemObject>("SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects", value);
                 }
             }
         }
@@ -605,16 +605,16 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_SyncId_SyncId", "Syncs")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_SyncCounter_SyncCounter", "Syncs")]
         public Sync Sync
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("IndexDBModel.FK_SyncId_SyncId", "Syncs").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("SQLIndexer.FK_SyncCounter_SyncCounter", "Syncs").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("IndexDBModel.FK_SyncId_SyncId", "Syncs").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("SQLIndexer.FK_SyncCounter_SyncCounter", "Syncs").Value = value;
             }
         }
         /// <summary>
@@ -626,13 +626,13 @@ namespace SQLIndexer
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("IndexDBModel.FK_SyncId_SyncId", "Syncs");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("SQLIndexer.FK_SyncCounter_SyncCounter", "Syncs");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Sync>("IndexDBModel.FK_SyncId_SyncId", "Syncs", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Sync>("SQLIndexer.FK_SyncCounter_SyncCounter", "Syncs", value);
                 }
             }
         }
@@ -644,7 +644,7 @@ namespace SQLIndexer
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="IndexDBModel", Name="FileSystemObject")]
+    [EdmEntityTypeAttribute(NamespaceName="SQLIndexer", Name="FileSystemObject")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class FileSystemObject : EntityObject
@@ -798,30 +798,6 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
         [DataMemberAttribute()]
-        public global::System.Byte[] MD5
-        {
-            get
-            {
-                return StructuralObject.GetValidValue(_MD5);
-            }
-            set
-            {
-                OnMD5Changing(value);
-                ReportPropertyChanging("MD5");
-                _MD5 = StructuralObject.SetValidValue(value, true, "MD5");
-                ReportPropertyChanged("MD5");
-                OnMD5Changed();
-            }
-        }
-        private global::System.Byte[] _MD5;
-        partial void OnMD5Changing(global::System.Byte[] value);
-        partial void OnMD5Changed();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
-        [DataMemberAttribute()]
         public Nullable<global::System.Int64> Size
         {
             get
@@ -840,6 +816,30 @@ namespace SQLIndexer
         private Nullable<global::System.Int64> _Size;
         partial void OnSizeChanging(Nullable<global::System.Int64> value);
         partial void OnSizeChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.Byte[] MD5
+        {
+            get
+            {
+                return StructuralObject.GetValidValue(_MD5);
+            }
+            set
+            {
+                OnMD5Changing(value);
+                ReportPropertyChanging("MD5");
+                _MD5 = StructuralObject.SetValidValue(value, true, "MD5");
+                ReportPropertyChanged("MD5");
+                OnMD5Changed();
+            }
+        }
+        private global::System.Byte[] _MD5;
+        partial void OnMD5Changing(global::System.Byte[] value);
+        partial void OnMD5Changed();
 
         #endregion
 
@@ -851,18 +851,18 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_FileSystemObjectId_FileSystemObjectId", "Events")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_FileSystemObjectId_FileSystemObjectId", "Events")]
         public EntityCollection<Event> Events
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Event>("IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId", "Events");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Event>("SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId", "Events");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Event>("IndexDBModel.FK_FileSystemObjectId_FileSystemObjectId", "Events", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Event>("SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId", "Events", value);
                 }
             }
         }
@@ -873,18 +873,18 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "SyncStates")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "SyncStates")]
         public EntityCollection<SyncState> SyncStates
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<SyncState>("IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "SyncStates");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<SyncState>("SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "SyncStates");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<SyncState>("IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "SyncStates", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<SyncState>("SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "SyncStates", value);
                 }
             }
         }
@@ -895,18 +895,18 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "SyncStates")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "SyncStates")]
         public EntityCollection<SyncState> ServerLinkedSyncStates
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<SyncState>("IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "SyncStates");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<SyncState>("SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "SyncStates");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<SyncState>("IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "SyncStates", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<SyncState>("SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "SyncStates", value);
                 }
             }
         }
@@ -918,7 +918,7 @@ namespace SQLIndexer
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="IndexDBModel", Name="SQLEnum")]
+    [EdmEntityTypeAttribute(NamespaceName="SQLIndexer", Name="SQLEnum")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class SQLEnum : EntityObject
@@ -1032,16 +1032,16 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_EnumCategoryId_EnumCategoryId", "EnumCategories")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_EnumCategoryId_EnumCategoryId", "EnumCategories")]
         public EnumCategory EnumCategory
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<EnumCategory>("IndexDBModel.FK_EnumCategoryId_EnumCategoryId", "EnumCategories").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<EnumCategory>("SQLIndexer.FK_EnumCategoryId_EnumCategoryId", "EnumCategories").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<EnumCategory>("IndexDBModel.FK_EnumCategoryId_EnumCategoryId", "EnumCategories").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<EnumCategory>("SQLIndexer.FK_EnumCategoryId_EnumCategoryId", "EnumCategories").Value = value;
             }
         }
         /// <summary>
@@ -1053,13 +1053,13 @@ namespace SQLIndexer
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<EnumCategory>("IndexDBModel.FK_EnumCategoryId_EnumCategoryId", "EnumCategories");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<EnumCategory>("SQLIndexer.FK_EnumCategoryId_EnumCategoryId", "EnumCategories");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<EnumCategory>("IndexDBModel.FK_EnumCategoryId_EnumCategoryId", "EnumCategories", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<EnumCategory>("SQLIndexer.FK_EnumCategoryId_EnumCategoryId", "EnumCategories", value);
                 }
             }
         }
@@ -1070,18 +1070,18 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Events")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Events")]
         public EntityCollection<Event> Events
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Event>("IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Events");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Event>("SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Events");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Event>("IndexDBModel.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Events", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Event>("SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId", "Events", value);
                 }
             }
         }
@@ -1093,7 +1093,7 @@ namespace SQLIndexer
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="IndexDBModel", Name="Sync")]
+    [EdmEntityTypeAttribute(NamespaceName="SQLIndexer", Name="Sync")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Sync : EntityObject
@@ -1104,11 +1104,13 @@ namespace SQLIndexer
         /// Create a new Sync object.
         /// </summary>
         /// <param name="syncId">Initial value of the SyncId property.</param>
+        /// <param name="syncCounter">Initial value of the SyncCounter property.</param>
         /// <param name="rootPath">Initial value of the RootPath property.</param>
-        public static Sync CreateSync(global::System.Guid syncId, global::System.String rootPath)
+        public static Sync CreateSync(global::System.String syncId, global::System.Int32 syncCounter, global::System.String rootPath)
         {
             Sync sync = new Sync();
             sync.SyncId = syncId;
+            sync.SyncCounter = syncCounter;
             sync.RootPath = rootPath;
             return sync;
         }
@@ -1120,9 +1122,9 @@ namespace SQLIndexer
         /// <summary>
         /// No Metadata Documentation available.
         /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
         [DataMemberAttribute()]
-        public global::System.Guid SyncId
+        public global::System.String SyncId
         {
             get
             {
@@ -1130,19 +1132,43 @@ namespace SQLIndexer
             }
             set
             {
-                if (_SyncId != value)
+                OnSyncIdChanging(value);
+                ReportPropertyChanging("SyncId");
+                _SyncId = StructuralObject.SetValidValue(value, false, "SyncId");
+                ReportPropertyChanged("SyncId");
+                OnSyncIdChanged();
+            }
+        }
+        private global::System.String _SyncId;
+        partial void OnSyncIdChanging(global::System.String value);
+        partial void OnSyncIdChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 SyncCounter
+        {
+            get
+            {
+                return _SyncCounter;
+            }
+            set
+            {
+                if (_SyncCounter != value)
                 {
-                    OnSyncIdChanging(value);
-                    ReportPropertyChanging("SyncId");
-                    _SyncId = StructuralObject.SetValidValue(value, "SyncId");
-                    ReportPropertyChanged("SyncId");
-                    OnSyncIdChanged();
+                    OnSyncCounterChanging(value);
+                    ReportPropertyChanging("SyncCounter");
+                    _SyncCounter = StructuralObject.SetValidValue(value, "SyncCounter");
+                    ReportPropertyChanged("SyncCounter");
+                    OnSyncCounterChanged();
                 }
             }
         }
-        private global::System.Guid _SyncId;
-        partial void OnSyncIdChanging(global::System.Guid value);
-        partial void OnSyncIdChanged();
+        private global::System.Int32 _SyncCounter;
+        partial void OnSyncCounterChanging(global::System.Int32 value);
+        partial void OnSyncCounterChanged();
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1178,18 +1204,18 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_SyncId_SyncId", "Events")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_SyncCounter_SyncCounter", "Events")]
         public EntityCollection<Event> Events
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Event>("IndexDBModel.FK_SyncId_SyncId", "Events");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Event>("SQLIndexer.FK_SyncCounter_SyncCounter", "Events");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Event>("IndexDBModel.FK_SyncId_SyncId", "Events", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Event>("SQLIndexer.FK_SyncCounter_SyncCounter", "Events", value);
                 }
             }
         }
@@ -1200,18 +1226,18 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_SyncStates_SyncId_SyncId", "SyncStates")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_SyncStates_SyncCounter_SyncCounter", "SyncStates")]
         public EntityCollection<SyncState> SyncStates
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<SyncState>("IndexDBModel.FK_SyncStates_SyncId_SyncId", "SyncStates");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<SyncState>("SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter", "SyncStates");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<SyncState>("IndexDBModel.FK_SyncStates_SyncId_SyncId", "SyncStates", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<SyncState>("SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter", "SyncStates", value);
                 }
             }
         }
@@ -1223,7 +1249,7 @@ namespace SQLIndexer
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="IndexDBModel", Name="SyncState")]
+    [EdmEntityTypeAttribute(NamespaceName="SQLIndexer", Name="SyncState")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class SyncState : EntityObject
@@ -1234,13 +1260,13 @@ namespace SQLIndexer
         /// Create a new SyncState object.
         /// </summary>
         /// <param name="syncStateId">Initial value of the SyncStateId property.</param>
-        /// <param name="syncId">Initial value of the SyncId property.</param>
+        /// <param name="syncCounter">Initial value of the SyncCounter property.</param>
         /// <param name="fileSystemObjectId">Initial value of the FileSystemObjectId property.</param>
-        public static SyncState CreateSyncState(global::System.Int32 syncStateId, global::System.Guid syncId, global::System.Int32 fileSystemObjectId)
+        public static SyncState CreateSyncState(global::System.Int32 syncStateId, global::System.Int32 syncCounter, global::System.Int32 fileSystemObjectId)
         {
             SyncState syncState = new SyncState();
             syncState.SyncStateId = syncStateId;
-            syncState.SyncId = syncId;
+            syncState.SyncCounter = syncCounter;
             syncState.FileSystemObjectId = fileSystemObjectId;
             return syncState;
         }
@@ -1281,24 +1307,24 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
         [DataMemberAttribute()]
-        public global::System.Guid SyncId
+        public global::System.Int32 SyncCounter
         {
             get
             {
-                return _SyncId;
+                return _SyncCounter;
             }
             set
             {
-                OnSyncIdChanging(value);
-                ReportPropertyChanging("SyncId");
-                _SyncId = StructuralObject.SetValidValue(value, "SyncId");
-                ReportPropertyChanged("SyncId");
-                OnSyncIdChanged();
+                OnSyncCounterChanging(value);
+                ReportPropertyChanging("SyncCounter");
+                _SyncCounter = StructuralObject.SetValidValue(value, "SyncCounter");
+                ReportPropertyChanged("SyncCounter");
+                OnSyncCounterChanged();
             }
         }
-        private global::System.Guid _SyncId;
-        partial void OnSyncIdChanging(global::System.Guid value);
-        partial void OnSyncIdChanged();
+        private global::System.Int32 _SyncCounter;
+        partial void OnSyncCounterChanging(global::System.Int32 value);
+        partial void OnSyncCounterChanged();
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1358,16 +1384,16 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects")]
         public FileSystemObject FileSystemObject
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value = value;
             }
         }
         /// <summary>
@@ -1379,13 +1405,13 @@ namespace SQLIndexer
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<FileSystemObject>("IndexDBModel.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<FileSystemObject>("SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId", "FileSystemObjects", value);
                 }
             }
         }
@@ -1396,16 +1422,16 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects")]
         public FileSystemObject ServerLinkedFileSystemObject
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects").Value = value;
             }
         }
         /// <summary>
@@ -1417,13 +1443,13 @@ namespace SQLIndexer
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FileSystemObject>("SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<FileSystemObject>("IndexDBModel.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<FileSystemObject>("SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId", "FileSystemObjects", value);
                 }
             }
         }
@@ -1434,16 +1460,16 @@ namespace SQLIndexer
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("IndexDBModel", "FK_SyncStates_SyncId_SyncId", "Syncs")]
+        [EdmRelationshipNavigationPropertyAttribute("SQLIndexer", "FK_SyncStates_SyncCounter_SyncCounter", "Syncs")]
         public Sync Sync
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("IndexDBModel.FK_SyncStates_SyncId_SyncId", "Syncs").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter", "Syncs").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("IndexDBModel.FK_SyncStates_SyncId_SyncId", "Syncs").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter", "Syncs").Value = value;
             }
         }
         /// <summary>
@@ -1455,13 +1481,13 @@ namespace SQLIndexer
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("IndexDBModel.FK_SyncStates_SyncId_SyncId", "Syncs");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Sync>("SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter", "Syncs");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Sync>("IndexDBModel.FK_SyncStates_SyncId_SyncId", "Syncs", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Sync>("SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter", "Syncs", value);
                 }
             }
         }

@@ -129,13 +129,14 @@ namespace FileMonitor
         private FilePathDictionary<FileMetadata> AllPaths;
 
         // Storage of changes queued to process (QueuedChanges used as the locker for both and keyed by file path, QueuedChangesByMetadata keyed by the hashable metadata properties)
-        private FilePathDictionary<FileChange> QueuedChanges;
+        private Dictionary<FilePath, FileChange> QueuedChanges = new Dictionary<FilePath, FileChange>(FilePathComparer.Instance);
+        private Dictionary<FilePath, FilePath> OldToNewPathRenames = new Dictionary<FilePath, FilePath>(FilePathComparer.Instance);
         private static readonly FileMetadataHashableComparer QueuedChangesMetadataComparer = new FileMetadataHashableComparer();// Comparer has improved hashing by using only the fastest changing bits
         private Dictionary<FileMetadataHashableProperties, FileChange> QueuedChangesByMetadata = new Dictionary<FileMetadataHashableProperties, FileChange>(QueuedChangesMetadataComparer);// Use custom comparer for improved hashing
 
         // Queue of file monitor events that occur while initial index is processing
         private Queue<ChangesQueueHolder> ChangesQueueForInitialIndexing = new Queue<ChangesQueueHolder>();
-        // Storage class for required parameters to 
+        // Storage class for required parameters to the CheckMetadataAgainstFile method
         private class ChangesQueueHolder
         {
             public string newPath { get; set; }
@@ -161,7 +162,7 @@ namespace FileMonitor
         /// <param name="onProcessEventGroupCallback">action to be executed when a group of events is to be processed</param>
         /// <param name="onQueueingCallback">(optional) action to be executed evertime a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
-        /// <returns></returns>
+        /// <returns>Returns any error that occurred if there was one</returns>
         public static CLError CreateNewAndInitialize(string folderPath,
             out MonitorAgent newAgent,
             Action<Dictionary<string, object>> onProcessEventGroupCallback,
@@ -186,15 +187,7 @@ namespace FileMonitor
                 if (!folderInfo.Exists)
                     throw new Exception("Folder not found at provided folder path");
 
-                // Initialize storage dictionaries
-                CLError queuedChangesError = FilePathDictionary<FileChange>.CreateAndInitialize(folderInfo,
-                    out newAgent.QueuedChanges,
-                    newAgent.QueuedChange_RecursiveDelete,
-                    newAgent.QueuedChange_RecursiveRename);
-                if (queuedChangesError != null)
-                {
-                    return queuedChangesError;
-                }
+                // Initialize current, in-memory index
                 CLError allPathsError = FilePathDictionary<FileMetadata>.CreateAndInitialize(folderInfo,
                     out newAgent.AllPaths,
                     newAgent.MetadataPath_RecursiveDelete,
@@ -232,26 +225,49 @@ namespace FileMonitor
         ///// <returns></returns>
         public void BeginProcessing(IEnumerable<KeyValuePair<FilePath, FileMetadata>> initialList, IEnumerable<FileChange> newChanges = null)
         {
+            // Locks all new file system events from being processed until the initial index is processed,
+            // afterwhich they will no longer queue up and instead process normally going forward
             InitialIndexLocker.EnterWriteLock();
+
             try
             {
-                if (initialList == null)
-                {
-                    throw new NullReferenceException("initialList cannot be null");
-                }
+                // lock to prevent the current, in-memory index from being seperately read/modified
                 lock (AllPaths)
                 {
-                    foreach (KeyValuePair<FilePath, FileMetadata> currentItem in initialList)
+                    // a null enumerable would cause an error so null-coallesce to an empty array
+                    foreach (KeyValuePair<FilePath, FileMetadata> currentItem in initialList ?? new KeyValuePair<FilePath, FileMetadata>[0])
                     {
+                        // add each initially indexed item to current, in-memory index
                         AllPaths.Add(currentItem);
                     }
+
+                    // lock to prevent the queue of changes to process from being seperately read/modified
                     lock (QueuedChanges)
                     {
+                        // only need to process new changes if the list exists
                         if (newChanges != null)
                         {
+                            // loop through new changes to process
                             foreach (FileChange currentChange in newChanges)
                             {
-                                AllPaths[currentChange.NewPath] = currentChange.Metadata;
+                                // take the new change to process and update the current, in-memory index;
+                                // also queue it for processing
+
+                                switch (currentChange.Type)
+                                {
+                                    case FileChangeType.Created:
+                                    case FileChangeType.Modified:
+                                        AllPaths[currentChange.NewPath] = currentChange.Metadata;
+                                        break;
+                                    case FileChangeType.Deleted:
+                                        AllPaths.Remove(currentChange.NewPath);
+                                        break;
+                                    case FileChangeType.Renamed:
+                                        AllPaths.Remove(currentChange.OldPath);
+                                        AllPaths[currentChange.NewPath] = currentChange.Metadata;
+                                        break;
+                                }
+
                                 QueueFileChange(new FileChange(QueuedChanges)
                                     {
                                         NewPath = currentChange.NewPath,
@@ -264,16 +280,26 @@ namespace FileMonitor
                         }
                     }
                 }
+
+                // set initial indexing to false now so that dequeued events during initial indexing
+                // will process again without infinitely queueing/dequeueing
+                IsInitialIndex = false;
+
+                // dequeue through the list of file system events that were queued during initial indexing
                 while (ChangesQueueForInitialIndexing.Count > 0)
                 {
+                    // take the currently dequeued file system event and run it back through for processing
+
                     ChangesQueueHolder currentChange = ChangesQueueForInitialIndexing.Dequeue();
                     CheckMetadataAgainstFile(currentChange.newPath,
                         currentChange.oldPath,
                         currentChange.changeType,
-                        currentChange.folderOnly);
+                        currentChange.folderOnly,
+                        true);
                 }
+
+                // null the pointer for the initial index queue so it can be cleared from memory
                 ChangesQueueForInitialIndexing = null;
-                IsInitialIndex = false;
             }
             finally
             {
@@ -564,11 +590,24 @@ namespace FileMonitor
         /// <param name="oldPath">Previous path if change was a rename</param>
         /// <param name="changeType">Type of file system event</param>
         /// <param name="folderOnly">Specificity from routing of file system event</param>
-        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly)
+        /// <param name="alreadyHoldingIndexLock">Optional param only to be set (as true) from BeginProcessing method</param>
+        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly, bool alreadyHoldingIndexLock = false)
         {
-            InitialIndexLocker.EnterReadLock();
+            // File system events come through here to resolve the combination of current change, existing metadata, and actual file information on disk;
+            // When the file monitoring is first started, it waits for the completion of an initial indexing (which will process differences as new file events);
+            // During the initial indexing, file system events are added to a queue to be processed after indexing completes;
+            // Except for initial indexing, file system events are processed normally
+
+            // Enter the index lock unless this method is being called from BeginProcessing (which is already holding the write lock)
+            if (!alreadyHoldingIndexLock)
+            {
+                InitialIndexLocker.EnterReadLock();
+            }
+
             try
             {
+                // If the initial indexing is running, enqueue changes to process later, otherwise process normally
+
                 if (IsInitialIndex)
                 {
                     ChangesQueueForInitialIndexing.Enqueue(new ChangesQueueHolder()
@@ -962,7 +1001,10 @@ namespace FileMonitor
             }
             finally
             {
-                InitialIndexLocker.ExitReadLock();
+                if (!alreadyHoldingIndexLock)
+                {
+                    InitialIndexLocker.ExitReadLock();
+                }
             }
         }
 
@@ -1051,16 +1093,6 @@ namespace FileMonitor
             }
             return null;
         }
-        /// <summary>
-        /// Used to simultaneously set a false out parameter and return null
-        /// </summary>
-        /// <param name="willBeFalse"></param>
-        /// <returns></returns>
-        private byte[] NullByteArrayWithFalseOutput(out bool willBeFalse)
-        {
-            willBeFalse = false;
-            return null;
-        }
 
         /// <summary>
         /// Insert new file change into a synchronized queue and begin its delay timer for processing
@@ -1114,6 +1146,24 @@ namespace FileMonitor
                         // replace file change in the queue at the same location with the new change
                         QueuedChanges[toChange.NewPath] = toChange;
 
+                        // add old/new path pairs for recursive rename processing
+                        if (previousChange.Type == FileChangeType.Renamed)
+                        {
+                            if (toChange.Type == FileChangeType.Renamed)
+                            {
+                                if (!FilePathComparer.Instance.Equals(previousChange.OldPath, toChange.OldPath)
+                                    || !FilePathComparer.Instance.Equals(previousChange.NewPath, toChange.NewPath))
+                                {
+                                    OldToNewPathRenames[toChange.OldPath] = toChange.NewPath;
+                                }
+                            }
+                        }
+                        else if (toChange.Type == FileChangeType.Renamed)
+                        {
+                            OldToNewPathRenames[toChange.OldPath] = toChange.NewPath;
+                        }
+
+                        // call method that starts the FileChange delayed-processing
                         StartDelay(toChange);
                     }
                     // file change has not already started processing
@@ -1123,6 +1173,7 @@ namespace FileMonitor
                         // Instead of starting a new processing delay, update the FileChange information
                         // Then restart the delay timer
 
+                        #region state flow of how to modify existing file changes when a new change comes in
                         switch (toChange.Type)
                         {
                             case FileChangeType.Created:
@@ -1171,6 +1222,8 @@ namespace FileMonitor
                                         previousChange.Type = FileChangeType.Deleted;
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+                                        // remove the old/new path pair for a rename
+                                        OldToNewPathRenames.Remove(previousChange.NewPath);
                                         break;
                                 }
                                 break;
@@ -1233,6 +1286,7 @@ namespace FileMonitor
                                 }
                                 break;
                         }
+                        #endregion
                     }
                 }
 
@@ -1249,7 +1303,6 @@ namespace FileMonitor
                     // Instead of starting a new processing delay, update the FileChange information
                     // Then restart the delay timer
                     matchedFileChangeForRename.Type = FileChangeType.Renamed;
-                    matchedFileChangeForRename.Type = FileChangeType.Renamed;
                     matchedFileChangeForRename.OldPath = matchedFileChangeForRename.NewPath;
                     matchedFileChangeForRename.NewPath = toChange.NewPath;
                     matchedFileChangeForRename.Metadata = toChange.Metadata;
@@ -1260,6 +1313,8 @@ namespace FileMonitor
                     QueuedChanges.Add(matchedFileChangeForRename.NewPath,
                         matchedFileChangeForRename);
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
+                    // add old/new path pairs for recursive rename processing
+                    OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
                 }
                 // Existing FileChange is a Created event and the incoming event is a matching Deleted event which has not yet completed
                 else if (toChange.Type == FileChangeType.Deleted
@@ -1285,6 +1340,8 @@ namespace FileMonitor
                             matchedFileChangeForRename);
                     }
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
+                    // add old/new path pairs for recursive rename processing
+                    OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
                 }
 
                 // if file change does not exist in the queue at the same file path and the change was not marked to be converted to a rename
@@ -1294,6 +1351,12 @@ namespace FileMonitor
                     QueuedChanges.Add(toChange.NewPath, toChange);
 
                     StartDelay(toChange);
+
+                    if (toChange.Type == FileChangeType.Renamed)
+                    {
+                        // add old/new path pairs for recursive rename processing
+                        OldToNewPathRenames[toChange.OldPath] = toChange.NewPath;
+                    }
                 }
             }
         }
@@ -1306,28 +1369,37 @@ namespace FileMonitor
         /// <param name="state">Userstate, if provided before the delayed processing</param>
         private void ProcessFileChange(FileChange sender, object state)
         {
-            // lock on queue to prevent conflicting updates/reads
-            lock (QueuedChanges)
+            // If the change is a rename that is being removed, take off its old/new path pair
+            if (sender.Type == FileChangeType.Renamed)
             {
-                // remove file changes from each queue if they exist
-                if (QueuedChanges.ContainsKey(sender.NewPath)
-                    && QueuedChanges[sender.NewPath] == sender)
+                if (OldToNewPathRenames.ContainsKey(sender.OldPath)
+                    && FilePathComparer.Instance.Equals(sender.NewPath, OldToNewPathRenames[sender.OldPath]))
                 {
-                    QueuedChanges.Remove(sender.NewPath);
+                    OldToNewPathRenames.Remove(sender.OldPath);
                 }
-                if (QueuedChangesByMetadata.ContainsKey(sender.Metadata.HashableProperties))
-                {
-                    QueuedChangesByMetadata.Remove(sender.Metadata.HashableProperties);
-                }
+            }
+
+            // remove file changes from each queue if they exist
+            if (QueuedChanges.ContainsKey(sender.NewPath)
+                && QueuedChanges[sender.NewPath] == sender)
+            {
+                QueuedChanges.Remove(sender.NewPath);
+            }
+            if (QueuedChangesByMetadata.ContainsKey(sender.Metadata.HashableProperties))
+            {
+                QueuedChangesByMetadata.Remove(sender.Metadata.HashableProperties);
             }
 
             // Add the new change as an event in the SQL index,
             // store the new event id
             sender.EventId = ProcessAppendToSQL(sender);
 
+            // Todo:
+            // Here the events should be requeued in order with a timer going to process after a second or after queue fills to 500 items
+            // (remove ProcessFileChangeGroup)
+
             // Todo: Put in the code to handle processing a file change through the sync service
             ProcessFileChangeGroup(sender);
-
 
             // if optional initialization parameter for logging was passed as true, log an xml file describing the processed FileChange
             if (LogProcessingFileChanges)
@@ -1512,31 +1584,43 @@ namespace FileMonitor
         }
 
         /// <summary>
-        /// Callback fired when a subsequent delete operation occurs in QueuedChanges
-        /// </summary>
-        /// <param name="deletePath">Path where file or folder was deleted</param>
-        /// <param name="value">Previous value at deleted path</param>
-        private void QueuedChange_RecursiveDelete(FilePath deletePath, FileChange value)
-        {
-        }
-
-        /// <summary>
-        /// Callback fired when a subsequent rename operation occurs in QueuedChanges
-        /// </summary>
-        /// <param name="oldPath">Previous path of file or folder</param>
-        /// <param name="newPath">New path of file or folder</param>
-        /// <param name="value">Value for renamed file or folder</param>
-        private void QueuedChange_RecursiveRename(FilePath oldPath, FilePath newPath, FileChange value)
-        {
-        }
-
-        /// <summary>
         /// Callback fired when a subsequent delete operation occurs in AllPaths
         /// </summary>
         /// <param name="deletePath">Path where file or folder was deleted</param>
         /// <param name="value">Previous value at deleted path</param>
-        private void MetadataPath_RecursiveDelete(FilePath deletePath, FileMetadata value)
+        /// <param name="changeRoot">Original FilePath removed/cleared that triggered recursion</param>
+        private void MetadataPath_RecursiveDelete(FilePath deletePath, FileMetadata value, FilePath changeRoot)
         {
+            // If a filepath is deleted, that means a delete operation may occur in the sync as well for the same path;
+            // If the final change to be processed will be a delete,
+            // all previous changes below the deleted path should be disposed since they don't need to fire (will be overridden with deletion)
+
+            lock (QueuedChanges)
+            {
+                if (QueuedChanges.ContainsKey(changeRoot))
+                {
+                    FileChange rootChange = QueuedChanges[changeRoot];
+                    Action toProcess = () =>
+                        {
+                            if (rootChange.Type == FileChangeType.Deleted)
+                            {
+                                if (QueuedChanges.ContainsKey(deletePath))
+                                {
+                                    QueuedChanges[deletePath].Dispose();
+                                    QueuedChanges.Remove(deletePath);
+                                }
+                            }
+                        };
+                    if (rootChange.DelayCompleted)
+                    {
+                        toProcess();
+                    }
+                    else
+                    {
+                        rootChange.EnqueuePreprocessingAction(toProcess);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -1545,8 +1629,73 @@ namespace FileMonitor
         /// <param name="oldPath">Previous path of file or folder</param>
         /// <param name="newPath">New path of file or folder</param>
         /// <param name="value">Value for renamed file or folder</param>
-        private void MetadataPath_RecursiveRename(FilePath oldPath, FilePath newPath, FileMetadata value)
+        /// <param name="changeRootOld">Original old FilePath renamed that triggered recursion</param>
+        /// <param name="changeRootNew">Original new FilePath renamed to that triggered recursion</param>
+        private void MetadataPath_RecursiveRename(FilePath oldPath, FilePath newPath, FileMetadata value, FilePath changeRootOld, FilePath changeRootNew)
         {
+            // If a filepath is renamed, that means a rename operation may occur in the sync as well for the same path;
+            // If the final change to be processed with be a rename,
+            // all previous changes that had a old or new path under the change root need to have
+            // that path updated appropriately if the change root gets processed first
+
+            lock (QueuedChanges)
+            {
+                if (QueuedChanges.ContainsKey(changeRootNew))
+                {
+                    FileChange rootChange = QueuedChanges[changeRootNew];
+                    Action toProcess = () =>
+                        {
+                            if (rootChange.Type == FileChangeType.Renamed
+                                && FilePathComparer.Instance.Equals(rootChange.OldPath, changeRootOld))
+                            {
+                                if (QueuedChanges.ContainsKey(oldPath))
+                                {
+                                    FileChange foundRecurseChange = QueuedChanges[oldPath];
+                                    if (foundRecurseChange.Type == FileChangeType.Renamed)
+                                    {
+                                        FilePath renamedOverlapChild = foundRecurseChange.OldPath;
+                                        FilePath renamedOverlap = renamedOverlapChild.Parent;
+
+                                        while (renamedOverlap != null)
+                                        {
+                                            if (FilePathComparer.Instance.Equals(renamedOverlap, changeRootOld))
+                                            {
+                                                renamedOverlapChild.Parent = changeRootNew;
+                                                break;
+                                            }
+
+                                            renamedOverlapChild = renamedOverlap;
+                                            renamedOverlap = renamedOverlap.Parent;
+                                        }
+                                    }
+                                    foundRecurseChange.NewPath = newPath;
+                                    QueuedChanges.Remove(oldPath);
+                                    QueuedChanges.Add(newPath, foundRecurseChange);
+                                }
+                                else if (OldToNewPathRenames.ContainsKey(oldPath))
+                                {
+                                    FilePath existingNewPath = OldToNewPathRenames[oldPath];
+                                    if (QueuedChanges.ContainsKey(existingNewPath))
+                                    {
+                                        FileChange existingChangeAtNewPath = QueuedChanges[existingNewPath];
+                                        if (existingChangeAtNewPath.Type == FileChangeType.Renamed)
+                                        {
+                                            existingChangeAtNewPath.OldPath = newPath;
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    if (rootChange.DelayCompleted)
+                    {
+                        toProcess();
+                    }
+                    else
+                    {
+                        rootChange.EnqueuePreprocessingAction(toProcess);
+                    }
+                }
+            }
         }
         #endregion
     }
