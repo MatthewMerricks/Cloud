@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+<FileChange>
+  <NewPath>C:\\Users\Public\Documents\CreateFileTests\MyFolder</NewPath>
+  <IsFolder>True</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634765759830582988</LastTime>
+  <CreationTime>634765759830582988</CreationTime>
+</FileChange>
+<FileChange>
+  <NewPath>C:\\Users\Public\Documents\CreateFileTests\UnlockedFile.txt</NewPath>
+  <IsFolder>False</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634765759830602990</LastTime>
+  <CreationTime>634765759830592989</CreationTime>
+  <Size>14</Size>
+</FileChange>
+<FileChange>
+  <NewPath>C:\\Users\Public\Documents\CreateFileTests\MyFolder\StreamingFile.txt</NewPath>
+  <IsFolder>False</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634765759830783008</LastTime>
+  <CreationTime>634765759830773007</CreationTime>
+  <Size>600</Size>
+</FileChange>
+<FileChange>
+  <NewPath>C:\\Users\Public\Documents\CreateFileTests\File1.txt</NewPath>
+  <IsFolder>False</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634765759840824012</LastTime>
+  <CreationTime>634765759830672997</CreationTime>
+  <Size>17</Size>
+</FileChange>
+</root>

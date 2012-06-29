@@ -14,9 +14,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
+using System.Globalization;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
 using System.Xml.Linq;
-using System.Globalization;
 
 namespace FileMonitor
 {
@@ -145,6 +145,64 @@ namespace FileMonitor
             public bool folderOnly { get; set; }
         }
 
+        private Queue<FileChange> ProcessingChanges = new Queue<FileChange>();
+        private class ProcessingQueuesTimer
+        {
+            public bool TimerRunning
+            {
+                get
+                {
+                    return _timerRunning;
+                }
+            }
+            private bool _timerRunning = false;
+            public readonly object TimerRunningLocker = new object();
+            private Action OnTimeout;
+            private int MillisecondTime;
+
+            private ManualResetEvent SleepEvent = new ManualResetEvent(false);
+
+            public ProcessingQueuesTimer(Action onTimeout, int millisecondTime)
+            {
+                this.OnTimeout = onTimeout;
+                this.MillisecondTime = millisecondTime;
+            }
+
+            public void StartTimerIfNotRunning()
+            {
+                if (!_timerRunning)
+                {
+                    _timerRunning = true;
+                    (new Thread(() =>
+                        {
+                            bool SleepEventNeedsReset = SleepEvent.WaitOne(this.MillisecondTime);
+                            lock (TimerRunningLocker)
+                            {
+                                if (SleepEventNeedsReset)
+                                {
+                                    SleepEvent.Reset();
+                                }
+                                _timerRunning = false;
+                                OnTimeout();
+                            }
+                        })).Start();
+                }
+            }
+
+            public void TriggerTimerCompletionImmediately()
+            {
+                if (_timerRunning)
+                {
+                    SleepEvent.Set();
+                }
+                else
+                {
+                    OnTimeout();
+                }
+            }
+        }
+        private ProcessingQueuesTimer QueuesTimer;
+
         /// <summary>
         /// Stores whether initial indexing has yet to complete,
         /// lock on InitialIndexLocker
@@ -205,6 +263,10 @@ namespace FileMonitor
                 newAgent.OnProcessEventGroupCallback = onProcessEventGroupCallback;
                 newAgent.ProcessAppendToSQL = onProcessAppendToSQL;
                 newAgent.LogProcessingFileChanges = logProcessing;
+
+                // assign timer object that is used for processing the FileChange queues in batches
+                newAgent.QueuesTimer = new ProcessingQueuesTimer(newAgent.ProcessQueuesAfterTimer,
+                    1000);// Collect items in queue for 1 second before batch processing
             }
             catch (Exception ex)
             {
@@ -997,6 +1059,45 @@ namespace FileMonitor
                             #endregion
                         }
                     }
+
+                    // If the current change is on a directory that was created,
+                    // need to recursively traverse inner objects to also create
+                    if (isFolder
+                        && exists
+                        && changeType == WatcherChangeTypes.Created)
+                    {
+                        // Recursively traverse inner directories
+                        try
+                        {
+                            foreach (DirectoryInfo subDirectory in folder.EnumerateDirectories())
+                            {
+                                CheckMetadataAgainstFile(subDirectory.FullName,
+                                    null,
+                                    WatcherChangeTypes.Created,
+                                    true,
+                                    true);
+                            }
+                        }
+                        catch
+                        {
+                        }
+
+                        // Recurse one more level deep for each inner file
+                        try
+                        {
+                            foreach (FileInfo innerFile in folder.EnumerateFiles())
+                            {
+                                CheckMetadataAgainstFile(innerFile.FullName,
+                                    null,
+                                    WatcherChangeTypes.Created,
+                                    false,
+                                    true);
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
             }
             finally
@@ -1183,9 +1284,25 @@ namespace FileMonitor
                                         // error condition
                                         break;
                                     case FileChangeType.Deleted:
-                                        previousChange.Type = FileChangeType.Modified;
-                                        previousChange.Metadata = toChange.Metadata;
-                                        previousChange.SetDelayBackToInitialValue();
+                                        if (previousChange.Metadata.HashableProperties.IsFolder)
+                                        {
+                                            // Folder modify events are not useful, so discard the deletion change instead
+
+                                            FileChange toCompare;
+                                            if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
+                                                && toCompare.Equals(previousChange))
+                                            {
+                                                QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties);
+                                            }
+                                            QueuedChanges.Remove(previousChange.NewPath);
+                                            previousChange.Dispose();
+                                        }
+                                        else
+                                        {
+                                            previousChange.Type = FileChangeType.Modified;
+                                            previousChange.Metadata = toChange.Metadata;
+                                            previousChange.SetDelayBackToInitialValue();
+                                        }
                                         break;
                                     case FileChangeType.Modified:
                                         // error condition
@@ -1272,8 +1389,26 @@ namespace FileMonitor
                                                     Type = FileChangeType.Deleted,
                                                     Metadata = toChange.Metadata
                                                 };
-                                            QueuedChanges.Add(toChange.OldPath,
-                                                oldLocationDelete);
+                                            if (QueuedChanges.ContainsKey(toChange.OldPath))
+                                            {
+                                                FileChange previousOldPathChange = QueuedChanges[toChange.OldPath];
+
+                                                FileChange toCompare;
+                                                if (!QueuedChangesByMetadata.TryGetValue(previousOldPathChange.Metadata.HashableProperties, out toCompare)
+                                                    || !toCompare.Equals(previousOldPathChange))
+                                                {
+                                                    QueuedChangesByMetadata[previousOldPathChange.Metadata.HashableProperties] = previousOldPathChange;
+                                                }
+
+                                                previousOldPathChange.Metadata = toChange.Metadata;
+                                                previousOldPathChange.Type = FileChangeType.Deleted;
+                                                previousOldPathChange.SetDelayBackToInitialValue();
+                                            }
+                                            else
+                                            {
+                                                QueuedChanges.Add(toChange.OldPath,
+                                                    oldLocationDelete);
+                                            }
                                             StartDelay(oldLocationDelete);
                                         }
                                         break;
@@ -1394,110 +1529,93 @@ namespace FileMonitor
             // store the new event id
             sender.EventId = ProcessAppendToSQL(sender);
 
-            // Todo:
-            // Here the events should be requeued in order with a timer going to process after a second or after queue fills to 500 items
-            // (remove ProcessFileChangeGroup)
-
-            // Todo: Put in the code to handle processing a file change through the sync service
-            ProcessFileChangeGroup(sender);
-
-            // if optional initialization parameter for logging was passed as true, log an xml file describing the processed FileChange
-            if (LogProcessingFileChanges)
+            lock (QueuesTimer.TimerRunningLocker)
             {
-                //<FileChange>
-                //  <NewPath>[path for current change]</NewPath>
-                //
-                //  <!--Only present if the previous path exists:-->
-                //  <OldPath>[path for previous location for moves/renames]</OldPath>
-                //
-                //  <IsFolder>[true for folders, false for files]</IsFolder>
-                //  <Type>[type of change that occurred]</Type>
-                //  <LastTime>[number of ticks from the DateTime of when the file/folder was last changed]</LastTime>
-                //  <CreationTime>[number of ticks from the DateTime of when the file/folder was created]</CreationTime>
-                //
-                //</FileChange>
-                AppendFileChangeProcessedLogXmlString(new XElement("FileChange",
-                    new XElement("NewPath", new XText(sender.NewPath.ToString())),
-                    sender.OldPath == null ? null : new XElement("OldPath", new XText(sender.OldPath.ToString())),
-                    new XElement("IsFolder", new XText(sender.Metadata.HashableProperties.IsFolder.ToString())),
-                    new XElement("Type", new XText(sender.Type.ToString())),
-                    new XElement("LastTime", new XText(sender.Metadata.HashableProperties.LastTime.Ticks.ToString())),
-                    new XElement("CreationTime", new XText(sender.Metadata.HashableProperties.CreationTime.Ticks.ToString())),
-                    sender.Metadata.HashableProperties.Size == null ? null : new XElement("Size", new XText(sender.Metadata.HashableProperties.Size.Value.ToString())))
-                    .ToString() + Environment.NewLine);
+                ProcessingChanges.Enqueue(sender);
+                if (ProcessingChanges.Count > 499)
+                {
+                    QueuesTimer.TriggerTimerCompletionImmediately();
+                }
+                else
+                {
+                    QueuesTimer.StartTimerIfNotRunning();
+                }
             }
         }
 
-        private void ProcessFileChangeGroup(FileChange sender)
+        private void ProcessFileChangeGroup(FileChange[] changes)
         {
             if (this.OnProcessEventGroupCallback != null)
             {
-                //TODO: For now, we are sending groups of file system events to sync, where the
-                // group has only a single event.
-                // The FileChange must be converted to the single CLEvent we will send
-                string action = "";
-                switch (sender.Type)
+                foreach (FileChange currentChange in changes)
                 {
-                    case FileChangeType.Created:
-                        if (sender.Metadata.HashableProperties.IsFolder)
-                        {
-                            action = CLDefinitions.CLEventTypeAddFolder;
-                        }
-                        else
-                        {
-                            action = CLDefinitions.CLEventTypeAddFile;
-                        }
-                        break;
-                    case FileChangeType.Deleted:
-                        if (sender.Metadata.HashableProperties.IsFolder)
-                        {
-                            action = CLDefinitions.CLEventTypeDeleteFolder;
-                        }
-                        else
-                        {
-                            action = CLDefinitions.CLEventTypeDeleteFile;
-                        }
-                        break;
-                    case FileChangeType.Modified:
-                        action = CLDefinitions.CLEventTypeModifyFile;
-                        break;
-                    case FileChangeType.Renamed:
-                        if (sender.Metadata.HashableProperties.IsFolder)
-                        {
-                            action = CLDefinitions.CLEventTypeRenameFolder;
-                        }
-                        else
-                        {
-                            action = CLDefinitions.CLEventTypeRenameFile;
-                        }
-                        break;
+                    //TODO: For now, we are sending groups of file system events to sync, where the
+                    // group has only a single event.
+                    // The FileChange must be converted to the single CLEvent we will send
+                    string action = "";
+                    switch (currentChange.Type)
+                    {
+                        case FileChangeType.Created:
+                            if (currentChange.Metadata.HashableProperties.IsFolder)
+                            {
+                                action = CLDefinitions.CLEventTypeAddFolder;
+                            }
+                            else
+                            {
+                                action = CLDefinitions.CLEventTypeAddFile;
+                            }
+                            break;
+                        case FileChangeType.Deleted:
+                            if (currentChange.Metadata.HashableProperties.IsFolder)
+                            {
+                                action = CLDefinitions.CLEventTypeDeleteFolder;
+                            }
+                            else
+                            {
+                                action = CLDefinitions.CLEventTypeDeleteFile;
+                            }
+                            break;
+                        case FileChangeType.Modified:
+                            action = CLDefinitions.CLEventTypeModifyFile;
+                            break;
+                        case FileChangeType.Renamed:
+                            if (currentChange.Metadata.HashableProperties.IsFolder)
+                            {
+                                action = CLDefinitions.CLEventTypeRenameFolder;
+                            }
+                            else
+                            {
+                                action = CLDefinitions.CLEventTypeRenameFile;
+                            }
+                            break;
+                    }
+
+                    // Build the metadata dictionary
+                    Dictionary<string, object> metadata = new Dictionary<string, object>();
+                    // Format the time like "2012-03-20T19:50:25Z"
+                    metadata.Add(CLDefinitions.CLMetadataFileCreateDate, currentChange.Metadata.HashableProperties.CreationTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
+                    metadata.Add(CLDefinitions.CLMetadataFromPath, currentChange.OldPath);
+                    metadata.Add(CLDefinitions.CLMetadataCloudPath, currentChange.NewPath);
+                    metadata.Add(CLDefinitions.CLMetadataToPath, String.Empty);       // not used?
+
+                    // Build the events dictionary
+                    Dictionary<string, object> events = new Dictionary<string, object>();
+                    events.Add(CLDefinitions.CLSyncEvent, action);             // just one in the group for now.
+                    events.Add(CLDefinitions.CLSyncEventMetadata, metadata);
+
+                    // Add this as an array of Dictionaries.
+                    Dictionary<string, object>[] eventsArray = new Dictionary<string, object>[1];
+                    eventsArray[0] = events;
+
+                    // Build the dictionary to return.  Start by adding the last EventId and an event count of one.
+                    Dictionary<string, object> eventsDictionary = new Dictionary<string, object>();
+                    eventsDictionary.Add(CLDefinitions.CLEventKey, currentChange.EventId);
+                    eventsDictionary.Add(CLDefinitions.CLEventCount, 1);
+                    eventsDictionary.Add(CLDefinitions.CLSyncEvents, eventsArray);
+
+                    // Feed this group of one to the sync service.
+                    this.OnProcessEventGroupCallback(eventsDictionary);
                 }
-
-                // Build the metadata dictionary
-                Dictionary<string, object> metadata = new Dictionary<string, object>();
-                // Format the time like "2012-03-20T19:50:25Z"
-                metadata.Add(CLDefinitions.CLMetadataFileCreateDate, sender.Metadata.HashableProperties.CreationTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
-                metadata.Add(CLDefinitions.CLMetadataFromPath, sender.OldPath);
-                metadata.Add(CLDefinitions.CLMetadataCloudPath, sender.NewPath);
-                metadata.Add(CLDefinitions.CLMetadataToPath, String.Empty);       // not used?
-
-                // Build the events dictionary
-                Dictionary<string, object> events = new Dictionary<string, object>();
-                events.Add(CLDefinitions.CLSyncEvent, action);             // just one in the group for now.
-                events.Add(CLDefinitions.CLSyncEventMetadata, metadata);
-
-                // Add this as an array of Dictionaries.
-                Dictionary<string, object>[] eventsArray = new Dictionary<string, object>[1];
-                eventsArray[0] = events;
-
-                // Build the dictionary to return.  Start by adding the last EventId and an event count of one.
-                Dictionary<string, object> eventsDictionary = new Dictionary<string, object>();
-                eventsDictionary.Add(CLDefinitions.CLEventKey, sender.EventId);
-                eventsDictionary.Add(CLDefinitions.CLEventCount, 1);
-                eventsDictionary.Add(CLDefinitions.CLSyncEvents, eventsArray);
-
-                // Feed this group of one to the sync service.
-                this.OnProcessEventGroupCallback(eventsDictionary);
             }
         }
 
@@ -1696,6 +1814,95 @@ namespace FileMonitor
                     }
                 }
             }
+        }
+
+        private void ProcessQueuesAfterTimer()
+        {
+            List<FileChange> DeleteFiles = new List<FileChange>();
+            List<FileChange> DeleteFolders = new List<FileChange>();
+            List<FileChange> OtherFolderOperations = new List<FileChange>();
+            List<FileChange> OtherFileOperations = new List<FileChange>();
+
+            FileChange[] batchedChanges = new FileChange[ProcessingChanges.Count];
+
+            while (ProcessingChanges.Count > 0)
+            {
+                FileChange currentChangeToAdd = ProcessingChanges.Dequeue();
+                if (currentChangeToAdd.Type == FileChangeType.Deleted)
+                {
+                    if (currentChangeToAdd.Metadata.HashableProperties.IsFolder)
+                    {
+                        DeleteFolders.Add(currentChangeToAdd);
+                    }
+                    else
+                    {
+                        DeleteFiles.Add(currentChangeToAdd);
+                    }
+                }
+                else if (currentChangeToAdd.Metadata.HashableProperties.IsFolder)
+                {
+                    OtherFolderOperations.Add(currentChangeToAdd);
+                }
+                else
+                {
+                    OtherFileOperations.Add(currentChangeToAdd);
+                }
+            }
+
+            int batchedChangeIndex = 0;
+            foreach (FileChange currentDeleteFile in DeleteFiles)
+            {
+                batchedChanges[batchedChangeIndex] = currentDeleteFile;
+                batchedChangeIndex++;
+            }
+            foreach (FileChange currentDeleteFolder in DeleteFolders)
+            {
+                batchedChanges[batchedChangeIndex] = currentDeleteFolder;
+                batchedChangeIndex++;
+            }
+            foreach (FileChange currentOtherFolder in OtherFolderOperations)
+            {
+                batchedChanges[batchedChangeIndex] = currentOtherFolder;
+                batchedChangeIndex++;
+            }
+            foreach (FileChange currentOtherFile in OtherFileOperations)
+            {
+                batchedChanges[batchedChangeIndex] = currentOtherFile;
+                batchedChangeIndex++;
+            }
+
+            // if optional initialization parameter for logging was passed as true, log an xml file describing the processed FileChange
+            if (LogProcessingFileChanges)
+            {
+                foreach (FileChange currentChange in batchedChanges)
+                {
+                    //<FileChange>
+                    //  <NewPath>[path for current change]</NewPath>
+                    //
+                    //  <!--Only present if the previous path exists:-->
+                    //  <OldPath>[path for previous location for moves/renames]</OldPath>
+                    //
+                    //  <IsFolder>[true for folders, false for files]</IsFolder>
+                    //  <Type>[type of change that occurred]</Type>
+                    //  <LastTime>[number of ticks from the DateTime of when the file/folder was last changed]</LastTime>
+                    //  <CreationTime>[number of ticks from the DateTime of when the file/folder was created]</CreationTime>
+                    //
+                    //</FileChange>
+                    AppendFileChangeProcessedLogXmlString(new XElement("FileChange",
+                        new XElement("NewPath", new XText(currentChange.NewPath.ToString())),
+                        currentChange.OldPath == null ? null : new XElement("OldPath", new XText(currentChange.OldPath.ToString())),
+                        new XElement("IsFolder", new XText(currentChange.Metadata.HashableProperties.IsFolder.ToString())),
+                        new XElement("Type", new XText(currentChange.Type.ToString())),
+                        new XElement("LastTime", new XText(currentChange.Metadata.HashableProperties.LastTime.Ticks.ToString())),
+                        new XElement("CreationTime", new XText(currentChange.Metadata.HashableProperties.CreationTime.Ticks.ToString())),
+                        currentChange.Metadata.HashableProperties.Size == null ? null : new XElement("Size", new XText(currentChange.Metadata.HashableProperties.Size.Value.ToString())))
+                        .ToString() + Environment.NewLine);
+                }
+            }
+            (new Thread(() =>
+                {
+                    ProcessFileChangeGroup(batchedChanges);
+                })).Start();
         }
         #endregion
     }

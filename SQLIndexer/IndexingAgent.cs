@@ -185,7 +185,7 @@ namespace SQLIndexer
         /// </summary>
         /// <param name="changeEvents">Outputs the unprocessed events</param>
         /// <returns>Returns an error that occurred filling the unprocessed events, if any</returns>
-        public CLError GetEventsSinceLastSync(out FilePathDictionary<FileChange> changeEvents)
+        public CLError GetEventsSinceLastSync(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
         {
             try
             {
@@ -200,25 +200,19 @@ namespace SQLIndexer
                         ? (Nullable<int>)null
                         : lastSync.SyncCounter);
 
-                    // Create the output dictionary
-                    CLError createDictError = FilePathDictionary<FileChange>.CreateAndInitialize(lastSync == null
-                            ? indexedPath
-                            : lastSync.RootPath,
-                        out changeEvents);
-                    if (createDictError != null)
-                    {
-                        return createDictError;
-                    }
+                    // Create the output list
+                    changeEvents = new List<KeyValuePair<FilePath,FileChange>>();
 
                     // Loop through all the events in the database after the last sync (if any)
                     foreach (Event currentChange in
                         indexDB.Events
                             .Include(((MemberExpression)((Expression<Func<Event, FileSystemObject>>)(parent => parent.FileSystemObject)).Body).Member.Name)
                             .Where(currentChange => (currentChange.SyncCounter == null && lastSyncCounter == null)
-                                || (currentChange.SyncCounter == lastSyncCounter)))
+                                || (currentChange.SyncCounter == lastSyncCounter))
+                            .OrderBy(currentChange => currentChange.SyncCounter))
                     {
                         // For each event since the last sync (if any), add to the output dictionary
-                        changeEvents.Add(currentChange.FileSystemObject.Path,
+                        changeEvents.Add(new KeyValuePair<FilePath,FileChange>(currentChange.FileSystemObject.Path,
                             new FileChange()
                             {
                                 NewPath = currentChange.FileSystemObject.Path,
@@ -231,13 +225,13 @@ namespace SQLIndexer
                                         currentChange.FileSystemObject.CreationTime ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc),
                                         currentChange.FileSystemObject.Size)
                                 }
-                            });
+                            }));
                     }
                 }
             }
             catch (Exception ex)
             {
-                changeEvents = (FilePathDictionary<FileChange>)Helpers.DefaultForType(typeof(FilePathDictionary<FileChange>));
+                changeEvents = (List<KeyValuePair<FilePath, FileChange>>)Helpers.DefaultForType(typeof(List<KeyValuePair<FilePath, FileChange>>));
                 return ex;
             }
             return null;
@@ -248,55 +242,67 @@ namespace SQLIndexer
         /// </summary>
         /// <param name="newEvent">Change to add</param>
         /// <returns>Returns the id of the new event</returns>
-        public int AddEvent(FileChange newEvent)
+        public CLError AddEvent(FileChange newEvent, out int newEventId)
         {
-            // If change is marked for not adding to SQL, return its existing id
-            if (newEvent.DoNotAddToSQLIndex)
+            try
             {
-                return newEvent.EventId;
-            }
-            using (IndexDBEntities indexDB = new IndexDBEntities())
-            {
-                // Grab the last sync from the database
-                Sync lastSync = indexDB.Syncs
-                    .OrderByDescending(currentSync => currentSync.SyncCounter)
-                    .FirstOrDefault();
-                // Fill in a nullable id of the last sync
-                Nullable<int> lastSyncCounter = (lastSync == null
-                    ? (Nullable<int>)null
-                    : lastSync.SyncCounter);
-
-                // Define the new event to add for the unprocessed change
-                Event toAdd = new Event()
+                // If change is marked for not adding to SQL, return its existing id
+                if (newEvent.DoNotAddToSQLIndex)
                 {
-                    SyncCounter = lastSyncCounter,
-                    FileChangeTypeCategoryId = changeCategoryId,
-                    FileChangeTypeEnumId = changeEnumsBackward[newEvent.Type],
-                    FileSystemObject = new FileSystemObject()
+                    newEventId = newEvent.EventId;
+                }
+                else
+                {
+                    using (IndexDBEntities indexDB = new IndexDBEntities())
                     {
-                        CreationTime = newEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                            ? (Nullable<DateTime>)null
-                            : newEvent.Metadata.HashableProperties.CreationTime,
-                        IsFolder = newEvent.Metadata.HashableProperties.IsFolder,
-                        LastTime = newEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                            ? (Nullable<DateTime>)null
-                            : newEvent.Metadata.HashableProperties.LastTime,
-                        Path = newEvent.NewPath.ToString(),
-                        Size = newEvent.Metadata.HashableProperties.Size
-                    },
-                    PreviousPath = newEvent.OldPath == null
-                        ? null
-                        : newEvent.OldPath.ToString()
-                };
+                        // Grab the last sync from the database
+                        Sync lastSync = indexDB.Syncs
+                            .OrderByDescending(currentSync => currentSync.SyncCounter)
+                            .FirstOrDefault();
+                        // Fill in a nullable id of the last sync
+                        Nullable<int> lastSyncCounter = (lastSync == null
+                            ? (Nullable<int>)null
+                            : lastSync.SyncCounter);
 
-                // Add the new event to the database
-                indexDB.Events.AddObject(toAdd);
-                indexDB.SaveChanges();
-                
-                // Store the new event id to the change and return it
-                newEvent.EventId = toAdd.EventId;
-                return toAdd.EventId;
+                        // Define the new event to add for the unprocessed change
+                        Event toAdd = new Event()
+                        {
+                            SyncCounter = lastSyncCounter,
+                            FileChangeTypeCategoryId = changeCategoryId,
+                            FileChangeTypeEnumId = changeEnumsBackward[newEvent.Type],
+                            FileSystemObject = new FileSystemObject()
+                            {
+                                CreationTime = newEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                    ? (Nullable<DateTime>)null
+                                    : newEvent.Metadata.HashableProperties.CreationTime,
+                                IsFolder = newEvent.Metadata.HashableProperties.IsFolder,
+                                LastTime = newEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                    ? (Nullable<DateTime>)null
+                                    : newEvent.Metadata.HashableProperties.LastTime,
+                                Path = newEvent.NewPath.ToString(),
+                                Size = newEvent.Metadata.HashableProperties.Size
+                            },
+                            PreviousPath = newEvent.OldPath == null
+                                ? null
+                                : newEvent.OldPath.ToString()
+                        };
+
+                        // Add the new event to the database
+                        indexDB.Events.AddObject(toAdd);
+                        indexDB.SaveChanges();
+
+                        // Store the new event id to the change and return it
+                        newEvent.EventId = toAdd.EventId;
+                        newEventId = toAdd.EventId;
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                newEventId = (int)Helpers.DefaultForType(typeof(int));
+                return ex;
+            }
+            return null;
         }
 
         /// <summary>
@@ -632,7 +638,7 @@ namespace SQLIndexer
         private IndexingAgent() { }
 
         /// <summary>
-        /// Action fired on a user worker thread which transverses the root path to build an initial index on application startup
+        /// Action fired on a user worker thread which traverses the root path to build an initial index on application startup
         /// </summary>
         /// <param name="indexCompletionCallback">Callback should be the BeginProcessing method of the FileMonitor to forward the initial index</param>
         private void BuildIndex(Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>> indexCompletionCallback)
@@ -719,7 +725,7 @@ namespace SQLIndexer
                     indexPaths.Select(currentIndex => currentIndex.Key.ToString())
                         // RecurseIndexDirectory both adds the new changes to the list that are found on disc
                         // and returns a list of all paths traversed for comparison to the existing index
-                        .Except(RecurseIndexDirectory(changeList, indexRootPath, indexPaths, this.AddEvent),
+                        .Except(RecurseIndexDirectory(changeList, indexRootPath, indexPaths, this.RemoveEventById),
                             StringComparer.InvariantCulture))
                 {
                     // For the path that existed previously in the index but is no longer found on disc, process as a deletion
@@ -751,7 +757,7 @@ namespace SQLIndexer
         /// <param name="AddEventCallback">Callback to fire if a database event needs to be added</param>
         /// <param name="uncoveredChanges">Optional list of changes which no longer have a corresponding local path, only set when self-recursing</param>
         /// <returns>Returns the list of paths traversed</returns>
-        private static IEnumerable<string> RecurseIndexDirectory(List<FileChange> changeList, DirectoryInfo currentDirectory, FilePathDictionary<FileMetadata> indexPaths, Func<FileChange, int> AddEventCallback, Dictionary<FilePath, FileChange> uncoveredChanges = null)
+        private static IEnumerable<string> RecurseIndexDirectory(List<FileChange> changeList, DirectoryInfo currentDirectory, FilePathDictionary<FileMetadata> indexPaths, Func<int, CLError> RemoveEventCallback, Dictionary<FilePath, LinkedList<FileChange>> uncoveredChanges = null)
         {
             // Store whether the current method call is outermost or a recursion,
             // only the outermost method call has a null uncoveredChanges parameter
@@ -761,11 +767,19 @@ namespace SQLIndexer
             // build the uncoveredChanges dictionary with initial values from the values in changeList
             if (outermostMethodCall)
             {
-                uncoveredChanges = new Dictionary<FilePath, FileChange>(changeList.Count,
-                    FilePathComparer.Instance);
+                uncoveredChanges = new Dictionary<FilePath, LinkedList<FileChange>>(FilePathComparer.Instance);
+                    //new Dictionary<FilePath, FileChange>(changeList.Count,
+                    //FilePathComparer.Instance);
                 foreach (FileChange currentChange in changeList)
                 {
-                    uncoveredChanges[currentChange.NewPath] = currentChange;
+                    if (uncoveredChanges.ContainsKey(currentChange.NewPath))
+                    {
+                        uncoveredChanges[currentChange.NewPath].AddFirst(currentChange);
+                    }
+                    else
+                    {
+                        uncoveredChanges.Add(currentChange.NewPath, new LinkedList<FileChange>(new FileChange[] { currentChange }));
+                    }
                 }
             }
 
@@ -811,7 +825,7 @@ namespace SQLIndexer
                 filePathsFound.AddRange(RecurseIndexDirectory(changeList,
                     subDirectory,
                     indexPaths,
-                    AddEventCallback,
+                    RemoveEventCallback,
                     uncoveredChanges));
             }
             // Loop through all files under the current directory
@@ -904,25 +918,35 @@ namespace SQLIndexer
             if (outermostMethodCall)
             {
                 // Loop through the uncovered file changes
-                foreach (KeyValuePair<FilePath, FileChange> uncoveredChange in uncoveredChanges)
+                foreach (KeyValuePair<FilePath, LinkedList<FileChange>> uncoveredChange in uncoveredChanges)
                 {
-                    // If the latest uncovered change at a path is not deleted,
-                    // a new event for deletion will be created to reverse the previous change
-                    if (uncoveredChange.Value.Type != FileChangeType.Deleted)
+                    // Take all the changes at a path which no longer has a file/folder and
+                    // either remove all the events (if the last sync index did not contain the folder)
+                    // or turn all changes into a single deletion change (if the last sync index did contain the folder)
+                    bool existingDeletion = false;
+                    LinkedListNode<FileChange> currentUncoveredChange = uncoveredChange.Value.First;
+                    bool existsInIndex = indexPaths.ContainsKey(uncoveredChange.Key);
+                    // Continue checking the linked list nodes until it is past the end (thus null)
+                    while (currentUncoveredChange != null)
                     {
-                        // Create the deletion change
-                        FileChange undoneEventChange = new FileChange()
+                        // Only keep the first deletion event and only if there is a path in the index for the corresponding delete
+                        if (existsInIndex
+                            && !existingDeletion
+                            && currentUncoveredChange.Value.Type == FileChangeType.Deleted)
                         {
-                            NewPath = uncoveredChange.Key,
-                            Type = FileChangeType.Deleted,
-                            Metadata = uncoveredChange.Value.Metadata
-                        };
-                        // Add the deletion change to the change list
-                        changeList.Add(undoneEventChange);
-                        // Since the FileChange queueing behavior will drop reversed changes
-                        // (and thus not process through back to SQL),
-                        // manually add the deletion to the database now
-                        AddEventCallback(undoneEventChange);
+                            existingDeletion = true;
+                        }
+                        else
+                        {
+                            changeList.Remove(currentUncoveredChange.Value);
+                            if (currentUncoveredChange.Value.EventId > 0)
+                            {
+                                RemoveEventCallback(currentUncoveredChange.Value.EventId);
+                            }
+                        }
+
+                        // Move to the next FileChange in the linked list
+                        currentUncoveredChange = currentUncoveredChange.Next;
                     }
                 }
             }

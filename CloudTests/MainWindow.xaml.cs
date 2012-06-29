@@ -43,6 +43,8 @@ namespace CloudTests
         // for testing
         private MonitorAgent folderMonitor = null;
         // for testing
+        private IndexingAgent indexer = null;
+        // for testing
         private bool folderMonitoringStarted = false;
         // for testing
         private object folderMonitoringStartedLocker = new object();
@@ -232,12 +234,20 @@ namespace CloudTests
                     }
                     else
                     {
-                        IndexingAgent indexer;
                         IndexingAgent.CreateNewAndInitialize(out indexer);
                         MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath,
                             out folderMonitor,
                             processedDict => { },
-                            indexer.AddEvent,
+                            newFileChange =>
+                                {
+                                    int newEventId;
+                                    CLError addEventError = indexer.AddEvent(newFileChange, out newEventId);
+                                    if (addEventError != null)
+                                    {
+                                        throw (Exception)addEventError.errorInfo[CLError.ErrorInfo_Exception];
+                                    }
+                                    return newEventId;
+                                },
                             FileChange_OnQueueing,
                             true);
                         MonitorStatus returnStatus;
@@ -434,7 +444,11 @@ namespace CloudTests
                                                 throw new Exception("Parent directory for file does not exist");
                                             if (createFile.Exists)
                                                 throw new Exception("File already exists at target location");
-                                            if (string.IsNullOrEmpty(fileOperation.Data.SpecificData))
+                                            if (fileOperation.Data == null)
+                                            {
+                                                createFile.Create();
+                                            }
+                                            else if (string.IsNullOrEmpty(fileOperation.Data.SpecificData))
                                             {
                                                 char[] toWrite = new char[fileOperation.Data.SizeDelta];
                                                 for (uint i = 0; i < toWrite.LongLength; i++)
@@ -531,7 +545,7 @@ namespace CloudTests
                                                 }
                                                 else
                                                     toWrite = fileOperation.Data.SpecificData;
-                                                using (FileStream modifyStream = new FileStream(newPath, FileMode.OpenOrCreate))
+                                                using (FileStream modifyStream = new FileStream(newPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
                                                 {
                                                     using (StreamWriter modifyWriter = new StreamWriter(modifyStream))
                                                     {
@@ -702,13 +716,22 @@ namespace CloudTests
         /// <returns>Returns byte[16] representing the MD5 data</returns>
         private byte[] GetMD5(string filePath)
         {
-            // Filestream will fail if reading is blocked or permissions don't allow read,
-            // exception will bubble up to CheckMetadataAgainstFile for handling
-            using (FileStream mD5Stream = new FileStream(filePath,
-                FileMode.Open))
+            try
             {
-                // compute hash and return using static instance of MD5
-                return MD5Hasher.ComputeHash(mD5Stream);
+                // Filestream will fail if reading is blocked or permissions don't allow read,
+                // exception will bubble up to CheckMetadataAgainstFile for handling
+                using (FileStream mD5Stream = new FileStream(filePath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.ReadWrite))
+                {
+                    // compute hash and return using static instance of MD5
+                    return MD5Hasher.ComputeHash(mD5Stream);
+                }
+            }
+            catch
+            {
+                return new byte[16];
             }
         }
         /// <summary>
@@ -799,6 +822,10 @@ namespace CloudTests
         private static XmlSerializer FilePathSerializer = new XmlSerializer(typeof(FilePathHolder.FilePathOperations));
         private void FilePathTests_Click(object sender, RoutedEventArgs e)
         {
+            List<KeyValuePair<FilePath, FileChange>> myChanges = null;
+            FilePathDictionary<SyncedObject> mySyncs = null;
+            int mySyncCount = -1;
+
             FilePathHolder.FilePathOperations operations;
             using (FileStream pathStream = new FileStream("TestFilePaths.xml", FileMode.Open))
             {
@@ -857,6 +884,33 @@ namespace CloudTests
 
         private void RecursiveRenameCallback(FilePath oldPath, FilePath newPath, IntHolder args, FilePath basePathOld, FilePath basePathNew)
         {
+        }
+
+        private void ResetDatabaseToBlankSyncStates_Click(object sender, RoutedEventArgs e)
+        {
+            if (indexer == null)
+            {
+                throw new Exception("Indexer has not been created, first start file monitoring");
+            }
+            List<KeyValuePair<FilePath, FileChange>> lastEvents;
+            indexer.GetEventsSinceLastSync(out lastEvents);
+            indexer.RemoveEventsByIds(lastEvents.Select(currentEvent => currentEvent.Value.EventId));
+            FilePathDictionary<SyncedObject> lastSyncs;
+            indexer.GetLastSyncStates(out lastSyncs);
+            List<int> deleteEvents = new List<int>();
+            foreach (KeyValuePair<FilePath, SyncedObject> lastSync in lastSyncs)
+            {
+                int newEventId;
+                indexer.AddEvent(new FileChange()
+                {
+                    NewPath = lastSync.Key,
+                    Type = FileChangeType.Deleted,
+                    Metadata = lastSync.Value.Metadata
+                }, out newEventId);
+                deleteEvents.Add(newEventId);
+            }
+            int newSync;
+            indexer.RecordCompletedSync(DateTime.UtcNow.ToLongTimeString(), deleteEvents, out newSync, OpenFolder.SelectedPath);
         }
     }
 }

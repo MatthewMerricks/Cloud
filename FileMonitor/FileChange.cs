@@ -68,5 +68,19 @@ namespace FileMonitor
         /// but not be delay-processable
         /// </summary>
         public FileChange() : base() { }
+
+        /// <summary>
+        /// Overriding ToString so that QuickWatch will show KeyValue pairs of FilePaths, FileChanges as { [Path], [File or folder] [ChangeType] }
+        /// </summary>
+        /// <returns>Returns the string of the type of change</returns>
+        public override string ToString()
+        {
+            return (Metadata == null
+                    ? string.Empty
+                    : (Metadata.HashableProperties.IsFolder
+                        ? "Folder "
+                        : "File ")) +
+                Type.ToString();
+        }
     }
 }

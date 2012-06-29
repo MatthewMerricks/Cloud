@@ -270,7 +270,7 @@
           <Property Name="MD5" Type="Binary" MaxLength="15" FixedLength="true" />
           <NavigationProperty Name="Events" Relationship="SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="Events" />
           <NavigationProperty Name="SyncStates" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
-          <NavigationProperty Name="SyncStates1" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
+          <NavigationProperty Name="ServerLinkedSyncStates" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
         </EntityType>
         <EntityType Name="Sync">
           <Key>
@@ -291,7 +291,7 @@
           <Property Name="FileSystemObjectId" Type="Int32" Nullable="false" />
           <Property Name="ServerLinkedFileSystemObjectId" Type="Int32" />
           <NavigationProperty Name="FileSystemObject" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
-          <NavigationProperty Name="FileSystemObject1" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
+          <NavigationProperty Name="ServerLinkedFileSystemObject" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
           <NavigationProperty Name="Sync" Relationship="SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter" FromRole="SyncStates" ToRole="Syncs" />
         </EntityType>
         <Association Name="FK_EnumCategoryId_EnumCategoryId">
