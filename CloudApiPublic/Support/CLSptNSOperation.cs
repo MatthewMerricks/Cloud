@@ -23,6 +23,21 @@ namespace CloudApiPublic.Support
             set { _executing = value; }
         }
 
+        private bool _isCancelled;
+
+        public bool IsCancelled
+        {
+            get { return _isCancelled; }
+            set { _isCancelled = value; }
+        }
+
+        private Action _completionBlock;
+        public Action CompletionBlock
+        {
+            get { return _completionBlock; }
+            set { _completionBlock = value; }
+        }
+        
         public CLSptNSOperation()
         {
         }

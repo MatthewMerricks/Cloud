@@ -8,6 +8,8 @@ using System.Net.Http;
 using System.Web;
 using System.IO;
 using CloudApiPublic.Model;
+using CloudApiPublic.Support;
+using System.Net.Http.Headers;
 
 
 namespace CloudApiPublic.Support
@@ -19,18 +21,21 @@ namespace CloudApiPublic.Support
 
         delegate /*Task*/ void CLHTTPConnectionOperationProgressBlock(ulong bytes, ulong totalBytes, ulong totalBytesExpected);
 
-        private string _path;
-        public string Path
+        private Action<CLHTTPConnectionOperation, CLError> _completionBlock;
+        public Action<CLHTTPConnectionOperation, CLError> CompletionBlock
         {
-            get
-            {
-                return _path;
-            }
-            set
-            {
-                _path = value;
-            }
+            get { return _completionBlock; }
+            set { _completionBlock = value; }
         }
+        
+
+        private HttpClient _client;
+        public HttpClient Client
+        {
+            get { return _client; }
+            set { _client = value; }
+        }
+        
 
         private string _syncID;
         public string SyncID
@@ -106,19 +111,6 @@ namespace CloudApiPublic.Support
             }
         }
 
-        private HttpClient _httpConnection;
-        public HttpClient HttpConnection
-        {
-            get
-            {
-                return _httpConnection;
-            }
-            set
-            {
-                _httpConnection = value;
-            }
-        }
-
         private HttpRequestMessage _operationRequest;
         public HttpRequestMessage OperationRequest
         {
@@ -169,19 +161,6 @@ namespace CloudApiPublic.Support
             }
         }
 
-        private bool _executing;
-        public bool Executing
-        {
-            get
-            {
-                return _executing;
-            }
-            set
-            {
-                _executing = value;
-            }
-        }
-
         private bool _finished;
         public bool Finished
         {
@@ -208,48 +187,53 @@ namespace CloudApiPublic.Support
             }
         }
 
-        public CLHTTPConnectionOperation(HttpRequestMessage request, CLMetadata metadata)
+        private bool _isDownloadOperation;
+        public bool IsDownloadOperation
         {
-            _operationRequest = request;
-            _executing = false;
-            _finished = false;
+            get { return _isDownloadOperation; }
+            set { _isDownloadOperation = value; }
+        }      
+
+        // - (id)initWithURLRequest:(NSMutableURLRequest *)request andMetadata:(CLMetadata *)metadata
+        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, CLMetadata metadata) : this(client, request)
+        {
+            //if(self = [super init]) {
+            //    _operationRequest = request;
+            //    _executing = NO;
+            //    _finished = NO;
+            //    _metadata = metadata;
+            //}
+            //return self;
             _metadata = metadata;
         }
 
-        public CLHTTPConnectionOperation(HttpRequestMessage request, string fsPath)
+        // - (id)initForStreamingUploadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
+        // - (id)initForStreamingDownloadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
+        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, string fsPath, bool isUpload = true)
+            : this(client, request)
         {
-            //if (this = this.initWithRequest(request)) {
+            //if(self = [self initWithRequest:request]) {
             //    _responseFilePath = fsPath;
-            //    _isDownloadOperation = false;
+            //    _downloadOperation = NO;
             //}
-
-            //return this;
+            //return self;
+            _responseFilePath = fsPath;
+            _isDownloadOperation = !isUpload;
         }
 
-        public CLHTTPConnectionOperation(HttpResponseMessage request, string fsPath)
+        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request)
         {
-            //if (this = this.initWithRequest(request)) {
-            //    _responseFilePath = fsPath;
-            //    _isDownloadOperation = true;
-            //}
-
-            //return this;
+            //    _operationRequest = request;
+            //    _executing = false;
+            //    _finished = false;
+            _operationRequest = request;
+            _finished = false;
         }
 
-        CLHTTPConnectionOperation(HttpRequestMessage request)
+        CLHTTPConnectionOperation()
         {
-            //if (this = this.initWithRequest(request)) {
-            //}
-
-            //return this;
+            throw new NotImplementedException("Default constructor not supported.");
         }
-
-        //public CLHTTPConnectionOperation(HttpRequestMessage request)
-        //{
-        //    _operationRequest = request;
-        //    _executing = false;
-        //    _finished = false;
-        //}
 
         public override void Main()
         {
@@ -274,7 +258,82 @@ namespace CloudApiPublic.Support
             //    }
 
             //}
+            //&&&&&&
 
+            if (!this.IsCancelled)
+            {
+                // if (this.ResponseFilePath && this.IsDownloadOperation) {
+                HttpContent fileContent;
+                if (this.ResponseFilePath != null && this.IsDownloadOperation)
+                {
+                    // this.CreateStreamToTempFilePath();
+                    //this.TempFilePath = (NSTemporaryDirectory()).StringByAppendingPathComponent((this.ResponseFilePath).LastPathComponent());
+                    //NSOutputStream downloadStream = new NSOutputStream(this.TempFilePath, false);
+                    //this.OutputStream = downloadStream;                }
+                    FileStream streamOutput = File.Open(Path.GetTempPath() + "\\" + this.ResponseFilePath.Substring(this.ResponseFilePath.LastIndexOf('\\')), 
+                                                        FileMode.Create, FileAccess.Write);
+                    fileContent = new StreamContent(streamOutput);
+                }
+                else
+                {
+                    // this.InputStream = NSInputStream.InputStreamWithFileAtPath(this.ResponseFilePath);
+                    FileStream streamInput = File.Open(this.ResponseFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    fileContent = new StreamContent(streamInput);
+                }
+
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                _operationRequest.Content = fileContent;
+
+                // this.UrlConnection = NSURLConnection.ConnectionWithRequestMydelegate(this.OperationRequest, this);
+                // (this.UrlConnection).ScheduleInRunLoopForMode(currentRunLoop, NSRunLoopCommonModes);
+                // (this.UrlConnection).Start();
+                // (NSNotificationCenter.DefaultCenter()).PostNotificationNameMyobject(CLHTTPConnectionOperaionDidStartNotification, this);
+                // while (this.IsExecuting) {
+                //    currentRunLoop.RunUntilDate(NSDate.DateWithTimeIntervalSinceNow(1));
+                // }
+                Task<HttpResponseMessage> task = _client.SendAsync(_operationRequest);
+                task.Wait();            // wait here for the file to transfer, or for an error
+                HandleTaskCompletion(task, "ErrorPuttingUploadOrDownloadToServer");
+            }
+
+        }
+
+        private void HandleTaskCompletion(Task<HttpResponseMessage> task, string resourceErrorMessageKey)
+        {
+            HttpResponseMessage response = null;
+            CLError error = new Exception(CLSptResourceManager.Instance.ResMgr.GetString(resourceErrorMessageKey));  // init error which may not be used
+            bool isError = false;       // T: an error was posted
+            bool isSuccess = true;
+
+            Exception ex = task.Exception;
+            if (ex == null)
+            {
+                response = task.Result;
+            }
+
+            if (ex != null)
+            {
+                // Exception
+                isError = true;
+                error.AddException(ex);
+                isSuccess = false;
+            }
+            else if (response == null)
+            {
+                isError = true;
+                error.AddException(new Exception("Response from server was null"));
+                isSuccess = false;
+            }
+
+            if (!isError)
+            {
+                error = null;
+            }
+
+            if (CompletionBlock != null)
+            {
+                CompletionBlock(this, error);
+            }
         }
 
         public override void Cancel()
@@ -334,11 +393,6 @@ namespace CloudApiPublic.Support
             return true;
         }
 
-        bool IsExecuting()
-        {
-            return this.Executing;
-        }
-
         bool IsFinished()
         {
             return this.Finished;
@@ -365,59 +419,47 @@ namespace CloudApiPublic.Support
             //this.DownloadProgress = block;
         }
 
-        public void SetCompletionBlockWithSuccessFailure(bool success, bool failure)
+        public void SetOperationCompletionBlock(Action<CLHTTPConnectionOperation, CLError> completionBlock)
         {
-            //CLHTTPConnectionOperation blockSafeSelf = this;
-            //this.CompletionBlock = 9999;
-            //if (0) {
-            //    if (blockSafeSelf.IsCancelled()) {
-            //        return;
-            //    }
-
-            //    if (blockSafeSelf.Error) {
-            //        if (failure) {
-            //            dispatch_async(dispatch_get_main_queue(), ^ (void) {
-            //                failure(blockSafeSelf, blockSafeSelf.Error);
-            //            }
-            //            );
+            //__weak CLHTTPConnectionOperation *weakSelf = self;
+    
+            //self.completionBlock = ^ {
+        
+            //    __strong CLHTTPConnectionOperation *strongSelf = weakSelf;
+            //    if (strongSelf) {
+            //        if ([strongSelf isCancelled]) {
+            //            return;
             //        }
-
-            //    }
-            //    else {
-            //        if (success) {
-            //            dispatch_async (dispatch_get_main_queue ());
-            //            if (0) {
-            //                success(blockSafeSelf, blockSafeSelf.ResponseData);
-            //            };
-
+            
+            //        if (completionBlock) {
+            //            dispatch_async(dispatch_get_main_queue(), ^ {
+            //                if (strongSelf.isDownloadOperation) {
+            //                    [strongSelf moveTempFileToResourceFilePath];
+            //                }
+            //                completionBlock(strongSelf, strongSelf.responseData, strongSelf.error);
+            //            });
             //        }
-
             //    }
-
             //};
+            this.CompletionBlock = (CLHTTPConnectionOperation operation, CLError error) =>
+            {
+                if (this.IsCancelled)
+                {
+                    return;
+                }
 
-        }
-
-        public void SetOperationCompletionBlock(bool completionBlock)
-        {
-            //CLHTTPConnectionOperation blockSafeSelf = this;
-            //this.CompletionBlock = 9999;
-            //if (0) {
-            //    if (blockSafeSelf.IsCancelled()) {
-            //        return;
-            //    }
-
-            //    if (completionBlock) {
-            //        dispatch_async (dispatch_get_main_queue ());
-            //        if (0) {
-            //            blockSafeSelf.MoveTempFileToResourceFilePath();
-            //            completionBlock(blockSafeSelf, blockSafeSelf.ResponseData, blockSafeSelf.Error);
-            //        }
-
-            //    }
-
-            //};
-
+                if (this.CompletionBlock != null)
+                {
+                    Dispatch.Async<object>(CLSptResourceManager.Instance.MainGcdQueue, (obj) =>
+                    {
+                        if (this.IsDownloadOperation)
+                        {
+                            MoveTempFileToResourceFilePath();
+                        }
+                        completionBlock(this, this.Error);
+                    }, null);
+                }
+            };
         }
 
         void ConnectionDidReceiveResponse(HttpClient connection, HttpResponseMessage response)

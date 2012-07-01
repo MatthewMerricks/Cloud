@@ -77,18 +77,16 @@ namespace CloudApiPublic.Support
     /// </summary>
     public class DispatchQueueGeneric
     {
-        private ConcurrentQueue<DispatchActionGeneric> _queue;
+        private LinkedList<DispatchActionGeneric> _queue;
         private Task _task;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         /// <summary>
-        /// The public constructor.  This allocates the queue and starts a thread that serves as the dispatcher of the actions on the queue.
+        /// The public constructor.
         /// </summary>
         public DispatchQueueGeneric() 
         {
-            _queue = new ConcurrentQueue<DispatchActionGeneric>();
-            _task = new Task(() => RunLoop(), _cancellationTokenSource.Token, TaskCreationOptions.LongRunning);
-            _task.Start();
+            _queue = new LinkedList<DispatchActionGeneric>();
         }
 
         /// <summary>
@@ -96,31 +94,40 @@ namespace CloudApiPublic.Support
         /// </summary>
         private void RunLoop() 
         {    
-            bool isTaskFound;
-
-            DispatchActionGeneric action;
-            while (!_task.IsCanceled) 
-            {      
-                // Run an action if there is one
-                isTaskFound = false;
-                if (_queue.TryDequeue(out action))
+            LinkedListNode<DispatchActionGeneric> node;
+            while (true) 
+            {
+                lock (_queue)
                 {
-                    isTaskFound = true;
-
-                    // Run the action
-                    action.Run();
+                    node = null;
+                    if (_task.IsCanceled)
+                    {
+                        _queue.Clear();
+                        _task = null;
+                    }
+                    else
+                    {
+                        // Run an action if there is one
+                        node = _queue.First;
+                        if (node != null)
+                        {
+                            _queue.RemoveFirst();
+                        }
+                        else
+                        {
+                            _task = null;
+                        }
+                    }
                 }
 
-                // Exit the thread if cancelled
-                if (_task.IsCanceled)
+                if (node != null)
                 {
-                    _task = null;
+                    // Run the action on this _task
+                    node.Value.Run();
+                }
+                else
+                {
                     return;
-                }
-
-                if (!isTaskFound)
-                {
-                    Task.Delay(100);
                 }
             }
         }
@@ -131,9 +138,12 @@ namespace CloudApiPublic.Support
         /// </summary>
         public void Cancel()
         {
-            if (_task != null)
+            lock (_queue)
             {
-                _cancellationTokenSource.Cancel();
+                if (_task != null)
+                {
+                    _cancellationTokenSource.Cancel();
+                }
             }
         }
 
@@ -143,7 +153,15 @@ namespace CloudApiPublic.Support
         public void AddAction<T>(Action<T> action, T userstate, DispatchActionType type, TaskCompletionSource<bool> completionSource = null)
         {
             DispatchActionGeneric<T> dispatchAction = new DispatchActionGeneric<T>(action, userstate, type, completionSource);
-            _queue.Enqueue(dispatchAction);
+            lock (_queue)
+            {
+                _queue.AddLast(dispatchAction);
+                if (_task == null)
+                {
+                    _task = new Task(() => RunLoop(), _cancellationTokenSource.Token, TaskCreationOptions.LongRunning);
+                    _task.Start();
+                }
+            }
         }
     }
 

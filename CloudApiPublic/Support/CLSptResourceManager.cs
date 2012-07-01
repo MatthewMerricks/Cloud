@@ -26,6 +26,15 @@ namespace CloudApiPublic.Support
             }
         }
 
+        private static DispatchQueueGeneric _mainGcdQueue = null;
+        public DispatchQueueGeneric MainGcdQueue
+        {
+            get
+            {
+                return _mainGcdQueue;
+            }
+        }
+
         /// <summary>
         /// Expose a single instance of this class.
         /// </summary>
@@ -39,6 +48,9 @@ namespace CloudApiPublic.Support
                     instance = new CLSptResourceManager();
                     Assembly assembly = Assembly.GetExecutingAssembly();
                     _resMgr = new ResourceManager(CLSptConstants.kResourcesName, assembly);
+
+                    // Allocate the GCD queues
+                    _mainGcdQueue = Dispatch.Queue_Create();
                 }
                 return instance;
             }

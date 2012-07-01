@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Net;
 using win_client.Common;
 using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
@@ -1348,7 +1349,7 @@ namespace win_client.Services.Sync
 
             // Add Files
             // [self processAddFileSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
-            ProcessAddFileSyncEvents(sortedEvents[CLDefinitions.CLEventTypeAdd]);
+            ProcessAddFileSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeAdd]);
 
             //// Modify Files
             //[self processModifyFileSyncEvents:[sortedEvents objectForKey:CLEventTypeModify]];
@@ -2117,99 +2118,149 @@ namespace win_client.Services.Sync
             //NSLog(@"Finished Upload Operarions");
 
             //&&&&&&&&&&&&&
-            _trace.writeToLog(9," CLSyncService: DispatchUploadEvents: EntryPointNotFoundException.");
+            _trace.writeToLog(9," CLSyncService: DispatchUploadEvents: Entry.");
             //NSMutableArray *operations = [NSMutableArray array];
+            List<CLSptNSOperation> operations = new List<CLSptNSOperation>();
 
             //if (self.uploadOperationQueue == nil) {
             //    self.uploadOperationQueue = [[CLOperationQueue alloc] init];
             //    self.uploadOperationQueue.maxConcurrentOperationCount = 6;
             //}
+            if (_uploadOperationQueue == null)
+            {
+                _uploadOperationQueue = new CLSptNSOperationQueue(maxConcurrentTasks: 6);
+            }
 
             //NSLog(@"Number of uploads to start: %lu", [events count]);
+            _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Number of uploads to start: {0}.", events.Count);
 
             //__block NSInteger totalExpectedUploadBytes = 0;
             //__block NSInteger totalUploadedBytes = 0;
             //__block NSTimeInterval start;
+            long totalExpectedUploadBytes = 0;
+            long totalUploadedBytes = 0;
+            DateTime start;
+            
 
             //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-
             //    CLEvent *event = obj;
-            //    NSString *path = event.metadata.path;
-            //    NSString *storageKey = event.metadata.storage_key;
-            //    NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
+            events.ForEach(obj =>
+            {
+                CLEvent evt = obj;
 
-            //    totalExpectedUploadBytes = totalExpectedUploadBytes +[event.metadata.size integerValue];
+                // NSString *path = event.metadata.path;
+                string path = evt.Metadata.Path;
 
-            //    NSLog(@"File to be uploaded: %@, Storage Key: %@", path, storageKey);
+                // NSString *storageKey = event.metadata.storage_key;
+                string storageKey = evt.Metadata.Storage_key;
 
-            //    __block CLHTTPConnectionOperation *uploadOperation = [self.restClient streamingUploadOperationForStorageKey:storageKey withFileSystemPath:fileSystemPath fileSize:event.metadata.size andMD5Hash:event.metadata.hash];
+                // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
+                string fileSystemPath = Settings.Instance.CloudFolderPath + path;
 
-            //    [uploadOperation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
+                // totalExpectedUploadBytes = totalExpectedUploadBytes +[event.metadata.size integerValue];
+                totalExpectedUploadBytes += Convert.ToInt64(evt.Metadata.Size);
 
-            //        totalUploadedBytes = totalUploadedBytes + bytesWritten;
+                // NSLog(@"File to be uploaded: %@, Storage Key: %@", path, storageKey);
+                _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: File to be uploadedNumber of uploads to start: {0}.", events.Count);
 
+                // __block CLHTTPConnectionOperation *uploadOperation = [self.restClient streamingUploadOperationForStorageKey:storageKey withFileSystemPath:fileSystemPath fileSize:event.metadata.size andMD5Hash:event.metadata.hash];
+                CLHTTPConnectionOperation uploadOperation = _restClient.StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(storageKey, fileSystemPath, evt.Metadata.Size, evt.Metadata.Hash);
 
-            //        NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-            //        double elapsedSeconds = now - start;
-            //        double secondsLeft = (((double)totalExpectedUploadBytes - (double)totalUploadedBytes) / ((double)totalUploadedBytes / elapsedSeconds));
-            //        double progress = (double)totalUploadedBytes / (double)totalExpectedUploadBytes;
+                //TODO: Implement this progress UI.
+                // [uploadOperation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
+                // totalUploadedBytes = totalUploadedBytes + bytesWritten;
+                // NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+                // double elapsedSeconds = now - start;
+                // double secondsLeft = (((double)totalExpectedUploadBytes - (double)totalUploadedBytes) / ((double)totalUploadedBytes / elapsedSeconds));
+                // double progress = (double)totalUploadedBytes / (double)totalExpectedUploadBytes;
 
-            //        //NSLog(@"Sent %ld of %ld bytes - Progress: %f", totalUploadedBytes, totalExpectedUploadBytes, progress);
+                // //NSLog(@"Sent %ld of %ld bytes - Progress: %f", totalUploadedBytes, totalExpectedUploadBytes, progress);
 
-            //        [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
-            //                                                                    timeLeft:secondsLeft
-            //                                                                      bytes:(double)totalUploadedBytes
-            //                                                               ofTotalBytes:(double)totalExpectedUploadBytes
-            //                                                                  fileCount:[self.uploadOperationQueue operationCount]
-            //                                                            andActivityType:activityViewLabelUpload];
-            //    }];
+                // [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
+                //                                                       timeLeft:secondsLeft
+                //                                                                      bytes:(double)totalUploadedBytes
+                //                                                               ofTotalBytes:(double)totalExpectedUploadBytes
+                //                                                                  fileCount:[self.uploadOperationQueue operationCount]
+                //                                                            andActivityType:activityViewLabelUpload];
+                // }];
 
-            //    [uploadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
+                // [uploadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
+                uploadOperation.SetOperationCompletionBlock((CLHTTPConnectionOperation operation, CLError error) =>
+                {
 
-            //        NSLog(@"Upload Status: %li", [operation.response statusCode]);
+                    // NSLog(@"Upload Status: %li", [operation.response statusCode]);
+                    _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Upload Status: {0}.", operation.Response.StatusCode);
 
-            //        if ([operation.response statusCode] == 201) {
+                    // if ([operation.response statusCode] == 201) {
+                    if (operation.Response.StatusCode == HttpStatusCode.Created)  // 201
+                    {
+                        // NSLog(@"Upload Completed for File: %@", path);
+                        // NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
+                        _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Upload completed for file: {0}.", path);
+                        _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Operations remaing: {0}.", _uploadOperationQueue.OperationCount );
 
-            //            NSLog(@"Upload Completed for File: %@", path);
-            //            NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
-            //            // update index and ui.
-            //            [self performUpdateForSyncEvent:event success:YES];
+                        // update index and ui.
+                        // [self performUpdateForSyncEvent:event success:YES];
+                        PerformUpdateForSyncEventSuccess(evt, success: true);
+                    }
+                    // } else if ([operation.response statusCode] == 304){
+                    else if (operation.Response.StatusCode == HttpStatusCode.NotModified)  // 304
+                    {
+                        // NSLog(@"The file already exists on the server");
+                        _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: The file already exists on the server: {0}.", path);
 
-            //        } else if ([operation.response statusCode] == 304){
+                        // update index and ui.
+                        // [self performUpdateForSyncEvent:event success:YES];
+                        PerformUpdateForSyncEventSuccess(evt, success: true);
+                    }
+                    // }else {
+                    else
+                    {
+                        // NSLog(@"Upload Failed with status:%li for File: %@",[operation.response statusCode], path);
+                        _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Upload Failed with status: {0} for File: {1}.", operation.Response.StatusCode, path);
+                    }
 
-            //            NSLog(@"The file already exists on the server");
-            //            // update index and ui.
-            //            [self performUpdateForSyncEvent:event success:YES];
+                    // Handle a potential error
+                    if (error != null) {
 
-            //        }else {
-            //            NSLog(@"Upload Failed with status:%li for File: %@",[operation.response statusCode], path);
-            //        }
+                        // Error handler (back processor). Likely to happen due to network interruptions.
+                        // TODO: Handle the upload failure -- for now update the index to not pending.. we need to handle the error!!
+                        // NSLog(@"Failed to Upload File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
+                        // NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
+                        _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Failed to Upload File: {0}. Error: {1}, Code: {2}.", path, error.errorDescription, error.errorCode);
+                        _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Opperations remaining: {0}.", _uploadOperationQueue.OperationCount);
 
-            //        if (error) {
+                        // Update index and ui.
+                        // [self performUpdateForSyncEvent:event success:NO];
+                        PerformUpdateForSyncEventSuccess(evt, success: false);
+                    }
 
-            //            // Error handler (back processor). Likely to happen due to network interruptions.
-            //            // TODO: Handle the upload failure -- for now update the index to not pending.. we need to handle the error!!
-            //            NSLog(@"Failed to Upload File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
-            //            NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
+                    // Update the UI
+                    // if ([self.uploadOperationQueue operationCount] <= 0) {
+                    if (_uploadOperationQueue.OperationCount <= 0)
+                    {
+                        //TODO: Implement this UI status.
+                        // [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
+                    }
 
-            //            // update index and ui.
-            //            [self performUpdateForSyncEvent:event success:NO];
-            //        }
+                });
 
-            //        if ([self.uploadOperationQueue operationCount] <= 0) {
-
-            //            [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
-            //        }
-
-            //    }];
-
-            //    [operations addObject:uploadOperation];
-            //}];
+                // [operations addObject:uploadOperation];
+                operations.Add(uploadOperation);
+            });
 
             //NSLog(@"Starting Upload Operarions");
+            _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Starting upload operations.");
+
             //start = [NSDate timeIntervalSinceReferenceDate];
+            start = DateTime.Now;
+
             //[self.uploadOperationQueue addOperations:operations waitUntilFinished:YES];
+            _uploadOperationQueue.AddOperations(operations);
+            _uploadOperationQueue.WaitUntilFinished();
+
             //NSLog(@"Finished Upload Operarions");
+            _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Finished upload operations.");
         }
 
         void DispatchDownloadEvents(List<CLEvent> events)

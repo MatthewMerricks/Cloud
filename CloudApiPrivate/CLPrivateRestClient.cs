@@ -10,6 +10,7 @@ using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using Newtonsoft.Json;
+using System.Net.Http.Headers;
 
 namespace CloudApiPrivate
 {
@@ -37,6 +38,8 @@ namespace CloudApiPrivate
             _uri = new Uri(CLDefinitions.CLMetaDataServerURL);
             _client.BaseAddress = _uri;
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", Settings.Instance.Akey);
+            _client.DefaultRequestHeaders.TransferEncodingChunked = false;
+
         }
 
         /// <summary>
@@ -211,6 +214,8 @@ namespace CloudApiPrivate
             // Add the client type and version.  For the W{indows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             syncRequest.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
+            _client.DefaultRequestHeaders.TransferEncodingChunked = false;
+
             // Send the request asynchronously
             _client.Timeout = TimeSpan.FromMinutes(3.0);
             await _client.SendAsync(syncRequest).ContinueWith(task =>
@@ -267,6 +272,8 @@ namespace CloudApiPrivate
 
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             syncRequest.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
+
+            _client.DefaultRequestHeaders.TransferEncodingChunked = false;
 
             // Send the request asynchronously
             _client.Timeout = TimeSpan.FromMinutes(2.0);
@@ -350,7 +357,7 @@ namespace CloudApiPrivate
         public CLHTTPConnectionOperation UploadOperationForFile_WithStorageKey(string path, string storageKey)
         {
             HttpRequestMessage request = null;
-            return new CLHTTPConnectionOperation(request, "");
+            return new CLHTTPConnectionOperation(_client, request, "");
         }
 
         /// <summary>
@@ -360,7 +367,7 @@ namespace CloudApiPrivate
         /// <param name="path">The path to the file.</param>
         /// <param name="fileSize">The size of the file.</param>
         /// <param name="hash">The MD5 hash of the file.</param>
-        public CLHTTPConnectionOperation StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string fileSize, string hash)
+        public CLHTTPConnectionOperation StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string size, string hash)
         {
             //CLURLRequestConstructor *uploadURLConstructor = [[CLURLRequestConstructor alloc] initWithBaseURL:[NSURL URLWithString:CLUploadDownloadServerURL]];
             //[uploadURLConstructor setAuthorizationHeaderWithToken:[[CLSettings sharedSettings] aKey]];
@@ -378,23 +385,15 @@ namespace CloudApiPrivate
             string methodPath = "/put_file";
 
             // Build the request
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, new Uri(methodPath, UriKind.Relative));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, new Uri(new Uri(CLDefinitions.CLUploadDownloadServerURL), methodPath));
             request.Headers.Add("X-Ctx-Storage-Key", storageKey);
-            request.Content =  new StreamContent(  new StringContent(json, Encoding.UTF8, "application/json");
+            request.Headers.Add("Content-MD5", hash);
+            request.Headers.Add("Content-Length", size);
 
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
-            // Send the request asynchronously
-            _client.Timeout = TimeSpan.FromMinutes(2.0);
-            await _client.SendAsync(request).ContinueWith(task =>
-            {
-                HandleResponseFromServerCallback(completionHandler, queue, task, "ErrorPostingSyncFromServer");
-            });
-            //&&&&
-            HttpRequestMessage request = null;
-            return new CLHTTPConnectionOperation(request, "");
-        
+            return new CLHTTPConnectionOperation(_client, request, path);
         }
 
         /// <summary>
@@ -402,12 +401,12 @@ namespace CloudApiPrivate
         /// </summary>
         /// <param name="storageKey">The file's storage key.</param>
         /// <param name="path">The path to the file.</param>
-        /// <param name="fileSize">The size of the file.</param>
+        /// <param name="size">The size of the file.</param>
         /// <param name="hash">The MD5 hash of the file.</param>
-        public CLHTTPConnectionOperation StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string fileSize, string hash)
+        public CLHTTPConnectionOperation StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string size, string hash)
         {
             HttpRequestMessage request = null;
-            return new CLHTTPConnectionOperation(request, "");
+            return new CLHTTPConnectionOperation(_client, request, "");
         }
     }
 }
