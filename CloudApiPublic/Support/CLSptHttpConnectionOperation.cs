@@ -194,22 +194,23 @@ namespace CloudApiPublic.Support
             set { _isDownloadOperation = value; }
         }      
 
+        //TODO: Not used?
         // - (id)initWithURLRequest:(NSMutableURLRequest *)request andMetadata:(CLMetadata *)metadata
-        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, CLMetadata metadata) : this(client, request)
-        {
-            //if(self = [super init]) {
-            //    _operationRequest = request;
-            //    _executing = NO;
-            //    _finished = NO;
-            //    _metadata = metadata;
-            //}
-            //return self;
-            _metadata = metadata;
-        }
+        //public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, CLMetadata metadata) : this(client, request)
+        //{
+        //    //if(self = [super init]) {
+        //    //    _operationRequest = request;
+        //    //    _executing = NO;
+        //    //    _finished = NO;
+        //    //    _metadata = metadata;
+        //    //}
+        //    //return self;
+        //    _metadata = metadata;
+        //}
 
         // - (id)initForStreamingUploadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
         // - (id)initForStreamingDownloadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
-        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, string fsPath, bool isUpload = true)
+        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, string fsPath, bool isUpload)
             : this(client, request)
         {
             //if(self = [self initWithRequest:request]) {
@@ -303,7 +304,6 @@ namespace CloudApiPublic.Support
             HttpResponseMessage response = null;
             CLError error = new Exception(CLSptResourceManager.Instance.ResMgr.GetString(resourceErrorMessageKey));  // init error which may not be used
             bool isError = false;       // T: an error was posted
-            bool isSuccess = true;
 
             Exception ex = task.Exception;
             if (ex == null)

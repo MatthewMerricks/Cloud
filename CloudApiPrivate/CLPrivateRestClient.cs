@@ -12,6 +12,7 @@ using CloudApiPrivate.Model.Settings;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 
+
 namespace CloudApiPrivate
 {
     // Private Rest Client for Cloud.com syncing:
@@ -24,6 +25,7 @@ namespace CloudApiPrivate
     {
         private HttpClient _client = null;
         private Uri _uri = null;
+        private const int _CLRestClientDefaultHTTPTimeOutInterval = 180;
 
         public CLPrivateRestClient()
         {
@@ -39,6 +41,7 @@ namespace CloudApiPrivate
             _client.BaseAddress = _uri;
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", Settings.Instance.Akey);
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
+            _client.Timeout = TimeSpan.FromSeconds(_CLRestClientDefaultHTTPTimeOutInterval);
 
         }
 
@@ -217,7 +220,6 @@ namespace CloudApiPrivate
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
 
             // Send the request asynchronously
-            _client.Timeout = TimeSpan.FromMinutes(3.0);
             await _client.SendAsync(syncRequest).ContinueWith(task =>
             {
                 HandleResponseFromServerCallback(completionHandler, queue, task, "ErrorPostingSyncToServer");
@@ -276,7 +278,6 @@ namespace CloudApiPrivate
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
 
             // Send the request asynchronously
-            _client.Timeout = TimeSpan.FromMinutes(2.0);
             await _client.SendAsync(syncRequest).ContinueWith(task =>
             {
                 HandleResponseFromServerCallback(completionHandler, queue, task, "ErrorPostingSyncFromServer");
@@ -357,7 +358,7 @@ namespace CloudApiPrivate
         public CLHTTPConnectionOperation UploadOperationForFile_WithStorageKey(string path, string storageKey)
         {
             HttpRequestMessage request = null;
-            return new CLHTTPConnectionOperation(_client, request, "");
+            return new CLHTTPConnectionOperation(_client, request, "", isUpload: true);
         }
 
         /// <summary>
@@ -379,6 +380,7 @@ namespace CloudApiPrivate
             //NSMutableURLRequest *request = [uploadURLConstructor requestWithMethod:@"PUT" path:@"/put_file" parameters:nil];
             //request = [self addCurrentClientVersionValueToHeaderFieldInRequest:request];
             //CLHTTPConnectionOperation *operation = [[CLHTTPConnectionOperation alloc] initForStreamingUploadWithRequest:request andFileSystemPath:fileSystemPath];
+            //[request setTimeoutInterval:CLRestClientDefaultHTTPTimeOutInterval];
             //return operation;
 
             //&&&&
@@ -393,7 +395,7 @@ namespace CloudApiPrivate
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
-            return new CLHTTPConnectionOperation(_client, request, path);
+            return new CLHTTPConnectionOperation(_client, request, path, isUpload: true);
         }
 
         /// <summary>
@@ -405,8 +407,32 @@ namespace CloudApiPrivate
         /// <param name="hash">The MD5 hash of the file.</param>
         public CLHTTPConnectionOperation StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string size, string hash)
         {
-            HttpRequestMessage request = null;
-            return new CLHTTPConnectionOperation(_client, request, "");
+            //CLURLRequestConstructor *downloadURLConstructor = [[CLURLRequestConstructor alloc] initWithBaseURL:[NSURL URLWithString:CLUploadDownloadServerURL]];
+            //[downloadURLConstructor setAuthorizationHeaderWithToken:[[CLSettings sharedSettings] aKey]];
+            //downloadURLConstructor.parameterEncoding = AFJSONParameterEncoding;
+    
+            //NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:storageKey, @"storage_key", nil];
+            //NSMutableURLRequest *request = [downloadURLConstructor requestWithMethod:@"POST" path:@"/get_file" parameters:params];
+            //request = [self addCurrentClientVersionValueToHeaderFieldInRequest:request];
+            //[request setTimeoutInterval:CLRestClientDefaultHTTPTimeOutInterval];
+    
+            //CLHTTPConnectionOperation *downloadOperation = [[CLHTTPConnectionOperation alloc] initForStreamingDownloadWithRequest:request andFileSystemPath:fileSystemPath];
+            //[downloadOperation setResponseFilePath:fileSystemPath];
+       
+            //return downloadOperation;
+            //&&&&
+            string methodPath = "/get_file";
+
+            // Build the request
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(CLDefinitions.CLUploadDownloadServerURL), methodPath));
+            request.Headers.Add("storage-Key", storageKey);
+            request.Headers.Add("Content-MD5", hash);
+            request.Headers.Add("Content-Length", size);
+
+            // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
+            request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
+
+            return new CLHTTPConnectionOperation(_client, request, path, isUpload: false);
         }
     }
 }
