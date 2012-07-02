@@ -79,6 +79,15 @@ namespace CloudApiPublic.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Oops.  We&apos;re sorry, it seems that something when wrong while starting a server file upload or download. .
+        /// </summary>
+        internal static string ErrorPuttingUploadOrDownloadToServer {
+            get {
+                return ResourceManager.GetString("ErrorPuttingUploadOrDownloadToServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while creating your account..
         /// </summary>
         internal static string ExceptionCreatingUserRegistration {

@@ -52,6 +52,17 @@ namespace CloudApiPublic.Model
             };
         }
 
+        public static CLError operator +(CLError err, Exception ex)
+        {
+            if (err == null)
+            {
+                return ex;
+            }
+
+            err.AddException(ex);
+            return err;
+        }
+
         public void AddException(Exception ex, bool replaceErrorDescription = false)
         {
             this.errorInfo.Add(CLError.ErrorInfo_Exception + this.errorInfo.Count(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)).ToString(),

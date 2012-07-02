@@ -53,7 +53,7 @@ namespace CloudApiPublic.Model
         public const string CLEventTypeFolderRange = "folder";
 
         // Cloud Sync Status
-        public const string LEventTypeUpload = "upload";
+        public const string CLEventTypeUpload = "upload";
         public const string CLEventTypeExists = "exists";
         public const string CLEventTypeDuplicate = "duplicate";
         public const string CLEventTypeUploading = "uploading";
