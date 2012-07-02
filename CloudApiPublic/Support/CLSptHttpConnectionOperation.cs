@@ -316,13 +316,11 @@ namespace CloudApiPublic.Support
                 // Exception
                 isError = true;
                 error.AddException(ex);
-                isSuccess = false;
             }
             else if (response == null)
             {
                 isError = true;
                 error.AddException(new Exception("Response from server was null"));
-                isSuccess = false;
             }
 
             if (!isError)

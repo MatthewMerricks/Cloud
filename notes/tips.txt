@@ -2687,7 +2687,116 @@ work.  Renamed variables and modules for consistency.
     - Run Applescript from ObjC: http://stackoverflow.com/questions/4909702/run-applescript-from-cocoa-application
     - Applescript reference: https://developer.apple.com/library/mac/#documentation/applescript/conceptual/applescriptlangguide/conceptual/ASLR_fundamentals.html#//apple_ref/doc/uid/TP40000983-CH218-SW2
     - Source to look through Finder windows, using FSRef: http://code.google.com/p/cdto/source/browse/main.m
-    - 
+  o 6/16/12
+    - FSRef description: http://cocoadev.com/wiki/FSRef
+    - Update Finder icon directly: http://markmail.org/message/wg2f3lo7gxmpkplf
+    - Event mouse clicks: https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/EventOverview/HandlingMouseEvents/HandlingMouseEvents.html#//apple_ref/doc/uid/10000060i-CH6-SW1
+    - Services: http://cocoadev.com/wiki/MakingServices
+    - MenuWillOpen: fires when the menu will appear, and can be used to customize it:https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/MenuList/Articles/DisplayContextMenu.html
+    - LLDB debug Finder:
+      sudo xcode-select -switch /Applications/Xcode44-DP5.app/
+      target create /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder
+      image dump symtab
+      breakpoint enable (all breakpoints enabled)
+      breakpoint disable 1.43
+      breakpoint set -r .*Menu.*
+      process attach --pid 262
+    - Right-click breakpoint hit: DesktopServicesPriv`NodeIsQueryHitsContainer
+  o 6/17/12 Sun:
+    - 9:00 - 16:00 (home)
+    - Using LLDB.  I attached to Finder, and managed to hit a breakpoint!  It looks
+      like none of the Finder symbols are defined, but I am able to stop on a
+      Framework function when I right-click a file in Finder.  I stopped at
+      AppKit`+[NSMenu _contextMenuTarget].
+         * thread #1: tid = 0x1c03, 0x00007fff8ab77323 AppKit`+[NSMenu _contextMenuTarget], stop reason = breakpoint 2.1
+           frame #0: 0x00007fff8ab77323 AppKit`+[NSMenu _contextMenuTarget]
+           frame #1: 0x00007fff8ab76867 AppKit`_NSTargetForSendAction + 85
+           frame #2: 0x00007fff8ab767e5 AppKit`-[NSApplication targetForAction:to:from:] + 635
+           etc.
+    - I'm not making progress with the debugger, trying to stop on right-clicks.  What to do?
+    - It seems that I need to write some code that will execute in Finder's context, to list out the object tree.
+    - Research the visual tree involving menus.
+    - I believe each  NSWindow has a collection of NSViews.  Each of the NSViews has a "menu" property that is set
+      with an NSMenu.  The frameworks handle the user interaction.
+    - Write a sample program that has a context menu, and inspect the UI hierarchy there.
+    - The process from the sample:
+      . Create NSMenu.
+      . Create NSMenuItems and add them to the NSMenu.
+      . Find the Cell of the item which will have the menu (in this case NSSearchField.Cell.
+      . Perform [cell setSearchMenuTemplate:nsMenu]
+    - Find a different sample.
+    - NSView inherits from the abstract class NSResponder.
+    - The NSResponder.setMenu:(NSMenu *)menu method sets the associated menu.
+    - So, if I list the windows, then list the view hierarchy, I should see interesting views.
+    - The menu property retrieves the associated NSMenu from a view, so I should be able to find the
+      Cloud context menu item.
+    - I put up a single Finder window and dumped the view hierarchy.  The console log is at
+       /Users/robertstevens/Source/Projects/DTrace/ContextMenu/FinderViewHierarchy20120617.log
+      . The window has the following hierarchy:
+        o NSView:NSResponder:NSObject
+          - TSidebarSplitView:NSSplitView:NSView:NSResponder:NSObject {{0, 0}, {770, 383}}
+            . NSView:NSResponder:NSObject {{0, 0}, {148, 383}}  (this is the left sidebar)
+            . NSView:NSResponder:NSObject {{149, 0}, {621, 383}}  (this is our view)
+              o TBottomBar:NSView:NSResponder:NSObject {{0, 0}, {621, 23}} (the bottom bar)
+              o NSScrollView:NSView:NSResponder:NSObject {{0, 23}, {621, 361}}  (the scroll view)
+                - NSClipView:NSView:NSResponder:NSObject {{0, 17}, {606, 329}}  (the clip view)
+                  . TListView:NSOutlineView:NSTableView:NSControl:NSView:NSResponder:NSObject {{0, 0}, {714, 589}}  (the container for all of our list items)
+                    o TListRowView:NSTableRowView:NSView:NSResponder:NSObject {{0, 152}, {714, 19}}  (the first row)
+                      - 1. TNameTextField:TTextField:NSTextField:NSControl:NSView:NSResponder:NSObject {{16, 0}, {305, 18}}  (the text name field on this row)
+                      - 2. TDateTextField:TTextField:NSTextField:NSControl:NSView:NSResponder:NSObject {{321, 0}, {181, 18}}  (the date field on this row)
+                      - 3. TTextField:NSTextField:NSControl:NSView:NSResponder:NSObject {{502, 0}, {97, 18}}  (the description field? on this row)
+                      - 4. NSButton:NSControl:NSView:NSResponder:NSObject {{6, 0}, {12, 17}}  (the button the user clicks on this row)
+                      - 5. TTextField:NSTextField:NSControl:NSView:NSResponder:NSObject {{599, 0}, {115, 18}}  (????)
+                      - On the Finder window, it was in list view, with the headers: Name, Date Modified, Size, and Kind.
+                      - The list view shows an expander caret, an icon, then the fields above.
+                      - So, These are the fields 4, 3, 5, 2 and 1 above?
+                    o The next row…..
+      . It looks like the context menu is on the TListRowView.
+      . Try swizzling the TListRowView.setMenu method, and print out the Name of the field (TTextField:NSTextField).  This should be the stringValue method.
+      . That didn't work.  The setMenu happens very early, before our test swizzles Finder.
+      . Instead of hooking setMenu, chase the view hierarchy to find the first TListRowView object.  Then get it's menu property and do the print mentioned above.
+      . I did that:
+        - The console log: /Users/robertstevens/Source/Projects/DTrace/ContextMenu/FinderViewHierarchy20120617B.log
+        - The TListView has a menu.
+        - Now I am getting a hit on the TListRowView_setMenu() hook on every row!  
+        - But I have no information about the menus.  Print that out.
+        - I noticed that the setMenu call is actually setting the TListRowView's menu to nil.  I assume that's because the responder
+          chain will invoke the parent's (TListRowView's) menu for any of the rows clicked.
+      . More logging proves that all of the context menus seen here have zero NSMenuItems?????
+      . I checked the window menu with logging.  That is the main Finder window, not the context menus.
+      . I noticed that the menus on the rows that have no menu items are TContextMenus.  This is the definitions from class-dump:
+          @interface TContextMenu : NSMenu
+          {  
+          }
+          + (BOOL)handleEventAsRightClick:(id)arg1 targetObject:(id)arg2;
+          + (void)handleContextMenuCommon:(unsigned int)arg1 nodes:(const struct TFENodeVector *)arg2 event:(id)arg3 view:(id)arg4 browserController:(id)arg5 addPlugIns:(BOOL)arg6;
+          + (void)buildContextMenu:(id)arg1 forContext:(unsigned int)arg2 browserController:(id)arg3 maxItems:(unsigned long long)arg4 addServices:(BOOL)arg5;
+          + (void)addViewSpecificStuffToMenu:(id)arg1 browserViewController:(id)arg2 context:(unsigned int)arg3;
+          + (void)addSharingServicesToMenu:(id)arg1 forCommand:(SEL)arg2 browserController:(id)arg3 andNodes:(const struct TFENodeVector *)arg4;
+          + (void)populateActionMenu:(id)arg1 browserController:(id)arg2;
+          + (void)contextMenuClickedOnContainer:(const struct TFENode *)arg1 event:(id)arg2 view:(id)arg3 browserController:(id)arg4;
+          + (void)contextMenuClickedOnNodes:(const struct TFENodeVector *)arg1 event:(id)arg2 view:(id)arg3 browserController:(id)arg4;
+          + (BOOL)allowContextualMenuForEvent:(id)arg1;
+          + (void)clearContextMenuState;
+          + (id)contextMenuWithDelegate:(id)arg1;
+          - (void)menuDidCompleteInteraction:(id)arg1;
+          - (void)configureForPathbarWithNode:(const struct TFENode *)arg1 browserController:(id)arg2;
+          - (void)configureForSidebarWithNode:(const struct TFENode *)arg1 browserController:(id)arg2 constrained:(BOOL)arg3 data:(id)arg4;
+          - (void)configureWithNodes:(const struct TFENodeVector *)arg1 browserController:(id)arg2 container:(BOOL)arg3;
+          - (void)dealloc;
+          - (id)initWithDelegate:(id)arg1;
+          - (id)initWithObject:(id)arg1 nodes:(const struct TFENodeVector *)arg2 event:(id)arg3;
+          - (id)initWithTitle:(id)arg1;
+         @end		
+      . There are some interesting methods there.  First of all: (BOOL)handleEventAsRightClick:(id)arg1 targetObject:(id)arg2;  Swizzle that and see if we get a hit.
+      . Having trouble swizzling that method that takes two parameters.
+      . I will probably need to hook the initialization of the TListView.  I could let it initialize, then chase the view hierarchy to add
+        the context menu items.
+      . What if we swizzle when there are already some Finder windows present?  At swizzle time, I will need to chase the windows and views, and add
+        the context menu item to all menus unless it is already there.
+  o 6/18/12 Mon:
+    - 6:30 - 
+    - Syncing the machines from the WWDC work on the Windows and Mac laptops.
 
 
     
@@ -2972,6 +3081,8 @@ MORE GIT (3/7/12)
       - git branch -D <branch>  (locally).
       - git push origin :<branch> (remote).
   - Checking out a remote branch and creating a new branch on this client:
+         git remote show origin  (if the branch shows as new, then issue the next command)
+	 git fetch
          git checkout -b newdesign origin/newdesign  
   
 

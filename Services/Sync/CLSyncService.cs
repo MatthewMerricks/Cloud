@@ -41,7 +41,6 @@ namespace win_client.Services.Sync
         private static List<string> _currentSids = null;
         private static bool _waitingForCloudResponse = false;
         private static bool _needSyncFromCloud = false;
-        private static bool _waitingForFSMResponse = false;
         private static List<CLEvent> _activeSyncQueue = null;
         private static List<CLEvent> _activeSyncFileQueue = null;
         private static List<CLEvent> _activeSyncFolderQueue = null;
@@ -1083,6 +1082,7 @@ namespace win_client.Services.Sync
             //}
             if (_waitingForCloudResponse)
             {
+                _needSyncFromCloud = true;
                 return;
             }
 
@@ -1210,6 +1210,16 @@ namespace win_client.Services.Sync
                         // Update UI with activity.
                         // [self animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
                         //TODO: Implement this.
+                    }
+
+                    // self.waitingForCloudResponse = NO;
+                    _waitingForCloudResponse = false;
+
+                    // if (self.needSyncFromCloud == YES) {
+                    if (_needSyncFromCloud)
+                    {
+                        //TODO: Implement notification.
+                        //  [self notificationService:nil didReceivePushNotificationFromServer:nil];
                     }
                 }
                 else
@@ -1601,7 +1611,7 @@ namespace win_client.Services.Sync
                         if (status == null)
                         {
                             CLError error = null;
-                            success = CLFSDispatcher.Instance.MoveItemAtPath(fromPath, toPath, out error);
+                            success = CLFSDispatcher.Instance.MoveItemAtPath_to_error(fromPath, toPath, out error);
                         }
 
                         // update ui.
@@ -2447,7 +2457,7 @@ namespace win_client.Services.Sync
                             CLError attributesError = null;
 
                             // BOOL attributesSet = [[CLFSDispatcher defaultDispatcher] updateAttributesUsingMetadata:event.metadata forItemAtPath:fileSystemPath error:&attributesError];
-                            bool attributesSet = CLFSDispatcher.Instance.updateAttributesUsingMetadata_forItemAtPath_error(evt.Metadata, fileSystemPath, attributesError);
+                            bool attributesSet = CLFSDispatcher.Instance.UpdateAttributesUsingMetadata_forItemAtPath_error(evt.Metadata, fileSystemPath, out attributesError);
 
                             // if (attributesSet) {
                             if (attributesSet)
