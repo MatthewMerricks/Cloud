@@ -5,33 +5,59 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
+#define PRODUCTION_BACKEND 
+
 namespace CloudApiPublic.Model
 {
     public class CLDefinitions
     {
+
+#if PRODUCTION_BACKEND
+
         // Registration
-        public const string CLRegistrationCreateRequestURLString = "https://auth.cloudburrito.com/user/create.json";
-        public const string CLRegistrationCreateRequestBodyString = "user[first_name]=%@&user[last_name]=%@&user[email]=%@&user[password]=%@&device[friendly_name]=%@&device[device_uuid]=%@&device[os_type]=%@&device[os_version]=%@&device[app_version]=%@";
+        public const string CLRegistrationCreateRequestURLString  = @"https://auth.cloud.com/user/create.json";
+        public const string CLRegistrationCreateRequestBodyString = @"user[first_name]={0}&user[last_name]={1}&user[email]={2}&user[password]={3}&device[friendly_name]={4}&device[device_uuid]={5}&device[os_type]={6}&device[os_version]={7}&device[app_version]={8}";
 
         // Link/Unlink
-        public const string CLRegistrationUnlinkRequestURLString = "https://auth.cloudburrito.com/device/unlink.json";
-        public const string CLRegistrationUnlinkRequestBodyString = "access_token=%@";
-        public const string CLRegistrationLinkRequestURLString = "https://auth.cloudburrito.com/device/link.json";
-        public const string CLRegistrationLinkRequestBodyString = "email=%@&password=%@&device[friendly_name]=%@&device[device_uuid]=%@&device[os_type]=%@&device[os_version]=%@&device[app_version]=%@";
+        public const string CLRegistrationUnlinkRequestURLString  = @"https://auth.cloud.com/device/unlink.json";
+        public const string CLRegistrationUnlinkRequestBodyString = @"access_token=[0]";
+        public const string CLRegistrationLinkRequestURLString    = @"https://auth.cloud.com/device/link.json";
+        public const string CLRegistrationLinkRequestBodyString   = @"email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&device[os_type]={4}&device[os_version]={5}&device[app_version]={6}";
 
         // Meta Data
-        public const string CLMetaDataServerURL = "https://mds2.cloudburrito.com";
+        public const string CLMetaDataServerURL =@"https://mds.cloud.com";
 
         // Notifications
-        public const string CLNotificationServerURL = "ws://23.22.69.142:80";
-
-        // Error Domain
-        public const string CLCloudAppRestAPIErrorDomain = "com.cloudapp.networking.error";
+        public const string CLNotificationServerURL = @"ws://push.cloud.com/events";
 
         // Upload/Download Server
-        public const string CLUploadDownloadServerURL = "https://upd.cloudburrito.com";
+        public const string CLUploadDownloadServerURL = @"https://upd.cloud.com";
 
+#else
 
+        // Registration
+        public const string CLRegistrationCreateRequestURLString  = @"https://auth.cloudburrito.com/user/create.json";
+        public const string CLRegistrationCreateRequestBodyString = @"user[first_name]={0}&user[last_name]={1}&user[email]={2}&user[password]={3}&device[friendly_name]={4}&device[device_uuid]={5}&device[os_type]={6}&device[os_version]={7}&device[app_version]={8}";
+
+        // Link/Unlink
+        public const string CLRegistrationUnlinkRequestURLString  = @"https://auth.cloudburrito.com/device/unlink.json";
+        public const string CLRegistrationUnlinkRequestBodyString = @"access_token={0};
+        public const string CLRegistrationLinkRequestURLString    = @"https://auth.cloudburrito.com/device/link.json";
+        public const string CLRegistrationLinkRequestBodyString   = @"email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&device[os_type]={4}&device[os_version]={5}&device[app_version]={6}";
+
+        // Meta Data
+        public const string CLMetaDataServerURL = @"https://mds2.cloudburrito.com";
+
+        // Notifications
+        public const string CLNotificationServerURL = @"ws://push.cloud.com/events";
+
+        // Upload/Download Server
+        public const string CLUploadDownloadServerURL = @"https://upd.cloudburrito.com";
+
+#endif
+
+        // Error Domain
+        public const string CLCloudAppRestAPIErrorDomain = @"com.cloudapp.networking.error";
 
         // Sync Header
         public const string CLSyncEventMetadata = "metadata";
