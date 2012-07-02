@@ -1547,11 +1547,13 @@ namespace FileMonitor
         {
             if (this.OnProcessEventGroupCallback != null)
             {
+                List<Dictionary<string, object>> eventsArray = new List<Dictionary<string,object>>();
+
                 foreach (FileChange currentChange in changes)
                 {
-                    //TODO: For now, we are sending groups of file system events to sync, where the
-                    // group has only a single event.
-                    // The FileChange must be converted to the single CLEvent we will send
+                    Dictionary<string, object> evt = new Dictionary<string, object>();
+
+                    // Build an event to represent this change.
                     string action = "";
                     switch (currentChange.Type)
                     {
@@ -1592,30 +1594,36 @@ namespace FileMonitor
 
                     // Build the metadata dictionary
                     Dictionary<string, object> metadata = new Dictionary<string, object>();
+
                     // Format the time like "2012-03-20T19:50:25Z"
                     metadata.Add(CLDefinitions.CLMetadataFileCreateDate, currentChange.Metadata.HashableProperties.CreationTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
-                    metadata.Add(CLDefinitions.CLMetadataFromPath, currentChange.OldPath);
-                    metadata.Add(CLDefinitions.CLMetadataCloudPath, currentChange.NewPath);
+                    metadata.Add(CLDefinitions.CLMetadataFromPath, currentChange.OldPath != null ? currentChange.OldPath.ToString() : String.Empty);
+                    metadata.Add(CLDefinitions.CLMetadataCloudPath, currentChange.NewPath != null ? currentChange.NewPath.ToString() : String.Empty);
                     metadata.Add(CLDefinitions.CLMetadataToPath, String.Empty);       // not used?
 
-                    // Build the events dictionary
-                    Dictionary<string, object> events = new Dictionary<string, object>();
-                    events.Add(CLDefinitions.CLSyncEvent, action);             // just one in the group for now.
-                    events.Add(CLDefinitions.CLSyncEventMetadata, metadata);
+                    // Add this event and its metadata to the events dictionary
+                    evt.Add(CLDefinitions.CLSyncEvent, action);             // just one in the group for now.
+                    evt.Add(CLDefinitions.CLSyncEventMetadata, metadata);
 
-                    // Add this as an array of Dictionaries.
-                    Dictionary<string, object>[] eventsArray = new Dictionary<string, object>[1];
-                    eventsArray[0] = events;
-
-                    // Build the dictionary to return.  Start by adding the last EventId and an event count of one.
-                    Dictionary<string, object> eventsDictionary = new Dictionary<string, object>();
-                    eventsDictionary.Add(CLDefinitions.CLEventKey, currentChange.EventId);
-                    eventsDictionary.Add(CLDefinitions.CLEventCount, 1);
-                    eventsDictionary.Add(CLDefinitions.CLSyncEvents, eventsArray);
-
-                    // Feed this group of one to the sync service.
-                    this.OnProcessEventGroupCallback(eventsDictionary);
+                    // Add the event to the array.
+                    eventsArray.Add(evt);
                 }
+
+                // Build the dictionary to return.  Start by adding the last EventId and an event count of one.
+                Dictionary<string, object> eventsDictionary = new Dictionary<string, object>();
+
+                //TODO: The mac client uses the CLEEventKey as the last Mac file system event ID synced.  On restart, the Mac client will
+                // go to the file system and say "replay events from the event following the last event ID synced."  On the Mac, the
+                // file system event IDs are sequential and persistent.  The Windows client file system monitor performs its own
+                // restart logic.
+                // For now, set the CLEventKey to zero.
+                // OLD: eventsDictionary.Add(CLDefinitions.CLEventKey, currentChange.EventId);
+                eventsDictionary.Add(CLDefinitions.CLEventKey, 0);
+                eventsDictionary.Add(CLDefinitions.CLEventCount, changes.Count());
+                eventsDictionary.Add(CLDefinitions.CLSyncEvents, eventsArray);
+
+                // Feed this group of one to the sync service.
+                this.OnProcessEventGroupCallback(eventsDictionary);
             }
         }
 

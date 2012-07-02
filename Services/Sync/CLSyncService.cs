@@ -713,8 +713,7 @@ namespace win_client.Services.Sync
             int eid = (int)eventsDictionary[CLDefinitions.CLEventKey];
 
             IEnumerable<Dictionary<string, object>> filteredEvents = null;
-            object eventsValue = eventsDictionary["events"];
-            Array castEvents = eventsValue as Array;
+            List<Dictionary<string, object>> castEvents = (List<Dictionary<string, object>>) eventsDictionary["events"];
 
             List<CLEvent> fsmEvents = new List<CLEvent>();
 
