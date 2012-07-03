@@ -238,16 +238,7 @@ namespace CloudTests
                         MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath,
                             out folderMonitor,
                             processedDict => { },
-                            newFileChange =>
-                                {
-                                    int newEventId;
-                                    CLError addEventError = indexer.AddEvent(newFileChange, out newEventId);
-                                    if (addEventError != null)
-                                    {
-                                        throw (Exception)addEventError.errorInfo[CLError.ErrorInfo_Exception];
-                                    }
-                                    return newEventId;
-                                },
+                            indexer.MergeEventIntoDatabase,
                             FileChange_OnQueueing,
                             true);
                         MonitorStatus returnStatus;
@@ -900,14 +891,14 @@ namespace CloudTests
             List<int> deleteEvents = new List<int>();
             foreach (KeyValuePair<FilePath, SyncedObject> lastSync in lastSyncs)
             {
-                int newEventId;
-                indexer.AddEvent(new FileChange()
+                FileChange toDelete = new FileChange()
                 {
                     NewPath = lastSync.Key,
                     Type = FileChangeType.Deleted,
                     Metadata = lastSync.Value.Metadata
-                }, out newEventId);
-                deleteEvents.Add(newEventId);
+                };
+                indexer.AddEvent(toDelete);
+                deleteEvents.Add(toDelete.EventId);
             }
             int newSync;
             indexer.RecordCompletedSync(DateTime.UtcNow.ToLongTimeString(), deleteEvents, out newSync, OpenFolder.SelectedPath);

@@ -238,20 +238,24 @@ namespace SQLIndexer
         }
 
         /// <summary>
-        /// Adds an unprocessed change since the last sync as a new event to the database
+        /// Adds an unprocessed change since the last sync as a new event to the database,
+        /// EventId property of the input event is set after database update
         /// </summary>
         /// <param name="newEvent">Change to add</param>
-        /// <returns>Returns the id of the new event</returns>
-        public CLError AddEvent(FileChange newEvent, out int newEventId)
+        /// <returns>Returns error that occurred when adding the event to database, if any</returns>
+        public CLError AddEvent(FileChange newEvent)
         {
             try
             {
-                // If change is marked for not adding to SQL, return its existing id
-                if (newEvent.DoNotAddToSQLIndex)
+                // Ensure input parameter is set
+                if (newEvent == null)
                 {
-                    newEventId = newEvent.EventId;
+                    throw new NullReferenceException("newEvent cannot be null");
                 }
-                else
+
+                // If change is marked for adding to SQL,
+                // then process database addition
+                if (!newEvent.DoNotAddToSQLIndex)
                 {
                     using (IndexDBEntities indexDB = new IndexDBEntities())
                     {
@@ -293,13 +297,11 @@ namespace SQLIndexer
 
                         // Store the new event id to the change and return it
                         newEvent.EventId = toAdd.EventId;
-                        newEventId = toAdd.EventId;
                     }
                 }
             }
             catch (Exception ex)
             {
-                newEventId = (int)Helpers.DefaultForType(typeof(int));
                 return ex;
             }
             return null;
@@ -621,6 +623,134 @@ namespace SQLIndexer
                         // No errors occurred, so the transaction can be completed
                         completionSync.Complete();
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Method to merge event into database,
+        /// used when events are modified or replaced with new events
+        /// </summary>
+        /// <param name="mergedEvent">Event with latest file or folder metadata, pass null to only delete the old event</param>
+        /// <param name="eventToRemove">Previous event to set if an old event is being replaced in the process</param>
+        /// <returns>Returns an error from merging the events, if any</returns>
+        public CLError MergeEventIntoDatabase(FileChange mergedEvent, FileChange eventToRemove)
+        {
+            try
+            {
+                // Ensure input variables have proper references set
+                if (mergedEvent == null)
+                {
+                    // null merge events are only valid if there is an oldEvent to remove
+                    if (eventToRemove == null)
+                    {
+                        throw new NullReferenceException("mergedEvent cannot be null");
+                    }
+                }
+                else if (mergedEvent.Metadata == null)
+                {
+                    throw new NullReferenceException("mergedEvent cannot have null Metadata");
+                }
+
+                // Define field for the event id that needs updating in the database,
+                // defaulting to none
+                Nullable<int> eventIdToUpdate = null;
+
+                using (IndexDBEntities indexDB = new IndexDBEntities())
+                {
+                    // If the mergedEvent already has an id (exists in database),
+                    // then the database event will be updated at the mergedEvent id;
+                    // also, if the oldEvent exists in the database, it needs to be removed
+                    if (mergedEvent == null
+                        || mergedEvent.EventId > 0)
+                    {
+                        if (eventToRemove != null
+                            && eventToRemove.EventId > 0)
+                        {
+                            // Find the existing event for the given id
+                            Event toDelete = indexDB.Events.FirstOrDefault(currentEvent => currentEvent.EventId == eventToRemove.EventId);
+                            // Throw exception if an existing event does not exist
+                            if (toDelete == null)
+                            {
+                                throw new Exception("Event not found to delete");
+                            }
+                            // Remove the found event from the database
+                            indexDB.DeleteObject(toDelete);
+                        }
+
+                        // If the mergedEvent it null and the oldEvent is set with a valid eventId,
+                        // then save only the deletion of the oldEvent and return
+                        if (mergedEvent == null)
+                        {
+                            indexDB.SaveChanges();
+                            return null;
+                        }
+
+                        eventIdToUpdate = mergedEvent.EventId;
+                    }
+                    // Else if the mergedEvent does not have an id in the database
+                    // and the oldEvent exists and has an id in the database,
+                    // then the database event will be updated at the oldEvent id
+                    // and the event id should be moved to the mergedEvent
+                    else if (eventToRemove != null
+                        && eventToRemove.EventId > 0)
+                    {
+                        mergedEvent.EventId = eventToRemove.EventId;
+
+                        eventIdToUpdate = eventToRemove.EventId;
+                    }
+
+                    // If an id for the database event already exists,
+                    // then update the object in the database with the latest properties from mergedEvent
+                    if (eventIdToUpdate != null)
+                    {
+                        // Find the existing event for the given id
+                        Event toModify = indexDB.Events
+                            .Include(((MemberExpression)((Expression<Func<Event, FileSystemObject>>)(parent => parent.FileSystemObject)).Body).Member.Name)
+                            .FirstOrDefault(currentEvent => currentEvent.EventId == mergedEvent.EventId);
+                        // Throw exception if an existing event does not exist
+                        if (toModify == null)
+                        {
+                            throw new Exception("Event not found to delete");
+                        }
+                        // Throw exception if existing event does not have a FileSystemObject to modify
+                        if (toModify.FileSystemObject == null)
+                        {
+                            throw new Exception("Event does not have required FileSystemObject");
+                        }
+
+                        // Update database object with latest event properties
+                        toModify.FileChangeTypeEnumId = changeEnumsBackward[mergedEvent.Type];
+                        toModify.PreviousPath = mergedEvent.OldPath == null
+                            ? null
+                            : mergedEvent.OldPath.ToString();
+                        toModify.FileSystemObject.CreationTime = (mergedEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                            ? (Nullable<DateTime>)null
+                            : mergedEvent.Metadata.HashableProperties.CreationTime);
+                        toModify.FileSystemObject.IsFolder = mergedEvent.Metadata.HashableProperties.IsFolder;
+                        toModify.FileSystemObject.LastTime = (mergedEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                            ? (Nullable<DateTime>)null
+                            : mergedEvent.Metadata.HashableProperties.LastTime);
+                        toModify.FileSystemObject.Path = mergedEvent.NewPath.ToString();
+                        toModify.FileSystemObject.Size = mergedEvent.Metadata.HashableProperties.Size;
+
+                        // Save event update (and possibly old event removal) to database
+                        indexDB.SaveChanges();
+                    }
+                }
+
+                // If an id for the database event does not already exist,
+                // then process the event as a new one;
+                // this is done outside the database entities using statement since
+                // AddEvent has it's own entities context
+                if (eventIdToUpdate == null)
+                {
+                    return AddEvent(mergedEvent);
                 }
             }
             catch (Exception ex)

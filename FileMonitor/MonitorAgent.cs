@@ -92,7 +92,10 @@ namespace FileMonitor
         private Action<Dictionary<string, object>> OnProcessEventGroupCallback;
 
         // stores the callback used to add the processed event to the SQL index
-        private Func<FileChange, int> ProcessAppendToSQL;
+        /// <summary>
+        /// First parameter is merged event, second parameter is event to remove
+        /// </summary>
+        private Func<FileChange, FileChange, CLError> ProcessMergeToSQL;
 
         // store the optional logging boolean initialization parameter
         private bool LogProcessingFileChanges;
@@ -146,6 +149,10 @@ namespace FileMonitor
         }
 
         private Queue<FileChange> ProcessingChanges = new Queue<FileChange>();
+        /// <summary>
+        /// Class to handle queueing up processing changes on a configurable timer,
+        /// must be externally locked on property TimerRunningLocker for all access
+        /// </summary>
         private class ProcessingQueuesTimer
         {
             public bool TimerRunning
@@ -201,6 +208,8 @@ namespace FileMonitor
                 }
             }
         }
+        // Field to store timer for queue processing,
+        // initialized on construction
         private ProcessingQueuesTimer QueuesTimer;
 
         /// <summary>
@@ -224,7 +233,7 @@ namespace FileMonitor
         public static CLError CreateNewAndInitialize(string folderPath,
             out MonitorAgent newAgent,
             Action<Dictionary<string, object>> onProcessEventGroupCallback,
-            Func<FileChange, int> onProcessAppendToSQL,
+            Func<FileChange, FileChange, CLError> onProcessMergeToSQL,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
@@ -261,7 +270,7 @@ namespace FileMonitor
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;
                 newAgent.OnProcessEventGroupCallback = onProcessEventGroupCallback;
-                newAgent.ProcessAppendToSQL = onProcessAppendToSQL;
+                newAgent.ProcessMergeToSQL = onProcessMergeToSQL;
                 newAgent.LogProcessingFileChanges = logProcessing;
 
                 // assign timer object that is used for processing the FileChange queues in batches
@@ -306,12 +315,19 @@ namespace FileMonitor
                     // lock to prevent the queue of changes to process from being seperately read/modified
                     lock (QueuedChanges)
                     {
+                        // Store a boolean whether to trigger an initial sync operation in case
+                        // no changes occurred that would otherwise trigger sync
+                        bool triggerSyncWithNoChanges = true;
+
                         // only need to process new changes if the list exists
                         if (newChanges != null)
                         {
                             // loop through new changes to process
                             foreach (FileChange currentChange in newChanges)
                             {
+                                // A file change will be processed which will trigger an initial sync later
+                                triggerSyncWithNoChanges = false;
+
                                 // take the new change to process and update the current, in-memory index;
                                 // also queue it for processing
 
@@ -339,6 +355,13 @@ namespace FileMonitor
                                         DoNotAddToSQLIndex = currentChange.DoNotAddToSQLIndex
                                     });
                             }
+                        }
+
+                        // If there were no file changes that will trigger a sync later,
+                        // then trigger it now as an initial sync with an empty dictionary
+                        if (triggerSyncWithNoChanges)
+                        {
+                            this.OnProcessEventGroupCallback(new Dictionary<string, object>());
                         }
                     }
                 }
@@ -1223,6 +1246,9 @@ namespace FileMonitor
                         OnQueueing(this, toDelay);
                     }
 
+                    // Merge the new event into SQL
+                    ProcessMergeToSQL(toDelay, null);
+
                     // start delayed processing of file change
                     toDelay.ProcessAfterDelay(ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
                         null,// Userstate if needed on callback (unused)
@@ -1284,10 +1310,13 @@ namespace FileMonitor
                                         // error condition
                                         break;
                                     case FileChangeType.Deleted:
-                                        if (previousChange.Metadata.HashableProperties.IsFolder)
-                                        {
+                                        if (
                                             // Folder modify events are not useful, so discard the deletion change instead
+                                            previousChange.Metadata.HashableProperties.IsFolder
 
+                                            // Also discard the deletion change for files which have been deleted and created again with the same metadata
+                                            || QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
+                                        {
                                             FileChange toCompare;
                                             if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
                                                 && toCompare.Equals(previousChange))
@@ -1296,12 +1325,19 @@ namespace FileMonitor
                                             }
                                             QueuedChanges.Remove(previousChange.NewPath);
                                             previousChange.Dispose();
+
+                                            // Remove old event from SQL
+                                            ProcessMergeToSQL(null, previousChange);
                                         }
+                                        // For files with different metadata, process as a modify
                                         else
                                         {
                                             previousChange.Type = FileChangeType.Modified;
                                             previousChange.Metadata = toChange.Metadata;
                                             previousChange.SetDelayBackToInitialValue();
+
+                                            // Use previousChange as the mergedEvent, remove toChange
+                                            ProcessMergeToSQL(previousChange, toChange);
                                         }
                                         break;
                                     case FileChangeType.Modified:
@@ -1324,6 +1360,9 @@ namespace FileMonitor
                                         }
                                         QueuedChanges.Remove(toChange.NewPath);
                                         previousChange.Dispose();
+
+                                        // Remove old event from SQL
+                                        ProcessMergeToSQL(null, previousChange);
                                         break;
                                     case FileChangeType.Deleted:
                                         // error condition
@@ -1332,6 +1371,9 @@ namespace FileMonitor
                                         previousChange.Type = FileChangeType.Deleted;
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+
+                                        // Use previousChange as the mergedEvent, remove toChange
+                                        ProcessMergeToSQL(previousChange, toChange);
                                         break;
                                     case FileChangeType.Renamed:
                                         previousChange.NewPath = previousChange.OldPath;
@@ -1341,6 +1383,9 @@ namespace FileMonitor
                                         previousChange.SetDelayBackToInitialValue();
                                         // remove the old/new path pair for a rename
                                         OldToNewPathRenames.Remove(previousChange.NewPath);
+
+                                        // Use previousChange as the mergedEvent, remove toChange
+                                        ProcessMergeToSQL(previousChange, toChange);
                                         break;
                                 }
                                 break;
@@ -1350,6 +1395,9 @@ namespace FileMonitor
                                     case FileChangeType.Created:
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+
+                                        // Use previousChange as the mergedEvent, remove toChange
+                                        ProcessMergeToSQL(previousChange, toChange);
                                         break;
                                     case FileChangeType.Deleted:
                                         // error condition
@@ -1357,10 +1405,16 @@ namespace FileMonitor
                                     case FileChangeType.Modified:
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+
+                                        // Use previousChange as the mergedEvent, remove toChange
+                                        ProcessMergeToSQL(previousChange, toChange);
                                         break;
                                     case FileChangeType.Renamed:
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+
+                                        // Use previousChange as the mergedEvent, remove toChange
+                                        ProcessMergeToSQL(previousChange, toChange);
                                         break;
                                 }
                                 break;
@@ -1376,12 +1430,18 @@ namespace FileMonitor
                                             previousChange.NewPath = toChange.OldPath;
                                             previousChange.Metadata = toChange.Metadata;
                                             previousChange.SetDelayBackToInitialValue();
+
+                                            // Use previousChange as the mergedEvent, remove toChange
+                                            ProcessMergeToSQL(previousChange, toChange);
                                         }
                                         else
                                         {
                                             previousChange.Metadata = toChange.Metadata;
                                             previousChange.Type = FileChangeType.Modified;
                                             previousChange.SetDelayBackToInitialValue();
+
+                                            // Use previousChange as the mergedEvent, remove toChange
+                                            ProcessMergeToSQL(previousChange, toChange);
 
                                             FileChange oldLocationDelete = new FileChange(QueuedChanges)
                                                 {
@@ -1450,6 +1510,9 @@ namespace FileMonitor
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
                     // add old/new path pairs for recursive rename processing
                     OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
+
+                    // Use matchedFileChangeForRename as the mergedEvent, remove toChange
+                    ProcessMergeToSQL(matchedFileChangeForRename, toChange);
                 }
                 // Existing FileChange is a Created event and the incoming event is a matching Deleted event which has not yet completed
                 else if (toChange.Type == FileChangeType.Deleted
@@ -1477,6 +1540,9 @@ namespace FileMonitor
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
                     // add old/new path pairs for recursive rename processing
                     OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
+
+                    // Use matchedFileChangeForRename as the mergedEvent, remove toChange
+                    ProcessMergeToSQL(matchedFileChangeForRename, toChange);
                 }
 
                 // if file change does not exist in the queue at the same file path and the change was not marked to be converted to a rename
@@ -1524,10 +1590,6 @@ namespace FileMonitor
             {
                 QueuedChangesByMetadata.Remove(sender.Metadata.HashableProperties);
             }
-
-            // Add the new change as an event in the SQL index,
-            // store the new event id
-            sender.EventId = ProcessAppendToSQL(sender);
 
             lock (QueuesTimer.TimerRunningLocker)
             {
