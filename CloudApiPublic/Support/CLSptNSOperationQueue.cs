@@ -41,6 +41,19 @@ namespace CloudApiPublic.Support
                 }
             }
         }
+
+        public int OperationCount
+        {
+            get
+            {
+                int count;
+                lock (_operationQueue)
+                {
+                    count = _operationQueue.Count;
+                }
+                return count;
+            }
+        }
         
         public CLSptNSOperationQueue() : this(4)
         {
@@ -123,6 +136,66 @@ namespace CloudApiPublic.Support
             }
         }
 
+        public void WaitUntilFinished()
+        {
+            while (true)
+            {
+                bool isFinished = true;
+
+                _disposeLocker.EnterReadLock();
+                try
+                {
+                    if (!_disposed)
+                    {
+                        lock (_operationQueue)
+                        {
+                            foreach (CLSptNSOperation operationIndex in _operationQueue)
+                            {
+                                if (operationIndex.Executing)
+                                {
+                                    isFinished = false;
+                                }
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    _disposeLocker.ExitReadLock();
+                }
+
+                if (isFinished)
+                {
+                    break;
+                }
+
+                Task.Delay(100);
+            }
+        }
+
+        public void AddOperations(List<CLSptNSOperation> operations)
+        {
+            _disposeLocker.EnterReadLock();
+            try
+            {
+                if (!_disposed)
+                {
+                    lock (_operationQueue)
+                    {
+                        foreach (CLSptNSOperation operationIndex in operations)
+                        {
+                            _operationQueue.AddLast(operationIndex);
+                        }
+                    }
+                    Dispatcher();
+                }
+            }
+            finally
+            {
+                _disposeLocker.ExitReadLock();
+            }
+        }
+
         private void Dispatcher()
         {
             lock (_operationQueue)
@@ -148,6 +221,10 @@ namespace CloudApiPublic.Support
             await Task.Run(() =>
             {
                 operation.Main();
+                if (operation.CompletionBlock != null)
+                {
+                    operation.CompletionBlock();
+                }
             });
 
             lock (_operationQueue)

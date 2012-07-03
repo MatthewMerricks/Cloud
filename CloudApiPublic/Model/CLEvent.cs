@@ -66,6 +66,14 @@ namespace CloudApiPublic.Model
             }
         }
 
+        private int _retryAttempts;
+        public int RetryAttempts
+        {
+            get { return _retryAttempts; }
+            set { _retryAttempts = value; }
+        }
+        
+
         public CLEvent()
         {
         }

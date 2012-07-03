@@ -14,6 +14,7 @@ using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using FileMonitor;
 using win_client.Services.Sync;
+using SQLIndexer;
 
 
 namespace win_client.Services.FileSystemMonitoring
@@ -24,6 +25,7 @@ namespace win_client.Services.FileSystemMonitoring
         private static Boolean _isLoaded = false;
         private static CLTrace _trace = null;
         private MonitorAgent _agent = null;
+        private IndexingAgent _indexer = null;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -57,6 +59,37 @@ namespace win_client.Services.FileSystemMonitoring
         /// </summary>
         public void BeginFileSystemMonitoring()
         {
+            CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer);
+
+            // handle index creation error
+
+            CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath,
+                out _agent,
+                CLSyncService.Instance.SyncFromFileSystemMonitorWithGroupedUserEventsCallback,
+                newFileChange =>
+                {
+                    int newEventId;
+                    CLError addEventError = _indexer.AddEvent(newFileChange, out newEventId);
+                    if (addEventError != null)
+                    {
+                        throw (Exception)addEventError.errorInfo[CLError.ErrorInfo_Exception];
+                    }
+                    return newEventId;
+                });
+
+            // handle file monitor creation error
+
+            MonitorStatus returnStatus;
+            CLError fileMonitorStartError = _agent.Start(out returnStatus);
+
+            // handle file monitor start error
+
+            CLError indexerStartError = _indexer.StartInitialIndexing(_agent.BeginProcessing,
+                _agent.GetCurrentPath);
+
+            // handle indexer start error
+
+#if TRASH
             CLError error = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath, out _agent, CLSyncService.Instance.SyncFromFileSystemMonitorWithGroupedUserEventsCallback);
             if (error != null)
             {
@@ -71,6 +104,7 @@ namespace win_client.Services.FileSystemMonitoring
                     _trace.writeToLog(1, "Error starting the file system monitor. Description: {0}. Code: {1}.", error.errorDescription, error.errorCode);
                 }
             }
+#endif  // TRASH
         }
 
         /// <summary>

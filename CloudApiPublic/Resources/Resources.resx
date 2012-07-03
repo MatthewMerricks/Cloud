@@ -125,6 +125,9 @@
     <value>Oops.  We're sorry, it seems that something went wrong while syncing files to the server.</value>
     <comment>SyncTo</comment>
   </data>
+  <data name="ErrorPuttingUploadOrDownloadToServer" xml:space="preserve">
+    <value>Oops.  We're sorry, it seems that something when wrong while starting a server file upload or download. </value>
+  </data>
   <data name="ExceptionCreatingUserRegistration" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went terribly wrong while creating your account.</value>
   </data>

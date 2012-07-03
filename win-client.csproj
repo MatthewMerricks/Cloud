@@ -416,6 +416,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Model\Metadata\" />
+    <Folder Include="Network\" />
     <Folder Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
@@ -465,6 +466,21 @@
       <Project>{dfe16278-70b2-4b6c-84c0-1d41b04bebde}</Project>
       <Name>FileMonitor</Name>
     </ProjectReference>
+    <ProjectReference Include="SQLIndexer\SQLIndexer.csproj">
+      <Project>{5ea44f8a-a8ff-48ab-b6f6-c523793e342e}</Project>
+      <Name>SQLIndexer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="IWshRuntimeLibrary">
+      <Guid>{F935DC20-1CF0-11D0-ADB9-00C04FD58A0B}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
