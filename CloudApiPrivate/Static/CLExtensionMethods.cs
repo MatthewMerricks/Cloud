@@ -202,5 +202,35 @@ namespace CloudApiPrivate.Static
 
             return foundChild;
         }
+
+        /// <summary> 
+        /// Extend Dictionary<T,S>: Adds one dictionary to another.  
+        /// </summary> 
+        /// <param name="source">The dictionary that will be added to.</param> 
+        /// <param name="collection">The dictionary to be added. </param> 
+        /// <returns>void</returns> 
+        /// Call like this:
+        /// animals.AddRange(newanimals)
+        /// 
+        public static void AddRange<T, S>(this Dictionary<T, S> source, Dictionary<T, S> collection)
+        {
+            if (collection == null)
+            {
+                throw new ArgumentNullException("Collection is null");
+            }
+
+            foreach (var item in collection)
+            {
+                if (!source.ContainsKey(item.Key))
+                {
+                    source.Add(item.Key, item.Value);
+                }
+                else
+                {
+                    // Duplicate key detected.
+                    throw new Exception("Duplicate key <" + item.Key.ToString() + "> detected.");
+                }
+            }
+        }
     }
 }
