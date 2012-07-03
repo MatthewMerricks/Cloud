@@ -61,33 +61,24 @@ namespace win_client.Services.FileSystemMonitoring
         {
             CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer);
 
-            // handle index creation error
+            // Todo: handle index creation error
 
             CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath,
                 out _agent,
                 CLSyncService.Instance.SyncFromFileSystemMonitorWithGroupedUserEventsCallback,
-                newFileChange =>
-                {
-                    int newEventId;
-                    CLError addEventError = _indexer.AddEvent(newFileChange, out newEventId);
-                    if (addEventError != null)
-                    {
-                        throw (Exception)addEventError.errorInfo[CLError.ErrorInfo_Exception];
-                    }
-                    return newEventId;
-                });
+                _indexer.MergeEventIntoDatabase);
 
-            // handle file monitor creation error
+            // Todo: handle file monitor creation error
 
             MonitorStatus returnStatus;
             CLError fileMonitorStartError = _agent.Start(out returnStatus);
 
-            // handle file monitor start error
+            // Todo: handle file monitor start error
 
             CLError indexerStartError = _indexer.StartInitialIndexing(_agent.BeginProcessing,
                 _agent.GetCurrentPath);
 
-            // handle indexer start error
+            // Todo: handle indexer start error
 
 #if TRASH
             CLError error = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath, out _agent, CLSyncService.Instance.SyncFromFileSystemMonitorWithGroupedUserEventsCallback);
