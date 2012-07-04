@@ -139,7 +139,7 @@ namespace CloudApiPublic.Model
 
             //return [NSDictionary dictionaryWithObject:dictArray forKey:CLSyncEvents];
 
-            List<object> dictArray = new List<object>();
+            List<Dictionary<string, object>> dictArray = new List<Dictionary<string, object>>();
             events.ForEach(obj =>
             {
                 CLEvent evt = obj;
