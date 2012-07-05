@@ -20,21 +20,36 @@ using namespace ATL;
 
 class ATL_NO_VTABLE CContextMenuExt :
 	public CComObjectRootEx<CComSingleThreadModel>,
-	public CComCoClass<CContextMenuExt, &CLSID_ContextMenuExt>
+	public CComCoClass<CContextMenuExt, &CLSID_ContextMenuExt>,
+	public IShellExtInit,
+	public IContextMenu
 {
 public:
 	CContextMenuExt()
 	{
 	}
 
+// IShellExtInit
+IFACEMETHODIMP Initialize(LPCITEMIDLIST, LPDATAOBJECT, HKEY);
+
+// IContextMenu
+
+#ifdef X86
+IFACEMETHODIMP GetCommandString(UINT, UINT, UINT*, LPSTR, UINT);
+#else
+IFACEMETHODIMP GetCommandString(UINT_PTR, UINT, UINT*, LPSTR, UINT);
+#endif
+IFACEMETHODIMP InvokeCommand(LPCMINVOKECOMMANDINFO);
+IFACEMETHODIMP QueryContextMenu(HMENU, UINT, UINT, UINT, UINT);
+
 DECLARE_REGISTRY_RESOURCEID(IDR_CONTEXTMENUEXT)
 
 DECLARE_NOT_AGGREGATABLE(CContextMenuExt)
 
 BEGIN_COM_MAP(CContextMenuExt)
+	COM_INTERFACE_ENTRY(IShellExtInit)
+	COM_INTERFACE_ENTRY(IContextMenu)
 END_COM_MAP()
-
-
 
 	DECLARE_PROTECT_FINAL_CONSTRUCT()
 
@@ -46,11 +61,26 @@ END_COM_MAP()
 	void FinalRelease()
 	{
 	}
+	
+	static const char *m_pszVerb;
+	static const wchar_t *m_pwszVerb;
 
-public:
+private:
+	//// IDList of the folder for extensions invoked on the folder, such as
+	//// background context menu handlers or nondefault drag-and-drop handlers.
+	//PIDLIST_ABSOLUTE m_pidlFolder;
 
+	//// The data object contains an expression of the items that the handler is
+	//// being initialized for. Use SHCreateShellItemArrayFromDataObject to
+	//// convert this object to an array of items. Use SHGetItemFromObject if you
+	//// are only interested in a single Shell item. If you need a file system
+	//// path, use IShellItem::GetDisplayName(SIGDN_FILESYSPATH, ...).
+	//IDataObject *m_pdtobj;
 
-
+	//// For context menu handlers, the registry key provides access to verb
+	//// instance data that might be stored there. This is a rare feature to use
+	//// so most extensions do not need this variable.
+	//HKEY m_hRegKey;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(ContextMenuExt), CContextMenuExt)
