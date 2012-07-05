@@ -30,3 +30,5 @@
 #include <atlbase.h>
 #include <atlcom.h>
 #include <atlctl.h>
+#include <comdef.h>
+#include <ShlObj.h>

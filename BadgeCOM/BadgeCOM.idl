@@ -51,6 +51,13 @@ interface IBadgeIconSelective : IDispatch{
 interface IBadgeIconFailed : IDispatch{
 };
 [
+	object,
+	uuid(D2D46453-4FB1-4B94-A571-F65F7B5BF0DF),
+	pointer_default(unique)
+]
+interface IContextMenuExt : IUnknown{
+};
+[
 	uuid(B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1),
 	version(1.0),
 ]
@@ -84,6 +91,13 @@ library BadgeCOMLib
 	coclass BadgeIconFailed
 	{
 		[default] interface IBadgeIconFailed;
+	};
+	[
+		uuid(EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7)		
+	]
+	coclass ContextMenuExt
+	{
+		[default] interface IContextMenuExt;
 	};
 };
 

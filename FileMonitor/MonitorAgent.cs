@@ -582,6 +582,7 @@ namespace FileMonitor
         #endregion
 
         #region private methods
+
         /// <summary>
         /// Todo: notify system that root monitored folder is protected from changes like deletion;
         /// Will forward call to interprocess receiver (Todo) which talks to a

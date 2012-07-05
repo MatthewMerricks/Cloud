@@ -43,6 +43,9 @@
     <ClCompile Include="BadgeIconFailed.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ContextMenuExt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -70,6 +73,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BadgeIconFailed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ContextMenuExt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -108,6 +114,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="BadgeIconFailed.rgs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="ContextMenuExt.rgs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
