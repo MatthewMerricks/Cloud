@@ -17,6 +17,7 @@ using CloudApiPublic.Static;
 using System.Globalization;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
 using System.Xml.Linq;
+using System.Security.Cryptography;
 
 namespace FileMonitor
 {
@@ -391,6 +392,412 @@ namespace FileMonitor
                 InitialIndexLocker.ExitWriteLock();
             }
         }
+
+        /// <summary>
+        /// Method to be called within the context of the main lock of the Sync service
+        /// which locks the changed files, updates metadata, and outputs a sorted FileChange array for processing
+        /// </summary>
+        /// <param name="inputChanges">Original array of FileChanges</param>
+        /// <param name="outputChanges">Output array of FileChanges to process</param>
+        /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
+        /// <returns>Returns (an) error(s) that occurred finalizing the FileChange array, if any</returns>
+        public CLError ProcessFileListForSyncProcessing(IEnumerable<FileChange> inputChanges,
+            out KeyValuePair<FileChange, FileStream>[] outputChanges,
+            out FileChange[] outputChangesInError)
+        {
+            CLError errorCollection = null;
+            try
+            {
+                #region assert parameters
+                if (inputChanges == null)
+                {
+                    throw new NullReferenceException("inputChanges cannot be null");
+                }
+                #endregion
+
+                #region local variables including common actions
+                FileChange[] inputChangesArray = inputChanges.ToArray();
+
+                Dictionary<FilePath, KeyValuePair<int, FileChange>> folderCreations = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
+                Dictionary<FilePath, Dictionary<FilePath, KeyValuePair<int, FileChange>>> folderRenames = new Dictionary<FilePath, Dictionary<FilePath, KeyValuePair<int, FileChange>>>(FilePathComparer.Instance);
+                Dictionary<FilePath, Dictionary<FilePath, KeyValuePair<int, FileChange>>> fileRenames = new Dictionary<FilePath, Dictionary<FilePath, KeyValuePair<int, FileChange>>>(FilePathComparer.Instance);
+                Dictionary<FilePath, KeyValuePair<int, KeyValuePair<FileChange, FileStream>>> fileCreationsOrModifications = new Dictionary<FilePath, KeyValuePair<int, KeyValuePair<FileChange, FileStream>>>(FilePathComparer.Instance);
+                Dictionary<FilePath, KeyValuePair<int, FileChange>> fileDeletions = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
+                Dictionary<FilePath, KeyValuePair<int, FileChange>> folderDeletions = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
+
+                List<FileChange> changesInError = new List<FileChange>();
+
+                List<KeyValuePair<FileChange, FileStream>> outputChangesList = new List<KeyValuePair<FileChange, FileStream>>();
+
+                Action<FileChange, int> updateFileChangePathFromRenames = (toUpdate, toUpdateIndex) =>
+                    {
+                        for (int renameChangeIndex = toUpdateIndex + 1; renameChangeIndex < inputChangesArray.Length; renameChangeIndex++)
+                        {
+                            FileChange possibleRenameChange = inputChangesArray[renameChangeIndex];
+
+                            switch (possibleRenameChange.Type)
+                            {
+                                case FileChangeType.Created:
+                                case FileChangeType.Modified:
+                                    break;
+                                case FileChangeType.Deleted:
+                                    if (FilePathComparer.Instance.Equals(possibleRenameChange.NewPath, toUpdate.NewPath))
+                                    {
+                                        return;
+                                    }
+                                    break;
+                                case FileChangeType.Renamed:
+                                    if (FilePathComparer.Instance.Equals(toUpdate.NewPath.FindOverlappingPath(possibleRenameChange.OldPath), possibleRenameChange.OldPath))
+                                    {
+                                        FilePath renamedOverlapChild = toUpdate.NewPath;
+                                        FilePath renamedOverlap = renamedOverlapChild.Parent;
+
+                                        while (renamedOverlap != null)
+                                        {
+                                            if (FilePathComparer.Instance.Equals(renamedOverlap, possibleRenameChange.OldPath))
+                                            {
+                                                renamedOverlapChild.Parent = possibleRenameChange.NewPath;
+                                                break;
+                                            }
+
+                                            renamedOverlapChild = renamedOverlap;
+                                            renamedOverlap = renamedOverlap.Parent;
+                                        }
+
+                                        CLError mergeError = ProcessMergeToSQL(toUpdate, null);
+                                        if (mergeError != null)
+                                        {
+                                            throw (Exception)mergeError.errorInfo[CLError.ErrorInfo_Exception];
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+                    };
+                #endregion
+
+                #region sort and merge input changes
+                int changeCounter = 0;
+                for (int inputChangeIndex = 0; inputChangeIndex < inputChangesArray.Length; inputChangeIndex++)
+                {
+                    FileChange currentInputChange = inputChangesArray[inputChangeIndex];
+                    try
+                    {
+                        if (currentInputChange.Metadata.HashableProperties.IsFolder)
+                        {
+                            switch (currentInputChange.Type)
+                            {
+                                case FileChangeType.Created:
+                                    updateFileChangePathFromRenames(currentInputChange, inputChangeIndex);
+                                    if (folderCreations.ContainsKey(currentInputChange.NewPath))
+                                    {
+                                        ProcessMergeToSQL(currentInputChange, folderCreations[currentInputChange.NewPath].Value);
+                                        folderCreations.Remove(currentInputChange.NewPath);
+                                    }
+                                    folderCreations.Add(currentInputChange.NewPath,
+                                        new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange));
+                                    break;
+                                case FileChangeType.Deleted:
+                                    updateFileChangePathFromRenames(currentInputChange, inputChangeIndex);
+                                    if (folderDeletions.ContainsKey(currentInputChange.NewPath))
+                                    {
+                                        ProcessMergeToSQL(currentInputChange, folderDeletions[currentInputChange.NewPath].Value);
+                                        folderDeletions.Remove(currentInputChange.NewPath);
+                                    }
+                                    folderDeletions.Add(currentInputChange.NewPath,
+                                        new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange));
+                                    break;
+                                case FileChangeType.Modified:
+                                    errorCollection += new Exception("Directory modify event found. It is not supposed to be recorded.");
+                                    break;
+                                case FileChangeType.Renamed:
+                                    Dictionary<FilePath, KeyValuePair<int, FileChange>> oldPathDict = null;
+
+                                    if (folderRenames.ContainsKey(currentInputChange.OldPath))
+                                    {
+                                        oldPathDict = folderRenames[currentInputChange.OldPath];
+
+                                        if (oldPathDict.ContainsKey(currentInputChange.NewPath))
+                                        {
+                                            ProcessMergeToSQL(currentInputChange, oldPathDict[currentInputChange.NewPath].Value);
+                                            oldPathDict.Remove(currentInputChange.NewPath);
+                                        }
+                                    }
+
+                                    if (oldPathDict == null)
+                                    {
+                                        oldPathDict = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
+                                        folderRenames.Add(currentInputChange.OldPath, oldPathDict);
+                                    }
+
+                                    oldPathDict.Add(currentInputChange.NewPath,
+                                        new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange));
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            switch (currentInputChange.Type)
+                            {
+                                case FileChangeType.Created:
+                                case FileChangeType.Modified:
+                                    updateFileChangePathFromRenames(currentInputChange, inputChangeIndex);
+
+                                    FileStream inputChangeStream = null;
+
+                                    if (fileCreationsOrModifications.ContainsKey(currentInputChange.NewPath))
+                                    {
+                                        KeyValuePair<int, KeyValuePair<FileChange, FileStream>> previousFileChange = fileCreationsOrModifications[currentInputChange.NewPath];
+                                        inputChangeStream = previousFileChange.Value.Value;
+
+                                        if (previousFileChange.Value.Key.Type == FileChangeType.Created
+                                            && currentInputChange.Type == FileChangeType.Modified)
+                                        {
+                                            currentInputChange.Type = FileChangeType.Created;
+                                        }
+                                        ProcessMergeToSQL(currentInputChange, previousFileChange.Value.Key);
+                                        fileCreationsOrModifications.Remove(currentInputChange.NewPath);
+                                    }
+                                    if (inputChangeStream == null)
+                                    {
+                                        try
+                                        {
+                                            inputChangeStream = new FileStream(currentInputChange.NewPath.ToString(),
+                                                FileMode.Open,
+                                                FileAccess.Read,
+                                                FileShare.Read);// Lock all other processes from writing during sync
+                                        }
+                                        catch (FileNotFoundException)
+                                        {
+                                            ProcessMergeToSQL(null, currentInputChange);
+                                            break;
+                                        }
+                                        catch
+                                        {
+                                            throw;
+                                        }
+                                    }
+                                    fileCreationsOrModifications.Add(currentInputChange.NewPath,
+                                        new KeyValuePair<int, KeyValuePair<FileChange, FileStream>>(changeCounter++,
+                                            new KeyValuePair<FileChange, FileStream>(currentInputChange,
+                                                inputChangeStream)));
+                                    break;
+                                case FileChangeType.Deleted:
+                                    updateFileChangePathFromRenames(currentInputChange, inputChangeIndex);
+                                    if (fileDeletions.ContainsKey(currentInputChange.NewPath))
+                                    {
+                                        ProcessMergeToSQL(currentInputChange, fileDeletions[currentInputChange.NewPath].Value);
+                                        fileDeletions.Remove(currentInputChange.NewPath);
+                                    }
+                                    fileDeletions.Add(currentInputChange.NewPath,
+                                        new KeyValuePair<int, FileChange>(changeCounter++,
+                                            currentInputChange));
+                                    break;
+                                case FileChangeType.Renamed:
+                                    Dictionary<FilePath, KeyValuePair<int, FileChange>> oldPathDict = null;
+
+                                    if (fileRenames.ContainsKey(currentInputChange.OldPath))
+                                    {
+                                        oldPathDict = fileRenames[currentInputChange.OldPath];
+
+                                        if (oldPathDict.ContainsKey(currentInputChange.NewPath))
+                                        {
+                                            ProcessMergeToSQL(currentInputChange, oldPathDict[currentInputChange.NewPath].Value);
+                                            oldPathDict.Remove(currentInputChange.NewPath);
+                                        }
+                                    }
+
+                                    if (oldPathDict == null)
+                                    {
+                                        oldPathDict = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
+                                        fileRenames.Add(currentInputChange.OldPath, oldPathDict);
+                                    }
+
+                                    oldPathDict.Add(currentInputChange.NewPath,
+                                        new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange));
+                                    break;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        changesInError.Add(currentInputChange);
+                        errorCollection += ex;
+                    }
+                }
+                #endregion
+
+                #region combine the sorted file change lists and finalize file metadata (+MD5)
+                foreach (KeyValuePair<FileChange, FileStream> currentChangeToOutput in
+
+                    // first take all the folder creations
+                    folderCreations.Values
+                    .OrderBy(currentChange => currentChange.Key)
+                    .Select(currentChange => new KeyValuePair<FileChange, FileStream>(currentChange.Value, null))
+
+                    // next take all the folder renames
+                    .Concat(folderRenames.Values
+                        .SelectMany(currentSetOfChanges => currentSetOfChanges.Values)
+                        .OrderBy(currentChange => currentChange.Key)
+                        .Select(currentChange => new KeyValuePair<FileChange, FileStream>(currentChange.Value, null)))
+
+                    // next take all the file renames
+                    .Concat(fileRenames.Values
+                        .SelectMany(currentSetOfChanges => currentSetOfChanges.Values)
+                        .OrderBy(currentChange => currentChange.Key)
+                        .Select(currentChange => new KeyValuePair<FileChange, FileStream>(currentChange.Value, null)))
+
+                    // next take all the file creations and file modifications
+                    .Concat(fileCreationsOrModifications.Values
+                        .OrderBy(currentChange => currentChange.Key)
+                        .Select(currentChange => currentChange.Value))
+
+                    // next take all the file deletions
+                    .Concat(fileDeletions.Values
+                        .OrderBy(currentChange => currentChange.Key)
+                        .Select(currentChange => new KeyValuePair<FileChange, FileStream>(currentChange.Value, null)))
+
+                    // lastly take all the folder deletions
+                    .Concat(folderDeletions.Values
+                        .OrderBy(currentChange => currentChange.Key)
+                        .Select(currentChange => new KeyValuePair<FileChange, FileStream>(currentChange.Value, null))))
+                {
+                    try
+                    {
+                        if (currentChangeToOutput.Key.Metadata.HashableProperties.IsFolder)
+                        {
+                            outputChangesList.Add(currentChangeToOutput);
+                        }
+                        else
+                        {
+                            switch (currentChangeToOutput.Key.Type)
+                            {
+                                case FileChangeType.Deleted:
+                                    if (File.Exists(currentChangeToOutput.Key.NewPath.ToString()))
+                                    {
+                                        ProcessMergeToSQL(null, currentChangeToOutput.Key);
+                                    }
+                                    else
+                                    {
+                                        outputChangesList.Add(currentChangeToOutput);
+                                    }
+                                    break;
+                                case FileChangeType.Created:
+                                case FileChangeType.Modified:
+                                    MD5 md5Hasher = MD5.Create();
+
+                                    try
+                                    {
+                                        byte[] fileBuffer = new byte[BufferSize];
+                                        int fileReadBytes;
+                                        long countFileSize = 0;
+
+                                        while ((fileReadBytes = currentChangeToOutput.Value.Read(fileBuffer, 0, BufferSize)) > 0)
+                                        {
+                                            countFileSize += fileReadBytes;
+                                            md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                        }
+
+                                        md5Hasher.TransformFinalBlock(EmptyBuffer, 0, 0);
+                                        currentChangeToOutput.Key.SetMD5(md5Hasher.Hash);
+
+                                        bool metadataChanged = false;
+                                        string filePathString = currentChangeToOutput.Key.NewPath.ToString();
+                                        DateTime currentLastAccess = File.GetLastAccessTimeUtc(filePathString);
+                                        DateTime currentLastWrite = File.GetLastWriteTimeUtc(filePathString);
+                                        DateTime currentLastTime = DateTime.Compare(currentLastAccess, currentLastWrite) > 0
+                                            ? currentLastAccess
+                                            : currentLastWrite;
+                                        DateTime currentCreationTime = File.GetCreationTime(filePathString);
+                                        long currentSize = countFileSize;
+
+                                        if (currentLastTime.CompareTo(currentChangeToOutput.Key.Metadata.HashableProperties.LastTime) != 0
+                                            || currentCreationTime.CompareTo(currentChangeToOutput.Key.Metadata.HashableProperties.CreationTime) != 0
+                                            || currentSize != (long)currentChangeToOutput.Key.Metadata.HashableProperties.Size)
+                                        {
+                                            currentChangeToOutput.Key.Metadata.HashableProperties = new FileMetadataHashableProperties(false,
+                                                currentLastTime,
+                                                currentCreationTime,
+                                                currentSize);
+                                            ProcessMergeToSQL(currentChangeToOutput.Key, null);
+                                        }
+
+                                        currentChangeToOutput.Value.Seek(0, SeekOrigin.Begin);
+                                    }
+                                    finally
+                                    {
+                                        md5Hasher.Dispose();
+                                    }
+
+                                    outputChangesList.Add(currentChangeToOutput);
+                                    break;
+                                case FileChangeType.Renamed:
+                                    outputChangesList.Add(currentChangeToOutput);
+                                    break;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        changesInError.Add(currentChangeToOutput.Key);
+                        errorCollection += ex;
+                    }
+                }
+                #endregion
+
+                outputChanges = outputChangesList.ToArray();
+                outputChangesInError = changesInError.ToArray();
+
+                #region optional logging
+                // if optional initialization parameter for logging was passed as true, log an xml file describing the processed FileChange
+                if (LogProcessingFileChanges)
+                {
+                    foreach (KeyValuePair<FileChange, FileStream> currentChange in outputChanges)
+                    {
+                        string currentChangeMD5;
+                        CLError retrieveMD5StringError = currentChange.Key.GetMD5LowercaseString(out currentChangeMD5);
+
+                        //<FileChange>
+                        //  <NewPath>[path for current change]</NewPath>
+                        //
+                        //  <!--Only present if the previous path exists:-->
+                        //  <OldPath>[path for previous location for moves/renames]</OldPath>
+                        //
+                        //  <IsFolder>[true for folders, false for files]</IsFolder>
+                        //  <Type>[type of change that occurred]</Type>
+                        //  <LastTime>[number of ticks from the DateTime of when the file/folder was last changed]</LastTime>
+                        //  <CreationTime>[number of ticks from the DateTime of when the file/folder was created]</CreationTime>
+                        //
+                        //  <!--Only present for file creations/file modifications:-->
+                        //  <MD5>[lowercase, non-seperated hexadecimal string of MD5 hash]</MD5>
+                        //
+                        //</FileChange>
+                        AppendFileChangeProcessedLogXmlString(new XElement("FileChange",
+                            new XElement("NewPath", new XText(currentChange.Key.NewPath.ToString())),
+                            currentChange.Key.OldPath == null ? null : new XElement("OldPath", new XText(currentChange.Key.OldPath.ToString())),
+                            new XElement("IsFolder", new XText(currentChange.Key.Metadata.HashableProperties.IsFolder.ToString())),
+                            new XElement("Type", new XText(currentChange.Key.Type.ToString())),
+                            new XElement("LastTime", new XText(currentChange.Key.Metadata.HashableProperties.LastTime.Ticks.ToString())),
+                            new XElement("CreationTime", new XText(currentChange.Key.Metadata.HashableProperties.CreationTime.Ticks.ToString())),
+                            currentChange.Key.Metadata.HashableProperties.Size == null ? null : new XElement("Size", new XText(currentChange.Key.Metadata.HashableProperties.Size.Value.ToString())),
+                            retrieveMD5StringError == null
+                                ? (currentChangeMD5 == null ? null : new XElement("MD5", new XText(currentChangeMD5)))
+                                : new XElement("MD5", new XText(retrieveMD5StringError.errorDescription)))
+                            .ToString() + Environment.NewLine);
+                    }
+                }
+                #endregion
+            }
+            catch (Exception ex)
+            {
+                outputChanges = (KeyValuePair<FileChange, FileStream>[])Helpers.DefaultForType(typeof(KeyValuePair<FileChange, FileStream>[]));
+                outputChangesInError = (FileChange[])Helpers.DefaultForType(typeof(FileChange[]));
+                return errorCollection + ex;
+            }
+            return errorCollection;
+        }
+        private static readonly byte[] EmptyBuffer = new byte[0];
+        private const int BufferSize = 4096;
 
         /// <summary>
         /// Call this first to start monitoring file system while initial indexing/synchronization occur,
@@ -1822,8 +2229,8 @@ namespace FileMonitor
         /// <param name="changeRootNew">Original new FilePath renamed to that triggered recursion</param>
         private void MetadataPath_RecursiveRename(FilePath oldPath, FilePath newPath, FileMetadata value, FilePath changeRootOld, FilePath changeRootNew)
         {
-            // If a filepath is renamed, that means a rename operation may occur in the sync as well for the same path;
-            // If the final change to be processed with be a rename,
+            // If allpaths gets a rename, queuedchanges may get a rename FileChange to sync;
+            // If the final change to be processed will be a rename,
             // all previous changes that had a old or new path under the change root need to have
             // that path updated appropriately if the change root gets processed first
 
@@ -1889,87 +2296,70 @@ namespace FileMonitor
 
         private void ProcessQueuesAfterTimer()
         {
-            List<FileChange> DeleteFiles = new List<FileChange>();
-            List<FileChange> DeleteFolders = new List<FileChange>();
-            List<FileChange> OtherFolderOperations = new List<FileChange>();
-            List<FileChange> OtherFileOperations = new List<FileChange>();
+            // FileChanges are now sorted when Sync calls back to ProcessFileListForSyncProcessing in this class
+
+            //List<FileChange> DeleteFiles = new List<FileChange>();
+            //List<FileChange> DeleteFolders = new List<FileChange>();
+            //List<FileChange> OtherFolderOperations = new List<FileChange>();
+            //List<FileChange> OtherFileOperations = new List<FileChange>();
+
+            //FileChange[] batchedChanges = new FileChange[ProcessingChanges.Count];
+
+            //while (ProcessingChanges.Count > 0)
+            //{
+            //    FileChange currentChangeToAdd = ProcessingChanges.Dequeue();
+            //    if (currentChangeToAdd.Type == FileChangeType.Deleted)
+            //    {
+            //        if (currentChangeToAdd.Metadata.HashableProperties.IsFolder)
+            //        {
+            //            DeleteFolders.Add(currentChangeToAdd);
+            //        }
+            //        else
+            //        {
+            //            DeleteFiles.Add(currentChangeToAdd);
+            //        }
+            //    }
+            //    else if (currentChangeToAdd.Metadata.HashableProperties.IsFolder)
+            //    {
+            //        OtherFolderOperations.Add(currentChangeToAdd);
+            //    }
+            //    else
+            //    {
+            //        OtherFileOperations.Add(currentChangeToAdd);
+            //    }
+            //}
+
+            //int batchedChangeIndex = 0;
+            //foreach (FileChange currentDeleteFile in DeleteFiles)
+            //{
+            //    batchedChanges[batchedChangeIndex] = currentDeleteFile;
+            //    batchedChangeIndex++;
+            //}
+            //foreach (FileChange currentDeleteFolder in DeleteFolders)
+            //{
+            //    batchedChanges[batchedChangeIndex] = currentDeleteFolder;
+            //    batchedChangeIndex++;
+            //}
+            //foreach (FileChange currentOtherFolder in OtherFolderOperations)
+            //{
+            //    batchedChanges[batchedChangeIndex] = currentOtherFolder;
+            //    batchedChangeIndex++;
+            //}
+            //foreach (FileChange currentOtherFile in OtherFileOperations)
+            //{
+            //    batchedChanges[batchedChangeIndex] = currentOtherFile;
+            //    batchedChangeIndex++;
+            //}
 
             FileChange[] batchedChanges = new FileChange[ProcessingChanges.Count];
 
+            int currentBatchChangeIndex = 0;
             while (ProcessingChanges.Count > 0)
             {
-                FileChange currentChangeToAdd = ProcessingChanges.Dequeue();
-                if (currentChangeToAdd.Type == FileChangeType.Deleted)
-                {
-                    if (currentChangeToAdd.Metadata.HashableProperties.IsFolder)
-                    {
-                        DeleteFolders.Add(currentChangeToAdd);
-                    }
-                    else
-                    {
-                        DeleteFiles.Add(currentChangeToAdd);
-                    }
-                }
-                else if (currentChangeToAdd.Metadata.HashableProperties.IsFolder)
-                {
-                    OtherFolderOperations.Add(currentChangeToAdd);
-                }
-                else
-                {
-                    OtherFileOperations.Add(currentChangeToAdd);
-                }
+                batchedChanges[currentBatchChangeIndex] = ProcessingChanges.Dequeue();
+                currentBatchChangeIndex++;
             }
 
-            int batchedChangeIndex = 0;
-            foreach (FileChange currentDeleteFile in DeleteFiles)
-            {
-                batchedChanges[batchedChangeIndex] = currentDeleteFile;
-                batchedChangeIndex++;
-            }
-            foreach (FileChange currentDeleteFolder in DeleteFolders)
-            {
-                batchedChanges[batchedChangeIndex] = currentDeleteFolder;
-                batchedChangeIndex++;
-            }
-            foreach (FileChange currentOtherFolder in OtherFolderOperations)
-            {
-                batchedChanges[batchedChangeIndex] = currentOtherFolder;
-                batchedChangeIndex++;
-            }
-            foreach (FileChange currentOtherFile in OtherFileOperations)
-            {
-                batchedChanges[batchedChangeIndex] = currentOtherFile;
-                batchedChangeIndex++;
-            }
-
-            // if optional initialization parameter for logging was passed as true, log an xml file describing the processed FileChange
-            if (LogProcessingFileChanges)
-            {
-                foreach (FileChange currentChange in batchedChanges)
-                {
-                    //<FileChange>
-                    //  <NewPath>[path for current change]</NewPath>
-                    //
-                    //  <!--Only present if the previous path exists:-->
-                    //  <OldPath>[path for previous location for moves/renames]</OldPath>
-                    //
-                    //  <IsFolder>[true for folders, false for files]</IsFolder>
-                    //  <Type>[type of change that occurred]</Type>
-                    //  <LastTime>[number of ticks from the DateTime of when the file/folder was last changed]</LastTime>
-                    //  <CreationTime>[number of ticks from the DateTime of when the file/folder was created]</CreationTime>
-                    //
-                    //</FileChange>
-                    AppendFileChangeProcessedLogXmlString(new XElement("FileChange",
-                        new XElement("NewPath", new XText(currentChange.NewPath.ToString())),
-                        currentChange.OldPath == null ? null : new XElement("OldPath", new XText(currentChange.OldPath.ToString())),
-                        new XElement("IsFolder", new XText(currentChange.Metadata.HashableProperties.IsFolder.ToString())),
-                        new XElement("Type", new XText(currentChange.Type.ToString())),
-                        new XElement("LastTime", new XText(currentChange.Metadata.HashableProperties.LastTime.Ticks.ToString())),
-                        new XElement("CreationTime", new XText(currentChange.Metadata.HashableProperties.CreationTime.Ticks.ToString())),
-                        currentChange.Metadata.HashableProperties.Size == null ? null : new XElement("Size", new XText(currentChange.Metadata.HashableProperties.Size.Value.ToString())))
-                        .ToString() + Environment.NewLine);
-                }
-            }
             (new Thread(() =>
                 {
                     ProcessFileChangeGroup(batchedChanges);

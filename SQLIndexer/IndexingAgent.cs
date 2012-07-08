@@ -670,7 +670,10 @@ namespace SQLIndexer
                         || mergedEvent.EventId > 0)
                     {
                         if (eventToRemove != null
-                            && eventToRemove.EventId > 0)
+                            && eventToRemove.EventId > 0
+                            // added the following condition in case both events to merge together share a single database event
+                            // which should not be removed
+                            && (mergedEvent == null || mergedEvent.EventId != eventToRemove.EventId))
                         {
                             // Find the existing event for the given id
                             Event toDelete = indexDB.Events.FirstOrDefault(currentEvent => currentEvent.EventId == eventToRemove.EventId);

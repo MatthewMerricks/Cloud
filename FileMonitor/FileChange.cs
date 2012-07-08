@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 
 namespace FileMonitor
 {
@@ -56,6 +58,71 @@ namespace FileMonitor
             }
         }
         private bool _doNotAddToSQLIndex = false;
+
+        /// <summary>
+        /// Returns the MD5 as a 16 length byte array, or null
+        /// </summary>
+        /// <param name="md5">Output MD5 bytes</param>
+        /// <returns>Returns error in retrieving MD5, if any</returns>
+        public CLError GetMD5Bytes(out byte[] md5)
+        {
+            try
+            {
+                md5 = this.MD5;
+            }
+            catch (Exception ex)
+            {
+                md5 = (byte[])Helpers.DefaultForType(typeof(byte[]));
+                return ex;
+            }
+            return null;
+        }
+        /// <summary>
+        /// Returns the MD5 as a lowercase hexadecimal string 32 characters long with no seperators, or null
+        /// </summary>
+        /// <param name="md5">Output MD5 string</param>
+        /// <returns>Returns error in retrieving MD5, if any</returns>
+        public CLError GetMD5LowercaseString(out string md5)
+        {
+            try
+            {
+                md5 = (this.MD5 == null
+                    ? null
+                    : this.MD5
+                        .Select(md5Byte => string.Format("{0:x2}", md5Byte))
+                        .Aggregate((previousBytes, newByte) => previousBytes + newByte));
+            }
+            catch (Exception ex)
+            {
+                md5 = (string)Helpers.DefaultForType(typeof(string));
+                return ex;
+            }
+            return null;
+        }
+        /// <summary>
+        /// Sets the MD5 from a byte array or clears it from null;
+        /// throws exception if MD5 byte array is not 16 length
+        /// </summary>
+        /// <param name="md5">MD5 bytes to set</param>
+        /// <returns>Returns error in setting MD5, if any</returns>
+        public CLError SetMD5(byte[] md5)
+        {
+            try
+            {
+                if (md5 != null
+                    && md5.Length != 16)
+                {
+                    throw new Exception("MD5 must be 128 bits (a byte array of length 16)");
+                }
+                this.MD5 = md5;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+        private byte[] MD5 = null;
 
         /// <summary>
         /// Constructor with required fields of abstract base class,
