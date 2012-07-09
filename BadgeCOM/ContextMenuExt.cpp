@@ -1,3 +1,10 @@
+//
+// ContextMenuExt.cpp
+// Cloud Windows COM
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
 // ContextMenuExt.cpp : Implementation of CContextMenuExt
 
 #include "stdafx.h"

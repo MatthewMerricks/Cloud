@@ -1,5 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!--
+  //
+  // IndexModel.edmx
+  // Cloud Windows
+  //
+  // Created By DavidBruck.
+  // Copyright (c) Cloud.com. All rights reserved.
+  -->
+  
   <!-- EF Runtime content -->
   <edmx:Runtime>
     <!-- SSDL content -->

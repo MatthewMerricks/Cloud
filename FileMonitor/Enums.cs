@@ -50,5 +50,7 @@ namespace FileMonitor
     public static class FileConstants
     {
         public const long InvalidUtcTimeTicks = 504911232000000000;
+        public static readonly byte[] EmptyBuffer = new byte[0];
+        public const int BufferSize = 4096;
     }
 }

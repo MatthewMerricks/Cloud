@@ -1,3 +1,10 @@
+//
+// ContextMenuExt.h
+// Cloud Windows COM
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
 // ContextMenuExt.h : Declaration of the CContextMenuExt
 
 #pragma once
