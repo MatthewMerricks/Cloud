@@ -37,6 +37,16 @@ namespace FileMonitor
     }
 
     /// <summary>
+    /// Enumeration for direction of sync
+    /// </summary>
+    public enum SyncDirection : byte
+    {
+        To,
+        From
+        //¡¡Do not add a third enumeration since this enumeration is set based on a bit value SyncFrom in table Events in the database (which only has two values)!!
+    }
+
+    /// <summary>
     /// Enumeration to associate the type of event occurred for a FileChange (mutually exclusive)
     /// </summary>
     public enum FileChangeType : byte
@@ -49,8 +59,8 @@ namespace FileMonitor
 
     public static class FileConstants
     {
-        public const long InvalidUtcTimeTicks = 504911232000000000;
+        public const long InvalidUtcTimeTicks = 504911232000000000;//number determined by practice
         public static readonly byte[] EmptyBuffer = new byte[0];
-        public const int BufferSize = 4096;
+        public const int BufferSize = 4096;//posts online seem to suggest between 1kb and 12kb is optimal for a FileStream buffer, 4kb seems commonly used
     }
 }

@@ -231,7 +231,8 @@ namespace SQLIndexer
                                         currentChange.FileSystemObject.LastTime ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc),
                                         currentChange.FileSystemObject.CreationTime ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc),
                                         currentChange.FileSystemObject.Size)
-                                }
+                                },
+                                Direction = (currentChange.SyncFrom ? SyncDirection.From : SyncDirection.To)
                             }));
                     }
                 }
@@ -465,6 +466,7 @@ namespace SQLIndexer
                                 .Include(((MemberExpression)((Expression<Func<SyncState, FileSystemObject>>)(parent => parent.ServerLinkedFileSystemObject)).Body).Member.Name)
                                 .Where(currentSync => currentSync.SyncCounter == (int)lastSyncCounter))
                             {
+
                                 // Check if previous syncstate had a server-remapped path to store
                                 if (currentState.ServerLinkedFileSystemObject != null)
                                 {
@@ -637,6 +639,20 @@ namespace SQLIndexer
                 return ex;
             }
             return null;
+        }
+        
+        /// <summary>
+        /// Writes a new set of sync states to the database after a sync completes,
+        /// requires newRootPath to be set on the first sync or on any sync with a new root path
+        /// </summary>
+        /// <param name="syncId">New sync Id from server</param>
+        /// <param name="syncedEventIds">Enumerable of event ids processed in sync</param>
+        /// <param name="syncCounter">Output sync counter local identity</param>
+        /// <param name="newRootPath">Optional new root path for location of sync root, must be set on first sync</param>
+        /// <returns>Returns an error that occurred during recording the sync, if any</returns>
+        public CLError RecordCompletedSync(string syncId, IEnumerable<int> syncedEventIds, out int syncCounter, FilePath newRootPath = null)
+        {
+            return RecordCompletedSync(syncId, syncedEventIds, out syncCounter, newRootPath == null ? null : newRootPath.ToString());
         }
 
         /// <summary>

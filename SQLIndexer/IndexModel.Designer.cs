@@ -358,13 +358,15 @@ namespace SQLIndexer
         /// <param name="fileChangeTypeCategoryId">Initial value of the FileChangeTypeCategoryId property.</param>
         /// <param name="fileChangeTypeEnumId">Initial value of the FileChangeTypeEnumId property.</param>
         /// <param name="fileSystemObjectId">Initial value of the FileSystemObjectId property.</param>
-        public static Event CreateEvent(global::System.Int32 eventId, global::System.Int32 fileChangeTypeCategoryId, global::System.Int32 fileChangeTypeEnumId, global::System.Int32 fileSystemObjectId)
+        /// <param name="syncFrom">Initial value of the SyncFrom property.</param>
+        public static Event CreateEvent(global::System.Int32 eventId, global::System.Int32 fileChangeTypeCategoryId, global::System.Int32 fileChangeTypeEnumId, global::System.Int32 fileSystemObjectId, global::System.Boolean syncFrom)
         {
             Event @event = new Event();
             @event.EventId = eventId;
             @event.FileChangeTypeCategoryId = fileChangeTypeCategoryId;
             @event.FileChangeTypeEnumId = fileChangeTypeEnumId;
             @event.FileSystemObjectId = fileSystemObjectId;
+            @event.SyncFrom = syncFrom;
             return @event;
         }
 
@@ -518,6 +520,30 @@ namespace SQLIndexer
         private global::System.Int32 _FileSystemObjectId;
         partial void OnFileSystemObjectIdChanging(global::System.Int32 value);
         partial void OnFileSystemObjectIdChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Boolean SyncFrom
+        {
+            get
+            {
+                return _SyncFrom;
+            }
+            set
+            {
+                OnSyncFromChanging(value);
+                ReportPropertyChanging("SyncFrom");
+                _SyncFrom = StructuralObject.SetValidValue(value, "SyncFrom");
+                ReportPropertyChanged("SyncFrom");
+                OnSyncFromChanged();
+            }
+        }
+        private global::System.Boolean _SyncFrom;
+        partial void OnSyncFromChanging(global::System.Boolean value);
+        partial void OnSyncFromChanged();
 
         #endregion
 
@@ -816,30 +842,6 @@ namespace SQLIndexer
         private Nullable<global::System.Int64> _Size;
         partial void OnSizeChanging(Nullable<global::System.Int64> value);
         partial void OnSizeChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
-        [DataMemberAttribute()]
-        public global::System.Byte[] MD5
-        {
-            get
-            {
-                return StructuralObject.GetValidValue(_MD5);
-            }
-            set
-            {
-                OnMD5Changing(value);
-                ReportPropertyChanging("MD5");
-                _MD5 = StructuralObject.SetValidValue(value, true, "MD5");
-                ReportPropertyChanged("MD5");
-                OnMD5Changed();
-            }
-        }
-        private global::System.Byte[] _MD5;
-        partial void OnMD5Changing(global::System.Byte[] value);
-        partial void OnMD5Changed();
 
         #endregion
 
