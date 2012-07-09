@@ -7,8 +7,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CloudApiPublic;
 using CloudApiPublic.Support;
-using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
+using CloudApiPrivate.Model;
+using CloudApiPublic.Model;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 
@@ -173,38 +174,42 @@ namespace CloudApiPrivate
         /// <param name="queue">The GCD queue.</param>
         public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue)
         {
-            //NSString *methodPath = [NSString stringWithFormat:@"%@?user_id=%@", @"/sync/to_cloud", [[CLSettings sharedSettings] uuid]];
-            //NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
+            // Merged 7/3/12
+            //- (void)syncToCloud:(NSDictionary *)metadata completionHandler:(void (^)(NSDictionary*, NSError *))handler onQueue:(dispatch_queue_t)queue
+            //{
+            //    NSString *methodPath = [NSString stringWithFormat:@"%@?user_id=%@", @"/sync/to_cloud", [[CLSettings sharedSettings] uuid]];
+            //    NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
     
-            //[syncRequest setTimeoutInterval:180]; // 3 mins.
-            //[syncRequest setHTTPBody:[NSJSONSerialization dataWithJSONObject:metadata options:NSJSONWritingPrettyPrinted error:nil]];
-            //syncRequest = [self addCurrentClientVersionValueToHeaderFieldInRequest:syncRequest];
+            //    [syncRequest setTimeoutInterval:CLRestClientDefaultHTTPTimeOutInterval];
+            //    [syncRequest setHTTPBody:[NSJSONSerialization dataWithJSONObject:metadata options:NSJSONWritingPrettyPrinted error:nil]];
+            //    syncRequest = [self addCurrentClientVersionValueToHeaderFieldInRequest:syncRequest];
     
-            //NSLog(@"%s - Headers:%@",__FUNCTION__, [syncRequest allHTTPHeaderFields]);
-            //NSLog(@"Request size: %li", [syncRequest.HTTPBody length]);
+            //    NSLog(@"%s - Headers:%@",__FUNCTION__, [syncRequest allHTTPHeaderFields]);
+            //    //NSLog(@"Request size: %li", [syncRequest.HTTPBody length]);
     
-            //[NSURLConnection sendAsynchronousRequest:syncRequest queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+            //    [NSURLConnection sendAsynchronousRequest:syncRequest queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
        
-            //    NSDictionary* jsonResult;
-            //    if (!error) {
-            //        if (([(NSHTTPURLResponse *)response statusCode] == 200)) {
-            //            NSError *jsonParsingError;
-            //            jsonResult = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&jsonParsingError];
-            //            if (jsonParsingError) {
-            //                NSLog(@"Error parsing JSON in %s with error: %@", __FUNCTION__, [jsonParsingError description]);
+            //        NSDictionary* jsonResult;
+            //        if (!error) {
+            //            if (([(NSHTTPURLResponse *)response statusCode] == 200)) {
+            //                NSError *jsonParsingError;
+            //                jsonResult = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&jsonParsingError];
+            //                if (jsonParsingError) {
+            //                    NSLog(@"Error parsing JSON in %s with error: %@", __FUNCTION__, [jsonParsingError description]);
+            //                }
+            //            }else {
+            //                NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
+            //                [userInfo setValue:[NSString stringWithFormat:NSLocalizedString(@"Expected status code 200, got %d", nil), [(NSHTTPURLResponse *)response statusCode]] forKey:NSLocalizedDescriptionKey];
+            //                [userInfo setValue:[syncRequest URL] forKey:NSURLErrorFailingURLErrorKey];
+            //                error = [[NSError alloc]initWithDomain:CLCloudAppRestAPIErrorDomain code:[(NSHTTPURLResponse *)response statusCode] userInfo:userInfo];
             //            }
-            //        }else {
-            //            NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
-            //            [userInfo setValue:[NSString stringWithFormat:NSLocalizedString(@"Expected status code 200, got %d", nil), [(NSHTTPURLResponse *)response statusCode]] forKey:NSLocalizedDescriptionKey];
-            //            [userInfo setValue:[syncRequest URL] forKey:NSURLErrorFailingURLErrorKey];
-            //            error = [[NSError alloc]initWithDomain:CLCloudAppRestAPIErrorDomain code:[(NSHTTPURLResponse *)response statusCode] userInfo:userInfo];
             //        }
-            //    }
         
-            //    dispatch_async(queue, ^{
-            //        handler(jsonResult, error);
-            //    });
-            //}];
+            //        dispatch_async(queue, ^{
+            //            handler(jsonResult, error);
+            //        });
+            //    }];
+            //}
 
             string methodPath = String.Format("{0}?user_id={1}", "/sync/to_cloud", Settings.Instance.Uuid);
             string json = JsonConvert.SerializeObject(metadata, Formatting.Indented);
@@ -225,7 +230,7 @@ namespace CloudApiPrivate
                 HandleResponseFromServerCallback(completionHandler, queue, task, "ErrorPostingSyncToServer");
             });
         }
-
+       
         /// <summary>
         /// Sync from cloud. When this request completes the server will send back the actions and metadata in a block for you to handle.
         /// </summary>
@@ -284,6 +289,13 @@ namespace CloudApiPrivate
             });
         }
 
+        /// <summary>
+        /// Handle the response from a SynToCloud or SyncFromCloud operation.
+        /// </summary>
+        /// <param name="completionHandler"> The completion action.</param>
+        /// <param name="queue">The GCD queue on which to run the completion action.</param>
+        /// <param name="task">The task continued from the request.</param>
+        /// <param name="resourceErrorMessageKey">T he task continued from the request.</param>
         private static void HandleResponseFromServerCallback(Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue, Task<HttpResponseMessage> task,
                                 string resourceErrorMessageKey)
         {

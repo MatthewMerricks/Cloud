@@ -361,6 +361,14 @@ namespace win_client.AppDelegate
                 return;
             }
         }
+
+        /// <summary>
+        /// Get the application trace instance
+        /// </summary>
+        public CLTrace GetTrace()
+        {
+            return _trace;
+        }
         #endregion
     }
 } 
