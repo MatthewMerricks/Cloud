@@ -14,64 +14,85 @@
 
 // CContextMenuExt
 
-const char *CContextMenuExt::m_pszVerb = "TestVerb";
-const wchar_t *CContextMenuExt::m_pwszVerb = L"TestVerb";
+// define the strings used to identify the command coming back on context menu click??
+const char *CContextMenuExt::m_pszVerb = "CloudCOMVerb";
+const wchar_t *CContextMenuExt::m_pwszVerb = L"CloudCOMVerb";
 
+// Called when before the context menu is created after a group of items were selected
 IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder,
 										   __in_opt IDataObject *pDataObject,
 										   __in_opt HKEY hRegKey)
 {
-	return S_OK;
+	FORMATETC fmt =
+	{
+		CF_HDROP,
+		NULL,
+		DVASPECT_CONTENT,
+		-1,
+		TYMED_HGLOBAL
+	};
+	STGMEDIUM stg = { TYMED_HGLOBAL };
+	HDROP hDrop;
 
-	//// In some cases, handlers are initialized multiple times. Therefore,
-	//// clear any previous state here.
-	//CoTaskMemFree(m_pidlFolder);
-	//m_pidlFolder = NULL;
+	// Look for CF_HDROP data in the data object. If there
+	// is no such data, return an error back to Explorer.
+	if (FAILED(pDataObject->GetData(&fmt, &stg)))
+		return E_INVALIDARG;
 
-	//if (m_pdtobj)
-	//{
-	//	m_pdtobj->Release();
-	//}
+	// Get a pointer to the actual data.
+	hDrop = (HDROP)GlobalLock(stg.hGlobal);
 
-	//if (m_hRegKey)
-	//{
-	//	RegCloseKey(m_hRegKey);
-	//	m_hRegKey = NULL;
-	//}
+	// Make sure it worked.
+	if (NULL == hDrop)
+		return E_INVALIDARG;
 
-	//// Capture the inputs for use later.
-	//HRESULT hr = S_OK;
+	// Sanity check – make sure there is at least one filename.
+	UINT uNumFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
+	HRESULT hr = S_OK;
 
-	//if (pidlFolder)
-	//{
-	//	m_pidlFolder = ILClone(pidlFolder);   // Make a copy to use later.
-	//	hr = m_pidlFolder ? S_OK : E_OUTOFMEMORY;
-	//}
+	if (0 == uNumFiles)
+	{
+		GlobalUnlock(stg.hGlobal);
+		ReleaseStgMedium(&stg);
+		return E_INVALIDARG;
+	}
 
-	//if (SUCCEEDED(hr))
-	//{
-	//	// If a data object pointer was passed into the method, save it and
-	//	// extract the file name.
-	//	if (pDataObject)
-	//	{
-	//		m_pdtobj = pDataObject; 
- //           m_pdtobj->AddRef(); 
- //       }
+	if (!m_szFile.empty())
+		m_szFile.clear();
+	bool foundError = false;
 
-	//	// It is uncommon to use the registry handle, but if you need it,
-	//	// duplicate it now.
-	//	if (hRegKey)
-	//	{
-	//		LSTATUS const result = RegOpenKeyEx(hRegKey, NULL, 0, KEY_READ, &m_hRegKey);
-	//		hr = HRESULT_FROM_WIN32(result);
-	//	}
-	//}
+	// loop through all the files, grab their file names, ensure they're valid, and store them
+	for (int fileIndex = 0; fileIndex < uNumFiles; fileIndex++)
+	{
+		if (!foundError)
+		{
+			TCHAR currentFileName[MAX_PATH];
 
-	//return hr;
+			if (0 == DragQueryFile(hDrop, fileIndex, currentFileName, MAX_PATH))
+			{
+				foundError = true;
+				hr = E_INVALIDARG;
+				if (!m_szFile.empty())
+					m_szFile.clear();
+			}
+			else
+			{
+				m_szFile.push_back(std::wstring(currentFileName));
+			}
+		}
+	}
+
+	// free locally allocated memory
+	GlobalUnlock(stg.hGlobal);
+	ReleaseStgMedium(&stg);
+
+	return hr;
 }
 
+// no idea??
 #define IDM_DISPLAY 0
 
+// Modifies the context menu to add the custom item
 STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 											   UINT indexMenu,
 											   UINT idCmdFirst,
@@ -82,6 +103,7 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 
 	if(!(CMF_DEFAULTONLY & uFlags))
 	{
+		// Adds the custom menu item to the contex menu
 		InsertMenu(hMenu,
 			indexMenu,
 			MF_STRING | MF_BYPOSITION,
@@ -102,9 +124,11 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 		wcsncpy(m_pwszVerbCopy, CContextMenuExt::m_pwszVerb, m_pwszVerbLen);
 		m_pwszVerbCopy[m_pwszVerbLen] = '\0';
 
+		// writes the verbs to come back when the command fires??
 		hr = StringCbCopyA(m_pszVerbCopy, sizeof(m_pszVerbCopy), "display");
 		hr = StringCbCopyW(m_pwszVerbCopy, sizeof(m_pwszVerbCopy), L"display");
 
+		// free locally allocated memory
 		free(m_pszVerbCopy);
 		free(m_pwszVerbCopy);
 
@@ -114,7 +138,9 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 	return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(0));
 }
 
+// Gets the name of the item that appears in the menu
 STDMETHODIMP CContextMenuExt::GetCommandString(
+// Win32 and X64 platforms had different method signatures
 #ifdef X86;
 	UINT idCommand,
 #else
@@ -132,6 +158,8 @@ STDMETHODIMP CContextMenuExt::GetCommandString(
 		return hr;
 	}
 
+	// some kind of switch based on the use of the context menu,
+	// the options link back the verb used when the menu item was defined and set the display text that appears
 	switch(uFlags)
 	{
 		case GCS_HELPTEXTA:
@@ -169,8 +197,11 @@ STDMETHODIMP CContextMenuExt::GetCommandString(
 	return hr;
 }
 
+// Describes the action to perform when the custom context menu item is clicked
 STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 {
+	// don't know what most of this does
+
 	BOOL fEx = FALSE;
 	BOOL fUnicode = FALSE;
 
@@ -206,8 +237,26 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 
 	else
 	{
+		// this part pulls the strings of file paths out
+		// from the initialization array and appends them for a message box
+
+		std::wstring allFiles;
+		bool firstFile = true;
+
+		while (!m_szFile.empty())
+		{
+			std::wstring currentPop = m_szFile.back();
+			m_szFile.pop_back();
+
+			if (!firstFile)
+				allFiles.append(L"\r\n");
+			allFiles.append(currentPop);
+
+			firstFile = false;
+		}
+
 		MessageBox(lpcmi->hwnd,
-			L"The File Name",
+			allFiles.c_str(),
 			L"File Name",
 			MB_OK|MB_ICONINFORMATION);
 	}
