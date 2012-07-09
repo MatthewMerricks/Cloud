@@ -78,5 +78,75 @@ namespace win_client.Services.Indexing
             //TODO: Implement this method
             return null;
         }
+
+        //+ (CLMetadata *)indexedMetadataForEvent:(CLEvent *)event
+        public static CLMetadata IndexedMetadataForEvent(CLEvent evt)
+        {
+            // Merged 7/4/12
+            // FileSystemItem *fileSystemItem = [self fileSystemItemForEvent:event];
+            // CLMetadata *item;
+            // if (fileSystemItem) {
+            //       item = [[CLMetadata alloc] initWithFileSystemItem:fileSystemItem];
+            // }    
+            // return item;
+            //&&&&
+
+            // FileSystemItem *fileSystemItem = [self fileSystemItemForEvent:event];
+            FileSystemItem fileSystemItem = FileSystemItemForEvent(evt);
+
+            // CLMetadata *item;
+            // if (fileSystemItem) {
+            //       item = [[CLMetadata alloc] initWithFileSystemItem:fileSystemItem];
+            // }    
+            CLMetadata item = null;
+            if (fileSystemItem != null)
+            {
+                item = new  CLMetadata(fileSystemItem);
+            }
+
+            // return item;
+            return item;
+        }
+
+        //+ (FileSystemItem *)fileSystemItemForEvent:(CLEvent *)event
+        FileSystemItem fileSystemItemForEvent(CLEvent evt)
+        {
+            // Merged 7/5/12
+            // __block FileSystemItem *fileSystemItem;
+            // __block NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
+   
+            // CLPathType pathType = CLPathStaticPath;
+            // if (event.metadata.fromPath != nil){
+            //     pathType = CLPathFromPath;
+            // }
+    
+            // [managedObjectContext performBlockAndWait:^{
+            //     NSManagedObjectID *objectID = [self objectIDforEvent:event typeOfPath:pathType];
+        
+            //     if (objectID != nil) {
+            //         fileSystemItem = (FileSystemItem *)[managedObjectContext objectWithID:objectID];
+            //     }
+            // }];
+            // return fileSystemItem;
+            //&&&&
+
+            //TODO: Implement this as a call to SQLIndexer.
+            // __block FileSystemItem *fileSystemItem;
+            // __block NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
+
+            // CLPathType pathType = CLPathStaticPath;
+            // if (event.metadata.fromPath != nil){
+            //     pathType = CLPathFromPath;
+            // }
+
+            // [managedObjectContext performBlockAndWait:^{
+            //     NSManagedObjectID *objectID = [self objectIDforEvent:event typeOfPath:pathType];
+
+            //     if (objectID != nil) {
+            //         fileSystemItem = (FileSystemItem *)[managedObjectContext objectWithID:objectID];
+            //     }
+            // }];
+            // return fileSystemItem;
+        }
     }
 }

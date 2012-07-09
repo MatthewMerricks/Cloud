@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using CloudApiPublic.Support;
 using CloudApiPrivate.Common;
+using CloudApiPublic.Model;
 using System.Collections.Generic;
 
 
@@ -231,6 +232,117 @@ namespace CloudApiPrivate.Static
                     throw new Exception("Duplicate key <" + item.Key.ToString() + "> detected.");
                 }
             }
+        }
+
+        /// <summary> 
+        /// Extend string.  Return equivalent of Objective C stringByDeletingLastPathComponent.  
+        /// </summary> 
+        /// <param name="source">The source string.</param> 
+        /// <returns>string.  The string without the last path component.</returns> 
+        /// Call like this:
+        /// myStringWithoutLastPathComponent = sourceString.StringByDeletingLastPathComponent;
+        public static string StringByDeletingLastPathComponent(this string source)
+        {
+            return Path.GetFullPath(source);
+        }
+
+        /// <summary> 
+        /// Extend string.  Return equivalent of Objective C lastPathComponent.  
+        /// </summary> 
+        /// <param name="source">The source string.</param> 
+        /// <returns>string.  The last path component.</returns> 
+        /// Call like this:
+        /// myStringLastPathComponent = sourceString.LastPathComponent;
+        public static string LastPathComponent(this string source)
+        {
+            return Path.GetFileName(source);
+        }
+
+        /// <summary> 
+        /// Extend string.  Return equivalent of Objective C pathExtension.  
+        /// </summary> 
+        /// <param name="source">The source string.</param> 
+        /// <returns>string.  The extension.</returns> 
+        /// Call like this:
+        /// myStringExtension = sourceString.PathExtension();
+        public static string PathExtension(this string source)
+        {
+            return Path.GetExtension(source);
+        }
+
+        /// <summary> 
+        /// Extend string.  Implement the equivalent of the Objective C LastPathComponent method.
+        /// </summary> 
+        /// <param name="source">The source string.</param> 
+        /// <returns>string.  The last path component.</returns> 
+        /// Call like this:
+        /// string myLastPathComponent = sourceString.LastPathComponent();
+        public static string LastPathComponent(this string source)
+        {
+            return Path.GetFileName(source);
+        }
+
+        /// <summary> 
+        /// Extend string.  Return equivalent of Objective C pathComponents.
+        /// This is the list of path components in the directory item, or the
+        /// parent directory of the file item.
+        /// </summary> 
+        /// <param name="source">The source string.</param> 
+        /// <returns>string[].  The path components array.</returns> 
+        /// Call like this:
+        /// string [] myPathComponents = sourceString.PathComponents();
+        public static string [] PathComponents(this string source)
+        {
+            var separators = new char[] {
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar
+            };
+
+            if (Directory.Exists(source))
+            {
+                return source.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            }
+            else if (File.Exists(source))
+            {
+                return Path.GetDirectoryName(source).Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            }
+            else
+            {
+                CLTrace.Instance.writeToLog(1, "CLExtensionMethods: string.PathComponents: ERROR: Item <{0}> not found.", source);
+                return null;
+            }
+        }
+
+        /// <summary> 
+        /// Extend string.  Return equivalent of Objective C SubstringToIndex.
+        /// This is the substring at the beginning of the string up to, but
+        /// not including, the indexed character.
+        /// </summary> 
+        /// <param name="source">The source string.</param> 
+        /// <returns>string. The resulting substring.</returns> 
+        /// Call like this:
+        /// string mySubstring = sourceString.SubstringToIndex();
+        public static string SubstringToIndex(this string source, Int32 toIndex)
+        {
+            return source.Substring(0, toIndex);
+        }
+        
+        /// <summary> 
+        /// Extend string.  Return equivalent of Objective C RangeOfString.
+        /// This is the CLRange (Location and Position) of the search string in the source string.
+        /// </summary> 
+        /// <param name="source">The source string.</param> 
+        /// <param name="search">The string to search for.</param> 
+        /// <returns>CLRange. The resulting range.</returns> 
+        /// Call like this:
+        /// CLRange myRange = sourceString.RangeOfString("search string");
+        public static CLRange RangeOfString(this string source, string search)
+        {
+            CLRange range = new CLRange();
+            range.Location = source.IndexOf(search);
+            range.Length = search.Length;
+            
+            return range;
         }
     }
 }
