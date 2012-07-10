@@ -257,482 +257,6 @@ namespace win_client.Services.Sync
             return rc;
         }
 
-        //- (NSDictionary *)indexSortedEvents:(NSDictionary *)sortedEvent
-        Dictionary<string, object> IndexSortedEvents(Dictionary<string, object> sortedEvent)
-        {
-            // Merged 7/4/12
-            //NSLog(@"%s", __FUNCTION__);
-    
-            ////// Move / Rename
-    
-            //// This is the order that events need to be processed. Do not change.
-            //NSMutableArray *deleteEvents     = [sortedEvent objectForKey:CLEventTypeDelete];
-            //NSMutableArray *addEvents        = [sortedEvent objectForKey:CLEventTypeAdd];
-            //NSMutableArray *modifyEvents     = [sortedEvent objectForKey:CLEventTypeModify];
-            //NSMutableArray *moveRenameEvents = [sortedEvent objectForKey:CLEventTypeRenameMove];
-    
-            //deleteEvents = [self indexDeleteEvents:deleteEvents];
-            //addEvents    = [self indexAddEvents:addEvents];
-            //modifyEvents = [self indexModifyEvents:modifyEvents];
-            //moveRenameEvents = [self indexMoveRenameEvents:moveRenameEvents];
-    
-            //return [NSDictionary dictionaryWithObjectsAndKeys:addEvents,        CLEventTypeAdd,
-            //        modifyEvents ,    CLEventTypeModify,
-            //        moveRenameEvents, CLEventTypeRenameMove,
-            //        deleteEvents,     CLEventTypeDelete , nil];
-            //&&&&
-
-            // NSLog(@"%s", __FUNCTION__);
-            _trace.writeToLog(9, "CLSyncService: IndexSortedEvents: Entry.");
-
-            // Move / Rename
-  
-            // This is the order that events need to be processed. Do not change.
-            // NSMutableArray *deleteEvents     = [sortedEvent objectForKey:CLEventTypeDelete];
-            // NSMutableArray *addEvents        = [sortedEvent objectForKey:CLEventTypeAdd];
-            // NSMutableArray *modifyEvents     = [sortedEvent objectForKey:CLEventTypeModify];
-            // NSMutableArray *moveRenameEvents = [sortedEvent objectForKey:CLEventTypeRenameMove];
-            List<CLEvent> deleteEvents = (List<CLEvent>)sortedEvent[CLDefinitions.CLEventTypeDelete];
-            List<CLEvent> addEvents = (List<CLEvent>)sortedEvent[CLDefinitions.CLEventTypeAdd];
-            List<CLEvent> modifyEvents = (List<CLEvent>)sortedEvent[CLDefinitions.CLEventTypeModify];
-            List<CLEvent> moveRenameEvents = (List<CLEvent>)sortedEvent[CLDefinitions.CLEventTypeRenameMove];
-    
-            // deleteEvents = [self indexDeleteEvents:deleteEvents];
-            // addEvents    = [self indexAddEvents:addEvents];
-            // modifyEvents = [self indexModifyEvents:modifyEvents];
-            // moveRenameEvents = [self indexMoveRenameEvents:moveRenameEvents];
-            deleteEvents = IndexDeleteEvents(deleteEvents);
-            addEvents = IndexAddEvents(addEvents);
-            modifyEvents = IndexModifyEvents(modifyEvents);
-            moveRenameEvents = IndexMoveRenameEvents(moveRenameEvents);
-    
-            // return [NSDictionary dictionaryWithObjectsAndKeys:addEvents,        CLEventTypeAdd,
-            //            modifyEvents ,    CLEventTypeModify,
-            //            moveRenameEvents, CLEventTypeRenameMove,
-            //            deleteEvents,     CLEventTypeDelete , nil];
-            Dictionary<string, object> rc = new Dictionary<string, object>()
-            {
-                {CLDefinitions.CLEventTypeAdd, addEvents},
-                {CLDefinitions.CLEventTypeModify, modifyEvents},
-                {CLDefinitions.CLEventTypeRenameMove, moveRenameEvents},
-                {CLDefinitions.CLEventTypeDelete, deleteEvents}
-            };
-            return rc;
-        }
-
-        //- (NSMutableArray *)indexMoveRenameEvents:(NSMutableArray *)events
-        List<CLEvent> IndexMoveRenameEvents(List<CLEvent> events)
-        {
-            // Merged 7/4/12
-            // __block NSMutableArray *moveRenameEvents = events;
-            // [[events copy] enumerateObjectsUsingBlock:^(CLEvent *moveRenameEvent, NSUInteger idx, BOOL *stop) {
-            //     CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:moveRenameEvent];
-            //     NSString *fromFileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:moveRenameEvent.metadata.fromPath];
-            //     NSString *toFileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:moveRenameEvent.metadata.toPath];
-        
-            //     BOOL isMDSEvent = (moveRenameEvent.syncHeader.status != nil) ? YES : NO;
-        
-            //     if (indexedMetadata) {
-            //         if ([[NSFileManager defaultManager] fileExistsAtPath:fromFileSystemPath]) {
-            //             [CLIndexingServices markItemForEvent:moveRenameEvent asPending:YES];
-            //         }else if ([[NSFileManager defaultManager] fileExistsAtPath:toFileSystemPath]){
-            //             if (isMDSEvent == YES) {
-            //                 [CLIndexingServices markItemForEvent:moveRenameEvent asPending:YES];
-            //             }
-            //             else{
-            //                 [self badgeFileAtCloudPath:moveRenameEvent.metadata.toPath withBadge:cloudAppBadgeSynced];
-            //                 [moveRenameEvents removeObject:moveRenameEvent];
-            //             }
-            //         }
-            //     }else {
-            //         NSLog(@"%s - THIS SHOULD NEVER HAPPEN BUT IT DID!!  ERROR", __FUNCTION__);
-            //         if ([[NSFileManager defaultManager] fileExistsAtPath:fromFileSystemPath]) {
-            //             // TODO: Create index object from event (using Metadata from FS)
-            //             // let it ride...
-            //         }else {
-            //             if ([[NSFileManager defaultManager] fileExistsAtPath:toFileSystemPath]){
-            //                 // TODO: Create index object from event (using Metadata from FS)
-            //                 // Punt (the file is already at destination
-            //                 // Badge
-            //             }
-            //         }
-            //     }
-            //     if (idx % 20 == 0) {
-            //         [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
-            //     }
-            // }];    
-            // return moveRenameEvents;
-            //&&&&
-
-            // __block NSMutableArray *moveRenameEvents = events;
-            // [[events copy] enumerateObjectsUsingBlock:^(CLEvent *moveRenameEvent, NSUInteger idx, BOOL *stop) {
-            List<CLEvent> moveRenameEvents = new List<CLEvent>(events);
-            int idx = 0;
-            moveRenameEvents.ForEach(moveRenameEvent =>
-            {
-                // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:moveRenameEvent];
-                // NSString *fromFileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:moveRenameEvent.metadata.fromPath];
-                // NSString *toFileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:moveRenameEvent.metadata.toPath];
-                CLMetadata indexedMetadata = CLIndexingService.Instance.IndexedMetadataForEvent(moveRenameEvent);
-                string fromFileSystemPath = Settings.Instance.CloudFolderPath + moveRenameEvent.Metadata.FromPath;
-                string toFileSystemPath = Settings.Instance.CloudFolderPath + moveRenameEvent.Metadata.ToPath;
-
-                // BOOL isMDSEvent = (moveRenameEvent.syncHeader.status != nil) ? YES : NO;
-                bool isMDSEvent = (moveRenameEvent.SyncHeader.Status != null) ? true : false;
-
-                // if (indexedMetadata) {
-                if (indexedMetadata != null)
-                {
-                    // if ([[NSFileManager defaultManager] fileExistsAtPath:fromFileSystemPath]) {
-                    if (File.Exists(fromFileSystemPath))
-                    {
-                        // [CLIndexingServices markItemForEvent:moveRenameEvent asPending:YES];
-                        CLIndexingService.Instance.MarkItemForEvent_asPending(moveRenameEvent, asPending: true);
-                    }
-                    // }else if ([[NSFileManager defaultManager] fileExistsAtPath:toFileSystemPath]){
-                    else if (File.Exists(toFileSystemPath))
-                    {
-                        // if (isMDSEvent == YES) {
-                        if (isMDSEvent)
-                        {
-                            // [CLIndexingServices markItemForEvent:moveRenameEvent asPending:YES];
-                            CLIndexingService.MarItemForEvent_asPending(moveRenameEvent, asPending: true);
-                        }
-                        else
-                        {
-                            //TODO: Implement UI badging
-                            //     [self badgeFileAtCloudPath:moveRenameEvent.metadata.toPath withBadge:cloudAppBadgeSynced];
-
-                            // [moveRenameEvents removeObject:moveRenameEvent];
-                            moveRenameEvents.Remove(moveRenameEvent);
-                        }
-                    }
-                }
-                else
-                {
-                    // NSLog(@"%s - indexedMetadata is null.  THIS SHOULD NEVER HAPPEN BUT IT DID!!  ERROR", __FUNCTION__);
-                    _trace.writeToLog(1, "CLSyncService: IndexMoveRenameEvents: ERROR: indexedMetadata is null.");
-
-                    // if ([[NSFileManager defaultManager] fileExistsAtPath:fromFileSystemPath]) {
-                    if (File.Exists(fromFileSystemPath))
-                    {
-                        // TODO: Create index object from event (using Metadata from FS)
-                        // let it ride...
-                    }
-                    else
-                    {
-                        // if ([[NSFileManager defaultManager] fileExistsAtPath:toFileSystemPath]){
-                        if (File.Exists(toFileSystemPath))
-                        {
-                            // TODO: Create index object from event (using Metadata from FS)
-                            // Punt (the file is already at destination
-                            // Badge
-                        }
-                    }
-                }
-
-                // if (idx % 20 == 0) {
-                if (idx % 20 == 0)
-                {
-                    // [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
-                    CLIndexingService.Instance.SaveDataInContext();
-                }
-                ++idx;
-            });
-
-            // return moveRenameEvents;
-            return moveRenameEvents;
-        }
-
-        //- (NSMutableArray *)indexModifyEvents:(NSMutableArray *)events
-        List<CLEvent> IndexModifyEvents(List<CLEvent> events)
-        {
-            // Merged 7/4/12
-            // __block NSMutableArray *modifyEvents = events;
-            // [[events copy] enumerateObjectsUsingBlock:^(CLEvent *modifyEvent, NSUInteger idx, BOOL *stop) {
-            //     CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:modifyEvent];
-            //     if (indexedMetadata) {
-            //         NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:modifyEvent.metadata.path];
-            //         if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]){
-            //             [CLIndexingServices markItemForEvent:modifyEvent asPending:YES];
-            //         }
-            //     }
-            //     if (idx % 20 == 0) {
-            //         [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
-            //     }
-            // }];
-    
-            // return modifyEvents;
-            //&&&&
-
-            // __block NSMutableArray *modifyEvents = events;
-            // [[events copy] enumerateObjectsUsingBlock:^(CLEvent *modifyEvent, NSUInteger idx, BOOL *stop) {
-            List<CLEvent> modifyEvents = new List<CLEvent>(events);
-            int idx = 0;
-            modifyEvents.ForEach(modifyEvent =>
-            {
-                // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:modifyEvent];
-                CLMetadata indexedMetadata = CLIndexingService.Instance.IndexMetadataForEvent(modifyEvent);
-
-                // if (indexedMetadata) {
-                if (indexedMetadata != null)
-                {
-                    // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:modifyEvent.metadata.path];
-                    string fileSystemPath = Settings.Instance.CloudFolderPath + modifyEvent.Metadata.Path;
-
-                    // if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]){
-                    if (File.Exists(fileSystemPath))
-                    {
-                        // [CLIndexingServices markItemForEvent:modifyEvent asPending:YES];
-                        CLIndexingService.Instance.MarkItemForEvent_asPending(modifyEvent, asPending: true);
-                    }
-                }
-
-                // if (idx % 20 == 0) {
-                if (idx % 20 == 0)
-                {
-                    // [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
-                    CLIndexingService.Instance.SaveDataInContext();
-                }
-                ++idx;
-            });
-    
-            // return modifyEvents;
-            return modifyEvents;
-        }
-
-        //- (NSMutableArray *)indexAddEvents:(NSMutableArray *)events
-        List<CLEvent> IndexAddEvents(List<CLEvent> events)
-        {
-            // Merged 7/4/12
-            // __block NSMutableArray *addEvents = [self sortAddEventsFoldersFirstThenFiles:events];
-    
-            // [[addEvents copy] enumerateObjectsUsingBlock:^(CLEvent *addEvent, NSUInteger idx, BOOL *stop) {
-            //     CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:addEvent];
-            //     NSString *eventAction = addEvent.syncHeader.action;
-            //     BOOL isFileEvent = [eventAction rangeOfString:CLEventTypeFileRange].location != NSNotFound ? YES : NO;
-            //     if (indexedMetadata) {
-            
-            //         NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:addEvent.metadata.path];
-            //         if (isFileEvent == YES) {
-            //             if (indexedMetadata.isPending == NO) {
-            //                 if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]) {
-            //                     if ([addEvent.metadata.hash isEqualToString:indexedMetadata.hash]){
-            //                         [self badgeFileAtCloudPath:addEvent.metadata.path withBadge:cloudAppBadgeSynced];
-            //                         [addEvents removeObject:addEvent];
-            //                     }else {
-            //                         // TODO: Check to see if the item is in the active sync queue
-            //                         [CLIndexingServices markItemForEvent:addEvent asPending:YES];
-            //                     }
-            //                 }else {
-            //                     // Check to see if
-            //                     [CLIndexingServices markItemForEvent:addEvent asPending:YES];
-            //                 }
-            //             }else {
-            //                 // TODO: Pending == YES
-            //                 // TODO: Check to see if the event is in the active sync queue if yes punt if no check if it exists in file system and hash are the same.
-            //             }
-            //         }else {
-            //             if (indexedMetadata.isPending == NO){
-            //                 if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]){
-            //                     [self badgeFileAtCloudPath:addEvent.metadata.path withBadge:cloudAppBadgeSynced];
-            //                     [addEvents removeObject:addEvent];
-            //                 }else {
-            //                     [CLIndexingServices markItemForEvent:addEvent asPending:YES];
-            //                 }
-            //             }else {
-            //                 // TODO: Pending == YES
-            //                 // TODO: Check to see if the event is in the active sync queue if yes punt
-            //             }
-            //         }
-            //     }else {
-            
-            //         [CLIndexingServices addMetedataItem:addEvent.metadata pending:YES];
-            //     }
-            //     if (idx % 20 == 0) {
-            //         [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
-            //     }
-            // }];
-            // return addEvents;
-            //&&&&
-
-            // __block NSMutableArray *addEvents = [self sortAddEventsFoldersFirstThenFiles:events];
-            List<CLEvent> addEventsSorted = SortAddEventsFoldersFirstThenFiles(events);
-    
-            // [[addEvents copy] enumerateObjectsUsingBlock:^(CLEvent *addEvent, NSUInteger idx, BOOL *stop) {
-            List<CLEvent> addEvents = new List<CLEvent>(addEventsSorted);
-            int idx = 0;
-            addEvents.ForEach(addEvent =>
-            {
-                // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:addEvent];
-                CLMetadata indexedMetadata = CLIndexingService.Instance.IndexedMetadataForEvent(addEventsSorted);
-
-                // NSString *eventAction = addEvent.syncHeader.action;
-                // BOOL isFileEvent = [eventAction rangeOfString:CLEventTypeFileRange].location != NSNotFound ? YES : NO;
-                string eventAction = addEvent.SyncHeader.Action;
-                bool isFileEvent = eventAction.Contains(CLDefinitions.CLEventTypeFileRange) ? true : false;
-
-                // if (indexedMetadata) {
-                if (indexedMetadata != null)
-                {
-                    // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:addEvent.metadata.path];
-                    string fileSystemPath = Settings.Instance.CloudFolderPath + addEvent.Metadata.Path;
-
-                    // if (isFileEvent == YES) {
-                    if (isFileEvent)
-                    {
-                        // if (indexedMetadata.isPending == NO) {
-                        if (!indexedMetadata.IsPending)
-                        {
-                            // if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]) {
-                            if (File.Exists(fileSystemPath))
-                            {
-                                // if ([addEvent.metadata.hash isEqualToString:indexedMetadata.hash]){
-                                if (addEvent.Metadata.Hash.Equals(indexedMetadata.Hash, StringComparison.InvariantCulture))
-                                {
-                                    //TODO: Implement UI badging
-                                    // [self badgeFileAtCloudPath:addEvent.metadata.path withBadge:cloudAppBadgeSynced];
-                                    
-                                    // [addEvents removeObject:addEvent];
-                                    addEvents.Remove(addEvent);
-                                }
-                                else
-                                {
-                                    // TODO: Check to see if the item is in the active sync queue
-                                    // [CLIndexingServices markItemForEvent:addEvent asPending:YES];
-                                    CLIndexingService.Instance.MarkItemForEvent_asPending(addEvent, asPending: true);
-                                }
-                            }
-                            else
-                            {
-                                // TODO: Check to see if the event is in the active sync queue if yes punt
-                                // [CLIndexingServices markItemForEvent:addEvent asPending:YES];
-                                CLIndexingService.Instance.MarkItemForEvent_asPending(addEvent, asPending: true);
-                            }
-                        }
-                        else
-                        {
-                            // TODO: Pending == YES
-                            // TODO: Check to see if the event is in the active sync queue if yes punt if no check if it exists in file system and hash are the same.
-                        }
-                    }
-                    else
-                    {
-                        // if (indexedMetadata.isPending == NO){
-                        if (!indexedMetadata.IsPending)
-                        {
-                            // if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]){
-                            if (File.Exists(fileSystemPath))
-                            {
-                                //TODO: Implement UI badging.
-                                // [self badgeFileAtCloudPath:addEvent.metadata.path withBadge:cloudAppBadgeSynced];
-
-                                // [addEvents removeObject:addEvent];
-                                addEvents.Remove(addEvent);
-                            }
-                            else
-                            {
-                                // [CLIndexingServices markItemForEvent:addEvent asPending:YES];
-                                CLIndexingService.Instance.MarkItemForEvent_asPending(addEvent, asPending: true);
-                            }
-                        }
-                        else
-                        {
-                            // TODO: Pending == YES
-                            // TODO: Check to see if the event is in the active sync queue if yes punt
-                        }
-                    }
-                }
-                else
-                {
-                    // [CLIndexingServices addMetedataItem:addEvent.metadata pending:YES];
-                    CLIndexingService.Instance.AddMetadataItem_pending(addEvent.Metadata, pending: true);
-                }
-    
-                // if (idx % 20 == 0) {
-                if (idx % 20 == 0)
-                {
-                    // [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
-                    CLIndexingService.Instance.SaveDataInContext();
-                }
-                ++idx;
-            });
-
-            // return addEvents;
-            return addEvents;
-        }
-
-        //- (NSMutableArray *)indexDeleteEvents:(NSMutableArray *)events
-        List<CLEvent> IndexDeleteEvents(List<CLEvent> events)
-        {
-            // Merged 7/4/12
-            // __block NSMutableArray *deleteEvents = events;
-    
-            // [[events copy] enumerateObjectsUsingBlock:^(CLEvent *deleteEvent, NSUInteger idx, BOOL *stop) {
-        
-            //     CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:deleteEvent];
-            //     if (indexedMetadata) {
-            //         [CLIndexingServices markItemForEvent:deleteEvent asPending:YES];
-            //     }else {
-            //         NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:deleteEvent.metadata.path];
-            //         if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath] == NO) {
-            //             [deleteEvents removeObject:deleteEvent];
-            //         }else {
-            //             // process event
-            //         }
-            //     }
-            //     if (idx % 20 == 0) {
-            //         [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
-            //     }
-            // }];
-    
-            // return deleteEvents;
-            //&&&&
-
-            // __block NSMutableArray *deleteEvents = events;
-            // [[events copy] enumerateObjectsUsingBlock:^(CLEvent *deleteEvent, NSUInteger idx, BOOL *stop) {
-            List<CLEvent> deleteEvents = new List<CLEvent>(events);
-            int idx = 0;
-            deleteEvents.ForEach(deleteEvent =>
-            {
-                // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:deleteEvent];
-                CLMetadata indexedMetadata = CLIndexingService.Instance.IndexedMetadataForEvent(deleteEvent);
-
-                // if (indexedMetadata) {
-                if (indexedMetadata != null)
-                {
-                    // [CLIndexingServices markItemForEvent:deleteEvent asPending:YES];
-                    CLIndexingService.Instance.MarkItemForEvent_asPending(deleteEvent, asPending: true);
-                }
-                else
-                {
-                    // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:deleteEvent.metadata.path];
-                    string fileSystemPath = Settings.Instance.CloudFolderPath + deleteEvent.Metadata.Path;
-
-                    // if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath] == NO) {
-                    if (!File.Exists(fileSystemPath))
-                    {
-                        // [deleteEvents removeObject:deleteEvent];
-                        deleteEvents.Remove(deleteEvent);
-                    }
-                    else
-                    {
-                        //TODO: process event
-                    }
-                }
-
-                // if (idx % 20 == 0) {
-                if (idx % 20 == 0)
-                {
-                    // [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
-                    CLIndexingService.Instance.SaveDataInContext();
-                }
-                ++idx;
-            });
-
-            // return deleteEvents;
-            return deleteEvents;
-        }
 
 
 
@@ -1054,7 +578,7 @@ namespace win_client.Services.Sync
                                 };
 
                         // [self performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
-                        PerformSyncOperationWithEventsWithEventIDsAndOrigin(eventsReceived, eventIds, CLEventOrigin.CLEventOriginMDS);
+                        PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsReceived, eventIds, CLEventOrigin.CLEventOriginMDS);
                     }
                 }
                 else
@@ -1538,7 +1062,7 @@ namespace win_client.Services.Sync
                         };
 
                         // [self performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
-                        PerformSyncOperationWithEventsWithEventIDsAndOrigin(eventsInner, eventIds, CLEventOrigin.CLEventOriginMDS);
+                        PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsInner, eventIds, CLEventOrigin.CLEventOriginMDS);
                     }
                     else
                     {
@@ -1567,68 +1091,102 @@ namespace win_client.Services.Sync
         //- (void)performSyncOperationWithEvents:(NSArray *)events withEventIDs:(NSDictionary *)ids andOrigin:(CLEventOrigin)origin
         void PerformSyncOperationWithEvents_withEventIDs_andOrigin(List<CLEvent> events, Dictionary<string, object> ids, CLEventOrigin origin)
         {
-            // Merged 7/4/12
+            // Merged 7/10/12
             //NSLog(@"%s", __FUNCTION__);
     
             //// Update UI with activity.
             //[self animateUIForSync:YES withStatusMessage:menuItemActivityLabelIndexing syncActivityCount:0];
     
-            //// Sorting, bitches.
-            //NSDictionary *sortedEvents = [self sortSyncEventsByType:events];
-    
-            //// Preprocess Index
-            //sortedEvents = [self indexSortedEvents:sortedEvents];
+            //// Indexing, bitches.
+            //NSArray *indexedEvents = [self indexSyncEventsByType:events];
     
             ///* Process Sync Events */
     
             //// Adding objects to our active sync queue
-            //[self.activeSyncQueue addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeAdd]];
-            //[self.activeSyncQueue addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeModify]];
-            //[self.activeSyncQueue addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeRenameMove]];
-            //[self.activeSyncQueue addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeDelete]];
+            //[self.activeSyncQueue addObjectsFromArray:indexedEvents];
     
             //// Get separated file and folder events
             //self.activeSyncFolderQueue = [self separateFolderFromFileForActiveEvents:self.activeSyncQueue wantsFolderEvents:YES];
             //self.activeSyncFileQueue = [self separateFolderFromFileForActiveEvents:self.activeSyncQueue wantsFolderEvents:NO];
-    
+        
             //// Get total object count in sync queue
-            //self.syncItemsQueueCount = [self.activeSyncQueue count];
+            //self.syncItemsQueueCount = [self.activeSyncQueue count]; // incremental.
     
             //// Update UI with sync activity
             //[self animateUIForSync:YES withStatusMessage:menuItemActivityLabelSyncing syncActivityCount:self.syncItemsQueueCount];
+
     
-            //// This order of these methods is important do not change!! btchs
-            //// Delete Files and Folders
-            //[self processDeleteSyncEvents:[sortedEvents objectForKey:CLEventTypeDelete]];
-    
-            //// Add Folders
-            //[self processAddFolderSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
-    
-            //// Rename/Move Folders
-            //[self processRenameMoveFolderSyncEvents:[sortedEvents objectForKey:CLEventTypeRenameMove]];
-    
-            //// Add Files
-            //[self processAddFileSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
-    
-            //// Modify Files
-            //[self processModifyFileSyncEvents:[sortedEvents objectForKey:CLEventTypeModify]];
-    
-            //// Rename/Move Files
-            //[self processRenameMoveFileSyncEvents:[sortedEvents objectForKey:CLEventTypeRenameMove]];
-    
-            //// Add Links
-            //[self processAddLinkSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
-    
-            //// Modify Links
-            //[self processModifyLinkSyncEvents:[sortedEvents objectForKey:CLEventTypeModify]];
-    
-            //// Rename/Move Links
-            //[self processRenameMoveLinkSyncEvents:[sortedEvents objectForKey:CLEventTypeRenameMove]];
+            //// Process events in order they were received.
+            //[self.activeSyncQueue enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        
+            //    CLEvent *event = obj;
+            //    NSString *eventAction = event.syncHeader.action;
+        
+            //    if ([eventAction rangeOfString:CLEventTypeDeleteRange].location != NSNotFound) {
+            //        // delete (any type) events
+            //        [self processDeleteSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeAddFolder]) {
+            //        // add folder events
+            //        [self processAddFolderSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeRenameFolder]) {
+            //        // rename folder events
+            //        [self processRenameMoveFolderSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeMoveFolder]) {
+            //        // move folder events
+            //        [self processRenameMoveFolderSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeAddFile]) {
+            //        // add file events
+            //        [self processAddFileSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeModifyFile]) {
+            //        // modify file events
+            //        [self processModifyFileSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeRenameFile]) {
+            //        // rename file events
+            //        [self processRenameMoveFileSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeMoveFile]) {
+            //        // move file events
+            //        [self processRenameMoveFileSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeAddLink]) {
+            //        // add link events
+            //        [self processAddLinkSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeModifyLink]) {
+            //        // modify link events
+            //        [self processModifyLinkSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeRenameLink]) {
+            //        // rename link events
+            //        [self processRenameMoveLinkSyncEvent:event];
+            //    }
+        
+            //    if ([eventAction isEqualToString:CLEventTypeMoveLink]) {
+            //        // move link events
+            //        [self processRenameMoveLinkSyncEvent:event];
+            //    }
+            //}];
     
             //// Display user notification
             //[[CLUIActivityService sharedService] displayUserNotificationForSyncEvents:self.activeSyncQueue];
     
-            //// Remove active items from queue (if any left)
+            //// Remove active items from queue
             //[self.activeSyncQueue removeAllObjects];
     
             //// Sync finished.
@@ -1650,173 +1208,1051 @@ namespace win_client.Services.Sync
             _trace.writeToLog(9, "CLSyncService: PerformSyncOperationWithEvents_withEventIds_andOrigin: Entry.");
 
             // Update UI with activity.
-            //TODO: Implemenet UI.
+            //TODO: Implement this UI.
             //[self animateUIForSync:YES withStatusMessage:menuItemActivityLabelIndexing syncActivityCount:0];
 
-            // Sorting, bitches.
-            //NSDictionary *sortedEvents = [self sortSyncEventsByType:events];
-            Dictionary<string, object> sortedEvents = SortSyncEventsByType(events);
+            //// Indexing, bitches.
+            //NSArray *indexedEvents = [self indexSyncEventsByType:events];
+            List<CLEvent> indexedEvents = IndexSyncEventsByType(events);
 
-            // Preprocess Index
-            //sortedEvents = [self indexSortedEvents:sortedEvents];
-            sortedEvents = IndexSortedEvents(sortedEvents);
+            ///* Process Sync Events */
 
-            // Process Sync Events
+            //// Adding objects to our active sync queue
+            //[self.activeSyncQueue addObjectsFromArray:indexedEvents];
+            _activeSyncQueue.AddRange(indexedEvents);
 
-            // Adding objects to our active sync queue
-            //[self.activeSyncQueue addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeAdd]];
-            //[self.activeSyncQueue addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeModify]];
-            //[self.activeSyncQueue addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeRenameMove]];
-            //[self.activeSyncQueue addObjectsFromArray:[sortedEvents objectForKey:CLEventTypeDelete]];
-            _activeSyncQueue.AddRange((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeAdd]);
-            _activeSyncQueue.AddRange((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeModify]);
-            _activeSyncQueue.AddRange((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeRenameMove]);
-            _activeSyncQueue.AddRange((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeDelete]);
-
-            // Get separated file and folder events
+            //// Get separated file and folder events
             //self.activeSyncFolderQueue = [self separateFolderFromFileForActiveEvents:self.activeSyncQueue wantsFolderEvents:YES];
             //self.activeSyncFileQueue = [self separateFolderFromFileForActiveEvents:self.activeSyncQueue wantsFolderEvents:NO];
             _activeSyncFolderQueue = SeparateFolderFromFileForActiveEvents_WantsFolderEvents(_activeSyncQueue, wantsFolderEvents: true);
             _activeSyncFileQueue = SeparateFolderFromFileForActiveEvents_WantsFolderEvents(_activeSyncQueue, wantsFolderEvents: false);
 
-            // Get total object count in sync queue
-            //self.syncItemsQueueCount = [self.activeSyncQueue count];
+            //// Get total object count in sync queue
+            //self.syncItemsQueueCount = [self.activeSyncQueue count]; // incremental.
             _syncItemsQueueCount = _activeSyncQueue.Count;
 
-            // Update UI with sync activity
+            //// Update UI with sync activity
             //TODO: Implement this UI.
             //[self animateUIForSync:YES withStatusMessage:menuItemActivityLabelSyncing syncActivityCount:self.syncItemsQueueCount];
 
-            // This order of these methods is important do not change!! btchs
-            // Delete Files and Folders
-            //[self processDeleteSyncEvents:[sortedEvents objectForKey:CLEventTypeDelete]];
-            ProcessDeleteSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeDelete]);
+            //// Process events in order they were received.
+            //[self.activeSyncQueue enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            foreach (CLEvent evt in _activeSyncQueue)
+            {
+                // CLEvent *event = obj;
+                // NSString *eventAction = event.syncHeader.action;
+                string eventAction = evt.SyncHeader.Action;
 
-            // Add Folders
-            //[self processAddFolderSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
-            ProcessAddFolderSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeAdd]);
+                // if ([eventAction rangeOfString:CLEventTypeDeleteRange].location != NSNotFound) {
+                if (eventAction.Contains(CLDefinitions.CLEventTypeDeleteRange))
+                {
+                    // Delete (any type) events
+                    // [self processDeleteSyncEvent:event];
+                    ProcessDeleteSyncEvent(evt);
+                }
 
-            // Rename/Move Folders
-            //[self processRenameMoveFolderSyncEvents:[sortedEvents objectForKey:CLEventTypeRenameMove]];
-            ProcessRenameMoveFolderSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeRenameMove]);
+                // if ([eventAction isEqualToString:CLEventTypeAddFolder]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeAddFolder, StringComparison.InvariantCulture))
+                {
+                    // Add folder events
+                    // [self processAddFolderSyncEvent:event];
+                    ProcessAddFolderSyncEvent(evt);
+                }
 
-            // Add Files
-            //[self processAddFileSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
-            processAddFileSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeAdd]);
+                // if ([eventAction isEqualToString:CLEventTypeRenameFolder]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeRenameFolder, StringComparison.InvariantCulture))
+                {
+                    // Rename folder events
+                    // [self processRenameMoveFolderSyncEvent:event];
+                    ProcessRenameMoveFolderSyncEvent(evt);
+                }
 
-            // Modify Files
-            //[self processModifyFileSyncEvents:[sortedEvents objectForKey:CLEventTypeModify]];
-            processModifyFileSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeModify]);
+                // if ([eventAction isEqualToString:CLEventTypeMoveFolder]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeMoveFolder, StringComparison.InvariantCulture))
+                {
+                    // Move folder events
+                    // [self processRenameMoveFolderSyncEvent:event];
+                    ProcessRenameMoveFolderSyncEvent(evt);
+                }
 
-            // Rename/Move Files
-            //[self processRenameMoveFileSyncEvents:[sortedEvents objectForKey:CLEventTypeRenameMove]];
-            processRenameMoveFileSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeRenameMove]);
+                // if ([eventAction isEqualToString:CLEventTypeAddFile]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeAddFile, StringComparison.InvariantCulture))
+                {
+                    // Aadd file events
+                    // [self processAddFileSyncEvent:event];
+                    ProcessAddFileSyncEvent(evt);
+                }
 
-            // Add Links
-            //[self processAddLinkSyncEvents:[sortedEvents objectForKey:CLEventTypeAdd]];
-            ProcessAddLinkSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeAdd]);
+                // if ([eventAction isEqualToString:CLEventTypeModifyFile]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeModifyFile, StringComparison.InvariantCulture))
+                {
+                    // Modify file events
+                    // [self processModifyFileSyncEvent:event];
+                    ProcessModifyFileSyncEvent(evt);
+                }
 
-            // Modify Links
-            //[self processModifyLinkSyncEvents:[sortedEvents objectForKey:CLEventTypeModify]];
-            ProcessModifyLinkSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeModify]);
+                // if ([eventAction isEqualToString:CLEventTypeRenameFile]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeRenameFile, StringComparison.InvariantCulture))
+                {
+                    // Rename file events
+                    // [self processRenameMoveFileSyncEvent:event];
+                    ProcessRenameMoveFileSyncEvent(evt);
+                }
 
-            // Rename/Move Links
-            //[self processRenameMoveLinkSyncEvents:[sortedEvents objectForKey:CLEventTypeRenameMove]];
-            ProcessRenameLinkSyncEvents((List<CLEvent>)sortedEvents[CLDefinitions.CLEventTypeRenameMove]);
+                // if ([eventAction isEqualToString:CLEventTypeMoveFile]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeMoveFile, StringComparison.InvariantCulture))
+                {
+                    // Move file events
+                    // [self processRenameMoveFileSyncEvent:event];
+                    ProcessRenameMoveFileSyncEvent(evt);
+                }
 
-            // Display user notification
+                // if ([eventAction isEqualToString:CLEventTypeAddLink]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeAddLink, StringComparison.InvariantCulture))
+                {
+                    // Add link events
+                    // [self processAddLinkSyncEvent:event];
+                    ProcessAddLinkSyncEvent(evt);
+                }
+
+                // if ([eventAction isEqualToString:CLEventTypeModifyLink]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeModifyLink, StringComparison.InvariantCulture))
+                {
+                    // Modify link events
+                    // [self processModifyLinkSyncEvent:event];
+                    ProcessModifyLinkSyncEvent(evt);
+                }
+
+                // if ([eventAction isEqualToString:CLEventTypeRenameLink]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeRenameLink, StringComparison.InvariantCulture))
+                {
+                    // Rename link events
+                    // [self processRenameMoveLinkSyncEvent:event];
+                    ProcessRenameMoveLinkSyncEvent(evt);
+                }
+
+                // if ([eventAction isEqualToString:CLEventTypeMoveLink]) {
+                if (eventAction.Equals(CLDefinitions.CLEventTypeMoveLink, StringComparison.InvariantCulture))
+                {
+                    // Move link events
+                    // [self processRenameMoveLinkSyncEvent:event];
+                    ProcessRenameMoveLinkSyncEvent(evt);
+                }
+            }
+
+            //// Display user notification
             //TODO: Implement this UI.
             //[[CLUIActivityService sharedService] displayUserNotificationForSyncEvents:self.activeSyncQueue];
 
-            // Remove active items from queue (if any left)
+            // Remove active items from queue
             //[self.activeSyncQueue removeAllObjects];
             _activeSyncQueue.RemoveAll((CLEvent evt) => { return true; });
 
-            // Sync finished.
+            //// Sync finished.
             //[self saveSyncStateWithSID:[ids objectForKey:CLSyncID] andEID:[ids objectForKey:CLSyncEventID]];
-            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], (ulong) ids[CLDefinitions.CLSyncEventID]);
+            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], (long)ids[CLDefinitions.CLSyncEventID]);
 
-            // Update UI with activity.
+            //// Update UI with activity.
             //TODO: Implement this UI.
             //[self animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
 
-            //TODO: Implement this to save index changes if necessary.
             //if ([[NSManagedObjectContext defaultContext] hasChanges]){
             //    [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
             //}
-            CLIndexingService.Instance.SaveDataInContext();
+            CLIndexingService.Instance.SaveDataInContext(null);
 
             //if (self.needSyncFromCloud == YES) {
+            //    [self notificationService:nil didReceivePushNotificationFromServer:nil];
+            //}
             if (_needSyncFromCloud)
             {
-                //TODO: Notify?
+                //TODO: Implement this notification
                 // [self notificationService:nil didReceivePushNotificationFromServer:nil];
+            }
+
+        }
+
+        //- (NSMutableArray *)sortEventsFoldersFirstThenFiles:(NSArray *)events
+        List<CLEvent> SortEventsFoldersFirstThenFiles(List<CLEvent> events)
+        {
+            // Merged 7/10/12
+            // NSArray *folderEventItems = [events filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
+            //     CLEvent *event = evaluatedObject;
+            //     return (event.metadata.isDirectory  == YES);
+            // }]];
+    
+            // NSArray *fileEventItems = [events filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
+            //     CLEvent *event = evaluatedObject;
+            //     return (event.metadata.isDirectory == NO);
+            // }]];
+    
+            // NSSortDescriptor *sortbyNumberOfPathComponents = [[NSSortDescriptor alloc] initWithKey:@"metadata" ascending:YES comparator:^NSComparisonResult(id obj1, id obj2) {
+            //     CLMetadata *metadata1 = obj1;
+            //     CLMetadata *metadata2 = obj2;
+            //     NSUInteger metadata1PathCount = [[metadata1.path componentsSeparatedByString:@"/"] count];
+            //     NSUInteger metadata2PathCount = [[metadata2.path componentsSeparatedByString:@"/"] count];
+            //     NSComparisonResult results;
+            //     if (metadata1PathCount > metadata2PathCount) {
+            //         results = NSOrderedDescending;
+            //     }
+            //     if (metadata1PathCount < metadata2PathCount) {
+            //         results = NSOrderedAscending;
+            //     }
+            //     if (metadata1PathCount == metadata2PathCount) {
+            //         results = NSOrderedSame;
+            //     }
+            //     return results;
+            // }];
+    
+            //    // Folders must be added to the index in a parent child order. We do not want to add children to the index before thier parents.
+            //    // Files must be added after all the folders have been processed.
+            //    NSArray *sortedFoldersItems = [folderEventItems sortedArrayUsingDescriptors:@[sortbyNumberOfPathComponents]];
+            //    NSMutableArray *sortedEvents = [NSMutableArray arrayWithArray:sortedFoldersItems];
+            //    [sortedEvents addObjectsFromArray:fileEventItems];
+            //    return sortedEvents;
+            //&&&&
+
+            // NSArray *folderEventItems = [events filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
+            //     CLEvent *event = evaluatedObject;
+            //     return (event.metadata.isDirectory  == YES);
+            // }]];
+            List<CLEvent> folderEventItems = new List<CLEvent>(events);
+            folderEventItems.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == true); });
+
+            // NSArray *fileEventItems = [events filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
+            //     CLEvent *event = evaluatedObject;
+            //     return (event.metadata.isDirectory == NO);
+            // }]];
+            List<CLEvent> fileEventItems = new List<CLEvent>(events);
+            fileEventItems.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == false); });
+
+            // NSSortDescriptor *sortbyNumberOfPathComponents = [[NSSortDescriptor alloc] initWithKey:@"metadata" ascending:YES comparator:^NSComparisonResult(id obj1, id obj2) {
+            //     CLMetadata *metadata1 = obj1;
+            //     CLMetadata *metadata2 = obj2;
+            //     NSUInteger metadata1PathCount = [[metadata1.path componentsSeparatedByString:@"/"] count];
+            //     NSUInteger metadata2PathCount = [[metadata2.path componentsSeparatedByString:@"/"] count];
+            //     NSComparisonResult results;
+            //     if (metadata1PathCount > metadata2PathCount) {
+            //         results = NSOrderedDescending;
+            //     }
+            //     if (metadata1PathCount < metadata2PathCount) {
+            //         results = NSOrderedAscending;
+            //     }
+            //     if (metadata1PathCount == metadata2PathCount) {
+            //         results = NSOrderedSame;
+            //     }
+            //     return results;
+            // }];
+
+            // // Folders must be added to the index in a parent child order. We do not want to add children to the index before thier parents.
+            // // Files must be added after all the folders have been processed.
+            // NSArray *sortedFoldersItems = [folderEventItems sortedArrayUsingDescriptors:@[sortbyNumberOfPathComponents]];
+            // NSMutableArray *sortedEvents = [NSMutableArray arrayWithArray:sortedFoldersItems];
+            folderEventItems.Sort((CLEvent event1, CLEvent event2) =>
+            {
+                var separators = new char[] {
+                    Path.DirectorySeparatorChar,
+                    Path.AltDirectorySeparatorChar
+                };
+
+                CLMetadata metadata1 = event1.Metadata;
+                CLMetadata metadata2 = event2.Metadata;
+                long metadata1PathCount = metadata1.Path.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
+                long metadata2PathCount = metadata2.Path.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
+
+                if (metadata1PathCount > metadata2PathCount)
+                {
+                    return 1;
+                }
+
+                if (metadata1PathCount < metadata2PathCount)
+                {
+                    return -1;
+                }
+
+                return 0;
+            });
+
+            // [sortedEvents addObjectsFromArray:fileEventItems];
+            folderEventItems.AddRange(fileEventItems);
+
+            //    return sortedEvents;
+            return folderEventItems;
+        }
+
+
+
+        //- (NSArray *)indexSyncEventsByType:(NSArray *)events
+        List<CLEvent> IndexSyncEventsByType(List<CLEvent> events)
+        {
+            // Merged 7/10/12
+            // NSLog(@"%s", __FUNCTION__);
+    
+            // __block NSMutableArray *indexedEvents = [self sortEventsFoldersFirstThenFiles:events];
+    
+            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        
+            //     CLEvent *event = obj;
+            //     NSString *eventAction = event.syncHeader.action;
+        
+            //     if ([eventAction rangeOfString:CLEventTypeAddRange].location != NSNotFound) {
+            //         if ([self indexAddEvent:event] == NO) {
+            //             [indexedEvents removeObject:event];
+            //         }
+            //     }
+            //     if ([eventAction rangeOfString:CLEventTypeModifyFile].location != NSNotFound) {
+            //         if ([self indexModifyEvent:event] == NO) {
+            //             [indexedEvents removeObject:event];
+            //         }
+            //     }
+            //     if ([eventAction rangeOfString:CLEventTypeRenameRange].location != NSNotFound) {
+            //         if ([self indexMoveRenameEvent:event] == NO) {
+            //             [indexedEvents removeObject:event];
+            //         }
+            //     }
+            //     if ([eventAction rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
+            //         if ([self indexMoveRenameEvent:event] == NO) {
+            //             [indexedEvents removeObject:event];
+            //         }
+            //     }
+            //     if ([eventAction rangeOfString:CLEventTypeDeleteRange].location != NSNotFound) {
+            //         if ([self indexDeleteEvent:event] == NO) {
+            //             [indexedEvents removeObject:event];
+            //         }
+            //     }
+        
+            //     if (idx % 20 == 0) {
+            //         [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
+            //     }
+            // }];
+    
+            // return indexedEvents;
+            //&&&&
+
+            // NSLog(@"%s", __FUNCTION__);
+            _trace.writeToLog(9, "CLSyncService: IndexSyncEventsByType: Entry.");
+
+            // __block NSMutableArray *indexedEvents = [self sortEventsFoldersFirstThenFiles:events];
+            List<CLEvent> indexedEvents = SortEventsFoldersFirstThenFiles(events);
+
+            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            int idx = 0;
+            foreach (CLEvent evt in events)
+            {
+                // CLEvent *event = obj;
+                // NSString *eventAction = event.syncHeader.action;
+                string eventAction = evt.SyncHeader.Action;
+
+                // if ([eventAction rangeOfString:CLEventTypeAddRange].location != NSNotFound) {
+                if (eventAction.Contains(CLDefinitions.CLEventTypeAddRange))
+                {
+                    // if ([self indexAddEvent:event] == NO) {
+                    if (!IndexAddEvent(evt))
+                    {
+                        // [indexedEvents removeObject:event];
+                        indexedEvents.Remove(evt);
+                    }
+                }
+
+                // if ([eventAction rangeOfString:CLEventTypeModifyFile].location != NSNotFound) {
+                if (eventAction.Contains(CLDefinitions.CLEventTypeModifyFile))
+                {
+                    // if ([self indexModifyEvent:event] == NO) {
+                    if (!IndexModifyEvent(evt))
+                    {
+                        // [indexedEvents removeObject:event];
+                        indexedEvents.Remove(evt);
+                    }
+                }
+
+                // if ([eventAction rangeOfString:CLEventTypeRenameRange].location != NSNotFound) {
+                if (eventAction.Contains(CLDefinitions.CLEventTypeRenameRange))
+                {
+                    // if ([self indexMoveRenameEvent:event] == NO) {
+                    if (!IndexMoveRenameEvent(evt))
+                    {
+                        // [indexedEvents removeObject:event];
+                        indexedEvents.Remove(evt);
+                    }
+                }
+
+                // if ([eventAction rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
+                if (eventAction.Contains(CLDefinitions.CLEventTypeMoveRange))
+                {
+                    // if ([self indexMoveRenameEvent:event] == NO) {
+                    if (!IndexMoveRenameEvent(evt))
+                    {
+                        // [indexedEvents removeObject:event];
+                        indexedEvents.Remove(evt);
+                    }
+                }
+
+                // if ([eventAction rangeOfString:CLEventTypeDeleteRange].location != NSNotFound) {
+                if (eventAction.Contains(CLDefinitions.CLEventTypeDeleteRange))
+                {
+                    // if ([self indexDeleteEvent:event] == NO) {
+                    if (!IndexDeleteEvent(evt))
+                    {
+                        // [indexedEvents removeObject:event];
+                        indexedEvents.Remove(evt);
+                    }
+                }
+
+                // if (idx % 20 == 0) {
+                if (idx++ % 20 == 0)
+                {
+                    // [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
+                    CLIndexingService.Instance.SaveDataInContext(null);
+                }
+            }
+
+            // return indexedEvents;
+            return indexedEvents;
+        }
+
+        //- (BOOL)indexMoveRenameEvent:(CLEvent *)moveRenameEvent
+        bool IndexMoveRenameEvent(CLEvent moveRenameEvent)
+        {
+            // Merged 7/10/12
+            // BOOL shouldProcessEvent = YES;
+    
+            // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:moveRenameEvent];
+            // NSString *fromFileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:moveRenameEvent.metadata.fromPath];
+            // NSString *toFileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:moveRenameEvent.metadata.toPath];
+    
+            // BOOL isMDSEvent = (moveRenameEvent.syncHeader.status != nil) ? YES : NO;
+    
+            // if (indexedMetadata) {
+            //     if ([[NSFileManager defaultManager] fileExistsAtPath:fromFileSystemPath]) {
+            //         [CLIndexingServices markItemForEvent:moveRenameEvent asPending:YES];
+            //     }else if ([[NSFileManager defaultManager] fileExistsAtPath:toFileSystemPath]){
+            //         if (isMDSEvent == YES) {
+            //             [CLIndexingServices markItemForEvent:moveRenameEvent asPending:YES];
+            //         }
+            //         else{
+            //             [self badgeFileAtCloudPath:moveRenameEvent.metadata.toPath withBadge:cloudAppBadgeSynced];
+            //             shouldProcessEvent = NO;
+            //         }
+            //     }
+            // }else {
+            //     NSLog(@"%s - THIS SHOULD NEVER HAPPEN BUT IT DID!!  ERROR", __FUNCTION__);
+            //     if ([[NSFileManager defaultManager] fileExistsAtPath:fromFileSystemPath]) {
+            //         // TODO: Create index object from event (using Metadata from FS)
+            //         // let it ride...
+            //     }else {
+            //         if ([[NSFileManager defaultManager] fileExistsAtPath:toFileSystemPath]){
+            //             // TODO: Create index object from event (using Metadata from FS)
+            //             // Punt (the file is already at destination
+            //             // Badge
+            //         }
+            //     }
+            // }
+
+            // return shouldProcessEvent;
+            //&&&&
+
+            // BOOL shouldProcessEvent = YES;
+            bool shouldProcessEvent = true;
+
+            // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:moveRenameEvent];
+            // NSString *fromFileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:moveRenameEvent.metadata.fromPath];
+            // NSString *toFileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:moveRenameEvent.metadata.toPath];
+            CLMetadata indexedMetadata = CLIndexingService.Instance.IndexedMetadataForEvent(moveRenameEvent);
+            string fromFileSystemPath = Settings.Instance.CloudFolderPath + moveRenameEvent.Metadata.FromPath;
+            string toFileSystemPath = Settings.Instance.CloudFolderPath + moveRenameEvent.Metadata.ToPath;
+
+            // BOOL isMDSEvent = (moveRenameEvent.syncHeader.status != nil) ? YES : NO;
+            bool isMDSEvent = (moveRenameEvent.SyncHeader.Status != null) ? true : false;
+
+            // if (indexedMetadata) {
+            if (indexedMetadata != null)
+            {
+                // if ([[NSFileManager defaultManager] fileExistsAtPath:fromFileSystemPath]) {
+                if (File.Exists(fromFileSystemPath))
+                {
+                    // [CLIndexingServices markItemForEvent:moveRenameEvent asPending:YES];
+                    CLIndexingService.Instance.MarkItemForEvent_asPending(moveRenameEvent, pending: true);
+                }
+                // }else if ([[NSFileManager defaultManager] fileExistsAtPath:toFileSystemPath]){
+                else if (File.Exists(toFileSystemPath))
+                {
+                    // if (isMDSEvent == YES) {
+                    if (isMDSEvent)
+                    {
+                        // [CLIndexingServices markItemForEvent:moveRenameEvent asPending:YES];
+                        CLIndexingService.Instance.MarkItemForEvent_asPending(moveRenameEvent, pending: true);
+                    }
+                    else
+                    {
+                        // [self badgeFileAtCloudPath:moveRenameEvent.metadata.toPath withBadge:cloudAppBadgeSynced];
+                        // shouldProcessEvent = NO;
+                        BadgeFileAtCloudPath_withBadge(moveRenameEvent.Metadata.ToPath, cloudAppIconBadgeType.cloudAppBadgeSynced);
+                        shouldProcessEvent = false;
+                    }
+                }
+            }
+            else
+            {
+                // NSLog(@"%s - THIS SHOULD NEVER HAPPEN BUT IT DID!!  ERROR", __FUNCTION__);
+                _trace.writeToLog(1, "CLSyncService: IndexMoveRenameEvent: ERROR: This should never happen but it did!");
+
+                // if ([[NSFileManager defaultManager] fileExistsAtPath:fromFileSystemPath]) {
+                if (File.Exists(fromFileSystemPath))
+                {
+                    // TODO: Create index object from event (using Metadata from FS)
+                    // let it ride...
+                }
+                else
+                {
+                    // if ([[NSFileManager defaultManager] fileExistsAtPath:toFileSystemPath]){
+                    if (File.Exists(toFileSystemPath))
+                    {
+                        // TODO: Create index object from event (using Metadata from FS)
+                        // Punt (the file is already at destination
+                        // Badge
+                    }
+                }
+            }
+
+            // return shouldProcessEvent;
+            return shouldProcessEvent;
+        }
+
+        //- (BOOL)indexModifyEvent:(CLEvent *)modifyEvent
+        bool IndexModifyEvent(CLEvent modifyEvent)
+        {
+            // Merged 7/10/12
+            // BOOL shouldProcessEvent = YES;
+    
+            // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:modifyEvent];
+            // if (indexedMetadata) {
+            //     NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:modifyEvent.metadata.path];
+            //     if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]){
+            //         [CLIndexingServices markItemForEvent:modifyEvent asPending:YES];
+            //     }
+            // }
+
+            // return shouldProcessEvent;
+            //&&&&
+
+            // BOOL shouldProcessEvent = YES;
+            bool shouldProcessEvent = true;
+
+            // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:modifyEvent];
+            CLMetadata indexedMetadata = CLIndexingService.Instance.IndexedMetadataForEvent(modifyEvent);
+
+            // if (indexedMetadata) {
+            if (indexedMetadata != null)
+            {
+                // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:modifyEvent.metadata.path];
+                string fileSystemPath = Settings.Instance.CloudFolderPath + modifyEvent.Metadata.Path;
+
+                // if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]){
+                if (File.Exists(fileSystemPath))
+                {
+                    // [CLIndexingServices markItemForEvent:modifyEvent asPending:YES];
+                    CLIndexingService.Instance.MarkItemForEvent_asPending(modifyEvent, pending: true);
+                }
+            }
+
+            // return shouldProcessEvent;
+            return shouldProcessEvent;
+        }
+
+        //- (BOOL)indexAddEvent:(CLEvent *)addEvent
+        bool IndexAddEvent(CLEvent addEvent)
+        {
+            // Merged 7/10/12
+            // BOOL shouldProcessEvent = YES;
+    
+            // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:addEvent];
+            // NSString *eventAction = addEvent.syncHeader.action;
+            // BOOL isFileEvent = [eventAction rangeOfString:CLEventTypeFileRange].location != NSNotFound ? YES : NO;
+            // if (indexedMetadata) {
+        
+            //     NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:addEvent.metadata.path];
+            //     if (isFileEvent == YES) {
+            //         if (indexedMetadata.isPending == NO) {
+            //             if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]) {
+            //                 if ([addEvent.metadata.hash isEqualToString:indexedMetadata.hash]){
+            //                     [self badgeFileAtCloudPath:addEvent.metadata.path withBadge:cloudAppBadgeSynced];
+            //                     shouldProcessEvent = NO;
+            //                 }else {
+            //                     // TODO: Check to see if the item is in the active sync queue
+            //                     [CLIndexingServices markItemForEvent:addEvent asPending:YES];
+            //                 }
+            //             }else {
+            //                 // Check to see if
+            //                 [CLIndexingServices markItemForEvent:addEvent asPending:YES];
+            //             }
+            //         }else {
+            //             // TODO: Pending == YES
+            //             // TODO: Check to see if the event is in the active sync queue if yes punt if no check if it exists in file system and hash are the same.
+            //         }
+            //     }else {
+            //         if (indexedMetadata.isPending == NO){
+            //             if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]){
+            //                 [self badgeFileAtCloudPath:addEvent.metadata.path withBadge:cloudAppBadgeSynced];
+            //                 shouldProcessEvent = NO;
+            //             } else {
+            //                 [CLIndexingServices markItemForEvent:addEvent asPending:YES];
+            //             }
+            //         }else {
+            //             // TODO: Pending == YES
+            //             // TODO: Check to see if the event is in the active sync queue if yes punt
+            //         }
+            //     }
+            // }else {
+        
+            //     [CLIndexingServices addMetedataItem:addEvent.metadata pending:YES];
+            //     if (isFileEvent == NO) NSLog(@"Folder Events Added to Index: %@", addEvent.metadata.path);
+            // }
+    
+            // return shouldProcessEvent;
+            //&&&&
+
+            // BOOL shouldProcessEvent = YES;
+            bool shoulProcessEvent = true;
+
+            // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:addEvent];
+            CLMetadata indexedMetadata = CLIndexingService.Instance.IndexedMetadataForEvent(addEvent);
+
+            // NSString *eventAction = addEvent.syncHeader.action;
+            string eventAction = addEvent.SyncHeader.Action;
+
+            // BOOL isFileEvent = [eventAction rangeOfString:CLEventTypeFileRange].location != NSNotFound ? YES : NO;
+            bool isFileEvent = eventAction.Contains(CLDefinitions.CLEventTypeFileRange);
+
+            // if (indexedMetadata) {
+            if (indexedMetadata != null)
+            {
+                // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:addEvent.metadata.path];
+                string fileSystemPath = Settings.Instance.CloudFolderPath + addEvent.Metadata.Path;
+
+                // if (isFileEvent == YES) {
+                if (isFileEvent)
+                {
+                    // if (indexedMetadata.isPending == NO) {
+                    if (!indexedMetadata.IsPending)
+                    {
+                        // if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]) {
+                        if (File.Exists(fileSystemPath))
+                        {
+                            // if ([addEvent.metadata.hash isEqualToString:indexedMetadata.hash]){
+                            if (addEvent.Metadata.Hash.Equals(indexedMetadata.Hash, StringComparison.InvariantCulture))
+                            {
+                                // [self badgeFileAtCloudPath:addEvent.metadata.path withBadge:cloudAppBadgeSynced];
+                                BadgeFileAtCloudPath_withBadge(addEvent.Metadata.Path, cloudAppIconBadgeType.cloudAppBadgeSynced);
+                                // shouldProcessEvent = NO;
+                                shoulProcessEvent = false;
+                            }
+                            else
+                            {
+                                // // TODO: Check to see if the item is in the active sync queue
+                                // [CLIndexingServices markItemForEvent:addEvent asPending:YES];
+                                CLIndexingService.Instance.MarkItemForEvent_asPending(addEvent, pending: true);
+                            }
+                        }
+                        else
+                        {
+                            // // Check to see if
+                            // [CLIndexingServices markItemForEvent:addEvent asPending:YES];
+                            CLIndexingService.Instance.MarkItemForEvent_asPending(addEvent, pending: true);
+                        }
+                    }
+                    else
+                    {
+                        // // TODO: Pending == YES
+                        // // TODO: Check to see if the event is in the active sync queue if yes punt if no check if it exists in file system and hash are the same.
+                    }
+                }
+                else
+                {
+                    // if (indexedMetadata.isPending == NO){
+                    if (!indexedMetadata.IsPending)
+                    {
+                        // if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath]){
+                        if (File.Exists(fileSystemPath))
+                        {
+                            // [self badgeFileAtCloudPath:addEvent.metadata.path withBadge:cloudAppBadgeSynced];
+                            // shouldProcessEvent = NO;
+                            BadgeFileAtCloudPath_withBadge(addEvent.Metadata.Path, cloudAppIconBadgeType.cloudAppBadgeSynced);
+                            shoulProcessEvent = false;
+                        }
+                        else
+                        {
+                            // [CLIndexingServices markItemForEvent:addEvent asPending:YES];
+                            CLIndexingService.Instance.MarkItemForEvent_asPending(addEvent, pending: true);
+                        }
+                    }
+                    else
+                    {
+                        // // TODO: Pending == YES
+                        // // TODO: Check to see if the event is in the active sync queue if yes punt
+                    }
+                }
+            }
+            else
+            {
+                // [CLIndexingServices addMetedataItem:addEvent.metadata pending:YES];
+                CLIndexingService.Instance.AddMetadataItem_pending(addEvent.Metadata, pending: true);
+
+                // if (isFileEvent == NO) NSLog(@"Folder Events Added to Index: %@", addEvent.metadata.path);
+                if (!isFileEvent)
+                {
+                    _trace.writeToLog(9, "CLSyncService: IndexAddEvent: FOlder events added to index, path: {0}.", addEvent.Metadata.Path);
+                }
+            }
+
+            // return shouldProcessEvent;
+            return shoulProcessEvent;
+        }
+
+        //- (BOOL)indexDeleteEvent:(CLEvent *)deleteEvent
+        bool IndexDeleteEvent(CLEvent deleteEvent)
+        {
+            // Merged 7/10/12
+            // BOOL shouldProcessEvent = YES;
+            // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:deleteEvent];
+            // if (indexedMetadata) {
+            //     [CLIndexingServices markItemForEvent:deleteEvent asPending:YES];
+            // }else {
+            //     NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:deleteEvent.metadata.path];
+            //     if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath] == NO) {
+            //         shouldProcessEvent = NO;
+            //     }else {
+            //         // process event
+            //     }
+            // }
+    
+            // return shouldProcessEvent;
+            //&&&&
+
+            // BOOL shouldProcessEvent = YES;
+            bool shouldProcessEvent = true;
+
+            // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:deleteEvent];
+            CLMetadata indexedMetadata = CLIndexingService.Instance.IndexedMetadataForEvent(deleteEvent);
+
+            // if (indexedMetadata) {
+            if (indexedMetadata != null)
+            {
+                // [CLIndexingServices markItemForEvent:deleteEvent asPending:YES];
+                CLIndexingService.Instance.MarkItemForEvent_asPending(deleteEvent, pending: true);
+            }
+            else
+            {
+                // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:deleteEvent.metadata.path];
+                string fileSystemPath = Settings.Instance.CloudFolderPath + deleteEvent.Metadata.Path;
+
+                // if ([[NSFileManager defaultManager] fileExistsAtPath:fileSystemPath] == NO) {
+                if (!File.Exists(fileSystemPath))
+                {
+                    // shouldProcessEvent = NO;
+                    shouldProcessEvent = false;
+                }
+                else
+                {
+                    // Process event
+                }
+            }
+
+            // return shouldProcessEvent;
+            return shouldProcessEvent;
+        }
+
+        //- (void)updateIndexForSyncEvent:(CLEvent *)event
+        void UpdateIndexForSyncEvent(CLEvent evt)
+        {
+            // Merged 7/10/12
+            // NSString *eventType = event.syncHeader.action;
+            // // Update index for event completion success..
+    
+            // if ([eventType rangeOfString:CLEventTypeDeleteRange].location != NSNotFound){
+            //     [CLIndexingServices removeItemForEvent:event];
+            // }else if ([eventType rangeOfString:CLEventTypeAddRange].location != NSNotFound){
+            //     [CLIndexingServices markItemForEvent:event asPending:NO];
+            // }else {
+            //     [CLIndexingServices updateLocalIndexItemWithEvent:event pending:NO];
+            // }
+            // [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
+            //&&&&
+
+            // NSString *eventType = event.syncHeader.action;
+            string eventType = evt.SyncHeader.Action;
+
+            // // Update index for event completion success..
+
+            // if ([eventType rangeOfString:CLEventTypeDeleteRange].location != NSNotFound){
+            if (eventType.Contains(CLDefinitions.CLEventTypeDeleteRange))
+            {
+                // [CLIndexingServices removeItemForEvent:event];
+                CLIndexingService.Instance.RemoveItemForEvent(evt);
+            }
+            // }else if ([eventType rangeOfString:CLEventTypeAddRange].location != NSNotFound){
+            else if (eventType.Contains(CLDefinitions.CLEventTypeAddRange))
+            {
+                // [CLIndexingServices markItemForEvent:event asPending:NO];
+                CLIndexingService.Instance.MarkItemForEvent_asPending(evt, pending: false);
+            }
+            else
+            {
+                // [CLIndexingServices updateLocalIndexItemWithEvent:event pending:NO];
+                CLIndexingService.Instance.UpdateLocalIndexItemWithEvent_pending(evt, pending: false);
+            }
+
+            // [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
+            CLIndexingService.Instance.SaveDataInContext(null);
+        }
+
+        //- (void)processDeleteSyncEvent:(CLEvent *)event
+        void ProcessDeleteSyncEvent(CLEvent evt)
+        {
+            // Merged 7/10/12
+            // NSString *actionType = event.syncHeader.action;
+            // NSString *status = event.syncHeader.status;
+            // NSString *path = event.metadata.path;
+    
+            // // folder events first.
+            // if ([actionType rangeOfString:CLEventTypeDeleteRange].location != NSNotFound) {
+        
+            //     BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+        
+            //     NSError *error;
+            //     if (status == nil) { // MDS origin, Philis told us we need to do this.
+            //         success = [[CLFSDispatcher defaultDispatcher] deleteItemAtPath:path error:&error];
+            //     }
+        
+            //     if (success == NO) {
+            //         NSLog(@"%s - There was an error deleting a file system item. Error: %@", __FUNCTION__ ,error );
+            //     }
+        
+            //     // update index and ui.
+            //     [self performUpdateForSyncEvent:event success:success];
+            // }
+            //&&&&
+
+            // NSString *actionType = event.syncHeader.action;
+            // NSString *status = event.syncHeader.status;
+            // NSString *path = event.metadata.path;
+            string actionType = evt.SyncHeader.Action;
+            string status = evt.SyncHeader.Status;
+            string path = evt.Metadata.Path;
+
+            // Folder events first.
+            // if ([actionType rangeOfString:CLEventTypeDeleteRange].location != NSNotFound) {
+            if (actionType.Contains(CLDefinitions.CLEventTypeDeleteRange))
+            {
+                // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+                bool success = true;     // assume true for events we originated (since they already happened), override value for MDS execution.
+
+                // NSError *error;
+                CLError error = null;
+
+                // if (status == nil) { // MDS origin, Philis told us we need to do this.
+                if (status == null)    // MDS origin, Philis told us we need to do this.
+                {
+                    // success = [[CLFSDispatcher defaultDispatcher] deleteItemAtPath:path error:&error];
+                    success = CLFSDispatcher.Instance.DeleteItemAtPath_error(path, out error);
+                }
+
+                // if (success == NO) {
+                if (!success)
+                {
+                    // NSLog(@"%s - There was an error deleting a file system item. Error: %@", __FUNCTION__ ,error );
+                    _trace.writeToLog(1, "CLSyncService: ProcessDeleteSyncEvent: There was an error deleting a file system item.  Error: {0}. Code: {1}.", error.errorDescription, error.errorCode);
+                }
+
+                // Update index and ui.
+                // [self performUpdateForSyncEvent:event success:success];
+                PerformUpdateForSyncEvent_Success(evt, success: success);
             }
         }
 
-        //- (void)processAddFileSyncEvents:(NSArray *)events
-        void ProcessAddFileSyncEvents(List<CLEvent> events)
+        //- (void)processAddFolderSyncEvent:(CLEvent *)event
+        void ProcessAddFolderSyncEvent(CLEvent evt)
         {
-            //    NSLog(@"%s", __FUNCTION__);
-            
-            //    // Break down upload and downloads
-            //    NSMutableArray *uploadEvents = [NSMutableArray array];
-            //    NSMutableArray *downloadEvents = [NSMutableArray array];
+            // Merged 7/10/12
+            //NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:event.metadata.path];
     
-            //    // Add File events.
-            //    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            //if (event.isMDSEvent) {
         
-            //        CLEvent *event = obj;
+            //    NSString *status = event.syncHeader.status;
         
-            //        if (event.isMDSEvent) {
-            //            NSString *actionType = event.syncHeader.action;
-            //            NSString *status = event.syncHeader.status;
+            //    BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+            //    BOOL createdAttributes = NO;
+        
+            //    if (status == nil) { // MDS origin, Philis told us we need to do this.
             
-            //            // file events only.
-            //            if ([actionType isEqualToString:CLEventTypeAddFile]) {
+            //        success = [[CLFSDispatcher defaultDispatcher] createDirectoryAtPath:event.metadata.path error:nil];
+            
+            //        if (success == NO) {
                 
-            //                if (status == nil) { // MDS origin, Philis told us we need to do this.
-                    
-            //                    // we need to download this file.
-            //                    [downloadEvents addObject:event];
-                    
-            //                } else { //FSM origin, we created this file, need to check for upload.
-                    
-            //                    if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
-                        
-            //                        [uploadEvents addObject:event];
-            //                    }
-                    
-            //                    if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate]) { // we do not need to upload this file.
-                        
-            //                        // update ui.
-            //                        [self performUpdateForSyncEvent:event success:YES];
-            //                    }
-                    
-            //                    if ([status isEqualToString:CLEventTypeConflict]) {
-                        
-            //                        // TODO: handle conflict here.
-                        
-            //                        // update ui.
-            //                        [self performUpdateForSyncEvent:event success:YES];
-            //                    }
-            //                }
+            //            // TODO: check error here and try to remediate.
+            //        }
+            //        else {
+                
+            //            [self badgeFileAtCloudPath:event.metadata.path withBadge:cloudAppBadgeSyncing]; // mark folder as syncing
+                
+            //            NSError *attributesError;
+            //            createdAttributes = [[CLFSDispatcher defaultDispatcher] updateAttributesUsingMetadata:event.metadata forItemAtPath:fileSystemPath error:&attributesError];
+            //            if (attributesError) {
+            //                NSLog(@"%s - %@", __FUNCTION__, [attributesError description]);
             //            }
             //        }
-            //    }];
-    
-            //    // execute upload and download events.
-            //    if ([uploadEvents count] > 0) {
-            //        [self dispatchUploadEvents:uploadEvents];
             //    }
-    
-            //    if ([downloadEvents count] > 0) {
-            //        [self dispatchDownloadEvents:downloadEvents];
-            //    }
-
+        
+            //    // update index and ui.
+            //    [self performUpdateForSyncEvent:event success:success];
+            //}
             //&&&&
 
-            _trace.writeToLog(9, "CLSyncService: ProcessAddFileSyncEvents: Entry.");
+            // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:event.metadata.path];
+            string fileSystemPath = Settings.Instance.CloudFolderPath + evt.Metadata.Path;
+    
+            // if (event.isMDSEvent) {
+            if (evt.IsMDSEvent)
+            {        
+                // NSString *status = event.syncHeader.status;
+                string status = evt.SyncHeader.Status;
+        
+                // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+                // BOOL createdAttributes = NO;
+                bool success = true;    // assume true for events we originated (since they already happened), override value for MDS execution.
+                bool createdAttributes = false;
+        
+                // if (status == nil) { // MDS origin, Philis told us we need to do this.
+                if (status == null)
+                {
+                    // success = [[CLFSDispatcher defaultDispatcher] createDirectoryAtPath:event.metadata.path error:nil];
+                    CLError error = null;
+                    success = CLFSDispatcher.Instance.CreateDirectoryAtPath_error(evt.Metadata.Path, out error);
+                    // if (success == NO) {
+                    if (!success)
+                    {
+                        //TODO: check error here and try to remediate.
+                    }
+                    else
+                    {               
+                        // [self badgeFileAtCloudPath:event.metadata.path withBadge:cloudAppBadgeSyncing]; // mark folder as syncing
+                        BadgeFileAtCloudPath_withBadge(evt.Metadata.Path, cloudAppIconBadgeType.cloudAppBadgeSyncing);
+                
+                        // NSError *attributesError;
+                        CLError attributesError = null;
+
+                        // createdAttributes = [[CLFSDispatcher defaultDispatcher] updateAttributesUsingMetadata:event.metadata forItemAtPath:fileSystemPath error:&attributesError];
+                        createdAttributes = CLFSDispatcher.Instance.UpdateAttributesUsingMetadata_forItemAtPath_error(evt.Metadata, fileSystemPath, out attributesError);
+                        // if (attributesError) {
+                        if (attributesError != null)
+                        {
+                            // NSLog(@"%s - %@", __FUNCTION__, [attributesError description]);
+                            _trace.writeToLog(1, "CLSyncService: ProcessAddFolderSyncEvent: ERROR: Updating attributes for file <{0}>.  Error: {1}, Code: {1}.", fileSystemPath, error.errorDescription, error.errorCode);
+                        }
+                    }
+                }
+        
+                // Update index and ui.
+                // [self performUpdateForSyncEvent:event success:success];
+                PerformUpdateForSyncEvent_Success(evt, success: success);
+            }
+        }
+
+        //- (void)processRenameMoveFolderSyncEvent:(CLEvent *)event
+        void ProcessRenameMoveFolderSyncEvent(CLEvent evt)
+        {
+            // Merged 7/10/12
+            // NSString *status = event.syncHeader.status;
+            // NSString *toPath = event.metadata.toPath;
+            // NSString *fromPath = event.metadata.fromPath;
+                    
+            // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+    
+            // if (status == nil) { // MDS origin, Philis told us we need to do this.
+            //     success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
+            // }
+    
+            // Update index and ui.
+            // [self performUpdateForSyncEvent:event success:success];
+            //&&&&
+
+            // NSString *status = event.syncHeader.status;
+            // NSString *toPath = event.metadata.toPath;
+            // NSString *fromPath = event.metadata.fromPath;
+            string status = evt.SyncHeader.Status;
+            string toPath = evt.Metadata.ToPath;
+            string fromPath = evt.Metadata.FromPath;
+
+            // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+            bool success = true;    // assume true for events we originated (since they already happened), override value for MDS execution.
+
+            // if (status == nil) { // MDS origin, Philis told us we need to do this.
+            if (status == null)
+            {
+                // success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
+                CLError error = null;
+                success = CLFSDispatcher.Instance.MoveItemAtPath_to_error(fromPath, toPath, out error);
+                if (!success)
+                {
+                    //TODO: Check error an try to remediate.
+                }
+            }
+
+            // Update index and ui.
+            // [self performUpdateForSyncEvent:event success:success];
+            PerformUpdateForSyncEvent_Success(evt, success: success);
+        }
+
+
+
+        //- (void)processAddFileSyncEvent:(CLEvent *)event
+        void ProcessAddFileSyncEvent(CLEvent evt)
+        {
+            // Merged 7/10/12
+            // // Break down upload and downloads
+            // NSMutableArray *uploadEvents = [NSMutableArray array];
+            // NSMutableArray *downloadEvents = [NSMutableArray array];
+
+            // if (event.isMDSEvent) {
+        
+            //     NSString *status = event.syncHeader.status;
+        
+            //     if (status == nil) { // MDS origin, Philis told us we need to do this.
+            
+            //         // we need to download this file.
+            //         [downloadEvents addObject:event];
+            
+            //     } else { //FSM origin, we created this file, need to check for upload.
+            
+            //         if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
+                
+            //             [uploadEvents addObject:event];
+            //         }
+            
+            //         if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate]) { // we do not need to upload this file.
+                
+            //             // update index and ui.
+            //             [self performUpdateForSyncEvent:event success:YES];
+            //         }
+            
+            //         if ([status isEqualToString:CLEventTypeConflict]) {
+                
+            //             // TODO: handle conflict here.
+                
+            //             // update index and ui.
+            //             [self performUpdateForSyncEvent:event success:YES];
+            //         }
+            //     }
+            // }
+            
+            // // execute upload and download events.
+            // if ([uploadEvents count] > 0) {
+            //     [self dispatchUploadEvents:uploadEvents];
+            // }
+    
+            // if ([downloadEvents count] > 0) {
+            //     [self dispatchDownloadEvents:downloadEvents];
+            // }
+            //&&&&
 
             // Break down upload and downloads
             // NSMutableArray *uploadEvents = [NSMutableArray array];
@@ -1824,275 +2260,385 @@ namespace win_client.Services.Sync
             List<CLEvent> uploadEvents = new List<CLEvent>();
             List<CLEvent> downloadEvents = new List<CLEvent>();
 
-            // Add File events.
-            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            events.ForEach(obj =>
+            // if (event.isMDSEvent) {
+            if (evt.IsMDSEvent)
             {
-                // CLEvent *event = obj;
-                CLEvent evt = obj;
+                // NSString *status = event.syncHeader.status;
+                string status = evt.SyncHeader.Status;
 
-                if (evt.IsMDSEvent)
+                // if (status == nil) { // MDS origin, Philis told us we need to do this.
+                if (status == null)
                 {
-                    // NSString *actionType = event.syncHeader.action;
-                    // NSString *status = event.syncHeader.status;
-                    string actionType = evt.SyncHeader.Action;
-                    string status = evt.SyncHeader.Status;
-
-                    // File events only.
-                    // if ([actionType isEqualToString:CLEventTypeAddFile]) {
-                    if (actionType.Equals(CLDefinitions.CLEventTypeAddFile, StringComparison.InvariantCulture))
+                    // We need to download this file.
+                    // [downloadEvents addObject:event];
+                    downloadEvents.Add(evt);
+                }
+                else   //FSM origin, we created this file, need to check for upload.
+                {
+                    // if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
+                    if (status.Equals(CLDefinitions.CLEventTypeUpload, StringComparison.InvariantCulture) ||
+                        status.Equals(CLDefinitions.CLEventTypeUploading, StringComparison.InvariantCulture))
                     {
-                        if (status == null)                    // MDS origin, Philis told us we need to do this.
-                        {
+                        // [uploadEvents addObject:event];
+                        uploadEvents.Add(evt);
+                    }
 
-                            // We need to download this file.
-                            // [downloadEvents addObject:event];
+                    // if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate]) { // we do not need to upload this file.
+                    if (status.Equals(CLDefinitions.CLEventTypeExists, StringComparison.InvariantCulture) ||
+                        status.Equals(CLDefinitions.CLEventTypeDuplicate, StringComparison.InvariantCulture))
+                    {
+                        // Update index and ui.
+                        // [self performUpdateForSyncEvent:event success:YES];
+                        PerformUpdateForSyncEvent_Success(evt, success: true);
+                    }
 
-                        }
-                        else
-                        {                                       //FSM origin, we created this file, need to check for upload.
-                            // if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
-                            if (status.Equals(CLDefinitions.CLEventTypeUpload, StringComparison.InvariantCulture) ||
-                                status.Equals(CLDefinitions.CLEventTypeUploading, StringComparison.InvariantCulture))
-                            {
-                                // [uploadEvents addObject:event];
-                                uploadEvents.Add(evt);
-                            }
+                    // if ([status isEqualToString:CLEventTypeConflict]) {
+                    if (status.Equals(CLDefinitions.CLEventTypeConflict))
+                    {
+                        //     // TODO: handle conflict here.
 
-                            // if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate]) { // we do not need to upload this file.
-                            if (status.Equals(CLDefinitions.CLEventTypeExists, StringComparison.InvariantCulture) ||
-                                status.Equals(CLDefinitions.CLEventTypeDuplicate, StringComparison.InvariantCulture))
-                            {
-                                // Update ui.
-                                // [self performUpdateForSyncEvent:event success:YES];
-                                PerformUpdateForSyncEventSuccess(evt, success: true);
-                            }
-
-                            // if ([status isEqualToString:CLEventTypeConflict]) {
-                            if (status.Equals(CLDefinitions.CLEventTypeConflict))
-                            {
-                                // TODO: handle conflict here.
-                                // Update ui.
-                                // [self performUpdateForSyncEvent:event success:YES];
-                                PerformUpdateForSyncEventSuccess(evt, success: true);
-                            }
-
-                        }
+                        // Update index and ui.
+                        // [self performUpdateForSyncEvent:event success:YES];
+                        PerformUpdateForSyncEvent_Success(evt, success: true);
                     }
                 }
-            });
+            }
+
+            // Execute upload and download events.
+            // if ([uploadEvents count] > 0) {
+            if (uploadEvents.Count > 0)
+            {
+                // [self dispatchUploadEvents:uploadEvents];
+                DispatchUploadEvents(uploadEvents);
+            }
+
+            // if ([downloadEvents count] > 0) {
+            if (downloadEvents.Count > 0)
+            {
+                // [self dispatchDownloadEvents:downloadEvents];
+                DispatchDownloadEvents(downloadEvents);
+            }
+        }
+
+        //- (void)processModifyFileSyncEvent:(CLEvent *)event
+        void ProcessModifyFileSyncEvent(CLEvent evt)
+        {
+            // Merged 7/10/12
+            // // Break down upload and downloads
+            // NSMutableArray *uploadEvents = [NSMutableArray array];
+            // NSMutableArray *downloadEvents = [NSMutableArray array];
+
+            // NSString *status = event.syncHeader.status;
+        
+            // if (status == nil) { // MDS origin, Philis told us we need to do this.
+        
+            //     // we need to download this file.
+            //     [downloadEvents addObject:event];
+            //     [self badgeFileAtCloudPath:event.metadata.path withBadge:cloudAppBadgeSyncing]; // mark the file to be uploaded as syncing.
+        
+            // } else { //FSM origin, we modified this file, need to check for upload.
+        
+            //     if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
+            
+            //         [uploadEvents addObject:event];
+            //     }
+        
+            //     if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate]) { // we do not need to upload this file.
+            
+            //         // update ui.
+            //         [self performUpdateForSyncEvent:event success:YES];
+            //     }
+        
+            //     if ([status isEqualToString:CLEventTypeConflict]) {
+            
+            //         // TODO: handle conflict here.
+            
+            //         // update ui.
+            //         [self performUpdateForSyncEvent:event success:YES];
+            //     }
+            // }
+
+            // // execute upload and download events.
+            // if ([uploadEvents count] > 0) {
+            //     [self dispatchUploadEvents:uploadEvents];
+            // }
+    
+            // if ([downloadEvents count] > 0) {
+        
+            //     // sorting downloads by size (ascending)
+            //     NSArray *sortedDownloadEvents = [downloadEvents sortedArrayUsingComparator: ^(CLEvent * event1, CLEvent *event2) {
+            
+            //         if ([event1.metadata.size intValue] > [event2.metadata.size intValue]) {
+            //             return (NSComparisonResult)NSOrderedDescending;
+            //         }
+            
+            //         if ([event1.metadata.size intValue] < [event2.metadata.size intValue]) {
+            //             return (NSComparisonResult)NSOrderedAscending;
+            //         }
+            //         return (NSComparisonResult)NSOrderedSame;
+            //     }];
+        
+            //     [self dispatchDownloadEvents:sortedDownloadEvents];
+            // }
+            //&&&&
+
+            // // Break down upload and downloads
+            // NSMutableArray *uploadEvents = [NSMutableArray array];
+            // NSMutableArray *downloadEvents = [NSMutableArray array];
+            List<CLEvent> uploadEvents = new List<CLEvent>();
+            List<CLEvent> downloadEvents = new List<CLEvent>();
+
+            // NSString *status = event.syncHeader.status;
+            string status = evt.SyncHeader.Status;
+
+            // if (status == nil) { // MDS origin, Philis told us we need to do this.
+            if (status == null)
+            {
+
+                // We need to download this file.
+                // [downloadEvents addObject:event];
+                // [self badgeFileAtCloudPath:event.metadata.path withBadge:cloudAppBadgeSyncing]; // mark the file to be uploaded as syncing.
+                downloadEvents.Add(evt);
+                BadgeFileAtCloudPath_withBadge(evt.Metadata.Path, cloudAppIconBadgeType.cloudAppBadgeSyncing);
+            }
+            else   //FSM origin, we modified this file, need to check for upload.
+            {
+                // if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
+                if (status.Equals(CLDefinitions.CLEventTypeUpload, StringComparison.InvariantCulture) ||
+                    status.Equals(CLDefinitions.CLEventTypeUploading, StringComparison.InvariantCulture))
+                {
+                    // [uploadEvents addObject:event];
+                    uploadEvents.Add(evt);
+                }
+
+                // if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate]) { // we do not need to upload this file.
+                if (status.Equals(CLDefinitions.CLEventTypeExists, StringComparison.InvariantCulture) ||
+                    status.Equals(CLDefinitions.CLEventTypeDuplicate, StringComparison.InvariantCulture))
+                {
+                    // Update ui.
+                    // [self performUpdateForSyncEvent:event success:YES];
+                    PerformUpdateForSyncEvent_Success(evt, success: true);
+                }
+
+                // if ([status isEqualToString:CLEventTypeConflict]) {
+                if (status.Equals(CLDefinitions.CLEventTypeConflict, StringComparison.InvariantCulture))
+                {
+                    // TODO: handle conflict here.
+
+                    // Update ui.
+                    // [self performUpdateForSyncEvent:event success:YES];
+                    PerformUpdateForSyncEvent_Success(evt, success: true);
+                }
+            }
 
             // Execute upload and download events.
             // if ([uploadEvents count] > 0) {
             //     [self dispatchUploadEvents:uploadEvents];
             // }
-            if (uploadEvents.Count() > 0)
+            if (uploadEvents.Count > 0)
             {
                 DispatchUploadEvents(uploadEvents);
             }
 
             // if ([downloadEvents count] > 0) {
-            //    [self dispatchDownloadEvents:downloadEvents];
-            // }
-            if (downloadEvents.Count() > 0)
+            if (downloadEvents.Count > 0)
             {
+                // Sorting downloads by size (ascending)
+                // NSArray *sortedDownloadEvents = [downloadEvents sortedArrayUsingComparator: ^(CLEvent * event1, CLEvent *event2) {
+
+                //     if ([event1.metadata.size intValue] > [event2.metadata.size intValue]) {
+                //         return (NSComparisonResult)NSOrderedDescending;
+                //     }
+
+                //     if ([event1.metadata.size intValue] < [event2.metadata.size intValue]) {
+                //         return (NSComparisonResult)NSOrderedAscending;
+                //     }
+                //     return (NSComparisonResult)NSOrderedSame;
+                // }];
+
+                // [self dispatchDownloadEvents:sortedDownloadEvents];
+                downloadEvents.Sort((CLEvent event1, CLEvent event2) =>
+                {
+                    if (Convert.ToInt64(event1.Metadata.Size) > Convert.ToInt64(event2.Metadata.Size))
+                    {
+                        return 1;
+                    }
+
+                    if (Convert.ToInt64(event1.Metadata.Size) < Convert.ToInt64(event2.Metadata.Size))
+                    {
+                        return -1;
+                    }
+
+                    return 0;
+                });
                 DispatchDownloadEvents(downloadEvents);
             }
-
         }
 
-        //- (void)processRenameMoveFolderSyncEvents:(NSArray *)events
-        void ProcessRenameMoveFolderSyncEvents(List<CLEvent> events)
+        //- (void)processRenameMoveFileSyncEvent:(CLEvent *)event
+        void ProcessRenameMoveFileSyncEvent(CLEvent evt)
         {
-            //    NSLog(@"%s", __FUNCTION__);
-    
-            //    // Rename/Move Folders events.
-            //    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            // Merged 7/10/12
+            // NSString *actionType = event.syncHeader.action;
+            // NSString *status = event.syncHeader.status;
+            // NSString *toPath = event.metadata.toPath;
+            // NSString *fromPath = event.metadata.fromPath;
+                
+            // if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
+            //     [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
         
-            //        CLEvent *event = obj;
-            //        NSString *actionType = event.syncHeader.action;
-            //        NSString *status = event.syncHeader.status;
-            //        NSString *toPath = event.metadata.toPath;
-            //        NSString *fromPath = event.metadata.fromPath;
+            //     BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
         
-            //        // folder events first.
-            //        if ([actionType rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
-            
-            //            if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
-            //                [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
-                
-            //                BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-                
-            //                if (status == nil) { // MDS origin, Philis told us we need to do this.
-            //                    success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
-            //                }
-                
-            //                // update ui.
-            //                [self performUpdateForSyncEvent:event success:success];
-            //            }
-            //        }
-            //    }];
-
+            //     if (status == nil) { // MDS origin, Philis told us we need to do this.
+            //         success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
+            //     }
+        
+            //     // update index and ui.
+            //     [self performUpdateForSyncEvent:event success:success];
+            // }
             //&&&&
-            _trace.writeToLog(9, "CLSyncService: ProcessRenameMoveFolderSyncEvents: Entry.");
 
-            // Rename/Move Folders events.
-            //    [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            events.ForEach(obj =>
+            // NSString *actionType = event.syncHeader.action;
+            // NSString *status = event.syncHeader.status;
+            // NSString *toPath = event.metadata.toPath;
+            // NSString *fromPath = event.metadata.fromPath;
+            string actionType = evt.SyncHeader.Action;
+            string status = evt.SyncHeader.Status;
+            string toPath = evt.Metadata.ToPath;
+            string fromPath = evt.Metadata.FromPath;
+
+            // if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
+            //      [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
+            if (actionType.Contains(CLDefinitions.CLEventTypeRenameRange) ||
+                actionType.Contains(CLDefinitions.CLEventTypeMoveRange))
             {
-                // CLEvent *event = obj;
-                CLEvent evt = obj;
+                // BOOL success = YES;  // assume true for events we originated (since they already happened), override value for MDS execution. 
+                bool success = true;  // assume true for events we originated (since they already happened), override value for MDS execution.
 
-                // NSString *actionType = event.syncHeader.action;
-                // NSString *status = event.syncHeader.status;
-                // NSString *toPath = event.metadata.toPath;
-                // NSString *fromPath = event.metadata.fromPath;
-                string actionType = evt.SyncHeader.Action;
-                string status = evt.SyncHeader.Status;
-                string toPath = evt.Metadata.ToPath;
-                string fromPath = evt.Metadata.FromPath;
-
-                // Folder events first.
-                // if ([actionType rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
-                if (actionType.Contains(CLDefinitions.CLEventTypeFolderRange))
+                // if (status == nil) { // MDS origin, Philis told us we need to do this.
+                if (status == null)    // MDS origin, Philis told us we need to do this.
                 {
-
-                    // if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
-                    //          [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
-                    if (actionType.Contains(CLDefinitions.CLEventTypeRenameRange) ||
-                        actionType.Contains(CLDefinitions.CLEventTypeMoveRange))
-                    {
-
-                        // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-                        bool success = true;
-
-                        // if (status == nil) { // MDS origin, Philis told us we need to do this.
-                        //     success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
-                        // }
-                        if (status == null)
-                        {
-                            CLError error = null;
-                            success = CLFSDispatcher.Instance.MoveItemAtPath_to_error(fromPath, toPath, out error);
-                        }
-
-                        // update ui.
-                        // [self performUpdateForSyncEvent:event success:success];
-                        PerformUpdateForSyncEventSuccess(evt, success);
-                    }
+                    // success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
+                    CLError error = null;
+                    success = CLFSDispatcher.Instance.MoveItemAtPath_to_error(fromPath, toPath, out error);
                 }
-            });
 
+                // Update index and ui.
+                // [self performUpdateForSyncEvent:event success:success];
+                PerformUpdateForSyncEvent_Success(evt, success: success);
+            }
         }
 
-        //- (void)processAddFolderSyncEvents:(NSArray *)events
-        void ProcessAddFolderSyncEvents(List<CLEvent> events)
+        //- (void)processAddLinkSyncEvent:(CLEvent *)event
+        void ProcessAddLinkSyncEvent(CLEvent evt)
         {
-            //NSLog(@"%s", __FUNCTION__);
-
-            //// Add Folder events.
-            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            // Merged 7/10/12
+            // if (event.isMDSEvent) {
         
-            //    CLEvent *event = obj;
-            //    NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:event.metadata.path];
-            //    if (event.isMDSEvent) {
-            //        NSString *actionType = event.syncHeader.action;
-            //        NSString *status = event.syncHeader.status;
+            //     NSString *status = event.syncHeader.status;
+        
+            //     BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+            //     if (status == nil) { // MDS origin, Philis told us we need to do this.
             
-            //        // folder events only.
-            //        if ([actionType isEqualToString:CLEventTypeAddFolder]) {
-                
-            //            BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-            //            BOOL createdAttributes = NO;
+            //         success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
+            //     }
+        
+            //     // update index and ui
+            //     [self performUpdateForSyncEvent:event success:success];
+            // }
+            //&&&&
 
-            //            if (status == nil) { // MDS origin, Philis told us we need to do this.
-
-            //                success = [[CLFSDispatcher defaultDispatcher] createDirectoryAtPath:event.metadata.path error:nil];
-
-            //                if (success == NO) {
-
-            //                    // TODO: check error here and try to remediate.
-            //                }
-            //                else {
-                        
-            //                    [self badgeFileAtCloudPath:event.metadata.path withBadge:cloudAppBadgeSyncing]; // mark folder as syncing
-
-            //                    NSError *attributesError;
-            //                    createdAttributes = [[CLFSDispatcher defaultDispatcher] updateAttributesUsingMetadata:event.metadata forItemAtPath:fileSystemPath error:&attributesError];
-            //                    if (attributesError) {
-            //                        NSLog(@"%s - %@", __FUNCTION__, [attributesError description]);
-            //                    }
-            //                }
-            //            }
-                
-            //            // update ui.
-            //            [self performUpdateForSyncEvent:event success:success];
-            //        }
-            //    } 
-            //}];
-
-            //&&&&&&
-
-            _trace.writeToLog(9, "ProcessAddFolderSyncEvents: Entry.");
-
-            // Add Folder events.
-            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            events.ForEach(obj =>
+            // if (event.isMDSEvent) {
+            if (evt.IsMDSEvent)
             {
-                // CLEvent *event = obj;
-                CLEvent evt = obj;
+                // NSString *status = event.syncHeader.status;
+                string status = evt.SyncHeader.Status;
 
-                // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:event.metadata.path];
-                string fileSystemPath = Settings.Instance.CloudFolderPath + evt.Metadata.Path;
+                // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+                bool success = true;
 
-                if (evt.IsMDSEvent)
+                // if (status == nil) { // MDS origin, Philis told us we need to do this.
+                if (status == null)
                 {
-                    // NSString *actionType = event.syncHeader.action;
-                    // NSString *status = event.syncHeader.status;
-                    string actiontype = evt.SyncHeader.Action;
-                    string status = evt.SyncHeader.Status;
+                    // success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
+                    success = CLFSDispatcher.Instance.CreateSymbLinkAtPath_withTarget(evt.Metadata.Path, evt.Metadata.TargetPath);
+                }
 
-                    // Folder events only.
-                    // if ([actionType isEqualToString:CLEventTypeAddFolder]) {
-                    if (actiontype.Equals(CLDefinitions.CLEventTypeAddFolder, StringComparison.InvariantCulture))
-                    {
-                        // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-                        // BOOL createdAttributes = NO;
-                        bool success = true;    // assume true for events we originated (since they already happened), override value for MDS execution.
-                        bool createdAttributes = false;
-
-                        // if (status == nil) { // MDS origin, Philis told us we need to do this.
-                        if (status == null)
-                        {
-                            // success = [[CLFSDispatcher defaultDispatcher] createDirectoryAtPath:event.metadata.path error:nil];
-                            Directory.CreateDirectory(evt.Metadata.Path);
-                            //TODO: The above CreateDirectory should set the success variable, and we should handle failures.
-                            //TODO: We should also handle exceptions.
-                            success = true;
-                            if (!success)
-                            {
-                                // TODO: check error here and try to remediate.
-                            }
-                            else {
-
-                                // [self badgeFileAtCloudPath:event.metadata.path withBadge:cloudAppBadgeSyncing]; // mark folder as syncing
-                                //TODO: Implement this.
-
-                                // NSError *attributesError;
-                                // createdAttributes = [[CLFSDispatcher defaultDispatcher] updateAttributesUsingMetadata:event.metadata forItemAtPath:fileSystemPath error:&attributesError];
-                                // if (attributesError) {
-                                //     NSLog(@"%s - %@", __FUNCTION__, [attributesError description]);
-                                // }
-                                //TODO: Implement this.
-                            }
-                        }
-
-                        // update ui.
-                        // [self performUpdateForSyncEvent:event success:success];
-                        //TODO: Implement this.
-                    }
-                } 
-            });
+                // Update index and ui
+                // [self performUpdateForSyncEvent:event success:success];
+                PerformUpdateForSyncEvent_Success(evt, success: success);
+            }
         }
+
+        //- (void)processModifyLinkSyncEvent:(CLEvent *)event
+        void ProcessModifyLinkSyncEvent(CLEvent evt)
+        {
+            // Merged 7/10/12
+            // NSString *status = event.syncHeader.status;
+        
+            // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+            // if (status == nil) { // MDS origin, Philis told us we need to do this.
+        
+            //     success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
+            // }
+    
+            // // update index and ui.
+            // [self performUpdateForSyncEvent:event success:success];
+            //&&&&
+
+            // NSString *status = event.syncHeader.status;
+            string status = evt.SyncHeader.Status;
+
+            // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+            bool success = true;   // assume true for events we originated (since they already happened), override value for MDS execution.
+
+            // if (status == nil) { // MDS origin, Philis told us we need to do this.
+            if (status == null)
+            {
+                // success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
+                success = CLFSDispatcher.Instance.CreateSymbLinkAtPath_withTarget(evt.Metadata.Path, evt.Metadata.TargetPath);
+            }
+
+            // Update index and ui.
+            // [self performUpdateForSyncEvent:event success:success];
+            PerformUpdateForSyncEvent_Success(evt, success: success);
+        }
+
+        //- (void)processRenameMoveLinkSyncEvent:(CLEvent *)event
+        void ProcessRenameMoveLinkSyncEvent(CLEvent evt)
+        {
+            // Merged 7/10/12
+            // NSString *actionType = event.syncHeader.action;
+            // NSString *status = event.syncHeader.status;
+            // NSString *toPath = event.metadata.toPath;
+            // NSString *fromPath = event.metadata.fromPath;
+            string actionType = evt.SyncHeader.Action;
+            string status = evt.SyncHeader.Status;
+            string toPath = evt.Metadata.ToPath;
+            string fromPath = evt.Metadata.FromPath;
+
+            // if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
+            //     [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
+            if (actionType.Contains(CLDefinitions.CLEventTypeRenameRange) ||
+                actionType.Contains(CLDefinitions.CLEventTypeMoveRange))
+            {
+                // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
+                bool success = true;   // assume true for events we originated (since they already happened), override value for MDS execution.
+        
+                // if (status == nil) { // MDS origin, Philis told us we need to do this.
+                if (status == null)
+                {
+                    // success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
+                    CLError error = null;
+                    success = CLFSDispatcher.Instance.MoveItemAtPath_to_error(fromPath, toPath, out error);
+                }
+        
+                // Update index and ui.
+                // [self performUpdateForSyncEvent:event success:success];
+                PerformUpdateForSyncEvent_Success(evt, success: success);
+            }
+        }
+
 
 
         List<CLEvent> SeparateFolderFromFileForActiveEvents_WantsFolderEvents(List<CLEvent> activeEvents, bool wantsFolderEvents)
@@ -2106,7 +2652,7 @@ namespace win_client.Services.Sync
             //        CLEvent *event = obj;
             //        if ([event.syncHeader.action rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
             //            [events addObject:event];
-            //        }
+            //        } 
             //    }];
             //}
             //else {
@@ -2164,634 +2710,211 @@ namespace win_client.Services.Sync
             return events;
         }
 
-        void UpdateIndexForActiveSyncEvents()
-        {
-            //TODO: Implement this method.
-            //[self animateUIForSync:YES withStatusMessage:menuItemActivityLabelIndexing syncActivityCount:0];
-
-            //[[self.activeSyncQueue copy] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            //    CLEvent *event = obj;
-        
-            //    if ([event.syncHeader.action rangeOfString:CLEventTypeAddRange].location != NSNotFound) { // Add events, new items to index.
-            //        [CLIndexingServices addMetedataItem:event.metadata pending:NO];
-            //    }
-        
-            //    if ([event.syncHeader.action rangeOfString:CLEventTypeDeleteRange].location != NSNotFound) { // Delete events, remove item from index.
-            //        [CLIndexingServices removeMetadataItemWithCloudPath:event.metadata.path];
-            //    }
-        
-            //    if ([event.syncHeader.action rangeOfString:CLEventTypeMoveRange].location != NSNotFound ||
-            //        [event.syncHeader.action rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
-            //        [event.syncHeader.action isEqualToString:CLEventTypeModifyFile]) { // Move/Rename/Modify events, update existing items to index.
-            //        [CLIndexingServices updateLocalIndexItemWithEvent:event pending:NO];
-            //    }
-            //}];
-    
-            //if ([[NSManagedObjectContext defaultContext] hasChanges]){
-            //    [CLIndexingServices saveDataInContext:[NSManagedObjectContext defaultContext]];
-            //}
-
-
-        }
-
-        void processAddFileSyncEvents(List<CLEvent> events)
-        {
-            //TODO: Implement this function.
-            //NSLog(@"%s", __FUNCTION__);
-            
-            //// Break down upload and downloads
-            //NSMutableArray *uploadEvents = [NSMutableArray array];
-            //NSMutableArray *downloadEvents = [NSMutableArray array];
-    
-            //// Add File events.
-            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        
-            //    CLEvent *event = obj;
-        
-            //    if (event.isMDSEvent) {
-            //        NSString *actionType = event.syncHeader.action;
-            //        NSString *status = event.syncHeader.status;
-            
-            //        // file events only.
-            //        if ([actionType isEqualToString:CLEventTypeAddFile]) {
-                
-            //            if (status == nil) { // MDS origin, Philis told us we need to do this.
-                    
-            //                // we need to download this file.
-            //                [downloadEvents addObject:event];
-                    
-            //            } else { //FSM origin, we created this file, need to check for upload.
-                    
-            //                if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
-                        
-            //                    [uploadEvents addObject:event];
-            //                }
-                    
-            //                if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate]) { // we do not need to upload this file.
-                        
-            //                    // update ui.
-            //                    [self performUpdateForSyncEvent:event success:YES];
-            //                }
-                    
-            //                if ([status isEqualToString:CLEventTypeConflict]) {
-                        
-            //                    // TODO: handle conflict here.
-                        
-            //                    // update ui.
-            //                    [self performUpdateForSyncEvent:event success:YES];
-            //                }
-            //            }
-            //        }
-            //    }
-            //}];
-    
-            //// execute upload and download events.
-            //if ([uploadEvents count] > 0) {
-            //    [self dispatchUploadEvents:uploadEvents];
-            //}
-    
-            //if ([downloadEvents count] > 0) {
-            //    [self dispatchDownloadEvents:downloadEvents];
-            //}
-
-        }
-
-        void processModifyFileSyncEvents(List<CLEvent> events)
-        {
-            //TODO: Implement this function.
-            //NSLog(@"%s", __FUNCTION__);
-    
-            //// Break down upload and downloads
-            //NSMutableArray *uploadEvents = [NSMutableArray array];
-            //NSMutableArray *downloadEvents = [NSMutableArray array];
-    
-            //// Modify File events.
-            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        
-            //    CLEvent *event = obj;
-            //    NSString *actionType = event.syncHeader.action;
-            //    NSString *status = event.syncHeader.status;
-
-            //    // folder events first.
-            //    if ([actionType isEqualToString:CLEventTypeModifyFile]) {
-            
-            //        if (status == nil) { // MDS origin, Philis told us we need to do this.
-                
-            //            // we need to download this file.
-            //            [downloadEvents addObject:event];
-            //            [self badgeFileAtCloudPath:event.metadata.path withBadge:cloudAppBadgeSyncing]; // mark the file to be uploaded as syncing.
-
-            //        } else { //FSM origin, we modified this file, need to check for upload.
-                
-            //            if ([status isEqualToString:CLEventTypeUpload] || [status isEqualToString:CLEventTypeUploading]) { // we need to upload this file.
-                    
-            //                [uploadEvents addObject:event];
-            //            }
-                
-            //            if ([status isEqualToString:CLEventTypeExists] || [status isEqualToString:CLEventTypeDuplicate] || [status isEqualToString:CLEventTypeUploading]) { // we do not need to upload this file.
-                    
-            //                // update ui.
-            //                [self performUpdateForSyncEvent:event success:YES];
-            //            }
-                
-            //            if ([status isEqualToString:CLEventTypeConflict]) {
-                    
-            //                // TODO: handle conflict here.
-
-            //                // update ui.
-            //                [self performUpdateForSyncEvent:event success:YES];
-            //            }
-            //        }
-            //    }
-            //}];
-    
-            //// execute upload and download events.
-            //if ([uploadEvents count] > 0) {
-            //    [self dispatchUploadEvents:uploadEvents];
-            //}
-    
-            //if ([downloadEvents count] > 0) {
-        
-            //    // sorting downloads by size (ascending)
-            //    NSArray *sortedDownloadEvents = [downloadEvents sortedArrayUsingComparator: ^(CLEvent * event1, CLEvent *event2) {
-            
-            //        if ([event1.metadata.size intValue] > [event2.metadata.size intValue]) {
-            //            return (NSComparisonResult)NSOrderedDescending;
-            //        }
-            
-            //        if ([event1.metadata.size intValue] < [event2.metadata.size intValue]) {
-            //            return (NSComparisonResult)NSOrderedAscending;
-            //        }
-            //        return (NSComparisonResult)NSOrderedSame;
-            //    }];
-        
-            //    [self dispatchDownloadEvents:sortedDownloadEvents];
-            //}
-        }
-
-        void processRenameMoveFileSyncEvents(List<CLEvent> events)
-        {
-            //TODO: Implement this function.
-            //NSLog(@"%s", __FUNCTION__);
-        
-            //// Rename/Move File events.
-            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        
-            //    CLEvent *event = obj;
-            //    NSString *actionType = event.syncHeader.action;
-            //    NSString *status = event.syncHeader.status;
-            //    NSString *toPath = event.metadata.toPath;
-            //    NSString *fromPath = event.metadata.fromPath;
-
-            //    // File events only.
-            //    if ([actionType rangeOfString:CLEventTypeFileRange].location != NSNotFound) {
-            
-            //        if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
-            //            [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
-                
-            //            BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-                
-            //            if (status == nil) { // MDS origin, Philis told us we need to do this.
-            //                success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
-            //            }
-                
-            //            // update ui.
-            //            [self performUpdateForSyncEvent:event success:success];
-            //        }
-            //    }
-            //}];
-        }
-
-        void ProcessDeleteSyncEvents(List<CLEvent> events)
-        {
-            //TODO: Implement this.
-            //Console.WriteLine("%s", __FUNCTION__);
-            //events.EnumerateObjectsUsingBlock(^ (object obj, NSUInteger idx, bool stop) {
-            //    CLEvent Myevent = obj;
-            //    string actionType = Myevent.SyncHeader.Action;
-            //    string status = Myevent.SyncHeader.Status;
-            //    string path = Myevent.Metadata.Path;
-            //    if (actionType.RangeOfString(CLEventTypeDeleteRange).Location != NSNotFound) {
-            //        bool success = true;
-            //        NSError error;
-            //        if (status == null) {
-            //            success = (CLFSDispatcher.DefaultDispatcher()).DeleteItemAtPathError(path, error);
-            //        }
-
-            //        if ((status.IsEqualToString("ok") || status.IsEqualToString("already_deleted")) || success == true) {
-            //            CLIndexingServices.RemoveMetadataItemWithCloudPath(Myevent.Metadata.Path);
-            //        }
-            //        else {
-            //            Console.WriteLine("%s - There was an error deleting a file system item. Error: %@", __FUNCTION__, error);
-            //        }
-
-            //        this.PerformUpdateForSyncEventSuccess(Myevent, success);
-            //    }
-
-            //}
-            //);
-        }
-
-        //- (void)processAddLinkSyncEvents:(NSArray *)events
-        void ProcessAddLinkSyncEvents(List<CLEvent> events)
-        {
-            // Merged 7/4/12
-            // NSLog(@"%s", __FUNCTION__);
-    
-            // // Add File events.
-            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        
-            //     CLEvent *event = obj;
-        
-            //     if (event.isMDSEvent) {
-            //         NSString *actionType = event.syncHeader.action;
-            //         NSString *status = event.syncHeader.status;
-            
-            //         // link events only.
-            //         if ([actionType isEqualToString:CLEventTypeAddLink]) {
-                
-            //             BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-            //             if (status == nil) { // MDS origin, Philis told us we need to do this.
-                    
-            //                 success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
-            //             }
-                
-            //             // update ui
-            //             [self performUpdateForSyncEvent:event success:success];
-            //         }
-            //     }
-        
-            // }];
-            //&&&&
-
-            // NSLog(@"%s", __FUNCTION__);
-            _trace.writeToLog(9, "CLSyncService: ProcessAddLinkSyncEvents: Entry.");
-
-            // Add File events.
-            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            foreach (CLEvent evt in events)
-            {
-                // if (event.isMDSEvent) {
-                if (evt.IsMDSEvent)
-                {
-                    // NSString *actionType = event.syncHeader.action;
-                    // NSString *status = event.syncHeader.status;
-                    string actionType = evt.SyncHeader.Action;
-                    string status = evt.SyncHeader.Status;
-
-
-                    // if ([actionType isEqualToString:CLEventTypeAddLink]) {
-                    if (actionType.Equals(CLDefinitions.CLEventTypeAddLink, StringComparison.InvariantCulture))
-                    {
-
-                        // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-                        bool success = true;
-
-                        // if (status == nil) { // MDS origin, Philis told us we need to do this.
-                        if (status == String.Empty)
-                        {
-                            // success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
-                            CLFSDispatcher.Instance.CreateSymbLinkAtPath_withTarget(evt.Metadata.Path, evt.Metadata.TargetPath);
-                        }
-
-                        // Update ui
-                        //TODO: Implement this UI.
-                        // [self performUpdateForSyncEvent:event success:success];
-                    }
-                }
-            }
-
-        }
-
-        //- (void)processModifyLinkSyncEvents:(NSArray *)events
-        void ProcessModifyLinkSyncEvents(List<CLEvent> events)
-        {
-            // Merged 7/4/12
-            // NSLog(@"%s", __FUNCTION__);
-    
-            // // Modify File events.
-            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        
-            //     CLEvent *event = obj;
-            //     NSString *actionType = event.syncHeader.action;
-            //     NSString *status = event.syncHeader.status;
-        
-            //     // modify events only.
-            //     if ([actionType isEqualToString:CLEventTypeModifyLink]) {
-            
-            //         BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-            //         if (status == nil) { // MDS origin, Philis told us we need to do this.
-                
-            //             success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
-            //         }
-            
-            //         // update ui.
-            //         [self performUpdateForSyncEvent:event success:success];
-            //     }
-        
-            // }];
-            //&&&&
-
-            // NSLog(@"%s", __FUNCTION__);
-            _trace.writeToLog(9, "CLSyncService: ProcessModifyLinkSyncEvents: Entry.");
-
-            // // Modify File events.
-            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            foreach (CLEvent evt in events)
-            {
-                // NSString *actionType = event.syncHeader.action;
-                // NSString *status = event.syncHeader.status;
-                string actionType = evt.SyncHeader.Action;
-                string status = evt.SyncHeader.Status;
-
-                // modify events only.
-                // if ([actionType isEqualToString:CLEventTypeModifyLink]) {
-                if (actionType.Equals(CLDefinitions.CLEventTypeModifyLink, StringComparison.InvariantCulture))
-                {
-                    // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-                    bool success = true;
-
-                    // if (status == nil) { // MDS origin, Philis told us we need to do this.
-                    if (status == String.Empty)
-                    {
-                        // success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
-                        success = CLFSDispatcher.Instance.CreateSymbLinkAtPath_withTarget(evt.Metadata.Path, evt.Metadata.TargetPath);
-                    }
-
-                    // Update ui.
-                    //TODO: Implement this UI.
-                    // [self performUpdateForSyncEvent:event success:success];
-                }
-
-            }
-        }
-
-
-        //- (void)processRenameMoveLinkSyncEvents:(NSArray *)events
-        void ProcessRenameMoveLinkSyncEvents(List<CLEvent> events)
-        {
-            // Merged 7/4/12
-            // NSLog(@"%s", __FUNCTION__);
-    
-            // // Rename/Move Link events.
-            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        
-            //     CLEvent *event = obj;
-            //     NSString *actionType = event.syncHeader.action;
-            //     NSString *status = event.syncHeader.status;
-            //     NSString *toPath = event.metadata.toPath;
-            //     NSString *fromPath = event.metadata.fromPath;
-        
-            //     // folder events first.
-            //     if ([actionType rangeOfString:CLEventTypeLinkRange].location != NSNotFound) {
-            
-            //         if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
-            //             [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
-                
-            //             BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-                
-            //             if (status == nil) { // MDS origin, Philis told us we need to do this.
-            //                 success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
-            //             }
-                
-            //             // update ui.
-            //             [self performUpdateForSyncEvent:event success:success];
-            //         }
-            //     }
-        
-            // }];
-            //&&&&
-
-            // NSLog(@"%s", __FUNCTION__);
-            _trace.writeToLog(9, "CLSyncService: ProcessRenameMoveLinkSyncEvents: Entry.");
-            
-            // Rename/Move Link events.
-            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            foreach (CLEvent evt in events)
-            {
-                // CLEvent *event = obj;
-                // NSString *actionType = event.syncHeader.action;
-                // NSString *status = event.syncHeader.status;
-                // NSString *toPath = event.metadata.toPath;
-                // NSString *fromPath = event.metadata.fromPath;
-                string actionType = evt.SyncHeader.Action;
-                string status = evt.SyncHeader.Status;
-                string toPath = evt.Metadata.ToPath;
-                string fromPath = evt.Metadata.FromPath;
-
-                // Folder events first.
-                // if ([actionType rangeOfString:CLEventTypeLinkRange].location != NSNotFound) {
-                if (actionType.Contains(CLDefinitions.CLEventTypeLinkRange))
-                {
-                    // if ([actionType rangeOfString:CLEventTypeRenameRange].location != NSNotFound ||
-                    //    [actionType rangeOfString:CLEventTypeMoveRange].location != NSNotFound ) {
-                    if (actionType.Contains(CLDefinitions.CLEventTypeRenameRange) ||
-                        actionType.Contains(CLDefinitions.CLEventTypeMoveRange))
-                    {
-                        // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
-                        bool success = true;
-
-                        // if (status == nil) { // MDS origin, Philis told us we need to do this.
-                        if (status == String.Empty)
-                        {
-                            // success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
-                            CLError err = null;
-                            success = CLFSDispatcher.Instance.MoveItemAtPath_to_error(fromPath, toPath, out err);
-
-                            //TODO: Handle error?
-                        }
-
-                        // Update ui.
-                        //TODO: Implement this UI.
-                        // [self performUpdateForSyncEvent:event success:success];
-                    }
-                }
-            }
-        }
-
-
+        //- (void)dispatchUploadEvents:(NSArray *)events
         void DispatchUploadEvents(List<CLEvent> events)
         {
-            //NSLog(@"%s", __FUNCTION__);
-            //NSMutableArray *operations = [NSMutableArray array];
-    
-            //if (self.uploadOperationQueue == nil) {
-            //    self.uploadOperationQueue = [[CLOperationQueue alloc] init];
-            //    self.uploadOperationQueue.maxConcurrentOperationCount = 6;
-            //}
-    
-            //NSLog(@"Number of uploads to start: %lu", [events count]);
-    
-            //__block NSInteger totalExpectedUploadBytes = 0;
-            //__block NSInteger totalUploadedBytes = 0;
-            //__block NSTimeInterval start;
+            // Merged 7/10/12
+            // NSLog(@"%s", __FUNCTION__);
+            // NSMutableArray *operations = [NSMutableArray array];
 
-            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        
-            //    CLEvent *event = obj;
-            //    NSString *path = event.metadata.path;
-            //    NSString *storageKey = event.metadata.storage_key;
-            //    NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
-        
-            //    totalExpectedUploadBytes = totalExpectedUploadBytes +[event.metadata.size integerValue];
-
-            //    NSLog(@"File to be uploaded: %@, Storage Key: %@", path, storageKey);
-        
-            //    __block CLHTTPConnectionOperation *uploadOperation = [self.restClient streamingUploadOperationForStorageKey:storageKey withFileSystemPath:fileSystemPath fileSize:event.metadata.size andMD5Hash:event.metadata.hash];
-        
-            //    [uploadOperation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
-            
-            //        totalUploadedBytes = totalUploadedBytes + bytesWritten;
-            
-            
-            //        NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-            //        double elapsedSeconds = now - start;
-            //        double secondsLeft = (((double)totalExpectedUploadBytes - (double)totalUploadedBytes) / ((double)totalUploadedBytes / elapsedSeconds));
-            //        double progress = (double)totalUploadedBytes / (double)totalExpectedUploadBytes;
-            
-            //        //NSLog(@"Sent %ld of %ld bytes - Progress: %f", totalUploadedBytes, totalExpectedUploadBytes, progress);
-            
-            //        [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
-            //                                                                    timeLeft:secondsLeft
-            //                                                                      bytes:(double)totalUploadedBytes
-            //                                                               ofTotalBytes:(double)totalExpectedUploadBytes
-            //                                                                  fileCount:[self.uploadOperationQueue operationCount]
-            //                                                            andActivityType:activityViewLabelUpload];
-            //    }];
-        
-            //    [uploadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
-            
-            //        NSLog(@"Upload Status: %li", [operation.response statusCode]);
-            
-            //        if ([operation.response statusCode] == 201) {
-                
-            //            NSLog(@"Upload Completed for File: %@", path);
-            //            NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
-            //            // update index and ui.
-            //            [self performUpdateForSyncEvent:event success:YES];
-                
-            //        } else if ([operation.response statusCode] == 304){
-                
-            //            NSLog(@"The file already exists on the server");
-            //            // update index and ui.
-            //            [self performUpdateForSyncEvent:event success:YES];
-                
-            //        }else {
-            //            NSLog(@"Upload Failed with status:%li for File: %@",[operation.response statusCode], path);
-            //        }
-            
-            //        if (error) {
-                
-            //            // Error handler (back processor). Likely to happen due to network interruptions.
-            //            // TODO: Handle the upload failure -- for now update the index to not pending.. we need to handle the error!!
-            //            NSLog(@"Failed to Upload File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
-            //            NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
-                
-            //            // update index and ui.
-            //            [self performUpdateForSyncEvent:event success:NO];
-            //        }
-            
-            //        if ([self.uploadOperationQueue operationCount] <= 0) {
-                
-            //            [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
-            //        }
-            
-            //    }];
-        
-            //    [operations addObject:uploadOperation];
-            //}];
+            // NSLog(@"Number of uploads to start: %lu", [events count]);
     
-            //NSLog(@"Starting Upload Operarions");
-            //start = [NSDate timeIntervalSinceReferenceDate];
-            //[self.uploadOperationQueue addOperations:operations waitUntilFinished:YES];
-            //NSLog(@"Finished Upload Operarions");
+            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        
+            //     CLEvent *event = obj;
+            //     CLHTTPConnectionOperation *uploadOperation = [self uploadOperationForEvent:event];
+            //     [operations addObject:uploadOperation];
+            // }];
+    
+            // NSLog(@"Starting Upload Operarions");
+            // [self.uploadOperationQueue addOperations:operations waitUntilFinished:YES];
+            // [self.uploadOperationQueue waitUntilAllOperationsAreFinished];
 
-            //&&&&&&&&&&&&&
+            // NSLog(@"Finished Upload Operarions");
+            //&&&&
+
+            // NSLog(@"%s", __FUNCTION__);
             _trace.writeToLog(9," CLSyncService: DispatchUploadEvents: Entry.");
 
-            //NSMutableArray *operations = [NSMutableArray array];
+            // NSMutableArray *operations = [NSMutableArray array];
             List<CLSptNSOperation> operations = new List<CLSptNSOperation>();
 
-            //if (self.uploadOperationQueue == nil) {
-            //    self.uploadOperationQueue = [[CLOperationQueue alloc] init];
-            //    self.uploadOperationQueue.maxConcurrentOperationCount = 6;
-            //}
-            if (_uploadOperationQueue == null)
-            {
-                _uploadOperationQueue = new CLSptNSOperationQueue(maxConcurrentTasks: 6);
-            }
-
-            //NSLog(@"Number of uploads to start: %lu", [events count]);
+            // NSLog(@"Number of uploads to start: %lu", [events count]);
             _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Number of uploads to start: {0}.", events.Count);
 
-            //__block NSInteger totalExpectedUploadBytes = 0;
-            //__block NSInteger totalUploadedBytes = 0;
-            //__block NSTimeInterval start;
+            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            foreach (CLEvent evt in events)
+            {
+                //     CLEvent *event = obj;
+                //     CLHTTPConnectionOperation *uploadOperation = [self uploadOperationForEvent:event];
+                CLHTTPConnectionOperation uploadOperation = UploadOperationForEvent(evt);
+
+                //     [operations addObject:uploadOperation];
+                operations.Add(uploadOperation);
+            }
+
+            // NSLog(@"Starting Upload Operarions");
+            _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Starting upload operations.");
+
+            // [self.uploadOperationQueue addOperations:operations waitUntilFinished:YES];
+            _uploadOperationQueue.AddOperations(operations);
+
+            // [self.uploadOperationQueue waitUntilAllOperationsAreFinished];
+            _uploadOperationQueue.WaitUntilFinished();
+
+            // NSLog(@"Finished Upload Operarions");
+            _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Finished upload operations.");
+        }
+
+        //- (CLHTTPConnectionOperation *)uploadOperationForEvent:(CLEvent *)event
+        CLHTTPConnectionOperation UploadOperationForEvent(CLEvent evt)
+        {   
+            // Merged 7/10/12
+            // NSString *path = event.metadata.path;
+            // NSString *storageKey = event.metadata.storage_key;
+            // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
+    
+            // __block NSInteger totalExpectedUploadBytes = 0;
+            // __block NSInteger totalUploadedBytes = 0;
+            // __block NSTimeInterval start = [NSDate timeIntervalSinceReferenceDate];;
+    
+            // totalExpectedUploadBytes = totalExpectedUploadBytes +[event.metadata.size integerValue];
+    
+            // NSLog(@"File to be uploaded: %@, Storage Key: %@", path, storageKey);
+    
+            // __block CLHTTPConnectionOperation *uploadOperation = [self.restClient streamingUploadOperationForStorageKey:storageKey withFileSystemPath:fileSystemPath fileSize:event.metadata.size andMD5Hash:event.metadata.hash];
+    
+            // [uploadOperation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
+        
+            //     totalUploadedBytes = totalUploadedBytes + bytesWritten;
+                
+            //     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+            //     double elapsedSeconds = now - start;
+            //     double secondsLeft = (((double)totalExpectedUploadBytes - (double)totalUploadedBytes) / ((double)totalUploadedBytes / elapsedSeconds));
+            //     double progress = (double)totalUploadedBytes / (double)totalExpectedUploadBytes;
+        
+            //     //NSLog(@"Sent %ld of %ld bytes - Progress: %f", totalUploadedBytes, totalExpectedUploadBytes, progress);
+        
+            //     [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
+            //                                                                timeLeft:secondsLeft
+            //                                                                   bytes:(double)totalUploadedBytes
+            //                                                            ofTotalBytes:(double)totalExpectedUploadBytes
+            //                                                               fileCount:[self.uploadOperationQueue operationCount]
+            //                                                         andActivityType:activityViewLabelUpload];
+            // }];
+    
+            // __weak CLSyncService *weakSelf = self;
+    
+            // [uploadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
+            //     __strong CLSyncService *strongSelf = weakSelf;
+            //     if (strongSelf) {
+            //         NSLog(@"Upload Status: %li", [operation.response statusCode]);
+            //         //TODO : The MDS should be returning 201 for a successfull upload, but there is a bug returning 200. We need to change this back to 201 when this bug has been fixed.
+            
+            //         if (([operation.response statusCode] == 201 ) || ([operation.response statusCode] == 200 )) {
+               
+            //             NSLog(@"Upload Completed for File: %@", path);
+            //             NSLog(@"Opperations remaining: %lu", [[strongSelf.uploadOperationQueue operations] count]);
+            //            // update index and ui.
+            //            [strongSelf performUpdateForSyncEvent:event success:YES];
+                
+            //         } else if ([operation.response statusCode] == 304){
+                
+            //             NSLog(@"The file already exists on the server");
+            //             // update index and ui.
+            //             [strongSelf performUpdateForSyncEvent:event success:YES];
+                
+            //         }else {
+            //             NSLog(@"Upload Failed with status:%li for File: %@",[operation.response statusCode], path);
+            //             [self retryEvent:event isDownloadEvent:NO];
+            //         }
+            
+            //         if (error) {
+                
+            //             // Error handler (back processor). Likely to happen due to network interruptions.
+            //             // TODO: Handle the upload failure -- for now update the index to not pending.. we need to handle the error!!
+            //             NSLog(@"Failed to Upload File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
+            //             NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
+                
+            //             [self retryEvent:event isDownloadEvent:NO];
+            //         }
+            
+            //         if ([strongSelf.uploadOperationQueue operationCount] <= 0) {
+                
+            //             [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
+            //         }
+            //     }
+            // }];
+    
+            // return uploadOperation;
+            //&&&&
+
+            // NSString *path = event.metadata.path;
+            // NSString *storageKey = event.metadata.storage_key;
+            // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
+            string path = evt.Metadata.Path;
+            string storageKey = evt.Metadata.Storage_key;
+            string fileSystemPath = Settings.Instance.CloudFolderPath + path;
+
+            // __block NSInteger totalExpectedUploadBytes = 0;
+            // __block NSInteger totalUploadedBytes = 0;
+            // __block NSTimeInterval start = [NSDate timeIntervalSinceReferenceDate];;
             long totalExpectedUploadBytes = 0;
             long totalUploadedBytes = 0;
-            DateTime start;
-            
-            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            //    CLEvent *event = obj;
-            events.ForEach(obj =>
+            DateTime start = DateTime.Now;
+
+            // totalExpectedUploadBytes = totalExpectedUploadBytes +[event.metadata.size integerValue];
+            totalExpectedUploadBytes += Convert.ToInt64(evt.Metadata.Size);
+
+            // NSLog(@"File to be uploaded: %@, Storage Key: %@", path, storageKey);
+            _trace.writeToLog(9, "CLSyncService: UploadOperationForEvent: FIle to be uploaded: {0}, Storage key: {1}.", path, storageKey);
+
+            // __block CLHTTPConnectionOperation *uploadOperation = [self.restClient streamingUploadOperationForStorageKey:storageKey withFileSystemPath:fileSystemPath fileSize:event.metadata.size andMD5Hash:event.metadata.hash];
+            CLHTTPConnectionOperation uploadOperation = _restClient.StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(storageKey, fileSystemPath, evt.Metadata.Size, evt.Metadata.Hash);
+
+            //TODO: Implement this UI functionality.
+            // [uploadOperation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
+
+            //     totalUploadedBytes = totalUploadedBytes + bytesWritten;
+
+            //     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+            //     double elapsedSeconds = now - start;
+            //     double secondsLeft = (((double)totalExpectedUploadBytes - (double)totalUploadedBytes) / ((double)totalUploadedBytes / elapsedSeconds));
+            //     double progress = (double)totalUploadedBytes / (double)totalExpectedUploadBytes;
+
+            //     //NSLog(@"Sent %ld of %ld bytes - Progress: %f", totalUploadedBytes, totalExpectedUploadBytes, progress);
+
+            //     [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
+            //                                                                timeLeft:secondsLeft
+            //                                                                   bytes:(double)totalUploadedBytes
+            //                                                            ofTotalBytes:(double)totalExpectedUploadBytes
+            //                                                               fileCount:[self.uploadOperationQueue operationCount]
+            //                                                         andActivityType:activityViewLabelUpload];
+            // }];
+
+            // __weak CLSyncService *weakSelf = self;
+
+            // [uploadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
+            uploadOperation.SetOperationCompletionBlock((CLHTTPConnectionOperation operation, CLError error) =>
             {
-                // __block CLEvent *event = obj;
-                CLEvent evt = obj;
-
-                // NSString *path = event.metadata.path;
-                string path = evt.Metadata.Path;
-
-                // NSString *storageKey = event.metadata.storage_key;
-                string storageKey = evt.Metadata.Storage_key;
-
-                // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
-                string fileSystemPath = Settings.Instance.CloudFolderPath + path;
-
-                // totalExpectedUploadBytes = totalExpectedUploadBytes +[event.metadata.size integerValue];
-                totalExpectedUploadBytes += Convert.ToInt64(evt.Metadata.Size);
-
-                // NSLog(@"File to be uploaded: %@, Storage Key: %@", path, storageKey);
-                _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: File to be uploadedNumber of uploads to start: {0}.", events.Count);
-
-                // __block CLHTTPConnectionOperation *uploadOperation = [self.restClient streamingUploadOperationForStorageKey:storageKey withFileSystemPath:fileSystemPath fileSize:event.metadata.size andMD5Hash:event.metadata.hash];
-                CLHTTPConnectionOperation uploadOperation = _restClient.StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(storageKey, fileSystemPath, evt.Metadata.Size, evt.Metadata.Hash);
-
-                //TODO: Implement this progress UI.
-                // [uploadOperation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
-                // totalUploadedBytes = totalUploadedBytes + bytesWritten;
-                // NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-                // double elapsedSeconds = now - start;
-                // double secondsLeft = (((double)totalExpectedUploadBytes - (double)totalUploadedBytes) / ((double)totalUploadedBytes / elapsedSeconds));
-                // double progress = (double)totalUploadedBytes / (double)totalExpectedUploadBytes;
-
-                // //NSLog(@"Sent %ld of %ld bytes - Progress: %f", totalUploadedBytes, totalExpectedUploadBytes, progress);
-
-                // [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
-                //                                                       timeLeft:secondsLeft
-                //                                                                      bytes:(double)totalUploadedBytes
-                //                                                               ofTotalBytes:(double)totalExpectedUploadBytes
-                //                                                                  fileCount:[self.uploadOperationQueue operationCount]
-                //                                                            andActivityType:activityViewLabelUpload];
-                // }];
-
-                // [uploadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
-                uploadOperation.SetOperationCompletionBlock((CLHTTPConnectionOperation operation, CLError error) =>
-                {
+                // __strong CLSyncService *strongSelf = weakSelf;
+                // if (strongSelf) {
 
                     // NSLog(@"Upload Status: %li", [operation.response statusCode]);
                     _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Upload Status: {0}.", operation.Response.StatusCode);
 
-                    // if ([operation.response statusCode] == 201) {
-                    if (operation.Response.StatusCode == HttpStatusCode.Created)  // 201
+                    // if (([operation.response statusCode] == 201 ) || ([operation.response statusCode] == 200 )) {
+                    // //TODO : The MDS should be returning 201 for a successfull upload, but there is a bug returning 200. We need to change this back to 201 when this bug has been fixed.
+                    if (operation.Response.StatusCode == HttpStatusCode.Created || operation.Response.StatusCode == HttpStatusCode.OK)  // 201 or 200
                     {
                         // NSLog(@"Upload Completed for File: %@", path);
                         // NSLog(@"Opperations remaining: %lu", [[self.uploadOperationQueue operations] count]);
                         _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Upload completed for file: {0}.", path);
-                        _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Operations remaining: {0}.", _uploadOperationQueue.OperationCount );
+                        _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Operations remaining: {0}.", _uploadOperationQueue.OperationCount);
 
                         // update index and ui.
                         // [self performUpdateForSyncEvent:event success:YES];
-                        PerformUpdateForSyncEventSuccess(evt, success: true);
+                        PerformUpdateForSyncEvent_Success(evt, success: true);
                     }
                     // } else if ([operation.response statusCode] == 304){
                     else if (operation.Response.StatusCode == HttpStatusCode.NotModified)  // 304
@@ -2801,7 +2924,10 @@ namespace win_client.Services.Sync
 
                         // update index and ui.
                         // [self performUpdateForSyncEvent:event success:YES];
-                        PerformUpdateForSyncEventSuccess(evt, success: true);
+                        PerformUpdateForSyncEvent_Success(evt, success: true);
+
+                        // [self retryEvent:event isDownloadEvent:NO];
+                        RetryEvent_isDownload(evt, isDownload: false);
                     }
                     // }else {
                     else
@@ -2811,7 +2937,8 @@ namespace win_client.Services.Sync
                     }
 
                     // Handle a potential error
-                    if (error != null) {
+                    if (error != null)
+                    {
 
                         // Error handler (back processor). Likely to happen due to network interruptions.
                         // TODO: Handle the upload failure -- for now update the index to not pending.. we need to handle the error!!
@@ -2822,7 +2949,7 @@ namespace win_client.Services.Sync
 
                         // Update index and ui.
                         // [self performUpdateForSyncEvent:event success:NO];
-                        PerformUpdateForSyncEventSuccess(evt, success: false);
+                        PerformUpdateForSyncEvent_Success(evt, success: false);
                     }
 
                     // Update the UI
@@ -2832,293 +2959,275 @@ namespace win_client.Services.Sync
                         //TODO: Implement this UI status.
                         // [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
                     }
-
-                });
-
-                // [operations addObject:uploadOperation];
-                operations.Add(uploadOperation);
+                // }  // strongSelf
             });
 
-            //NSLog(@"Starting Upload Operarions");
-            _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Starting upload operations.");
-
-            //start = [NSDate timeIntervalSinceReferenceDate];
-            start = DateTime.Now;
-
-            //[self.uploadOperationQueue addOperations:operations waitUntilFinished:YES];
-            _uploadOperationQueue.AddOperations(operations);
-            _uploadOperationQueue.WaitUntilFinished();
-
-            //NSLog(@"Finished Upload Operarions");
-            _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Finished upload operations.");
+            // return uploadOperation;
+            return uploadOperation;
         }
 
+        //- (void)dispatchDownloadEvents:(NSArray *)events
         void DispatchDownloadEvents(List<CLEvent> events)
         {
-            //NSLog(@"%s", __FUNCTION__);
-
-            //NSMutableArray *operations = [NSMutableArray array];
-
-            //if (self.downloadOperationQueue == nil) {
-            //    self.downloadOperationQueue = [[CLOperationQueue alloc] init];
-            //    self.downloadOperationQueue.maxConcurrentOperationCount = 6;
-            //}
-
-            //__block NSInteger totalExpectedDownloadBytes = 0;
-            //__block NSInteger totalDownloadedBytes = 0;
-            //__block NSTimeInterval start;
-            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        
-            //    __block CLEvent *event = obj;
-            //    NSString *path = event.metadata.path;
-            //    NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
-        
-            //    totalExpectedDownloadBytes = totalExpectedDownloadBytes +[event.metadata.size integerValue];
-        
-            //    NSLog(@"File to be downloaded: %@, Storage Key: %@", path, event.metadata.storage_key);
-        
-            //    __block CLHTTPConnectionOperation *downloadOperation = [self.restClient streamingDownloadOperationForStorageKey:event.metadata.storage_key
-            //                                                                                                 withFileSystemPath:fileSystemPath
-            //                                                                                                           fileSize:event.metadata.size
-            //                                                                                                         andMD5Hash:event.metadata.hash];
-        
-            //    [downloadOperation setDownloadProgressBlock:^(NSInteger bytesRead, NSInteger totalBytesRead, NSInteger totalBytesExpectedToRead) {
-            
-            //        totalDownloadedBytes = totalDownloadedBytes + bytesRead;
-            
-            //        NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-            //        double progress = (double)totalDownloadedBytes / (double)totalExpectedDownloadBytes;
-            //        double elapsedSeconds = now - start;
-            //        double secondsLeft = (((double)totalExpectedDownloadBytes - (double)totalDownloadedBytes) / ((double)totalDownloadedBytes / elapsedSeconds));
-            //        [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
-            //                                                                   timeLeft:secondsLeft
-            //                                                                      bytes:(double)totalDownloadedBytes
-            //                                                               ofTotalBytes:(double)totalExpectedDownloadBytes
-            //                                                                  fileCount:[self.downloadOperationQueue operationCount]
-            //                                                            andActivityType:activityViewLabelDownload];
-            //    }];
-        
-            //    [downloadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
-            
-            //        if (!error) {
-            //            if ([operation.response statusCode] == 200) {
-                    
-            //                NSLog(@"Download Completed for file: %@", path);
-            //                NSLog(@"Opperations remaining: %lu", [[self.downloadOperationQueue operations] count]);
-                    
-            //                NSError *attributesError;
-            //                BOOL attributesSet = [[CLFSDispatcher defaultDispatcher] updateAttributesUsingMetadata:event.metadata forItemAtPath:fileSystemPath error:&attributesError];
-            //                if (attributesSet) {
-            //                    if (attributesError) {
-            //                        NSLog(@"%s - %@", __FUNCTION__, [attributesError description]);
-            //                    }
-            //                }else {
-            //                    NSLog(@"Failed to update attributes in: %s", __FUNCTION__);
-            //                }
-                    
-            //                [self performUpdateForSyncEvent:event success:YES];
-                    
-            //            } else {
-            //                NSLog(@"%s - Download returned code: %ld", __FUNCTION__, [operation.response statusCode]);
-            //               [self retryEvent:event isDownload:YES];
-            //            }
-                
-            //        }else {
-            //            // update index and ui.
-            //            [self performUpdateForSyncEvent:event success:NO];
-                
-            //            [self retryEvent:event isDownload:YES];
-                
-                
-            //            // Error handler (back processor). Likely to happen due to network interruptions.
-            //            NSLog(@"Failed to Download File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
-            //        }
-            
-            //        [self.activeDownloadQueue removeObject:event];
-            
-            
-            //        if ([self.downloadOperationQueue operationCount] <= 0) {
-            //            [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
-            //        }
-            
-            //        responseObject = nil;
-            
-            //    }];
-        
-            //    [operations addObject:downloadOperation];
-            //    [self.activeDownloadQueue addObject:event];
-            //}];
+            // Merged 7/10/12
+            // NSLog(@"%s", __FUNCTION__);
     
-            //NSLog(@"Starting Download Operarions");
-            //start = [NSDate timeIntervalSinceReferenceDate];
-            //[self.downloadOperationQueue addOperations:operations waitUntilFinished:YES];
-            //NSLog(@"Finished Download Operarions");
-            //&&&&&
+            // NSMutableArray *operations = [NSMutableArray array];
 
-            //NSLog(@"%s", __FUNCTION__);
-            _trace.writeToLog(9, " CLSyncService: DispatchDownloadEvents: Entry.");
+            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        
+            //     __block CLEvent *event = obj;
+            //     CLHTTPConnectionOperation *downloadOperation = [self  downloadOpperationForEvent:event];
+       
+            //     [operations addObject:downloadOperation];
+        
+            //     [self.activeDownloadQueue addObject:event];
+            // }];
     
-            //NSMutableArray *operations = [NSMutableArray array];
+            // NSLog(@"Starting Download Operations");
+            // [self.downloadOperationQueue addOperations:operations waitUntilFinished:YES];
+            // [self.downloadOperationQueue waitUntilAllOperationsAreFinished];
+
+            // NSLog(@"Finished Download Operations");
+            //&&&&
+
+            // NSLog(@"%s", __FUNCTION__);
+            _trace.writeToLog(9, "CLSyncService: DispatchDownloadEvents: Entry.");
+
+            // NSMutableArray *operations = [NSMutableArray array];
             List<CLSptNSOperation> operations = new List<CLSptNSOperation>();
-    
-            //if (self.downloadOperationQueue == nil) {
-            //    self.downloadOperationQueue = [[CLOperationQueue alloc] init];
-            //    self.downloadOperationQueue.maxConcurrentOperationCount = 6;
-            //}
-            if (_downloadOperationQueue == null)
-            {
-                _downloadOperationQueue = new CLSptNSOperationQueue(maxConcurrentTasks: 6);
-            }
-    
-            //__block NSInteger totalExpectedDownloadBytes = 0;
-            //__block NSInteger totalDownloadedBytes = 0;
-            //__block NSTimeInterval start;
-            long totalExpectedDownloadBytes = 0;
-            long totalDownloadedBytes = 0;
-            DateTime start;
 
-            //[events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            events.ForEach(obj =>
+            // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            foreach (CLEvent evt in events)
             {
                 // __block CLEvent *event = obj;
-                CLEvent evt = obj;
-
-                // NSString *path = event.metadata.path;
-                string path = evt.Metadata.Path;
-
-                // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
-                string fileSystemPath = Settings.Instance.CloudFolderPath + path;
-                string storageKey = evt.Metadata.Storage_key;
-
-                // totalExpectedDownloadBytes = totalExpectedDownloadBytes +[event.metadata.size integerValue];
-                totalExpectedDownloadBytes += Convert.ToInt64(evt.Metadata.Size);
-
-                // NSLog(@"File to be downloaded: %@, Storage Key: %@", path, event.metadata.storage_key);
-                _trace.writeToLog(9, " CLSyncService: DispatchDownloadEvents: File to be downloaded: {0}. Storage key: {1}.", events.Count, storageKey);
-
-                // __block CLHTTPConnectionOperation *downloadOperation = [self.restClient streamingDownloadOperationForStorageKey:event.metadata.storage_key
-                //                                                                                                 withFileSystemPath:fileSystemPath
-                //                                                                                                           fileSize:event.metadata.size
-                //                                                                                                         andMD5Hash:event.metadata.hash];
-                CLHTTPConnectionOperation downloadOperation = _restClient.StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(storageKey, fileSystemPath, evt.Metadata.Size, evt.Metadata.Hash);
-
-                //TODO: Implement this progress UI.
-                // [downloadOperation setDownloadProgressBlock:^(NSInteger bytesRead, NSInteger totalBytesRead, NSInteger totalBytesExpectedToRead) {
-                //     totalDownloadedBytes = totalDownloadedBytes + bytesRead;
-                //     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-                //     double progress = (double)totalDownloadedBytes / (double)totalExpectedDownloadBytes;
-                //     double elapsedSeconds = now - start;
-                //     double secondsLeft = (((double)totalExpectedDownloadBytes - (double)totalDownloadedBytes) / ((double)totalDownloadedBytes / elapsedSeconds));
-                //     [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
-                //                                                                   timeLeft:secondsLeft
-                //                                                                      bytes:(double)totalDownloadedBytes
-                //                                                               ofTotalBytes:(double)totalExpectedDownloadBytes
-                //                                                                  fileCount:[self.downloadOperationQueue operationCount]
-                //                                                            andActivityType:activityViewLabelDownload];
-                // }];
-
-                // [downloadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
-                downloadOperation.SetOperationCompletionBlock((CLHTTPConnectionOperation operation, CLError error) =>
-                {
-                    // if (!error) {
-                    if (error == null)
-                    {
-                        // if ([operation.response statusCode] == 200) {
-                        if (operation.Response.StatusCode == HttpStatusCode.OK)
-                        {
-
-                            // NSLog(@"Download Completed for file: %@", path);
-                            // NSLog(@"Opperations remaining: %lu", [[self.downloadOperationQueue operations] count]);
-                            _trace.writeToLog(9, " CLSyncService: DispatchDownloadEvents: Download completed for file: {0}.", path);
-                            _trace.writeToLog(9, " CLSyncService: DispatchDownloadEvents: Operations remaining: {0}.", _downloadOperationQueue.OperationCount);
-
-                            // NSError *attributesError;
-                            CLError attributesError = null;
-
-                            // BOOL attributesSet = [[CLFSDispatcher defaultDispatcher] updateAttributesUsingMetadata:event.metadata forItemAtPath:fileSystemPath error:&attributesError];
-                            bool attributesSet = CLFSDispatcher.Instance.UpdateAttributesUsingMetadata_forItemAtPath_error(evt.Metadata, fileSystemPath, out attributesError);
-
-                            // if (attributesSet) {
-                            if (attributesSet)
-                            {
-                                // if (attributesError) {
-                                //     NSLog(@"%s - %@", __FUNCTION__, [attributesError description]);
-                                // }
-                                if (attributesError != null)
-                                {
-                                    _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: {0}.", attributesError.errorDescription);
-                                }
-                            }
-                            else
-                            {
-                                // NSLog(@"Failed to update attributes in: %s", __FUNCTION__);
-                                _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: Failed to update attributes for file {0}.", path);
-                            }
-
-                            // [self performUpdateForSyncEvent:event success:YES];
-                            PerformUpdateForSyncEventSuccess(evt, success: true);
-                        }
-                        else
-                        {
-                            // NSLog(@"%s - Download returned code: %ld", __FUNCTION__, [operation.response statusCode]);
-                            _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: Download returned code {0} for file {1}.", operation.Response.StatusCode, path);
-
-                            // [self retryEvent:event isDownload:YES];
-                            RetryEvent(evt, isDownload: true);
-                        }
-                    }
-                    else
-                    {
-
-                        // Update index and ui.
-                        // [self performUpdateForSyncEvent:event success:NO];
-                        PerformUpdateForSyncEventSuccess(evt, success: false);
-
-                        // [self retryEvent:event isDownload:YES];
-                        RetryEvent(evt, isDownload: true);
-
-                        // Error handler (back processor). Likely to happen due to network interruptions.
-                        // NSLog(@"Failed to Download File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
-                        _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: Failed to download file {0}, error: {1}, code: {2}.", path, error.errorDescription, error.errorCode);
-                    }
-
-                    // [self.activeDownloadQueue removeObject:event];
-                    _activeDownloadQueue.Remove(evt);
-
-                    // if ([self.downloadOperationQueue operationCount] <= 0) {
-                    if (_downloadOperationQueue.OperationCount <= 0)
-                    {
-                        //TODO: Implement this UI progress code.
-                        // [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
-                    }
-
-                    // responseObject = nil;
-                    //????
-                });
+                // CLHTTPConnectionOperation *downloadOperation = [self  downloadOpperationForEvent:event];
+                CLHTTPConnectionOperation downloadOperation = DownloadOperationForEvent(evt);
 
                 // [operations addObject:downloadOperation];
                 operations.Add(downloadOperation);
 
                 // [self.activeDownloadQueue addObject:event];
                 _activeDownloadQueue.Add(evt);
-            });
+            }
 
-            //NSLog(@"Starting Download Operarions");
+            // NSLog(@"Starting Download Operations");
             _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Starting download operations.");
 
-            //start = [NSDate timeIntervalSinceReferenceDate];
-            start = DateTime.Now;
-
-            //[self.downloadOperationQueue addOperations:operations waitUntilFinished:YES];
+            // [self.downloadOperationQueue addOperations:operations waitUntilFinished:YES];
             _downloadOperationQueue.AddOperations(operations);
+
+            // [self.downloadOperationQueue waitUntilAllOperationsAreFinished];
             _downloadOperationQueue.WaitUntilFinished();
 
-            //NSLog(@"Finished Download Operarions");
+            // NSLog(@"Finished Download Operations");
             _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Finished download operations.");
         }
 
+
+        //- (CLHTTPConnectionOperation *)downloadOpperationForEvent:(CLEvent *)event
+        CLHTTPConnectionOperation DownloadOperationForEvent(CLEvent evt)
+        {
+            // Merged 7/10/12
+            // NSString *path = event.metadata.path;
+            // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
+    
+            // __block NSInteger totalExpectedDownloadBytes = 0;
+            // __block NSInteger totalDownloadedBytes = 0;
+            // __block NSTimeInterval start;
+    
+            // __block CLHTTPConnectionOperation *downloadOperation = [self.restClient streamingDownloadOperationForStorageKey:event.metadata.storage_key
+            //                                                                                                 withFileSystemPath:fileSystemPath
+            //                                                                                                           fileSize:event.metadata.size
+            //                                                                                                         andMD5Hash:event.metadata.hash];
+    
+            // [downloadOperation setDownloadProgressBlock:^(NSInteger bytesRead, NSInteger totalBytesRead, NSInteger totalBytesExpectedToRead) {
+        
+            //     totalDownloadedBytes = totalDownloadedBytes + bytesRead;
+        
+            //     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+            //     double progress = (double)totalDownloadedBytes / (double)totalExpectedDownloadBytes;
+            //     double elapsedSeconds = now - start;
+            //     double secondsLeft = (((double)totalExpectedDownloadBytes - (double)totalDownloadedBytes) / ((double)totalDownloadedBytes / elapsedSeconds));
+            //     [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
+            //                                                                timeLeft:secondsLeft
+            //                                                                   bytes:(double)totalDownloadedBytes
+            //                                                            ofTotalBytes:(double)totalExpectedDownloadBytes
+            //                                                               fileCount:[self.downloadOperationQueue operationCount]
+            //                                                         andActivityType:activityViewLabelDownload];
+            // }];
+    
+            // __weak CLSyncService *weakSelf = self;
+    
+            // [downloadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
+        
+            //     __strong CLSyncService *strongSelf = weakSelf;
+        
+            //     if (!error) {
+            //         if ([operation.response statusCode] == 200) {
+                
+            //             NSLog(@"Download Completed for file: %@", path);
+            //             NSLog(@"Opperations remaining: %lu", [[self.downloadOperationQueue operations] count]);
+                
+            //             NSError *attributesError;
+            //             BOOL attributesSet = [[CLFSDispatcher defaultDispatcher] updateAttributesUsingMetadata:event.metadata forItemAtPath:fileSystemPath error:&attributesError];
+            //             if (attributesSet) {
+            //                 if (attributesError) {
+            //                     NSLog(@"%s - %@", __FUNCTION__, [attributesError description]);
+            //                 }
+            //             }else {
+            //                 NSLog(@"Failed to update attributes in: %s", __FUNCTION__);
+            //             }
+                
+            //             [strongSelf performUpdateForSyncEvent:event success:YES];
+               
+            //         } else {
+            //             NSLog(@"%s - Download returned code: %ld", __FUNCTION__, [operation.response statusCode]);
+            //             [strongSelf retryEvent:event isDownloadEvent:YES];
+            //         }
+            
+            //     }else {
+            
+            //         [strongSelf retryEvent:event isDownloadEvent:YES];
+            //         NSLog(@"Failed to Download File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
+            //     }
+        
+            //     // TODO: ? check to see if object is there?
+            //     [strongSelf.activeDownloadQueue removeObject:event];
+        
+            //     if ([strongSelf.downloadOperationQueue operationCount] <= 0) {
+            //         [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
+            //     }
+        
+            //     responseObject = nil;
+        
+            // }];
+    
+            // return downloadOperation;
+            //&&&&
+
+            // NSString *path = event.metadata.path;
+            // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
+            string path = evt.Metadata.Path;
+            string fileSystemPath = Settings.Instance.CloudFolderPath + path;
+
+            // __block NSInteger totalExpectedDownloadBytes = 0;
+            // __block NSInteger totalDownloadedBytes = 0;
+            // __block NSTimeInterval start;
+            long totalExpectedDownloadBytes = 0;
+            long totalDownloadedBytes = 0;
+            DateTime start = DateTime.Now;
+
+            // __block CLHTTPConnectionOperation *downloadOperation = [self.restClient streamingDownloadOperationForStorageKey:event.metadata.storage_key
+            //                                                                                                 withFileSystemPath:fileSystemPath
+            //                                                                                                           fileSize:event.metadata.size
+            //                                                                                                         andMD5Hash:event.metadata.hash];
+            CLHTTPConnectionOperation downloadOperation = _restClient.StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(evt.Metadata.Storage_key, fileSystemPath, evt.Metadata.Size, evt.Metadata.Hash);
+
+            //TODO: Implement this UI progress code.
+            // [downloadOperation setDownloadProgressBlock:^(NSInteger bytesRead, NSInteger totalBytesRead, NSInteger totalBytesExpectedToRead) {
+
+            //     totalDownloadedBytes = totalDownloadedBytes + bytesRead;
+
+            //     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+            //     double progress = (double)totalDownloadedBytes / (double)totalExpectedDownloadBytes;
+            //     double elapsedSeconds = now - start;
+            //     double secondsLeft = (((double)totalExpectedDownloadBytes - (double)totalDownloadedBytes) / ((double)totalDownloadedBytes / elapsedSeconds));
+            //     [[CLUIActivityService sharedService] updateActivityViewWithProgress:progress
+            //                                                                timeLeft:secondsLeft
+            //                                                                   bytes:(double)totalDownloadedBytes
+            //                                                            ofTotalBytes:(double)totalExpectedDownloadBytes
+            //                                                               fileCount:[self.downloadOperationQueue operationCount]
+            //                                                         andActivityType:activityViewLabelDownload];
+            // }];
+
+            // __weak CLSyncService *weakSelf = self;
+
+            // [downloadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
+            downloadOperation.SetOperationCompletionBlock((CLHTTPConnectionOperation operation, CLError error) =>
+            {
+
+                // __strong CLSyncService *strongSelf = weakSelf;
+
+                // if (!error) {
+                if (error != null)
+                {
+                    // if ([operation.response statusCode] == 200) {
+                    if (operation.Response.StatusCode == HttpStatusCode.OK)
+                    {
+
+                        // NSLog(@"Download Completed for file: %@", path);
+                        // NSLog(@"Opperations remaining: %lu", [[self.downloadOperationQueue operations] count]);
+                        _trace.writeToLog(9, " CLSyncService: DispatchDownloadEvents: Download completed for file: {0}.", path);
+                        _trace.writeToLog(9, " CLSyncService: DispatchDownloadEvents: Operations remaining: {0}.", _downloadOperationQueue.OperationCount);
+
+                        // NSError *attributesError;
+                        CLError attributesError = null;
+
+                        // BOOL attributesSet = [[CLFSDispatcher defaultDispatcher] updateAttributesUsingMetadata:event.metadata forItemAtPath:fileSystemPath error:&attributesError];
+                        bool attributesSet = CLFSDispatcher.Instance.UpdateAttributesUsingMetadata_forItemAtPath_error(evt.Metadata, fileSystemPath, out attributesError);
+
+                        // if (attributesSet) {
+                        if (attributesSet)
+                        {
+                            // if (attributesError) {
+                            //     NSLog(@"%s - %@", __FUNCTION__, [attributesError description]);
+                            // }
+                            if (attributesError != null)
+                            {
+                                _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: {0}.", attributesError.errorDescription);
+                            }
+                        }
+                        else
+                        {
+                            // NSLog(@"Failed to update attributes in: %s", __FUNCTION__);
+                            _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: Failed to update attributes for file {0}.", path);
+                        }
+
+                        // [self performUpdateForSyncEvent:event success:YES];
+                        PerformUpdateForSyncEvent_Success(evt, success: true);
+
+                    }
+                    else
+                    {
+                        // NSLog(@"%s - Download returned code: %ld", __FUNCTION__, [operation.response statusCode]);
+                        _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: Download returned code {0}.", operation.Response.StatusCode.ToString());
+
+                        // [strongSelf retryEvent:event isDownloadEvent:YES];
+                        RetryEvent_isDownload(evt, isDownload: true);
+                    }
+
+                }
+                else
+                {
+                    // [strongSelf retryEvent:event isDownloadEvent:YES];
+                    RetryEvent_isDownload(evt, isDownload: true);
+
+                    // NSLog(@"Failed to Download File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
+                    _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: Failed to download file {0}.  Error: {1}, Code: {2}.", path, error.errorDescription, error.errorCode);
+                }
+
+                // // TODO: ? check to see if object is there?
+                // [strongSelf.activeDownloadQueue removeObject:event];
+                _activeDownloadQueue.Remove(evt);
+
+                // if ([strongSelf.downloadOperationQueue operationCount] <= 0) {
+                if (_downloadOperationQueue.OperationCount <= 0)
+                {
+                    //TODO: Implement this UI.
+                    // [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
+                }
+
+                // responseObject = nil;
+
+            });
+
+            // return downloadOperation;
+            return downloadOperation;
+        }
+
         // - (void)saveSyncStateWithSID:(NSString *)sid andEID:(NSNumber *)eid
-        void SaveSyncStateWithSIDAndEID(string sid, ulong eid)
+        void SaveSyncStateWithSIDAndEID(string sid, long eid)
         {
             // Merged 7/4/12
             // NSLog(@"%s", __FUNCTION__);
@@ -3150,7 +3259,7 @@ namespace win_client.Services.Sync
             if (_currentSids.Contains(sid))
             {
                 // NSLog(@"Current SID Stack contains the sid we are saving: %@", sid);
-                _trace.writeToLog(9, "CLSyncService: SaveSyncStateWithSIDAndEID: Current SID stack contains the sid we are saving: {0}.", sid)
+                _trace.writeToLog(9, "CLSyncService: SaveSyncStateWithSIDAndEID: Current SID stack contains the sid we are saving: {0}.", sid);
 
                 // NSLog(@" Save Global Sid: %@ Current number of active SIDs: %lu" , sid ,[self.currentSIDs count]);
                 _trace.writeToLog(9, "CLSyncService: SaveSyncStateWithSIDAndEID: Save global SID: {0}. Current number of active SIDs: {1}.", sid, _currentSids.Count);
@@ -3631,11 +3740,11 @@ namespace win_client.Services.Sync
             //NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:cloudPath];
             //[[CLUIActivityService sharedService] badgeIconAtPath:fileSystemPath withStatus:badge];
             string fileSystemPath = Settings.Instance.CloudFolderPath + cloudPath;
-            CLUIActivityService.Instance.BadgeIconAtPath_withStatus(fileSystemPath, badge);
+            BadgeNET.IconOverlay.setBadgeType(badge, fileSystemPath);
         }
 
         //- (void)retryEvent:(CLEvent *)event isDownload:(BOOL)isDownload
-        void RetryEvent(CLEvent evt, bool isDownload)
+        void RetryEvent_isDownload(CLEvent evt, bool isDownload)
         {
             // Merged 7/7/12
             //if (event.retryAttemps <= 3) {
@@ -3692,7 +3801,7 @@ namespace win_client.Services.Sync
                         }
                     }
                 }
-                else
+                 else
                 {
                     // CLHTTPConnectionOperation *uploadOperation = [self uploadOperationForEvent:event];
                     CLHTTPConnectionOperation uploadOperation = UploadOperationForEvent(evt);

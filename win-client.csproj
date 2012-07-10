@@ -151,7 +151,6 @@
     <Compile Include="Services\CloudFolderMonitoring\CLCFMonitoringService.cs" />
     <Compile Include="Services\FileSystemDispatcher\CLFSDispatcher.cs" />
     <Compile Include="Services\FileSystemMonitoring\CLFSMonitoringService.cs" />
-    <Compile Include="Services\Indexing\FileSystemItem.cs" />
     <Compile Include="Services\NetworkMonitoring\CLNetworkMonitorService.cs" />
     <Compile Include="Services\Notification\CLNotificationService.cs" />
     <Compile Include="Services\Notification\FancyBalloon.xaml.cs">

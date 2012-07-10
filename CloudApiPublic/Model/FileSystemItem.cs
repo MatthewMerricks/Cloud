@@ -2,22 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using win_client.Common;
 using CloudApiPublic.Model;
+using CloudApiPublic.Support;
 
-namespace win_client.Services.Indexing
+namespace CloudApiPublic.Model
 {
     public class FileSystemItem /*: NSManagedObject*/
     {
         private static string path;
+        private static string name;
         private static string revision;
         private static string createDate;
         private static string modifiedDate;
         private static string md5hash;
         private static bool is_Directory;
         private static bool is_Deleted;
+        private static bool is_Link;
         private static bool isPending;
         private static string size;
+        private static string targetPath;
+        private static string parent_path;
+        private static List<FileSystemItem> children;
+        private static FileSystemItem parent;
         public string Path
         {
             get
@@ -27,6 +33,18 @@ namespace win_client.Services.Indexing
             set
             {
                 path = value;
+            }
+        }
+
+        public string Name
+        {
+            get
+            {
+                return name;
+            }
+            set
+            {
+                name = value;
             }
         }
 
@@ -102,6 +120,18 @@ namespace win_client.Services.Indexing
             }
         }
 
+        public bool Is_Link
+        {
+            get
+            {
+                return is_Link;
+            }
+            set
+            {
+                is_Link = value;
+            }
+        }
+
         public bool IsPending
         {
             get
@@ -126,36 +156,95 @@ namespace win_client.Services.Indexing
             }
         }
 
+        public string TargetPath
+        {
+            get
+            {
+                return targetPath;
+            }
+            set
+            {
+                targetPath = value;
+            }
+        }
+
+        public string Parent_path
+        {
+            get
+            {
+                return parent_path;
+            }
+            set
+            {
+                parent_path = value;
+            }
+        }
+
+        public List<FileSystemItem> Children
+        {
+            get { return children; }
+            set { children = value; }
+        }
+
+        public FileSystemItem Parent
+        {
+            get
+            {
+                return parent;
+            }
+            set
+            {
+                parent = value;
+            }
+        }
+
+
         public void Log()
         {
-            Console.WriteLine("{path: %@}\n", this.Path);
-            Console.WriteLine("{revision: %@}\n", this.Revision);
-            Console.WriteLine("{createdDate: %@}\n", this.CreateDate);
-            Console.WriteLine("{modifiedDate: %@}\n", this.ModifiedDate);
-            Console.WriteLine("{md5hash: %@}\n", this.Md5hash);
-            Console.WriteLine("{is_Directory: %@}\n", this.Is_Directory);
-            Console.WriteLine("{is_Deleted: %@}\n", this.Is_Deleted);
-            Console.WriteLine("{isPending: %@}\n", this.IsPending);
-            Console.WriteLine("{eventType: %@}\n", this.Md5hash);
+            CLTrace.Instance.writeToLog(9, "{path: {0}.", this.Path);
+            CLTrace.Instance.writeToLog(9, "{target path: {0}.", this.TargetPath);
+            CLTrace.Instance.writeToLog(9, "{parent path: {0}.", this.Parent_path);
+            CLTrace.Instance.writeToLog(9, "{name: {0}.", this.Name);
+            CLTrace.Instance.writeToLog(9, "{revision: {0}.", this.Revision);
+            CLTrace.Instance.writeToLog(9, "{createdDate: {0}.", this.CreateDate);
+            CLTrace.Instance.writeToLog(9, "{modifiedDate: {0}.", this.ModifiedDate);
+            CLTrace.Instance.writeToLog(9, "{md5hash: {0}.", this.Md5hash);
+            CLTrace.Instance.writeToLog(9, "{is_Directory: {0}.", this.Is_Directory);
+            CLTrace.Instance.writeToLog(9, "{is_Deleted: {0}.", this.Is_Deleted);
+            CLTrace.Instance.writeToLog(9, "{is_Link: {0}.", this.Is_Link);
+            CLTrace.Instance.writeToLog(9, "{isPending: {0}.", this.IsPending);
+            CLTrace.Instance.writeToLog(9, "{size: {0}.", this.Size);
         }
 
         public static Dictionary<string, object> DictionaryFromFileSystemItem(FileSystemItem item)
         {
             Dictionary<string, object> metadataItem = new Dictionary<string, object>();
             string path = item.Path == null ? "" : item.Path;
+            string targetPath = item.TargetPath == null ? "" : item.TargetPath;
+            string parentPath = item.Parent_path == null ? "" : item.Parent_path;
+            string name = item.Name == null ? "" : item.Name;
             string revision = item.Revision == null ? "" : item.Revision;
             string createDate = item.CreateDate == null ? "" : item.CreateDate;
             string modifiedDate = item.ModifiedDate == null ? "" : item.ModifiedDate;
             string md5hash = item.Md5hash == null ? "" : item.Md5hash;
-            string size = item.Size == null ? "0" : item.Size;
+            bool isDirectory = item.Is_Directory;
+            bool isDeleted = item.Is_Deleted;
+            bool isLink = item.Is_Link;
             bool isPending = item.IsPending;
+            string size = item.Size == null ? "0" : item.Size;
             metadataItem.Add(CLDefinitions.CLMetadataCloudPath, path);
-            metadataItem.Add(CLDefinitions.CLMetadataFileHash, md5hash);
+            metadataItem.Add(CLDefinitions.CLMetadataFileTarget, targetPath);
+            metadataItem.Add(CLDefinitions.CLMetadataParentPath, parentPath);
+            metadataItem.Add(CLDefinitions.CLMetadataName, name);
             metadataItem.Add(CLDefinitions.CLMetadataFileRevision, revision);
             metadataItem.Add(CLDefinitions.CLMetadataFileCreateDate, createDate);
             metadataItem.Add(CLDefinitions.CLMetadataFileModifiedDate, modifiedDate);
-            metadataItem.Add(CLDefinitions.CLMetadataFileSize, size);
+            metadataItem.Add(CLDefinitions.CLMetadataFileHash, md5hash);
+            metadataItem.Add(CLDefinitions.CLMetadataFileIsDirectory, isDirectory);
+            metadataItem.Add(CLDefinitions.CLMetadataFileIsDeleted, isDeleted);
+            metadataItem.Add(CLDefinitions.CLMetadataFileIsLink, isLink);
             metadataItem.Add(CLDefinitions.CLMetadataIsPending, isPending);
+            metadataItem.Add(CLDefinitions.CLMetadataFileSize, size);
             return metadataItem;
         }
 

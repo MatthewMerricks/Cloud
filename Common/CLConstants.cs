@@ -13,7 +13,7 @@ namespace win_client.Common
         public const string kMergeFolders = "merge_folders";
         public const string kResourcesName = "win_client.Resources.Resources";
         public const string kXamlSuffix = ".xaml";
-        public const ulong CLDoNotSaveId = 1608198229012012;   // used with SyncTo and SyncFrom to represent sid and eid
+        public const long CLDoNotSaveId = 1608198229012012;   // used with SyncTo and SyncFrom to represent sid and eid
 
         // Dialog boxes
         public const string kDialogBox_CloudMessageBoxView = "dialog_box_CloudMessageBoxView";

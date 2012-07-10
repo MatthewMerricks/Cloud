@@ -90,7 +90,7 @@ namespace win_client.Services.FileSystemDispatcher
 
 
         //- (BOOL)createDirectoryAtPath:(NSString *)path error:(NSError* __strong *)error
-        public bool CreateDirectoryAtPath_error(string path, CLError error)
+        public bool CreateDirectoryAtPath_error(string path, out CLError error)
         {
             // __block BOOL rc = NO;
             // __block NSError *err = nil;
@@ -145,13 +145,14 @@ namespace win_client.Services.FileSystemDispatcher
             if (err != null)
             {
                 //  error = &err;
-                error = err;
+                // Note: set below.
 
                 //  NSLog(@"%s - Error: %@, Code: %ld", __FUNCTION__, [err localizedDescription], [err code]);
                 _trace.writeToLog(1, "CLFSDispatcher: CreateDirectoryAtPath_error: ERROR: {0}, code: {1}.", err.errorDescription, err.errorCode);
             }
 
             // return rc;
+            error = err;
             return rc;
         }
 

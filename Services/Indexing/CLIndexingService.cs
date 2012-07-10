@@ -28,6 +28,13 @@ namespace win_client.Services.Indexing
         CLIndexEventTypeDelete,    
      };
 
+    public enum CLPathType
+    {
+        CLPathToPath = 0,
+        CLPathFromPath,
+        CLPathStaticPath,   
+    };
+
     public sealed class CLIndexingService
     {
         private static CLIndexingService _instance = null;
@@ -73,7 +80,7 @@ namespace win_client.Services.Indexing
         }
 
         //+ (void)saveDataInContext:(NSManagedObjectContext *)context
-        void SaveDataInContext(void* /* (NSManagedObjectContext *) */ context)
+        public void SaveDataInContext(object /* (NSManagedObjectContext *) */ context)
         {
             // Merged 7/9/12
             // [context performBlock: ^{
@@ -173,7 +180,7 @@ namespace win_client.Services.Indexing
         }
 
         //+ (CLMetadata *)indexedMetadataForEvent:(CLEvent *)event
-        public static CLMetadata IndexedMetadataForEvent(CLEvent evt)
+        public CLMetadata IndexedMetadataForEvent(CLEvent evt)
         {
             // Merged 7/9/12
             // FileSystemItem *fileSystemItem = [self fileSystemItemForEvent:event];
@@ -211,7 +218,7 @@ namespace win_client.Services.Indexing
         }
 
         //+ (FileSystemItem *)fileSystemItemForEvent:(CLEvent *)event
-        FileSystemItem fileSystemItemForEvent(CLEvent evt)
+        public static FileSystemItem FileSystemItemForEvent(CLEvent evt)
         {
             // Merged 7/9/12
             // __block FileSystemItem *fileSystemItem;
@@ -268,6 +275,7 @@ namespace win_client.Services.Indexing
             //     }
             // }];
             // return fileSystemItem;
+            return null;
         }
 
         //+ (void)markItemAtPath:(NSString *)path asPending:(BOOL)pending
@@ -320,7 +328,7 @@ namespace win_client.Services.Indexing
         }
 
         //+ (void)markItemForEvent:(CLEvent *)event asPending:(BOOL)pending
-        void MarkItemForEvent_asPending(CLEvent evt, bool pending)
+        public void MarkItemForEvent_asPending(CLEvent evt, bool pending)
         {
             // Merged 7/9/12
             // FileSystemItem *itemToChange = [self fileSystemItemForEvent:event];
@@ -384,10 +392,11 @@ namespace win_client.Services.Indexing
             // }
     
             // return nil;
+            return null; //&&&& remove
         }
 
         //+ (NSManagedObjectID *)objectIDforItemAtPath:(NSString *)path
-        void* /* NSManagedObjectID * */ ObjectIdForItemAtPath(string path)
+        object /* NSManagedObjectID * */ ObjectIdForItemAtPath(string path)
         {
             // Merged 7/9/12
             // __block NSManagedObjectID *objectID;
@@ -452,11 +461,13 @@ namespace win_client.Services.Indexing
             //     }
             // }];
     
-            // return objectID;        }
+            // return objectID;
+            return null;  //&&&& remove
+        }
 
         ////  Pass nil as fileName if item is a folder item, else it will return a file item.
         //+ (NSManagedObjectID *)objectIDforItemAtPath:(NSString *)path andFileName:(NSString *)fileName
-        void * /* NSManagedObjectID * */ ObjectIdForItemAtPath_andFileName(string path, string fileName)
+        object /* NSManagedObjectID * */ ObjectIdForItemAtPath_andFileName(string path, string fileName)
         {
             // Merged 7/9/12
             // __block NSManagedObjectID *objectID;
@@ -532,10 +543,11 @@ namespace win_client.Services.Indexing
             // }];
     
             // return objectID;
+            return null;  //&&&& remove
         }
 
         //+ (NSManagedObjectID *)objectIDforEvent:(CLEvent *)event typeOfPath:(CLPathType)pathType
-        void * /* NSManagedObjectID * */ ObjectIdForEvent_typeOfPath(CLEvent evt, CLPathType pathType)
+        object /* NSManagedObjectID * */ ObjectIdForEvent_typeOfPath(CLEvent evt, CLPathType pathType)
         {
             // Merged 7/9/12
             // __block NSManagedObjectID *objectID;
@@ -675,11 +687,12 @@ namespace win_client.Services.Indexing
             // }];
     
             // return objectID;
+            return null; //&&&& remove
 
         }
 
         //+ (void)addMetedataItem:(CLMetadata *)item pending:(BOOL)pending
-        void AddMetadataItem_pending(CLMetadata item, bool pending)
+        public void AddMetadataItem_pending(CLMetadata item, bool pending)
         {
             // Merged 7/9/12
             // __block NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
@@ -841,7 +854,7 @@ namespace win_client.Services.Indexing
         }
 
         //+ (void)updateLocalIndexItemWithEvent:(CLEvent *)event pending:(BOOL)pending
-        void UpdateLocalIndexItemWithEvent_pending(CLEvent evt, bool pending)
+        public void UpdateLocalIndexItemWithEvent_pending(CLEvent evt, bool pending)
         {
             // Merged 7/9/12
             // __block NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
@@ -927,24 +940,28 @@ namespace win_client.Services.Indexing
                         itemFromIndex.name = event.metadata.toPath.lastPathComponent
                     endif event.syncHeader.action.Contains(CLEventTypeModifyRange)
                 endif (!event.metadata.isDirectory && (!isMove || isRename)
-                if (event.metadata.modifiedDate != nil)
-                    itemFromIndex.modifiedDate = event.metadata.modifiedDate;
-                if (event.metadata.revision != nil)
-                    itemFromIndex.revision = event.metadata.revision;
-                if (event.metadata.size != nil)
-                    itemFromIndex.size = event.metadata.size;
-                if (event.metadata.hash != nil)
-                    itemFromIndex.md5hash = event.metadata.hash;
-                if (event.metadata.targetPath != nil) {
-                    itemFromIndex.targetPath = event.metadata.targetPath;
-                }
-                if (newParentItem != nil) {
-                    NSMutableSet *children = [newParentItem mutableSetValueForKey:@"children"];
-                    [children addObject:itemFromIndex];
-                    newParentItem.children = children;
-                    itemFromIndex.parent = newParentItem;
-                }
-                itemFromIndex.isPending = [NSNumber numberWithBool:pending];
+                if event.metadata.modifiedDate != null
+                    itemFromIndex.modifiedDate = event.metadata.modifiedDate
+                endif event.metadata.modifiedDate != null
+                if event.metadata.revision != null
+                    itemFromIndex.revision = event.metadata.revision
+                endif event.metadata.revision != null
+                if event.metadata.size != null
+                    itemFromIndex.size = event.metadata.size
+                endif event.metadata.size != null
+                if event.metadata.hash != null
+                    itemFromIndex.md5hash = event.metadata.hash
+                endif event.metadata.hash != null
+                if event.metadata.targetPath != null
+                    itemFromIndex.targetPath = event.metadata.targetPath
+                endif event.metadata.targetPath != null
+                if newParentItem != null
+                    allocate a new set children for newParentItem, key "children"
+                    add itemFromIndex to set children
+                    set newParentItem.children = children
+                    set itemFromIndex.parent = newParentItem
+                endif newParentItem != null
+                itemFromIndex.isPending = pending
               else itemFromIndex == null
                 log this error
               endelse itemFromIndex == null
@@ -1010,7 +1027,7 @@ namespace win_client.Services.Indexing
         }
 
         //+ (void)removeMetadataItemWithCloudPath:(NSString *)path
-        void RemoveMetadataItemWithCloudPath(string path)
+        public void RemoveMetadataItemWithCloudPath(string path)
         {
             // Merged 7/9/12
             // NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
@@ -1043,6 +1060,28 @@ namespace win_client.Services.Indexing
             //         [managedObjectContext deleteObject:fetchedFileSystemItem];
             //     }
             // }];
+            //&&&&
+
+            //&&&&
+            // Pseudo-code
+#if TRASH
+            allocate the current managedObjectContext
+            performBlockAndWait on managedObjectContext
+              query FileSystemItem from database where path==path
+              if nothing found
+                log the error
+              else object found
+                get the found object as fetchedFileSystemItem
+                set children = fetchedFileSystemItem.children
+                iterate through children
+                  log every child.path as path of item to remove (but don't remove it???) Bug?
+                enditerate through children
+              endelse object found
+              if fetchedFileSystemItem != null && fetchedFileSystemItem.path == path
+                delete the fetchedFileSystemItem in the database
+              endif fetchedFileSystemItem != null && fetchedFileSystemItem.path == path
+            endperformBlockAndWait on managedObjectContext
+#endif  // TRASH            
             //&&&&
 
             // NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
@@ -1078,7 +1117,7 @@ namespace win_client.Services.Indexing
         }
 
         //+ (void)removeItemForEvent:(CLEvent *)event
-        void RemoveItemForEvent(CLEvent evt)
+        public void RemoveItemForEvent(CLEvent evt)
         {
             // Merged 7/9/12
             // NSManagedObjectContext *defaultContext = [[CLCoreDataController defaultController] managedObjectContext];
@@ -1145,6 +1184,34 @@ namespace win_client.Services.Indexing
             // }];
             //&&&&
 
+            //&&&&
+            // Pseudo-code
+#if TRASH
+            allocate the current managedObjectContext
+            performBlockAndWait on managedObjectContext
+              allocate itemBeingMoved as FileSystemItem
+              allocate event as CLEvent
+              allocate meta as CLMetadata
+              set event.Action = CLEventTypeRenameFile
+              set meta.ToPath = toPath
+              set meta.FromPath = fromPath
+              set meta.Path = fromPath
+              set event.Metadata = meta
+
+              find objectId = ObjectIdForEvent_typeOfPath(event, CLPathFromPath)
+              if objectId != null
+                set itemBeingMoved = query FileSystemItem from the database, key objectId
+              endif objectId != null
+              allocate newParentItem as FileSystemItem
+              find parentObjectId = ObjectIdForEvent_typeOfPath(event, CLPathToPath)
+              if parentObjectId != null
+                set newParentItem = query database for FileSystemItem, key parentObjectId
+                set itemBeingMoved.parent = newParentItem (to database via entity)
+              endif parentObjectId != null
+            endperformBlockAndWait on managedObjectContext
+#endif  // TRASH            
+            //&&&&
+
             // __block NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
 
             // [managedObjectContext performBlockAndWait:^{
@@ -1206,6 +1273,28 @@ namespace win_client.Services.Indexing
             // }];
             //&&&&
 
+            //&&&&
+            // Pseudo-code
+#if TRASH
+            allocate the current managedObjectContext
+            performBlockAndWait on managedObjectContext
+              allocate event as CLEvent
+              allocate meta as CLMetadata
+              set event.Action = CLEventTypeRenameFile
+              set meta.ToPath = toPath
+              set meta.FromPath = fromPath
+              set meta.Path = fromPath
+              set event.Metadata = meta
+              find objectId = ObjectIdForEvent_typeOfPath(event, CLPathFromPath)
+              if objectId != null
+                allocate itemBeingRenamed as database entity FileSystemItem via key objectId
+                set itemBeingRenamed.Name = toPath.LastPathComponent()
+              endif objectId != null
+              save to database
+            endperformBlockAndWait on managedObjectContext
+#endif  // TRASH            
+            //&&&&
+
             // __block NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
     
             // [managedObjectContext performBlockAndWait:^{
@@ -1238,11 +1327,23 @@ namespace win_client.Services.Indexing
             // return [itemParentPath stringByAppendingString:@"/"];
             //&&&&
 
+            //&&&&
+            // Pseudo-code
+#if TRASH
+            set string itemParentPath = path.StringByDeletingLastPathComponent
+            if itemParent == "\"
+              reeturn itemParentPath
+            endif itemParent == "\"
+            return itemParentPath.StringByAppendingString("\")
+#endif  // TRASH            
+            //&&&&
+
             // NSString *itemParentPath = [path stringByDeletingLastPathComponent];
             // if ([itemParentPath isEqualToString:@"/"]) {
             //     return itemParentPath;
             // }
             // return [itemParentPath stringByAppendingString:@"/"];
+            return "";  //&&&& remove
         }
 
         //+ (void)addInitialRootFolderItemForCloudFolderSetup
@@ -1257,6 +1358,18 @@ namespace win_client.Services.Indexing
             // metadataItem.isPending = NO;
     
             // [self addMetedataItem:metadataItem pending:NO];
+            //&&&&
+
+            //&&&&
+            // Pseudo-code
+#if TRASH
+            allocate metadataItem
+            set metadataItem.Path = "\"
+            set metadataItem.CreateDate = Now as ISO8601 string
+            set metadataItem.IsDirectory = true
+            set metadataItem.IsPending = false
+            call AddMetadataItem_pending(metadataItem, false)
+#endif  // TRASH            
             //&&&&
 
             // CLMetadata *metadataItem = [[CLMetadata alloc] init];

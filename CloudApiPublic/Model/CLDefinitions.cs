@@ -96,12 +96,14 @@ namespace CloudApiPublic.Model
 
         // Cloud Metadata Protocol 
         public const string CLMetadataCloudPath = "path";
+        public const string CLMetadataName = "name";
         public const string CLMetadataFileHash = "file_hash";
         public const string CLMetadataFileRevision = "revision";
         public const string CLMetadataFileCreateDate = "created_date";
         public const string CLMetadataFileModifiedDate = "modified_date";
         public const string CLMetadataFileIsDeleted = "isDeleted";
         public const string CLMetadataFileIsDirectory = "is_folder";
+        public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
         public const string CLMetadataIsPending = "is_pending";
         public const string CLMetadataFromPath = "from_path";
@@ -110,6 +112,7 @@ namespace CloudApiPublic.Model
         public const string CLMetadataLastEventID = "last_event_id";
         public const string CLMetadataStorageKey = "storage_key";
         public const string CLMetadataFileTarget = "target_path";
+        public const string CLMetadataParentPath = "parent_path";
         //public const string CLMetadataFileCAttributes = "custom_attributes";
 
         // Cloud Events

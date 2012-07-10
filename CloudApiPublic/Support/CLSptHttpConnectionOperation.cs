@@ -76,15 +76,6 @@ namespace CloudApiPublic.Support
             }
         }
 
-        private CLError _error;
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-
         private byte[] _responseData;
         public byte[] ResponseData
         {
@@ -121,43 +112,6 @@ namespace CloudApiPublic.Support
             set
             {
                 _operationRequest = value;
-            }
-        }
-
-        private Stream _inputStream;
-        public Stream InputStream
-        {
-            get
-            {
-                return _inputStream;
-            }
-            set
-            {
-                //this.WillChangeValueForKey("inputStream");
-                //this.OperationRequest.HTTPBodyStream = value;
-                //this.DidChangeValueForKey("inputStream");
-            }
-        }
-
-        private Stream _outputStream;
-        public Stream OutputStream
-        {
-            get
-            {
-                return _outputStream;
-            }
-            set
-            {
-                //this.WillChangeValueForKey("outputStream");
-                //if (_outputStream) {
-                //    _outputStream.Close();
-                //    _outputStream = null;
-                //}
-
-                //_outputStream = value;
-                //this.DidChangeValueForKey("outputStream");
-                //NSRunLoop runLoop = NSRunLoop.CurrentRunLoop();
-                //(this.Value).ScheduleInRunLoopForMode(runLoop, NSRunLoopCommonModes);
             }
         }
 
@@ -446,7 +400,7 @@ namespace CloudApiPublic.Support
                     return;
                 }
 
-                if (this.CompletionBlock != null)
+                if (completionBlock != null)
                 {
                     Dispatch.Async<object>(CLSptResourceManager.Instance.MainGcdQueue, (obj) =>
                     {
@@ -454,7 +408,7 @@ namespace CloudApiPublic.Support
                         {
                             MoveTempFileToResourceFilePath();
                         }
-                        completionBlock(this, this.Error);
+                        completionBlock(this, error);
                     }, null);
                 }
             };

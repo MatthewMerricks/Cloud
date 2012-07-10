@@ -241,7 +241,7 @@ namespace CloudApiPublic.Model
             }
         }
 
-        public CLMetadata(bool /*FileSystemItem*/ fsItem)
+        public CLMetadata(FileSystemItem fsItem)
         {
             //TODO: Implement this constructor when we have a FileSystemItem from the index service.
             //this.Path = fsItem.Path;

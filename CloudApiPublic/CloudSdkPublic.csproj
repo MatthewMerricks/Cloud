@@ -74,6 +74,7 @@
     <Compile Include="Model\CLEvent.cs" />
     <Compile Include="Model\CLMetadata.cs" />
     <Compile Include="Model\CLSyncHeader.cs" />
+    <Compile Include="Model\FileSystemItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CLRestClient.cs" />
     <Compile Include="ICLRestClientDelegate.cs" />

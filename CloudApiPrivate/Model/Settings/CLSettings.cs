@@ -510,14 +510,14 @@ namespace CloudApiPrivate.Model.Settings
         // todo: property to track selective folders for sync in cloudFolderPath.
 
         // Others
-        private ulong _eid;
-        public ulong Eid
+        private long _eid;
+        public long Eid
         {
             get { return _eid; }
             set
             {
                 _eid = value;
-                SettingsBase.Write<ulong>(kEid, value);
+                SettingsBase.Write<long>(kEid, value);
             }
         }
 
@@ -875,7 +875,7 @@ namespace CloudApiPrivate.Model.Settings
         /// <summary>
         /// Record timestamp
         /// </summary>
-        public void RecordEventId(ulong eventId)
+        public void RecordEventId(long eventId)
         {  
             Eid = eventId;
         }
