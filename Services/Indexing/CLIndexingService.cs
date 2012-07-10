@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
+using CloudApiPrivate.Static;
+using System.IO;
 
 namespace win_client.Services.Indexing
 {
@@ -1327,23 +1329,18 @@ namespace win_client.Services.Indexing
             // return [itemParentPath stringByAppendingString:@"/"];
             //&&&&
 
-            //&&&&
-            // Pseudo-code
-#if TRASH
-            set string itemParentPath = path.StringByDeletingLastPathComponent
-            if itemParent == "\"
-              reeturn itemParentPath
-            endif itemParent == "\"
-            return itemParentPath.StringByAppendingString("\")
-#endif  // TRASH            
-            //&&&&
-
             // NSString *itemParentPath = [path stringByDeletingLastPathComponent];
+            string itemParentPath = path.StringByDeletingLastPathComponent();
+
             // if ([itemParentPath isEqualToString:@"/"]) {
-            //     return itemParentPath;
-            // }
+            if (itemParentPath.Equals("\\", StringComparison.InvariantCulture))
+            {
+                // return itemParentPath;
+                return itemParentPath;
+            }
+
             // return [itemParentPath stringByAppendingString:@"/"];
-            return "";  //&&&& remove
+            return itemParentPath + "\\";
         }
 
         //+ (void)addInitialRootFolderItemForCloudFolderSetup
@@ -1360,26 +1357,21 @@ namespace win_client.Services.Indexing
             // [self addMetedataItem:metadataItem pending:NO];
             //&&&&
 
-            //&&&&
-            // Pseudo-code
-#if TRASH
-            allocate metadataItem
-            set metadataItem.Path = "\"
-            set metadataItem.CreateDate = Now as ISO8601 string
-            set metadataItem.IsDirectory = true
-            set metadataItem.IsPending = false
-            call AddMetadataItem_pending(metadataItem, false)
-#endif  // TRASH            
-            //&&&&
-
             // CLMetadata *metadataItem = [[CLMetadata alloc] init];
+            CLMetadata metadataItem = new CLMetadata();
+
             // metadataItem.path = @"/";
-            // NSLog(@"Date: %@", [NSDate ISO8601DateStringFromDate:[NSDate date]]);
             // metadataItem.createDate = [NSDate ISO8601DateStringFromDate:[NSDate date]];
             // metadataItem.isDirectory = YES;
             // metadataItem.isPending = NO;
+            metadataItem.Path = "\\";
+            metadataItem.CreateDate = DateTime.Now.ToString("o");  // ISO 8601 format
+            metadataItem.ModifiedDate = DateTime.Now.ToString("o");  // ISO 8601 format
+            metadataItem.IsDirectory = true;
+            metadataItem.IsPending = false;
     
             // [self addMetedataItem:metadataItem pending:NO];
+            AddMetadataItem_pending(metadataItem, pending: false);
         }
     }
 }

@@ -222,6 +222,10 @@ namespace CloudApiPublic.Model
             }
         }
 
+        public CLMetadata()
+        {
+        }
+
         public CLMetadata(Dictionary<string, object> json)
         {
             if (json.Count() > 0) {
