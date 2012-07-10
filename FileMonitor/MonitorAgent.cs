@@ -405,10 +405,14 @@ namespace FileMonitor
             out KeyValuePair<FileChange, FileStream>[] outputChanges,
             out FileChange[] outputChangesInError)
         {
+            // error collection will be appended with every item in error
             CLError errorCollection = null;
+
             try
             {
                 #region assert parameters
+                // base function of method is to process inputChanges,
+                // a null input is a catastrophic failure
                 if (inputChanges == null)
                 {
                     throw new NullReferenceException("inputChanges cannot be null");
@@ -416,8 +420,14 @@ namespace FileMonitor
                 #endregion
 
                 #region local variables including common actions
+                // copy input changes into static array
                 FileChange[] inputChangesArray = inputChanges.ToArray();
 
+                // counter for maintaining order of input changes
+                int changeCounter = 0;
+
+                // sorted categories of FileChanges keyed by FilePath and whose value contains a counter int to rebuild the order within each sorted group;
+                // remaining part of value includes the FileChange itself and possibly a FileStream for creation or modification of files
                 Dictionary<FilePath, KeyValuePair<int, FileChange>> folderCreations = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
                 Dictionary<FilePath, Dictionary<FilePath, KeyValuePair<int, FileChange>>> folderRenames = new Dictionary<FilePath, Dictionary<FilePath, KeyValuePair<int, FileChange>>>(FilePathComparer.Instance);
                 Dictionary<FilePath, Dictionary<FilePath, KeyValuePair<int, FileChange>>> fileRenames = new Dictionary<FilePath, Dictionary<FilePath, KeyValuePair<int, FileChange>>>(FilePathComparer.Instance);
@@ -425,46 +435,70 @@ namespace FileMonitor
                 Dictionary<FilePath, KeyValuePair<int, FileChange>> fileDeletions = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
                 Dictionary<FilePath, KeyValuePair<int, FileChange>> folderDeletions = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
 
+                // create list to store FileChanges in error for direct output
                 List<FileChange> changesInError = new List<FileChange>();
 
+                // create list to store FileChanges along with corresponding FileStreams for direct output
                 List<KeyValuePair<FileChange, FileStream>> outputChangesList = new List<KeyValuePair<FileChange, FileStream>>();
 
+                // define an action which scans through rename changes going forwards (until it finds a matching delete),
+                // rebuilding the NewPath of a FileChange everytime the rename change's OldPath matches
                 Action<FileChange, int> updateFileChangePathFromRenames = (toUpdate, toUpdateIndex) =>
                     {
+                        // loop through changes starting one after the current change to check
                         for (int renameChangeIndex = toUpdateIndex + 1; renameChangeIndex < inputChangesArray.Length; renameChangeIndex++)
                         {
+                            // pull next FileChange for checking
                             FileChange possibleRenameChange = inputChangesArray[renameChangeIndex];
 
+                            // switch on type of change
                             switch (possibleRenameChange.Type)
                             {
+                                // for create/modify, do nothing and keep checking
                                 case FileChangeType.Created:
                                 case FileChangeType.Modified:
                                     break;
+                                // for delete, if it matches path return immediately (stop searching)
                                 case FileChangeType.Deleted:
                                     if (FilePathComparer.Instance.Equals(possibleRenameChange.NewPath, toUpdate.NewPath))
                                     {
                                         return;
                                     }
                                     break;
+                                // for rename, if OldPath matches, rebuild current change's NewPath based on rename operation, keep checking
                                 case FileChangeType.Renamed:
+                                    // to compare, find where the current chane's NewPath overlaps with the rename change's OldPath
+                                    // and see if this overlap is the rename's OldPath itself
                                     if (FilePathComparer.Instance.Equals(toUpdate.NewPath.FindOverlappingPath(possibleRenameChange.OldPath), possibleRenameChange.OldPath))
                                     {
+                                        // matching rename change found,
+                                        // current change's NewPath needs to be rebuilt off the rename change
+
+                                        // child of path of perfect overlap with rename change's OldPath
+                                        // (whose parent will be replaced by the change of the rename's NewPath
                                         FilePath renamedOverlapChild = toUpdate.NewPath;
+                                        // variable for recursive checking against the rename's OldPath
                                         FilePath renamedOverlap = renamedOverlapChild.Parent;
 
+                                        // loop till recursing parent of current path level is null
                                         while (renamedOverlap != null)
                                         {
+                                            // when the rename's OldPath matches the current recursive path parent level,
+                                            // replace the child's parent with the rename's NewPath and break out of the checking loop
                                             if (FilePathComparer.Instance.Equals(renamedOverlap, possibleRenameChange.OldPath))
                                             {
                                                 renamedOverlapChild.Parent = possibleRenameChange.NewPath;
                                                 break;
                                             }
 
+                                            // set recursing path variables one level higher
                                             renamedOverlapChild = renamedOverlap;
                                             renamedOverlap = renamedOverlap.Parent;
                                         }
 
+                                        // since the path of the current FileChange was changed, the database Event needs to be updated
                                         CLError mergeError = ProcessMergeToSQL(toUpdate, null);
+                                        // if an error occurs during the SQL update, pull out the Exception object and rethrow it
                                         if (mergeError != null)
                                         {
                                             throw (Exception)mergeError.errorInfo[CLError.ErrorInfo_Exception];
@@ -477,17 +511,26 @@ namespace FileMonitor
                 #endregion
 
                 #region sort and merge input changes
-                int changeCounter = 0;
+                // loop for all the indexes in the array of input changes
                 for (int inputChangeIndex = 0; inputChangeIndex < inputChangesArray.Length; inputChangeIndex++)
                 {
+                    // pull out the current input change
                     FileChange currentInputChange = inputChangesArray[inputChangeIndex];
                     try
                     {
+                        // split on whether the change is a file or folder
+                        // and on the type of change
+
+                        // if change represents a folder
                         if (currentInputChange.Metadata.HashableProperties.IsFolder)
                         {
+                            // switch on type of change
                             switch (currentInputChange.Type)
                             {
                                 case FileChangeType.Created:
+                                    // folder creations require the rename path rebuild;
+                                    // then filter/merge for duplicates and add to the appropropriate output dictionary
+
                                     updateFileChangePathFromRenames(currentInputChange, inputChangeIndex);
                                     if (folderCreations.ContainsKey(currentInputChange.NewPath))
                                     {
@@ -498,7 +541,8 @@ namespace FileMonitor
                                         new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange));
                                     break;
                                 case FileChangeType.Deleted:
-                                    updateFileChangePathFromRenames(currentInputChange, inputChangeIndex);
+                                    // filter/merge for duplicates and add to the appropropriate output dictionary
+
                                     if (folderDeletions.ContainsKey(currentInputChange.NewPath))
                                     {
                                         ProcessMergeToSQL(currentInputChange, folderDeletions[currentInputChange.NewPath].Value);
@@ -508,9 +552,13 @@ namespace FileMonitor
                                         new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange));
                                     break;
                                 case FileChangeType.Modified:
+                                    // we do not observe folder modification events since they mean nothing to the server
+
                                     errorCollection += new Exception("Directory modify event found. It is not supposed to be recorded.");
                                     break;
                                 case FileChangeType.Renamed:
+                                    // filter/merge for duplicates and add to the appropropriate output dictionary
+
                                     Dictionary<FilePath, KeyValuePair<int, FileChange>> oldPathDict = null;
 
                                     if (folderRenames.ContainsKey(currentInputChange.OldPath))
@@ -535,12 +583,19 @@ namespace FileMonitor
                                     break;
                             }
                         }
+                        // else if change does not represent a folder (instead represents a file)
                         else
                         {
+                            // switch on type of change
                             switch (currentInputChange.Type)
                             {
                                 case FileChangeType.Created:
                                 case FileChangeType.Modified:
+                                    // file creations or modifications require the rename path rebuild;
+                                    // then filter/merge for duplicates;
+                                    // We will open a locked FileStream which will be maintained throughout the Sync service process,
+                                    // and add this stream along with the file change to the appropropriate output dictionary
+
                                     updateFileChangePathFromRenames(currentInputChange, inputChangeIndex);
 
                                     FileStream inputChangeStream = null;
@@ -569,6 +624,12 @@ namespace FileMonitor
                                         }
                                         catch (FileNotFoundException)
                                         {
+                                            // This logic will be changed!
+                                            // the FileNotFoundExceptions should increment a counter up to a certain point before punting;
+                                            // if that counter gets incremented, this file change should be added back to the top of the next queue to process
+                                            // (the reasoning is that a rename change for the current file change's NewPath might be in the next queue to process,
+                                            //  prevents a problem for false positives on file existance at the previous path since they might correlate to a later file creation event)
+
                                             ProcessMergeToSQL(null, currentInputChange);
                                             break;
                                         }
@@ -583,7 +644,8 @@ namespace FileMonitor
                                                 inputChangeStream)));
                                     break;
                                 case FileChangeType.Deleted:
-                                    updateFileChangePathFromRenames(currentInputChange, inputChangeIndex);
+                                    // filter/merge for duplicates and add to the appropropriate output dictionary
+
                                     if (fileDeletions.ContainsKey(currentInputChange.NewPath))
                                     {
                                         ProcessMergeToSQL(currentInputChange, fileDeletions[currentInputChange.NewPath].Value);
@@ -594,6 +656,8 @@ namespace FileMonitor
                                             currentInputChange));
                                     break;
                                 case FileChangeType.Renamed:
+                                    // filter/merge for duplicates and add to the appropropriate output dictionary
+
                                     Dictionary<FilePath, KeyValuePair<int, FileChange>> oldPathDict = null;
 
                                     if (fileRenames.ContainsKey(currentInputChange.OldPath))
@@ -621,6 +685,10 @@ namespace FileMonitor
                     }
                     catch (Exception ex)
                     {
+                        // an error occurred for a specific input change;
+                        // store the change in error and append the exception to return;
+                        // processing will continue
+
                         changesInError.Add(currentInputChange);
                         errorCollection += ex;
                     }
@@ -628,6 +696,9 @@ namespace FileMonitor
                 #endregion
 
                 #region combine the sorted file change lists and finalize file metadata (+MD5)
+                // concatenate all the sorted lists in the appropriate order with each section
+                // internally ordered based on their original order in the input changes
+                // (which was recorded previously by the incrementing value of changeCounter)
                 foreach (KeyValuePair<FileChange, FileStream> currentChangeToOutput in
 
                     // first take all the folder creations
@@ -664,19 +735,29 @@ namespace FileMonitor
                 {
                     try
                     {
+                        // if the current change represents a folder,
+                        // then there is nothing else to check for so just add to the output list
                         if (currentChangeToOutput.Key.Metadata.HashableProperties.IsFolder)
                         {
                             outputChangesList.Add(currentChangeToOutput);
                         }
+                        // else if the current change does not represent a folder (represents a file),
+                        // then begin checks specific to files
                         else
                         {
+                            // switch on type of change for the current file
                             switch (currentChangeToOutput.Key.Type)
                             {
                                 case FileChangeType.Deleted:
+                                    // The current change is a file deletion;
+                                    // if the file actually exists at the deletion's NewPath,
+                                    // then punt the invalid change
                                     if (File.Exists(currentChangeToOutput.Key.NewPath.ToString()))
                                     {
                                         ProcessMergeToSQL(null, currentChangeToOutput.Key);
                                     }
+                                    // else if the file does not exist at the deletion's NewPath,
+                                    // then the deletion is valid and should be added to the output list
                                     else
                                     {
                                         outputChangesList.Add(currentChangeToOutput);
@@ -684,24 +765,29 @@ namespace FileMonitor
                                     break;
                                 case FileChangeType.Created:
                                 case FileChangeType.Modified:
+                                    // The current change is either a file creation or a file modification;
+                                    // We will immediately read through the FileStream once to record the MD5 hash while recording the file size for comparison;
+                                    // We seek back to the start of the FileStream so it can be reread from the beginning;
+                                    // If any file metadata has changed on the file then update the database event accordingly;
+                                    // Add the file change to the output list
+
                                     MD5 md5Hasher = MD5.Create();
 
                                     try
                                     {
-                                        byte[] fileBuffer = new byte[BufferSize];
+                                        byte[] fileBuffer = new byte[FileConstants.BufferSize];
                                         int fileReadBytes;
                                         long countFileSize = 0;
 
-                                        while ((fileReadBytes = currentChangeToOutput.Value.Read(fileBuffer, 0, BufferSize)) > 0)
+                                        while ((fileReadBytes = currentChangeToOutput.Value.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
                                         {
                                             countFileSize += fileReadBytes;
                                             md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
                                         }
 
-                                        md5Hasher.TransformFinalBlock(EmptyBuffer, 0, 0);
+                                        md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
                                         currentChangeToOutput.Key.SetMD5(md5Hasher.Hash);
 
-                                        bool metadataChanged = false;
                                         string filePathString = currentChangeToOutput.Key.NewPath.ToString();
                                         DateTime currentLastAccess = File.GetLastAccessTimeUtc(filePathString);
                                         DateTime currentLastWrite = File.GetLastWriteTimeUtc(filePathString);
@@ -739,12 +825,17 @@ namespace FileMonitor
                     }
                     catch (Exception ex)
                     {
+                        // an error occurred for a specific input change;
+                        // store the change in error and append the exception to return;
+                        // processing will continue
+
                         changesInError.Add(currentChangeToOutput.Key);
                         errorCollection += ex;
                     }
                 }
                 #endregion
 
+                // set the output variables by creating array copies from the corresponding local lists
                 outputChanges = outputChangesList.ToArray();
                 outputChangesInError = changesInError.ToArray();
 
@@ -790,14 +881,17 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
+                // a catastrophic error occurred;
+                // append the exception to return;
+                // processing of further items will cease and the output lists will be set to default (null)
+
                 outputChanges = (KeyValuePair<FileChange, FileStream>[])Helpers.DefaultForType(typeof(KeyValuePair<FileChange, FileStream>[]));
                 outputChangesInError = (FileChange[])Helpers.DefaultForType(typeof(FileChange[]));
                 return errorCollection + ex;
             }
+            // return all recorded erro
             return errorCollection;
         }
-        private static readonly byte[] EmptyBuffer = new byte[0];
-        private const int BufferSize = 4096;
 
         /// <summary>
         /// Call this first to start monitoring file system while initial indexing/synchronization occur,

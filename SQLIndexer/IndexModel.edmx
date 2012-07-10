@@ -1,10 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!--
+  //
+  // IndexModel.edmx
+  // Cloud Windows
+  //
+  // Created By DavidBruck.
+  // Copyright (c) Cloud.com. All rights reserved.
+  -->
+  
   <!-- EF Runtime content -->
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityContainer Name="SQLIndexerStoreContainer">
           <EntitySet Name="EnumCategories" EntityType="SQLIndexer.Store.EnumCategories" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Enums" EntityType="SQLIndexer.Store.Enums" store:Type="Tables" Schema="dbo" />
@@ -67,6 +76,7 @@
           <Property Name="FileChangeTypeEnumId" Type="int" Nullable="false" />
           <Property Name="PreviousPath" Type="nvarchar(max)" />
           <Property Name="FileSystemObjectId" Type="int" Nullable="false" />
+          <Property Name="SyncFrom" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="FileSystemObjects">
           <Key>
@@ -78,7 +88,6 @@
           <Property Name="CreationTime" Type="datetime2" />
           <Property Name="IsFolder" Type="bit" Nullable="false" />
           <Property Name="Size" Type="bigint" />
-          <Property Name="MD5" Type="binary" MaxLength="15" />
         </EntityType>
         <EntityType Name="Syncs">
           <Key>
@@ -183,8 +192,7 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="SQLIndexer" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -256,6 +264,7 @@
           <NavigationProperty Name="Enum" Relationship="SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId" FromRole="Events" ToRole="Enums" />
           <NavigationProperty Name="FileSystemObject" Relationship="SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId" FromRole="Events" ToRole="FileSystemObjects" />
           <NavigationProperty Name="Sync" Relationship="SQLIndexer.FK_SyncCounter_SyncCounter" FromRole="Events" ToRole="Syncs" />
+          <Property Type="Boolean" Name="SyncFrom" Nullable="false" />
         </EntityType>
         <EntityType Name="FileSystemObject">
           <Key>
@@ -267,7 +276,6 @@
           <Property Name="CreationTime" Type="DateTime" Precision="7" />
           <Property Name="IsFolder" Type="Boolean" Nullable="false" />
           <Property Name="Size" Type="Int64" />
-          <Property Name="MD5" Type="Binary" MaxLength="15" FixedLength="true" />
           <NavigationProperty Name="Events" Relationship="SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="Events" />
           <NavigationProperty Name="SyncStates" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
           <NavigationProperty Name="ServerLinkedSyncStates" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
@@ -406,6 +414,7 @@
           <EntitySetMapping Name="Events">
             <EntityTypeMapping TypeName="SQLIndexer.Event">
               <MappingFragment StoreEntitySet="Events">
+                <ScalarProperty Name="SyncFrom" ColumnName="SyncFrom" />
                 <ScalarProperty Name="EventId" ColumnName="EventId" />
                 <ScalarProperty Name="SyncCounter" ColumnName="SyncCounter" />
                 <ScalarProperty Name="FileChangeTypeCategoryId" ColumnName="FileChangeTypeCategoryId" />
@@ -424,7 +433,6 @@
                 <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
                 <ScalarProperty Name="IsFolder" ColumnName="IsFolder" />
                 <ScalarProperty Name="Size" ColumnName="Size" />
-                <ScalarProperty Name="MD5" ColumnName="MD5" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

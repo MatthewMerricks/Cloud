@@ -41,6 +41,22 @@ namespace FileMonitor
         /// Event ID
         /// </summary>
         public int EventId { get; set; }
+        /// <summary>
+        /// Direction of sync (Sync To or Sync From),
+        /// defaults to "To"
+        /// </summary>
+        public SyncDirection Direction
+        {
+            get
+            {
+                return _direction;
+            }
+            set
+            {
+                _direction = value;
+            }
+        }
+        private SyncDirection _direction = SyncDirection.To;
 
         /// <summary>
         /// Boolean set when already indexed events are requeued in the FileMonitor,

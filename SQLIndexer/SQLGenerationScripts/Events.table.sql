@@ -6,6 +6,7 @@
 	[FileChangeTypeEnumId] int NOT NULL,
 	[PreviousPath] nvarchar(max) COLLATE Latin1_General_CS_AS NULL CHECK([PreviousPath] <> ''),
 	[FileSystemObjectId] int NOT NULL,
+	[SyncFrom] bit NOT NULL,/* as opposed to SyncTo */
 	CONSTRAINT [PK_Events] PRIMARY KEY NONCLUSTERED ([EventId] ASC),
 	CONSTRAINT [FK_SyncCounter_SyncCounter] FOREIGN KEY ([SyncCounter]) REFERENCES [Syncs] ([SyncCounter]),
 	CONSTRAINT [FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId] FOREIGN KEY ([FileChangeTypeEnumId], [FileChangeTypeCategoryId]) REFERENCES [Enums] ([EnumId], [EnumCategoryId]),

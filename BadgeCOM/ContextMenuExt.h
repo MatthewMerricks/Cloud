@@ -1,7 +1,15 @@
+//
+// ContextMenuExt.h
+// Cloud Windows COM
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
 // ContextMenuExt.h : Declaration of the CContextMenuExt
 
 #pragma once
 #include "resource.h"       // main symbols
+#include <vector>
 
 
 
@@ -21,7 +29,9 @@ using namespace ATL;
 class ATL_NO_VTABLE CContextMenuExt :
 	public CComObjectRootEx<CComSingleThreadModel>,
 	public CComCoClass<CContextMenuExt, &CLSID_ContextMenuExt>,
+	// interface when the shell object is created (after a group of files is already selected)
 	public IShellExtInit,
+	// interface for the modifications to the context menu
 	public IContextMenu
 {
 public:
@@ -30,16 +40,23 @@ public:
 	}
 
 // IShellExtInit
+
+// Called when before the context menu is created after a group of items were selected
 IFACEMETHODIMP Initialize(LPCITEMIDLIST, LPDATAOBJECT, HKEY);
 
 // IContextMenu
 
+// Win32 and X64 platforms had different method signatures
 #ifdef X86
+// Gets the name of the item that appears in the menu
 IFACEMETHODIMP GetCommandString(UINT, UINT, UINT*, LPSTR, UINT);
 #else
+// Gets the name of the item that appears in the menu
 IFACEMETHODIMP GetCommandString(UINT_PTR, UINT, UINT*, LPSTR, UINT);
 #endif
+// Describes the action to perform when the custom context menu item is clicked
 IFACEMETHODIMP InvokeCommand(LPCMINVOKECOMMANDINFO);
+// Modifies the context menu to add the custom item
 IFACEMETHODIMP QueryContextMenu(HMENU, UINT, UINT, UINT, UINT);
 
 DECLARE_REGISTRY_RESOURCEID(IDR_CONTEXTMENUEXT)
@@ -62,25 +79,15 @@ END_COM_MAP()
 	{
 	}
 	
+	// some sort of strings that are used to identify the command coming back on context menu click??
 	static const char *m_pszVerb;
 	static const wchar_t *m_pwszVerb;
 
-private:
-	//// IDList of the folder for extensions invoked on the folder, such as
-	//// background context menu handlers or nondefault drag-and-drop handlers.
-	//PIDLIST_ABSOLUTE m_pidlFolder;
-
-	//// The data object contains an expression of the items that the handler is
-	//// being initialized for. Use SHCreateShellItemArrayFromDataObject to
-	//// convert this object to an array of items. Use SHGetItemFromObject if you
-	//// are only interested in a single Shell item. If you need a file system
-	//// path, use IShellItem::GetDisplayName(SIGDN_FILESYSPATH, ...).
-	//IDataObject *m_pdtobj;
-
-	//// For context menu handlers, the registry key provides access to verb
-	//// instance data that might be stored there. This is a rare feature to use
-	//// so most extensions do not need this variable.
-	//HKEY m_hRegKey;
+protected:
+	// holds the file names
+	std::vector<std::wstring> m_szFile;
+	// holds the number of file names
+	int m_szFileLength;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(ContextMenuExt), CContextMenuExt)

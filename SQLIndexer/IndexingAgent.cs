@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+// IndexingAgent.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -224,7 +231,8 @@ namespace SQLIndexer
                                         currentChange.FileSystemObject.LastTime ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc),
                                         currentChange.FileSystemObject.CreationTime ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc),
                                         currentChange.FileSystemObject.Size)
-                                }
+                                },
+                                Direction = (currentChange.SyncFrom ? SyncDirection.From : SyncDirection.To)
                             }));
                     }
                 }
@@ -458,6 +466,7 @@ namespace SQLIndexer
                                 .Include(((MemberExpression)((Expression<Func<SyncState, FileSystemObject>>)(parent => parent.ServerLinkedFileSystemObject)).Body).Member.Name)
                                 .Where(currentSync => currentSync.SyncCounter == (int)lastSyncCounter))
                             {
+
                                 // Check if previous syncstate had a server-remapped path to store
                                 if (currentState.ServerLinkedFileSystemObject != null)
                                 {
@@ -575,13 +584,13 @@ namespace SQLIndexer
                             // Add the file/folder object for the current sync state
                             FileSystemObject newSyncedObject = new FileSystemObject()
                             {
-                                CreationTime = newSyncState.Value.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                CreationTime = (newSyncState.Value.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                     ? (Nullable<DateTime>)null
-                                    : newSyncState.Value.HashableProperties.CreationTime,
+                                    : newSyncState.Value.HashableProperties.CreationTime),
                                 IsFolder = newSyncState.Value.HashableProperties.IsFolder,
-                                LastTime = newSyncState.Value.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                LastTime = (newSyncState.Value.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                     ? (Nullable<DateTime>)null
-                                    : newSyncState.Value.HashableProperties.LastTime,
+                                    : newSyncState.Value.HashableProperties.LastTime),
                                 Path = newSyncState.Key.ToString(),
                                 Size = newSyncState.Value.HashableProperties.Size
                             };
@@ -593,13 +602,13 @@ namespace SQLIndexer
                             {
                                 FileSystemObject serverSyncedObject = new FileSystemObject()
                                 {
-                                    CreationTime = newSyncState.Value.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                    CreationTime = (newSyncState.Value.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                         ? (Nullable<DateTime>)null
-                                        : newSyncState.Value.HashableProperties.CreationTime,
+                                        : newSyncState.Value.HashableProperties.CreationTime),
                                     IsFolder = newSyncState.Value.HashableProperties.IsFolder,
-                                    LastTime = newSyncState.Value.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                    LastTime = (newSyncState.Value.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                         ? (Nullable<DateTime>)null
-                                        : newSyncState.Value.HashableProperties.LastTime,
+                                        : newSyncState.Value.HashableProperties.LastTime),
                                     Path = serverRemappedPaths[newSyncedObject.Path],
                                     Size = newSyncState.Value.HashableProperties.Size
                                 };
@@ -630,6 +639,20 @@ namespace SQLIndexer
                 return ex;
             }
             return null;
+        }
+        
+        /// <summary>
+        /// Writes a new set of sync states to the database after a sync completes,
+        /// requires newRootPath to be set on the first sync or on any sync with a new root path
+        /// </summary>
+        /// <param name="syncId">New sync Id from server</param>
+        /// <param name="syncedEventIds">Enumerable of event ids processed in sync</param>
+        /// <param name="syncCounter">Output sync counter local identity</param>
+        /// <param name="newRootPath">Optional new root path for location of sync root, must be set on first sync</param>
+        /// <returns>Returns an error that occurred during recording the sync, if any</returns>
+        public CLError RecordCompletedSync(string syncId, IEnumerable<int> syncedEventIds, out int syncCounter, FilePath newRootPath = null)
+        {
+            return RecordCompletedSync(syncId, syncedEventIds, out syncCounter, newRootPath == null ? null : newRootPath.ToString());
         }
 
         /// <summary>
@@ -729,9 +752,9 @@ namespace SQLIndexer
 
                         // Update database object with latest event properties
                         toModify.FileChangeTypeEnumId = changeEnumsBackward[mergedEvent.Type];
-                        toModify.PreviousPath = mergedEvent.OldPath == null
+                        toModify.PreviousPath = (mergedEvent.OldPath == null
                             ? null
-                            : mergedEvent.OldPath.ToString();
+                            : mergedEvent.OldPath.ToString());
                         toModify.FileSystemObject.CreationTime = (mergedEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                             ? (Nullable<DateTime>)null
                             : mergedEvent.Metadata.HashableProperties.CreationTime);
