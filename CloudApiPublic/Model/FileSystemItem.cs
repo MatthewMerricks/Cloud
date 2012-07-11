@@ -24,6 +24,7 @@ namespace CloudApiPublic.Model
         private static string parent_path;
         private static List<FileSystemItem> children;
         private static FileSystemItem parent;
+
         public string Path
         {
             get
@@ -202,8 +203,6 @@ namespace CloudApiPublic.Model
         public void Log()
         {
             CLTrace.Instance.writeToLog(9, "{path: {0}.", this.Path);
-            CLTrace.Instance.writeToLog(9, "{target path: {0}.", this.TargetPath);
-            CLTrace.Instance.writeToLog(9, "{parent path: {0}.", this.Parent_path);
             CLTrace.Instance.writeToLog(9, "{name: {0}.", this.Name);
             CLTrace.Instance.writeToLog(9, "{revision: {0}.", this.Revision);
             CLTrace.Instance.writeToLog(9, "{createdDate: {0}.", this.CreateDate);
@@ -214,39 +213,10 @@ namespace CloudApiPublic.Model
             CLTrace.Instance.writeToLog(9, "{is_Link: {0}.", this.Is_Link);
             CLTrace.Instance.writeToLog(9, "{isPending: {0}.", this.IsPending);
             CLTrace.Instance.writeToLog(9, "{size: {0}.", this.Size);
+            CLTrace.Instance.writeToLog(9, "{target path: {0}.", this.TargetPath);
+            CLTrace.Instance.writeToLog(9, "{parent path: {0}.", this.Parent_path);
+            CLTrace.Instance.writeToLog(9, "{children: {0}.", this.Children);
+            CLTrace.Instance.writeToLog(9, "{parent: {0}.", this.Parent);
         }
-
-        public static Dictionary<string, object> DictionaryFromFileSystemItem(FileSystemItem item)
-        {
-            Dictionary<string, object> metadataItem = new Dictionary<string, object>();
-            string path = item.Path == null ? "" : item.Path;
-            string targetPath = item.TargetPath == null ? "" : item.TargetPath;
-            string parentPath = item.Parent_path == null ? "" : item.Parent_path;
-            string name = item.Name == null ? "" : item.Name;
-            string revision = item.Revision == null ? "" : item.Revision;
-            string createDate = item.CreateDate == null ? "" : item.CreateDate;
-            string modifiedDate = item.ModifiedDate == null ? "" : item.ModifiedDate;
-            string md5hash = item.Md5hash == null ? "" : item.Md5hash;
-            bool isDirectory = item.Is_Directory;
-            bool isDeleted = item.Is_Deleted;
-            bool isLink = item.Is_Link;
-            bool isPending = item.IsPending;
-            string size = item.Size == null ? "0" : item.Size;
-            metadataItem.Add(CLDefinitions.CLMetadataCloudPath, path);
-            metadataItem.Add(CLDefinitions.CLMetadataFileTarget, targetPath);
-            metadataItem.Add(CLDefinitions.CLMetadataParentPath, parentPath);
-            metadataItem.Add(CLDefinitions.CLMetadataName, name);
-            metadataItem.Add(CLDefinitions.CLMetadataFileRevision, revision);
-            metadataItem.Add(CLDefinitions.CLMetadataFileCreateDate, createDate);
-            metadataItem.Add(CLDefinitions.CLMetadataFileModifiedDate, modifiedDate);
-            metadataItem.Add(CLDefinitions.CLMetadataFileHash, md5hash);
-            metadataItem.Add(CLDefinitions.CLMetadataFileIsDirectory, isDirectory);
-            metadataItem.Add(CLDefinitions.CLMetadataFileIsDeleted, isDeleted);
-            metadataItem.Add(CLDefinitions.CLMetadataFileIsLink, isLink);
-            metadataItem.Add(CLDefinitions.CLMetadataIsPending, isPending);
-            metadataItem.Add(CLDefinitions.CLMetadataFileSize, size);
-            return metadataItem;
-        }
-
     }
 }

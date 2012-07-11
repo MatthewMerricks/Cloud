@@ -811,32 +811,55 @@ namespace win_client.Services.Sync
             if (evt.Action.Contains(CLDefinitions.CLEventTypeFileRange))
             {
                 // CLMetadata *indexedMetadata = [CLIndexingServices indexedMetadataForEvent:event];
+                CLMetadata indexedMetadata = CLIndexingService.Instance.IndexedMetadataForEvent(evt);
+
                 // if (indexedMetadata != nil) { // we have an object indexed for this event.
-                //     // for add events, if the darn thing already exists in the index, it means that FSM failed to pick up the event as a modify
-                //     // let's make sure of that and if it turns out to be true, then we need to change the event to become a modify type.
-                //     if ([event.action isEqualToString:CLEventTypeAddFile]) {
-                //         if ([event.metadata.hash isEqualToString:indexedMetadata.hash] == NO &&
-                //             [event.metadata.revision isEqualToString:indexedMetadata.revision] == NO) {
-                //             event.metadata.revision = indexedMetadata.revision;
-                //             event.action = CLEventTypeModifyFile;
-                //         }
-                //     }
-                //     else if ([event.action isEqualToString:CLEventTypeModifyFile]) { // for modify we only want to revision
-                //         event.metadata.revision = indexedMetadata.revision;
-                //     }
-                //     else { // we want it all for all other cases.
-                //         event.metadata.revision = indexedMetadata.revision;
-                //         event.metadata.hash = indexedMetadata.hash;
-                //         event.metadata.createDate = indexedMetadata.createDate;
-                //         event.metadata.modifiedDate = indexedMetadata.modifiedDate;
-                //         event.metadata.size = indexedMetadata.size;
-                //     }
-                //     if (indexedMetadata.targetPath != nil) { // we have a link object, convert
-                //         // symblink events are always recognized as files, therefore simply replace the occurence of the word file with link for the event action.
-                //         event.action = [event.action stringByReplacingCharactersInRange:[event.action rangeOfString:CLEventTypeFileRange] withString:@"link"];
-                //         event.metadata.targetPath = indexedMetadata.targetPath;
-                //     }
-                // }
+                if (indexedMetadata != null)
+                {
+                    // // for add events, if the darn thing already exists in the index, it means that FSM failed to pick up the event as a modify
+                    // // let's make sure of that and if it turns out to be true, then we need to change the event to become a modify type.
+                    // if ([event.action isEqualToString:CLEventTypeAddFile]) {
+                    if (evt.Action.Contains(CLDefinitions.CLEventTypeAddFile))
+                    {
+                        // if ([event.metadata.hash isEqualToString:indexedMetadata.hash] == NO &&
+                        //     [event.metadata.revision isEqualToString:indexedMetadata.revision] == NO) {
+                        if (!evt.Metadata.Hash.Equals(indexedMetadata.Hash, StringComparison.InvariantCulture))
+                        {
+                            // event.metadata.revision = indexedMetadata.revision;
+                            // event.action = CLEventTypeModifyFile;
+                            evt.Metadata.Revision = indexedMetadata.Revision;
+                            evt.Action = CLDefinitions.CLEventTypeModifyFile;
+                        }
+                    }
+                    // else if ([event.action isEqualToString:CLEventTypeModifyFile]) { // for modify we only want to revision
+                    else if (evt.Action.Equals(CLDefinitions.CLEventTypeModifyFile, StringComparison.InvariantCulture))
+                    {
+                        // event.metadata.revision = indexedMetadata.revision;
+                        evt.Metadata.Revision = indexedMetadata.Revision;
+                    }
+                    else  // we want it all for all other cases.
+                    {
+                        // event.metadata.revision = indexedMetadata.revision;
+                        // event.metadata.hash = indexedMetadata.hash;
+                        // event.metadata.createDate = indexedMetadata.createDate;
+                        // event.metadata.modifiedDate = indexedMetadata.modifiedDate;
+                        // event.metadata.size = indexedMetadata.size;
+                        evt.Metadata.Revision = indexedMetadata.Revision;
+                        evt.Metadata.Hash = indexedMetadata.Hash;
+                        evt.Metadata.CreateDate = indexedMetadata.CreateDate;
+                        evt.Metadata.ModifiedDate = indexedMetadata.ModifiedDate;
+                        evt.Metadata.Size = indexedMetadata.Size;
+                    }
+
+                    // if (indexedMetadata.targetPath != nil) { // we have a link object, convert
+                    if (indexedMetadata.TargetPath != null)     // we have a link object, convert
+                    {
+                        // // symblink events are always recognized as files, therefore simply replace the occurence of the word file with link for the event action.
+                        // event.action = [event.action stringByReplacingCharactersInRange:[event.action rangeOfString:CLEventTypeFileRange] withString:@"link"];
+                        // event.metadata.targetPath = indexedMetadata.targetPath;
+                        evt.Action = evt.Action.StringByReplacingCharactersInRange(evt.Action.RangeOfString(CLDefinitions.CLEventTypeFileRange), withString: CLDefinitions.CLEventTypeLinkRange);
+                    }
+                }
             }
 
             // return event;

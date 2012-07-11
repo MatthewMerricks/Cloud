@@ -332,5 +332,21 @@ namespace CloudApiPrivate.Static
             
             return range;
         }
+
+        /// <summary> 
+        /// Extend string.  Return equivalent of Objective C StringByReplacingCharactersInRange:withString.
+        /// </summary> 
+        /// <param name="source">The source string.</param> 
+        /// <param name="range">The CLRange restriction.</param> 
+        /// <param name="withString">The string to substitute.</param> 
+        /// <returns>string. The resulting string.</returns> 
+        /// Call like this:
+        /// string myOutputString = sourceString.StringByReplacingCharactersInRange((CLRange) range, "string to substitute");
+        public static string StringByReplacingCharactersInRange(this string source, CLRange range, string withString)
+        {
+            source.Remove(range.Location, range.Length);
+            source.Insert(range.Location, withString);
+            return source;
+        }
     }
 }

@@ -142,6 +142,9 @@ namespace win_client.Services.Indexing
                 endperformBlock on the masterContext
               endif the masterContext hasChanges
             end perform block on context
+
+            ;; Integration:
+            o Not necessary because all current changes are persisted immediately in SQLIndexer.
 #endif  // TRASH            
             //&&&&
             // [context performBlock: ^{
@@ -199,6 +202,13 @@ namespace win_client.Services.Indexing
             create a FileSystemItem for the input CLEvent
             create a CLMetadata to represent the FileSystemItem
             return the CLMetadata
+
+            ;; Integration
+            o Query the existing FileSystemItem from the database for this event.
+            o Create the CLMetadata for this FileSystemItem.
+            o Called from CLSyncService
+            o Called during the processing of FSM events.
+            o Called during the processing of MDS events.
 #endif  // TRASH            
             //&&&&
 
@@ -257,6 +267,11 @@ namespace win_client.Services.Indexing
               endif objectID != null
             endperformBlockAndWait on the managedObjectContext
             return the FileSystemItem
+
+            ;; Integration
+            o Query the database for an existing FileSystemItem for this event.
+            o May return null if the item doesn't exist in the database.
+            o Only called internally to this module.
 #endif  // TRASH            
             //&&&&
 
@@ -311,6 +326,9 @@ namespace win_client.Services.Indexing
                 mark item.IsPending = pending (parm)
               endif (objectID != null)
             endperformBlockAndWait on the managedObjectContext
+
+            ;; Integration.
+            o Never called.  Dead code.
 #endif  // TRASH            
             //&&&&
 
@@ -342,6 +360,10 @@ namespace win_client.Services.Indexing
 #if TRASH
             set FileSystemItem itemToChange = FileSystemItemForEvent(event)
             set itemToChange.IsPending = pending
+
+            ;; Integration
+            o Called by CLSyncService to mark some MDS events as pending, usually when the file already exists in the file system.
+            o Necessary?
 #endif  // TRASH            
             //&&&&
 
@@ -379,6 +401,9 @@ namespace win_client.Services.Indexing
               return FileSystemItem retrieved from database via key objectID
             endif objectID != null
             return null
+
+            ;; Integration
+            o Not necessary.  Dead code.  Never called.
 #endif  // TRASH            
             //&&&&
 
@@ -439,6 +464,9 @@ namespace win_client.Services.Indexing
               endelse no error
             performBlockAndWait on the managedObjectContext
             return objectID
+
+            ;; Integration
+            o Not necessary.  Required only for CoreData.
 #endif  // TRASH            
             //&&&&
 
@@ -517,7 +545,10 @@ namespace win_client.Services.Indexing
               endelse no error
             performBlockAndWait on managedObjectContext
             return objectID
-#endif  // TRASH            
+
+            ;; Integration
+            o Not necessary.  Required only for CoreData.
+#endif  // TRASH
             //&&&&
 
             // __block NSManagedObjectID *objectID;
@@ -637,7 +668,10 @@ namespace win_client.Services.Indexing
               endelse no error
             performBlockAndWait on managedObjectContext
             return objectID
-#endif  // TRASH            
+
+            ;; Integration
+            o Not necessary.  Required only for CoreData.
+#endif  // TRASH
             //&&&&
 
             // __block NSManagedObjectID *objectID;
@@ -797,7 +831,17 @@ namespace win_client.Services.Indexing
                 set fsItem.parent = parentItem
               endif parentItem != null           
             endperformBlockAndWait on managedObjectContext
-#endif  // TRASH            
+
+            ;; Interface;
+            o This function allocates a new database FileSystemItem, and queries the database for the parent directory for this child.
+            o It also constructs the in-memory directory hierarchy (adds the created child to the parent's children).
+            o This is called while indexing MDS "add" events.
+            o The database is queried for an existing item by "path".
+            o If no existing item is found in the database, it is added to the database.
+            o This function is also called locally by +addInitialRootFolderItemForCloudFolderSetup().
+            o That function is called from CLAppDelegate in createCloudFolder();
+            o This AddMetadataItem function is also called from CLAppDelegate:createCloudFolder() when it creates the Public and Pictures folders.
+#endif  // TRASH
             //&&&&
 
             // __block NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
@@ -968,7 +1012,14 @@ namespace win_client.Services.Indexing
                 log this error
               endelse itemFromIndex == null
             endperformBlockAndWait on managedObjectContext
-#endif  // TRASH            
+
+            ;; Integration
+            o Called by CLSyncService:updateIndexForSyncEvent().
+            o That is the function that finalizes an event when sync is complete.
+            o updateIndexForSyncEvent is called by CLSyncService:performUpdateForSyncEvent
+            o performUpdateForSyncEvent is the function that is called everywhere to update the index and UI when events are complete. 
+              The index is updated only if performUpdateForSyncEvent is called with success:YES.
+#endif  // TRASH
             //&&&&
 
             // __block NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
@@ -1083,6 +1134,9 @@ namespace win_client.Services.Indexing
                 delete the fetchedFileSystemItem in the database
               endif fetchedFileSystemItem != null && fetchedFileSystemItem.path == path
             endperformBlockAndWait on managedObjectContext
+
+            ;; Integration
+            o Not used.  Dead code.
 #endif  // TRASH            
             //&&&&
 
@@ -1132,6 +1186,16 @@ namespace win_client.Services.Indexing
             // if (itemToDelete) {
             //      [defaultContext deleteObject:itemToDelete];
             // }
+            //&&&&
+
+            //&&&&
+            // Pseudo-code
+#if TRASH
+            delete the database item if it exists.
+
+            ;; Integration
+            o Called by CLSyncService on "delete" events.
+#endif  // TRASH
             //&&&&
 
             // NSManagedObjectContext *defaultContext = [[CLCoreDataController defaultController] managedObjectContext];
@@ -1211,6 +1275,9 @@ namespace win_client.Services.Indexing
                 set itemBeingMoved.parent = newParentItem (to database via entity)
               endif parentObjectId != null
             endperformBlockAndWait on managedObjectContext
+
+            ;; Integration
+            o Called from CLSyncService for "move/rename" events.
 #endif  // TRASH            
             //&&&&
 
@@ -1294,6 +1361,9 @@ namespace win_client.Services.Indexing
               endif objectId != null
               save to database
             endperformBlockAndWait on managedObjectContext
+
+            ;; Integration
+            o Not used.  Dead code.
 #endif  // TRASH            
             //&&&&
 
@@ -1329,6 +1399,11 @@ namespace win_client.Services.Indexing
             // return [itemParentPath stringByAppendingString:@"/"];
             //&&&&
 
+#if TRASH
+            ;; Integration
+            o Only used internally to this module.
+#endif  // TRASH
+
             // NSString *itemParentPath = [path stringByDeletingLastPathComponent];
             string itemParentPath = path.StringByDeletingLastPathComponent();
 
@@ -1356,6 +1431,11 @@ namespace win_client.Services.Indexing
     
             // [self addMetedataItem:metadataItem pending:NO];
             //&&&&
+
+#if TRASH
+            ;; Integration
+            o Called by CLAppDelegate to create the cloud root directory.
+#endif  // TRASH
 
             // CLMetadata *metadataItem = [[CLMetadata alloc] init];
             CLMetadata metadataItem = new CLMetadata();
