@@ -229,19 +229,19 @@ namespace CloudApiPublic.Model
         public CLMetadata(Dictionary<string, object> json)
         {
             if (json.Count() > 0) {
-                this.Path = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataCloudPath, null);
-                this.ToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataToPath, null);
-                this.FromPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFromPath, null);
-                this.TargetPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileTarget, null);
-                this.Revision = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileRevision, null);
-                this.CreateDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileCreateDate, null);
-                this.ModifiedDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileModifiedDate, null);
+                this.Path = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataCloudPath, String.Empty);
+                this.ToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataToPath, String.Empty);
+                this.FromPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFromPath, String.Empty);
+                this.TargetPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileTarget, String.Empty);
+                this.Revision = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileRevision, String.Empty);
+                this.CreateDate = ((DateTime)json.GetValueOrDefault(CLDefinitions.CLMetadataFileCreateDate, DateTime.MinValue)).ToString("o");
+                this.ModifiedDate = ((DateTime)json.GetValueOrDefault(CLDefinitions.CLMetadataFileModifiedDate, DateTime.MinValue)).ToString("o");
                 this.IsDeleted = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDeleted, false);
                 this.IsDirectory = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDirectory, false);
-                this.Hash = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileHash, null);
-                this.Size = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, null);
-                this.Storage_key = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataStorageKey, null);
-                this.LastEventID = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, null);
+                this.Hash = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileHash, String.Empty);
+                this.Size = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, String.Empty);
+                this.Storage_key = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataStorageKey, String.Empty);
+                this.LastEventID = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, String.Empty);
             }
         }
 

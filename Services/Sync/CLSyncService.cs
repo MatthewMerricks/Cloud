@@ -26,6 +26,7 @@ using CloudApiPrivate.Static;
 using CloudApiPrivate.Common;
 using BadgeNET;
 using FileMonitor;
+using Newtonsoft.Json.Linq;
 
 namespace win_client.Services.Sync
 {
@@ -526,13 +527,12 @@ namespace win_client.Services.Sync
                     //                NSMutableDictionary *eventIds = [NSMutableDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, newSid, CLSyncID, nil];
                     //                [self performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
                     //            }
-                    Dictionary<string, object> metadata = (Dictionary<string, object>)result.JsonResult[CLDefinitions.CLSyncEventMetadata];
-
-                    _trace.writeToLog(1, "CLSyncService: SyncFromFileSystemMonitorWithGroupedUserEvents: Response From Sync To Cloud: {0}.",
-                            result.JsonResult[CLDefinitions.CLSyncEventMetadata]);
-
-                    // if ([[metadata objectForKey:CLSyncEvents] count] > 0) {
-                    if (((List<CLEvent>)metadata[CLDefinitions.CLSyncEvents]).Count > 0)
+                    Dictionary<string, object> metadata = result.JsonResult;
+                    if (metadata != null
+                        && metadata.Count > 0
+                        && metadata.ContainsKey(CLDefinitions.CLSyncEvents)
+                        && metadata.ContainsKey(CLDefinitions.CLSyncID)
+                        && metadata.GetType() == typeof(Dictionary<string, object>))
                     {
                         // Override with sid sent by server
                         // NSString *newSid = [metadata objectForKey:CLSyncID];
@@ -548,11 +548,12 @@ namespace win_client.Services.Sync
                         // Add received events.
                         // NSArray *mdsEvents = [metadata objectForKey:CLSyncEvents];
                         // NSMutableArray *events = [NSMutableArray array];
-                        List<object> mdsEvents = (List<object>)metadata[CLDefinitions.CLSyncEvents];
+                        List<CLEvent> mdsEvents = new List<CLEvent>();
                         List<CLEvent> eventsReceived = new List<CLEvent>();
 
                         // [mdsEvents enumerateObjectsUsingBlock:^(id mdsEvent, NSUInteger idx, BOOL *stop) {
-                        mdsEvents.ForEach(obj =>
+                        JArray arrayObject = (JArray)metadata[CLDefinitions.CLSyncEvents];
+                        foreach (JToken token in arrayObject)
                         {
                             // If status is not found, metadata is null.
                             // if (![[[mdsEvent objectForKey:CLSyncEventHeader] objectForKey:CLSyncEventStatus] isEqualToString:CLEventTypeNotFound]) {
@@ -561,13 +562,13 @@ namespace win_client.Services.Sync
                             //      [events addObject:[CLEvent eventFromMDSEvent:mdsEvent]];
                             //   }
                             // }
-                            Dictionary<string, object> mdsEventDictionary = (Dictionary<string, object>)obj;
-                            Dictionary<string, object> syncHeaderDictionary = (Dictionary<string, object>)mdsEventDictionary[CLDefinitions.CLSyncEventHeader];
+                            Dictionary<string, object> mdsEventDictionary = token.ToObject<Dictionary<string, object>>();
+                            Dictionary<string, object> syncHeaderDictionary = ((JToken)mdsEventDictionary[CLDefinitions.CLSyncEventHeader]).ToObject<Dictionary<string, object>>();
                             if (syncHeaderDictionary.ContainsKey(CLDefinitions.CLSyncEventStatus))
                             {
                                 eventsReceived.Add(CLEvent.EventFromMDSEvent(mdsEventDictionary));
                             }
-                        });
+                        }
 
                         // Dispatch for processing.
                         // NSMutableDictionary *eventIds = [NSMutableDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, newSid, CLSyncID, nil];
@@ -723,7 +724,9 @@ namespace win_client.Services.Sync
             // if ([event.action isEqualToString:CLEventTypeAddFile] ||
             //     [event.action isEqualToString:CLEventTypeModifyFile] ||
             //     [event.action isEqualToString:CLEventTypeAddFolder]) {
-            if (evt.Action.Equals(CLDefinitions.CLEventTypeAddFile) || evt.Action.Equals(CLDefinitions.CLEventTypeModifyFile) || evt.Action.Equals(CLDefinitions.CLEventTypeAddFolder))
+            if (evt.Action.Equals(CLDefinitions.CLEventTypeAddFile, StringComparison.InvariantCulture) || 
+                evt.Action.Equals(CLDefinitions.CLEventTypeModifyFile, StringComparison.InvariantCulture) || 
+                evt.Action.Equals(CLDefinitions.CLEventTypeAddFolder, StringComparison.InvariantCulture))
             {
                 // Check if this file item is a symblink, if this object is a in fact a link, the utility method will return a valid target path.
                 // NSString *fileSystemPath =[[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:cloudPath];
@@ -1373,7 +1376,7 @@ namespace win_client.Services.Sync
 
             //// Sync finished.
             //[self saveSyncStateWithSID:[ids objectForKey:CLSyncID] andEID:[ids objectForKey:CLSyncEventID]];
-            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], (long)ids[CLDefinitions.CLSyncEventID]);
+            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], Convert.ToInt64((string)ids[CLDefinitions.CLSyncEventID]));
 
             //// Update UI with activity.
             //TODO: Implement this UI.
@@ -1439,15 +1442,15 @@ namespace win_client.Services.Sync
             //     CLEvent *event = evaluatedObject;
             //     return (event.metadata.isDirectory  == YES);
             // }]];
-            List<CLEvent> folderEventItems = new List<CLEvent>(events);
-            folderEventItems.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == true); });
+            List<CLEvent> folderEventItems = new List<CLEvent>();
+            folderEventItems = events.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == true); });
 
             // NSArray *fileEventItems = [events filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
             //     CLEvent *event = evaluatedObject;
             //     return (event.metadata.isDirectory == NO);
             // }]];
-            List<CLEvent> fileEventItems = new List<CLEvent>(events);
-            fileEventItems.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == false); });
+            List<CLEvent> fileEventItems = new List<CLEvent>();
+            fileEventItems = events.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == false); });
 
             // NSSortDescriptor *sortbyNumberOfPathComponents = [[NSSortDescriptor alloc] initWithKey:@"metadata" ascending:YES comparator:^NSComparisonResult(id obj1, id obj2) {
             //     CLMetadata *metadata1 = obj1;
@@ -2316,7 +2319,7 @@ namespace win_client.Services.Sync
                     }
 
                     // if ([status isEqualToString:CLEventTypeConflict]) {
-                    if (status.Equals(CLDefinitions.CLEventTypeConflict))
+                    if (status.Equals(CLDefinitions.CLEventTypeConflict, StringComparison.InvariantCulture))
                     {
                         //     // TODO: handle conflict here.
 
@@ -3540,7 +3543,7 @@ namespace win_client.Services.Sync
             string cloudPath = evt.Metadata.Path;
 
             //if (event.metadata.toPath != nil) {
-            if (evt.Metadata.ToPath.Equals(String.Empty, StringComparison.InvariantCulture))
+            if (!evt.Metadata.ToPath.Equals(String.Empty, StringComparison.InvariantCulture))
             {
                 // cloudPath = event.metadata.toPath;
                 cloudPath = evt.Metadata.ToPath;

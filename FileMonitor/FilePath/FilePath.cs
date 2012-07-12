@@ -71,7 +71,12 @@ namespace FileMonitor
             }
             else
             {
-                return ((FilePath)this.Parent).ToString() + "\\" + Name;
+                string storeParent = ((FilePath)this.Parent).ToString();
+                return storeParent +
+                    ((storeParent ?? string.Empty).EndsWith("\\")
+                        ? string.Empty
+                        : "\\") +
+                    Name;
             }
         }
 

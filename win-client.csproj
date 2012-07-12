@@ -73,6 +73,10 @@
     <Reference Include="Microsoft.Practices.ServiceLocation">
       <HintPath>3rdParty\bin\Debug\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>packages\Newtonsoft.Json.4.5.7\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Json">
       <HintPath>packages\System.Json.4.0.20126.16343\lib\net40\System.Json.dll</HintPath>
@@ -187,6 +191,9 @@
     <Compile Include="Views\CloudMessageBoxView.xaml.cs">
       <DependentUpon>CloudMessageBoxView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\BadgeComInitializationError.xaml.cs">
+      <DependentUpon>BadgeComInitializationError.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\WindowCloudAlreadyRunning.xaml.cs">
       <DependentUpon>WindowCloudAlreadyRunning.xaml</DependentUpon>
     </Compile>
@@ -256,6 +263,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\CloudMessageBoxView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\BadgeComInitializationError.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

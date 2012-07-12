@@ -2159,11 +2159,41 @@ namespace FileMonitor
                     // Build the metadata dictionary
                     Dictionary<string, object> metadata = new Dictionary<string, object>();
 
+                    String relativeNewPath = String.Empty;
+                    String relativeOldPath = String.Empty;
+
+                    String cloudPath = GetCurrentPath();
+                    if (!String.IsNullOrWhiteSpace(cloudPath))
+                    {
+                        FilePath convertedCloudPath = cloudPath;
+                        if (currentChange.NewPath != null)
+                        {
+                            FilePath cloudOverlap = convertedCloudPath.FindOverlappingPath(currentChange.NewPath);
+                            if (cloudOverlap != null
+                                && FilePathComparer.Instance.Equals(cloudOverlap, convertedCloudPath))
+                            {
+                                relativeNewPath = currentChange.NewPath.ToString().Substring(cloudOverlap.ToString().Length).Replace('\\', '/');
+                            }
+                        }
+                        if (currentChange.OldPath != null)
+                        {
+                            FilePath cloudOverlap = convertedCloudPath.FindOverlappingPath(currentChange.OldPath);
+                            if (cloudOverlap != null
+                                && FilePathComparer.Instance.Equals(cloudOverlap, convertedCloudPath))
+                            {
+                                relativeOldPath = currentChange.OldPath.ToString().Substring(cloudOverlap.ToString().Length).Replace('\\', '/');
+                            }
+                        }
+                    }
+
                     // Format the time like "2012-03-20T19:50:25Z"
                     metadata.Add(CLDefinitions.CLMetadataFileCreateDate, currentChange.Metadata.HashableProperties.CreationTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
-                    metadata.Add(CLDefinitions.CLMetadataFromPath, currentChange.OldPath != null ? currentChange.OldPath.ToString() : String.Empty);
-                    metadata.Add(CLDefinitions.CLMetadataCloudPath, currentChange.NewPath != null ? currentChange.NewPath.ToString() : String.Empty);
+                    metadata.Add(CLDefinitions.CLMetadataFromPath, relativeOldPath);
+                    metadata.Add(CLDefinitions.CLMetadataCloudPath, relativeNewPath);
                     metadata.Add(CLDefinitions.CLMetadataToPath, String.Empty);       // not used?
+
+                    // Force server forward slash normalization
+                    
 
                     // Add this event and its metadata to the events dictionary
                     evt.Add(CLDefinitions.CLSyncEvent, action);             // just one in the group for now.

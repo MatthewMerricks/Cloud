@@ -184,4 +184,7 @@
   <data name="SystemTrayContextMenuCheckForUpdates" xml:space="preserve">
     <value>Check for updates</value>
   </data>
+  <data name="loginErrorHeader" xml:space="preserve">
+    <value>Error logging in.</value>
+  </data>
 </root>

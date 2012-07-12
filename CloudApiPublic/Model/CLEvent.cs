@@ -9,6 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using CloudApiPublic.Static;
 
 namespace CloudApiPublic.Model
 {
@@ -164,18 +167,67 @@ namespace CloudApiPublic.Model
 
         public static CLEvent EventFromMDSEvent(Dictionary<string, object> mdsEvent)
         {
-            //CLEvent Myevent = new CLEvent();
-            //Myevent.IsMDSEvent = true;
-            //CLMetadata mdsEventMetadata = new CLMetadata(mdsEvent.ObjectForKey("metadata"));
-            //Myevent.Metadata = mdsEventMetadata;
-            //CLSyncHeader syncHeader = new CLSyncHeader();
-            //Myevent.SyncHeader = syncHeader;
-            //Myevent.SyncHeader.Action = (mdsEvent.ObjectForKey("sync_header")).ObjectForKey("event");
-            //Myevent.SyncHeader.EventID = (mdsEvent.ObjectForKey("sync_header")).ObjectForKey("event_id");
-            //Myevent.SyncHeader.Sid = (mdsEvent.ObjectForKey("sync_header")).ObjectForKey("sid");
-            //Myevent.SyncHeader.Status = (mdsEvent.ObjectForKey("sync_header")).ObjectForKey("status");
-            //return Myevent;
-            return new CLEvent();
+            // Merged 7/12/12
+            // CLEvent *event = [[CLEvent alloc] init];
+            // event.isMDSEvent = YES;
+    
+            // CLMetadata *mdsEventMetadata = [[CLMetadata alloc] initWithDictionary:[mdsEvent objectForKey:@"metadata"]];
+            // event.metadata = mdsEventMetadata;
+    
+            // CLSyncHeader *syncHeader = [[CLSyncHeader alloc] init];
+            // event.syncHeader = syncHeader;
+            // event.syncHeader.action = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"event"];
+            // event.syncHeader.eventID = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"event_id"];
+            // event.syncHeader.sid = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"sid"];
+            // event.syncHeader.status = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"status"];
+    
+            // if ([event.syncHeader.action rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
+            //     event.metadata.isDirectory = YES;
+            // }else {
+            //     event.metadata.isDirectory = NO;
+            // }
+ 
+            // return event;
+            //&&&&
+
+            // CLEvent *event = [[CLEvent alloc] init];
+            // event.isMDSEvent = YES;
+            CLEvent evt = new CLEvent();
+            evt.IsMDSEvent = true;
+
+            // CLMetadata *mdsEventMetadata = [[CLMetadata alloc] initWithDictionary:[mdsEvent objectForKey:@"metadata"]];
+            // event.metadata = mdsEventMetadata;
+            CLMetadata mdsEventMetadata = new CLMetadata(((JToken)mdsEvent[CLDefinitions.CLSyncEventMetadata]).ToObject<Dictionary<string, object>>());
+            evt.Metadata = mdsEventMetadata;
+
+            // CLSyncHeader *syncHeader = [[CLSyncHeader alloc] init];
+            // event.syncHeader = syncHeader;
+            // event.syncHeader.action = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"event"];
+            // event.syncHeader.eventID = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"event_id"];
+            // event.syncHeader.sid = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"sid"];
+            // event.syncHeader.status = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"status"];
+            Dictionary<string, object> syncHeaderDictionary = ((JToken)mdsEvent[CLDefinitions.CLSyncEventHeader]).ToObject<Dictionary<string, object>>();
+            CLSyncHeader syncHeader = new CLSyncHeader();
+            evt.SyncHeader = syncHeader;
+            evt.SyncHeader.Action = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncEvent, String.Empty);
+            evt.SyncHeader.EventID = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncEventID, String.Empty);
+            evt.SyncHeader.Sid = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncID, String.Empty);
+            evt.SyncHeader.Status = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncEventStatus, String.Empty);
+
+            // if ([event.syncHeader.action rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
+            if (evt.SyncHeader.Action.Contains(CLDefinitions.CLEventTypeFolderRange))
+            {
+                // event.metadata.isDirectory = YES;
+                evt.Metadata.IsDirectory = true;
+            }
+            else
+            {
+                // event.metadata.isDirectory = NO;
+                evt.Metadata.IsDirectory = false;
+            }
+
+            // return event;
+            return evt;
         }
 
     }

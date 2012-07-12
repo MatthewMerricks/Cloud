@@ -115,7 +115,7 @@ namespace win_client.Services.FileSystemDispatcher
             CLError err = null;
 
             // path = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
-            string localPath = Settings.Instance.CloudFolderPath + path;
+            string localPath = Settings.Instance.CloudFolderPath + path.Replace('\\', '/');
 
             // dispatch_sync(get_cloud_FSD_queue(), ^(void) {
             Dispatch.Sync(Get_cloud_FSD_queue(), (object obj) =>
@@ -178,7 +178,7 @@ namespace win_client.Services.FileSystemDispatcher
             CLError err = null;
     
             // newPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:newPath];
-            string localNewPath = Settings.Instance.CloudFolderPath + newPath;
+            string localNewPath = Settings.Instance.CloudFolderPath + newPath.Replace('/', '\\');
     
             // dispatch_sync(get_cloud_FSD_queue(), ^(void) {
             Dispatch.Sync(Get_cloud_FSD_queue(), (object obj) =>
@@ -186,7 +186,7 @@ namespace win_client.Services.FileSystemDispatcher
                 // rc = [[NSFileManager defaultManager] copyItemAtPath:path toPath:newPath error:&err];
                 try
                 {
-                    System.IO.File.Copy(path, localNewPath);
+                    System.IO.File.Copy(path.Replace('/', '\\'), localNewPath);
                     rc = true;
                 }
                 catch (Exception e)
@@ -223,6 +223,10 @@ namespace win_client.Services.FileSystemDispatcher
             // Todo, check return code from NStask operation, and handle any errors.
             // return rc;
             //&&&&
+
+            // Fix up the slashes
+            path = path.Replace('/', '\\');
+            newPath = newPath.Replace('/', '\\');
 
             // __block BOOL rc = YES;
             bool rc = true;
@@ -329,6 +333,10 @@ namespace win_client.Services.FileSystemDispatcher
             // return rc;
             //&&&&
 
+            // Fix up the slashes
+            path = path.Replace('/', '\\');
+            newPath = newPath.Replace('/', '\\');
+
             // __block BOOL rc = NO;
             // __block NSError *err = nil;
             bool rc = false;
@@ -406,6 +414,10 @@ namespace win_client.Services.FileSystemDispatcher
             // return rc;
             //&&&&
 
+
+            // Fix up the slashes
+            path = path.Replace('/', '\\');
+            
             // __block BOOL rc = NO;
             // __block NSError *err = nil;
             bool rc = false;
@@ -524,6 +536,10 @@ namespace win_client.Services.FileSystemDispatcher
             //return rc;
             //&&&&
 
+
+            // Fix up the slashes
+            path = path.Replace('/', '\\');
+
             // __block BOOL rc = NO;
             // __block NSError *err = nil;
             bool rc = false;
@@ -618,6 +634,11 @@ namespace win_client.Services.FileSystemDispatcher
             // return rc;
             //&&&&
 
+
+            // Fix up the slashes
+            path = path.Replace('/', '\\');
+            target = target.Replace('/', '\\');
+
             // __block BOOL rc = NO;
             // __block NSError *err = nil;
             bool rc = false;
@@ -663,6 +684,12 @@ namespace win_client.Services.FileSystemDispatcher
         /// </summary>
         public void CreateShortcut(string shortcutPath, string shortcutDescription, string shortcutTargetPath, string shortcutIconPath)
         {
+
+            // Fix up the slashes
+            shortcutPath = shortcutPath.Replace('/', '\\');
+            shortcutTargetPath = shortcutTargetPath.Replace('/', '\\');
+            shortcutIconPath = shortcutIconPath.Replace('/', '\\');
+            
             // Create a new instance of WshShellClass
             WshShell WshShell = new WshShell();
 
@@ -696,6 +723,9 @@ namespace win_client.Services.FileSystemDispatcher
         /// </summary>
         public static int LaunchCommandLineApp(string fileName, string arguments, out CLError error)
         {
+
+            // Fix up the slashes
+            fileName = fileName.Replace('/', '\\');
 
             // Use ProcessStartInfo class
             int rc = -1;

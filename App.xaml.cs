@@ -12,6 +12,7 @@ using win_client.ViewModels;
 using win_client.AppDelegate;
 using win_client.Common;
 using BadgeNET;
+using CloudApiPublic.Model;
 
 namespace win_client
 {
@@ -99,11 +100,6 @@ namespace win_client
 
         static App()
         {
-            // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
-            // before the initial list is passed (via InitializeOrReplace)
-            IconOverlay.Initialize();
-
-            // Todo: add call to IconOverlay.Shutdown() when the application terminates/closes/receives unhandled exception
 
             DispatcherHelper.Initialize();
 
@@ -115,6 +111,16 @@ namespace win_client
         private void Application_Startup(object sender, StartupEventArgs e) 
         {
             CLAppDelegate app = CLAppDelegate.Instance;                 // fire up the singleton
+
+            // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
+            // before the initial list is passed (via InitializeOrReplace)
+            CLError error = IconOverlay.Initialize();
+            if (error != null)
+            {
+                MessageBox.Show(String.Format("Error initializing Cloud shell integration. Message: {0}, Code: {1}.", error.errorDescription, error.errorCode), "Error.");
+            }
+
+            // Todo: add call to IconOverlay.Shutdown() when the application terminates/closes/receives unhandled exception
 
             // Choose the window to display.
             if (CLAppDelegate.Instance.IsAlreadyRunning)

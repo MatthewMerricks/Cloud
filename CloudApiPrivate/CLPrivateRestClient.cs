@@ -40,7 +40,7 @@ namespace CloudApiPrivate
             _client = new HttpClient();
             _uri = new Uri(CLDefinitions.CLMetaDataServerURL);
             _client.BaseAddress = _uri;
-            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", Settings.Instance.Akey);
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", "Token=\"" + Settings.Instance.Akey + "\"");
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
             _client.Timeout = TimeSpan.FromSeconds(_CLRestClientDefaultHTTPTimeOutInterval);
 
@@ -216,7 +216,7 @@ namespace CloudApiPrivate
 
             // Build the request
             HttpRequestMessage syncRequest = new HttpRequestMessage(HttpMethod.Post, new Uri(methodPath, UriKind.Relative));
-            syncRequest.Headers.Add("Content-Type", "application/json");
+            //&&&& wrong header type added exception: syncRequest.Headers.Add("Content-Type", "application/json");
             syncRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
             // Add the client type and version.  For the W{indows client, it will be Wnn.  e.g., W01 for the 0.1 client.
@@ -227,7 +227,7 @@ namespace CloudApiPrivate
             // Send the request asynchronously
             await _client.SendAsync(syncRequest).ContinueWith(task =>
             {
-                HandleResponseFromServerCallback(completionHandler, queue, task, "ErrorPostingSyncToServer");
+                HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncToServer");
             });
         }
        
@@ -285,7 +285,7 @@ namespace CloudApiPrivate
             // Send the request asynchronously
             await _client.SendAsync(syncRequest).ContinueWith(task =>
             {
-                HandleResponseFromServerCallback(completionHandler, queue, task, "ErrorPostingSyncFromServer");
+                HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncFromServer");
             });
         }
 
@@ -296,8 +296,8 @@ namespace CloudApiPrivate
         /// <param name="queue">The GCD queue on which to run the completion action.</param>
         /// <param name="task">The task continued from the request.</param>
         /// <param name="resourceErrorMessageKey">T he task continued from the request.</param>
-        private static void HandleResponseFromServerCallback(Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue, Task<HttpResponseMessage> task,
-                                string resourceErrorMessageKey)
+        private static async void HandleResponseFromServerCallbackAsync(Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue, Task<HttpResponseMessage> task,
+                                                                string resourceErrorMessageKey)
         {
                 Dictionary<string, object> jsonResult = null;
                 HttpResponseMessage response = null;
@@ -331,7 +331,8 @@ namespace CloudApiPrivate
                     {
                         try 
 	                    {
-		                    jsonResult = JsonConvert.DeserializeObject<Dictionary<string, object>>(response.Content.ToString());
+                            string responseBody = await response.Content.ReadAsStringAsync();   
+		                    jsonResult = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseBody);
 	                    }
 	                    catch (Exception exInner)
 	                    {
