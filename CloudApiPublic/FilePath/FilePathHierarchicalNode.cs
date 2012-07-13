@@ -13,11 +13,22 @@ using System.Threading.Tasks;
 
 namespace CloudApiPublic.Model
 {
-    public class FilePathHierarchicalNode<T> : IFilePathHierarchicalNode<T> where T : class
+    /// <summary>
+    /// Node to represent a hierarchical representation of FilePaths and their generic-typed values
+    /// </summary>
+    /// <typeparam name="T">Generic-typed value</typeparam>
+    public class FilePathHierarchicalNode<T> where T : class// : IFilePathHierarchicalNode<T> where T : class
     {
+        /// <summary>
+        /// Children hierarchical nodes
+        /// </summary>
         public IEnumerable<FilePathHierarchicalNode<T>> Children { get; set; }
 
         #region IFilePathHierarchicalNode<T> members
+        /// <summary>
+        /// True iff the current node has a value,
+        /// always check before grabbing the value
+        /// </summary>
         public bool HasValue
         {
             get
@@ -26,6 +37,11 @@ namespace CloudApiPublic.Model
             }
         }
 
+        /// <summary>
+        /// Value for the current node,
+        /// always check HasValue to be true first to prevent an exception;
+        /// must be set by creating a new generic-typed FilePathHierarchicalNodeWithValue
+        /// </summary>
         public KeyValuePair<FilePath, T> Value
         {
             get
@@ -38,15 +54,17 @@ namespace CloudApiPublic.Model
         #endregion
     }
 
-    public interface IFilePathHierarchicalNode<T> where T : class
-    {
-        bool HasValue { get; }
-        KeyValuePair<FilePath, T> Value { get; }
-    }
-
+    /// <summary>
+    /// Extends the generic-typed FilePathHierarchicalNode to store the node Value
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class FilePathHierarchicalNodeWithValue<T> : FilePathHierarchicalNode<T> where T : class
     {
         protected KeyValuePair<FilePath, T> Value { get; set; }
+        /// <summary>
+        /// Creates the FilePathHierarchical node so that it has a Value
+        /// </summary>
+        /// <param name="value"></param>
         public FilePathHierarchicalNodeWithValue(KeyValuePair<FilePath, T> value)
         {
             this.Value = value;

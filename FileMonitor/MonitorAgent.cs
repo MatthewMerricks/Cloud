@@ -287,7 +287,7 @@ namespace FileMonitor
 
         private MonitorAgent() { }
 
-        #region public methods non-proxied
+        #region public methods
         ///// <summary>
         ///// Notify completion of indexing;
         ///// sets IsInitialIndex to false,
