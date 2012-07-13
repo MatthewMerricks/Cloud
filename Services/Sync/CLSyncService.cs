@@ -28,6 +28,7 @@ using BadgeNET;
 using FileMonitor;
 using Newtonsoft.Json.Linq;
 using CloudApiPublic.Static;
+using System.Runtime.CompilerServices;
 
 namespace win_client.Services.Sync
 {
@@ -479,6 +480,7 @@ namespace win_client.Services.Sync
         /// <param name="eventsDictionary">Events in the format described above.</param>
         /// </summary>
         //- (void)syncFromFileSystemMonitor: (CLFSMonitoringService *)fsm withGroupedUserEvents:(NSDictionary *)events
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public void SyncFromFileSystemMonitorWithGroupedUserEventsCallback(Dictionary<string, object> eventsDictionary)
         {
             // Update UI with activity.
@@ -867,7 +869,7 @@ namespace win_client.Services.Sync
                     string targetPath = CLFileShortcuts.GetShortcutTargetFile(fileSystemPath);
 
                     // if (targetPath != nil) {
-                    if (targetPath != String.Empty)
+                    if (!string.IsNullOrWhiteSpace(targetPath))
                     {
                         // Symblink events are always recognized as files, therefore simply replace the occurence of the word file with link for the event action.
                         // event.action = [event.action stringByReplacingCharactersInRange:[event.action rangeOfString:CLEventTypeFileRange] withString:@"link"];
@@ -2586,7 +2588,7 @@ namespace win_client.Services.Sync
                 string status = evt.SyncHeader.Status;
 
                 // if (status == nil) { // MDS origin, Philis told us we need to do this.
-                if (status == String.Empty)
+                if (string.IsNullOrWhiteSpace(status))
                 {
                     // We need to download this file.
                     // [downloadEvents addObject:event];
@@ -3594,7 +3596,7 @@ namespace win_client.Services.Sync
             if (sid.Equals(CLConstants.CLDoNotSaveId.ToString(), StringComparison.InvariantCulture))
             {
                 // if (sid != nil) {
-                if (sid != String.Empty)
+                if (!string.IsNullOrWhiteSpace(sid))
                 {
                     // [[CLSettings sharedSettings] recordSID:sid];
                     Settings.Instance.recordSID(sid);
@@ -3839,7 +3841,7 @@ namespace win_client.Services.Sync
             string cloudPath = evt.Metadata.Path;
 
             //if (event.metadata.toPath != nil) {
-            if (!evt.Metadata.ToPath.Equals(String.Empty, StringComparison.InvariantCulture))
+            if (!string.IsNullOrWhiteSpace(evt.Metadata.ToPath))
             {
                 // cloudPath = event.metadata.toPath;
                 cloudPath = evt.Metadata.ToPath;
@@ -3869,7 +3871,7 @@ namespace win_client.Services.Sync
                 //if ([folderPath isEqualToString:@""] == NO) {
                 // NOTE: If folderPath is "", that is the condition for NO path, not the "path root"???
                 // TODO: Check this
-                if (folderPath.Equals("", StringComparison.InvariantCulture))
+                if (string.IsNullOrWhiteSpace(folderPath))
                 {
                     // __block BOOL shouldBadgeFolder = YES;
                     bool shouldBadgeFolder = true;
@@ -3882,7 +3884,7 @@ namespace win_client.Services.Sync
                         string folderPathForFileEvent = fileEvent.Metadata.Path.StringByDeletingLastPathComponent();
 
                         // if (fileEvent.metadata.toPath != nil) {
-                        if (!fileEvent.Metadata.ToPath.Equals(String.Empty, StringComparison.InvariantCulture))
+                        if (!string.IsNullOrWhiteSpace(fileEvent.Metadata.ToPath))
                         {
                             // folderPathForFileEvent = [fileEvent.metadata.toPath stringByDeletingLastPathComponent];
                             folderPathForFileEvent = fileEvent.Metadata.ToPath.StringByDeletingLastPathComponent();
@@ -3918,7 +3920,7 @@ namespace win_client.Services.Sync
                             string folderPathForFolderEvent = folderEvent.Metadata.Path;
 
                             // if (folderEvent.metadata.toPath != nil) {
-                            if (!folderEvent.Metadata.ToPath.Equals(String.Empty, StringComparison.InvariantCulture))
+                            if (!string.IsNullOrWhiteSpace(folderEvent.Metadata.ToPath))
                             {
                                 // folderPathForFolderEvent = folderEvent.metadata.toPath;
                                 folderPathForFolderEvent = folderEvent.Metadata.ToPath;
@@ -3958,7 +3960,7 @@ namespace win_client.Services.Sync
                     string eventPath = activeEvent.Metadata.Path;
 
                     // if (activeEvent.metadata.toPath != nil) {
-                    if (!activeEvent.Metadata.ToPath.Equals(String.Empty, StringComparison.InvariantCulture))
+                    if (!string.IsNullOrWhiteSpace(activeEvent.Metadata.ToPath))
                     {
                         // eventPath = activeEvent.metadata.toPath;
                         eventPath = activeEvent.Metadata.ToPath;

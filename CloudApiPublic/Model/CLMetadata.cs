@@ -251,14 +251,18 @@ namespace CloudApiPublic.Model
                 jsonFromPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFromPath, null);
                 jsonTargetPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileTarget, null);
                 jsonRevision = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileRevision, null);
-                jsonCreationDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileCreateDate, null);
-                jsonModifiedDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileModifiedDate, null);
+                DateTime jsonCreationDateTemp = ((DateTime)json.GetValueOrDefault(CLDefinitions.CLMetadataFileCreateDate, new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc)));
+                jsonCreationDate = (jsonCreationDateTemp.Ticks == FileConstants.InvalidUtcTimeTicks ? null : jsonCreationDateTemp.ToUniversalTime().ToString("o"));
+                DateTime jsonModifiedDateTemp = ((DateTime)json.GetValueOrDefault(CLDefinitions.CLMetadataFileModifiedDate, new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc)));
+                jsonModifiedDate = (jsonModifiedDateTemp.Ticks == FileConstants.InvalidUtcTimeTicks ? null : jsonModifiedDateTemp.ToUniversalTime().ToString("o"));
                 jsonIsDeleted = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDeleted, false);
                 jsonIsDirectory = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDirectory, false);
                 jsonHash = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileHash, null);
-                jsonSize = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, null);
+                long jsonSizeTemp = (long)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, long.MinValue);
+                jsonSize = (jsonSizeTemp == long.MinValue ? null : jsonSizeTemp.ToString());
                 jsonStorageKey = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataStorageKey, null);
-                jsonLastEventId = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, null);
+                long jsonLastEventIdTemp = (long)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, long.MinValue);
+                jsonLastEventId = (jsonLastEventIdTemp == long.MinValue ? null : jsonLastEventIdTemp.ToString());
             }
             else
             {
@@ -286,7 +290,7 @@ namespace CloudApiPublic.Model
                 jsonFromPath,
                 jsonToPath);
 
-            FileChange newChange = new FileChange()
+            this.ChangeReference = new FileChange()
             {
                 Direction = direction,
                 EventId = processedInternals.EventId ?? 0,

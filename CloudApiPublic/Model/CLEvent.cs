@@ -57,7 +57,7 @@ namespace CloudApiPublic.Model
                 {
                     _metadata.ChangeReference = value;
                 }
-                this.ChangeReference = value;
+                this._changeReference = value;
             }
         }
         private FileChange _changeReference = null;
