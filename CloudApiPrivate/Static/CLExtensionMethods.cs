@@ -247,18 +247,6 @@ namespace CloudApiPrivate.Static
         }
 
         /// <summary> 
-        /// Extend string.  Return equivalent of Objective C lastPathComponent.  
-        /// </summary> 
-        /// <param name="source">The source string.</param> 
-        /// <returns>string.  The last path component.</returns> 
-        /// Call like this:
-        /// myStringLastPathComponent = sourceString.LastPathComponent;
-        public static string LastPathComponent(this string source)
-        {
-            return Path.GetFileName(source);
-        }
-
-        /// <summary> 
         /// Extend string.  Return equivalent of Objective C pathExtension.  
         /// </summary> 
         /// <param name="source">The source string.</param> 

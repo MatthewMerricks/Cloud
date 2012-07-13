@@ -16,6 +16,7 @@ using System.Web;
 using System.IO;
 using CloudApiPublic.Model;
 using CloudApiPublic.Support;
+using CloudApiPublic.Static;
 using System.Net.Http.Headers;
 
 
@@ -148,12 +149,35 @@ namespace CloudApiPublic.Support
             }
         }
 
+        private string _tempFilePath;
+        public string TempFilePath
+        {
+            get { return _tempFilePath; }
+            set { _tempFilePath = value; }
+        }
+        
+
         private bool _isDownloadOperation;
         public bool IsDownloadOperation
         {
             get { return _isDownloadOperation; }
             set { _isDownloadOperation = value; }
-        }      
+        }
+
+        private FileStream _streamOutput;
+        public FileStream StreamOutput
+        {
+            get { return _streamOutput; }
+            set { _streamOutput = value; }
+        }
+
+        private FileStream _streamInput;
+        public FileStream StreamInput
+        {
+            get { return _streamInput; }
+            set { _streamInput = value; }
+        }
+        
 
         //TODO: Not used?
         // - (id)initWithURLRequest:(NSMutableURLRequest *)request andMetadata:(CLMetadata *)metadata
@@ -188,6 +212,7 @@ namespace CloudApiPublic.Support
             //    _operationRequest = request;
             //    _executing = false;
             //    _finished = false;
+            _client = client;
             _operationRequest = request;
             _finished = false;
         }
@@ -197,65 +222,80 @@ namespace CloudApiPublic.Support
             throw new NotImplementedException("Default constructor not supported.");
         }
 
+
+        //- (void)start {
         public override void Main()
         {
-            //if (this.IsCancelled != true) {
-            //    NSRunLoop currentRunLoop = NSRunLoop.CurrentRunLoop();
-            //    this.WillChangeValueForKey("isExecuting");
-            //    this.Executing = true;
-            //    this.DidChangeValueForKey("isExecuting");
-            //    if (this.ResponseFilePath && this.IsDownloadOperation) {
-            //        this.CreateStreamToTempFilePath();
-            //    }
-            //    else {
-            //        this.InputStream = NSInputStream.InputStreamWithFileAtPath(this.ResponseFilePath);
-            //    }
+            // Merged 7/13/12
+            // if (self.isCancelled != YES) {
+        
+            //     NSRunLoop *currentRunLoop = [NSRunLoop currentRunLoop];
+        
+            //     [self willChangeValueForKey: @"isExecuting"];
+            //     self.executing = YES;
+            //     [self didChangeValueForKey: @"isExecuting"];
+        
+            //     if (self.responseFilePath && self.isDownloadOperation) {
+            //         [self createStreamToTempFilePath];
+            //     }else {
+            //         self.inputStream = [NSInputStream inputStreamWithFileAtPath:self.responseFilePath];
+            //     }
+        
+            //     self.urlConnection = [NSURLConnection connectionWithRequest:self.operationRequest delegate:self];
+            //     [self.urlConnection scheduleInRunLoop:currentRunLoop forMode:NSRunLoopCommonModes];
+            //     [self.urlConnection start];
+        
+            //     [[NSNotificationCenter defaultCenter] postNotificationName:CLHTTPConnectionOperaionDidStartNotification object:self];
+    
+            //     while (self.isExecuting) {
+            //         [currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+            //     }
+            // }
 
-            //    this.UrlConnection = NSURLConnection.ConnectionWithRequestMydelegate(this.OperationRequest, this);
-            //    (this.UrlConnection).ScheduleInRunLoopForMode(currentRunLoop, NSRunLoopCommonModes);
-            //    (this.UrlConnection).Start();
-            //    (NSNotificationCenter.DefaultCenter()).PostNotificationNameMyobject(CLHTTPConnectionOperaionDidStartNotification, this);
-            //    while (this.IsExecuting) {
-            //        currentRunLoop.RunUntilDate(NSDate.DateWithTimeIntervalSinceNow(1));
-            //    }
-
-            //}
             //&&&&&&
 
+            // if (self.isCancelled != YES) {
             if (!this.IsCancelled)
             {
+                // NSRunLoop *currentRunLoop = [NSRunLoop currentRunLoop];
+
+                // [self willChangeValueForKey: @"isExecuting"];
+                // self.executing = YES;
+                // [self didChangeValueForKey: @"isExecuting"];
+                this.Executing = true;
+
                 // if (this.ResponseFilePath && this.IsDownloadOperation) {
                 HttpContent fileContent;
                 if (this.ResponseFilePath != null && this.IsDownloadOperation)
                 {
-                    // this.CreateStreamToTempFilePath();
-                    //this.TempFilePath = (NSTemporaryDirectory()).StringByAppendingPathComponent((this.ResponseFilePath).LastPathComponent());
-                    //NSOutputStream downloadStream = new NSOutputStream(this.TempFilePath, false);
-                    //this.OutputStream = downloadStream;                }
-                    FileStream streamOutput = File.Open(Path.GetTempPath() + "\\" + this.ResponseFilePath.Substring(this.ResponseFilePath.LastIndexOf('\\')), 
-                                                        FileMode.Create, FileAccess.Write);
-                    fileContent = new StreamContent(streamOutput);
+                    // [self createStreamToTempFilePath];
+                    CreateStreamToTempFilePath();
+           
+                    fileContent = new StreamContent(this.StreamOutput);
                 }
                 else
                 {
-                    // this.InputStream = NSInputStream.InputStreamWithFileAtPath(this.ResponseFilePath);
-                    FileStream streamInput = File.Open(this.ResponseFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                    fileContent = new StreamContent(streamInput);
+                    // self.inputStream = [NSInputStream inputStreamWithFileAtPath:self.responseFilePath];
+                    this.StreamInput = File.Open(this.ResponseFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    fileContent = new StreamContent(this.StreamInput);
                 }
 
+                // self.urlConnection = [NSURLConnection connectionWithRequest:self.operationRequest delegate:self];
+                // [self.urlConnection scheduleInRunLoop:currentRunLoop forMode:NSRunLoopCommonModes];
+                // [self.urlConnection start];
                 fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                 _operationRequest.Content = fileContent;
 
-                // this.UrlConnection = NSURLConnection.ConnectionWithRequestMydelegate(this.OperationRequest, this);
-                // (this.UrlConnection).ScheduleInRunLoopForMode(currentRunLoop, NSRunLoopCommonModes);
-                // (this.UrlConnection).Start();
-                // (NSNotificationCenter.DefaultCenter()).PostNotificationNameMyobject(CLHTTPConnectionOperaionDidStartNotification, this);
-                // while (this.IsExecuting) {
-                //    currentRunLoop.RunUntilDate(NSDate.DateWithTimeIntervalSinceNow(1));
-                // }
                 Task<HttpResponseMessage> task = _client.SendAsync(_operationRequest);
                 task.Wait();            // wait here for the file to transfer, or for an error
                 HandleTaskCompletion(task, "ErrorPuttingUploadOrDownloadToServer");
+
+                //TODO: Notification required?
+                // [[NSNotificationCenter defaultCenter] postNotificationName:CLHTTPConnectionOperaionDidStartNotification object:self];
+
+                // while (self.isExecuting) {
+                //     [currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+                // }
             }
 
         }
@@ -324,9 +364,18 @@ namespace CloudApiPublic.Support
 
         void CreateStreamToTempFilePath()
         {
-            //this.TempFilePath = (NSTemporaryDirectory()).StringByAppendingPathComponent((this.ResponseFilePath).LastPathComponent());
-            //NSOutputStream downloadStream = new NSOutputStream(this.TempFilePath, false);
-            //this.OutputStream = downloadStream;
+            // Merged 7/13/12
+            //NSString *guid = [[NSProcessInfo processInfo] globallyUniqueString];
+            //NSString *uFileName = [NSString stringWithFormat:@"%@-%@", guid, [self.responseFilePath lastPathComponent]];
+            //self.tempFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:uFileName];
+            string guid = Guid.NewGuid().ToString();
+            string uFileName = String.Format("{0}-{1}", guid, ResponseFilePath.LastPathComponent());
+            this.TempFilePath = Path.GetTempPath() + uFileName;
+    
+            //NSOutputStream *downloadStream = [[NSOutputStream alloc] initToFileAtPath:self.tempFilePath append:NO];
+            //self.outputStream = downloadStream;
+            this.StreamOutput = File.Open(this.TempFilePath, FileMode.Create, FileAccess.Write);
+
         }
 
         void MoveTempFileToResourceFilePath()
