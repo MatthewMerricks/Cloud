@@ -21,6 +21,33 @@ namespace CloudApiPublic.Support
         private bool _disposed = false;
         private ReaderWriterLockSlim _disposeLocker = new ReaderWriterLockSlim();
 
+        private bool _isSuspended;
+        public bool IsSuspended
+        {
+            get 
+            {
+                bool rc;
+                lock (_operationQueue)
+                {
+                    rc = _isSuspended;
+                }
+
+                return rc;
+            }
+            set
+            {
+                lock (_operationQueue)
+                {
+                    _isSuspended = value;
+                    if (!_isSuspended)
+                    {
+                        // There may be some work to process.
+                        Dispatcher();
+                    }
+                }
+            }
+        }
+        
         private int _maxConcurrentTasks = 0;
         public int MaxConcurrentTasks
         {

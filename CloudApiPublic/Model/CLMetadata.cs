@@ -239,9 +239,9 @@ namespace CloudApiPublic.Model
                 this.IsDeleted = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDeleted, false);
                 this.IsDirectory = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDirectory, false);
                 this.Hash = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileHash, String.Empty);
-                this.Size = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, String.Empty);
+                this.Size = ((Int64)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, Int64.MinValue)).ToString();
                 this.Storage_key = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataStorageKey, String.Empty);
-                this.LastEventID = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, String.Empty);
+                this.LastEventID = ((Int64)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, Int64.MinValue)).ToString();
             }
         }
 

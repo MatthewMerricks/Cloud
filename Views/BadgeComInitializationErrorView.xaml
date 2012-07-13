@@ -1,13 +1,13 @@
 ﻿<!--
 //
-//  PageSelectStorageSize.xaml
+//  BadgeComInitializationErrorView.xaml
 //  Cloud Windows
 //
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.<ResourceDictionary
 -->
 
-<Window x:Class="win_client.Views.WindowCloudAlreadyRunning" 
+<Window x:Class="win_client.Views.BadgeComInitializationErrorView" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -15,7 +15,7 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
     mc:Ignorable="d"
-    DataContext="{Binding CloudAlreadyRunningViewModel, Source={StaticResource Locator}}" 
+    DataContext="{Binding BadgeComInitializationErrorViewModel, Source={StaticResource Locator}}" 
     Title="Already Running!" Height="390" Width="510" >
 
     <Window.Resources>
@@ -64,7 +64,7 @@
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
         	<Button x:Name="cmdOK" Content="OK" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding CloudAlreadyRunningViewModel_OkCommand, Mode=OneTime}" TabIndex="0"
+        		Command="{Binding BadgeComInitializationErrorViewModel_OkCommand, Mode=OneTime}" TabIndex="0"
         		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" />
         </Grid>
     </Grid>

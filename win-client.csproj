@@ -178,6 +178,7 @@
     <Compile Include="ViewModels\BusyIndicatorViewModel.cs" />
     <Compile Include="ViewModels\CloudMessageBoxViewModel.cs" />
     <Compile Include="ViewModels\CloudAlreadyRunningViewModel.cs" />
+    <Compile Include="ViewModels\BadgeComInitializationErrorViewModel.cs" />
     <Compile Include="ViewModels\WindowInvisibleViewModel.cs" />
     <Compile Include="ViewModels\FolderSelectionSimpleViewModel.cs" />
     <Compile Include="ViewModels\NotifyPropertyChanged.cs" />
@@ -191,8 +192,8 @@
     <Compile Include="Views\CloudMessageBoxView.xaml.cs">
       <DependentUpon>CloudMessageBoxView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\BadgeComInitializationError.xaml.cs">
-      <DependentUpon>BadgeComInitializationError.xaml</DependentUpon>
+    <Compile Include="Views\BadgeComInitializationErrorView.xaml.cs">
+      <DependentUpon>BadgeComInitializationErrorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\WindowCloudAlreadyRunning.xaml.cs">
       <DependentUpon>WindowCloudAlreadyRunning.xaml</DependentUpon>
@@ -266,7 +267,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\BadgeComInitializationError.xaml">
+    <Page Include="Views\BadgeComInitializationErrorView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

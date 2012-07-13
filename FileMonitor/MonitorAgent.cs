@@ -288,6 +288,24 @@ namespace FileMonitor
         private MonitorAgent() { }
 
         #region public methods
+        /// <summary>
+        /// Starts the queue timer to start sync processing,
+        /// if it is not already started for other events
+        /// </summary>
+        /// <returns>Returns an error that occurred while starting the timer, if any</returns>
+        public CLError FireSimulatedPushNotification()
+        {
+            try
+            {
+                QueuesTimer.StartTimerIfNotRunning();
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
         ///// <summary>
         ///// Notify completion of indexing;
         ///// sets IsInitialIndex to false,

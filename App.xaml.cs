@@ -117,7 +117,9 @@ namespace win_client
             CLError error = IconOverlay.Initialize();
             if (error != null)
             {
-                MessageBox.Show(String.Format("Error initializing Cloud shell integration. Message: {0}, Code: {1}.", error.errorDescription, error.errorCode), "Error.");
+                ((App)Application.Current).StartupUri = new Uri("/Views/BadgeComInitializationErrorView.xaml", UriKind.Relative);
+                //TODO: Incorporate the error description and code below into the BadgeComInitializationErrorView window above.
+                //MessageBox.Show(String.Format("Error initializing Cloud shell integration. Message: {0}, Code: {1}.", error.errorDescription, error.errorCode), "Error.");
             }
 
             // Todo: add call to IconOverlay.Shutdown() when the application terminates/closes/receives unhandled exception

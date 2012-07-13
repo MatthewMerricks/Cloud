@@ -24,7 +24,6 @@ namespace win_client.Services.FileSystemMonitoring
         static readonly CLFSMonitoringService _instance = new CLFSMonitoringService();
         private static Boolean _isLoaded = false;
         private static CLTrace _trace = null;
-        private MonitorAgent _agent = null;
         private IndexingAgent _indexer = null;
 
         /// <summary>
@@ -52,6 +51,16 @@ namespace win_client.Services.FileSystemMonitoring
         {
             // Initialize members, etc. here (at static initialization time).
             _trace = CLTrace.Instance;
+        }
+
+        /// <summary>
+        /// Property to return the FSM MonitorAgent.
+        /// </summary>
+        private MonitorAgent _agent = null;
+        public MonitorAgent Agent
+        {
+            get { return _agent; }
+            private set { _agent = value; }
         }
 
         /// <summary>
@@ -112,21 +121,18 @@ namespace win_client.Services.FileSystemMonitoring
 
         public void CheckWithFSMForEvents()
         {
-#if TRASH
-            if ([self.fileSystemEvents count] > 0) 
-            {
-                dispatch_async(get_cloud_FSM_queue(), ^{
-                    [self postEventsWithEventId:self.lastKnownEventId];
-                });
-                
-            }
-            else
-            {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [self fireSimulatedPushNotification];
-                });
-            }
-#endif  // end TRASH
+            // Merged 7/13/12
+            // Not Necessary.
+            //    if ([self.fileSystemEvents count] > 0) {
+            //        dispatch_async(get_cloud_FSM_queue(), ^{
+            //            [self postEventsWithEventId:self.lastKnownEventId];
+            //        });
+
+            //    } else {
+            //        dispatch_async(dispatch_get_main_queue(), ^{
+            //            [self fireSimulatedPushNotification];
+            //        });
+            //    }
         }
     }
 }

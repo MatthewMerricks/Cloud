@@ -67,6 +67,7 @@ namespace win_client.ViewModels
             // Window pages
             SimpleIoc.Default.Register<CloudAlreadyRunningViewModel>();
             SimpleIoc.Default.Register<WindowInvisibleViewModel>();
+            SimpleIoc.Default.Register<BadgeComInitializationErrorViewModel>();
 
             // Modal dialog support
             SimpleIoc.Default.Register<IModalDialogService, ModalDialogService>();
@@ -180,6 +181,20 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<WindowInvisibleViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the BadgeComInitializationErrorViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public BadgeComInitializationErrorViewModel BadgeComInitializationErrorViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<BadgeComInitializationErrorViewModel>();
             }
         }
 
