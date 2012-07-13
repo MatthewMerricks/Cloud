@@ -74,7 +74,7 @@ namespace CloudApiPrivate.Static
                     bindingExpression = ((PasswordBox)element).GetBindingExpression(PasswordBox.PasswordProperty);
                     break;
 #else
-                case "win_client.Common.SecurePasswordBox":
+                case "CloudApiPrivate.Common.SecurePasswordBox":
                     trace.writeToLog(9, "ForceValidation: This is a SecurePasswordBox.");
                     bindingExpression = ((SecurePasswordBox)element).GetBindingExpression(SecurePasswordBox.TextProperty);
                     break;
@@ -286,19 +286,7 @@ namespace CloudApiPrivate.Static
                 Path.AltDirectorySeparatorChar
             };
 
-            if (Directory.Exists(source))
-            {
-                return source.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-            }
-            else if (File.Exists(source))
-            {
-                return Path.GetDirectoryName(source).Split(separators, StringSplitOptions.RemoveEmptyEntries);
-            }
-            else
-            {
-                CLTrace.Instance.writeToLog(1, "CLExtensionMethods: string.PathComponents: ERROR: Item <{0}> not found.", source);
-                return null;
-            }
+            return source.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
 
         /// <summary> 

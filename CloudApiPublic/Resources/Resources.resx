@@ -134,6 +134,12 @@
   <data name="ExceptionCreatingUserRegistrationWithCode" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went terribly wrong while creating your account.  The error code is {0}.</value>
   </data>
+  <data name="ExceptionLoggingIn" xml:space="preserve">
+    <value>Oops. We're sorry, it seems like something went terribly wrong while logging in.</value>
+  </data>
+  <data name="ExceptionLoggingInWithCode" xml:space="preserve">
+    <value>Oops. We're sorry, it seems like something went terribly wrong while logging into your account.  The error code is {0}.</value>
+  </data>
   <data name="OsBits" xml:space="preserve">
     <value>bits</value>
     <comment>e.g., "32 bits" or "64 bits"</comment>

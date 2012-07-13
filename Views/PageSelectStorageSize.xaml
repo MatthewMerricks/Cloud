@@ -44,6 +44,8 @@
             <Border.Background>
                 <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
+            <TextBlock TextWrapping="Wrap" Text="Pricing terms" RenderTransformOrigin="0.5,0.5" 
+        		Foreground="#B2000000" VerticalAlignment="Top" Margin="0,404,10,0" Height="28" HorizontalAlignment="Right" Width="84"/>
         </Border>
         <Grid Grid.Column="1" Margin="48,93,37,-32" Grid.ColumnSpan="4">
             <Grid.RowDefinitions>
@@ -59,10 +61,8 @@
                 <ColumnDefinition Width="0.046*"/>
             </Grid.ColumnDefinitions>
             <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="5" RadiusX="8" RadiusY="8" Opacity="0.9" Grid.RowSpan="3"/>
-            <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
-                    Command="{Binding PageSelectStorageSize_BackCommand, Mode=OneTime}" TabIndex="5" Grid.Row="2" Margin="15" Height="50" />
-            <Button x:Name="cmdContinue" Content="Continue" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13.333" Background="#FF49C3FB" Grid.Column="3" Template="{StaticResource StyledButtonTemplate}" 
-                    Command="{Binding PageSelectStorageSize_ContinueCommand, Mode=OneTime}" TabIndex="1" Grid.Row="2" Margin="15" Height="50"
+            <Button x:Name="cmdContinue" Content="Continue" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13.333" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
+                    Command="{Binding PageSelectStorageSize_ContinueCommand, Mode=OneTime}" TabIndex="1" Grid.Row="2" Margin="19,18,10,19" Height="50"
                     common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
             <Image Grid.Column="1" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
             <Image Grid.Column="1" Margin="0,0,0,19" Grid.Row="1" Source="/win-client;component/Artwork/cl_boxIcon_small.png" Height="63" VerticalAlignment="Bottom"/>

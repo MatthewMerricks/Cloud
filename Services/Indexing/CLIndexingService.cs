@@ -1425,14 +1425,14 @@ namespace win_client.Services.Indexing
             string itemParentPath = path.StringByDeletingLastPathComponent();
 
             // if ([itemParentPath isEqualToString:@"/"]) {
-            if (itemParentPath.Equals("\\", StringComparison.InvariantCulture))
+            if (itemParentPath.Equals("/", StringComparison.InvariantCulture))
             {
                 // return itemParentPath;
                 return itemParentPath;
             }
 
             // return [itemParentPath stringByAppendingString:@"/"];
-            return itemParentPath + "\\";
+            return itemParentPath + "/";
         }
 
         //+ (void)addInitialRootFolderItemForCloudFolderSetup

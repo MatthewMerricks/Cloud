@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 
 namespace CloudApiPublic.Support
 {
-    static class CLSptJson
+    public static class CLSptJson
     {
         /// <summary>
         /// Deserialize JSON to a hierarchical Dictionary<string, object>.

@@ -18,6 +18,7 @@ using System.Windows.Controls;
 using win_client.Common;
 using System.Reflection;
 using System.Linq;
+using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Static;
 using CloudApiPublic;
@@ -85,7 +86,6 @@ namespace win_client.ViewModels
         /// The <see cref="ViewGridContainer" /> property's name.
         /// </summary>
         public const string ViewGridContainerPropertyName = "ViewGridContainer";
-
         private Grid _viewGridContainer = null;
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
-        /// The <see cref="Password2" /> property's name.
+        /// The <see cref="Password2" /> clear password.
         /// </summary>
         public const string Password2PropertyName = "Password2";
         private string _password2 = "";
@@ -590,7 +590,7 @@ namespace win_client.ViewModels
             {
                 AddError("Password", "Please enter a password with at least 8 characters, including a least one number, one lower case character and one upper case character.");
             }
-            else if(_confirmPassword2.Length != 0 && !String.Equals(password, _confirmPassword2, StringComparison.CurrentCulture))
+            else if(_confirmPassword2.Length != 0 && !String.Equals(password, _confirmPassword2, StringComparison.InvariantCulture))
             {
                 RemoveAllErrorsForPropertyName("ConfirmPassword");
                 AddError("ConfirmPassword", "The passwords don't match.");
@@ -603,7 +603,7 @@ namespace win_client.ViewModels
         private void ValidateConfirmPassword(string confirmPassword)
         {
             RemoveAllErrorsForPropertyName("ConfirmPassword");
-            if ((_password2.Length > 0 && !String.Equals(_password2, confirmPassword, StringComparison.CurrentCulture)) ||
+            if ((_password2.Length > 0 && !String.Equals(_password2, confirmPassword, StringComparison.InvariantCulture)) ||
                 (_password2.Length == 0 && confirmPassword.Length != 0))
             {
                 AddError("ConfirmPassword", "The passwords don't match.");

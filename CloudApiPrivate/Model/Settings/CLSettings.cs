@@ -188,6 +188,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kAddCloudFolderToDock = "add_dock_folder";
         public const string kAddCloudFolderToDesktop = "add_cloud_folder_to_desktop";
         public const string kRecentFileItems = "recent_file_items";
+        public const string kUdid = "device_udid";
 
 
         /// <summary>
@@ -472,6 +473,14 @@ namespace CloudApiPrivate.Model.Settings
                 SettingsBase.Write<Boolean>(kUdidRegistered, value);
             }
         }
+
+        private string _udid;
+        public string Udid
+        {
+            get { return _udid; }
+            set { _udid = value; }
+        }
+        
 
         private Boolean _completedSetup;
         public Boolean CompletedSetup
@@ -886,6 +895,14 @@ namespace CloudApiPrivate.Model.Settings
         public void recordSID(string sidParm)
         {  
             Sid = sidParm;
+        }
+
+        /// <summary>
+        /// Record UDID
+        /// </summary>
+        public void recordUDID(string udidParm)
+        {
+            Udid = udidParm;
         }
 
         /// <summary>

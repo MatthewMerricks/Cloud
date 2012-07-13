@@ -26,6 +26,7 @@ using CloudApiPrivate.Static;
 using CloudApiPrivate.Common;
 using BadgeNET;
 using FileMonitor;
+using Newtonsoft.Json.Linq;
 
 namespace win_client.Services.Sync
 {
@@ -40,7 +41,7 @@ namespace win_client.Services.Sync
         private static CLSptNSOperationQueue _downloadOperationQueue = null;     // this is the download queue used by the REST client.
         private static List<string> _recentItems = null;
         private static int _syncItemsQueueCount = 0;
-        private static List<object> _activeDownloadQueue = null;
+        private static List<CLEvent> _activeDownloadQueue = null;
         private static List<string> _currentSids = null;
         private static bool _waitingForCloudResponse = false;
         private static bool _needSyncFromCloud = false;
@@ -113,6 +114,64 @@ namespace win_client.Services.Sync
         {
             // Initialize members, etc. here (at static initialization time).
             _trace = CLTrace.Instance;
+
+            // [_sharedService prepareForSyncServiceToStart];
+            PrepareForSyncServiceToStart();
+        }
+
+        //- (void)prepareForSyncServiceToStart
+        private void PrepareForSyncServiceToStart()
+        {
+            // self.recentItems = [NSMutableArray array];
+            // self.restClient = [[CLPrivateRestClient alloc] init];
+            // self.activeDownloadQueue = [NSMutableArray array];
+            // self.activeSyncQueue = [NSMutableArray array];
+            // self.currentSIDs = [NSMutableArray array];
+    
+            // // Download and upload opperation queue's
+            // if (self.downloadOperationQueue == nil) {
+            //     self.downloadOperationQueue = [[CLOperationQueue alloc] init];
+            //     self.downloadOperationQueue.maxConcurrentOperationCount = 6;
+            // }
+    
+            // if (self.uploadOperationQueue == nil) {
+            //     self.uploadOperationQueue = [[CLOperationQueue alloc] init];
+            //     self.uploadOperationQueue.maxConcurrentOperationCount = 6;
+            // }
+            //&&&&
+
+            // self.recentItems = [NSMutableArray array];
+            // self.restClient = [[CLPrivateRestClient alloc] init];
+            // self.activeDownloadQueue = [NSMutableArray array];
+            // self.activeSyncQueue = [NSMutableArray array];
+            // self.currentSIDs = [NSMutableArray array];
+            _recentItems = new List<string>();
+            _restClient = new CLPrivateRestClient();
+            _activeDownloadQueue = new List<CLEvent>();
+            _activeSyncQueue = new List<CLEvent>();
+            _activeSyncFileQueue = null;
+            _activeSyncFolderQueue = null;
+            _currentSids = new List<string>();
+
+            // // Download and upload opperation queue's
+            // if (self.downloadOperationQueue == nil) {
+            //     self.downloadOperationQueue = [[CLOperationQueue alloc] init];
+            //     self.downloadOperationQueue.maxConcurrentOperationCount = 6;
+            // }
+            if (_downloadOperationQueue == null)
+            {
+                _downloadOperationQueue = new CLSptNSOperationQueue(6);
+            }
+
+            // if (self.uploadOperationQueue == nil) {
+            //     self.uploadOperationQueue = [[CLOperationQueue alloc] init];
+            //     self.uploadOperationQueue.maxConcurrentOperationCount = 6;
+            // }
+            if (_uploadOperationQueue == null)
+            {
+                _uploadOperationQueue = new CLSptNSOperationQueue(6);
+            }
+
         }
 
         /// <summary>
@@ -120,22 +179,68 @@ namespace win_client.Services.Sync
         /// </summary>
         public void BeginSyncServices()
         {
+            // Merged 7/13/12
+            //self.waitingForCloudResponse = NO;
+            //self.serviceStarted = YES;
+    
+            //// Start receiving callbacks
+            //[[CLNotificationServices sharedService] setDelegate:self];
+            //[[CLFSMonitoringService sharedService] setDelegate:self];
+    
+            //if ([self.downloadOperationQueue isSuspended]) {
+            //    [self.downloadOperationQueue setSuspended:NO];
+            //}
+    
+            //if([self.uploadOperationQueue isSuspended]) {
+            //    [self.uploadOperationQueue setSuspended:NO];
+            //}
+    
+            //NSLog(@"%s Cloud Sync has Started for Cloud Folder at Path: %@", __FUNCTION__, [[CLSettings sharedSettings] cloudFolderPath]);
+    
+            //if (self.wasOffline == YES) {
+            //    // slight delay here to get the network back up. 
+            //    [[CLFSMonitoringService sharedService] performSelector:@selector(checkWithFSMForEvents) withObject:nil afterDelay:5];
+            //    self.wasOffline = NO;
+            //}
+            //&&&&
+
+            //self.waitingForCloudResponse = NO;
+            //self.serviceStarted = YES;
+            _waitingForCloudResponse = false;
             _serviceStarted = true;
-            _recentItems = new List<string>();
-            _restClient = new CLPrivateRestClient();
-            _activeDownloadQueue = new List<object>(); 
-            _activeSyncQueue = new List<CLEvent>();
-            _activeSyncFileQueue = new List<CLEvent>();
-            _activeSyncFolderQueue = new List<CLEvent>();
-            _currentSids = new List<string>();
+
+            //// Start receiving callbacks
+            //TODO: Necessary?
+            //[[CLNotificationServices sharedService] setDelegate:self];
+            //[[CLFSMonitoringService sharedService] setDelegate:self];
+
+            //if ([self.downloadOperationQueue isSuspended]) {
+            //    [self.downloadOperationQueue setSuspended:NO];
+            //}
+            if (_downloadOperationQueue.IsSuspended)
+            {
+                _downloadOperationQueue.IsSuspended = false;
+            }
+
+            //if([self.uploadOperationQueue isSuspended]) {
+            //    [self.uploadOperationQueue setSuspended:NO];
+            //}
+            if (_uploadOperationQueue.IsSuspended)
+            {
+                _uploadOperationQueue.IsSuspended = false;
+            }
+
+            //NSLog(@"%s Cloud Sync has Started for Cloud Folder at Path: %@", __FUNCTION__, [[CLSettings sharedSettings] cloudFolderPath]);
             _trace.writeToLog(1, "BeginSyncServices: Cloud Sync has Started for Cloud Folder at Path: {0}.", Settings.Instance.CloudFolderPath);
 
-            if (_wasOffline == true) 
+            //if (self.wasOffline == YES) {
+            //    // slight delay here to get the network back up. 
+            //    [[CLFSMonitoringService sharedService] performSelector:@selector(checkWithFSMForEvents) withObject:nil afterDelay:5];
+            //    self.wasOffline = NO;
+            //}
+            if (_wasOffline)
             {
-                Dispatch.Async(_com_cloud_sync_queue, new Action<object>((x) =>
-                {
-                    CLFSMonitoringService.Instance.CheckWithFSMForEvents();
-                }), null);
+                CLFSMonitoringService.Instance.Agent.FireSimulatedPushNotification();
                 _wasOffline = false;
             }
         }
@@ -410,6 +515,9 @@ namespace win_client.Services.Sync
             }
             else
             {
+                NotificationServiceDidReceivePushNotificationFromServer(false, "test");
+                //TODO: Remove this test code&&&&&&&&&&&&&&&&&&&
+
                 // Update UI with activity.
                 //TODO: Implement this UI.
                 // [self animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
@@ -526,13 +634,12 @@ namespace win_client.Services.Sync
                     //                NSMutableDictionary *eventIds = [NSMutableDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, newSid, CLSyncID, nil];
                     //                [self performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
                     //            }
-                    Dictionary<string, object> metadata = (Dictionary<string, object>)result.JsonResult[CLDefinitions.CLSyncEventMetadata];
-
-                    _trace.writeToLog(1, "CLSyncService: SyncFromFileSystemMonitorWithGroupedUserEvents: Response From Sync To Cloud: {0}.",
-                            result.JsonResult[CLDefinitions.CLSyncEventMetadata]);
-
-                    // if ([[metadata objectForKey:CLSyncEvents] count] > 0) {
-                    if (((List<CLEvent>)metadata[CLDefinitions.CLSyncEvents]).Count > 0)
+                    Dictionary<string, object> metadata = result.JsonResult;
+                    if (metadata != null
+                        && metadata.Count > 0
+                        && metadata.ContainsKey(CLDefinitions.CLSyncEvents)
+                        && metadata.ContainsKey(CLDefinitions.CLSyncID)
+                        && metadata.GetType() == typeof(Dictionary<string, object>))
                     {
                         // Override with sid sent by server
                         // NSString *newSid = [metadata objectForKey:CLSyncID];
@@ -548,11 +655,11 @@ namespace win_client.Services.Sync
                         // Add received events.
                         // NSArray *mdsEvents = [metadata objectForKey:CLSyncEvents];
                         // NSMutableArray *events = [NSMutableArray array];
-                        List<object> mdsEvents = (List<object>)metadata[CLDefinitions.CLSyncEvents];
+                        JArray mdsEvents = (JArray)metadata[CLDefinitions.CLSyncEvents];
                         List<CLEvent> eventsReceived = new List<CLEvent>();
 
                         // [mdsEvents enumerateObjectsUsingBlock:^(id mdsEvent, NSUInteger idx, BOOL *stop) {
-                        mdsEvents.ForEach(obj =>
+                        foreach (JToken mdsEvent in mdsEvents)
                         {
                             // If status is not found, metadata is null.
                             // if (![[[mdsEvent objectForKey:CLSyncEventHeader] objectForKey:CLSyncEventStatus] isEqualToString:CLEventTypeNotFound]) {
@@ -561,13 +668,13 @@ namespace win_client.Services.Sync
                             //      [events addObject:[CLEvent eventFromMDSEvent:mdsEvent]];
                             //   }
                             // }
-                            Dictionary<string, object> mdsEventDictionary = (Dictionary<string, object>)obj;
-                            Dictionary<string, object> syncHeaderDictionary = (Dictionary<string, object>)mdsEventDictionary[CLDefinitions.CLSyncEventHeader];
+                            Dictionary<string, object> mdsEventDictionary = mdsEvent.ToObject<Dictionary<string, object>>();
+                            Dictionary<string, object> syncHeaderDictionary = ((JToken)mdsEventDictionary[CLDefinitions.CLSyncEventHeader]).ToObject<Dictionary<string, object>>();
                             if (syncHeaderDictionary.ContainsKey(CLDefinitions.CLSyncEventStatus))
                             {
                                 eventsReceived.Add(CLEvent.EventFromMDSEvent(mdsEventDictionary));
                             }
-                        });
+                        }
 
                         // Dispatch for processing.
                         // NSMutableDictionary *eventIds = [NSMutableDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, newSid, CLSyncID, nil];
@@ -734,7 +841,9 @@ namespace win_client.Services.Sync
             // if ([event.action isEqualToString:CLEventTypeAddFile] ||
             //     [event.action isEqualToString:CLEventTypeModifyFile] ||
             //     [event.action isEqualToString:CLEventTypeAddFolder]) {
-            if (evt.Action.Equals(CLDefinitions.CLEventTypeAddFile) || evt.Action.Equals(CLDefinitions.CLEventTypeModifyFile) || evt.Action.Equals(CLDefinitions.CLEventTypeAddFolder))
+            if (evt.Action.Equals(CLDefinitions.CLEventTypeAddFile, StringComparison.InvariantCulture) || 
+                evt.Action.Equals(CLDefinitions.CLEventTypeModifyFile, StringComparison.InvariantCulture) || 
+                evt.Action.Equals(CLDefinitions.CLEventTypeAddFolder, StringComparison.InvariantCulture))
             {
                 // Check if this file item is a symblink, if this object is a in fact a link, the utility method will return a valid target path.
                 // NSString *fileSystemPath =[[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:cloudPath];
@@ -990,8 +1099,10 @@ namespace win_client.Services.Sync
             return evt;
         }
 
+        //- (void)notificationService:(CLNotificationServices *)ns didReceivePushNotificationFromServer:(NSString *)notification
         void NotificationServiceDidReceivePushNotificationFromServer(bool /*CLNotificationServices*/ ns, string notification)
         {
+            // Merged 7/13/12
             //NSString *sid;
     
             //if ([self.currentSIDs lastObject] != nil) {
@@ -1016,22 +1127,23 @@ namespace win_client.Services.Sync
     
             //// Update UI with activity.
             //[self animateUIForSync:YES withStatusMessage:menuItemActivityLabelPreSync syncActivityCount:0];
+
+            //__weak CLSyncService *weakSelf = self;
     
             //[self.restClient syncFromCloud:events completionHandler:^(NSDictionary *metadata, NSError *error) {
-        
+            //    __strong CLSyncService *strongSelf = weakSelf;       
             //    if (error == nil) {
             
-            //        NSLog(@"%s - Synced from cloud successfull with no objects returned.", __FUNCTION__);
             //        // get sync id.
             //        NSString *sid = [metadata objectForKey:CLSyncID]; // override with sid sent by phil
             
             //        if ([[metadata objectForKey:CLSyncEvents] count] > 0) {
                 
-            //            if ([self.currentSIDs containsObject:sid] == NO) {
-            //                [self.currentSIDs addObject:sid];
+            //            if ([strongSelf.currentSIDs containsObject:sid] == NO) {
+            //                [strongSelf.currentSIDs addObject:sid];
             //            }
                 
-            //            NSLog(@"Current number of active SIDs: %lu" , [self.currentSIDs count]);
+            //            NSLog(@"Current number of active SIDs: %lu" , [strongSelf.currentSIDs count]);
                 
             //            NSArray *mdsEvents = [metadata objectForKey:@"events"];
             //            NSMutableArray *events = [NSMutableArray array];
@@ -1044,23 +1156,33 @@ namespace win_client.Services.Sync
                 
             //            NSDictionary *eventIds = [NSDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, sid, CLSyncID, nil];
                 
-            //            [self performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
+            //            [strongSelf performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
                 
             //        }else {
+
+            //            NSLog(@"Response From Sync From Cloud: \n\n%@\n\n", metadata);
+            //            NSLog(@"%s - Synced from cloud successfull with no objects returned.", __FUNCTION__);
+
+            //            if ([self.activeSyncQueue count] == 0) {   //bug? Should be strongSelf
+            //                if (sid != nil) { // only save if SID is not nil.
+            //                    [[CLSettings sharedSettings] recordSID:sid];
+            //                }
+            //            }
+            //
             //            // Update UI with activity.
-            //            [self animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
+            //            [strongSelf animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
             //        }
             
             //    }else {
-            
-            //        NSLog(@"%s - %@", __FUNCTION__, error);
+
+            //         NSLog(@"%s - %@", __FUNCTION__, error);
             //        // Update UI with activity.
-            //        [self animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
+            //        [strongSelf animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
             //    }
         
             //    self.waitingForCloudResponse = NO;
         
-            //    if (self.needSyncFromCloud == YES) {
+            //    if (strongSelf.needSyncFromCloud == YES) {
             //        [self notificationService:nil didReceivePushNotificationFromServer:nil];
             //    }
             //} onQueue:get_cloud_sync_queue()];
@@ -1123,11 +1245,11 @@ namespace win_client.Services.Sync
 
             //        if ([[metadata objectForKey:CLSyncEvents] count] > 0) {
 
-            //            if ([self.currentSIDs containsObject:sid] == NO) {
-            //                [self.currentSIDs addObject:sid];
+            //            if ([strongSelf.currentSIDs containsObject:sid] == NO) {
+            //                [strongSelf.currentSIDs addObject:sid];
             //            }
 
-            //            NSLog(@"Current number of active SIDs: %lu" , [self.currentSIDs count]);
+            //            NSLog(@"Current number of active SIDs: %lu" , [strongSelf.currentSIDs count]);
 
             //            NSArray *mdsEvents = [metadata objectForKey:@"events"];
             //            NSMutableArray *events = [NSMutableArray array];
@@ -1140,92 +1262,123 @@ namespace win_client.Services.Sync
 
             //            NSDictionary *eventIds = [NSDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, sid, CLSyncID, nil];
 
-            //            [self performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
+            //            [strongSelf performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
 
             //        }else {
+
+            //            NSLog(@"Response From Sync From Cloud: \n\n%@\n\n", metadata);
+            //            NSLog(@"%s - Synced from cloud successfull with no objects returned.", __FUNCTION__);
+
+            //            if ([strongSelf.activeSyncQueue count] == 0) {   //bug? Should be strongSelf
+            //                if (sid != nil) { // only save if SID is not nil.
+            //                    [[CLSettings sharedSettings] recordSID:sid];
+            //                }
+            //            }
+            //
             //            // Update UI with activity.
-            //            [self animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
+            //            [strongstrongSelf animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
             //        }
 
             //    }else {
 
             //        NSLog(@"%s - %@", __FUNCTION__, error);
             //        // Update UI with activity.
-            //        [self animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
+            //        [strongSelf animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
             //    }
 
-            //    self.waitingForCloudResponse = NO;
+            //    strongSelf.waitingForCloudResponse = NO;
 
-            //    if (self.needSyncFromCloud == YES) {
-            //        [self notificationService:nil didReceivePushNotificationFromServer:nil];
+            //    if (strongSelf.needSyncFromCloud == YES) {
+            //        [strongSelf notificationService:nil didReceivePushNotificationFromServer:nil];
             //    }
             //} onQueue:get_cloud_sync_queue()];
             _restClient.SyncFromCloud_WithCompletionHandler_OnQueue_Async(events, (result) =>
             {
                 if (result.Error == null)
-                {
-                    Dictionary<string, object> metadata = (Dictionary<string, object>)result.JsonResult[CLDefinitions.CLSyncEventMetadata];
-                    
-                    _trace.writeToLog(1, "CLSyncService: SyncFromFileSystemMonitorWithGroupedUserEvents: Response From Sync From Cloud: {0}.", 
-                            result.JsonResult[CLDefinitions.CLSyncEventMetadata]);
-                    
-                    // get sync id.
-                    // NSString *sid = [metadata objectForKey:CLSyncID]; // override with sid sent by server
-                    string sidInner = (string)metadata[CLDefinitions.CLSyncID];
+                {                    
+                    _trace.writeToLog(1, "CLSyncService: SyncFromFileSystemMonitorWithGroupedUserEvents: Response From Sync From Cloud received: {0}.", result); 
 
+                    string newSid = null;
                     // if ([[metadata objectForKey:CLSyncEvents] count] > 0) {
-                    if (((Dictionary<string, object>)metadata[CLDefinitions.CLSyncEvents]).Count() > 0)
+                    Dictionary<string, object> metadata = result.JsonResult;
+                    if (metadata != null
+                        && metadata.Count > 0
+                        && metadata.ContainsKey(CLDefinitions.CLSyncEvents)
+                        && metadata.ContainsKey(CLDefinitions.CLSyncID)
+                        && metadata.GetType() == typeof(Dictionary<string, object>))
                     {
-                        // if ([self.currentSIDs containsObject:sid] == NO) {
-                        //      [self.currentSIDs addObject:sid];
+
+                        // get sync id.
+                        // NSString *sid = [metadata objectForKey:CLSyncID]; // override with sid sent by server
+                        newSid = (string)metadata[CLDefinitions.CLSyncID];
+
+                        // if ([strongSelf.currentSIDs containsObject:sid] == NO) {
+                        //      [strongSelf.currentSIDs addObject:sid];
                         // }
-                        if (!_currentSids.Contains(sidInner))
+                        if (!_currentSids.Contains(newSid))
                         {
-                            _currentSids.Add(sidInner);
+                            _currentSids.Add(newSid);
                         }
 
-                        _trace.writeToLog(9, "Current number of active SIDs: {0}.", _currentSids.Count());
+                        _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Current number of active SIDs: {0}.", _currentSids.Count());
 
+                        // Add received events.
                         // NSArray *mdsEvents = [metadata objectForKey:@"events"];
                         // NSMutableArray *events = [NSMutableArray array];
-                        List<Dictionary<string, object>> mdsEvents = (List<Dictionary<string, object>>)metadata[CLDefinitions.CLSyncEvents];
-                        List<CLEvent> eventsInner = new List<CLEvent>();
+                        JArray mdsEvents = (JArray)metadata[CLDefinitions.CLSyncEvents];
+                        List<CLEvent> eventsReceived = new List<CLEvent>();
 
                         // [mdsEvents enumerateObjectsUsingBlock:^(id mdsEvent, NSUInteger idx, BOOL *stop) {
                         //     [events addObject:[CLEvent eventFromMDSEvent:mdsEvent]];
                         // }];
-                        mdsEvents.ForEach(mdsEvent =>
+                        foreach (JToken mdsEvent in mdsEvents)
                         {
-                            eventsInner.Add(CLEvent.EventFromMDSEvent(mdsEvent));
-                        });
+                            Dictionary<string, object> mdsEventDictionary = mdsEvent.ToObject<Dictionary<string, object>>();
+                            eventsReceived.Add(CLEvent.EventFromMDSEvent(mdsEventDictionary));
+                        }
 
-                        _trace.writeToLog(9, "Response From Sync From Cloud: {0}.", metadata);
+                        _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Response From Sync From Cloud: {0}.", metadata);
 
                         // NSDictionary *eventIds = [NSDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, sid, CLSyncID, nil];
                         Dictionary<string, object> eventIds = new Dictionary<string,object>()
                         {
                             {CLDefinitions.CLSyncEventID, eid},
-                            {CLDefinitions.CLSyncID, sidInner}
+                            {CLDefinitions.CLSyncID, newSid}
                         };
 
-                        // [self performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
-                        PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsInner, eventIds, CLEventOrigin.CLEventOriginMDS);
+                        // [strongSelf performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
+                        PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsReceived, eventIds, CLEventOrigin.CLEventOriginMDS);
                     }
                     else
                     {
+                        // NSLog(@"Response From Sync From Cloud: \n\n%@\n\n", metadata);
+                        // NSLog(@"%s - Synced from cloud successfull with no objects returned.", __FUNCTION__);
+                        _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Response from sync_from_Cloud: {0}.", metadata);
+
+                        // if ([strongSelf.activeSyncQueue count] == 0) {   //bug? Should be strongSelf
+                        if (_activeSyncQueue.Count == 0)
+                        {
+                            // if (sid != nil) { // only save if SID is not nil.
+                            if (newSid != null)
+                            {
+                                // [[CLSettings sharedSettings] recordSID:sid];
+                                Settings.Instance.recordSID(newSid);
+                            }
+                        }
+
                         // Update UI with activity.
-                        // [self animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
+                        // [strongSelf animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
                         //TODO: Implement this.
                     }
 
-                    // self.waitingForCloudResponse = NO;
+                    // strongSelf.waitingForCloudResponse = NO;
                     _waitingForCloudResponse = false;
 
-                    // if (self.needSyncFromCloud == YES) {
+                    // if (strongSelf.needSyncFromCloud == YES) {
                     if (_needSyncFromCloud)
                     {
-                        //TODO: Implement notification.
-                        //  [self notificationService:nil didReceivePushNotificationFromServer:nil];
+                        //TODO: Implement notification to recurse on this function.
+                        //  [strongSelf notificationService:nil didReceivePushNotificationFromServer:nil];
                     }
                 }
                 else
@@ -1497,7 +1650,7 @@ namespace win_client.Services.Sync
 
             //// Sync finished.
             //[self saveSyncStateWithSID:[ids objectForKey:CLSyncID] andEID:[ids objectForKey:CLSyncEventID]];
-            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], (long)ids[CLDefinitions.CLSyncEventID]);
+            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], Convert.ToInt64((string)ids[CLDefinitions.CLSyncEventID]));
 
             //// Update UI with activity.
             //TODO: Implement this UI.
@@ -1563,15 +1716,15 @@ namespace win_client.Services.Sync
             //     CLEvent *event = evaluatedObject;
             //     return (event.metadata.isDirectory  == YES);
             // }]];
-            List<CLEvent> folderEventItems = new List<CLEvent>(events);
-            folderEventItems.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == true); });
+            List<CLEvent> folderEventItems = new List<CLEvent>();
+            folderEventItems = events.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == true); });
 
             // NSArray *fileEventItems = [events filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
             //     CLEvent *event = evaluatedObject;
             //     return (event.metadata.isDirectory == NO);
             // }]];
-            List<CLEvent> fileEventItems = new List<CLEvent>(events);
-            fileEventItems.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == false); });
+            List<CLEvent> fileEventItems = new List<CLEvent>();
+            fileEventItems = events.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == false); });
 
             // NSSortDescriptor *sortbyNumberOfPathComponents = [[NSSortDescriptor alloc] initWithKey:@"metadata" ascending:YES comparator:^NSComparisonResult(id obj1, id obj2) {
             //     CLMetadata *metadata1 = obj1;
@@ -2414,7 +2567,7 @@ namespace win_client.Services.Sync
                 string status = evt.SyncHeader.Status;
 
                 // if (status == nil) { // MDS origin, Philis told us we need to do this.
-                if (status == null)
+                if (status == String.Empty)
                 {
                     // We need to download this file.
                     // [downloadEvents addObject:event];
@@ -2440,7 +2593,7 @@ namespace win_client.Services.Sync
                     }
 
                     // if ([status isEqualToString:CLEventTypeConflict]) {
-                    if (status.Equals(CLDefinitions.CLEventTypeConflict))
+                    if (status.Equals(CLDefinitions.CLEventTypeConflict, StringComparison.InvariantCulture))
                     {
                         //     // TODO: handle conflict here.
 
@@ -3667,7 +3820,7 @@ namespace win_client.Services.Sync
             string cloudPath = evt.Metadata.Path;
 
             //if (event.metadata.toPath != nil) {
-            if (evt.Metadata.ToPath.Equals(String.Empty, StringComparison.InvariantCulture))
+            if (!evt.Metadata.ToPath.Equals(String.Empty, StringComparison.InvariantCulture))
             {
                 // cloudPath = event.metadata.toPath;
                 cloudPath = evt.Metadata.ToPath;
@@ -3946,14 +4099,14 @@ namespace win_client.Services.Sync
                             // [self.activeDownloadQueue addObject:downloadOperation];
                             // NSLog(@"Retrying: %@, Storage Key: %@", event.metadata.path, event.metadata.storage_key);
                             _downloadOperationQueue.EnqueueOperation(downloadOperation);
-                            _activeDownloadQueue.Add(downloadOperation);
+                            //_activeDownloadQueue.Add(downloadOperation);   //bug???
                             _trace.writeToLog(1, "CLSyncService: RetryEvent: Retrying: {0}, Storage key: {1}.", evt.Metadata.Path, evt.Metadata.Storage_key);
                         }
                     }
                 }
                  else
                 {
-                    // CLHTTPConnectionOperation *uploadOperation = [self uploadOperationForEvent:event];
+                    // CLHTTPConnectionOperation *uploadOperation = [self uploadOperationForEvent:event]; 
                     CLHTTPConnectionOperation uploadOperation = UploadOperationForEvent(evt);
 
                     // if (self.uploadOperationQueue){

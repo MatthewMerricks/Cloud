@@ -48,7 +48,8 @@ namespace CloudApiPublic.Static
         public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> input, TKey key, TValue defaultValue = default(TValue))
         {
             TValue val;
-            if (input.TryGetValue(key, out val))
+            bool success = input.TryGetValue(key, out val);
+            if (success && val != null)
             {
                 return val;
             }

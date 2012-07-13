@@ -28,6 +28,7 @@ namespace win_client.Views
     {
         #region "Instance Variables"
 
+        private PageHomeViewModel _viewModel = null;
         private bool _isLoaded = false;
 
         #endregion
@@ -62,6 +63,10 @@ namespace win_client.Views
 #endif
 
             CLAppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
+            CLAppMessages.Home_GetClearPasswordField.Register(this, OnHome_GetClearPasswordField);
+
+            PageHomeViewModel vm = (PageHomeViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
 
         }
 
@@ -70,6 +75,7 @@ namespace win_client.Views
         void PageHome_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
+            _viewModel = DataContext as PageHomeViewModel;
 #if !SILVERLIGHT
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo); ;
 #endif
@@ -115,6 +121,15 @@ namespace win_client.Views
             {
                 tbPassword.Focus();
                 return;
+            }
+        }
+
+        private void OnHome_GetClearPasswordField(string notUsed)
+        {
+            string clearPassword = tbPassword.Text;
+            if (_viewModel != null)
+            {
+                _viewModel.Password2 = clearPassword;
             }
         }
 

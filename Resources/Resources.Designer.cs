@@ -205,6 +205,15 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error logging in..
+        /// </summary>
+        public static string loginErrorHeader {
+            get {
+                return ResourceManager.GetString("loginErrorHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Check for updates.
         /// </summary>
         public static string SystemTrayContextMenuCheckForUpdates {

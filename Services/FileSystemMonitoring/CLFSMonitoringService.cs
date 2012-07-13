@@ -56,6 +56,16 @@ namespace win_client.Services.FileSystemMonitoring
         }
 
         /// <summary>
+        /// Property to return the FSM MonitorAgent.
+        /// </summary>
+        private MonitorAgent _agent = null;
+        public MonitorAgent Agent
+        {
+            get { return _agent; }
+            private set { _agent = value; }
+        }
+
+        /// <summary>
         /// Start the file system monitoring service.
         /// </summary>
         public void BeginFileSystemMonitoring()
@@ -119,21 +129,18 @@ namespace win_client.Services.FileSystemMonitoring
 
         public void CheckWithFSMForEvents()
         {
-#if TRASH
-            if ([self.fileSystemEvents count] > 0) 
-            {
-                dispatch_async(get_cloud_FSM_queue(), ^{
-                    [self postEventsWithEventId:self.lastKnownEventId];
-                });
-                
-            }
-            else
-            {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [self fireSimulatedPushNotification];
-                });
-            }
-#endif  // end TRASH
+            // Merged 7/13/12
+            // Not Necessary.
+            //    if ([self.fileSystemEvents count] > 0) {
+            //        dispatch_async(get_cloud_FSM_queue(), ^{
+            //            [self postEventsWithEventId:self.lastKnownEventId];
+            //        });
+
+            //    } else {
+            //        dispatch_async(dispatch_get_main_queue(), ^{
+            //            [self fireSimulatedPushNotification];
+            //        });
+            //    }
         }
     }
 }
