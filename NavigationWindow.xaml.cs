@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.IO;
 using win_client.SystemTray.TrayIcon;
 using win_client.AppDelegate;
+using System.Windows.Forms;
 
 namespace win_client
 {
@@ -61,7 +62,7 @@ namespace win_client
                 // Free native (unmanaged) resources, if any
             } 
             disposed = true; 
-        } 
+        }
 
         private void Window_SourceInitialized(object sender, EventArgs e)
         {

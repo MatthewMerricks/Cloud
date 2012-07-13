@@ -106,6 +106,24 @@ namespace CloudApiPublic.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while logging in..
+        /// </summary>
+        internal static string ExceptionLoggingIn {
+            get {
+                return ResourceManager.GetString("ExceptionLoggingIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while logging into your account.  The error code is {0}..
+        /// </summary>
+        internal static string ExceptionLoggingInWithCode {
+            get {
+                return ResourceManager.GetString("ExceptionLoggingInWithCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to bits.
         /// </summary>
         internal static string OsBits {

@@ -902,6 +902,19 @@ namespace win_client.Services.Indexing
             //         fsItem.parent = parentItem;
             //     }
             // }];
+
+            if (pending)
+            {
+                if (item.ChangeReference != null)
+                {
+                    CLFSMonitoringService.Instance.IndexingAgent.AddEvent(item.ChangeReference);
+                }
+            }
+            else if (item.ChangeReference != null
+            && item.ChangeReference.EventId > 0)
+            {
+                CLFSMonitoringService.Instance.IndexingAgent.MarkEventAsCompletedOnPreviousSync(item.ChangeReference.EventId);
+            }
         }
 
         //+ (void)updateLocalIndexItemWithEvent:(CLEvent *)event pending:(BOOL)pending
@@ -1425,14 +1438,14 @@ namespace win_client.Services.Indexing
             string itemParentPath = path.StringByDeletingLastPathComponent();
 
             // if ([itemParentPath isEqualToString:@"/"]) {
-            if (itemParentPath.Equals("\\", StringComparison.InvariantCulture))
+            if (itemParentPath.Equals("/", StringComparison.InvariantCulture))
             {
                 // return itemParentPath;
                 return itemParentPath;
             }
 
             // return [itemParentPath stringByAppendingString:@"/"];
-            return itemParentPath + "\\";
+            return itemParentPath + "/";
         }
 
         //+ (void)addInitialRootFolderItemForCloudFolderSetup

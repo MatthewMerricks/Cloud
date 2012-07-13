@@ -40,7 +40,6 @@ namespace win_client.ViewModels
         #region Instance Variables
         private readonly IDataService _dataService;
 
-        private RelayCommand _pageSelectStorageSize_BackCommand;
         private RelayCommand _pageSelectStorageSize_ContinueCommand;
         private RelayCommand _pageSelectStorageSize_5GbAreaCommand;
         private RelayCommand _pageSelectStorageSize_50GbAreaCommand;
@@ -105,23 +104,6 @@ namespace win_client.ViewModels
       
         #region Commands
          
-        /// <summary>
-        /// The user clicked the Back button on the PageSelectStorageSize page.
-        /// </summary>
-        public RelayCommand PageSelectStorageSize_BackCommand
-        {
-            get
-            {
-                return _pageSelectStorageSize_BackCommand
-                    ?? (_pageSelectStorageSize_BackCommand = new RelayCommand(
-                                            () =>
-                                            {      
-                                                Uri nextPage = new System.Uri(CLConstants.kPageCreateNewAccount, System.UriKind.Relative);
-                                                SendNavigationRequestMessage(nextPage);
-                                            }));
-            }
-        }
-
         /// <summary>
         /// The user clicked the Continue button on the PageSelectStorageSize page.
         /// </summary>

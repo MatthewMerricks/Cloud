@@ -30,6 +30,7 @@ namespace win_client.Common
             Message_ReachabilityChangedNotification,
             Message_BalloonTooltipSystemTrayNotification,
             Message_GrowlSystemTrayNotification,
+            Home_GetClearPasswordField,
         }
 
         public static class CreateNewAccount_GetClearPasswordField
@@ -42,6 +43,19 @@ namespace win_client.Common
             public static void Register(object recipient, Action<string> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.CreateNewAccount_GetClearPasswordField, action);
+            }
+        }
+
+        public static class Home_GetClearPasswordField
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Home_GetClearPasswordField);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Home_GetClearPasswordField, action);
             }
         }
 

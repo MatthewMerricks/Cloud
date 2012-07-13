@@ -221,6 +221,7 @@ namespace win_client.ViewModels
             Application.Current.MainWindow.WindowStyle = WindowStyle.None;
             Application.Current.MainWindow.ShowInTaskbar = false;
             Application.Current.MainWindow.ShowActivated = false;
+            Application.Current.MainWindow.Visibility = Visibility.Collapsed;
         }
 
         #endregion

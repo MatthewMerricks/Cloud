@@ -9,6 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using CloudApiPublic.Static;
 
 namespace CloudApiPublic.Model
 {
@@ -29,6 +32,13 @@ namespace CloudApiPublic.Model
                 }
                 return _metadata;
             }
+            set
+            {
+                this.ChangeReference = (value == null
+                    ? null
+                    : value.ChangeReference);
+                _metadata = value;
+            }
         }
         private CLMetadata _metadata = null;
         public CLSyncHeader SyncHeader { get; set; }
@@ -47,7 +57,7 @@ namespace CloudApiPublic.Model
                 {
                     _metadata.ChangeReference = value;
                 }
-                this.ChangeReference = value;
+                this._changeReference = value;
             }
         }
         private FileChange _changeReference = null;
@@ -138,20 +148,81 @@ namespace CloudApiPublic.Model
             };
         }
 
-        public static CLEvent EventFromMDSEvent(Dictionary<string, object> mdsEvent)
+        public static CLEvent EventFromMDSEvent(Func<string> getLastSyncId, Func<string> getCloudPath, Dictionary<string, object> mdsEvent, SyncDirection direction)
         {
-            //CLEvent Myevent = new CLEvent();
-            //Myevent.IsMDSEvent = true;
-            //CLMetadata mdsEventMetadata = new CLMetadata(mdsEvent.ObjectForKey("metadata"));
-            //Myevent.Metadata = mdsEventMetadata;
-            //CLSyncHeader syncHeader = new CLSyncHeader();
-            //Myevent.SyncHeader = syncHeader;
-            //Myevent.SyncHeader.Action = (mdsEvent.ObjectForKey("sync_header")).ObjectForKey("event");
-            //Myevent.SyncHeader.EventID = (mdsEvent.ObjectForKey("sync_header")).ObjectForKey("event_id");
-            //Myevent.SyncHeader.Sid = (mdsEvent.ObjectForKey("sync_header")).ObjectForKey("sid");
-            //Myevent.SyncHeader.Status = (mdsEvent.ObjectForKey("sync_header")).ObjectForKey("status");
-            //return Myevent;
-            return new CLEvent();
+            // Merged 7/12/12
+            // CLEvent *event = [[CLEvent alloc] init];
+            // event.isMDSEvent = YES;
+    
+            // CLMetadata *mdsEventMetadata = [[CLMetadata alloc] initWithDictionary:[mdsEvent objectForKey:@"metadata"]];
+            // event.metadata = mdsEventMetadata;
+    
+            // CLSyncHeader *syncHeader = [[CLSyncHeader alloc] init];
+            // event.syncHeader = syncHeader;
+            // event.syncHeader.action = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"event"];
+            // event.syncHeader.eventID = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"event_id"];
+            // event.syncHeader.sid = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"sid"];
+            // event.syncHeader.status = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"status"];
+    
+            // if ([event.syncHeader.action rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
+            //     event.metadata.isDirectory = YES;
+            // }else {
+            //     event.metadata.isDirectory = NO;
+            // }
+ 
+            // return event;
+            //&&&&
+
+            // CLEvent *event = [[CLEvent alloc] init];
+            // event.isMDSEvent = YES;
+            CLEvent evt = new CLEvent();
+            evt.IsMDSEvent = true;
+            evt.GetLastSyncId = getLastSyncId;
+            evt.GetCloudPath = getCloudPath;
+            
+            // CLSyncHeader *syncHeader = [[CLSyncHeader alloc] init];
+            // event.syncHeader = syncHeader;
+            // event.syncHeader.action = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"event"];
+            // event.syncHeader.eventID = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"event_id"];
+            // event.syncHeader.sid = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"sid"];
+            // event.syncHeader.status = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"status"];
+            Dictionary<string, object> syncHeaderDictionary = ((JToken)mdsEvent[CLDefinitions.CLSyncEventHeader]).ToObject<Dictionary<string, object>>();
+            CLSyncHeader syncHeader = new CLSyncHeader();
+            evt.SyncHeader = syncHeader;
+            evt.SyncHeader.Action = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncEvent, String.Empty);
+            evt.SyncHeader.EventID = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncEventID, String.Empty);
+            evt.SyncHeader.Sid = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncID, String.Empty);
+            evt.SyncHeader.Status = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncEventStatus, String.Empty);
+
+            // CLMetadata *mdsEventMetadata = [[CLMetadata alloc] initWithDictionary:[mdsEvent objectForKey:@"metadata"]];
+            // event.metadata = mdsEventMetadata;
+            CLMetadata mdsEventMetadata = new CLMetadata(evt.GetLastSyncId,
+                evt.GetCloudPath,
+                ((JToken)mdsEvent[CLDefinitions.CLSyncEventMetadata]).ToObject<Dictionary<string, object>>(),
+                syncHeader,
+                direction);
+            evt.Metadata = mdsEventMetadata;
+
+            // if ([event.syncHeader.action rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
+            if (evt.SyncHeader.Action.Contains(CLDefinitions.CLEventTypeFolderRange))
+            {
+                // event.metadata.isDirectory = YES;
+                evt.ChangeReference.Metadata.HashableProperties = new FileMetadataHashableProperties(true,//only property changed, is folder is now true
+                    evt.ChangeReference.Metadata.HashableProperties.LastTime,// copied
+                    evt.ChangeReference.Metadata.HashableProperties.CreationTime,// copied
+                    evt.ChangeReference.Metadata.HashableProperties.Size);// copied
+            }
+            else
+            {
+                // event.metadata.isDirectory = NO;
+                evt.ChangeReference.Metadata.HashableProperties = new FileMetadataHashableProperties(false,//only property changed, is folder is now false
+                    evt.ChangeReference.Metadata.HashableProperties.LastTime,// copied
+                    evt.ChangeReference.Metadata.HashableProperties.CreationTime,// copied
+                    evt.ChangeReference.Metadata.HashableProperties.Size);// copied
+            }
+
+            // return event;
+            return evt;
         }
 
     }

@@ -58,7 +58,14 @@ namespace BadgeNET
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
         public static CLError Initialize(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList = null)
         {
-            return Instance.pInitialize(initialList);
+            try
+            {
+                return Instance.pInitialize(initialList);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
         private CLError pInitialize(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList = null)
         {
@@ -123,7 +130,15 @@ namespace BadgeNET
         /// <returns>Error if it exists</returns>
         public static CLError IsBadgingInitialized(out bool isInitialized)
         {
-            return Instance.pIsBadgingInitialized(out isInitialized);
+            try
+            {
+                return Instance.pIsBadgingInitialized(out isInitialized);
+            }
+            catch (Exception ex)
+            {
+                isInitialized = (bool)Helpers.DefaultForType(typeof(bool));
+                return ex;
+            }
         }
         private CLError pIsBadgingInitialized(out bool isInitialized)
         {
@@ -159,7 +174,14 @@ namespace BadgeNET
         /// <param name="initialList">list to start with for badged objects, all filepaths in keys must not be null nor empty</param>
         public static CLError InitializeOrReplace(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList)
         {
-            return Instance.pInitializeOrReplace(initialList);
+            try
+            {
+                return Instance.pInitializeOrReplace(initialList);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
         private CLError pInitializeOrReplace(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList)
         {
@@ -220,7 +242,14 @@ namespace BadgeNET
         /// <param name="newType">new badge type (use null to remove badge)</param>
         public static CLError setBadgeType(Nullable<cloudAppIconBadgeType> type, string forFileAtPath)
         {
-            return Instance.pSetBadgeType(forFileAtPath, type == cloudAppIconBadgeType.cloudAppBadgeNone ? null : type);
+            try
+            {
+                return Instance.pSetBadgeType(forFileAtPath, type == cloudAppIconBadgeType.cloudAppBadgeNone ? null : type);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
         private CLError pSetBadgeType(string filePath, Nullable<cloudAppIconBadgeType> newType)
         {
@@ -302,7 +331,15 @@ namespace BadgeNET
         /// <returns></returns>
         public static CLError getBadgeTypeForFileAtPath(string path, out cloudAppIconBadgeType badgeType)
         {
-            return Instance.pFindBadge(path, out badgeType);
+            try
+            {
+                return Instance.pFindBadge(path, out badgeType);
+            }
+            catch (Exception ex)
+            {
+                badgeType = (cloudAppIconBadgeType)Helpers.DefaultForType(typeof(cloudAppIconBadgeType));
+                return ex;
+            }
         }
         private CLError pFindBadge(string filePath, out cloudAppIconBadgeType badgeType)
         {
