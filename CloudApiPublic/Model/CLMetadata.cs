@@ -19,234 +19,410 @@ namespace CloudApiPublic.Model
 {
     public class CLMetadata
     {
-        private string _path;
         public string Path
         {
             get
             {
-                return _path;
-            }
-            set
-            {
-                _path = value;
+                if (this.GetCloudPath == null)
+                {
+                    return null;
+                }
+                return this.GetCloudPath();
             }
         }
-
-        private string _toPath;
         public string ToPath
         {
             get
             {
-                return _toPath;
-            }
-            set
-            {
-                _toPath = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.NewPath == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.NewPath.ToString();
             }
         }
-
-        private string _fromPath;
         public string FromPath
         {
             get
             {
-                return _fromPath;
-            }
-            set
-            {
-                _fromPath = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.OldPath == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.OldPath.ToString();
             }
         }
-
-        private string _targetPath;
         public string TargetPath
         {
-            get { return _targetPath; }
-            set { _targetPath = value; }
+            get
+            {
+                if (this.ChangeReference == null
+                    || this.ChangeReference.LinkTargetPath == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.LinkTargetPath.ToString();
+            }
         }
-        
-
-        private string _revision;
         public string Revision
         {
             get
             {
-                return _revision;
-            }
-            set
-            {
-                _revision = value;
+                if (this.ChangeReference == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.Revision;
             }
         }
-
-        private string _createDate;
         public string CreateDate
         {
             get
             {
-                return _createDate;
-            }
-            set
-            {
-                _createDate = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null
+                    || this.ChangeReference.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks)
+                {
+                    return null;
+                }
+                return this.ChangeReference.Metadata.HashableProperties.CreationTime.ToString("o");  // ISO 8601 format
             }
         }
-
-        private string _modifiedDate;
         public string ModifiedDate
         {
             get
             {
-                return _modifiedDate;
-            }
-            set
-            {
-                _modifiedDate = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null
+                    || this.ChangeReference.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks)
+                {
+                    return null;
+                }
+                return this.ChangeReference.Metadata.HashableProperties.LastTime.ToString("o");  // ISO 8601 format
             }
         }
-
-        private string _hash;
         public string Hash
         {
             get
             {
-                return _hash;
-            }
-            set
-            {
-                _hash = value;
+                if (this.ChangeReference == null)
+                {
+                    return null;
+                }
+                string toReturn;
+                this.ChangeReference.GetMD5LowercaseString(out toReturn);
+                return toReturn;
             }
         }
-
-        private string _mime_type;
         public string Mime_type
         {
             get
             {
-                return _mime_type;
-            }
-            set
-            {
-                _mime_type = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.NewPath == null
+                    || this.ChangeReference.Metadata == null
+                    || this.ChangeReference.Metadata.HashableProperties.IsFolder)
+                {
+                    return null;
+                }
+                int extensionIndex = this.ChangeReference.NewPath.Name.LastIndexOf('.');
+                if (extensionIndex >= 0)
+                {
+                    return this.ChangeReference.NewPath.Name.Substring(extensionIndex + 1);
+                }
+                else
+                {
+                    return "file";
+                }
             }
         }
-
-        private string _sid;
         public string Sid
         {
             get
             {
-                return _sid;
-            }
-            set
-            {
-                _sid = value;
+                if (this.GetLastSyncId == null)
+                {
+                    return null;
+                }
+                return this.GetLastSyncId();
             }
         }
-
-        private string _size;
         public string Size
         {
             get
             {
-                return _size;
-            }
-            set
-            {
-                _size = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null
+                    || this.ChangeReference.Metadata.HashableProperties.Size == null)
+                {
+                    return null;
+                }
+                return ((long)this.ChangeReference.Metadata.HashableProperties.Size).ToString();
             }
         }
-
-        private string _storage_key;
         public string Storage_key
         {
             get
             {
-                return _storage_key;
-            }
-            set
-            {
-                _storage_key = value;
+                if (this.ChangeReference == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.StorageKey;
             }
         }
-
-        private string _lastEventID;
         public string LastEventID
         {
             get
             {
-                return _lastEventID;
-            }
-            set
-            {
-                _lastEventID = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.EventId == 0)// it is zero if it has not been set
+                {
+                    return null;
+                }
+                return this.ChangeReference.EventId.ToString();
             }
         }
-
-        private bool _isDirectory;
         public bool IsDirectory
         {
             get
             {
-                return _isDirectory;
-            }
-            set
-            {
-                _isDirectory = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null)
+                {
+                    throw new NullReferenceException("ChangeReference cannot be null and neither can its Metadata property");
+                }
+                return this.ChangeReference.Metadata.HashableProperties.IsFolder;
             }
         }
-
-        private bool _isDeleted;
         public bool IsDeleted
         {
             get
             {
-                return _isDeleted;
-            }
-            set
-            {
-                _isDeleted = value;
+                if (this.ChangeReference == null)
+                {
+                    throw new NullReferenceException("ChangeReference cannot be null");
+                }
+                return this.ChangeReference.Type == FileChangeType.Deleted;
             }
         }
-
-        private bool _isPending;
         public bool IsPending
         {
             get
             {
-                return _isPending;
+                return this.ChangeReference != null;
             }
-            set
+        }
+        public FileChange ChangeReference { get; set; }
+
+        private Func<string> GetLastSyncId;
+        private Func<string> GetCloudPath;
+
+        public CLMetadata(Func<string> getLastSyncId, Func<string> getCloudPath)
+        {
+            this.GetLastSyncId = getLastSyncId;
+            this.GetCloudPath = getCloudPath;
+        }
+        public CLMetadata(Func<string> getLastSyncId, Func<string> getCloudPath, Dictionary<string, object> json, CLSyncHeader header, SyncDirection direction)
+        {
+            this.GetLastSyncId = getLastSyncId;
+            this.GetCloudPath = getCloudPath;
+
+            string jsonCloudPath;
+            string jsonToPath;
+            string jsonFromPath;
+            string jsonTargetPath;
+            string jsonRevision;
+            string jsonCreationDate;
+            string jsonModifiedDate;
+            bool jsonIsDeleted;
+            bool jsonIsDirectory;
+            string jsonHash;
+            string jsonSize;
+            string jsonStorageKey;
+            string jsonLastEventId;
+
+            if (json.Count > 0)
             {
-                _isPending = value;
+                jsonCloudPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataCloudPath, null);
+                jsonToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataToPath, null);
+                jsonFromPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFromPath, null);
+                jsonTargetPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileTarget, null);
+                jsonRevision = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileRevision, null);
+                jsonCreationDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileCreateDate, null);
+                jsonModifiedDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileModifiedDate, null);
+                jsonIsDeleted = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDeleted, false);
+                jsonIsDirectory = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDirectory, false);
+                jsonHash = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileHash, null);
+                jsonSize = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, null);
+                jsonStorageKey = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataStorageKey, null);
+                jsonLastEventId = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, null);
+            }
+            else
+            {
+                jsonCloudPath = null;
+                jsonToPath = null;
+                jsonFromPath = null;
+                jsonTargetPath = null;
+                jsonRevision = null;
+                jsonCreationDate = null;
+                jsonModifiedDate = null;
+                jsonIsDeleted = false;
+                jsonIsDirectory = false;
+                jsonHash = null;
+                jsonSize = null;
+                jsonStorageKey = null;
+                jsonLastEventId = null;
+            }
+
+            CLMetadataProcessedInternals processedInternals = new CLMetadataProcessedInternals(this.GetCloudPath,
+                jsonCreationDate,
+                jsonModifiedDate,
+                jsonSize,
+                jsonLastEventId,
+                jsonCloudPath,
+                jsonFromPath,
+                jsonToPath);
+
+            FileChange newChange = new FileChange()
+            {
+                Direction = direction,
+                EventId = processedInternals.EventId ?? 0,
+                Metadata = new FileMetadata()
+                {
+                    HashableProperties = new FileMetadataHashableProperties(jsonIsDirectory,
+                        processedInternals.ModifiedDate,
+                        processedInternals.CreationDate,
+                        processedInternals.Size)
+                },
+                NewPath = processedInternals.RebuiltToPath,
+                OldPath = processedInternals.RebuiltFromPath,
+                Revision = jsonRevision,
+                StorageKey = jsonStorageKey,
+                Type = (header == null
+                    || header.Action == null
+                        ? FileChangeType.Modified
+                        : (CLDefinitions.SyncHeaderDeletions.Contains(header.Action)
+                            ? FileChangeType.Deleted
+                            : (CLDefinitions.SyncHeaderCreations.Contains(header.Action)
+                                ? FileChangeType.Created
+                                : (CLDefinitions.SyncHeaderRenames.Contains(header.Action)
+                                    ? FileChangeType.Renamed
+                                    : FileChangeType.Modified))))
+            };
+        }
+
+        public class CLMetadataProcessedInternals
+        {
+            public Nullable<DateTime> CreationDate { get; private set; }
+            public Nullable<DateTime> ModifiedDate { get; private set; }
+            public Nullable<long> Size { get; private set; }
+            public Nullable<int> EventId { get; private set; }
+            public string RebuiltToPath { get; private set; }
+            public string RebuiltFromPath { get; private set; }
+
+            public CLMetadataProcessedInternals(Func<string> GetCloudPath, string CreationDate, string ModifiedDate, string Size, string EventId, string CloudPath, string FromPath, string ToPath)
+            {
+                DateTime convertedCreationDate;
+                if (DateTime.TryParse(CreationDate, null, System.Globalization.DateTimeStyles.RoundtripKind, out convertedCreationDate)) // ISO 8601
+                {
+                    this.CreationDate = convertedCreationDate;
+                }
+                DateTime convertedModifiedDate;
+                if (DateTime.TryParse(ModifiedDate, null, System.Globalization.DateTimeStyles.RoundtripKind, out convertedModifiedDate)) // ISO 8601
+                {
+                    this.ModifiedDate = convertedModifiedDate;
+                }
+                long convertedSize;
+                if (long.TryParse(Size, out convertedSize))
+                {
+                    this.Size = convertedSize;
+                }
+                int convertedEventId;
+                if (int.TryParse(EventId, out convertedEventId))
+                {
+                    this.EventId = convertedEventId;
+                }
+
+                if (!string.IsNullOrWhiteSpace(CloudPath))
+                {
+                    FilePath cloudConvertedPath = CloudPath;
+
+                    if (GetCloudPath != null)
+                    {
+                        string cloudPathCopy = GetCloudPath();
+
+                        if (!string.IsNullOrWhiteSpace(ToPath))
+                        {
+                            FilePath toConvertedPath = ToPath;
+                            FilePath convertedOverlaps = toConvertedPath.FindOverlappingPath(cloudConvertedPath);
+
+                            if (FilePathComparer.Instance.Equals(cloudConvertedPath, convertedOverlaps))
+                            {
+                                if (!string.IsNullOrWhiteSpace(cloudPathCopy))
+                                {
+                                    FilePath rebuiltNewPath;
+                                    rebuiltNewPath = toConvertedPath;
+
+                                    // find the current item pair's key path which matches the old path,
+                                    // but only store its child as oldPathChild
+                                    while (toConvertedPath.Parent != null)
+                                    {
+                                        if (FilePathComparer.Instance.Equals(cloudConvertedPath, toConvertedPath.Parent))
+                                        {
+                                            toConvertedPath.Parent = cloudPathCopy;
+                                            this.RebuiltToPath = rebuiltNewPath.ToString();
+                                            break;
+                                        }
+
+                                        toConvertedPath = toConvertedPath.Parent;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (!string.IsNullOrWhiteSpace(FromPath))
+                        {
+                            FilePath fromConvertedPath = FromPath;
+                            FilePath convertedOverlaps = fromConvertedPath.FindOverlappingPath(cloudConvertedPath);
+
+                            if (FilePathComparer.Instance.Equals(cloudConvertedPath, convertedOverlaps))
+                            {
+                                FilePath rebuiltNewPath;
+                                rebuiltNewPath = fromConvertedPath;
+
+                                // find the current item pair's key path which matches the old path,
+                                // but only store its child as oldPathChild
+                                while (fromConvertedPath.Parent != null)
+                                {
+                                    if (FilePathComparer.Instance.Equals(cloudConvertedPath, fromConvertedPath.Parent))
+                                    {
+                                        fromConvertedPath.Parent = cloudPathCopy;
+                                        this.RebuiltFromPath = rebuiltNewPath.ToString();
+                                        break;
+                                    }
+
+                                    fromConvertedPath = fromConvertedPath.Parent;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        public CLMetadata()
+        public CLMetadata(Func<string> getLastSyncId, Func<string> getCloudPath, FileSystemItem fsItem)
         {
-        }
-
-        public CLMetadata(Dictionary<string, object> json)
-        {
-            if (json.Count() > 0) {
-                this.Path = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataCloudPath, null);
-                this.ToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataToPath, null);
-                this.FromPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFromPath, null);
-                this.TargetPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileTarget, null);
-                this.Revision = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileRevision, null);
-                this.CreateDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileCreateDate, null);
-                this.ModifiedDate = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileModifiedDate, null);
-                this.IsDeleted = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDeleted, false);
-                this.IsDirectory = (bool)json.GetValueOrDefault(CLDefinitions.CLMetadataFileIsDirectory, false);
-                this.Hash = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileHash, null);
-                this.Size = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, null);
-                this.Storage_key = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataStorageKey, null);
-                this.LastEventID = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, null);
+            if (fsItem != null)
+            {
+                this.ChangeReference = fsItem.ChangeReference;
             }
-        }
 
-        public CLMetadata(FileSystemItem fsItem)
-        {
+            this.GetLastSyncId = getLastSyncId;
+            this.GetCloudPath = getCloudPath;
+
             //TODO: Implement this constructor when we have a FileSystemItem from the index service.
             //this.Path = fsItem.Path;
             //this.CreateDate = fsItem.CreateDate;
@@ -261,7 +437,8 @@ namespace CloudApiPublic.Model
         }
 
         //- (id)initWithAttributesFromPath:(NSString *)path
-        public CLMetadata(string path)
+        /* path is not sufficient to build a metadata object */
+        /*public CLMetadata(string path)
         {
             //self = [super init];
             //if (self) {
@@ -321,8 +498,10 @@ namespace CloudApiPublic.Model
             {
                 CLTrace.Instance.writeToLog(1, "CLMetadata: CLMetadata: ERROR: {0}, Code: {1}.", err.errorDescription, err.errorCode);
             }
-        }
+        }*/
 
+        /* MD5 should be retrieved under sync-processing lock */
+        /*
         public static string GetMD5HashFromFile(string filename)
         {
             FileStream file = new FileStream(filename, FileMode.Open, FileAccess.ReadWrite); 
@@ -338,8 +517,7 @@ namespace CloudApiPublic.Model
                 }
                 return sb.ToString();
             }
-        } 
-
+        }*/
 
         //- (NSString *)description {
         public string description()
@@ -424,20 +602,24 @@ namespace CloudApiPublic.Model
         }
 
 
-        //- (BOOL)isLink
-        public bool IsLink()
+        ////- (BOOL)isLink
+        //public bool IsLink()
+        //{
+        //    //if (self.linkTargetPath != nil) {  // bug?
+        //    if (TargetPath != null)
+        //    {
+        //        // return YES;
+        //        return true;
+        //    }
+        //    //return NO;
+        //    return false;
+        //}
+        public bool IsLink
         {
-            //if (self.linkTargetPath != nil) {  // bug?
-            if (TargetPath != null)
+            get
             {
-                // return YES;
-                return true;
+                return TargetPath != null;
             }
-            //return NO;
-            return false;
         }
-
-
-
     }
 }

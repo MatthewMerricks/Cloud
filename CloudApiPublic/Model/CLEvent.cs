@@ -14,69 +14,45 @@ namespace CloudApiPublic.Model
 {
     public class CLEvent
     {
-        private CLMetadata _metadata;
         public CLMetadata Metadata
         {
             get
             {
+                if (_metadata == null)
+                {
+                    if (this.GetCloudPath != null
+                        && this.GetLastSyncId != null)
+                    {
+                        _metadata = new CLMetadata(this.GetLastSyncId, this.GetCloudPath);
+                        _metadata.ChangeReference = this.ChangeReference;
+                    }
+                }
                 return _metadata;
             }
-            set
-            {
-                _metadata = value;
-            }
         }
-
-        private CLSyncHeader _syncHeader;
-        public CLSyncHeader SyncHeader
+        private CLMetadata _metadata = null;
+        public CLSyncHeader SyncHeader { get; set; }
+        public string Action { get; set; }
+        public bool IsMDSEvent { get; set; }
+        public int RetryAttempts { get; set; }
+        public FileChange ChangeReference
         {
             get
             {
-                return _syncHeader;
+                return _changeReference;
             }
             set
             {
-                _syncHeader = value;
+                if (_metadata != null)
+                {
+                    _metadata.ChangeReference = value;
+                }
+                this.ChangeReference = value;
             }
         }
-
-        private string _action;
-        public string Action
-        {
-            get
-            {
-                return _action;
-            }
-            set
-            {
-                _action = value;
-            }
-        }
-
-        private bool _isMDSEvent;
-        public bool IsMDSEvent
-        {
-            get
-            {
-                return _isMDSEvent;
-            }
-            set
-            {
-                _isMDSEvent = value;
-            }
-        }
-
-        private int _retryAttempts;
-        public int RetryAttempts
-        {
-            get { return _retryAttempts; }
-            set { _retryAttempts = value; }
-        }
-        
-
-        public CLEvent()
-        {
-        }
+        private FileChange _changeReference = null;
+        private Func<string> GetCloudPath = null;
+        private Func<string> GetLastSyncId = null;
 
         public void LogEvent()
         {

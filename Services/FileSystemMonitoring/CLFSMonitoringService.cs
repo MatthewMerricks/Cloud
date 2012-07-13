@@ -15,6 +15,7 @@ using CloudApiPrivate.Model.Settings;
 using FileMonitor;
 using win_client.Services.Sync;
 using SQLIndexer;
+using CloudApiPublic.Static;
 
 
 namespace win_client.Services.FileSystemMonitoring
@@ -24,8 +25,8 @@ namespace win_client.Services.FileSystemMonitoring
         static readonly CLFSMonitoringService _instance = new CLFSMonitoringService();
         private static Boolean _isLoaded = false;
         private static CLTrace _trace = null;
-        private MonitorAgent _agent = null;
-        private IndexingAgent _indexer = null;
+        public MonitorAgent MonitorAgent { get; private set; }
+        public IndexingAgent IndexingAgent { get; private set; }
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -59,24 +60,30 @@ namespace win_client.Services.FileSystemMonitoring
         /// </summary>
         public void BeginFileSystemMonitoring()
         {
-            CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer);
+            IndexingAgent indexerToSet;
+            CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out indexerToSet);
+            if (indexerToSet != null)
+                IndexingAgent = indexerToSet;
 
             // Todo: handle index creation error
 
+            MonitorAgent monitorToSet;
             CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath,
-                out _agent,
+                out monitorToSet,
                 CLSyncService.Instance.SyncFromFileSystemMonitorWithGroupedUserEventsCallback,
-                _indexer.MergeEventIntoDatabase);
+                IndexingAgent.MergeEventIntoDatabase);
+            if (monitorToSet != null)
+                this.MonitorAgent = monitorToSet;
 
             // Todo: handle file monitor creation error
 
             MonitorStatus returnStatus;
-            CLError fileMonitorStartError = _agent.Start(out returnStatus);
+            CLError fileMonitorStartError = MonitorAgent.Start(out returnStatus);
 
             // Todo: handle file monitor start error
 
-            CLError indexerStartError = _indexer.StartInitialIndexing(_agent.BeginProcessing,
-                _agent.GetCurrentPath);
+            CLError indexerStartError = IndexingAgent.StartInitialIndexing(MonitorAgent.BeginProcessing,
+                MonitorAgent.GetCurrentPath);
 
             // Todo: handle indexer start error
 
@@ -103,10 +110,10 @@ namespace win_client.Services.FileSystemMonitoring
         /// </summary>
         public void EndFileSystemMonitoring()
         {
-            if (_agent != null)
+            if (MonitorAgent != null)
             {
-                _agent.Dispose();
-                _agent = null;
+                MonitorAgent.Dispose();
+                MonitorAgent = null;
             }
         }
 

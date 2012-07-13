@@ -842,6 +842,30 @@ namespace SQLIndexer
         private Nullable<global::System.Int64> _Size;
         partial void OnSizeChanging(Nullable<global::System.Int64> value);
         partial void OnSizeChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.Int32> PathChecksum
+        {
+            get
+            {
+                return _PathChecksum;
+            }
+            set
+            {
+                OnPathChecksumChanging(value);
+                ReportPropertyChanging("PathChecksum");
+                _PathChecksum = StructuralObject.SetValidValue(value, "PathChecksum");
+                ReportPropertyChanged("PathChecksum");
+                OnPathChecksumChanged();
+            }
+        }
+        private Nullable<global::System.Int32> _PathChecksum;
+        partial void OnPathChecksumChanging(Nullable<global::System.Int32> value);
+        partial void OnPathChecksumChanged();
 
         #endregion
 

@@ -716,7 +716,18 @@ namespace win_client.Services.Sync
             if (evt.Action.Contains(CLDefinitions.CLEventTypeFolderRange))
             {
                 // event.metadata.isDirectory = YES;
-                evt.Metadata.IsDirectory = true;
+                /* Replaced with the lines below since TargetPath is readonly: */ //evt.Metadata.IsDirectory = true;
+                if (evt.ChangeReference != null)
+                {
+                    if (evt.ChangeReference.Metadata == null)
+                    {
+                        evt.ChangeReference.Metadata = new FileMetadata();
+                    }
+                    evt.ChangeReference.Metadata.HashableProperties = new FileMetadataHashableProperties(true,// this first input parameter is the only one changed
+                        evt.ChangeReference.Metadata.HashableProperties.LastTime,// copied
+                        evt.ChangeReference.Metadata.HashableProperties.CreationTime,// copied
+                        evt.ChangeReference.Metadata.HashableProperties.Size);// copied
+                }
             }
 
             // for new files we get the current file metadata from the file system.
@@ -732,7 +743,6 @@ namespace win_client.Services.Sync
                 // if ([fileSystemPath isAliasFinderInfoFlag] == YES) {
                 if (CLFileShortcuts.FileIsShortcut(fileSystemPath))
                 {
-             
                     // Get the target path
                     // NSString *targetPath = [fileSystemPath stringByIterativelyResolvingSymlinkOrAlias];
                     string targetPath = CLFileShortcuts.GetShortcutTargetFile(fileSystemPath);
@@ -752,7 +762,11 @@ namespace win_client.Services.Sync
                         }
 
                         // event.metadata.targetPath = targetPath;
-                        evt.Metadata.TargetPath = targetPath;
+                        /* Replaced with the lines below since TargetPath is readonly: */ //evt.Metadata.TargetPath = targetPath;
+                        if (evt.ChangeReference != null)
+                        {
+                            evt.ChangeReference.LinkTargetPath = targetPath;
+                        }
 
                         // This link is useless, if path target matches the link path, then we don't have a valid link resolutions. (see NSString+CloudUtilities.m)
                         // if ([targetPath isEqualToString:fileSystemPath]) {
@@ -791,17 +805,74 @@ namespace win_client.Services.Sync
                     // while ( [event.metadata.createDate rangeOfString:@"190"].location != NSNotFound && do_try < 3000); // 1 second. TODO: This hack sucks!
 
                     string fileSystemPath2 = Settings.Instance.CloudFolderPath + evt.Metadata.Path;
-                    CLMetadata fileMetadata = new CLMetadata(fileSystemPath2);
-                    metadata = CLMetadata.DictionaryFromMetadataItem(fileMetadata);
-                    evt.Metadata.CreateDate = (string) metadata[CLDefinitions.CLMetadataFileCreateDate];
-                    evt.Metadata.ModifiedDate = (string) metadata[CLDefinitions.CLMetadataFileModifiedDate];
-                    if (evt.Action.Contains(CLDefinitions.CLEventTypeFileRange))         // these are only relevant for files
+                    CLMetadata fileMetadata =
+                        new CLMetadata(() =>
+                            {
+                                lock (CLFSMonitoringService.Instance.IndexingAgent)
+                                {
+                                    return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                                }
+                            },
+                            CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath);
+                    if (evt.ChangeReference != null)
                     {
-                        evt.Metadata.Revision = (string)metadata[CLDefinitions.CLMetadataFileRevision];
-                        evt.Metadata.Hash = (string)metadata[CLDefinitions.CLMetadataFileHash];         // The original code did not do this
-                        evt.Metadata.Size = (string)metadata[CLDefinitions.CLMetadataFileSize];
-                        evt.Metadata.IsDirectory = false;
-                        //TODO: No custom file attributes in Windows?
+                        fileMetadata.ChangeReference = evt.ChangeReference;
+
+                        metadata = CLMetadata.DictionaryFromMetadataItem(fileMetadata);
+                        //CLMetadata.CLMetadataProcessedInternals processedInternals = new CLMetadata.CLMetadataProcessedInternals(CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath,
+                        //    (string) metadata[CLDefinitions.CLMetadataFileCreateDate],
+                        //    (string) metadata[CLDefinitions.CLMetadataFileModifiedDate],
+                        string metadataCreationDate = (string)metadata[CLDefinitions.CLMetadataFileCreateDate];
+                        string metadataModifiedDate = (string)metadata[CLDefinitions.CLMetadataFileModifiedDate];
+                        string metadataRevision;
+                        string metadataHash;
+                        string metadataSize;
+                        bool metadataIsDirectory;
+                        if (evt.Action.Contains(CLDefinitions.CLEventTypeFileRange))         // these are only relevant for files
+                        {
+                            metadataRevision = (string)metadata[CLDefinitions.CLMetadataFileRevision];
+                            metadataHash = (string)metadata[CLDefinitions.CLMetadataFileHash];         // The original code did not do this
+                            metadataSize = (string)metadata[CLDefinitions.CLMetadataFileSize];
+                            metadataIsDirectory = false;
+                            //TODO: No custom file attributes in Windows?
+                        }
+                        else
+                        {
+                            metadataRevision = evt.ChangeReference.Revision;
+                            evt.ChangeReference.GetMD5LowercaseString(out metadataHash);
+                            metadataSize = (evt.ChangeReference.Metadata == null
+                                || evt.ChangeReference.Metadata.HashableProperties.Size == null
+                                    ? null
+                                    : evt.ChangeReference.Metadata.HashableProperties.Size.ToString());
+                            if (evt.ChangeReference.Metadata == null)
+                            {
+                                metadataIsDirectory = false;
+                            }
+                            else
+                            {
+                                metadataIsDirectory = evt.ChangeReference.Metadata.HashableProperties.IsFolder;
+                            }
+                        }
+
+                        CLMetadata.CLMetadataProcessedInternals processedInternals = new CLMetadata.CLMetadataProcessedInternals(null,// paths are not being updated
+                            metadataCreationDate,
+                            metadataModifiedDate,
+                            metadataSize,
+                            null,// event id is not being updated
+                            null,// paths are not being updated
+                            null,// paths are not being updated
+                            null);// paths are not being updated
+
+                        fileMetadata.ChangeReference.Revision = metadataRevision;
+                        if (fileMetadata.ChangeReference.Metadata == null)
+                        {
+                            fileMetadata.ChangeReference.Metadata = new FileMetadata();
+                        }
+                        fileMetadata.ChangeReference.Metadata.HashableProperties = new FileMetadataHashableProperties(metadataIsDirectory,
+                            processedInternals.ModifiedDate,
+                            processedInternals.CreationDate,
+                            processedInternals.Size);
+
                     }
                 }
             }
@@ -827,7 +898,11 @@ namespace win_client.Services.Sync
                         {
                             // event.metadata.revision = indexedMetadata.revision;
                             // event.action = CLEventTypeModifyFile;
-                            evt.Metadata.Revision = indexedMetadata.Revision;
+                            /* Replaced with the following lines since Revision is read-only: */ //evt.Metadata.Revision = indexedMetadata.Revision;
+                            if (evt.ChangeReference != null)
+                            {
+                                evt.ChangeReference.Revision = indexedMetadata.Revision;
+                            }
                             evt.Action = CLDefinitions.CLEventTypeModifyFile;
                         }
                     }
@@ -835,7 +910,11 @@ namespace win_client.Services.Sync
                     else if (evt.Action.Equals(CLDefinitions.CLEventTypeModifyFile, StringComparison.InvariantCulture))
                     {
                         // event.metadata.revision = indexedMetadata.revision;
-                        evt.Metadata.Revision = indexedMetadata.Revision;
+                        /* Replaced with the following lines since Revision is read-only: */ //evt.Metadata.Revision = indexedMetadata.Revision;
+                        if (evt.ChangeReference != null)
+                        {
+                            evt.ChangeReference.Revision = indexedMetadata.Revision;
+                        }
                     }
                     else  // we want it all for all other cases.
                     {
@@ -844,11 +923,48 @@ namespace win_client.Services.Sync
                         // event.metadata.createDate = indexedMetadata.createDate;
                         // event.metadata.modifiedDate = indexedMetadata.modifiedDate;
                         // event.metadata.size = indexedMetadata.size;
-                        evt.Metadata.Revision = indexedMetadata.Revision;
-                        evt.Metadata.Hash = indexedMetadata.Hash;
-                        evt.Metadata.CreateDate = indexedMetadata.CreateDate;
-                        evt.Metadata.ModifiedDate = indexedMetadata.ModifiedDate;
-                        evt.Metadata.Size = indexedMetadata.Size;
+                        /* Replaced with the following lines since the next five properties are read-only */
+                        /*
+                         * evt.Metadata.Revision = indexedMetadata.Revision;
+                         * evt.Metadata.Hash = indexedMetadata.Hash;
+                         * evt.Metadata.CreateDate = indexedMetadata.CreateDate;
+                         * evt.Metadata.ModifiedDate = indexedMetadata.ModifiedDate;
+                         * evt.Metadata.Size = indexedMetadata.Size;
+                         */
+                        if (evt.ChangeReference != null)
+                        {
+                            evt.ChangeReference.Revision = indexedMetadata.Revision;
+
+                            CLMetadata.CLMetadataProcessedInternals processedInternals = new CLMetadata.CLMetadataProcessedInternals(null,// paths are not being updated
+                                indexedMetadata.CreateDate,
+                                indexedMetadata.ModifiedDate,
+                                indexedMetadata.Size,
+                                null,// event id is not being updated
+                                null,// paths are not being updated
+                                null,// paths are not being updated
+                                null);// paths are not being updated
+
+                            if (evt.ChangeReference.Metadata == null)
+                            {
+                                evt.ChangeReference.Metadata = new FileMetadata();
+                            }
+                            evt.ChangeReference.Metadata.HashableProperties = new FileMetadataHashableProperties(evt.ChangeReference.Metadata.HashableProperties.IsFolder,// not changed
+                                processedInternals.ModifiedDate,
+                                processedInternals.CreationDate,
+                                processedInternals.Size);
+                            string indexedMetadataHashed = indexedMetadata.Hash;
+                            if (string.IsNullOrWhiteSpace(indexedMetadataHashed))
+                            {
+                                evt.ChangeReference.SetMD5(null);
+                            }
+                            else
+                            {
+                                evt.ChangeReference.SetMD5(Enumerable.Range(0, indexedMetadataHashed.Length)
+                                    .Where(currentHex => currentHex % 2 == 0)
+                                    .Select(currentHex => Convert.ToByte(indexedMetadataHashed.Substring(currentHex, 2), 16))
+                                    .ToArray());
+                            }
+                        }
                     }
 
                     // if (indexedMetadata.targetPath != nil) { // we have a link object, convert
@@ -860,6 +976,14 @@ namespace win_client.Services.Sync
                         evt.Action = evt.Action.StringByReplacingCharactersInRange(evt.Action.RangeOfString(CLDefinitions.CLEventTypeFileRange), withString: CLDefinitions.CLEventTypeLinkRange);
                     }
                 }
+            }
+
+            // I didn't see where this method was being called,
+            // so I update the database metadata in case the calling method does not do it:
+            // -David
+            if (evt.ChangeReference != null)
+            {
+                CLFSMonitoringService.Instance.IndexingAgent.MergeEventIntoDatabase(evt.ChangeReference, null);
             }
 
             // return event;
@@ -2212,7 +2336,7 @@ namespace win_client.Services.Sync
             if (status == null)
             {
                 // success = [[CLFSDispatcher defaultDispatcher] moveItemAtPath:fromPath to:toPath error:nil];
-                CLError error = null;
+                CLError error;
                 success = CLFSDispatcher.Instance.MoveItemAtPath_to_error(fromPath, toPath, out error);
                 if (!success)
                 {
@@ -3315,6 +3439,10 @@ namespace win_client.Services.Sync
                     Settings.Instance.RecordEventId(eid);
                 }
             }
+
+            // Added call to indexer to mark completed event in database
+            // -David
+            CLFSMonitoringService.Instance.IndexingAgent.MarkEventAsCompletedOnPreviousSync((int)eid);
         }
 
         //- (void)performUpdateForSyncEvent:(CLEvent *)event success:(BOOL)success
@@ -3477,7 +3605,6 @@ namespace win_client.Services.Sync
             //if (success) {
             if (success)
             {
-
                 // [self updateIndexForSyncEvent:event];
                 UpdateIndexForSyncEvent(evt);
 

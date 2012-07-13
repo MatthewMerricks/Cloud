@@ -26,6 +26,7 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using CloudApiPrivate.Common;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 using FileMonitor;
 using SQLIndexer;
 

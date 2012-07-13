@@ -40,15 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DelayProcessable.cs" />
-    <Compile Include="Enums.cs" />
-    <Compile Include="FileChange.cs" />
-    <Compile Include="FileMetadata.cs" />
-    <Compile Include="FilePath\FilePath.cs" />
-    <Compile Include="FilePath\FilePathComparer.cs" />
-    <Compile Include="FilePath\FilePathDictionary.cs" />
-    <Compile Include="FilePath\FlattenedFilePathDictionaryKeys.cs" />
-    <Compile Include="FilePath\FlattenedFilePathDictionaryPairs.cs" />
-    <Compile Include="FilePath\FlattenedFilePathDictionaryValues.cs" />
     <Compile Include="MonitorAgent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

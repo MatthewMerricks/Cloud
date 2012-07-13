@@ -10,7 +10,8 @@
 #include "stdafx.h"
 #include "ContextMenuExt.h"
 #include <strsafe.h>
-
+//// for debugging only:
+//#include <fstream>
 
 // CContextMenuExt
 
@@ -34,6 +35,11 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 	STGMEDIUM stg = { TYMED_HGLOBAL };
 	HDROP hDrop;
 
+	/*std::fstream logStream;
+	logStream.open("C:\\Users\\Public\\Documents\\logFile.txt", std::fstream::app | std::fstream::ate);
+	logStream<<"EnteredInitialize"<<std::endl;
+	logStream.close();*/
+
 	// Look for CF_HDROP data in the data object. If there
 	// is no such data, return an error back to Explorer.
 	if (FAILED(pDataObject->GetData(&fmt, &stg)))
@@ -45,44 +51,47 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 	// Make sure it worked.
 	if (NULL == hDrop)
 		return E_INVALIDARG;
+	
+	DROPFILES *hDropFiles = (DROPFILES *)hDrop;
+	
+	/*std::fstream logStream2;
+	logStream2.open("C:\\Users\\Public\\Documents\\logFile.txt", std::fstream::app | std::fstream::ate);
+	logStream2<<"hDropFiles->pFiles"<<hDropFiles->pFiles<<std::endl;
+	logStream2.close();*/
+	
+	if (!m_szFile.empty())
+		m_szFile.clear();
 
+	int hDropStartIndex = hDropFiles->pFiles;
+	wchar_t *hDropCurrentChar = (wchar_t *)malloc((MAX_PATH + 1) * sizeof(wchar_t));
+
+	while (true)
+	{
+		StrCpyW(hDropCurrentChar, (wchar_t *)hDropFiles + (hDropStartIndex / sizeof(wchar_t)));
+		std::wstring hDropCurrentString(hDropCurrentChar);
+
+		if (hDropCurrentString.length() > 0)
+		{
+			hDropStartIndex += (hDropCurrentString.length() + 1) * sizeof(wchar_t);
+			m_szFile.push_back(hDropCurrentString);
+		}
+		else
+		{
+			break;
+		}
+	}
+	
 	// Sanity check – make sure there is at least one filename.
-	UINT uNumFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
 	HRESULT hr = S_OK;
-
-	if (0 == uNumFiles)
+	if (hDropStartIndex == hDropFiles->pFiles)
 	{
 		GlobalUnlock(stg.hGlobal);
 		ReleaseStgMedium(&stg);
 		return E_INVALIDARG;
 	}
 
-	if (!m_szFile.empty())
-		m_szFile.clear();
-	bool foundError = false;
-
-	// loop through all the files, grab their file names, ensure they're valid, and store them
-	for (int fileIndex = 0; fileIndex < uNumFiles; fileIndex++)
-	{
-		if (!foundError)
-		{
-			TCHAR currentFileName[MAX_PATH];
-
-			if (0 == DragQueryFile(hDrop, fileIndex, currentFileName, MAX_PATH))
-			{
-				foundError = true;
-				hr = E_INVALIDARG;
-				if (!m_szFile.empty())
-					m_szFile.clear();
-			}
-			else
-			{
-				m_szFile.push_back(std::wstring(currentFileName));
-			}
-		}
-	}
-
 	// free locally allocated memory
+	free(hDropCurrentChar);
 	GlobalUnlock(stg.hGlobal);
 	ReleaseStgMedium(&stg);
 
@@ -100,6 +109,11 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 											   UINT uFlags)
 {
 	HRESULT hr;
+
+	/*std::fstream logStream;
+	logStream.open("C:\\Users\\Public\\Documents\\logFile.txt", std::fstream::app | std::fstream::ate);
+	logStream<<"Entered QueryContextMenu"<<std::endl;
+	logStream.close();*/
 
 	if(!(CMF_DEFAULTONLY & uFlags))
 	{
@@ -153,6 +167,11 @@ STDMETHODIMP CContextMenuExt::GetCommandString(
 {
 	HRESULT hr = E_INVALIDARG;
 
+	/*std::fstream logStream;
+	logStream.open("C:\\Users\\Public\\Documents\\logFile.txt", std::fstream::app | std::fstream::ate);
+	logStream<<"Entered GetCommandString"<<std::endl;
+	logStream.close();*/
+
 	if(idCommand != IDM_DISPLAY)
 	{
 		return hr;
@@ -204,6 +223,11 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 
 	BOOL fEx = FALSE;
 	BOOL fUnicode = FALSE;
+	
+	/*std::fstream logStream;
+	logStream.open("C:\\Users\\Public\\Documents\\logFile.txt", std::fstream::app | std::fstream::ate);
+	logStream<<"Entered InvokeCommand"<<std::endl;
+	logStream.close();*/
 
 	if(lpcmi->cbSize == sizeof(CMINVOKECOMMANDINFOEX))
 	{
@@ -237,6 +261,189 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 
 	else
 	{
+		wchar_t const* pipeGetCloudDirectory = L"\\\\.\\Pipe\\BadgeCOMGetCloudPath";
+
+		DWORD BytesRead;
+		BYTE pathPointerBytes[8];
+		
+		bool cloudProcessStarted = false;
+		int cloudStartTries = 0;
+
+		HANDLE pathHandle;
+		bool pipeConnectionFailed = false;
+
+		// Try to open the named pipe identified by the pipe name.
+		while (!pipeConnectionFailed)
+		{
+			pathHandle = CreateFile(
+				pipeGetCloudDirectory, // Pipe name
+				GENERIC_READ, // Write access
+				0, // No sharing
+				NULL, // Default security attributes
+				OPEN_EXISTING, // Opens existing pipe
+				0, // Default attributes
+				NULL // No template file
+				);
+			
+			// If the pipe handle is opened successfully then break out to continue
+			if (pathHandle != INVALID_HANDLE_VALUE)
+			{
+				break;
+			}
+			// Pipe not successful, find out if it should try again
+			else
+			{
+				// store not successful reason
+				DWORD dwError = GetLastError();
+
+				// This is the normal path when the application is not running (dwError will equal ERROR_FILE_NOT_FOUND)
+				// Start the cloud process on the first attempt or increment a retry counter up to a certain point;
+				// after 10 seconds of retrying, display an error message and stop trying
+				if (ERROR_FILE_NOT_FOUND == dwError)
+				{
+					if (!cloudProcessStarted)
+					{
+
+						TCHAR programFilesDirectory[MAX_PATH];
+						SHGetSpecialFolderPathW(0, programFilesDirectory, CSIDL_PROGRAM_FILES, FALSE);
+						std::wstring cloudExeLocation(L"\"");
+						cloudExeLocation.append(programFilesDirectory);
+						cloudExeLocation.append(L"\\Cloud\\Cloud.exe\"");
+						
+						HANDLE cloudProcessHandle;
+						CreateProcessAsUserW(cloudProcessHandle,
+							NULL,
+
+							//_tcsdup(cloudExeLocation.c_str()),
+
+							_tcsdup(TEXT("\"C:\\Windows\\Notepad.exe\"")),
+
+							NULL,
+							NULL,
+							NULL,
+							NULL,
+							NULL,
+							NULL,
+							NULL,
+							NULL);
+
+						_wsystem(cloudExeLocation.c_str());
+
+
+						//_wsystem(L"C:\\Windows\\Notepad.exe");
+						cloudProcessStarted = true;
+					}
+					else if (cloudStartTries > 99)
+					{
+						pipeConnectionFailed = true;
+
+						MessageBox(lpcmi->hwnd,
+							L"Cloud did not respond after ten seconds, operation cancelled",
+							L"Cloud",
+							MB_OK|MB_ICONINFORMATION);
+					}
+					else
+					{
+						cloudStartTries++;
+						Sleep(100);
+					}
+				}
+				// pipe is busy
+				else if (ERROR_PIPE_BUSY == dwError)
+				{
+					// if waiting for a pipe does not complete in 2 seconds, exit  (by setting pipeConnectionFailed to true)
+					if (!WaitNamedPipe(pipeGetCloudDirectory, 2000))
+					{
+						dwError = GetLastError();
+
+						std::wstring errorMessage(L"Cloud is busy, operation cancelled: ");
+						wchar_t *dwErrorChar = new wchar_t[10];
+						wsprintf(dwErrorChar, L"%d", dwError);
+						errorMessage.append(dwErrorChar);
+						free(dwErrorChar);
+						
+						MessageBox(lpcmi->hwnd,
+							errorMessage.c_str(),
+							L"Cloud",
+							MB_OK|MB_ICONINFORMATION);
+
+						pipeConnectionFailed = true;
+					}
+				}
+				// unknown error
+				else
+				{
+					std::wstring errorMessage(L"An error occurred while communicating with Cloud, operation cancelled: ");
+					wchar_t *dwErrorChar = new wchar_t[10];
+					wsprintf(dwErrorChar, L"%d", dwError);
+					errorMessage.append(dwErrorChar);
+					free(dwErrorChar);
+
+					MessageBox(lpcmi->hwnd,
+						errorMessage.c_str(),
+						L"Cloud",
+						MB_OK|MB_ICONINFORMATION);
+
+					pipeConnectionFailed = true;
+				}
+			}
+		}
+
+		if (!pipeConnectionFailed)
+		{
+			// get the size of the cloud path
+			if (ReadFile(pathHandle,
+				pathPointerBytes,
+				8,
+				&BytesRead,
+				NULL))
+			{
+				if (BytesRead != 8)
+				{
+					std::wstring errorMessage(L"Cloud returned invalid data, operation cancelled: length=");
+					wchar_t *bytesReadChar = new wchar_t[10];
+					wsprintf(bytesReadChar, L"%d", BytesRead);
+					errorMessage.append(bytesReadChar);
+					free(bytesReadChar);
+					errorMessage.append(L" data=");
+					wchar_t *pathBytesChar = new wchar_t[5];
+					for (int hexIndex = 0; hexIndex < BytesRead; hexIndex++)
+					{
+						wsprintf(pathBytesChar, L"%02x ", (unsigned char)pathPointerBytes[hexIndex]);
+						errorMessage.append(pathBytesChar);
+					}
+					free(pathBytesChar);
+						
+					MessageBox(lpcmi->hwnd,
+						errorMessage.c_str(),
+						L"Cloud",
+						MB_OK|MB_ICONINFORMATION);
+				}
+				else
+				{
+					wchar_t *retrievedPath = (wchar_t *)&BytesRead;
+					
+					MessageBox(lpcmi->hwnd,
+						retrievedPath,
+						L"Cloud",
+						MB_OK|MB_ICONINFORMATION);
+				}
+			}
+			else
+			{
+				std::wstring errorMessage(L"Cloud communication failed to return data, operation cancelled: ");
+				wchar_t *dwErrorChar = new wchar_t[10];
+				wsprintf(dwErrorChar, L"%d", GetLastError());
+				errorMessage.append(dwErrorChar);
+				free(dwErrorChar);
+
+				MessageBox(lpcmi->hwnd,
+					errorMessage.c_str(),
+					L"Cloud",
+					MB_OK|MB_ICONINFORMATION);
+			}
+		}
+
 		// this part pulls the strings of file paths out
 		// from the initialization array and appends them for a message box
 

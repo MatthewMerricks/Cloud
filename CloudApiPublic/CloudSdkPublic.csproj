@@ -66,6 +66,16 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
+    <Compile Include="Model\CombinedCollection.cs" />
+    <Compile Include="Model\FileChange.cs" />
+    <Compile Include="Model\FileMetadata.cs" />
+    <Compile Include="FilePath\FilePath.cs" />
+    <Compile Include="FilePath\FilePathComparer.cs" />
+    <Compile Include="FilePath\FilePathDictionary.cs" />
+    <Compile Include="FilePath\FlattenedFilePathDictionaryKeys.cs" />
+    <Compile Include="FilePath\FlattenedFilePathDictionaryPairs.cs" />
+    <Compile Include="FilePath\FlattenedFilePathDictionaryValues.cs" />
     <Compile Include="Model\CLAccount.cs" />
     <Compile Include="Model\CLDevice.cs" />
     <Compile Include="Model\CLJsonResultWithError.cs" />
@@ -89,6 +99,7 @@
       <DependentUpon>Resources.fr.resx</DependentUpon>
     </Compile>
     <Compile Include="Static\CLPublicExtensionMethods.cs" />
+    <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\Helpers.cs" />
     <Compile Include="Support\CLSptHttpConnectionOperation.cs" />
     <Compile Include="Support\CLSptNSOperation.cs" />
@@ -101,6 +112,7 @@
     <Compile Include="Support\CLSptOsVersion.cs" />
     <Compile Include="Support\CLSptTrace.cs" />
     <Compile Include="Support\CLSptGrandCentralDispatch.cs" />
+    <Compile Include="Support\DelayProcessable.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.resx">

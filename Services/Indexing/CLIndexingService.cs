@@ -13,6 +13,7 @@ using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Static;
 using System.IO;
+using win_client.Services.FileSystemMonitoring;
 
 namespace win_client.Services.Indexing
 {
@@ -57,7 +58,7 @@ namespace win_client.Services.Indexing
                     {
                         _instance = new CLIndexingService();
 
-                        // Initialize at first Instance access here
+                        // Initialization is done when SQL Indexer is started, see this constructor
                     }
                 }
                 return _instance;
@@ -78,7 +79,7 @@ namespace win_client.Services.Indexing
         /// </summary>
         public void StartIndexingService()
         {
-            //TODO: Start the SQLIndexer
+            // SQL Indexer is started by CLFSMonitoringService BeginFileSystemMonitoring by [SQLIndexer instance].StartInitialIndexing
         }
 
         //+ (void)saveDataInContext:(NSManagedObjectContext *)context
@@ -222,7 +223,15 @@ namespace win_client.Services.Indexing
             CLMetadata item = null;
             if (fileSystemItem != null)
             {
-                item = new CLMetadata(fileSystemItem);
+                item = new CLMetadata(() =>
+                    {
+                        lock (CLFSMonitoringService.Instance.IndexingAgent)
+                        {
+                            return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                        }
+                    },
+                    CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath,
+                    fileSystemItem);
             }
 
             // return item;
@@ -275,24 +284,14 @@ namespace win_client.Services.Indexing
 #endif  // TRASH            
             //&&&&
 
-            //TODO: Implement this as a call to SQLIndexer.
-            // __block FileSystemItem *fileSystemItem;
-            // __block NSManagedObjectContext *managedObjectContext = [[CLCoreDataController defaultController] managedObjectContext];
-
-            // CLPathType pathType = CLPathStaticPath;
-            // if (event.metadata.fromPath != nil){
-            //     pathType = CLPathFromPath;
-            // }
-
-            // [managedObjectContext performBlockAndWait:^{
-            //     NSManagedObjectID *objectID = [self objectIDforEvent:event typeOfPath:pathType];
-
-            //     if (objectID != nil) {
-            //         fileSystemItem = (FileSystemItem *)[managedObjectContext objectWithID:objectID];
-            //     }
-            // }];
-            // return fileSystemItem;
-            return null;
+            if (evt == null)
+            {
+                return null;
+            }
+            return new FileSystemItem()
+            {
+                ChangeReference = evt.ChangeReference
+            };
         }
 
         //+ (void)markItemAtPath:(NSString *)path asPending:(BOOL)pending
@@ -369,6 +368,12 @@ namespace win_client.Services.Indexing
 
             // FileSystemItem *itemToChange = [self fileSystemItemForEvent:event];
             // itemToChange.isPending = [NSNumber numberWithBool:pending];
+            if (!pending
+                && evt.ChangeReference != null
+                && evt.ChangeReference.EventId > 0)
+            {
+                CLFSMonitoringService.Instance.IndexingAgent.MarkEventAsCompletedOnPreviousSync(evt.ChangeReference.EventId);
+            }
         }
 
         //+ (FileSystemItem *)folderItemForCloudPath:(NSString *)path
@@ -1076,7 +1081,12 @@ namespace win_client.Services.Indexing
             //         NSLog(@"%s - Could not find item in Index!", __FUNCTION__);
             //     }
             // }];
-
+            if (!pending
+                && evt.ChangeReference != null
+                && evt.ChangeReference.EventId > 0)
+            {
+                CLFSMonitoringService.Instance.IndexingAgent.MarkEventAsCompletedOnPreviousSync(evt.ChangeReference.EventId);
+            }
         }
 
         //+ (void)removeMetadataItemWithCloudPath:(NSString *)path
@@ -1208,6 +1218,11 @@ namespace win_client.Services.Indexing
             // if (itemToDelete) {
             //      [defaultContext deleteObject:itemToDelete];
             // }
+            if (evt.ChangeReference != null
+                && evt.ChangeReference.EventId > 0)
+            {
+                CLFSMonitoringService.Instance.IndexingAgent.MarkEventAsCompletedOnPreviousSync(evt.ChangeReference.EventId);
+            }
         }
 
         //+ (void)moveItemAtPath:(NSString *)fromPath toPath:(NSString *)toPath
@@ -1278,6 +1293,8 @@ namespace win_client.Services.Indexing
 
             ;; Integration
             o Called from CLSyncService for "move/rename" events.
+
+            -David not needed, the parent functions need to complete the events in the DB as they finish
 #endif  // TRASH            
             //&&&&
 
@@ -1435,23 +1452,27 @@ namespace win_client.Services.Indexing
 #if TRASH
             ;; Integration
             o Called by CLAppDelegate to create the cloud root directory.
+
+            Not necessary since we do not parent the sync states in the database,
+            we only store the path for an entire sync
+            -David
 #endif  // TRASH
 
-            // CLMetadata *metadataItem = [[CLMetadata alloc] init];
-            CLMetadata metadataItem = new CLMetadata();
+            //// CLMetadata *metadataItem = [[CLMetadata alloc] init];
+            //CLMetadata metadataItem = new CLMetadata();
 
-            // metadataItem.path = @"/";
-            // metadataItem.createDate = [NSDate ISO8601DateStringFromDate:[NSDate date]];
-            // metadataItem.isDirectory = YES;
-            // metadataItem.isPending = NO;
-            metadataItem.Path = "\\";
-            metadataItem.CreateDate = DateTime.Now.ToString("o");  // ISO 8601 format
-            metadataItem.ModifiedDate = DateTime.Now.ToString("o");  // ISO 8601 format
-            metadataItem.IsDirectory = true;
-            metadataItem.IsPending = false;
+            //// metadataItem.path = @"/";
+            //// metadataItem.createDate = [NSDate ISO8601DateStringFromDate:[NSDate date]];
+            //// metadataItem.isDirectory = YES;
+            //// metadataItem.isPending = NO;
+            //metadataItem.Path = "\\";
+            //metadataItem.CreateDate = DateTime.Now.ToString("o");  // ISO 8601 format
+            //metadataItem.ModifiedDate = DateTime.Now.ToString("o");  // ISO 8601 format
+            //metadataItem.IsDirectory = true;
+            //metadataItem.IsPending = false;
     
-            // [self addMetedataItem:metadataItem pending:NO];
-            AddMetadataItem_pending(metadataItem, pending: false);
+            //// [self addMetedataItem:metadataItem pending:NO];
+            //AddMetadataItem_pending(metadataItem, pending: false);
         }
     }
 }

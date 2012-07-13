@@ -21,4 +21,24 @@ HKCR
 			}
 		}
 	}
+	NoRemove lnkfile
+	{
+		NoRemove shellex
+		{
+			NoRemove ContextMenuHandlers
+			{
+				{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}
+			}
+		}
+	}
+	NoRemove Folder
+	{
+		NoRemove shellex
+		{
+			NoRemove ContextMenuHandlers
+			{
+				{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}
+			}
+		}
+	}
 }

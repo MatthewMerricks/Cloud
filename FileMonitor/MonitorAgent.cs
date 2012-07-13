@@ -287,7 +287,7 @@ namespace FileMonitor
 
         private MonitorAgent() { }
 
-        #region public methods
+        #region public methods non-proxied
         ///// <summary>
         ///// Notify completion of indexing;
         ///// sets IsInitialIndex to false,
@@ -1080,7 +1080,7 @@ namespace FileMonitor
             StopWatchers();
         }
         #endregion
-        #endregion
+        #endregion  
 
         #region private methods
 

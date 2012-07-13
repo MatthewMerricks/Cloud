@@ -88,6 +88,7 @@
           <Property Name="CreationTime" Type="datetime2" />
           <Property Name="IsFolder" Type="bit" Nullable="false" />
           <Property Name="Size" Type="bigint" />
+          <Property Name="PathChecksum" Type="int" StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="Syncs">
           <Key>
@@ -279,6 +280,7 @@
           <NavigationProperty Name="Events" Relationship="SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="Events" />
           <NavigationProperty Name="SyncStates" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
           <NavigationProperty Name="ServerLinkedSyncStates" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
+          <Property Type="Int32" Name="PathChecksum" annotation:StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="Sync">
           <Key>
@@ -427,6 +429,7 @@
           <EntitySetMapping Name="FileSystemObjects">
             <EntityTypeMapping TypeName="SQLIndexer.FileSystemObject">
               <MappingFragment StoreEntitySet="FileSystemObjects">
+                <ScalarProperty Name="PathChecksum" ColumnName="PathChecksum" />
                 <ScalarProperty Name="FileSystemObjectId" ColumnName="FileSystemObjectId" />
                 <ScalarProperty Name="Path" ColumnName="Path" />
                 <ScalarProperty Name="LastTime" ColumnName="LastTime" />

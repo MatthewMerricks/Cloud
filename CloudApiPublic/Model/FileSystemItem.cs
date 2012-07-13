@@ -1,204 +1,176 @@
-﻿using System;
+﻿//
+//  FileSystemItem.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 using CloudApiPublic.Support;
 
 namespace CloudApiPublic.Model
 {
     public class FileSystemItem /*: NSManagedObject*/
     {
-        private static string path;
-        private static string name;
-        private static string revision;
-        private static string createDate;
-        private static string modifiedDate;
-        private static string md5hash;
-        private static bool is_Directory;
-        private static bool is_Deleted;
-        private static bool is_Link;
-        private static bool isPending;
-        private static string size;
-        private static string targetPath;
-        private static string parent_path;
-        private static List<FileSystemItem> children;
-        private static FileSystemItem parent;
-
         public string Path
         {
             get
             {
-                return path;
-            }
-            set
-            {
-                path = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.NewPath == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.NewPath.ToString();
             }
         }
-
         public string Name
         {
             get
             {
-                return name;
-            }
-            set
-            {
-                name = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.NewPath == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.NewPath.Name;
             }
         }
-
         public string Revision
         {
             get
             {
-                return revision;
-            }
-            set
-            {
-                revision = value;
+                if (this.ChangeReference == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.Revision;
             }
         }
-
         public string CreateDate
         {
             get
             {
-                return createDate;
-            }
-            set
-            {
-                createDate = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null
+                    || this.ChangeReference.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks)
+                {
+                    return null;
+                }
+                return this.ChangeReference.Metadata.HashableProperties.CreationTime.ToString("o");  // ISO 8601 format
             }
         }
-
         public string ModifiedDate
         {
             get
             {
-                return modifiedDate;
-            }
-            set
-            {
-                modifiedDate = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null
+                    || this.ChangeReference.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks)
+                {
+                    return null;
+                }
+                return this.ChangeReference.Metadata.HashableProperties.LastTime.ToString("o");  // ISO 8601 format
             }
         }
-
         public string Md5hash
         {
             get
             {
-                return md5hash;
-            }
-            set
-            {
-                md5hash = value;
+                if (this.ChangeReference == null)
+                {
+                    return null;
+                }
+                string toReturn;
+                this.ChangeReference.GetMD5LowercaseString(out toReturn);
+                return toReturn;
             }
         }
-
         public bool Is_Directory
         {
             get
             {
-                return is_Directory;
-            }
-            set
-            {
-                is_Directory = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null)
+                {
+                    throw new NullReferenceException("ChangeReference cannot be null and neither can its Metadata property");
+                }
+                return this.ChangeReference.Metadata.HashableProperties.IsFolder;
             }
         }
-
         public bool Is_Deleted
         {
             get
             {
-                return is_Deleted;
-            }
-            set
-            {
-                is_Deleted = value;
+                if (this.ChangeReference == null)
+                {
+                    throw new NullReferenceException("ChangeReference cannot be null");
+                }
+                return this.ChangeReference.Type == FileChangeType.Deleted;
             }
         }
-
         public bool Is_Link
         {
             get
             {
-                return is_Link;
-            }
-            set
-            {
-                is_Link = value;
+                if (this.ChangeReference == null)
+                {
+                    throw new NullReferenceException("ChangeReference cannot be null");
+                }
+                return this.ChangeReference.LinkTargetPath != null;
             }
         }
-
         public bool IsPending
         {
             get
             {
-                return isPending;
-            }
-            set
-            {
-                isPending = value;
+                return this.ChangeReference != null;
             }
         }
-
         public string Size
         {
             get
             {
-                return size;
-            }
-            set
-            {
-                size = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null
+                    || this.ChangeReference.Metadata.HashableProperties.Size == null)
+                {
+                    return null;
+                }
+                return ((long)this.ChangeReference.Metadata.HashableProperties.Size).ToString();
             }
         }
-
         public string TargetPath
         {
             get
             {
-                return targetPath;
-            }
-            set
-            {
-                targetPath = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.LinkTargetPath == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.LinkTargetPath.ToString();
             }
         }
-
         public string Parent_path
         {
             get
             {
-                return parent_path;
-            }
-            set
-            {
-                parent_path = value;
-            }
-        }
-
-        public List<FileSystemItem> Children
-        {
-            get { return children; }
-            set { children = value; }
-        }
-
-        public FileSystemItem Parent
-        {
-            get
-            {
-                return parent;
-            }
-            set
-            {
-                parent = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.NewPath == null
+                    || this.ChangeReference.NewPath.Parent == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.NewPath.Parent.ToString();
             }
         }
-
+        public FileChange ChangeReference { get; set; }
 
         public void Log()
         {
@@ -215,8 +187,6 @@ namespace CloudApiPublic.Model
             CLTrace.Instance.writeToLog(9, "{size: {0}.", this.Size);
             CLTrace.Instance.writeToLog(9, "{target path: {0}.", this.TargetPath);
             CLTrace.Instance.writeToLog(9, "{parent path: {0}.", this.Parent_path);
-            CLTrace.Instance.writeToLog(9, "{children: {0}.", this.Children);
-            CLTrace.Instance.writeToLog(9, "{parent: {0}.", this.Parent);
         }
     }
 }

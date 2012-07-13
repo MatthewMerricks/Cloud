@@ -9,9 +9,9 @@ using System.Resources;
 [assembly: AssemblyTitle("CloudApiClassLibrary")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Hewlett-Packard")]
+[assembly: AssemblyCompany("Cloud.com")]
 [assembly: AssemblyProduct("CloudApiClassLibrary")]
-[assembly: AssemblyCopyright("Copyright © Hewlett-Packard 2012")]
+[assembly: AssemblyCopyright("Copyright © Cloud.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

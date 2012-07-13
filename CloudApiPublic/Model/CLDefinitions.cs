@@ -10,7 +10,7 @@
 // Merged 7/3/12
 namespace CloudApiPublic.Model
 {
-    public class CLDefinitions
+    public static class CLDefinitions
     {
 
 #if PRODUCTION_BACKEND
@@ -85,6 +85,38 @@ namespace CloudApiPublic.Model
         public const string CLEventTypeFileRange = "file";
         public const string CLEventTypeLinkRange = "link";
         public const string CLEventTypeFolderRange = "folder";
+
+        public static readonly string[] SyncHeaderDeletions =
+        {
+            CLEventTypeDeleteFile,
+            CLEventTypeDeleteLink,
+            CLEventTypeDeleteFolder,
+            CLEventTypeDeleteRange
+        };
+
+        public static readonly string[] SyncHeaderCreations =
+        {
+            CLEventTypeAddFile,
+            CLEventTypeAddLink,
+            CLEventTypeAddFolder,
+            CLEventTypeAddRange
+        };
+
+        public static readonly string[] SyncHeaderModifications =
+        {
+            CLEventTypeModifyFile,
+            CLEventTypeModifyLink,
+            // Note: no modify folder, that is an invalid modification
+            CLEventTypeModifyRange
+        };
+
+        public static readonly string[] SyncHeaderRenames =
+        {
+            CLEventTypeRenameFile,
+            CLEventTypeRenameLink,
+            CLEventTypeRenameFolder,
+            CLEventTypeRenameRange
+        };
 
         // Cloud Sync Status
         public const string CLEventTypeUpload = "upload";
