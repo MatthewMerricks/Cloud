@@ -27,6 +27,7 @@ using CloudApiPrivate.Common;
 using BadgeNET;
 using FileMonitor;
 using Newtonsoft.Json.Linq;
+using CloudApiPublic.Static;
 
 namespace win_client.Services.Sync
 {
@@ -672,7 +673,16 @@ namespace win_client.Services.Sync
                             Dictionary<string, object> syncHeaderDictionary = ((JToken)mdsEventDictionary[CLDefinitions.CLSyncEventHeader]).ToObject<Dictionary<string, object>>();
                             if (syncHeaderDictionary.ContainsKey(CLDefinitions.CLSyncEventStatus))
                             {
-                                eventsReceived.Add(CLEvent.EventFromMDSEvent(mdsEventDictionary));
+                                eventsReceived.Add(CLEvent.EventFromMDSEvent(() =>
+                                {
+                                    lock (CLFSMonitoringService.Instance.IndexingAgent)
+                                    {
+                                        return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                                    }
+                                },
+                                CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath,
+                                mdsEventDictionary,
+                                SyncDirection.To));
                             }
                         }
 
@@ -1334,7 +1344,16 @@ namespace win_client.Services.Sync
                         foreach (JToken mdsEvent in mdsEvents)
                         {
                             Dictionary<string, object> mdsEventDictionary = mdsEvent.ToObject<Dictionary<string, object>>();
-                            eventsReceived.Add(CLEvent.EventFromMDSEvent(mdsEventDictionary));
+                            eventsReceived.Add(CLEvent.EventFromMDSEvent(() =>
+                                {
+                                    lock (CLFSMonitoringService.Instance.IndexingAgent)
+                                    {
+                                        return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                                    }
+                                },
+                                CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath,
+                                mdsEventDictionary,
+                                SyncDirection.From));
                         }
 
                         _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Response From Sync From Cloud: {0}.", metadata);

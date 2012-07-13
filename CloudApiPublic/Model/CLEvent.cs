@@ -32,6 +32,13 @@ namespace CloudApiPublic.Model
                 }
                 return _metadata;
             }
+            set
+            {
+                this.ChangeReference = (value == null
+                    ? null
+                    : value.ChangeReference);
+                _metadata = value;
+            }
         }
         private CLMetadata _metadata = null;
         public CLSyncHeader SyncHeader { get; set; }
@@ -141,7 +148,7 @@ namespace CloudApiPublic.Model
             };
         }
 
-        public static CLEvent EventFromMDSEvent(Dictionary<string, object> mdsEvent)
+        public static CLEvent EventFromMDSEvent(Func<string> getLastSyncId, Func<string> getCloudPath, Dictionary<string, object> mdsEvent, SyncDirection direction)
         {
             // Merged 7/12/12
             // CLEvent *event = [[CLEvent alloc] init];
@@ -170,12 +177,9 @@ namespace CloudApiPublic.Model
             // event.isMDSEvent = YES;
             CLEvent evt = new CLEvent();
             evt.IsMDSEvent = true;
-
-            // CLMetadata *mdsEventMetadata = [[CLMetadata alloc] initWithDictionary:[mdsEvent objectForKey:@"metadata"]];
-            // event.metadata = mdsEventMetadata;
-            CLMetadata mdsEventMetadata = new CLMetadata(((JToken)mdsEvent[CLDefinitions.CLSyncEventMetadata]).ToObject<Dictionary<string, object>>());
-            evt.Metadata = mdsEventMetadata;
-
+            evt.GetLastSyncId = getLastSyncId;
+            evt.GetCloudPath = getCloudPath;
+            
             // CLSyncHeader *syncHeader = [[CLSyncHeader alloc] init];
             // event.syncHeader = syncHeader;
             // event.syncHeader.action = [[mdsEvent objectForKey:@"sync_header"] objectForKey:@"event"];
@@ -190,16 +194,31 @@ namespace CloudApiPublic.Model
             evt.SyncHeader.Sid = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncID, String.Empty);
             evt.SyncHeader.Status = (string)syncHeaderDictionary.GetValueOrDefault(CLDefinitions.CLSyncEventStatus, String.Empty);
 
+            // CLMetadata *mdsEventMetadata = [[CLMetadata alloc] initWithDictionary:[mdsEvent objectForKey:@"metadata"]];
+            // event.metadata = mdsEventMetadata;
+            CLMetadata mdsEventMetadata = new CLMetadata(evt.GetLastSyncId,
+                evt.GetCloudPath,
+                ((JToken)mdsEvent[CLDefinitions.CLSyncEventMetadata]).ToObject<Dictionary<string, object>>(),
+                syncHeader,
+                direction);
+            evt.Metadata = mdsEventMetadata;
+
             // if ([event.syncHeader.action rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
             if (evt.SyncHeader.Action.Contains(CLDefinitions.CLEventTypeFolderRange))
             {
                 // event.metadata.isDirectory = YES;
-                evt.Metadata.IsDirectory = true;
+                evt.ChangeReference.Metadata.HashableProperties = new FileMetadataHashableProperties(true,//only property changed, is folder is now true
+                    evt.ChangeReference.Metadata.HashableProperties.LastTime,// copied
+                    evt.ChangeReference.Metadata.HashableProperties.CreationTime,// copied
+                    evt.ChangeReference.Metadata.HashableProperties.Size);// copied
             }
             else
             {
                 // event.metadata.isDirectory = NO;
-                evt.Metadata.IsDirectory = false;
+                evt.ChangeReference.Metadata.HashableProperties = new FileMetadataHashableProperties(false,//only property changed, is folder is now false
+                    evt.ChangeReference.Metadata.HashableProperties.LastTime,// copied
+                    evt.ChangeReference.Metadata.HashableProperties.CreationTime,// copied
+                    evt.ChangeReference.Metadata.HashableProperties.Size);// copied
             }
 
             // return event;
