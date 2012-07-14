@@ -27,6 +27,8 @@ namespace CloudApiPublic.Support
         private const string CLHTTPConnectionOperaionDidEndNotification = "CLHTTPConnectionOperaionDidEndNotification";
         private const string CLHTTPConnectionOperaionDidStartNotification = "CLHTTPConnectionOperaionDidStartNotification";
 
+        private static CLTrace _trace;
+
         delegate /*Task*/ void CLHTTPConnectionOperationProgressBlock(ulong bytes, ulong totalBytes, ulong totalBytesExpected);
 
         private Action<CLHTTPConnectionOperation, CLError> _completionBlock;
@@ -215,6 +217,7 @@ namespace CloudApiPublic.Support
             _client = client;
             _operationRequest = request;
             _finished = false;
+            _trace = CLTrace.Instance;
         }
 
         CLHTTPConnectionOperation()
@@ -265,30 +268,75 @@ namespace CloudApiPublic.Support
                 this.Executing = true;
 
                 // if (this.ResponseFilePath && this.IsDownloadOperation) {
-                HttpContent fileContent;
+                //&&&&HttpContent fileContent;
                 if (this.ResponseFilePath != null && this.IsDownloadOperation)
                 {
                     // [self createStreamToTempFilePath];
                     CreateStreamToTempFilePath();
-           
-                    fileContent = new StreamContent(this.StreamOutput);
+
+                    //&&&&fileContent = new StreamContent(this.StreamOutput);
                 }
                 else
                 {
                     // self.inputStream = [NSInputStream inputStreamWithFileAtPath:self.responseFilePath];
                     this.StreamInput = File.Open(this.ResponseFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                    fileContent = new StreamContent(this.StreamInput);
+                    //&&&&fileContent = new StreamContent(this.StreamInput);
                 }
 
                 // self.urlConnection = [NSURLConnection connectionWithRequest:self.operationRequest delegate:self];
                 // [self.urlConnection scheduleInRunLoop:currentRunLoop forMode:NSRunLoopCommonModes];
                 // [self.urlConnection start];
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                _operationRequest.Content = fileContent;
+                //&&&&fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                //&&&&_operationRequest.Content = fileContent;
+                //&&&&_operationRequest.Content = new StringContent("");
 
-                Task<HttpResponseMessage> task = _client.SendAsync(_operationRequest);
-                task.Wait();            // wait here for the file to transfer, or for an error
-                HandleTaskCompletion(task, "ErrorPuttingUploadOrDownloadToServer");
+                Task<HttpResponseMessage> task = null;
+                try
+                {
+                    task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask) =>
+                    {
+                        HttpResponseMessage response = null;
+                        try
+                        {
+                            // Get HTTP response from completed task. 
+                            response = requestTask.Result;
+
+                            // Check that response was successful or throw exception 
+                            response.EnsureSuccessStatusCode();
+
+                            // Read response asynchronously and save to file 
+                            response.Content.ReadAsFileAsync(this.TempFilePath, true).ContinueWith(
+                                (readTask) =>
+                                {
+                                    _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: File copyied to disk.");
+                                }); 
+                        }
+                        catch (Exception ex)
+                        {
+                            CLError error = ex;
+                            _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception requesting download file transfer.  Msg: {0}, Code: {1}.",
+                                                error.errorDescription, error.errorCode);
+                        }
+                        return response;
+                    });
+                }
+                catch (Exception ex)
+                {
+                    CLError error = ex;
+                    _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception sending request for file download.  Msg: {0}, Code: {1}.",
+                                        error.errorDescription, error.errorCode);
+                }
+
+                if (task != null)
+                {
+                    task.Wait();            // wait here for the file to transfer, or for an error
+                    HandleTaskCompletion(task, "ErrorPuttingUploadOrDownloadToServer");
+                }
+                else
+                {
+                    _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Task is null.");
+                }
+
 
                 //TODO: Notification required?
                 // [[NSNotificationCenter defaultCenter] postNotificationName:CLHTTPConnectionOperaionDidStartNotification object:self];
@@ -368,32 +416,203 @@ namespace CloudApiPublic.Support
             //NSString *guid = [[NSProcessInfo processInfo] globallyUniqueString];
             //NSString *uFileName = [NSString stringWithFormat:@"%@-%@", guid, [self.responseFilePath lastPathComponent]];
             //self.tempFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:uFileName];
-            string guid = Guid.NewGuid().ToString();
-            string uFileName = String.Format("{0}-{1}", guid, ResponseFilePath.LastPathComponent());
+            string uFileName = GetUniqueFilePathInTempDirectory();
             this.TempFilePath = Path.GetTempPath() + uFileName;
     
             //NSOutputStream *downloadStream = [[NSOutputStream alloc] initToFileAtPath:self.tempFilePath append:NO];
             //self.outputStream = downloadStream;
-            this.StreamOutput = File.Open(this.TempFilePath, FileMode.Create, FileAccess.Write);
-
+            //&&&&this.StreamOutput = File.Open(this.TempFilePath, FileMode.Create, FileAccess.Write);
         }
 
+        string GetUniqueFilePathInTempDirectory()
+        {
+            string guid = Guid.NewGuid().ToString();
+            string uFileName = String.Format("{0}-{1}", guid, ResponseFilePath.LastPathComponent());
+            return uFileName;
+        }
+
+        //- (void)moveTempFileToResourceFilePath
         void MoveTempFileToResourceFilePath()
         {
-            //dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0));
-            //if (0) {
-            //    NSFileManager fileManager = NSFileManager.DefaultManager();
-            //    if (fileManager.FileExistsAtPath(this.TempFilePath)) {
-            //        NSError error;
-            //        fileManager.MoveItemAtPathToPathError(this.TempFilePath, this.ResponseFilePath, error);
-            //        if (error) {
-            //            Console.WriteLine("%s - Could not move file: %@ ", __FUNCTION__, error);
-            //        }
+            // Merged 7/14/12
+            // __weak CLHTTPConnectionOperation *weakSelf = self;
+            // NOTE: The threading is commented out.  This runs on the operation's thread.
+            // //dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0),^{
+            //     __strong CLHTTPConnectionOperation *strongSelf = weakSelf;
+            //     NSFileManager *fileManager = [NSFileManager defaultManager];
+            //     if (strongSelf) {
+            //         if ([fileManager fileExistsAtPath:strongSelf.tempFilePath]) {
+            //             if ([fileManager fileExistsAtPath:strongSelf.responseFilePath]) {
+                    
+            //                 if (![fileManager contentsEqualAtPath:strongSelf.tempFilePath andPath:strongSelf.responseFilePath]){
+            //                     NSError *replacementError;
+            //                     NSURL *responseFilePathURL = [NSURL fileURLWithPath:strongSelf.responseFilePath];
+            //                     NSURL *tempFilePathURL = [NSURL fileURLWithPath:strongSelf.tempFilePath];
+            //                     NSString *backupName = [[strongSelf.responseFilePath lastPathComponent] stringByAppendingString:@"cloudbackup"];
+                        
+            //                     [fileManager replaceItemAtURL:responseFilePathURL withItemAtURL:tempFilePathURL
+            //                                                                      backupItemName:backupName
+            //                                                                             options:NSFileManagerItemReplacementUsingNewMetadataOnly
+            //                                                                    resultingItemURL:nil error:&replacementError];
+            //                     if (replacementError){
+            //                         NSLog(@"%s - Could not replace file: %@ ", __FUNCTION__, replacementError);
+            //                     }
+            //                 }
+            //             }else {
+            //                 NSError *error;
+            //                 if ([fileManager fileExistsAtPath:strongSelf.tempFilePath]){
+            //                     [fileManager moveItemAtPath:strongSelf.tempFilePath toPath:strongSelf.responseFilePath error:&error];
+            //                     if (error) {
+            //                         NSLog(@"%s - Could not move file: %@ ", __FUNCTION__, error);
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // [self updateCompletedState];
+            //// });
+            //&&&&
 
-            //    }
+            // Note: The threading is commented out.  This runs on the operation's thread.
+            // __weak CLHTTPConnectionOperation *weakSelf = self;
+            // //dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0),^{
 
-            //};
+            // Note: Not required.
+            // __strong CLHTTPConnectionOperation *strongSelf = weakSelf;
+            // NSFileManager *fileManager = [NSFileManager defaultManager];
+            // if (strongSelf) {
 
+            // if ([fileManager fileExistsAtPath:strongSelf.tempFilePath]) {
+            CLError error = null;
+            if (File.Exists(this.TempFilePath))
+            {
+                // if ([fileManager fileExistsAtPath:strongSelf.responseFilePath]) {
+                if (File.Exists(this.ResponseFilePath))
+                {
+                    // A file already exists at the target location.  See if it has the same contents.
+                    // if (![fileManager contentsEqualAtPath:strongSelf.tempFilePath andPath:strongSelf.responseFilePath]){
+                    try
+                    {
+                        if (!CLSptFileCompare.FileCompare(this.TempFilePath, this.ResponseFilePath))
+                        {
+                            // NSError *replacementError;
+                            // NSURL *responseFilePathURL = [NSURL fileURLWithPath:strongSelf.responseFilePath];
+                            // NSURL *tempFilePathURL = [NSURL fileURLWithPath:strongSelf.tempFilePath];
+                            // NSString *backupName = [[strongSelf.responseFilePath lastPathComponent] stringByAppendingString:@"cloudbackup"];
+
+                            // [fileManager replaceItemAtURL:responseFilePathURL withItemAtURL:tempFilePathURL
+                            //                                                  backupItemName:backupName
+                            //                                                         options:NSFileManagerItemReplacementUsingNewMetadataOnly
+                            //                                                resultingItemURL:nil error:&replacementError];
+                            // if (replacementError){
+                            //     NSLog(@"%s - Could not replace file: %@ ", __FUNCTION__, replacementError);
+                            // }
+                            // Generate a unique filename in the temp directory
+                            string uSaveFilePath = GetUniqueFilePathInTempDirectory();
+
+                            // Move the existing target file from the target location to the unique file in the temp directory.
+                            try
+                            {
+                                File.Move(this.ResponseFilePath, uSaveFilePath);
+                            }
+                            catch (Exception ex)
+                            {
+                                error += ex;
+                            }
+                            if (error == null)
+                            {
+                                // The backup rename was successful
+                                // Move the downloaded temp file to the target location.
+                                try
+                                {
+                                    // Move the downloaded temp file to the target location
+                                    File.Move(this.TempFilePath, this.ResponseFilePath);
+                                }
+                                catch (Exception ex)
+                                {
+                                    error += ex;
+                                }
+                                if (error == null)
+                                {
+                                    // The downloaded file was moved to the target location successfully.
+                                    // Delete the saved unique file in the temp directory.
+                                    try
+                                    {
+                                        File.Delete(uSaveFilePath);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        error += ex;
+                                    }
+                                }
+
+                                else
+                                {
+                                    // Error moving the downloaded file to the target location.
+                                    // Try to recover by moving the saved file back to the target location
+                                    // Log the error
+                                    Exception ex = new Exception("Error moving downloaded file <" + this.TempFilePath + "> to the target location <" + this.ResponseFilePath + ">.");
+                                    error += ex;
+
+                                    // Try to recover the saved file
+                                    try
+                                    {
+                                        File.Move(uSaveFilePath, this.ResponseFilePath);
+                                    }
+                                    catch (Exception)
+                                    {
+                                        error += ex;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // Error renaming the backup file.
+                                Exception ex = new Exception("Error saving the existing target file <" + this.ResponseFilePath + "> to the target location <" + uSaveFilePath + ">.");
+                                error += ex;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Error comparing the existing target file to the downloaded file.
+                        error += ex;
+                    }
+                }
+                else
+                {
+                    // The target file does not already exist.  Move the downloaded file to the target location.
+                    // NSError *error;
+                    // if ([fileManager fileExistsAtPath:strongSelf.tempFilePath]){
+                    //     [fileManager moveItemAtPath:strongSelf.tempFilePath toPath:strongSelf.responseFilePath error:&error];
+                    //     if (error) {
+                    //         NSLog(@"%s - Could not move file: %@ ", __FUNCTION__, error);
+                    //     }
+                    // }
+                    try
+                    {
+                        File.Move(this.TempFilePath, this.ResponseFilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        error += ex;
+                    }
+                }
+            }
+            else
+            {
+                // The downloaded file does not exist!
+                Exception ex = new Exception("Error: Expected the downloaded file to exist at <" + this.TempFilePath + ">, but it didn't exist.");
+                error += ex;
+            }
+
+            // Log any errors.
+            //TODO: Handle this error.  Enqueue the event to an error retry queue?
+            //TODO: Badge this file in error?
+
+            // This operation is now complete.
+            // [self updateCompletedState];
+            UpdateCompletedState();
         }
 
         bool IsConcurrent()
@@ -414,6 +633,8 @@ namespace CloudApiPublic.Support
             //this.WillChangeValueForKey("isFinished");
             //this.Finished = true;
             //this.DidChangeValueForKey("isFinished");
+
+            //TODO:  Is this notification required?
             //(NSNotificationCenter.DefaultCenter()).PostNotificationNameMyobject(CLHTTPConnectionOperaionDidEndNotification, this);
         }
 

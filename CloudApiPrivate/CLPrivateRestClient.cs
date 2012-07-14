@@ -437,7 +437,9 @@ namespace CloudApiPrivate
 
             // Build the request
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(CLDefinitions.CLUploadDownloadServerURL), methodPath));
-            request.Headers.Add("storage_key", storageKey);
+            Dictionary<string, object> httpParms = new Dictionary<string, object>() { {"storage_key", storageKey} };
+            string json = JsonConvert.SerializeObject(httpParms, Formatting.Indented);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);

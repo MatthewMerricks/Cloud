@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using CloudApiPublic.Support;
 using System.Collections.Generic;
+using System.Net.Http;
 
 
 namespace CloudApiPublic.Static
@@ -67,6 +68,44 @@ namespace CloudApiPublic.Static
         public static string LastPathComponent(this string source)
         {
             return Path.GetFileName(source);
+        }
+
+        /// <summary> 
+        /// Extend HttpContent.  Download a file to a local file.  Handles the open and close of the file.
+        /// Call like this:
+        /// response.Content.ReadAsFileAsync("output.png", true).ContinueWith((task) => {...});
+        /// </summary> 
+        /// <param name="content">The class to extend.</param> 
+        /// <param name="filename">The local file path.</param> 
+        /// <param name="overwrite">True: Overwrite the file.</param> 
+        /// <returns>Task. The resulting string.</returns> 
+        public static Task ReadAsFileAsync(this HttpContent content, string filename, bool overwrite)
+        {
+            string pathname = Path.GetFullPath(filename);
+            if (!overwrite && File.Exists(filename))
+            {
+                throw new InvalidOperationException(string.Format("File {0} already exists.", pathname));
+            }
+
+            FileStream fileStream = null;
+            try
+            {
+                fileStream = new FileStream(pathname, FileMode.Create, FileAccess.Write, FileShare.None);
+                return content.CopyToAsync(fileStream).ContinueWith(
+                    (copyTask) =>
+                    {
+                        fileStream.Close();
+                    });
+            }
+            catch
+            {
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                }
+
+                throw;
+            }
         }
     }
 }

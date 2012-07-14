@@ -20,6 +20,7 @@ using CloudApiPublic.Support;
 using CloudApiPrivate.Common;
 using CloudApiPublic.Model;
 using System.Collections.Generic;
+using System.Net.Http;
 
 
 namespace CloudApiPrivate.Static

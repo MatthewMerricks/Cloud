@@ -19,27 +19,44 @@ namespace CloudApiPublic.Model
 {
     public class CLMetadata
     {
+        private string _path;
         public string Path
         {
             get
             {
-                if (this.GetCloudPath == null)
-                {
-                    return null;
-                }
-                return this.GetCloudPath();
+                return _path;
+                //if (this.GetCloudPath == null)
+                //{
+                //    return null;
+                //}
+                //return this.GetCloudPath();
+            }
+            set
+            {
+                // empty here
+                _path = value;
             }
         }
         public string ToPath
         {
             get
             {
+                //if (this.ChangeReference == null
+                //    || this.ChangeReference.NewPath == null)
+                //{
+                //    return null;
+                //}
+                //return this.ChangeReference.NewPath.ToString();
+
                 if (this.ChangeReference == null
                     || this.ChangeReference.NewPath == null)
                 {
+                    _path = null;
                     return null;
                 }
-                return this.ChangeReference.NewPath.ToString();
+                _path = this.ChangeReference.NewPath.ToString(); 
+                return _path;
+
             }
         }
         public string FromPath
@@ -290,6 +307,8 @@ namespace CloudApiPublic.Model
                 jsonFromPath,
                 jsonToPath);
 
+            this.Path = jsonCloudPath;              //&&&&&&&&&&
+
             this.ChangeReference = new FileChange()
             {
                 Direction = direction,
@@ -350,13 +369,14 @@ namespace CloudApiPublic.Model
                     this.EventId = convertedEventId;
                 }
 
-                if (!string.IsNullOrWhiteSpace(CloudPath))
+                if (!string.IsNullOrWhiteSpace(CloudPath))              // CloudPath is the relative path.  e.g., /A/B/filename.ext
                 {
-                    FilePath cloudConvertedPath = CloudPath;
+                    FilePath cloudConvertedPath = null;
 
                     if (GetCloudPath != null)
                     {
                         string cloudPathCopy = GetCloudPath();
+                        cloudConvertedPath = cloudPathCopy + CloudPath;    // full path
 
                         if (!string.IsNullOrWhiteSpace(ToPath))
                         {
@@ -426,6 +446,16 @@ namespace CloudApiPublic.Model
 
             this.GetLastSyncId = getLastSyncId;
             this.GetCloudPath = getCloudPath;
+
+            //&&&& Added this really ugly hack!
+            if (fsItem != null && !String.IsNullOrWhiteSpace(fsItem.Path) && fsItem.Path[1] == ':')
+            {
+                this.Path = "/" + fsItem.Path.Substring(4);
+            }
+            else
+            {
+                this.Path = fsItem.Path;
+            }
 
             //TODO: Implement this constructor when we have a FileSystemItem from the index service.
             //this.Path = fsItem.Path;

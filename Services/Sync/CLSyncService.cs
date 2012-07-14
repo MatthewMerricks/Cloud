@@ -1363,7 +1363,7 @@ namespace win_client.Services.Sync
                         // NSDictionary *eventIds = [NSDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, sid, CLSyncID, nil];
                         Dictionary<string, object> eventIds = new Dictionary<string,object>()
                         {
-                            {CLDefinitions.CLSyncEventID, eid},
+                            {CLDefinitions.CLSyncEventID, eid.ToString()},
                             {CLDefinitions.CLSyncID, newSid}
                         };
 
@@ -1671,7 +1671,7 @@ namespace win_client.Services.Sync
 
             //// Sync finished.
             //[self saveSyncStateWithSID:[ids objectForKey:CLSyncID] andEID:[ids objectForKey:CLSyncEventID]];
-            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], Convert.ToInt64((string)ids[CLDefinitions.CLSyncEventID]));
+            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], Convert.ToUInt64((string)ids[CLDefinitions.CLSyncEventID]));
 
             //// Update UI with activity.
             //TODO: Implement this UI.
@@ -3548,7 +3548,7 @@ namespace win_client.Services.Sync
         }
 
         // - (void)saveSyncStateWithSID:(NSString *)sid andEID:(NSNumber *)eid
-        void SaveSyncStateWithSIDAndEID(string sid, long eid)
+        void SaveSyncStateWithSIDAndEID(string sid, ulong eid)
         {
             // Merged 7/4/12
             // NSLog(@"%s", __FUNCTION__);

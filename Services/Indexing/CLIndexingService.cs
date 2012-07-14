@@ -288,10 +288,23 @@ namespace win_client.Services.Indexing
             {
                 return null;
             }
-            return new FileSystemItem()
+
+            //&&&&& removed this
+            //return new FileSystemItem()
+            //{
+            //    ChangeReference = evt.ChangeReference
+            //};
+
+            //&&&& added this.
+            FileSystemItem fsItem = new FileSystemItem()
             {
                 ChangeReference = evt.ChangeReference
             };
+            if (!String.IsNullOrWhiteSpace(evt.Metadata.Path))
+            {
+                fsItem.ChangeReference.NewPath = evt.Metadata.Path;
+            }
+            return fsItem;
         }
 
         //+ (void)markItemAtPath:(NSString *)path asPending:(BOOL)pending
