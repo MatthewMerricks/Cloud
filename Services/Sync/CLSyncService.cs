@@ -51,7 +51,6 @@ namespace win_client.Services.Sync
         private static List<CLEvent> _activeSyncFileQueue = null;
         private static List<CLEvent> _activeSyncFolderQueue = null;
 
-
         static DispatchQueueGeneric _com_cloud_sync_queue = null;
         static DispatchQueueGeneric get_cloud_sync_queue () {
             if (_com_cloud_sync_queue == null) {
@@ -683,6 +682,7 @@ namespace win_client.Services.Sync
                                     }
                                 },
                                 CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath,
+                                CLFSMonitoringService.Instance.MonitorAgent.FindFileChangeByPath,
                                 mdsEventDictionary,
                                 SyncDirection.To));
                             }
@@ -1227,7 +1227,7 @@ namespace win_client.Services.Sync
             }
 
             //NSNumber *eid = [NSNumber numberWithInteger:CLDotNotSaveId];
-            ulong eid = CLConstants.CLDoNotSaveId;
+            ulong eid = CLDefinitions.CLDoNotSaveId;
 
             //NSDictionary *events = [NSDictionary dictionaryWithObjectsAndKeys:@"/", CLMetadataCloudPath, sid, CLSyncID, nil];
             Dictionary<string, object> events = new Dictionary<string,object>()
@@ -1346,6 +1346,8 @@ namespace win_client.Services.Sync
                         foreach (JToken mdsEvent in mdsEvents)
                         {
                             Dictionary<string, object> mdsEventDictionary = mdsEvent.ToObject<Dictionary<string, object>>();
+
+                            // Build this new event and add it to the collection received.
                             eventsReceived.Add(CLEvent.EventFromMDSEvent(() =>
                                 {
                                     lock (CLFSMonitoringService.Instance.IndexingAgent)
@@ -1354,6 +1356,7 @@ namespace win_client.Services.Sync
                                     }
                                 },
                                 CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath,
+                                CLFSMonitoringService.Instance.MonitorAgent.FindFileChangeByPath,
                                 mdsEventDictionary,
                                 SyncDirection.From));
                         }
@@ -3593,7 +3596,7 @@ namespace win_client.Services.Sync
             }
 
             // if ([sid isEqualToString:[[NSNumber numberWithInteger:CLDotNotSaveId] stringValue]] == NO) { // only save for SyncFrom Events
-            if (sid.Equals(CLConstants.CLDoNotSaveId.ToString(), StringComparison.InvariantCulture))
+            if (sid.Equals(CLDefinitions.CLDoNotSaveId.ToString(), StringComparison.InvariantCulture))
             {
                 // if (sid != nil) {
                 if (!string.IsNullOrWhiteSpace(sid))
@@ -3604,7 +3607,7 @@ namespace win_client.Services.Sync
             }
 
             // if ([eid integerValue] != [[NSNumber numberWithInteger:CLDotNotSaveId] integerValue]) { // only save for SyncTo Events
-            if (eid != CLConstants.CLDoNotSaveId)
+            if (eid != CLDefinitions.CLDoNotSaveId)
             {
                 // if (eid != nil) {
                 if (eid != 0)

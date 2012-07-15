@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
+using CloudApiPublic.Support;
 using System.Globalization;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
 using System.Xml.Linq;
@@ -82,6 +83,15 @@ namespace FileMonitor
             }
             return null;
         }
+
+        private FileChange[] _currentFileChanges;
+        public FileChange[] CurrentFileChanges
+        {
+            get { return _currentFileChanges; }
+            private set { _currentFileChanges = value; }
+        }
+
+
         private ReaderWriterLockSlim InitialIndexLocker = new ReaderWriterLockSlim();
         #endregion
 
@@ -1067,6 +1077,40 @@ namespace FileMonitor
                 return ex;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Find a current FSM event via its eventId.
+        /// </summary>
+        /// <param name="relativePath">The path to search for.  It starts with "/" (for the cloud path root),
+        /// uses "/" path separators, and is in lower case.
+        /// </param>
+        /// <returns>FileChange.  The FileChange found, or null.</returns>
+        public FileChange FindFileChangeByPath(string relativePath)
+        {
+            FileChange returnedChange = null;
+            try
+            {
+                // lock on current object for changing RunningStatus so it cannot be stopped/started simultaneously
+                lock (this)
+                {
+                    // Search the current file changes for this event.
+                    foreach (FileChange change in CurrentFileChanges)
+                    {
+                        string changeName = "/" + change.NewPath.Name;
+                        if (changeName.Equals(relativePath, StringComparison.InvariantCulture))
+                        {
+                            returnedChange = change;
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return returnedChange;
         }
 
         /// <summary>
@@ -2125,10 +2169,42 @@ namespace FileMonitor
             }
         }
 
-        private void ProcessFileChangeGroup(FileChange[] changes)
+        private void ProcessFileChangeGroup(FileChange[] changesIn)
         {
             if (this.OnProcessEventGroupCallback != null)
             {
+                // Finalize these changes
+                FileChange[] changesInError;
+                KeyValuePair<FileChange, FileStream>[] changesWithFileStreams;
+                CLError error =  ProcessFileListForSyncProcessing(changesIn, out changesWithFileStreams, out changesInError);
+                if (error != null)
+                {
+                    CLTrace.Instance.writeToLog(1, "MonitorAgent: ProcessFileChangeGroup: Error finalizing changes.  Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
+                }
+
+                // Get the changes array back.  Forget the FileStreams for now TODO: Fix this.
+                List<FileChange> changesList = new List<FileChange>();
+                foreach (KeyValuePair<FileChange, FileStream> change in changesWithFileStreams)
+                {
+                    changesList.Add(change.Key);
+                }
+                FileChange[] changes = changesList.ToArray();
+
+                //&&&& Save these changes to match up the events from the server.
+                //TODO: Clear this reference when this group of changes has been synced.
+                CurrentFileChanges = changes;
+
+#if TRASH
+                // Get the changes array back
+                var changesEnumerable = (from element in changesWithFileStreams
+                               select new FileChange[]
+                               {
+                                   element.Key
+                               });
+                FileChange[] changes = changesEnumerable.Cast<FileChange>().ToArray(); 
+#endif // TRASH
+
+                // Process the changes
                 List<Dictionary<string, object>> eventsArray = new List<Dictionary<string,object>>();
 
                 foreach (FileChange currentChange in changes)
@@ -2205,10 +2281,28 @@ namespace FileMonitor
                     }
 
                     // Format the time like "2012-03-20T19:50:25Z"
-                    metadata.Add(CLDefinitions.CLMetadataFileCreateDate, currentChange.Metadata.HashableProperties.CreationTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
+                    metadata.Add(CLDefinitions.CLMetadataFileCreateDate, currentChange.Metadata.HashableProperties.CreationTime.ToString("o"));
+                    metadata.Add(CLDefinitions.CLMetadataFileModifiedDate, currentChange.Metadata.HashableProperties.LastTime.ToString("o"));
+                    metadata.Add(CLDefinitions.CLMetadataFileSize, currentChange.Metadata.HashableProperties.Size);
                     metadata.Add(CLDefinitions.CLMetadataFromPath, relativeOldPath);
                     metadata.Add(CLDefinitions.CLMetadataCloudPath, relativeNewPath);
                     metadata.Add(CLDefinitions.CLMetadataToPath, String.Empty);       // not used?
+                    string md5;
+                    currentChange.GetMD5LowercaseString(out md5);
+                    metadata.Add(CLDefinitions.CLMetadataFileHash, md5);
+                    metadata.Add(CLDefinitions.CLMetadataFileIsDirectory, currentChange.Metadata.HashableProperties.IsFolder);
+                    bool isLink = false;
+                    if (currentChange.LinkTargetPath != null && !String.IsNullOrWhiteSpace(currentChange.LinkTargetPath.ToString()))
+                    {
+                        isLink = true;
+                    }
+                    metadata.Add(CLDefinitions.CLMetadataFileIsLink, isLink);
+                    metadata.Add(CLDefinitions.CLMetadataFileRevision, currentChange.Revision);
+                    metadata.Add(CLDefinitions.CLMetadataFileCAttributes, String.Empty);
+                    metadata.Add(CLDefinitions.CLMetadataItemStorageKey, currentChange.StorageKey);
+                    metadata.Add(CLDefinitions.CLMetadataLastEventID, currentChange.EventId.ToString());
+                    metadata.Add(CLDefinitions.CLMetadataFileTarget, isLink ? currentChange.LinkTargetPath.ToString() : String.Empty);
+
 
                     // Force server forward slash normalization
                     

@@ -60,8 +60,8 @@ namespace CloudApiPublic.Support
             }
         }
 
-        private ulong _eventID;
-        public ulong EventID
+        private long _eventID;
+        public long EventID
         {
             get
             {
@@ -151,6 +151,21 @@ namespace CloudApiPublic.Support
             }
         }
 
+        private string _size;
+        public string Size
+        {
+            get { return _size; }
+            set { _size = value; }
+        }
+
+        private string _hash;
+
+        public string Hash
+        {
+            get { return _hash; }
+            set { _hash = value; }
+        }
+
         private string _tempFilePath;
         public string TempFilePath
         {
@@ -197,7 +212,7 @@ namespace CloudApiPublic.Support
 
         // - (id)initForStreamingUploadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
         // - (id)initForStreamingDownloadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
-        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, string fsPath, bool isUpload)
+        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, string fsPath, string size, string hash, bool isUpload)
             : this(client, request)
         {
             //if(self = [self initWithRequest:request]) {
@@ -206,6 +221,8 @@ namespace CloudApiPublic.Support
             //}
             //return self;
             _responseFilePath = fsPath;
+            _size = size;
+            _hash = hash;
             _isDownloadOperation = !isUpload;
         }
 
@@ -267,63 +284,92 @@ namespace CloudApiPublic.Support
                 // [self didChangeValueForKey: @"isExecuting"];
                 this.Executing = true;
 
-                // if (this.ResponseFilePath && this.IsDownloadOperation) {
-                //&&&&HttpContent fileContent;
-                if (this.ResponseFilePath != null && this.IsDownloadOperation)
-                {
-                    // [self createStreamToTempFilePath];
-                    CreateStreamToTempFilePath();
-
-                    //&&&&fileContent = new StreamContent(this.StreamOutput);
-                }
-                else
-                {
-                    // self.inputStream = [NSInputStream inputStreamWithFileAtPath:self.responseFilePath];
-                    this.StreamInput = File.Open(this.ResponseFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                    //&&&&fileContent = new StreamContent(this.StreamInput);
-                }
-
+                // Note: Not necessary.  Reworked below.
+                // if (self.responseFilePath && self.isDownloadOperation) {
+                //     [self createStreamToTempFilePath];
+                // }else {
+                //     self.inputStream = [NSInputStream inputStreamWithFileAtPath:self.responseFilePath];
+                // }
                 // self.urlConnection = [NSURLConnection connectionWithRequest:self.operationRequest delegate:self];
                 // [self.urlConnection scheduleInRunLoop:currentRunLoop forMode:NSRunLoopCommonModes];
                 // [self.urlConnection start];
-                //&&&&fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                //&&&&_operationRequest.Content = fileContent;
-                //&&&&_operationRequest.Content = new StringContent("");
 
                 Task<HttpResponseMessage> task = null;
                 try
                 {
-                    task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask) =>
+                    _trace.writeToLog(9, "CLSptHttpConnectionOperation: Main: Send the {0} operation to the server.", this.IsDownloadOperation ? "download" : "upload");
+                    _trace.writeToLog(9, "CLSptHttpConnectionOperation: Main: Response file path: <{0}>.", this.ResponseFilePath);
+
+                    if (this.IsDownloadOperation)
                     {
-                        HttpResponseMessage response = null;
-                        try
+                        // Download operation
+                        CreateStreamToTempFilePath();
+                        task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask) =>
                         {
-                            // Get HTTP response from completed task. 
-                            response = requestTask.Result;
+                            HttpResponseMessage response = null;
+                            try
+                            {
+                                // Get HTTP response from completed task. 
+                                response = requestTask.Result;
+                                this.Response = response;
 
-                            // Check that response was successful or throw exception 
-                            response.EnsureSuccessStatusCode();
+                                // Check that response was successful or throw exception 
+                                response.EnsureSuccessStatusCode();
 
-                            // Read response asynchronously and save to file 
-                            response.Content.ReadAsFileAsync(this.TempFilePath, true).ContinueWith(
-                                (readTask) =>
-                                {
-                                    _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: File copyied to disk.");
-                                }); 
-                        }
-                        catch (Exception ex)
+                                // Read response asynchronously and save to file 
+                                response.Content.ReadAsFileAsync(this.TempFilePath, true).ContinueWith(
+                                    (readTask) =>
+                                    {
+                                        _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: File copyied to disk.");
+                                    });
+                            }
+                            catch (Exception ex)
+                            {
+                                CLError error = ex;
+                                _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception requesting download file transfer.  Msg: {0}, Code: {1}.",
+                                                    error.errorDescription, error.errorCode);
+                            }
+                            return response;
+                        });
+                    }
+                    else
+                    {
+                        // Upload operation
+                        FileStream stream = new FileStream(this.ResponseFilePath, FileMode.Open, FileAccess.Read);
+                        StreamContent fileContent = new StreamContent(stream);
+
+                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                        _operationRequest.Content = fileContent;
+                        _operationRequest.Content.Headers.Add("Content-MD5", Hash);
+                        _operationRequest.Content.Headers.Add("Content-Length", Size);
+
+
+                        task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask) =>
                         {
-                            CLError error = ex;
-                            _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception requesting download file transfer.  Msg: {0}, Code: {1}.",
-                                                error.errorDescription, error.errorCode);
-                        }
-                        return response;
-                    });
+                            HttpResponseMessage response = null;
+                            try
+                            {
+                                // Get HTTP response from completed task. 
+                                response = requestTask.Result;
+                                this.Response = response;
+
+                                // Check that response was successful or throw exception 
+                                response.EnsureSuccessStatusCode();
+                            }
+                            catch (Exception ex)
+                            {
+                                CLError error = ex;
+                                _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception getting response from upload file transfer.  Msg: {0}, Code: {1}.",
+                                                    error.errorDescription, error.errorCode);
+                            }
+                            return response;
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {
                     CLError error = ex;
-                    _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception sending request for file download.  Msg: {0}, Code: {1}.",
+                    _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception sending request for file upload/download.  Msg: {0}, Code: {1}.",
                                         error.errorDescription, error.errorCode);
                 }
 
@@ -416,8 +462,7 @@ namespace CloudApiPublic.Support
             //NSString *guid = [[NSProcessInfo processInfo] globallyUniqueString];
             //NSString *uFileName = [NSString stringWithFormat:@"%@-%@", guid, [self.responseFilePath lastPathComponent]];
             //self.tempFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:uFileName];
-            string uFileName = GetUniqueFilePathInTempDirectory();
-            this.TempFilePath = Path.GetTempPath() + uFileName;
+            this.TempFilePath = GetUniqueFilePathInTempDirectory();
     
             //NSOutputStream *downloadStream = [[NSOutputStream alloc] initToFileAtPath:self.tempFilePath append:NO];
             //self.outputStream = downloadStream;
@@ -428,7 +473,7 @@ namespace CloudApiPublic.Support
         {
             string guid = Guid.NewGuid().ToString();
             string uFileName = String.Format("{0}-{1}", guid, ResponseFilePath.LastPathComponent());
-            return uFileName;
+            return Path.GetTempPath() + uFileName;
         }
 
         //- (void)moveTempFileToResourceFilePath

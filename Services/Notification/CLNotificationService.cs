@@ -94,14 +94,13 @@ namespace win_client.Services.Notification
         public void TimerFiredCallback()
         {
             // One second timer tick...
-            _trace.writeToLog(9, "CLNotificationService.cs: TimerFiredCallback: Timer fired.");
             ++_timerTestCount;
-
             if(_timerTestCount == 5)
             {
                 System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
                     // Put up a test balloon tooltip.  It will automatically fade.
+                    _trace.writeToLog(9, "CLNotificationService.cs: TimerFiredCallback: Put up a test balloon from the system tray.");
                     CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
                     Messenger.Default.Send<CLBalloonTooltipNotification>(tooltipInfo, "Message_BalloonTooltipSystemTrayNotification");
                 }));
@@ -112,6 +111,7 @@ namespace win_client.Services.Notification
                 // Put up a growl notification.  It will automatically fade.
                 System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
+                    _trace.writeToLog(9, "CLNotificationService.cs: TimerFiredCallback: Put up a test growl notification from the system tray.");
                     var window = SimpleIoc.Default.GetInstance<FancyBalloon>();
                     window.BalloonText = "Hello Cloud!";
                     CLGrowlNotification growlInfo = new CLGrowlNotification(window, System.Windows.Controls.Primitives.PopupAnimation.Slide, 2500);

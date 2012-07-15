@@ -61,8 +61,11 @@ namespace CloudApiPublic.Model
             }
         }
         private FileChange _changeReference = null;
-        private Func<string> GetCloudPath = null;
-        private Func<string> GetLastSyncId = null;
+        //&&&&private Func<string> GetCloudPath = null;
+        //&&&&private Func<string> GetLastSyncId = null;
+        public Func<string> GetCloudPath = null;
+        public Func<string> GetLastSyncId = null;
+        public Func<string, FileChange> FindFileChangeByPath;
 
         public void LogEvent()
         {
@@ -148,7 +151,12 @@ namespace CloudApiPublic.Model
             };
         }
 
-        public static CLEvent EventFromMDSEvent(Func<string> getLastSyncId, Func<string> getCloudPath, Dictionary<string, object> mdsEvent, SyncDirection direction)
+        public static CLEvent EventFromMDSEvent(Func<string> getLastSyncId, 
+                                Func<string> getCloudPath,
+                                Func<string, FileChange> findFileChangeByPath,
+                                Dictionary<string, 
+                                object> mdsEvent, 
+                                SyncDirection direction)            //&&&&&
         {
             // Merged 7/12/12
             // CLEvent *event = [[CLEvent alloc] init];
@@ -179,6 +187,7 @@ namespace CloudApiPublic.Model
             evt.IsMDSEvent = true;
             evt.GetLastSyncId = getLastSyncId;
             evt.GetCloudPath = getCloudPath;
+            evt.FindFileChangeByPath = findFileChangeByPath;
             
             // CLSyncHeader *syncHeader = [[CLSyncHeader alloc] init];
             // event.syncHeader = syncHeader;
@@ -196,11 +205,15 @@ namespace CloudApiPublic.Model
 
             // CLMetadata *mdsEventMetadata = [[CLMetadata alloc] initWithDictionary:[mdsEvent objectForKey:@"metadata"]];
             // event.metadata = mdsEventMetadata;
-            CLMetadata mdsEventMetadata = new CLMetadata(evt.GetLastSyncId,
-                evt.GetCloudPath,
+            CLMetadata mdsEventMetadata = new CLMetadata(evt,
                 ((JToken)mdsEvent[CLDefinitions.CLSyncEventMetadata]).ToObject<Dictionary<string, object>>(),
                 syncHeader,
                 direction);
+            //&&&&CLMetadata mdsEventMetadata = new CLMetadata(evt.GetLastSyncId,
+                //evt.GetCloudPath,
+                //((JToken)mdsEvent[CLDefinitions.CLSyncEventMetadata]).ToObject<Dictionary<string, object>>(),
+                //syncHeader,
+                //direction);
             evt.Metadata = mdsEventMetadata;
 
             // if ([event.syncHeader.action rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
