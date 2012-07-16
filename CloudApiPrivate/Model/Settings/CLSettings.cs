@@ -13,6 +13,7 @@ using System.Collections;
 using System.Collections.Generic;
 using CloudApiPrivate;
 using CloudApiPrivate.Static;
+using CloudApiPublic.Static;
 
 
 namespace CloudApiPrivate.Model.Settings
@@ -519,14 +520,14 @@ namespace CloudApiPrivate.Model.Settings
         // todo: property to track selective folders for sync in cloudFolderPath.
 
         // Others
-        private long _eid;
-        public long Eid
+        private ulong _eid;
+        public ulong Eid
         {
             get { return _eid; }
             set
             {
                 _eid = value;
-                SettingsBase.Write<long>(kEid, value);
+                SettingsBase.Write<ulong>(kEid, value);
             }
         }
 
@@ -657,7 +658,7 @@ namespace CloudApiPrivate.Model.Settings
             _cloudFolderDescriptor = null;
     
             // Index Services
-            _eid = -1;
+            _eid = (ulong)Helpers.DefaultForType(typeof(ulong));
     
             // Others
             _addCloudFolderToDock = true;
@@ -669,6 +670,7 @@ namespace CloudApiPrivate.Model.Settings
 
             // General
             int temp;
+            ulong uTemp;
             Boolean isPresent = SettingsBase.ReadIfPresent<int>(kStartCloudAppWithSystem, out temp);
             if (isPresent)
             {
@@ -851,10 +853,10 @@ namespace CloudApiPrivate.Model.Settings
             }
     
             // Index Services
-            isPresent = SettingsBase.ReadIfPresent<int>(kEid, out temp);
+            isPresent = SettingsBase.ReadIfPresent<ulong>(kEid, out uTemp);
             if (isPresent)
             {
-                _eid = temp;
+                _eid = uTemp;
             }
     
             // Others
@@ -884,7 +886,7 @@ namespace CloudApiPrivate.Model.Settings
         /// <summary>
         /// Record timestamp
         /// </summary>
-        public void RecordEventId(long eventId)
+        public void RecordEventId(ulong eventId)
         {  
             Eid = eventId;
         }

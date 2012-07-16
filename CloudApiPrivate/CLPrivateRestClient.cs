@@ -27,6 +27,7 @@ namespace CloudApiPrivate
         private HttpClient _client = null;
         private Uri _uri = null;
         private const int _CLRestClientDefaultHTTPTimeOutInterval = 180;
+        private CLTrace _trace = null;
 
         public CLPrivateRestClient()
         {
@@ -43,7 +44,7 @@ namespace CloudApiPrivate
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", "Token=\"" + Settings.Instance.Akey + "\"");
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
             _client.Timeout = TimeSpan.FromSeconds(_CLRestClientDefaultHTTPTimeOutInterval);
-
+            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -224,6 +225,7 @@ namespace CloudApiPrivate
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
 
             // Send the request asynchronously
+            _trace.writeToLog(9, "CLPrivateRestClient: SyncToCloud_withCompletionHandler_onQueue_async: Sending sync-to request to server.  json: {0}.", json);
             await _client.SendAsync(syncRequest).ContinueWith(task =>
             {
                 HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncToServer");
@@ -281,6 +283,7 @@ namespace CloudApiPrivate
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
 
             // Send the request asynchronously
+            _trace.writeToLog(9, "CLPrivateRestClient: SyncFromCloud_withCompletionHandler_onQueue_async: Sending sync-from request to server.  json: {0}.", json);
             await _client.SendAsync(syncRequest).ContinueWith(task =>
             {
                 HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncFromServer");
@@ -294,7 +297,7 @@ namespace CloudApiPrivate
         /// <param name="queue">The GCD queue on which to run the completion action.</param>
         /// <param name="task">The task continued from the request.</param>
         /// <param name="resourceErrorMessageKey">T he task continued from the request.</param>
-        private static async void HandleResponseFromServerCallbackAsync(Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue, Task<HttpResponseMessage> task,
+        private async void HandleResponseFromServerCallbackAsync(Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue, Task<HttpResponseMessage> task,
                                                                 string resourceErrorMessageKey)
         {
                 Dictionary<string, object> jsonResult = null;
@@ -307,6 +310,7 @@ namespace CloudApiPrivate
                 if (ex == null)
                 {
                     response = task.Result;
+                    _trace.writeToLog(9, "CLPrivateRestClient: HandleResponseFromServerCallbackAsync: Response from sync-from: {0}.", response.ToString());
                 }
 
                 if (ex != null)
@@ -368,8 +372,9 @@ namespace CloudApiPrivate
         /// TODO: Deprecated?
         public CLHTTPConnectionOperation UploadOperationForFile_WithStorageKey(string path, string storageKey)
         {
-            HttpRequestMessage request = null;
-            return new CLHTTPConnectionOperation(_client, request, "", isUpload: true);
+            //HttpRequestMessage request = null;
+            //return new CLHTTPConnectionOperation(_client, request, "", isUpload: true);
+            return null;
         }
 
         /// <summary>
@@ -397,16 +402,17 @@ namespace CloudApiPrivate
             //&&&&
             string methodPath = "/put_file";
 
+
             // Build the request
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, new Uri(new Uri(CLDefinitions.CLUploadDownloadServerURL), methodPath));
             request.Headers.Add("X-Ctx-Storage-Key", storageKey);
-            request.Headers.Add("Content-MD5", hash);
-            request.Headers.Add("Content-Length", size);
+            request.Headers.TransferEncodingChunked = true;
 
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
-            return new CLHTTPConnectionOperation(_client, request, path, isUpload: true);
+            _trace.writeToLog(9, "CLPrivateRestClient: StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to upload file.  Path: {0}, Request: {1}.", path, request.Headers.ToString());
+            return new CLHTTPConnectionOperation(_client, request, path, size, hash, isUpload: true);
         }
 
         /// <summary>
@@ -437,12 +443,15 @@ namespace CloudApiPrivate
 
             // Build the request
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(CLDefinitions.CLUploadDownloadServerURL), methodPath));
-            request.Headers.Add("storage_key", storageKey);
+            Dictionary<string, object> httpParms = new Dictionary<string, object>() { {"storage_key", storageKey} };
+            string json = JsonConvert.SerializeObject(httpParms, Formatting.Indented);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
-            return new CLHTTPConnectionOperation(_client, request, path, isUpload: false);
+            _trace.writeToLog(9, "CLPrivateRestClient: StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to download file.  Path: {0}, json: {1}, Request: {2}.", path, json, request.Headers.ToString());
+            return new CLHTTPConnectionOperation(_client, request, path, size, hash, isUpload: false);
         }
     }
 }

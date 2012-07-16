@@ -51,7 +51,6 @@ namespace win_client.Services.Sync
         private static List<CLEvent> _activeSyncFileQueue = null;
         private static List<CLEvent> _activeSyncFolderQueue = null;
 
-
         static DispatchQueueGeneric _com_cloud_sync_queue = null;
         static DispatchQueueGeneric get_cloud_sync_queue () {
             if (_com_cloud_sync_queue == null) {
@@ -683,6 +682,7 @@ namespace win_client.Services.Sync
                                     }
                                 },
                                 CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath,
+                                CLFSMonitoringService.Instance.MonitorAgent.FindFileChangeByPath,
                                 mdsEventDictionary,
                                 SyncDirection.To));
                             }
@@ -1227,7 +1227,7 @@ namespace win_client.Services.Sync
             }
 
             //NSNumber *eid = [NSNumber numberWithInteger:CLDotNotSaveId];
-            ulong eid = CLConstants.CLDoNotSaveId;
+            ulong eid = CLDefinitions.CLDoNotSaveId;
 
             //NSDictionary *events = [NSDictionary dictionaryWithObjectsAndKeys:@"/", CLMetadataCloudPath, sid, CLSyncID, nil];
             Dictionary<string, object> events = new Dictionary<string,object>()
@@ -1346,6 +1346,8 @@ namespace win_client.Services.Sync
                         foreach (JToken mdsEvent in mdsEvents)
                         {
                             Dictionary<string, object> mdsEventDictionary = mdsEvent.ToObject<Dictionary<string, object>>();
+
+                            // Build this new event and add it to the collection received.
                             eventsReceived.Add(CLEvent.EventFromMDSEvent(() =>
                                 {
                                     lock (CLFSMonitoringService.Instance.IndexingAgent)
@@ -1354,6 +1356,7 @@ namespace win_client.Services.Sync
                                     }
                                 },
                                 CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath,
+                                CLFSMonitoringService.Instance.MonitorAgent.FindFileChangeByPath,
                                 mdsEventDictionary,
                                 SyncDirection.From));
                         }
@@ -1363,7 +1366,7 @@ namespace win_client.Services.Sync
                         // NSDictionary *eventIds = [NSDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, sid, CLSyncID, nil];
                         Dictionary<string, object> eventIds = new Dictionary<string,object>()
                         {
-                            {CLDefinitions.CLSyncEventID, eid},
+                            {CLDefinitions.CLSyncEventID, eid.ToString()},
                             {CLDefinitions.CLSyncID, newSid}
                         };
 
@@ -1671,7 +1674,7 @@ namespace win_client.Services.Sync
 
             //// Sync finished.
             //[self saveSyncStateWithSID:[ids objectForKey:CLSyncID] andEID:[ids objectForKey:CLSyncEventID]];
-            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], Convert.ToInt64((string)ids[CLDefinitions.CLSyncEventID]));
+            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], Convert.ToUInt64((string)ids[CLDefinitions.CLSyncEventID]));
 
             //// Update UI with activity.
             //TODO: Implement this UI.
@@ -3548,7 +3551,7 @@ namespace win_client.Services.Sync
         }
 
         // - (void)saveSyncStateWithSID:(NSString *)sid andEID:(NSNumber *)eid
-        void SaveSyncStateWithSIDAndEID(string sid, long eid)
+        void SaveSyncStateWithSIDAndEID(string sid, ulong eid)
         {
             // Merged 7/4/12
             // NSLog(@"%s", __FUNCTION__);
@@ -3593,7 +3596,7 @@ namespace win_client.Services.Sync
             }
 
             // if ([sid isEqualToString:[[NSNumber numberWithInteger:CLDotNotSaveId] stringValue]] == NO) { // only save for SyncFrom Events
-            if (sid.Equals(CLConstants.CLDoNotSaveId.ToString(), StringComparison.InvariantCulture))
+            if (sid.Equals(CLDefinitions.CLDoNotSaveId.ToString(), StringComparison.InvariantCulture))
             {
                 // if (sid != nil) {
                 if (!string.IsNullOrWhiteSpace(sid))
@@ -3604,7 +3607,7 @@ namespace win_client.Services.Sync
             }
 
             // if ([eid integerValue] != [[NSNumber numberWithInteger:CLDotNotSaveId] integerValue]) { // only save for SyncTo Events
-            if (eid != CLConstants.CLDoNotSaveId)
+            if (eid != CLDefinitions.CLDoNotSaveId)
             {
                 // if (eid != nil) {
                 if (eid != 0)

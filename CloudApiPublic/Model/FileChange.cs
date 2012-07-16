@@ -1,4 +1,4 @@
-﻿//
+//
 // FileChange.cs
 // Cloud Windows
 //

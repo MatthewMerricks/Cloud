@@ -888,7 +888,8 @@ namespace SQLIndexer
                             .Take(2)
                             .ToArray();
                         // ensure a previous sync was found
-                        if (lastSyncs.Count() == 0)
+                        //&&&&if (lastSyncs.Count() == 0)
+                        if (lastSyncs.Length == 0)
                         {
                             throw new Exception("Previous sync not found for completed event");
                         }

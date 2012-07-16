@@ -20,6 +20,7 @@ using CloudApiPublic.Support;
 using CloudApiPrivate.Common;
 using CloudApiPublic.Model;
 using System.Collections.Generic;
+using System.Net.Http;
 
 
 namespace CloudApiPrivate.Static
@@ -244,18 +245,6 @@ namespace CloudApiPrivate.Static
         public static string StringByDeletingLastPathComponent(this string source)
         {
             return Path.GetFullPath(source);
-        }
-
-        /// <summary> 
-        /// Extend string.  Return equivalent of Objective C lastPathComponent.  
-        /// </summary> 
-        /// <param name="source">The source string.</param> 
-        /// <returns>string.  The last path component.</returns> 
-        /// Call like this:
-        /// myStringLastPathComponent = sourceString.LastPathComponent;
-        public static string LastPathComponent(this string source)
-        {
-            return Path.GetFileName(source);
         }
 
         /// <summary> 

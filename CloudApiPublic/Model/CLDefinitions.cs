@@ -128,7 +128,6 @@ namespace CloudApiPublic.Model
 
         // Cloud Metadata Protocol 
         public const string CLMetadataCloudPath = "path";
-        public const string CLMetadataName = "name";
         public const string CLMetadataFileHash = "file_hash";
         public const string CLMetadataFileRevision = "revision";
         public const string CLMetadataFileCreateDate = "created_date";
@@ -145,7 +144,7 @@ namespace CloudApiPublic.Model
         public const string CLMetadataStorageKey = "storage_key";
         public const string CLMetadataFileTarget = "target_path";
         public const string CLMetadataParentPath = "parent_path";
-        //public const string CLMetadataFileCAttributes = "custom_attributes";
+        public const string CLMetadataFileCAttributes = "custom_attributes";
 
         // Cloud Events
         public const string CLSyncEvent = "event";
@@ -168,6 +167,9 @@ namespace CloudApiPublic.Model
         // Sync dictionaries
         public const string CLEventKey = "event_id";
         public const string CLEventCount = "event_count";
+
+        // Invalid SID or EID
+        public const long CLDoNotSaveId = 1608198229012012;   // used with SyncTo and SyncFrom to represent sid and eid
 
     }
 }
