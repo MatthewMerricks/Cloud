@@ -19,6 +19,15 @@ namespace win_client.Services.Badging
         private static object _instanceLocker = new object();
         private static CLTrace _trace;
 
+        // True if we have a network connection to MDS
+        private bool _cloudReach;
+        public bool CloudReach
+        {
+            get { return _cloudReach; }
+            private set { _cloudReach = value; }
+        }
+        
+
         /// <summary>
         /// Access Instance to get the singleton object.
         /// Then call methods on that instance.
@@ -47,6 +56,8 @@ namespace win_client.Services.Badging
         {
             // Initialize members, etc. here (at static initialization time).
             _trace = CLTrace.Instance;
+            //TODO: Make CloudReach dynamic with network connection to MDS.
+            _cloudReach = true;
         }
 
         /// <summary>

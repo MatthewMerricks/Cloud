@@ -72,14 +72,51 @@ namespace win_client.Services.ServicesManager
                 _trace.writeToLog(1, "CLServicesManager: startCoreServices: Failed to run the shell integration support.");
             }
 
+            // Merged 7/16/12
+            //// In order, I think... GP
+    
+            //// Start Agent Monitor
+            //[[CLAgentService sharedService] beginAgentServices];  
+    
+            //// Start UI Activity Services
+            //[[CLUIActivityService sharedService] beginUIActivityService];
+
+            //// Starts Root Folder Monitoring Service
+            //[[CLCFMonitoringService sharedService] beginCloudFolderMonitoring];
+    
+            //// Start monitoring network availability
+            //[[CLNetworkMonitor sharedService] beginNetworkMonitoring];
+
+            //// Start Sync services only if we have network connection,
+            //// otherwise we will seat tight until we get internet connection.
+            //if ([[[CLNetworkMonitor sharedService] cloudReach] currentReachabilityStatus] != NotReachable) {
+
+            //    // Start Push Notification Service
+            //    [[CLNotificationServices sharedService] connectPushNotificationServer];
+            //}
+
+            //// Start File System Monitoring Service
+            //[[CLFSMonitoringService sharedService] beginFileSystemMonitoring];
+
+            //if ([[[CLNetworkMonitor sharedService] cloudReach] currentReachabilityStatus] != NotReachable) {
+            //    // Start Sync Services
+            //    [[CLSyncService sharedService] beginSyncServices];
+            //}
+
             CLBadgingService.Instance.BeginBadgingServices();
-            CLUIActivityService.Instance.BeginUIActivityService();
+            CLUIActivityService.Instance.BeginUIActivityService(); 
             CLIndexingService.Instance.StartIndexingService();
             CLNetworkMonitorService.Instance.BeginNetworkMonitoring();
             CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
             CLCFMonitoringService.Instance.BeginCloudFolderMonitoring();
-            CLSyncService.Instance.BeginSyncServices();
-            CLNotificationService.Instance.BeginNotificationService();
+            if (CLNetworkMonitorService.Instance.CloudReach)
+            {
+                CLSyncService.Instance.BeginSyncServices();
+            }
+            if (CLNetworkMonitorService.Instance.CloudReach)
+            {
+                CLNotificationService.Instance.ConnectPushNotificationServer();
+            }
         }
 
         public void StopCoreServices()

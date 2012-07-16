@@ -31,6 +31,7 @@ namespace win_client.Common
             Message_BalloonTooltipSystemTrayNotification,
             Message_GrowlSystemTrayNotification,
             Home_GetClearPasswordField,
+            Message_DidReceivePushNotificationFromServer,
         }
 
         public static class CreateNewAccount_GetClearPasswordField
@@ -147,6 +148,19 @@ namespace win_client.Common
             public static void Register(object recipient, Action<CLGrowlNotification> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.Message_GrowlSystemTrayNotification, action);
+            }
+        }
+
+        public static class Message_DidReceivePushNotificationFromServer
+        {
+            public static void Send(string msg)
+            {
+                Messenger.Default.Send(msg, MessageTypes.Message_DidReceivePushNotificationFromServer);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_DidReceivePushNotificationFromServer, action);
             }
         }
     }
