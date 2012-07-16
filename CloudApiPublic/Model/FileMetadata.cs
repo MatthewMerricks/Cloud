@@ -22,6 +22,18 @@ namespace CloudApiPublic.Model
         /// Section of comparable properties used to determine uniqueness of a file change
         /// </summary>
         public FileMetadataHashableProperties HashableProperties { get; set; }
+        /// <summary>
+        /// For files which are valid shortcuts, this is the target of the shortcut
+        /// </summary>
+        public FilePath LinkTargetPath { get; set; }
+        /// <summary>
+        /// Revision from server to identify file change version
+        /// </summary>
+        public string Revision { get; set; }
+        /// <summary>
+        /// Storage key to identify server location for MDS events
+        /// </summary>
+        public string StorageKey { get; set; }
     }
     /// <summary>
     /// Comparable properties used to determine uniqueness of a file change

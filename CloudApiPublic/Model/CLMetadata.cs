@@ -166,11 +166,12 @@ namespace CloudApiPublic.Model
         {
             get
             {
-                if (this.ChangeReference == null)
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null)
                 {
                     return null;
                 }
-                return this.ChangeReference.StorageKey;
+                return this.ChangeReference.Metadata.StorageKey;
             }
         }
         public string LastEventID

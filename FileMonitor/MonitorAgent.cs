@@ -15,9 +15,9 @@ using System.Threading.Tasks;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using System.Globalization;
+using System.Security.Cryptography;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
 using System.Xml.Linq;
-using System.Security.Cryptography;
 
 namespace FileMonitor
 {

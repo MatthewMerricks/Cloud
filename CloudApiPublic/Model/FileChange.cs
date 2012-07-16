@@ -41,15 +41,7 @@ namespace CloudApiPublic.Model
         /// <summary>
         /// Event ID
         /// </summary>
-        public int EventId { get; set; }
-        /// <summary>
-        /// For files which are valid shortcuts, this is the target of the shortcut
-        /// </summary>
-        public FilePath LinkTargetPath { get; set; }
-        /// <summary>
-        /// Revision from server to identify file change version
-        /// </summary>
-        public string Revision { get; set; }
+        public long EventId { get; set; }
         /// <summary>
         /// Direction of sync (Sync To or Sync From),
         /// defaults to "To"
@@ -66,10 +58,6 @@ namespace CloudApiPublic.Model
             }
         }
         private SyncDirection _direction = SyncDirection.To;
-        /// <summary>
-        /// Storage key to identify server location for MDS events
-        /// </summary>
-        public string StorageKey { get; set; }
 
         /// <summary>
         /// Boolean set when already indexed events are requeued in the FileMonitor,

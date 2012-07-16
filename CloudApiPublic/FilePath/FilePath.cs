@@ -167,6 +167,26 @@ namespace CloudApiPublic.Model
             return null;
         }
 
+        public static string GetRelativePath(FilePath fullPath, FilePath relativeRoot)
+        {
+            if (fullPath == null)
+            {
+                return null;
+            }
+            FilePath overlappingRoot = FilePath.FindOverlappingPath(fullPath, relativeRoot);
+            if (overlappingRoot == null
+                || !FilePathComparer.Instance.Equals(relativeRoot, overlappingRoot))
+            {
+                return fullPath.ToString();
+            }
+            return fullPath.ToString().Substring(overlappingRoot.ToString().Length);
+        }
+
+        public string GetRelativePath(FilePath relativeRoot)
+        {
+            return GetRelativePath(this, relativeRoot);
+        }
+
         /// <summary>
         /// Returns the overlap of current path with another path, if any
         /// </summary>

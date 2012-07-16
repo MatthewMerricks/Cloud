@@ -1,11 +1,11 @@
 ﻿CREATE TABLE [Events]
 (
-	[EventId] int IDENTITY(1, 1) NOT NULL,
-	[SyncCounter] int NULL,
+	[EventId] bigint IDENTITY(1, 1) NOT NULL,
+	[SyncCounter] bigint NULL,
 	[FileChangeTypeCategoryId] int NOT NULL CHECK ([FileChangeTypeCategoryId] = 0 /* category FileChangeTypes must equal 0 */),
 	[FileChangeTypeEnumId] int NOT NULL,
 	[PreviousPath] nvarchar(max) COLLATE Latin1_General_CS_AS NULL CHECK([PreviousPath] <> ''),
-	[FileSystemObjectId] int NOT NULL,
+	[FileSystemObjectId] bigint NOT NULL,
 	[SyncFrom] bit NOT NULL,/* as opposed to SyncTo */
 	CONSTRAINT [PK_Events] PRIMARY KEY NONCLUSTERED ([EventId] ASC),
 	CONSTRAINT [FK_SyncCounter_SyncCounter] FOREIGN KEY ([SyncCounter]) REFERENCES [Syncs] ([SyncCounter]),

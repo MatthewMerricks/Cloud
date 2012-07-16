@@ -4,13 +4,13 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="6ab4e15bfe5d44bf8c45b06fc54d9a6c" Name="Diagram1">
-        <EntityTypeShape EntityType="SQLIndexer.EnumCategory" Width="1.5" PointX="1.5" PointY="9.125" IsExpanded="true" />
-        <EntityTypeShape EntityType="SQLIndexer.SQLEnum" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="SQLIndexer.Event" Width="1.5" PointX="3" PointY="3.75" IsExpanded="true" />
+      <Diagram DiagramId="0baf6697c6ad40498d70cade682d3dfb" Name="Diagram1">
+        <EntityTypeShape EntityType="SQLIndexer.EnumCategory" Width="1.5" PointX="1.5" PointY="11.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="SQLIndexer.SQLEnum" Width="1.5" PointX="0.75" PointY="8" IsExpanded="true" />
+        <EntityTypeShape EntityType="SQLIndexer.Event" Width="1.5" PointX="3" PointY="3.875" IsExpanded="true" />
         <EntityTypeShape EntityType="SQLIndexer.FileSystemObject" Width="1.5" PointX="0.75" PointY="3.625" IsExpanded="true" />
-        <EntityTypeShape EntityType="SQLIndexer.Sync" Width="1.5" PointX="0.75" PointY="12.5" IsExpanded="true" />
-        <EntityTypeShape EntityType="SQLIndexer.SyncState" Width="1.5" PointX="6" PointY="3.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="SQLIndexer.Sync" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="SQLIndexer.SyncState" Width="1.5" PointX="6" PointY="4.25" IsExpanded="true" />
         <AssociationConnector Association="SQLIndexer.FK_EnumCategoryId_EnumCategoryId" ManuallyRouted="false" />
         <AssociationConnector Association="SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId" ManuallyRouted="false" />
         <AssociationConnector Association="SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId" ManuallyRouted="false" />

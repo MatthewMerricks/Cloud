@@ -359,7 +359,7 @@ namespace SQLIndexer
         /// <param name="fileChangeTypeEnumId">Initial value of the FileChangeTypeEnumId property.</param>
         /// <param name="fileSystemObjectId">Initial value of the FileSystemObjectId property.</param>
         /// <param name="syncFrom">Initial value of the SyncFrom property.</param>
-        public static Event CreateEvent(global::System.Int32 eventId, global::System.Int32 fileChangeTypeCategoryId, global::System.Int32 fileChangeTypeEnumId, global::System.Int32 fileSystemObjectId, global::System.Boolean syncFrom)
+        public static Event CreateEvent(global::System.Int64 eventId, global::System.Int32 fileChangeTypeCategoryId, global::System.Int32 fileChangeTypeEnumId, global::System.Int64 fileSystemObjectId, global::System.Boolean syncFrom)
         {
             Event @event = new Event();
             @event.EventId = eventId;
@@ -379,7 +379,7 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [DataMemberAttribute()]
-        public global::System.Int32 EventId
+        public global::System.Int64 EventId
         {
             get
             {
@@ -397,8 +397,8 @@ namespace SQLIndexer
                 }
             }
         }
-        private global::System.Int32 _EventId;
-        partial void OnEventIdChanging(global::System.Int32 value);
+        private global::System.Int64 _EventId;
+        partial void OnEventIdChanging(global::System.Int64 value);
         partial void OnEventIdChanged();
     
         /// <summary>
@@ -406,7 +406,7 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
         [DataMemberAttribute()]
-        public Nullable<global::System.Int32> SyncCounter
+        public Nullable<global::System.Int64> SyncCounter
         {
             get
             {
@@ -421,8 +421,8 @@ namespace SQLIndexer
                 OnSyncCounterChanged();
             }
         }
-        private Nullable<global::System.Int32> _SyncCounter;
-        partial void OnSyncCounterChanging(Nullable<global::System.Int32> value);
+        private Nullable<global::System.Int64> _SyncCounter;
+        partial void OnSyncCounterChanging(Nullable<global::System.Int64> value);
         partial void OnSyncCounterChanged();
     
         /// <summary>
@@ -502,7 +502,7 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
         [DataMemberAttribute()]
-        public global::System.Int32 FileSystemObjectId
+        public global::System.Int64 FileSystemObjectId
         {
             get
             {
@@ -517,8 +517,8 @@ namespace SQLIndexer
                 OnFileSystemObjectIdChanged();
             }
         }
-        private global::System.Int32 _FileSystemObjectId;
-        partial void OnFileSystemObjectIdChanging(global::System.Int32 value);
+        private global::System.Int64 _FileSystemObjectId;
+        partial void OnFileSystemObjectIdChanging(global::System.Int64 value);
         partial void OnFileSystemObjectIdChanged();
     
         /// <summary>
@@ -683,7 +683,7 @@ namespace SQLIndexer
         /// <param name="fileSystemObjectId">Initial value of the FileSystemObjectId property.</param>
         /// <param name="path">Initial value of the Path property.</param>
         /// <param name="isFolder">Initial value of the IsFolder property.</param>
-        public static FileSystemObject CreateFileSystemObject(global::System.Int32 fileSystemObjectId, global::System.String path, global::System.Boolean isFolder)
+        public static FileSystemObject CreateFileSystemObject(global::System.Int64 fileSystemObjectId, global::System.String path, global::System.Boolean isFolder)
         {
             FileSystemObject fileSystemObject = new FileSystemObject();
             fileSystemObject.FileSystemObjectId = fileSystemObjectId;
@@ -701,7 +701,7 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [DataMemberAttribute()]
-        public global::System.Int32 FileSystemObjectId
+        public global::System.Int64 FileSystemObjectId
         {
             get
             {
@@ -719,8 +719,8 @@ namespace SQLIndexer
                 }
             }
         }
-        private global::System.Int32 _FileSystemObjectId;
-        partial void OnFileSystemObjectIdChanging(global::System.Int32 value);
+        private global::System.Int64 _FileSystemObjectId;
+        partial void OnFileSystemObjectIdChanging(global::System.Int64 value);
         partial void OnFileSystemObjectIdChanged();
     
         /// <summary>
@@ -866,6 +866,78 @@ namespace SQLIndexer
         private Nullable<global::System.Int32> _PathChecksum;
         partial void OnPathChecksumChanging(Nullable<global::System.Int32> value);
         partial void OnPathChecksumChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Revision
+        {
+            get
+            {
+                return _Revision;
+            }
+            set
+            {
+                OnRevisionChanging(value);
+                ReportPropertyChanging("Revision");
+                _Revision = StructuralObject.SetValidValue(value, true, "Revision");
+                ReportPropertyChanged("Revision");
+                OnRevisionChanged();
+            }
+        }
+        private global::System.String _Revision;
+        partial void OnRevisionChanging(global::System.String value);
+        partial void OnRevisionChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String StorageKey
+        {
+            get
+            {
+                return _StorageKey;
+            }
+            set
+            {
+                OnStorageKeyChanging(value);
+                ReportPropertyChanging("StorageKey");
+                _StorageKey = StructuralObject.SetValidValue(value, true, "StorageKey");
+                ReportPropertyChanged("StorageKey");
+                OnStorageKeyChanged();
+            }
+        }
+        private global::System.String _StorageKey;
+        partial void OnStorageKeyChanging(global::System.String value);
+        partial void OnStorageKeyChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String TargetPath
+        {
+            get
+            {
+                return _TargetPath;
+            }
+            set
+            {
+                OnTargetPathChanging(value);
+                ReportPropertyChanging("TargetPath");
+                _TargetPath = StructuralObject.SetValidValue(value, true, "TargetPath");
+                ReportPropertyChanged("TargetPath");
+                OnTargetPathChanged();
+            }
+        }
+        private global::System.String _TargetPath;
+        partial void OnTargetPathChanging(global::System.String value);
+        partial void OnTargetPathChanged();
 
         #endregion
 
@@ -1132,7 +1204,7 @@ namespace SQLIndexer
         /// <param name="syncId">Initial value of the SyncId property.</param>
         /// <param name="syncCounter">Initial value of the SyncCounter property.</param>
         /// <param name="rootPath">Initial value of the RootPath property.</param>
-        public static Sync CreateSync(global::System.String syncId, global::System.Int32 syncCounter, global::System.String rootPath)
+        public static Sync CreateSync(global::System.String syncId, global::System.Int64 syncCounter, global::System.String rootPath)
         {
             Sync sync = new Sync();
             sync.SyncId = syncId;
@@ -1174,7 +1246,7 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [DataMemberAttribute()]
-        public global::System.Int32 SyncCounter
+        public global::System.Int64 SyncCounter
         {
             get
             {
@@ -1192,8 +1264,8 @@ namespace SQLIndexer
                 }
             }
         }
-        private global::System.Int32 _SyncCounter;
-        partial void OnSyncCounterChanging(global::System.Int32 value);
+        private global::System.Int64 _SyncCounter;
+        partial void OnSyncCounterChanging(global::System.Int64 value);
         partial void OnSyncCounterChanged();
     
         /// <summary>
@@ -1288,7 +1360,7 @@ namespace SQLIndexer
         /// <param name="syncStateId">Initial value of the SyncStateId property.</param>
         /// <param name="syncCounter">Initial value of the SyncCounter property.</param>
         /// <param name="fileSystemObjectId">Initial value of the FileSystemObjectId property.</param>
-        public static SyncState CreateSyncState(global::System.Int32 syncStateId, global::System.Int32 syncCounter, global::System.Int32 fileSystemObjectId)
+        public static SyncState CreateSyncState(global::System.Int64 syncStateId, global::System.Int64 syncCounter, global::System.Int64 fileSystemObjectId)
         {
             SyncState syncState = new SyncState();
             syncState.SyncStateId = syncStateId;
@@ -1306,7 +1378,7 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [DataMemberAttribute()]
-        public global::System.Int32 SyncStateId
+        public global::System.Int64 SyncStateId
         {
             get
             {
@@ -1324,8 +1396,8 @@ namespace SQLIndexer
                 }
             }
         }
-        private global::System.Int32 _SyncStateId;
-        partial void OnSyncStateIdChanging(global::System.Int32 value);
+        private global::System.Int64 _SyncStateId;
+        partial void OnSyncStateIdChanging(global::System.Int64 value);
         partial void OnSyncStateIdChanged();
     
         /// <summary>
@@ -1333,7 +1405,7 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
         [DataMemberAttribute()]
-        public global::System.Int32 SyncCounter
+        public global::System.Int64 SyncCounter
         {
             get
             {
@@ -1348,8 +1420,8 @@ namespace SQLIndexer
                 OnSyncCounterChanged();
             }
         }
-        private global::System.Int32 _SyncCounter;
-        partial void OnSyncCounterChanging(global::System.Int32 value);
+        private global::System.Int64 _SyncCounter;
+        partial void OnSyncCounterChanging(global::System.Int64 value);
         partial void OnSyncCounterChanged();
     
         /// <summary>
@@ -1357,7 +1429,7 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
         [DataMemberAttribute()]
-        public global::System.Int32 FileSystemObjectId
+        public global::System.Int64 FileSystemObjectId
         {
             get
             {
@@ -1372,8 +1444,8 @@ namespace SQLIndexer
                 OnFileSystemObjectIdChanged();
             }
         }
-        private global::System.Int32 _FileSystemObjectId;
-        partial void OnFileSystemObjectIdChanging(global::System.Int32 value);
+        private global::System.Int64 _FileSystemObjectId;
+        partial void OnFileSystemObjectIdChanging(global::System.Int64 value);
         partial void OnFileSystemObjectIdChanged();
     
         /// <summary>
@@ -1381,7 +1453,7 @@ namespace SQLIndexer
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
         [DataMemberAttribute()]
-        public Nullable<global::System.Int32> ServerLinkedFileSystemObjectId
+        public Nullable<global::System.Int64> ServerLinkedFileSystemObjectId
         {
             get
             {
@@ -1396,8 +1468,8 @@ namespace SQLIndexer
                 OnServerLinkedFileSystemObjectIdChanged();
             }
         }
-        private Nullable<global::System.Int32> _ServerLinkedFileSystemObjectId;
-        partial void OnServerLinkedFileSystemObjectIdChanging(Nullable<global::System.Int32> value);
+        private Nullable<global::System.Int64> _ServerLinkedFileSystemObjectId;
+        partial void OnServerLinkedFileSystemObjectIdChanging(Nullable<global::System.Int64> value);
         partial void OnServerLinkedFileSystemObjectIdChanged();
 
         #endregion

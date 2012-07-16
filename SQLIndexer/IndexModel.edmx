@@ -1,19 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
   <!--
-  //
-  // IndexModel.edmx
-  // Cloud Windows
-  //
-  // Created By DavidBruck.
-  // Copyright (c) Cloud.com. All rights reserved.
+    IndexModel.edmx
+    Cloud Windows
+
+    Created By DavidBruck.
+    Copyright (c) Cloud.com. All rights reserved.
   -->
-  
   <!-- EF Runtime content -->
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-    <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+      <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityContainer Name="SQLIndexerStoreContainer">
           <EntitySet Name="EnumCategories" EntityType="SQLIndexer.Store.EnumCategories" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Enums" EntityType="SQLIndexer.Store.Enums" store:Type="Tables" Schema="dbo" />
@@ -70,42 +68,45 @@
           <Key>
             <PropertyRef Name="EventId" />
           </Key>
-          <Property Name="EventId" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
-          <Property Name="SyncCounter" Type="int" />
+          <Property Name="EventId" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="SyncCounter" Type="bigint" />
           <Property Name="FileChangeTypeCategoryId" Type="int" Nullable="false" />
           <Property Name="FileChangeTypeEnumId" Type="int" Nullable="false" />
           <Property Name="PreviousPath" Type="nvarchar(max)" />
-          <Property Name="FileSystemObjectId" Type="int" Nullable="false" />
+          <Property Name="FileSystemObjectId" Type="bigint" Nullable="false" />
           <Property Name="SyncFrom" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="FileSystemObjects">
           <Key>
             <PropertyRef Name="FileSystemObjectId" />
           </Key>
-          <Property Name="FileSystemObjectId" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="FileSystemObjectId" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="Path" Type="nvarchar(max)" Nullable="false" />
           <Property Name="LastTime" Type="datetime2" />
           <Property Name="CreationTime" Type="datetime2" />
           <Property Name="IsFolder" Type="bit" Nullable="false" />
           <Property Name="Size" Type="bigint" />
           <Property Name="PathChecksum" Type="int" StoreGeneratedPattern="Computed" />
+          <Property Name="Revision" Type="nvarchar(max)" />
+          <Property Name="StorageKey" Type="nvarchar(max)" />
+          <Property Name="TargetPath" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="Syncs">
           <Key>
             <PropertyRef Name="SyncCounter" />
           </Key>
           <Property Name="SyncId" Type="nvarchar" Nullable="false" MaxLength="450" />
-          <Property Name="SyncCounter" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="SyncCounter" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="RootPath" Type="nvarchar(max)" Nullable="false" />
         </EntityType>
         <EntityType Name="SyncStates">
           <Key>
             <PropertyRef Name="SyncStateId" />
           </Key>
-          <Property Name="SyncStateId" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
-          <Property Name="SyncCounter" Type="int" Nullable="false" />
-          <Property Name="FileSystemObjectId" Type="int" Nullable="false" />
-          <Property Name="ServerLinkedFileSystemObjectId" Type="int" />
+          <Property Name="SyncStateId" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="SyncCounter" Type="bigint" Nullable="false" />
+          <Property Name="FileSystemObjectId" Type="bigint" Nullable="false" />
+          <Property Name="ServerLinkedFileSystemObjectId" Type="bigint" />
         </EntityType>
         <Association Name="FK_EnumCategoryId_EnumCategoryId">
           <End Role="EnumCategories" Type="SQLIndexer.Store.EnumCategories" Multiplicity="1" />
@@ -193,7 +194,8 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-      </Schema></edmx:StorageModels>
+      </Schema>
+    </edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="SQLIndexer" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -256,38 +258,41 @@
           <Key>
             <PropertyRef Name="EventId" />
           </Key>
-          <Property Name="EventId" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
-          <Property Name="SyncCounter" Type="Int32" />
+          <Property Name="EventId" Type="Int64" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="SyncCounter" Type="Int64" />
           <Property Name="FileChangeTypeCategoryId" Type="Int32" Nullable="false" />
           <Property Name="FileChangeTypeEnumId" Type="Int32" Nullable="false" />
           <Property Name="PreviousPath" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
-          <Property Name="FileSystemObjectId" Type="Int32" Nullable="false" />
+          <Property Name="FileSystemObjectId" Type="Int64" Nullable="false" />
+          <Property Name="SyncFrom" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="Enum" Relationship="SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId" FromRole="Events" ToRole="Enums" />
           <NavigationProperty Name="FileSystemObject" Relationship="SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId" FromRole="Events" ToRole="FileSystemObjects" />
           <NavigationProperty Name="Sync" Relationship="SQLIndexer.FK_SyncCounter_SyncCounter" FromRole="Events" ToRole="Syncs" />
-          <Property Type="Boolean" Name="SyncFrom" Nullable="false" />
         </EntityType>
         <EntityType Name="FileSystemObject">
           <Key>
             <PropertyRef Name="FileSystemObjectId" />
           </Key>
-          <Property Name="FileSystemObjectId" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="FileSystemObjectId" Type="Int64" Nullable="false" p1:StoreGeneratedPattern="Identity" />
           <Property Name="Path" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <Property Name="LastTime" Type="DateTime" Precision="7" />
           <Property Name="CreationTime" Type="DateTime" Precision="7" />
           <Property Name="IsFolder" Type="Boolean" Nullable="false" />
           <Property Name="Size" Type="Int64" />
+          <Property Name="PathChecksum" Type="Int32" p1:StoreGeneratedPattern="Computed" />
+          <Property Name="Revision" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="StorageKey" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="TargetPath" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="Events" Relationship="SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="Events" />
           <NavigationProperty Name="SyncStates" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
           <NavigationProperty Name="ServerLinkedSyncStates" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
-          <Property Type="Int32" Name="PathChecksum" annotation:StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="Sync">
           <Key>
             <PropertyRef Name="SyncCounter" />
           </Key>
           <Property Name="SyncId" Type="String" Nullable="false" MaxLength="450" Unicode="true" FixedLength="false" />
-          <Property Name="SyncCounter" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="SyncCounter" Type="Int64" Nullable="false" p1:StoreGeneratedPattern="Identity" />
           <Property Name="RootPath" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="Events" Relationship="SQLIndexer.FK_SyncCounter_SyncCounter" FromRole="Syncs" ToRole="Events" />
           <NavigationProperty Name="SyncStates" Relationship="SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter" FromRole="Syncs" ToRole="SyncStates" />
@@ -296,10 +301,10 @@
           <Key>
             <PropertyRef Name="SyncStateId" />
           </Key>
-          <Property Name="SyncStateId" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
-          <Property Name="SyncCounter" Type="Int32" Nullable="false" />
-          <Property Name="FileSystemObjectId" Type="Int32" Nullable="false" />
-          <Property Name="ServerLinkedFileSystemObjectId" Type="Int32" />
+          <Property Name="SyncStateId" Type="Int64" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="SyncCounter" Type="Int64" Nullable="false" />
+          <Property Name="FileSystemObjectId" Type="Int64" Nullable="false" />
+          <Property Name="ServerLinkedFileSystemObjectId" Type="Int64" />
           <NavigationProperty Name="FileSystemObject" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
           <NavigationProperty Name="ServerLinkedFileSystemObject" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
           <NavigationProperty Name="Sync" Relationship="SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter" FromRole="SyncStates" ToRole="Syncs" />
@@ -416,26 +421,29 @@
           <EntitySetMapping Name="Events">
             <EntityTypeMapping TypeName="SQLIndexer.Event">
               <MappingFragment StoreEntitySet="Events">
-                <ScalarProperty Name="SyncFrom" ColumnName="SyncFrom" />
                 <ScalarProperty Name="EventId" ColumnName="EventId" />
                 <ScalarProperty Name="SyncCounter" ColumnName="SyncCounter" />
                 <ScalarProperty Name="FileChangeTypeCategoryId" ColumnName="FileChangeTypeCategoryId" />
                 <ScalarProperty Name="FileChangeTypeEnumId" ColumnName="FileChangeTypeEnumId" />
                 <ScalarProperty Name="PreviousPath" ColumnName="PreviousPath" />
                 <ScalarProperty Name="FileSystemObjectId" ColumnName="FileSystemObjectId" />
+                <ScalarProperty Name="SyncFrom" ColumnName="SyncFrom" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
           <EntitySetMapping Name="FileSystemObjects">
             <EntityTypeMapping TypeName="SQLIndexer.FileSystemObject">
               <MappingFragment StoreEntitySet="FileSystemObjects">
-                <ScalarProperty Name="PathChecksum" ColumnName="PathChecksum" />
                 <ScalarProperty Name="FileSystemObjectId" ColumnName="FileSystemObjectId" />
                 <ScalarProperty Name="Path" ColumnName="Path" />
                 <ScalarProperty Name="LastTime" ColumnName="LastTime" />
                 <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
                 <ScalarProperty Name="IsFolder" ColumnName="IsFolder" />
                 <ScalarProperty Name="Size" ColumnName="Size" />
+                <ScalarProperty Name="PathChecksum" ColumnName="PathChecksum" />
+                <ScalarProperty Name="Revision" ColumnName="Revision" />
+                <ScalarProperty Name="StorageKey" ColumnName="StorageKey" />
+                <ScalarProperty Name="TargetPath" ColumnName="TargetPath" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
