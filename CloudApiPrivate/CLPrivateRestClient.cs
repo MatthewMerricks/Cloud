@@ -12,6 +12,8 @@ using CloudApiPrivate.Model;
 using CloudApiPublic.Model;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
+using System.IO;
+using CloudApiPublic.Static;
 
 
 namespace CloudApiPrivate
@@ -173,7 +175,8 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync to the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue)
+        public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(string sid, KeyValuePair<FileChange, FileStream>[] processedChanges, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue, Func<string> getCloudDirectory)
+        //public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue)
         {
             // Merged 7/3/12
             //- (void)syncToCloud:(NSDictionary *)metadata completionHandler:(void (^)(NSDictionary*, NSError *))handler onQueue:(dispatch_queue_t)queue
@@ -213,6 +216,10 @@ namespace CloudApiPrivate
             //}
 
             string methodPath = String.Format("{0}?user_id={1}", "/sync/to_cloud", Settings.Instance.Uuid);
+            Dictionary<string, object> metadata = MetadataDictionaryFromFileChanges(sid,
+                processedChanges
+                    .Select(currentChange => currentChange.Key),
+                getCloudDirectory);
             string json = JsonConvert.SerializeObject(metadata, Formatting.Indented);
 
             // Build the request
@@ -231,7 +238,122 @@ namespace CloudApiPrivate
                 HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncToServer");
             });
         }
-       
+
+        /// <summary>
+        /// Builds a Dictionary of metadata for converting to JSON for communication from FileChanges
+        /// </summary>
+        /// <param name="changesForDictionary">Enumerable FileChanges for building dictionary</param>
+        /// <returns>Returns dictionary for building metadata JSON</returns>
+        public Dictionary<string, object> MetadataDictionaryFromFileChanges(string sid, IEnumerable<FileChange> changesForDictionary, Func<string> getCloudDirectory)
+        {
+            FileChange[] changesForDictionaryArray = changesForDictionary.ToArray();
+            Dictionary<string, object>[] eventsArray = new Dictionary<string, object>[changesForDictionaryArray.Length];
+
+            for (int currentChangeIndex = 0; currentChangeIndex < changesForDictionaryArray.Length; currentChangeIndex++)
+            {
+                Dictionary<string, object> evt;
+                if (changesForDictionaryArray[currentChangeIndex].Metadata != null)
+                {
+                    // Build an event to represent this change.
+                    string action = "";
+                    switch (changesForDictionaryArray[currentChangeIndex].Type)
+                    {
+                        case FileChangeType.Created:
+                            if (changesForDictionaryArray[currentChangeIndex].Metadata.HashableProperties.IsFolder)
+                            {
+                                action = CLDefinitions.CLEventTypeAddFolder;
+                            }
+                            else
+                            {
+                                action = CLDefinitions.CLEventTypeAddFile;
+                            }
+                            break;
+                        case FileChangeType.Deleted:
+                            if (changesForDictionaryArray[currentChangeIndex].Metadata.HashableProperties.IsFolder)
+                            {
+                                action = CLDefinitions.CLEventTypeDeleteFolder;
+                            }
+                            else
+                            {
+                                action = CLDefinitions.CLEventTypeDeleteFile;
+                            }
+                            break;
+                        case FileChangeType.Modified:
+                            action = CLDefinitions.CLEventTypeModifyFile;
+                            break;
+                        case FileChangeType.Renamed:
+                            if (changesForDictionaryArray[currentChangeIndex].Metadata.HashableProperties.IsFolder)
+                            {
+                                action = CLDefinitions.CLEventTypeRenameFolder;
+                            }
+                            else
+                            {
+                                action = CLDefinitions.CLEventTypeRenameFile;
+                            }
+                            break;
+                    }
+
+                    // Build the metadata dictionary
+                    Dictionary<string, object> metadata = new Dictionary<string, object>();
+
+                    FilePath cloudPath = getCloudDirectory();
+                    string relativeNewPath = FilePath.GetRelativePath(changesForDictionaryArray[currentChangeIndex].NewPath, cloudPath);
+                    string relativeOldPath = FilePath.GetRelativePath(changesForDictionaryArray[currentChangeIndex].OldPath, cloudPath);
+
+                    // Format the time like "2012-03-20T19:50:25Z"
+                    metadata.Add(CLDefinitions.CLMetadataFileCreateDate, changesForDictionaryArray[currentChangeIndex].Metadata.HashableProperties.CreationTime.ToString("o"));
+                    metadata.Add(CLDefinitions.CLMetadataFileModifiedDate, changesForDictionaryArray[currentChangeIndex].Metadata.HashableProperties.LastTime.ToString("o"));
+                    metadata.Add(CLDefinitions.CLMetadataFileSize, changesForDictionaryArray[currentChangeIndex].Metadata.HashableProperties.Size);
+                    metadata.Add(CLDefinitions.CLMetadataFromPath, relativeOldPath);
+                    metadata.Add(CLDefinitions.CLMetadataCloudPath, relativeNewPath);
+                    metadata.Add(CLDefinitions.CLMetadataToPath, (changesForDictionaryArray[currentChangeIndex].Type == FileChangeType.Renamed ? relativeNewPath : string.Empty));//String.Empty);       // not used?
+                    string md5;
+                    changesForDictionaryArray[currentChangeIndex].GetMD5LowercaseString(out md5);
+                    metadata.Add(CLDefinitions.CLMetadataFileHash, md5);
+                    metadata.Add(CLDefinitions.CLMetadataFileIsDirectory, changesForDictionaryArray[currentChangeIndex].Metadata.HashableProperties.IsFolder);
+                    bool isLink = false;
+                    if (changesForDictionaryArray[currentChangeIndex].Metadata.LinkTargetPath != null
+                        && !string.IsNullOrWhiteSpace(changesForDictionaryArray[currentChangeIndex].Metadata.LinkTargetPath.ToString()))
+                    {
+                        isLink = true;
+                    }
+                    metadata.Add(CLDefinitions.CLMetadataFileIsLink, isLink);
+                    metadata.Add(CLDefinitions.CLMetadataFileRevision, changesForDictionaryArray[currentChangeIndex].Metadata.Revision);
+                    metadata.Add(CLDefinitions.CLMetadataFileCAttributes, String.Empty);
+                    metadata.Add(CLDefinitions.CLMetadataItemStorageKey, changesForDictionaryArray[currentChangeIndex].Metadata.StorageKey);
+                    //metadata.Add(CLDefinitions.CLMetadataLastEventID, changesForDictionaryArray[currentChangeIndex].EventId.ToString()); the client id is NOT the server's last_event_id; the client's EventId is passed below
+
+                    metadata.Add(CLDefinitions.CLMetadataFileTarget, isLink ? changesForDictionaryArray[currentChangeIndex].Metadata.LinkTargetPath.ToString().Replace('\\', '/') : string.Empty);
+
+
+                    // Force server forward slash normalization
+
+                    evt = new Dictionary<string, object>()
+                    {
+                    // Add this event and its metadata to the events dictionary
+                        { CLDefinitions.CLSyncEvent, action },             // just one in the group for now.
+
+                        // This one is new, added to identify client events upon server response (client EventId is passed up and back down for each event)
+                        { CLDefinitions.CLClientEventId, changesForDictionaryArray[currentChangeIndex].EventId.ToString() },
+
+                        { CLDefinitions.CLSyncEventMetadata, metadata }
+                    };
+                }
+                else
+                {
+                    evt = new Dictionary<string, object>();
+                }
+                // Add the event to the array.
+                eventsArray[currentChangeIndex] = evt;
+            }
+
+            return new Dictionary<string, object>()
+            {
+                { CLDefinitions.CLSyncEvents, eventsArray },
+                { CLDefinitions.CLSyncID, sid }
+            };
+        }
+
         /// <summary>
         /// Sync from cloud. When this request completes the server will send back the actions and metadata in a block for you to handle.
         /// </summary>

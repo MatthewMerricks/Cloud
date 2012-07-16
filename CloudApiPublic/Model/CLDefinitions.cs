@@ -148,6 +148,7 @@ namespace CloudApiPublic.Model
 
         // Cloud Events
         public const string CLSyncEvent = "event";
+        public const string CLClientEventId = "client_reference";
         public const string CLSyncEventStatus = "status";
         public const string CLSyncEvents = "events";
         public const string CLSyncID = "sid";

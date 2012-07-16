@@ -80,7 +80,7 @@ namespace win_client.Services.FileSystemMonitoring
             MonitorAgent monitorToSet;
             CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath,
                 out monitorToSet,
-                CLSyncService.Instance.SyncFromFileSystemMonitorWithGroupedUserEventsCallback,
+                CLSyncService.Instance.SyncFromFileSystemMonitor,
                 IndexingAgent.MergeEventIntoDatabase);
             if (monitorToSet != null)
                 this.MonitorAgent = monitorToSet;

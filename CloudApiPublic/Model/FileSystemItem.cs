@@ -45,11 +45,12 @@ namespace CloudApiPublic.Model
         {
             get
             {
-                if (this.ChangeReference == null)
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null)
                 {
                     return null;
                 }
-                return this.ChangeReference.Revision;
+                return this.ChangeReference.Metadata.Revision;
             }
         }
         public string CreateDate
@@ -118,11 +119,12 @@ namespace CloudApiPublic.Model
         {
             get
             {
-                if (this.ChangeReference == null)
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null)
                 {
-                    throw new NullReferenceException("ChangeReference cannot be null");
+                    throw new NullReferenceException("Neither ChangeReference nor its Metadata property can be null");
                 }
-                return this.ChangeReference.LinkTargetPath != null;
+                return this.ChangeReference.Metadata.LinkTargetPath != null;
             }
         }
         public bool IsPending
@@ -150,11 +152,12 @@ namespace CloudApiPublic.Model
             get
             {
                 if (this.ChangeReference == null
-                    || this.ChangeReference.LinkTargetPath == null)
+                    || this.ChangeReference.Metadata == null
+                    || this.ChangeReference.Metadata.LinkTargetPath == null)
                 {
                     return null;
                 }
-                return this.ChangeReference.LinkTargetPath.ToString();
+                return this.ChangeReference.Metadata.LinkTargetPath.ToString();
             }
         }
         public string Parent_path

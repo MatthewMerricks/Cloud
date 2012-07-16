@@ -65,7 +65,7 @@ namespace CloudApiPublic.Model
         //&&&&private Func<string> GetLastSyncId = null;
         public Func<string> GetCloudPath = null;
         public Func<string> GetLastSyncId = null;
-        public Func<string, FileChange> FindFileChangeByPath;
+        //public Func<string, FileChange> FindFileChangeByPath;
 
         public void LogEvent()
         {
@@ -153,10 +153,11 @@ namespace CloudApiPublic.Model
 
         public static CLEvent EventFromMDSEvent(Func<string> getLastSyncId, 
                                 Func<string> getCloudPath,
-                                Func<string, FileChange> findFileChangeByPath,
+                                //Func<string, FileChange> findFileChangeByPath,
                                 Dictionary<string, 
                                 object> mdsEvent, 
-                                SyncDirection direction)            //&&&&&
+                                SyncDirection direction,
+                                FileChange linkedChange = null)
         {
             // Merged 7/12/12
             // CLEvent *event = [[CLEvent alloc] init];
@@ -187,7 +188,7 @@ namespace CloudApiPublic.Model
             evt.IsMDSEvent = true;
             evt.GetLastSyncId = getLastSyncId;
             evt.GetCloudPath = getCloudPath;
-            evt.FindFileChangeByPath = findFileChangeByPath;
+            //evt.FindFileChangeByPath = findFileChangeByPath;
             
             // CLSyncHeader *syncHeader = [[CLSyncHeader alloc] init];
             // event.syncHeader = syncHeader;
@@ -208,7 +209,8 @@ namespace CloudApiPublic.Model
             CLMetadata mdsEventMetadata = new CLMetadata(evt,
                 ((JToken)mdsEvent[CLDefinitions.CLSyncEventMetadata]).ToObject<Dictionary<string, object>>(),
                 syncHeader,
-                direction);
+                direction,
+                linkedChange);
             //&&&&CLMetadata mdsEventMetadata = new CLMetadata(evt.GetLastSyncId,
                 //evt.GetCloudPath,
                 //((JToken)mdsEvent[CLDefinitions.CLSyncEventMetadata]).ToObject<Dictionary<string, object>>(),

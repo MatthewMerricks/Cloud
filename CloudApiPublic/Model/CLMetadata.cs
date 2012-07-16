@@ -20,44 +20,24 @@ namespace CloudApiPublic.Model
 {
     public class CLMetadata
     {
-        private string _path;
         public string Path
         {
             get
             {
-                return _path;
-                //if (this.GetCloudPath == null)
-                //{
-                //    return null;
-                //}
-                //return this.GetCloudPath();
-            }
-            set
-            {
-                // empty here
-                _path = value;
+                if (this.ChangeReference == null
+                    || this.ChangeReference.NewPath == null
+                    || this.GetCloudPath == null)
+                {
+                    return null;
+                }
+                return this.ChangeReference.NewPath.GetRelativePath(this.GetCloudPath());
             }
         }
         public string ToPath
         {
             get
             {
-                //if (this.ChangeReference == null
-                //    || this.ChangeReference.NewPath == null)
-                //{
-                //    return null;
-                //}
-                //return this.ChangeReference.NewPath.ToString();
-
-                if (this.ChangeReference == null
-                    || this.ChangeReference.NewPath == null)
-                {
-                    _path = null;
-                    return null;
-                }
-                _path = this.ChangeReference.NewPath.ToString(); 
-                return _path;
-
+                return this.Path;
             }
         }
         public string FromPath
@@ -65,11 +45,12 @@ namespace CloudApiPublic.Model
             get
             {
                 if (this.ChangeReference == null
-                    || this.ChangeReference.OldPath == null)
+                    || this.ChangeReference.OldPath == null
+                    || this.GetCloudPath == null)
                 {
                     return null;
                 }
-                return this.ChangeReference.OldPath.ToString();
+                return this.ChangeReference.OldPath.GetRelativePath(this.GetCloudPath());
             }
         }
         public string TargetPath
@@ -77,22 +58,25 @@ namespace CloudApiPublic.Model
             get
             {
                 if (this.ChangeReference == null
-                    || this.ChangeReference.LinkTargetPath == null)
+                    || this.ChangeReference.Metadata == null
+                    || this.ChangeReference.Metadata.LinkTargetPath == null
+                    || this.GetCloudPath == null)
                 {
                     return null;
                 }
-                return this.ChangeReference.LinkTargetPath.ToString();
+                return this.ChangeReference.Metadata.LinkTargetPath.GetRelativePath(this.GetCloudPath());
             }
         }
         public string Revision
         {
             get
             {
-                if (this.ChangeReference == null)
+                if (this.ChangeReference == null
+                    || this.ChangeReference.Metadata == null)
                 {
                     return null;
                 }
-                return this.ChangeReference.Revision;
+                return this.ChangeReference.Metadata.Revision;
             }
         }
         public string CreateDate
@@ -192,6 +176,9 @@ namespace CloudApiPublic.Model
                 return this.ChangeReference.Metadata.StorageKey;
             }
         }
+        /// <summary>
+        /// This property is probably returning the wrong event id since this.ChangeReference.EventId is a client event id, not the server one
+        /// </summary>
         public string LastEventID
         {
             get
@@ -245,12 +232,11 @@ namespace CloudApiPublic.Model
             this.GetCloudPath = getCloudPath;
         }
         //&&&&public CLMetadata(Func<string> getLastSyncId, Func<string> getCloudPath, Dictionary<string, object> json, CLSyncHeader header, SyncDirection direction)
-        public CLMetadata(CLEvent evt, Dictionary<string, object> json, CLSyncHeader header, SyncDirection direction)
+        public CLMetadata(CLEvent evt, Dictionary<string, object> json, CLSyncHeader header, SyncDirection direction, FileChange existingChange = null)
         {
             this.GetLastSyncId = evt.GetLastSyncId;
             this.GetCloudPath = evt.GetCloudPath;
 
-            string jsonCloudPath;
             string jsonToPath;
             string jsonFromPath;
             string jsonTargetPath;
@@ -262,13 +248,14 @@ namespace CloudApiPublic.Model
             string jsonHash;
             string jsonSize;
             string jsonStorageKey;
-            string jsonLastEventId;
-            long jsonLastEventIdNumber;        //&&&&
 
             if (json.Count > 0)
             {
-                jsonCloudPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataCloudPath, null);
-                jsonToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataToPath, null);
+                jsonToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataCloudPath, null);
+                if (string.IsNullOrWhiteSpace(jsonToPath))
+                {
+                    jsonToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataToPath, null);
+                }
                 jsonFromPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFromPath, null);
                 jsonTargetPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileTarget, null);
                 jsonRevision = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileRevision, null);
@@ -282,12 +269,9 @@ namespace CloudApiPublic.Model
                 long jsonSizeTemp = (long)json.GetValueOrDefault(CLDefinitions.CLMetadataFileSize, long.MinValue);
                 jsonSize = (jsonSizeTemp == long.MinValue ? null : jsonSizeTemp.ToString());
                 jsonStorageKey = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataStorageKey, null);
-                jsonLastEventIdNumber = (long)json.GetValueOrDefault(CLDefinitions.CLMetadataLastEventID, CLDefinitions.CLDoNotSaveId);  //&&&&
-                jsonLastEventId = (jsonLastEventIdNumber == CLDefinitions.CLDoNotSaveId ? null : jsonLastEventIdNumber.ToString());    //&&&&
             }
             else
             {
-                jsonCloudPath = null;
                 jsonToPath = null;
                 jsonFromPath = null;
                 jsonTargetPath = null;
@@ -299,48 +283,32 @@ namespace CloudApiPublic.Model
                 jsonHash = null;
                 jsonSize = null;
                 jsonStorageKey = null;
-                jsonLastEventId = null;
-                jsonLastEventIdNumber = CLDefinitions.CLDoNotSaveId;  //&&&&
             }
 
-            CLMetadataProcessedInternals processedInternals = new CLMetadataProcessedInternals(this.GetCloudPath,
-                jsonCreationDate,
+            CLMetadataProcessedInternals processedInternals = new CLMetadataProcessedInternals(jsonCreationDate,
                 jsonModifiedDate,
-                jsonSize,
-                jsonLastEventId,
-                jsonCloudPath,
-                jsonFromPath,
-                jsonToPath);
+                jsonSize);
 
-            //&&&& Find the matching FSM event, if it exists.
-            FileChange matchingFileChange = null;
-            if (jsonCloudPath != null)
-            {
-                matchingFileChange = evt.FindFileChangeByPath(jsonCloudPath);
-            }
-
-            if (matchingFileChange != null)
-            {
-                this.ChangeReference = matchingFileChange;
-            }
-            else
-            {
-                this.ChangeReference = new FileChange()
+            Func<FileMetadataHashableProperties> buildMetadataProperties = () =>
                 {
-                    Direction = direction,
-                    EventId = processedInternals.EventId ?? 0,
-                    Metadata = new FileMetadata()
+                    return new FileMetadataHashableProperties(jsonIsDirectory,
+                        processedInternals.ModifiedDate,
+                        processedInternals.CreationDate,
+                        processedInternals.Size);
+                };
+            Func<FileMetadata> buildMetadata = () =>
+                {
+                    return new FileMetadata()
                     {
-                        HashableProperties = new FileMetadataHashableProperties(jsonIsDirectory,
-                            processedInternals.ModifiedDate,
-                            processedInternals.CreationDate,
-                            processedInternals.Size)
-                    },
-                    NewPath = processedInternals.RebuiltToPath,
-                    OldPath = processedInternals.RebuiltFromPath,
-                    Revision = jsonRevision,
-                    StorageKey = jsonStorageKey,
-                    Type = (header == null
+                        HashableProperties = buildMetadataProperties(),
+                        LinkTargetPath = jsonTargetPath,
+                        Revision = jsonRevision,
+                        StorageKey = jsonStorageKey
+                    };
+                };
+            Func<FileChangeType> getChangeType = () =>
+                {
+                    return header == null
                         || header.Action == null
                             ? FileChangeType.Modified
                             : (CLDefinitions.SyncHeaderDeletions.Contains(header.Action)
@@ -349,11 +317,43 @@ namespace CloudApiPublic.Model
                                     ? FileChangeType.Created
                                     : (CLDefinitions.SyncHeaderRenames.Contains(header.Action)
                                         ? FileChangeType.Renamed
-                                        : FileChangeType.Modified))))
+                                        : FileChangeType.Modified)));
+                };
+
+            string cloudPath = this.GetCloudPath();
+
+            if (existingChange != null)
+            {
+                this.ChangeReference = existingChange;
+
+                if (this.ChangeReference.Metadata == null)
+                {
+                    this.ChangeReference.Metadata = buildMetadata();
+                }
+                else
+                {
+                    this.ChangeReference.Metadata.HashableProperties = buildMetadataProperties();
+                    this.ChangeReference.Metadata.LinkTargetPath = jsonTargetPath;
+                    this.ChangeReference.Metadata.Revision = jsonRevision;
+                    this.ChangeReference.Metadata.StorageKey = jsonStorageKey;
+                }
+
+                this.ChangeReference.Direction = direction;
+                this.ChangeReference.NewPath = cloudPath + jsonToPath;
+                this.ChangeReference.OldPath = string.IsNullOrWhiteSpace(jsonFromPath) ? null : cloudPath + jsonFromPath;
+                this.ChangeReference.Type = getChangeType();
+            }
+            else
+            {
+                this.ChangeReference = new FileChange()
+                {
+                    Direction = direction,
+                    Metadata = buildMetadata(),
+                    NewPath = cloudPath + jsonToPath,
+                    OldPath = string.IsNullOrWhiteSpace(jsonFromPath) ? null : cloudPath + jsonFromPath,
+                    Type = getChangeType()
                 };
             }
-
-            this.Path = jsonCloudPath;              //&&&&&&&&&&
         }
 
         public class CLMetadataProcessedInternals
@@ -361,11 +361,8 @@ namespace CloudApiPublic.Model
             public Nullable<DateTime> CreationDate { get; private set; }
             public Nullable<DateTime> ModifiedDate { get; private set; }
             public Nullable<long> Size { get; private set; }
-            public Nullable<int> EventId { get; private set; }
-            public string RebuiltToPath { get; private set; }
-            public string RebuiltFromPath { get; private set; }
 
-            public CLMetadataProcessedInternals(Func<string> GetCloudPath, string CreationDate, string ModifiedDate, string Size, string EventId, string CloudPath, string FromPath, string ToPath)
+            public CLMetadataProcessedInternals(string CreationDate, string ModifiedDate, string Size)
             {
                 DateTime convertedCreationDate;
                 if (DateTime.TryParse(CreationDate, null, System.Globalization.DateTimeStyles.RoundtripKind, out convertedCreationDate)) // ISO 8601
@@ -382,77 +379,6 @@ namespace CloudApiPublic.Model
                 {
                     this.Size = convertedSize;
                 }
-                long convertedEventId;             //&&&&
-                if (long.TryParse(EventId, out convertedEventId))  //&&&&
-                {
-                    this.EventId = (int)convertedEventId;
-                }
-
-                if (!string.IsNullOrWhiteSpace(CloudPath))              // CloudPath is the relative path.  e.g., /A/B/filename.ext
-                {
-                    FilePath cloudConvertedPath = null;
-
-                    if (GetCloudPath != null)
-                    {
-                        string cloudPathCopy = GetCloudPath();
-                        cloudConvertedPath = cloudPathCopy + CloudPath;    // full path
-
-                        if (!string.IsNullOrWhiteSpace(ToPath))
-                        {
-                            FilePath toConvertedPath = ToPath;
-                            FilePath convertedOverlaps = toConvertedPath.FindOverlappingPath(cloudConvertedPath);
-
-                            if (FilePathComparer.Instance.Equals(cloudConvertedPath, convertedOverlaps))
-                            {
-                                if (!string.IsNullOrWhiteSpace(cloudPathCopy))
-                                {
-                                    FilePath rebuiltNewPath;
-                                    rebuiltNewPath = toConvertedPath;
-
-                                    // find the current item pair's key path which matches the old path,
-                                    // but only store its child as oldPathChild
-                                    while (toConvertedPath.Parent != null)
-                                    {
-                                        if (FilePathComparer.Instance.Equals(cloudConvertedPath, toConvertedPath.Parent))
-                                        {
-                                            toConvertedPath.Parent = cloudPathCopy;
-                                            this.RebuiltToPath = rebuiltNewPath.ToString();
-                                            break;
-                                        }
-
-                                        toConvertedPath = toConvertedPath.Parent;
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if (!string.IsNullOrWhiteSpace(FromPath))
-                        {
-                            FilePath fromConvertedPath = FromPath;
-                            FilePath convertedOverlaps = fromConvertedPath.FindOverlappingPath(cloudConvertedPath);
-
-                            if (FilePathComparer.Instance.Equals(cloudConvertedPath, convertedOverlaps))
-                            {
-                                FilePath rebuiltNewPath;
-                                rebuiltNewPath = fromConvertedPath;
-
-                                // find the current item pair's key path which matches the old path,
-                                // but only store its child as oldPathChild
-                                while (fromConvertedPath.Parent != null)
-                                {
-                                    if (FilePathComparer.Instance.Equals(cloudConvertedPath, fromConvertedPath.Parent))
-                                    {
-                                        fromConvertedPath.Parent = cloudPathCopy;
-                                        this.RebuiltFromPath = rebuiltNewPath.ToString();
-                                        break;
-                                    }
-
-                                    fromConvertedPath = fromConvertedPath.Parent;
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -465,16 +391,6 @@ namespace CloudApiPublic.Model
 
             this.GetLastSyncId = getLastSyncId;
             this.GetCloudPath = getCloudPath;
-
-            //&&&& Added this really ugly hack!
-            if (fsItem != null && !String.IsNullOrWhiteSpace(fsItem.Path) && fsItem.Path[1] == ':')
-            {
-                this.Path = "/" + fsItem.Path.Substring(4);
-            }
-            else
-            {
-                this.Path = fsItem.Path;
-            }
 
             //TODO: Implement this constructor when we have a FileSystemItem from the index service.
             //this.Path = fsItem.Path;
