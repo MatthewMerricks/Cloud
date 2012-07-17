@@ -34,16 +34,18 @@ namespace CloudApiPublic.Support
     /// </summary>
     public class DispatchActionGeneric<T> : DispatchActionGeneric
     {
-        public Action<T> Action;
+        public Action<T, object> Action;
         public T UserState;
         public DispatchActionType Type;
         public TaskCompletionSource<bool> CompletionSource;
-        public DispatchActionGeneric(Action<T> action, T userstate, DispatchActionType type, TaskCompletionSource<bool> completionSource = null)
+        public object OriginalUserState;
+        public DispatchActionGeneric(Action<T, object> action, T userstate, DispatchActionType type, object originalUserState, TaskCompletionSource<bool> completionSource = null)
         {
             this.Action = action;
             this.UserState = userstate;
             this.Type = type;
             this.CompletionSource = completionSource;
+            this.OriginalUserState = originalUserState;
         }
 
         /// <summary>
@@ -51,7 +53,7 @@ namespace CloudApiPublic.Support
         /// </summary>
         public override void Run()
         {
- 	        this.Action(this.UserState);
+ 	        this.Action(this.UserState, this.OriginalUserState);
             if (this.CompletionSource != null)
             {
                 this.CompletionSource.SetResult(true);
@@ -150,9 +152,13 @@ namespace CloudApiPublic.Support
         /// <summary>
         /// Add an action to the queue.
         /// </summary>
-        public void AddAction<T>(Action<T> action, T userstate, DispatchActionType type, TaskCompletionSource<bool> completionSource = null)
+        public void AddAction<T>(Action<T, object> action, T userstate, DispatchActionType type, object originalUserState, TaskCompletionSource<bool> completionSource = null)
         {
-            DispatchActionGeneric<T> dispatchAction = new DispatchActionGeneric<T>(action, userstate, type, completionSource);
+            DispatchActionGeneric<T> dispatchAction = new DispatchActionGeneric<T>(action,
+                userstate,
+                type,
+                originalUserState,
+                completionSource);
             lock (_queue)
             {
                 _queue.AddLast(dispatchAction);
@@ -178,19 +184,19 @@ namespace CloudApiPublic.Support
         /// <summary>
         /// Add an Async task.  Call as: Dispatch.Async(queue, action, userstate);
         /// </summary>
-        public static void Async<T>(DispatchQueueGeneric queue, Action<T> action, T userstate)
+        public static void Async<T>(DispatchQueueGeneric queue, Action<T, object> action, T userstate, object originalUserState)
         {
-            queue.AddAction(action, userstate, DispatchActionType.Async);
+            queue.AddAction(action, userstate, DispatchActionType.Async, originalUserState);
         }
 
         /// <summary>
         /// Add a Sync task.  Call as: Dispatch.Sync(queue, action, userstate);
         /// Note that this function blocks until the action is complete.
         /// </summary>
-        public static void Sync<T>(DispatchQueueGeneric queue, Action<T> action, T userstate)
+        public static void Sync<T>(DispatchQueueGeneric queue, Action<T, object> action, T userstate, object originalUserState)
         {
             TaskCompletionSource<bool> completionSource = new TaskCompletionSource<bool>();
-            queue.AddAction(action, userstate, DispatchActionType.Sync, completionSource);
+            queue.AddAction(action, userstate, DispatchActionType.Sync, originalUserState, completionSource);
             Task<bool> task = completionSource.Task;
             bool rc = task.Result;                          // wait here for the queued task to complete
             return;

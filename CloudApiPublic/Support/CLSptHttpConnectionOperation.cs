@@ -31,13 +31,7 @@ namespace CloudApiPublic.Support
 
         delegate /*Task*/ void CLHTTPConnectionOperationProgressBlock(ulong bytes, ulong totalBytes, ulong totalBytesExpected);
 
-        private Action<CLHTTPConnectionOperation, CLError> _completionBlock;
-        public Action<CLHTTPConnectionOperation, CLError> CompletionBlock
-        {
-            get { return _completionBlock; }
-            set { _completionBlock = value; }
-        }
-        
+        public Action<CLHTTPConnectionOperation, CLError> CompletionBlock { get; set; }
 
         private HttpClient _client;
         public HttpClient Client
@@ -181,20 +175,7 @@ namespace CloudApiPublic.Support
             set { _isDownloadOperation = value; }
         }
 
-        private FileStream _streamOutput;
-        public FileStream StreamOutput
-        {
-            get { return _streamOutput; }
-            set { _streamOutput = value; }
-        }
-
-        private FileStream _streamInput;
-        public FileStream StreamInput
-        {
-            get { return _streamInput; }
-            set { _streamInput = value; }
-        }
-        
+        public FileStream UploadStream { get; set; }
 
         //TODO: Not used?
         // - (id)initWithURLRequest:(NSMutableURLRequest *)request andMetadata:(CLMetadata *)metadata
@@ -212,7 +193,7 @@ namespace CloudApiPublic.Support
 
         // - (id)initForStreamingUploadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
         // - (id)initForStreamingDownloadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
-        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, string fsPath, string size, string hash, bool isUpload)
+        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, string fsPath, string size, string hash, bool isUpload, FileStream uploadStream)
             : this(client, request)
         {
             //if(self = [self initWithRequest:request]) {
@@ -224,6 +205,7 @@ namespace CloudApiPublic.Support
             _size = size;
             _hash = hash;
             _isDownloadOperation = !isUpload;
+            this.UploadStream = uploadStream;
         }
 
         public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request)
@@ -335,8 +317,7 @@ namespace CloudApiPublic.Support
                     else
                     {
                         // Upload operation
-                        FileStream stream = new FileStream(this.ResponseFilePath, FileMode.Open, FileAccess.Read);
-                        StreamContent fileContent = new StreamContent(stream);
+                        StreamContent fileContent = new StreamContent(this.UploadStream);
 
                         fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                         _operationRequest.Content = fileContent;
@@ -344,8 +325,23 @@ namespace CloudApiPublic.Support
                         _operationRequest.Content.Headers.Add("Content-Length", Size);
 
 
-                        task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask) =>
+                        task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask, streamState) =>
                         {
+                            try
+                            {
+                                FileStream toUnlock = streamState as FileStream;
+                                if (toUnlock != null)
+                                {
+                                    toUnlock.Dispose();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                CLError error = ex;
+                                _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception unlocking upload filestream.  Msg: {0}, Code: {1}.",
+                                                    error.errorDescription, error.errorCode);
+                            }
+
                             HttpResponseMessage response = null;
                             try
                             {
@@ -363,7 +359,7 @@ namespace CloudApiPublic.Support
                                                     error.errorDescription, error.errorCode);
                             }
                             return response;
-                        });
+                        }, this.UploadStream);
                     }
                 }
                 catch (Exception ex)
@@ -724,14 +720,14 @@ namespace CloudApiPublic.Support
 
                 if (completionBlock != null)
                 {
-                    Dispatch.Async<object>(CLSptResourceManager.Instance.MainGcdQueue, (obj) =>
+                    Dispatch.Async<object>(CLSptResourceManager.Instance.MainGcdQueue, (obj, userState) =>
                     {
                         if (this.IsDownloadOperation)
                         {
                             MoveTempFileToResourceFilePath();
                         }
                         completionBlock(this, error);
-                    }, null);
+                    }, null, null);
                 }
             };
         }

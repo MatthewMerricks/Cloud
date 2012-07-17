@@ -175,7 +175,7 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync to the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(string sid, KeyValuePair<FileChange, FileStream>[] processedChanges, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue, Func<string> getCloudDirectory)
+        public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(string sid, KeyValuePair<FileChange, FileStream>[] processedChanges, Action<CLJsonResultWithError, object> completionHandler, DispatchQueueGeneric queue, Func<string> getCloudDirectory)
         //public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue)
         {
             // Merged 7/3/12
@@ -233,10 +233,11 @@ namespace CloudApiPrivate
 
             // Send the request asynchronously
             _trace.writeToLog(9, "CLPrivateRestClient: SyncToCloud_withCompletionHandler_onQueue_async: Sending sync-to request to server.  json: {0}.", json);
-            await _client.SendAsync(syncRequest).ContinueWith(task =>
+
+            await _client.SendAsync(syncRequest).ContinueWith((task, userState) =>
             {
-                HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncToServer");
-            });
+                HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncToServer", userState);
+            }, processedChanges);
         }
 
         /// <summary>
@@ -297,8 +298,8 @@ namespace CloudApiPrivate
                     Dictionary<string, object> metadata = new Dictionary<string, object>();
 
                     FilePath cloudPath = getCloudDirectory();
-                    string relativeNewPath = FilePath.GetRelativePath(changesForDictionaryArray[currentChangeIndex].NewPath, cloudPath);
-                    string relativeOldPath = FilePath.GetRelativePath(changesForDictionaryArray[currentChangeIndex].OldPath, cloudPath);
+                    string relativeNewPath = FilePath.GetRelativePath(changesForDictionaryArray[currentChangeIndex].NewPath, cloudPath, replaceWithForwardSlashes: true);
+                    string relativeOldPath = FilePath.GetRelativePath(changesForDictionaryArray[currentChangeIndex].OldPath, cloudPath, replaceWithForwardSlashes: true);
 
                     // Format the time like "2012-03-20T19:50:25Z"
                     metadata.Add(CLDefinitions.CLMetadataFileCreateDate, changesForDictionaryArray[currentChangeIndex].Metadata.HashableProperties.CreationTime.ToString("o"));
@@ -360,7 +361,7 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync from the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        public async void SyncFromCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue)
+        public async void SyncFromCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError, object> completionHandler, DispatchQueueGeneric queue)
         {
             //NSString *methodPath = @"/sync/from_cloud";
             //NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
@@ -408,7 +409,7 @@ namespace CloudApiPrivate
             _trace.writeToLog(9, "CLPrivateRestClient: SyncFromCloud_withCompletionHandler_onQueue_async: Sending sync-from request to server.  json: {0}.", json);
             await _client.SendAsync(syncRequest).ContinueWith(task =>
             {
-                HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncFromServer");
+                HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncFromServer", null);
             });
         }
 
@@ -419,8 +420,8 @@ namespace CloudApiPrivate
         /// <param name="queue">The GCD queue on which to run the completion action.</param>
         /// <param name="task">The task continued from the request.</param>
         /// <param name="resourceErrorMessageKey">T he task continued from the request.</param>
-        private async void HandleResponseFromServerCallbackAsync(Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue, Task<HttpResponseMessage> task,
-                                                                string resourceErrorMessageKey)
+        private async void HandleResponseFromServerCallbackAsync(Action<CLJsonResultWithError, object> completionHandler, DispatchQueueGeneric queue, Task<HttpResponseMessage> task,
+                                                                string resourceErrorMessageKey, object originalUserState)
         {
                 Dictionary<string, object> jsonResult = null;
                 HttpResponseMessage response = null;
@@ -482,7 +483,10 @@ namespace CloudApiPrivate
                     Error = error
                 }; 
                 
-                Dispatch.Async(queue, completionHandler, userstate);
+                Dispatch.Async(queue,
+                    completionHandler,
+                    userstate,
+                    originalUserState);
         }
 
         /// <summary>
@@ -506,7 +510,7 @@ namespace CloudApiPrivate
         /// <param name="path">The path to the file.</param>
         /// <param name="fileSize">The size of the file.</param>
         /// <param name="hash">The MD5 hash of the file.</param>
-        public CLHTTPConnectionOperation StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string size, string hash)
+        public CLHTTPConnectionOperation StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(string storageKey, string path, string size, string hash, FileStream uploadStream)
         {
             // Merged 7/13/12
             //CLURLRequestConstructor *uploadURLConstructor = [[CLURLRequestConstructor alloc] initWithBaseURL:[NSURL URLWithString:CLUploadDownloadServerURL]];
@@ -534,7 +538,7 @@ namespace CloudApiPrivate
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _trace.writeToLog(9, "CLPrivateRestClient: StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to upload file.  Path: {0}, Request: {1}.", path, request.Headers.ToString());
-            return new CLHTTPConnectionOperation(_client, request, path, size, hash, isUpload: true);
+            return new CLHTTPConnectionOperation(_client, request, path, size, hash, isUpload: true, uploadStream: uploadStream);
         }
 
         /// <summary>
@@ -573,7 +577,7 @@ namespace CloudApiPrivate
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _trace.writeToLog(9, "CLPrivateRestClient: StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to download file.  Path: {0}, json: {1}, Request: {2}.", path, json, request.Headers.ToString());
-            return new CLHTTPConnectionOperation(_client, request, path, size, hash, isUpload: false);
+            return new CLHTTPConnectionOperation(_client, request, path, size, hash, isUpload: false, uploadStream: null);
         }
     }
 }

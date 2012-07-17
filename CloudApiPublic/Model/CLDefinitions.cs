@@ -5,7 +5,7 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
-#define PRODUCTION_BACKEND 
+//#define PRODUCTION_BACKEND 
 
 // Merged 7/3/12
 namespace CloudApiPublic.Model
@@ -42,7 +42,7 @@ namespace CloudApiPublic.Model
 
         // Link/Unlink
         public const string CLRegistrationUnlinkRequestURLString  = @"https://auth.cloudburrito.com/device/unlink.json";
-        public const string CLRegistrationUnlinkRequestBodyString = @"access_token={0};
+        public const string CLRegistrationUnlinkRequestBodyString = @"access_token={0}";
         public const string CLRegistrationLinkRequestURLString    = @"https://auth.cloudburrito.com/device/link.json";
         public const string CLRegistrationLinkRequestBodyString   = @"email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&device[os_type]={4}&device[os_version]={5}&device[app_version]={6}";
 

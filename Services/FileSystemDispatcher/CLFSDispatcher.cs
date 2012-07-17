@@ -118,7 +118,7 @@ namespace win_client.Services.FileSystemDispatcher
             string localPath = Settings.Instance.CloudFolderPath + path.Replace('\\', '/');
 
             // dispatch_sync(get_cloud_FSD_queue(), ^(void) {
-            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj) =>
+            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj, object userState) =>
             {
                 // if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
                 if (!System.IO.File.Exists(localPath))
@@ -139,7 +139,7 @@ namespace win_client.Services.FileSystemDispatcher
                     // rc = YES;
                     rc = true;
                 }
-            }, null);
+            }, null, null);
 
             // if (err != nil) {
             if (err != null)
@@ -181,7 +181,7 @@ namespace win_client.Services.FileSystemDispatcher
             string localNewPath = Settings.Instance.CloudFolderPath + newPath.Replace('/', '\\');
     
             // dispatch_sync(get_cloud_FSD_queue(), ^(void) {
-            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj) =>
+            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj, object userState) =>
             {
                 // rc = [[NSFileManager defaultManager] copyItemAtPath:path toPath:newPath error:&err];
                 try
@@ -193,7 +193,7 @@ namespace win_client.Services.FileSystemDispatcher
                 {
                     err = e;
                 }
-            }, null);
+            }, null, null);
     
             // if (err != nil) {
             if (err != null)
@@ -234,7 +234,7 @@ namespace win_client.Services.FileSystemDispatcher
             // Copy the file using cp command so our FSM can pick it up.
             // dispatch_sync(get_cloud_FSD_queue(), ^(void) {
             CLError error = null;
-            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj) =>
+            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj, object userState) =>
             {
                 // NSString *destPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:newPath];
                 // NSArray *shArgs = @[@"-R", path, destPath];
@@ -299,7 +299,7 @@ namespace win_client.Services.FileSystemDispatcher
                     error += e;
                 }
 
-            }, null);
+            }, null, null);
 
             if (error != null)
             {
@@ -348,7 +348,7 @@ namespace win_client.Services.FileSystemDispatcher
             newPath = Settings.Instance.CloudFolderPath + newPath;
 
             // dispatch_sync(get_cloud_FSD_queue(), ^(void) {
-            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj) =>
+            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj, object userState) =>
             {
                 try
                 {
@@ -379,7 +379,7 @@ namespace win_client.Services.FileSystemDispatcher
                 {
                     err += e;
                 }
-            }, null);
+            }, null, null);
 
             // if (err != nil) {
             if (err != null)
@@ -427,7 +427,7 @@ namespace win_client.Services.FileSystemDispatcher
             path = Settings.Instance.CloudFolderPath + path;
 
             // dispatch_sync(get_cloud_FSD_queue(), ^(void) {
-            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj) =>
+            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj, object userState) =>
             {
                 try
                 {
@@ -456,7 +456,7 @@ namespace win_client.Services.FileSystemDispatcher
                 {
                     err += e;
                 }
-            }, null);
+            }, null, null);
 
             // if (err != nil) {
             if (err != null)
@@ -573,7 +573,7 @@ namespace win_client.Services.FileSystemDispatcher
             //                              createDate ,NSFileCreationDate,
             //                              modifiedDate, NSFileModificationDate, nil];
             // dispatch_sync(get_cloud_FSD_queue(), ^(void) {
-            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj) =>
+            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj, object userState) =>
             {
                 try
                 {
@@ -605,7 +605,7 @@ namespace win_client.Services.FileSystemDispatcher
                 {
                     err = e;
                 }
-            }, null);
+            }, null, null);
 
             if (err != null)
             {
@@ -648,7 +648,7 @@ namespace win_client.Services.FileSystemDispatcher
             path = Settings.Instance.CloudFolderPath + path;
 
             // dispatch_sync(get_cloud_FSD_queue(), ^(void) {
-            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj) =>
+            Dispatch.Sync(Get_cloud_FSD_queue(), (object obj, object userState) =>
             {
                 try
                 {
@@ -661,7 +661,7 @@ namespace win_client.Services.FileSystemDispatcher
                 {
                     err = e;
                 }
-            }, null);
+            }, null, null);
 
             // if (err != nil) {
             if (err != null)

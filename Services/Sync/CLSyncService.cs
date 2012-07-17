@@ -47,9 +47,9 @@ namespace win_client.Services.Sync
         private static List<string> _currentSids = null;
         private static bool _waitingForCloudResponse = false;
         private static bool _needSyncFromCloud = false;
-        private static List<CLEvent> _activeSyncQueue = null;
-        private static List<CLEvent> _activeSyncFileQueue = null;
-        private static List<CLEvent> _activeSyncFolderQueue = null;
+        private static List<KeyValuePair<CLEvent, FileStream>> _activeSyncQueue = null;
+        private static List<KeyValuePair<CLEvent, FileStream>> _activeSyncFileQueue = null;
+        private static List<KeyValuePair<CLEvent, FileStream>> _activeSyncFolderQueue = null;
 
         static DispatchQueueGeneric _com_cloud_sync_queue = null;
         static DispatchQueueGeneric get_cloud_sync_queue()
@@ -154,7 +154,7 @@ namespace win_client.Services.Sync
             _recentItems = new List<string>();
             _restClient = new CLPrivateRestClient();
             _activeDownloadQueue = new List<CLEvent>();
-            _activeSyncQueue = new List<CLEvent>();
+            _activeSyncQueue = new List<KeyValuePair<CLEvent, FileStream>>();
             _activeSyncFileQueue = null;
             _activeSyncFolderQueue = null;
             _currentSids = new List<string>();
@@ -627,8 +627,10 @@ namespace win_client.Services.Sync
 
             _restClient.SyncToCloud_WithCompletionHandler_OnQueue_Async(sid,
                 events,
-                (result) =>
+                (result, userState) =>
                 {
+                    KeyValuePair<FileChange, FileStream>[] castState = userState as KeyValuePair<FileChange, FileStream>[];
+
                     if (result.Error == null)
                     {
                         //            NSLog(@"Response From Sync To Cloud: \n\n%@\n\n", metadata);
@@ -683,7 +685,7 @@ namespace win_client.Services.Sync
                             // NSArray *mdsEvents = [metadata objectForKey:CLSyncEvents];
                             // NSMutableArray *events = [NSMutableArray array];
                             JArray mdsEvents = (JArray)metadata[CLDefinitions.CLSyncEvents];
-                            List<CLEvent> eventsReceived = new List<CLEvent>();
+                            List<KeyValuePair<CLEvent, FileStream>> eventsReceived = new List<KeyValuePair<CLEvent, FileStream>>();
 
                             // [mdsEvents enumerateObjectsUsingBlock:^(id mdsEvent, NSUInteger idx, BOOL *stop) {
                             foreach (JToken mdsEvent in mdsEvents)
@@ -700,7 +702,14 @@ namespace win_client.Services.Sync
                                 if (syncHeaderDictionary.ContainsKey(CLDefinitions.CLSyncEventStatus)
                                     && syncHeaderDictionary.ContainsKey(CLDefinitions.CLClientEventId))
                                 {
-                                    eventsReceived.Add(CLEvent.EventFromMDSEvent(() =>
+                                    KeyValuePair<FileChange, FileStream> findLinkedEvent = (castState == null
+                                            ? (KeyValuePair<FileChange, FileStream>)Helpers.DefaultForType(typeof(KeyValuePair<FileChange, FileStream>))
+                                            : castState
+                                                .FirstOrDefault(currentInitialEvent => currentInitialEvent.Key != null
+                                                    && currentInitialEvent.Key.EventId.ToString() == syncHeaderDictionary[CLDefinitions.CLClientEventId]));
+
+                                    eventsReceived.Add(new KeyValuePair<CLEvent, FileStream>(
+                                        CLEvent.EventFromMDSEvent(() =>
                                         {
                                             lock (CLFSMonitoringService.Instance.IndexingAgent)
                                             {
@@ -710,9 +719,8 @@ namespace win_client.Services.Sync
                                         () => Settings.Instance.CloudFolderPath,
                                         mdsEventDictionary,
                                         SyncDirection.To,
-                                        events.Select(currentInitialEvent => currentInitialEvent.Key)
-                                            .FirstOrDefault(currentInitialEvent => currentInitialEvent != null
-                                                && currentInitialEvent.EventId.ToString() == syncHeaderDictionary[CLDefinitions.CLClientEventId])));
+                                        findLinkedEvent.Key),
+                                        findLinkedEvent.Value));
                                 }
                             }
 
@@ -1335,115 +1343,119 @@ namespace win_client.Services.Sync
             //        [strongSelf notificationService:nil didReceivePushNotificationFromServer:nil];
             //    }
             //} onQueue:get_cloud_sync_queue()];
-            _restClient.SyncFromCloud_WithCompletionHandler_OnQueue_Async(events, (result) =>
-            {
-                if (result.Error == null)
+            _restClient.SyncFromCloud_WithCompletionHandler_OnQueue_Async(events,
+                (result, userState) =>
                 {
-                    _trace.writeToLog(1, "CLSyncService: SyncFromFileSystemMonitorWithGroupedUserEvents: Response From Sync From Cloud received: {0}.", result);
-
-                    string newSid = null;
-                    // if ([[metadata objectForKey:CLSyncEvents] count] > 0) {
-                    Dictionary<string, object> metadata = result.JsonResult;
-                    if (metadata != null
-                        && metadata.Count > 0
-                        && metadata.ContainsKey(CLDefinitions.CLSyncEvents)
-                        && metadata.ContainsKey(CLDefinitions.CLSyncID)
-                        && metadata.GetType() == typeof(Dictionary<string, object>))
+                    if (result.Error == null)
                     {
+                        _trace.writeToLog(1, "CLSyncService: SyncFromFileSystemMonitorWithGroupedUserEvents: Response From Sync From Cloud received: {0}.", result);
 
-                        // get sync id.
-                        // NSString *sid = [metadata objectForKey:CLSyncID]; // override with sid sent by server
-                        newSid = (string)metadata[CLDefinitions.CLSyncID];
-
-                        // if ([strongSelf.currentSIDs containsObject:sid] == NO) {
-                        //      [strongSelf.currentSIDs addObject:sid];
-                        // }
-                        if (!_currentSids.Contains(newSid))
+                        string newSid = null;
+                        // if ([[metadata objectForKey:CLSyncEvents] count] > 0) {
+                        Dictionary<string, object> metadata = result.JsonResult;
+                        if (metadata != null
+                            && metadata.Count > 0
+                            && metadata.ContainsKey(CLDefinitions.CLSyncEvents)
+                            && metadata.ContainsKey(CLDefinitions.CLSyncID)
+                            && metadata.GetType() == typeof(Dictionary<string, object>))
                         {
-                            _currentSids.Add(newSid);
+
+                            // get sync id.
+                            // NSString *sid = [metadata objectForKey:CLSyncID]; // override with sid sent by server
+                            newSid = (string)metadata[CLDefinitions.CLSyncID];
+
+                            // if ([strongSelf.currentSIDs containsObject:sid] == NO) {
+                            //      [strongSelf.currentSIDs addObject:sid];
+                            // }
+                            if (!_currentSids.Contains(newSid))
+                            {
+                                _currentSids.Add(newSid);
+                            }
+
+                            _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Current number of active SIDs: {0}.", _currentSids.Count());
+
+                            // Add received events.
+                            // NSArray *mdsEvents = [metadata objectForKey:@"events"];
+                            // NSMutableArray *events = [NSMutableArray array];
+                            JArray mdsEvents = (JArray)metadata[CLDefinitions.CLSyncEvents];
+                            List<KeyValuePair<CLEvent, FileStream>> eventsReceived = new List<KeyValuePair<CLEvent, FileStream>>();
+
+                            // [mdsEvents enumerateObjectsUsingBlock:^(id mdsEvent, NSUInteger idx, BOOL *stop) {
+                            //     [events addObject:[CLEvent eventFromMDSEvent:mdsEvent]];
+                            // }];
+                            foreach (JToken mdsEvent in mdsEvents)
+                            {
+                                Dictionary<string, object> mdsEventDictionary = mdsEvent.ToObject<Dictionary<string, object>>();
+
+                                // Build this new event and add it to the collection received.
+                                eventsReceived.Add(
+                                    new KeyValuePair<CLEvent, FileStream>(
+                                        CLEvent.EventFromMDSEvent(() =>
+                                        {
+                                            lock (CLFSMonitoringService.Instance.IndexingAgent)
+                                            {
+                                                return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                                            }
+                                        },
+                                        () => Settings.Instance.CloudFolderPath,
+                                        mdsEventDictionary,
+                                        SyncDirection.From),
+                                    null));
+                            }
+
+                            _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Response From Sync From Cloud: {0}.", metadata);
+
+                            // NSDictionary *eventIds = [NSDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, sid, CLSyncID, nil];
+                            Dictionary<string, object> eventIds = new Dictionary<string, object>()
+                            {
+                                {CLDefinitions.CLSyncEventID, eid.ToString()},
+                                {CLDefinitions.CLSyncID, newSid}
+                            };
+
+                            // [strongSelf performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
+                            PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsReceived, eventIds, CLEventOrigin.CLEventOriginMDS);
                         }
-
-                        _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Current number of active SIDs: {0}.", _currentSids.Count());
-
-                        // Add received events.
-                        // NSArray *mdsEvents = [metadata objectForKey:@"events"];
-                        // NSMutableArray *events = [NSMutableArray array];
-                        JArray mdsEvents = (JArray)metadata[CLDefinitions.CLSyncEvents];
-                        List<CLEvent> eventsReceived = new List<CLEvent>();
-
-                        // [mdsEvents enumerateObjectsUsingBlock:^(id mdsEvent, NSUInteger idx, BOOL *stop) {
-                        //     [events addObject:[CLEvent eventFromMDSEvent:mdsEvent]];
-                        // }];
-                        foreach (JToken mdsEvent in mdsEvents)
+                        else
                         {
-                            Dictionary<string, object> mdsEventDictionary = mdsEvent.ToObject<Dictionary<string, object>>();
+                            // NSLog(@"Response From Sync From Cloud: \n\n%@\n\n", metadata);
+                            // NSLog(@"%s - Synced from cloud successfull with no objects returned.", __FUNCTION__);
+                            _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Response from sync_from_Cloud: {0}.", metadata);
 
-                            // Build this new event and add it to the collection received.
-                            eventsReceived.Add(CLEvent.EventFromMDSEvent(() =>
+                            // if ([strongSelf.activeSyncQueue count] == 0) {   //bug? Should be strongSelf
+                            if (_activeSyncQueue.Count == 0)
+                            {
+                                // if (sid != nil) { // only save if SID is not nil.
+                                if (newSid != null)
                                 {
-                                    lock (CLFSMonitoringService.Instance.IndexingAgent)
-                                    {
-                                        return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
-                                    }
-                                },
-                                () => Settings.Instance.CloudFolderPath,
-                                mdsEventDictionary,
-                                SyncDirection.From));
+                                    // [[CLSettings sharedSettings] recordSID:sid];
+                                    Settings.Instance.recordSID(newSid);
+                                }
+                            }
+
+                            // Update UI with activity.
+                            // [strongSelf animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
+                            //TODO: Implement this.
                         }
 
-                        _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Response From Sync From Cloud: {0}.", metadata);
+                        // strongSelf.waitingForCloudResponse = NO;
+                        _waitingForCloudResponse = false;
 
-                        // NSDictionary *eventIds = [NSDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, sid, CLSyncID, nil];
-                        Dictionary<string, object> eventIds = new Dictionary<string, object>()
+                        // if (strongSelf.needSyncFromCloud == YES) {
+                        if (_needSyncFromCloud)
                         {
-                            {CLDefinitions.CLSyncEventID, eid.ToString()},
-                            {CLDefinitions.CLSyncID, newSid}
-                        };
-
-                        // [strongSelf performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
-                        PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsReceived, eventIds, CLEventOrigin.CLEventOriginMDS);
+                            //TODO: Implement notification to recurse on this function.
+                            //  [strongSelf notificationService:nil didReceivePushNotificationFromServer:nil];
+                        }
                     }
                     else
                     {
-                        // NSLog(@"Response From Sync From Cloud: \n\n%@\n\n", metadata);
-                        // NSLog(@"%s - Synced from cloud successfull with no objects returned.", __FUNCTION__);
-                        _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Response from sync_from_Cloud: {0}.", metadata);
-
-                        // if ([strongSelf.activeSyncQueue count] == 0) {   //bug? Should be strongSelf
-                        if (_activeSyncQueue.Count == 0)
-                        {
-                            // if (sid != nil) { // only save if SID is not nil.
-                            if (newSid != null)
-                            {
-                                // [[CLSettings sharedSettings] recordSID:sid];
-                                Settings.Instance.recordSID(newSid);
-                            }
-                        }
-
-                        // Update UI with activity.
-                        // [strongSelf animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
-                        //TODO: Implement this.
+                        _trace.writeToLog(1, "CLSyncService: SyncFromFileSystemMonitorWithGroupedUserEvents: ERROR {0}.", result.Error.errorDescription);
                     }
-
-                    // strongSelf.waitingForCloudResponse = NO;
-                    _waitingForCloudResponse = false;
-
-                    // if (strongSelf.needSyncFromCloud == YES) {
-                    if (_needSyncFromCloud)
-                    {
-                        //TODO: Implement notification to recurse on this function.
-                        //  [strongSelf notificationService:nil didReceivePushNotificationFromServer:nil];
-                    }
-                }
-                else
-                {
-                    _trace.writeToLog(1, "CLSyncService: SyncFromFileSystemMonitorWithGroupedUserEvents: ERROR {0}.", result.Error.errorDescription);
-                }
-            }, get_cloud_sync_queue());
+                }, get_cloud_sync_queue());
         }
 
         //- (void)performSyncOperationWithEvents:(NSArray *)events withEventIDs:(NSDictionary *)ids andOrigin:(CLEventOrigin)origin
-        void PerformSyncOperationWithEvents_withEventIDs_andOrigin(List<CLEvent> events, Dictionary<string, object> ids, CLEventOrigin origin)
+        void PerformSyncOperationWithEvents_withEventIDs_andOrigin(List<KeyValuePair<CLEvent, FileStream>> events, Dictionary<string, object> ids, CLEventOrigin origin)
         {
             // Merged 7/10/12
             //NSLog(@"%s", __FUNCTION__);
@@ -1567,7 +1579,7 @@ namespace win_client.Services.Sync
 
             //// Indexing, bitches.
             //NSArray *indexedEvents = [self indexSyncEventsByType:events];
-            List<CLEvent> indexedEvents = IndexSyncEventsByType(events);
+            List<KeyValuePair<CLEvent, FileStream>> indexedEvents = IndexSyncEventsByType(events);
 
             ///* Process Sync Events */
 
@@ -1578,8 +1590,10 @@ namespace win_client.Services.Sync
             //// Get separated file and folder events
             //self.activeSyncFolderQueue = [self separateFolderFromFileForActiveEvents:self.activeSyncQueue wantsFolderEvents:YES];
             //self.activeSyncFileQueue = [self separateFolderFromFileForActiveEvents:self.activeSyncQueue wantsFolderEvents:NO];
-            _activeSyncFolderQueue = SeparateFolderFromFileForActiveEvents_WantsFolderEvents(_activeSyncQueue, wantsFolderEvents: true);
-            _activeSyncFileQueue = SeparateFolderFromFileForActiveEvents_WantsFolderEvents(_activeSyncQueue, wantsFolderEvents: false);
+            _activeSyncFolderQueue = SeparateFolderFromFileForActiveEvents_WantsFolderEvents(_activeSyncQueue,
+                wantsFolderEvents: true);
+            _activeSyncFileQueue = SeparateFolderFromFileForActiveEvents_WantsFolderEvents(_activeSyncQueue,
+                wantsFolderEvents: false);
 
             //// Get total object count in sync queue
             //self.syncItemsQueueCount = [self.activeSyncQueue count]; // incremental.
@@ -1591,18 +1605,18 @@ namespace win_client.Services.Sync
 
             //// Process events in order they were received.
             //[self.activeSyncQueue enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            foreach (CLEvent evt in _activeSyncQueue)
+            foreach (KeyValuePair<CLEvent, FileStream> evt in _activeSyncQueue)
             {
                 // CLEvent *event = obj;
                 // NSString *eventAction = event.syncHeader.action;
-                string eventAction = evt.SyncHeader.Action;
+                string eventAction = evt.Key.SyncHeader.Action;
 
                 // if ([eventAction rangeOfString:CLEventTypeDeleteRange].location != NSNotFound) {
                 if (eventAction.Contains(CLDefinitions.CLEventTypeDeleteRange))
                 {
                     // Delete (any type) events
                     // [self processDeleteSyncEvent:event];
-                    ProcessDeleteSyncEvent(evt);
+                    ProcessDeleteSyncEvent(evt.Key);
                 }
 
                 // if ([eventAction isEqualToString:CLEventTypeAddFolder]) {
@@ -1610,7 +1624,7 @@ namespace win_client.Services.Sync
                 {
                     // Add folder events
                     // [self processAddFolderSyncEvent:event];
-                    ProcessAddFolderSyncEvent(evt);
+                    ProcessAddFolderSyncEvent(evt.Key);
                 }
 
                 // if ([eventAction isEqualToString:CLEventTypeRenameFolder]) {
@@ -1618,7 +1632,7 @@ namespace win_client.Services.Sync
                 {
                     // Rename folder events
                     // [self processRenameMoveFolderSyncEvent:event];
-                    ProcessRenameMoveFolderSyncEvent(evt);
+                    ProcessRenameMoveFolderSyncEvent(evt.Key);
                 }
 
                 // if ([eventAction isEqualToString:CLEventTypeMoveFolder]) {
@@ -1626,7 +1640,7 @@ namespace win_client.Services.Sync
                 {
                     // Move folder events
                     // [self processRenameMoveFolderSyncEvent:event];
-                    ProcessRenameMoveFolderSyncEvent(evt);
+                    ProcessRenameMoveFolderSyncEvent(evt.Key);
                 }
 
                 // if ([eventAction isEqualToString:CLEventTypeAddFile]) {
@@ -1650,7 +1664,7 @@ namespace win_client.Services.Sync
                 {
                     // Rename file events
                     // [self processRenameMoveFileSyncEvent:event];
-                    ProcessRenameMoveFileSyncEvent(evt);
+                    ProcessRenameMoveFileSyncEvent(evt.Key);
                 }
 
                 // if ([eventAction isEqualToString:CLEventTypeMoveFile]) {
@@ -1658,7 +1672,7 @@ namespace win_client.Services.Sync
                 {
                     // Move file events
                     // [self processRenameMoveFileSyncEvent:event];
-                    ProcessRenameMoveFileSyncEvent(evt);
+                    ProcessRenameMoveFileSyncEvent(evt.Key);
                 }
 
                 // if ([eventAction isEqualToString:CLEventTypeAddLink]) {
@@ -1682,7 +1696,7 @@ namespace win_client.Services.Sync
                 {
                     // Rename link events
                     // [self processRenameMoveLinkSyncEvent:event];
-                    ProcessRenameMoveLinkSyncEvent(evt);
+                    ProcessRenameMoveLinkSyncEvent(evt.Key);
                 }
 
                 // if ([eventAction isEqualToString:CLEventTypeMoveLink]) {
@@ -1690,7 +1704,7 @@ namespace win_client.Services.Sync
                 {
                     // Move link events
                     // [self processRenameMoveLinkSyncEvent:event];
-                    ProcessRenameMoveLinkSyncEvent(evt);
+                    ProcessRenameMoveLinkSyncEvent(evt.Key);
                 }
             }
 
@@ -1700,7 +1714,7 @@ namespace win_client.Services.Sync
 
             // Remove active items from queue
             //[self.activeSyncQueue removeAllObjects];
-            _activeSyncQueue.RemoveAll((CLEvent evt) => { return true; });
+            _activeSyncQueue.RemoveAll((KeyValuePair<CLEvent, FileStream> evt) => { return true; });
 
             //// Sync finished.
             //[self saveSyncStateWithSID:[ids objectForKey:CLSyncID] andEID:[ids objectForKey:CLSyncEventID]];
@@ -1727,7 +1741,7 @@ namespace win_client.Services.Sync
         }
 
         //- (NSMutableArray *)sortEventsFoldersFirstThenFiles:(NSArray *)events
-        List<CLEvent> SortEventsFoldersFirstThenFiles(List<CLEvent> events)
+        List<KeyValuePair<CLEvent, FileStream>> SortEventsFoldersFirstThenFiles(List<KeyValuePair<CLEvent, FileStream>> events)
         {
             // Merged 7/10/12
             // NSArray *folderEventItems = [events filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
@@ -1770,15 +1784,15 @@ namespace win_client.Services.Sync
             //     CLEvent *event = evaluatedObject;
             //     return (event.metadata.isDirectory  == YES);
             // }]];
-            List<CLEvent> folderEventItems = new List<CLEvent>();
-            folderEventItems = events.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == true); });
+            List<KeyValuePair<CLEvent, FileStream>> folderEventItems = new List<KeyValuePair<CLEvent, FileStream>>();
+            folderEventItems = events.FindAll((KeyValuePair<CLEvent, FileStream> evtIndex) => { return (evtIndex.Key.Metadata.IsDirectory == true); });
 
             // NSArray *fileEventItems = [events filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
             //     CLEvent *event = evaluatedObject;
             //     return (event.metadata.isDirectory == NO);
             // }]];
-            List<CLEvent> fileEventItems = new List<CLEvent>();
-            fileEventItems = events.FindAll((CLEvent evtIndex) => { return (evtIndex.Metadata.IsDirectory == false); });
+            List<KeyValuePair<CLEvent, FileStream>> fileEventItems = new List<KeyValuePair<CLEvent, FileStream>>();
+            fileEventItems = events.FindAll((KeyValuePair<CLEvent, FileStream> evtIndex) => { return (evtIndex.Key.Metadata.IsDirectory == false); });
 
             // NSSortDescriptor *sortbyNumberOfPathComponents = [[NSSortDescriptor alloc] initWithKey:@"metadata" ascending:YES comparator:^NSComparisonResult(id obj1, id obj2) {
             //     CLMetadata *metadata1 = obj1;
@@ -1802,15 +1816,15 @@ namespace win_client.Services.Sync
             // // Files must be added after all the folders have been processed.
             // NSArray *sortedFoldersItems = [folderEventItems sortedArrayUsingDescriptors:@[sortbyNumberOfPathComponents]];
             // NSMutableArray *sortedEvents = [NSMutableArray arrayWithArray:sortedFoldersItems];
-            folderEventItems.Sort((CLEvent event1, CLEvent event2) =>
+            folderEventItems.Sort((KeyValuePair<CLEvent, FileStream> event1, KeyValuePair<CLEvent, FileStream> event2) =>
             {
                 var separators = new char[] {
                     Path.DirectorySeparatorChar,
                     Path.AltDirectorySeparatorChar
                 };
 
-                CLMetadata metadata1 = event1.Metadata;
-                CLMetadata metadata2 = event2.Metadata;
+                CLMetadata metadata1 = event1.Key.Metadata;
+                CLMetadata metadata2 = event2.Key.Metadata;
                 long metadata1PathCount = metadata1.Path.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
                 long metadata2PathCount = metadata2.Path.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
 
@@ -1837,7 +1851,7 @@ namespace win_client.Services.Sync
 
 
         //- (NSArray *)indexSyncEventsByType:(NSArray *)events
-        List<CLEvent> IndexSyncEventsByType(List<CLEvent> events)
+        List<KeyValuePair<CLEvent, FileStream>> IndexSyncEventsByType(List<KeyValuePair<CLEvent, FileStream>> events)
         {
             // Merged 7/10/12
             // NSLog(@"%s", __FUNCTION__);
@@ -1887,21 +1901,21 @@ namespace win_client.Services.Sync
             _trace.writeToLog(9, "CLSyncService: IndexSyncEventsByType: Entry.");
 
             // __block NSMutableArray *indexedEvents = [self sortEventsFoldersFirstThenFiles:events];
-            List<CLEvent> indexedEvents = SortEventsFoldersFirstThenFiles(events);
+            List<KeyValuePair<CLEvent, FileStream>> indexedEvents = SortEventsFoldersFirstThenFiles(events);
 
             // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
             int idx = 0;
-            foreach (CLEvent evt in events)
+            foreach (KeyValuePair<CLEvent, FileStream> evt in events)
             {
                 // CLEvent *event = obj;
                 // NSString *eventAction = event.syncHeader.action;
-                string eventAction = evt.SyncHeader.Action;
+                string eventAction = evt.Key.SyncHeader.Action;
 
                 // if ([eventAction rangeOfString:CLEventTypeAddRange].location != NSNotFound) {
                 if (eventAction.Contains(CLDefinitions.CLEventTypeAddRange))
                 {
                     // if ([self indexAddEvent:event] == NO) {
-                    if (!IndexAddEvent(evt))
+                    if (!IndexAddEvent(evt.Key))
                     {
                         // [indexedEvents removeObject:event];
                         indexedEvents.Remove(evt);
@@ -1912,7 +1926,7 @@ namespace win_client.Services.Sync
                 if (eventAction.Contains(CLDefinitions.CLEventTypeModifyFile))
                 {
                     // if ([self indexModifyEvent:event] == NO) {
-                    if (!IndexModifyEvent(evt))
+                    if (!IndexModifyEvent(evt.Key))
                     {
                         // [indexedEvents removeObject:event];
                         indexedEvents.Remove(evt);
@@ -1923,7 +1937,7 @@ namespace win_client.Services.Sync
                 if (eventAction.Contains(CLDefinitions.CLEventTypeRenameRange))
                 {
                     // if ([self indexMoveRenameEvent:event] == NO) {
-                    if (!IndexMoveRenameEvent(evt))
+                    if (!IndexMoveRenameEvent(evt.Key))
                     {
                         // [indexedEvents removeObject:event];
                         indexedEvents.Remove(evt);
@@ -1934,7 +1948,7 @@ namespace win_client.Services.Sync
                 if (eventAction.Contains(CLDefinitions.CLEventTypeMoveRange))
                 {
                     // if ([self indexMoveRenameEvent:event] == NO) {
-                    if (!IndexMoveRenameEvent(evt))
+                    if (!IndexMoveRenameEvent(evt.Key))
                     {
                         // [indexedEvents removeObject:event];
                         indexedEvents.Remove(evt);
@@ -1945,7 +1959,7 @@ namespace win_client.Services.Sync
                 if (eventAction.Contains(CLDefinitions.CLEventTypeDeleteRange))
                 {
                     // if ([self indexDeleteEvent:event] == NO) {
-                    if (!IndexDeleteEvent(evt))
+                    if (!IndexDeleteEvent(evt.Key))
                     {
                         // [indexedEvents removeObject:event];
                         indexedEvents.Remove(evt);
@@ -2419,7 +2433,7 @@ namespace win_client.Services.Sync
 
                 // Update index and ui.
                 // [self performUpdateForSyncEvent:event success:success];
-                PerformUpdateForSyncEvent_Success(evt, success: success);
+                PerformUpdateForSyncEvent_Success(new KeyValuePair<CLEvent, FileStream>(evt, null), success: success);
             }
         }
 
@@ -2507,7 +2521,7 @@ namespace win_client.Services.Sync
 
                 // Update index and ui.
                 // [self performUpdateForSyncEvent:event success:success];
-                PerformUpdateForSyncEvent_Success(evt, success: success);
+                PerformUpdateForSyncEvent_Success(new KeyValuePair<CLEvent, FileStream>(evt, null), success: success);
             }
         }
 
@@ -2553,13 +2567,13 @@ namespace win_client.Services.Sync
 
             // Update index and ui.
             // [self performUpdateForSyncEvent:event success:success];
-            PerformUpdateForSyncEvent_Success(evt, success: success);
+            PerformUpdateForSyncEvent_Success(new KeyValuePair<CLEvent, FileStream>(evt, null), success: success);
         }
 
 
 
         //- (void)processAddFileSyncEvent:(CLEvent *)event
-        void ProcessAddFileSyncEvent(CLEvent evt)
+        void ProcessAddFileSyncEvent(KeyValuePair<CLEvent, FileStream> evt)
         {
             // Merged 7/10/12
             // // Break down upload and downloads
@@ -2611,21 +2625,21 @@ namespace win_client.Services.Sync
             // Break down upload and downloads
             // NSMutableArray *uploadEvents = [NSMutableArray array];
             // NSMutableArray *downloadEvents = [NSMutableArray array];
-            List<CLEvent> uploadEvents = new List<CLEvent>();
+            List<KeyValuePair<CLEvent, FileStream>> uploadEvents = new List<KeyValuePair<CLEvent, FileStream>>();
             List<CLEvent> downloadEvents = new List<CLEvent>();
 
             // if (event.isMDSEvent) {
-            if (evt.IsMDSEvent)
+            if (evt.Key.IsMDSEvent)
             {
                 // NSString *status = event.syncHeader.status;
-                string status = evt.SyncHeader.Status;
+                string status = evt.Key.SyncHeader.Status;
 
                 // if (status == nil) { // MDS origin, Philis told us we need to do this.
                 if (string.IsNullOrWhiteSpace(status))
                 {
                     // We need to download this file.
                     // [downloadEvents addObject:event];
-                    downloadEvents.Add(evt);
+                    downloadEvents.Add(evt.Key);
                 }
                 else   //FSM origin, we created this file, need to check for upload.
                 {
@@ -2675,7 +2689,7 @@ namespace win_client.Services.Sync
         }
 
         //- (void)processModifyFileSyncEvent:(CLEvent *)event
-        void ProcessModifyFileSyncEvent(CLEvent evt)
+        void ProcessModifyFileSyncEvent(KeyValuePair<CLEvent, FileStream> evt)
         {
             // Merged 7/10/12
             // // Break down upload and downloads
@@ -2739,11 +2753,11 @@ namespace win_client.Services.Sync
             // // Break down upload and downloads
             // NSMutableArray *uploadEvents = [NSMutableArray array];
             // NSMutableArray *downloadEvents = [NSMutableArray array];
-            List<CLEvent> uploadEvents = new List<CLEvent>();
+            List<KeyValuePair<CLEvent, FileStream>> uploadEvents = new List<KeyValuePair<CLEvent, FileStream>>();
             List<CLEvent> downloadEvents = new List<CLEvent>();
 
             // NSString *status = event.syncHeader.status;
-            string status = evt.SyncHeader.Status;
+            string status = evt.Key.SyncHeader.Status;
 
             // if (status == nil) { // MDS origin, Philis told us we need to do this.
             if (status == null)
@@ -2752,8 +2766,8 @@ namespace win_client.Services.Sync
                 // We need to download this file.
                 // [downloadEvents addObject:event];
                 // [self badgeFileAtCloudPath:event.metadata.path withBadge:cloudAppBadgeSyncing]; // mark the file to be uploaded as syncing.
-                downloadEvents.Add(evt);
-                BadgeFileAtCloudPath_withBadge(evt.Metadata.Path, cloudAppIconBadgeType.cloudAppBadgeSyncing);
+                downloadEvents.Add(evt.Key);
+                BadgeFileAtCloudPath_withBadge(evt.Key.Metadata.Path, cloudAppIconBadgeType.cloudAppBadgeSyncing);
             }
             else   //FSM origin, we modified this file, need to check for upload.
             {
@@ -2879,12 +2893,12 @@ namespace win_client.Services.Sync
 
                 // Update index and ui.
                 // [self performUpdateForSyncEvent:event success:success];
-                PerformUpdateForSyncEvent_Success(evt, success: success);
+                PerformUpdateForSyncEvent_Success(new KeyValuePair<CLEvent, FileStream>(evt, null), success: success);
             }
         }
 
         //- (void)processAddLinkSyncEvent:(CLEvent *)event
-        void ProcessAddLinkSyncEvent(CLEvent evt)
+        void ProcessAddLinkSyncEvent(KeyValuePair<CLEvent, FileStream> evt)
         {
             // Merged 7/10/12
             // if (event.isMDSEvent) {
@@ -2903,10 +2917,10 @@ namespace win_client.Services.Sync
             //&&&&
 
             // if (event.isMDSEvent) {
-            if (evt.IsMDSEvent)
+            if (evt.Key.IsMDSEvent)
             {
                 // NSString *status = event.syncHeader.status;
-                string status = evt.SyncHeader.Status;
+                string status = evt.Key.SyncHeader.Status;
 
                 // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
                 bool success = true;
@@ -2915,7 +2929,7 @@ namespace win_client.Services.Sync
                 if (status == null)
                 {
                     // success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
-                    success = CLFSDispatcher.Instance.CreateSymbLinkAtPath_withTarget(evt.Metadata.Path, evt.Metadata.TargetPath);
+                    success = CLFSDispatcher.Instance.CreateSymbLinkAtPath_withTarget(evt.Key.Metadata.Path, evt.Key.Metadata.TargetPath);
                 }
 
                 // Update index and ui
@@ -2925,7 +2939,7 @@ namespace win_client.Services.Sync
         }
 
         //- (void)processModifyLinkSyncEvent:(CLEvent *)event
-        void ProcessModifyLinkSyncEvent(CLEvent evt)
+        void ProcessModifyLinkSyncEvent(KeyValuePair<CLEvent, FileStream> evt)
         {
             // Merged 7/10/12
             // NSString *status = event.syncHeader.status;
@@ -2941,7 +2955,7 @@ namespace win_client.Services.Sync
             //&&&&
 
             // NSString *status = event.syncHeader.status;
-            string status = evt.SyncHeader.Status;
+            string status = evt.Key.SyncHeader.Status;
 
             // BOOL success = YES; // assume true for events we originated (since they already happened), override value for MDS execution.
             bool success = true;   // assume true for events we originated (since they already happened), override value for MDS execution.
@@ -2950,7 +2964,7 @@ namespace win_client.Services.Sync
             if (status == null)
             {
                 // success = [[CLFSDispatcher defaultDispatcher] createSymbLinkAtPath:event.metadata.path withTarget:event.metadata.targetPath];
-                success = CLFSDispatcher.Instance.CreateSymbLinkAtPath_withTarget(evt.Metadata.Path, evt.Metadata.TargetPath);
+                success = CLFSDispatcher.Instance.CreateSymbLinkAtPath_withTarget(evt.Key.Metadata.Path, evt.Key.Metadata.TargetPath);
             }
 
             // Update index and ui.
@@ -2989,13 +3003,13 @@ namespace win_client.Services.Sync
 
                 // Update index and ui.
                 // [self performUpdateForSyncEvent:event success:success];
-                PerformUpdateForSyncEvent_Success(evt, success: success);
+                PerformUpdateForSyncEvent_Success(new KeyValuePair<CLEvent, FileStream>(evt, null), success: success);
             }
         }
 
 
 
-        List<CLEvent> SeparateFolderFromFileForActiveEvents_WantsFolderEvents(List<CLEvent> activeEvents, bool wantsFolderEvents)
+        List<KeyValuePair<CLEvent, FileStream>> SeparateFolderFromFileForActiveEvents_WantsFolderEvents(List<KeyValuePair<CLEvent, FileStream>> activeEvents, bool wantsFolderEvents)
         {
             //NSMutableArray *events = [NSMutableArray array];
 
@@ -3023,7 +3037,7 @@ namespace win_client.Services.Sync
 
             //&&&&
             // NSMutableArray *events = [NSMutableArray array];
-            List<CLEvent> events = new List<CLEvent>();
+            List<KeyValuePair<CLEvent, FileStream>> events = new List<KeyValuePair<CLEvent, FileStream>>();
 
             if (wantsFolderEvents)
             {
@@ -3032,10 +3046,10 @@ namespace win_client.Services.Sync
                 activeEvents.ForEach(obj =>
                 {
                     // CLEvent *event = obj;
-                    CLEvent evt = obj;
+                    KeyValuePair<CLEvent, FileStream> evt = obj;
 
                     // if ([event.syncHeader.action rangeOfString:CLEventTypeFolderRange].location != NSNotFound) {
-                    if (evt.SyncHeader.Action.Contains(CLDefinitions.CLEventTypeFolderRange))
+                    if (evt.Key.SyncHeader.Action.Contains(CLDefinitions.CLEventTypeFolderRange))
                     {
                         // [events addObject:event];
                         events.Add(evt);
@@ -3048,10 +3062,10 @@ namespace win_client.Services.Sync
                 activeEvents.ForEach(obj =>
                 {
                     // CLEvent *event = obj;
-                    CLEvent evt = obj;
+                    KeyValuePair<CLEvent, FileStream> evt = obj;
 
                     // if ([event.syncHeader.action rangeOfString:CLEventTypeFileRange].location != NSNotFound) {
-                    if (evt.SyncHeader.Action.Contains(CLDefinitions.CLEventTypeFileRange))
+                    if (evt.Key.SyncHeader.Action.Contains(CLDefinitions.CLEventTypeFileRange))
                     {
                         // [events addObject:event];
                         events.Add(evt);
@@ -3065,7 +3079,7 @@ namespace win_client.Services.Sync
         }
 
         //- (void)dispatchUploadEvents:(NSArray *)events
-        void DispatchUploadEvents(List<CLEvent> events)
+        void DispatchUploadEvents(List<KeyValuePair<CLEvent, FileStream>> events)
         {
             // Merged 7/10/12
             // NSLog(@"%s", __FUNCTION__);
@@ -3097,7 +3111,7 @@ namespace win_client.Services.Sync
             _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Number of uploads to start: {0}.", events.Count);
 
             // [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            foreach (CLEvent evt in events)
+            foreach (KeyValuePair<CLEvent, FileStream> evt in events)
             {
                 //     CLEvent *event = obj;
                 //     CLHTTPConnectionOperation *uploadOperation = [self uploadOperationForEvent:event];
@@ -3121,7 +3135,7 @@ namespace win_client.Services.Sync
         }
 
         //- (CLHTTPConnectionOperation *)uploadOperationForEvent:(CLEvent *)event
-        CLHTTPConnectionOperation UploadOperationForEvent(CLEvent evt)
+        CLHTTPConnectionOperation UploadOperationForEvent(KeyValuePair<CLEvent, FileStream> evt)
         {
             // Merged 7/10/12
             // NSString *path = event.metadata.path;
@@ -3206,8 +3220,8 @@ namespace win_client.Services.Sync
             // NSString *path = event.metadata.path;
             // NSString *storageKey = event.metadata.storage_key;
             // NSString *fileSystemPath = [[[CLSettings sharedSettings] cloudFolderPath] stringByAppendingPathComponent:path];
-            string path = evt.Metadata.Path;
-            string storageKey = evt.Metadata.Storage_key;
+            string path = evt.Key.Metadata.Path;
+            string storageKey = evt.Key.Metadata.Storage_key;
             string fileSystemPath = Settings.Instance.CloudFolderPath + path;
 
             // __block NSInteger totalExpectedUploadBytes = 0;
@@ -3218,13 +3232,13 @@ namespace win_client.Services.Sync
             DateTime start = DateTime.Now;
 
             // totalExpectedUploadBytes = totalExpectedUploadBytes +[event.metadata.size integerValue];
-            totalExpectedUploadBytes += Convert.ToInt64(evt.Metadata.Size);
+            totalExpectedUploadBytes += Convert.ToInt64(evt.Key.Metadata.Size);
 
             // NSLog(@"File to be uploaded: %@, Storage Key: %@", path, storageKey);
             _trace.writeToLog(9, "CLSyncService: UploadOperationForEvent: FIle to be uploaded: {0}, Storage key: {1}.", path, storageKey);
 
             // __block CLHTTPConnectionOperation *uploadOperation = [self.restClient streamingUploadOperationForStorageKey:storageKey withFileSystemPath:fileSystemPath fileSize:event.metadata.size andMD5Hash:event.metadata.hash];
-            CLHTTPConnectionOperation uploadOperation = _restClient.StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(storageKey, fileSystemPath, evt.Metadata.Size, evt.Metadata.Hash);
+            CLHTTPConnectionOperation uploadOperation = _restClient.StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash(storageKey, fileSystemPath, evt.Key.Metadata.Size, evt.Key.Metadata.Hash, evt.Value);
 
             //TODO: Implement this UI functionality.
             // [uploadOperation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
@@ -3504,7 +3518,7 @@ namespace win_client.Services.Sync
                 // __strong CLSyncService *strongSelf = weakSelf;
 
                 // if (!error) {
-                if (error != null)
+                if (error == null)
                 {
                     // if ([operation.response statusCode] == 200) {
                     if (operation.Response.StatusCode == HttpStatusCode.OK)
@@ -3539,7 +3553,7 @@ namespace win_client.Services.Sync
                         }
 
                         // [self performUpdateForSyncEvent:event success:YES];
-                        PerformUpdateForSyncEvent_Success(evt, success: true);
+                        PerformUpdateForSyncEvent_Success(new KeyValuePair<CLEvent, FileStream>(evt, null), success: true);
 
                     }
                     else
@@ -3548,14 +3562,14 @@ namespace win_client.Services.Sync
                         _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: Download returned code {0}.", operation.Response.StatusCode.ToString());
 
                         // [strongSelf retryEvent:event isDownloadEvent:YES];
-                        RetryEvent_isDownload(evt, isDownload: true);
+                        RetryEvent_isDownload(new KeyValuePair<CLEvent, FileStream>(evt, null), isDownload: true);
                     }
 
                 }
                 else
                 {
                     // [strongSelf retryEvent:event isDownloadEvent:YES];
-                    RetryEvent_isDownload(evt, isDownload: true);
+                    RetryEvent_isDownload(new KeyValuePair<CLEvent, FileStream>(evt, null), isDownload: true);
 
                     // NSLog(@"Failed to Download File: %@. Error: %@, Code: %ld", path, [error localizedDescription], [error code]);
                     _trace.writeToLog(1, " CLSyncService: DispatchDownloadEvents: ERROR: Failed to download file {0}.  Error: {1}, Code: {2}.", path, error.errorDescription, error.errorCode);
@@ -3653,7 +3667,7 @@ namespace win_client.Services.Sync
         }
 
         //- (void)performUpdateForSyncEvent:(CLEvent *)event success:(BOOL)success
-        void PerformUpdateForSyncEvent_Success(CLEvent evt, bool success)
+        void PerformUpdateForSyncEvent_Success(KeyValuePair<CLEvent, FileStream> evt, bool success)
         {
             //cloudAppIconBadgeType badgeType = cloudAppBadgeSynced;
             //NSString *eventType = event.syncHeader.action;
@@ -3807,13 +3821,13 @@ namespace win_client.Services.Sync
             cloudAppIconBadgeType badgeType = cloudAppIconBadgeType.cloudAppBadgeSynced;
 
             //NSString *eventType = event.syncHeader.action;
-            string eventType = evt.SyncHeader.Action;
+            string eventType = evt.Key.SyncHeader.Action;
 
             //if (success) {
             if (success)
             {
                 // [self updateIndexForSyncEvent:event];
-                UpdateIndexForSyncEvent(evt);
+                UpdateIndexForSyncEvent(evt.Key);
 
                 // Add file event to our recent files array
                 // if ([eventType rangeOfString:CLEventTypeFileRange].location != NSNotFound) { // only file events
@@ -3828,12 +3842,12 @@ namespace win_client.Services.Sync
                             eventType.Contains(CLDefinitions.CLEventTypeRenameRange))
                         {
                             // [self.recentItems addObject:event.metadata.toPath];
-                            _recentItems.Add(evt.Metadata.ToPath);
+                            _recentItems.Add(evt.Key.Metadata.ToPath);
                         }
                         else
                         {
                             // [self.recentItems addObject:event.metadata.path];
-                            _recentItems.Add(evt.Metadata.Path);
+                            _recentItems.Add(evt.Key.Metadata.Path);
                         }
                     }
                 }
@@ -3871,13 +3885,13 @@ namespace win_client.Services.Sync
 
             // Determine cloudPath for item to be badged.
             //NSString *cloudPath = event.metadata.path;
-            string cloudPath = evt.Metadata.Path;
+            string cloudPath = evt.Key.Metadata.Path;
 
             //if (event.metadata.toPath != nil) {
-            if (!string.IsNullOrWhiteSpace(evt.Metadata.ToPath))
+            if (!string.IsNullOrWhiteSpace(evt.Key.Metadata.ToPath))
             {
                 // cloudPath = event.metadata.toPath;
-                cloudPath = evt.Metadata.ToPath;
+                cloudPath = evt.Key.Metadata.ToPath;
             }
 
             //if ([eventType rangeOfString:CLEventTypeFileRange].location != NSNotFound) { // only automatically badge file events)
@@ -3910,17 +3924,17 @@ namespace win_client.Services.Sync
                     bool shouldBadgeFolder = true;
 
                     // [[self.activeSyncFileQueue copy] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-                    foreach (CLEvent fileEvent in _activeSyncFileQueue)
+                    foreach (KeyValuePair<CLEvent, FileStream> fileEvent in _activeSyncFileQueue)
                     {
                         // CLEvent *fileEvent = obj;
                         // NSString *folderPathForFileEvent = [fileEvent.metadata.path stringByDeletingLastPathComponent];
-                        string folderPathForFileEvent = fileEvent.Metadata.Path.StringByDeletingLastPathComponent();
+                        string folderPathForFileEvent = fileEvent.Key.Metadata.Path.StringByDeletingLastPathComponent();
 
                         // if (fileEvent.metadata.toPath != nil) {
-                        if (!string.IsNullOrWhiteSpace(fileEvent.Metadata.ToPath))
+                        if (!string.IsNullOrWhiteSpace(fileEvent.Key.Metadata.ToPath))
                         {
                             // folderPathForFileEvent = [fileEvent.metadata.toPath stringByDeletingLastPathComponent];
-                            folderPathForFileEvent = fileEvent.Metadata.ToPath.StringByDeletingLastPathComponent();
+                            folderPathForFileEvent = fileEvent.Key.Metadata.ToPath.StringByDeletingLastPathComponent();
                         }
 
                         // If we find the folder path inside the file events, it means this folder still has items to be synced
@@ -3944,19 +3958,19 @@ namespace win_client.Services.Sync
                         BadgeFileAtCloudPath_withBadge(folderPath, badgeType);
 
                         // [[self.activeSyncFolderQueue copy] enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-                        List<CLEvent> activeSyncFolderQueueReverseCopy = new List<CLEvent>(_activeSyncFolderQueue);
+                        List<KeyValuePair<CLEvent, FileStream>> activeSyncFolderQueueReverseCopy = new List<KeyValuePair<CLEvent, FileStream>>(_activeSyncFolderQueue);
                         activeSyncFolderQueueReverseCopy.Reverse();
-                        foreach (CLEvent folderEvent in activeSyncFolderQueueReverseCopy)
+                        foreach (KeyValuePair<CLEvent, FileStream> folderEvent in activeSyncFolderQueueReverseCopy)
                         {
                             // CLEvent *folderEvent = obj;
                             // NSString *folderPathForFolderEvent = folderEvent.metadata.path;
-                            string folderPathForFolderEvent = folderEvent.Metadata.Path;
+                            string folderPathForFolderEvent = folderEvent.Key.Metadata.Path;
 
                             // if (folderEvent.metadata.toPath != nil) {
-                            if (!string.IsNullOrWhiteSpace(folderEvent.Metadata.ToPath))
+                            if (!string.IsNullOrWhiteSpace(folderEvent.Key.Metadata.ToPath))
                             {
                                 // folderPathForFolderEvent = folderEvent.metadata.toPath;
-                                folderPathForFolderEvent = folderEvent.Metadata.ToPath;
+                                folderPathForFolderEvent = folderEvent.Key.Metadata.ToPath;
                             }
 
                             // if ([folderPath isEqualToString:folderPathForFolderEvent]) {
@@ -3986,17 +4000,17 @@ namespace win_client.Services.Sync
                 // __block BOOL shouldBadgeFolder = YES;
                 bool shouldBadgeFolder = true;
                 // [self.activeSyncQueue enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-                foreach (CLEvent activeEvent in _activeSyncQueue)
+                foreach (KeyValuePair<CLEvent, FileStream> activeEvent in _activeSyncQueue)
                 {
                     // CLEvent *activeEvent = obj;
                     // NSString *eventPath = activeEvent.metadata.path;
-                    string eventPath = activeEvent.Metadata.Path;
+                    string eventPath = activeEvent.Key.Metadata.Path;
 
                     // if (activeEvent.metadata.toPath != nil) {
-                    if (!string.IsNullOrWhiteSpace(activeEvent.Metadata.ToPath))
+                    if (!string.IsNullOrWhiteSpace(activeEvent.Key.Metadata.ToPath))
                     {
                         // eventPath = activeEvent.metadata.toPath;
-                        eventPath = activeEvent.Metadata.ToPath;
+                        eventPath = activeEvent.Key.Metadata.ToPath;
                     }
 
                     // // if the path is not exactly our current path, but it has range of the current path, it means the folder is not going to be empty.
@@ -4101,7 +4115,7 @@ namespace win_client.Services.Sync
         }
 
         //- (void)retryEvent:(CLEvent *)event isDownload:(BOOL)isDownload
-        void RetryEvent_isDownload(CLEvent evt, bool isDownload)
+        void RetryEvent_isDownload(KeyValuePair<CLEvent, FileStream> evt, bool isDownload)
         {
             // Merged 7/7/12
             //if (event.retryAttemps <= 3) {
@@ -4137,13 +4151,13 @@ namespace win_client.Services.Sync
             //&&&&
 
             //if (event.retryAttemps <= 3) {
-            if (evt.RetryAttempts <= 3)
+            if (evt.Key.RetryAttempts <= 3)
             {
                 // if (isDownload == YES) {
                 if (isDownload)
                 {
                     // CLHTTPConnectionOperation *downloadOperation = [self downloadOpperationForEvent:event];
-                    CLHTTPConnectionOperation downloadOperation = DownloadOperationForEvent(evt);
+                    CLHTTPConnectionOperation downloadOperation = DownloadOperationForEvent(evt.Key);
                     if (downloadOperation != null)
                     {
                         // if (self.downloadOperationQueue){
@@ -4154,7 +4168,7 @@ namespace win_client.Services.Sync
                             // NSLog(@"Retrying: %@, Storage Key: %@", event.metadata.path, event.metadata.storage_key);
                             _downloadOperationQueue.EnqueueOperation(downloadOperation);
                             //_activeDownloadQueue.Add(downloadOperation);   //bug???
-                            _trace.writeToLog(1, "CLSyncService: RetryEvent: Retrying: {0}, Storage key: {1}.", evt.Metadata.Path, evt.Metadata.Storage_key);
+                            _trace.writeToLog(1, "CLSyncService: RetryEvent: Retrying: {0}, Storage key: {1}.", evt.Key.Metadata.Path, evt.Key.Metadata.Storage_key);
                         }
                     }
                 }
@@ -4169,7 +4183,7 @@ namespace win_client.Services.Sync
                         // [self.uploadOperationQueue addOperation:uploadOperation];
                         //  NSLog(@"Retrying: %@, Storage Key: %@", event.metadata.path, event.metadata.storage_key);
                         _uploadOperationQueue.EnqueueOperation(uploadOperation);
-                        _trace.writeToLog(1, "CLSyncService: RetryEvent: Retrying(2): {0}, Storage key: {1}.", evt.Metadata.Path, evt.Metadata.Storage_key);
+                        _trace.writeToLog(1, "CLSyncService: RetryEvent: Retrying(2): {0}, Storage key: {1}.", evt.Key.Metadata.Path, evt.Key.Metadata.Storage_key);
 
                     }
                 }
@@ -4201,7 +4215,7 @@ namespace win_client.Services.Sync
             }
 
             //event.retryAttemps++;
-            evt.RetryAttempts++;
+            evt.Key.RetryAttempts++;
         }
     }
 }

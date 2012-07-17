@@ -89,7 +89,11 @@ namespace CloudApiPublic.Model
             }
             else
             {
-                return ((FilePath)this.Parent).ToString() + "\\" + Name;
+                string parentPath = ((FilePath)this.Parent).ToString();
+                return (!string.IsNullOrEmpty(parentPath)
+                        && parentPath[parentPath.Length - 1] == '\\'
+                    ? parentPath + Name
+                    : parentPath + "\\" + Name);
             }
         }
 
@@ -167,7 +171,7 @@ namespace CloudApiPublic.Model
             return null;
         }
 
-        public static string GetRelativePath(FilePath fullPath, FilePath relativeRoot)
+        public static string GetRelativePath(FilePath fullPath, FilePath relativeRoot, bool replaceWithForwardSlashes)
         {
             if (fullPath == null)
             {
@@ -182,18 +186,16 @@ namespace CloudApiPublic.Model
             
             string relativePath = fullPath.ToString().Substring(overlappingRoot.ToString().Length);
 
-            // This string may have multiple backslashes prepended.  Remove them and insert a single forward slash.
-            int index = 0;
-            while (relativePath[index] != '\0' && relativePath[index] == '\\')
+            if (replaceWithForwardSlashes)
             {
-                ++index;
+                return relativePath.Replace('\\', '/');
             }
-            return '/' + relativePath.Substring(index).Replace('\\', '/');
+            return relativePath;
         }
 
-        public string GetRelativePath(FilePath relativeRoot)
+        public string GetRelativePath(FilePath relativeRoot, bool replaceWithForwardSlashes)
         {
-            return GetRelativePath(this, relativeRoot);
+            return GetRelativePath(this, relativeRoot, replaceWithForwardSlashes);
         }
 
         /// <summary>

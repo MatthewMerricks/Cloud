@@ -284,27 +284,16 @@ namespace win_client.Services.Indexing
 #endif  // TRASH            
             //&&&&
 
-            if (evt == null)
+            if (evt == null
+                || evt.ChangeReference == null)
             {
                 return null;
             }
 
-            //&&&&& removed this
-            //return new FileSystemItem()
-            //{
-            //    ChangeReference = evt.ChangeReference
-            //};
-
-            //&&&& added this.
-            FileSystemItem fsItem = new FileSystemItem()
+            return new FileSystemItem()
             {
                 ChangeReference = evt.ChangeReference
             };
-            if (!String.IsNullOrWhiteSpace(evt.Metadata.Path))
-            {
-                fsItem.ChangeReference.NewPath = evt.Metadata.Path;
-            }
-            return fsItem;
         }
 
         //+ (void)markItemAtPath:(NSString *)path asPending:(BOOL)pending

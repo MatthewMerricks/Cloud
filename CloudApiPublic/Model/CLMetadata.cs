@@ -30,7 +30,7 @@ namespace CloudApiPublic.Model
                 {
                     return null;
                 }
-                return this.ChangeReference.NewPath.GetRelativePath(this.GetCloudPath());
+                return this.ChangeReference.NewPath.GetRelativePath(this.GetCloudPath(), replaceWithForwardSlashes: true);
             }
         }
         public string ToPath
@@ -50,7 +50,7 @@ namespace CloudApiPublic.Model
                 {
                     return null;
                 }
-                return this.ChangeReference.OldPath.GetRelativePath(this.GetCloudPath());
+                return this.ChangeReference.OldPath.GetRelativePath(this.GetCloudPath(), replaceWithForwardSlashes: true);
             }
         }
         public string TargetPath
@@ -64,7 +64,7 @@ namespace CloudApiPublic.Model
                 {
                     return null;
                 }
-                return this.ChangeReference.Metadata.LinkTargetPath.GetRelativePath(this.GetCloudPath());
+                return this.ChangeReference.Metadata.LinkTargetPath.GetRelativePath(this.GetCloudPath(), replaceWithForwardSlashes: true);
             }
         }
         public string Revision

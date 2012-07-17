@@ -13,5 +13,5 @@
 	/* does this belong? */ /*[MD5] binary(15) NULL,*/
 	CONSTRAINT [PK_FileSystemObjects] PRIMARY KEY CLUSTERED ([FileSystemObjectId] ASC),
 	CONSTRAINT [CHK_FileSystemObjects_SizeSet] CHECK (([IsFolder] = 1 AND [Size] IS NULL) OR ([IsFolder] = 0 AND [Size] IS NOT NULL)),
-	CONSTRAINT [CHK_FileSystemObjects_TargetPathForFilesOnly] CHECK ([IsFolder] = 1 AND [TargetPath] IS NULL)
+	CONSTRAINT [CHK_FileSystemObjects_TargetPathForFilesOnly] CHECK ([IsFolder] = 0 OR ([IsFolder] = 1 AND [TargetPath] IS NULL))
 )

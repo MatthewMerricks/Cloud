@@ -376,7 +376,8 @@ namespace FileMonitor
                                         OldPath = currentChange.OldPath,
                                         Metadata = currentChange.Metadata,
                                         Type = currentChange.Type,
-                                        DoNotAddToSQLIndex = currentChange.DoNotAddToSQLIndex
+                                        DoNotAddToSQLIndex = currentChange.DoNotAddToSQLIndex,
+                                        EventId = currentChange.EventId
                                     });
                             }
                         }

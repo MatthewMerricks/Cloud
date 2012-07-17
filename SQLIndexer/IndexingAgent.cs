@@ -732,6 +732,12 @@ namespace SQLIndexer
         {
             try
             {
+                // Return out if boolean set indicating not to add to SQL
+                if (mergedEvent.DoNotAddToSQLIndex)
+                {
+                    return null;
+                }
+
                 // Ensure input variables have proper references set
                 if (mergedEvent == null)
                 {
