@@ -179,7 +179,16 @@ namespace CloudApiPublic.Model
             {
                 return fullPath.ToString();
             }
-            return fullPath.ToString().Substring(overlappingRoot.ToString().Length);
+            
+            string relativePath = fullPath.ToString().Substring(overlappingRoot.ToString().Length);
+
+            // This string may have multiple backslashes prepended.  Remove them and insert a single forward slash.
+            int index = 0;
+            while (relativePath[index] != '\0' && relativePath[index] == '\\')
+            {
+                ++index;
+            }
+            return '/' + relativePath.Substring(index).Replace('\\', '/');
         }
 
         public string GetRelativePath(FilePath relativeRoot)
