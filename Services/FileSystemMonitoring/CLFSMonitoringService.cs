@@ -55,6 +55,7 @@ namespace win_client.Services.FileSystemMonitoring
             _trace = CLTrace.Instance;
         }
 
+#if TRASH
         /// <summary>
         /// Property to return the FSM MonitorAgent.
         /// </summary>
@@ -64,6 +65,7 @@ namespace win_client.Services.FileSystemMonitoring
             get { return _agent; }
             private set { _agent = value; }
         }
+#endif  // TRASH
 
         /// <summary>
         /// Start the file system monitoring service.

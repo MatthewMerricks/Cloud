@@ -252,12 +252,24 @@ namespace CloudApiPublic.Model
             if (json.Count > 0)
             {
                 jsonToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataCloudPath, null);
-                if (string.IsNullOrWhiteSpace(jsonToPath))
+                if (jsonToPath == String.Empty)
+                {
+                    jsonToPath = null;
+                }
+                else if (string.IsNullOrWhiteSpace(jsonToPath))
                 {
                     jsonToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataToPath, null);
                 }
                 jsonFromPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFromPath, null);
+                if (jsonFromPath == String.Empty)
+                {
+                    jsonFromPath = null;
+                }               
                 jsonTargetPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileTarget, null);
+                if (jsonTargetPath == String.Empty)
+                {
+                    jsonTargetPath = null;
+                }
                 jsonRevision = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileRevision, null);
                 DateTime jsonCreationDateTemp = ((DateTime)json.GetValueOrDefault(CLDefinitions.CLMetadataFileCreateDate, new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc)));
                 jsonCreationDate = (jsonCreationDateTemp.Ticks == FileConstants.InvalidUtcTimeTicks ? null : jsonCreationDateTemp.ToUniversalTime().ToString("o"));

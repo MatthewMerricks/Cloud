@@ -246,7 +246,7 @@ namespace win_client.Services.Sync
             //}
             if (_wasOffline)
             {
-                CLFSMonitoringService.Instance.Agent.FireSimulatedPushNotification();
+                CLFSMonitoringService.Instance.MonitorAgent.FireSimulatedPushNotification();
                 _wasOffline = false;
             }
         }
@@ -491,7 +491,7 @@ namespace win_client.Services.Sync
         {
             KeyValuePair<FileChange, FileStream>[] processedChanges;
             FileChange[] changesInError;
-            CLFSMonitoringService.Instance.Agent.ProcessFileListForSyncProcessing(out processedChanges, out changesInError);
+            CLFSMonitoringService.Instance.MonitorAgent.ProcessFileListForSyncProcessing(out processedChanges, out changesInError);
 
             // Update UI with activity.
             //TODO: Implement this UI.
