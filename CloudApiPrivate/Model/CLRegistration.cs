@@ -341,7 +341,8 @@ namespace CloudApiPrivate.Model
                               device.OSVersion(),
                               "1.0");
 
-            this.Uuid = device.Udid;
+            this.Udid = device.Udid;
+            _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: UDid: <{0}>.", this.Udid);
 
             HttpContent content = new StringContent(body, Encoding.UTF8);
             content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
@@ -356,6 +357,9 @@ namespace CloudApiPrivate.Model
                 _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
 
                 isSuccess = processLoginServerResponse(outRegistration, jsonResult, out error);
+
+                // Set the new UDID after successfull link.. This id is used by the notification server.. 
+                CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
             }
             else
             {
@@ -417,8 +421,6 @@ namespace CloudApiPrivate.Model
                     outRegistration.Token = apiKey;
                     outRegistration.LinkedDeviceName = devicename;
                     outRegistration.LinkedAccount = new CLAccount(username, firstname, lastname, null);
-
-                    CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Uuid);
                 }
 
             }

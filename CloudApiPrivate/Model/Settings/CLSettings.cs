@@ -479,7 +479,10 @@ namespace CloudApiPrivate.Model.Settings
         public string Udid
         {
             get { return _udid; }
-            set { _udid = value; }
+            set {
+                _udid = value;
+                SettingsBase.Write<string>(kUdid, value);
+            }
         }
         
 
@@ -881,6 +884,12 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _recentFileItems = tempList;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<string>(kUdid, out tempString);
+            if (isPresent)
+            {
+                _udid = tempString;
             }
         }
         /// <summary>

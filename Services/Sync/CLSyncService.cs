@@ -120,6 +120,9 @@ namespace win_client.Services.Sync
 
             // [_sharedService prepareForSyncServiceToStart];
             PrepareForSyncServiceToStart();
+
+            // Register to receive notifications
+            CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(this, NotificationServiceDidReceivePushNotificationFromServer);
         }
 
         //- (void)prepareForSyncServiceToStart
@@ -536,7 +539,7 @@ namespace win_client.Services.Sync
             }
             else
             {
-                NotificationServiceDidReceivePushNotificationFromServer(false, "test");
+                NotificationServiceDidReceivePushNotificationFromServer("test");
                 //TODO: Remove this test code&&&&&&&&&&&&&&&&&&&
 
                 // Update UI with activity.
@@ -1140,7 +1143,7 @@ namespace win_client.Services.Sync
         }
 
         //- (void)notificationService:(CLNotificationServices *)ns didReceivePushNotificationFromServer:(NSString *)notification
-        void NotificationServiceDidReceivePushNotificationFromServer(bool /*CLNotificationServices*/ ns, string notification)
+        void NotificationServiceDidReceivePushNotificationFromServer(string notification)
         {
             // Merged 7/13/12
             //NSString *sid;
