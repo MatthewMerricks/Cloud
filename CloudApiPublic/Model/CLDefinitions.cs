@@ -5,7 +5,7 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
-//#define PRODUCTION_BACKEND 
+#define PRODUCTION_BACKEND 
 
 // Merged 7/3/12
 namespace CloudApiPublic.Model
@@ -47,13 +47,13 @@ namespace CloudApiPublic.Model
         public const string CLRegistrationLinkRequestBodyString   = @"email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&device[os_type]={4}&device[os_version]={5}&device[app_version]={6}";
 
         // Meta Data
-        public const string CLMetaDataServerURL = @"https://mds2.cloudburrito.com";
+        public const string CLMetaDataServerURL = @"https://mds-edge.cloudburrito.com";
 
         // Notifications
-        public const string CLNotificationServerURL = @"ws://push.cloud.com/events";
+        public const string CLNotificationServerURL = @"ws://push-edge.cloudburrito.com/events";
 
         // Upload/Download Server
-        public const string CLUploadDownloadServerURL = @"https://upd.cloudburrito.com";
+        public const string CLUploadDownloadServerURL = @"https://upd-edge.cloudburrito.com";
 
 #endif
 

@@ -681,6 +681,11 @@ namespace win_client.Services.Sync
                                 _currentSids.Add(newSid);
                             }
 
+                            //TODO: Fix this hack.  We will create a new sync point here, and each of the events that
+                            // process in this batch will be moved into the sync as it completes.
+                            long syncCounter;
+                            CLFSMonitoringService.Instance.IndexingAgent.RecordCompletedSync(newSid, new List<long>(), out syncCounter, Settings.Instance.CloudFolderPath);
+
                             // Add received events.
                             // NSArray *mdsEvents = [metadata objectForKey:CLSyncEvents];
                             // NSMutableArray *events = [NSMutableArray array];
