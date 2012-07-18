@@ -40,6 +40,8 @@ namespace CloudApiPrivate.Model
 
         #region "Private Fields"
         private CLTrace _trace = CLTrace.Instance;
+        private const string client_id = "7d5352411711b2435c3d5e8f7bcf9ee71e956637ef3efe47024ec56ab5164a07";
+        private const string client_secret = "3c52734df439f457e4d6750662708108ebdaa13182ef4aed3238626474be444d";
         #endregion
 
         #region "Life Cycle"
@@ -147,7 +149,7 @@ namespace CloudApiPrivate.Model
 
             HttpClient client = new HttpClient(); 
 
-            string body = String.Format(CLSptConstants.CLRegistrationCreateRequestBodyString,  
+            string body = String.Format(CLDefinitions.CLRegistrationCreateRequestBodyString,  
                               account.FirstName, 
                               account.LastName, 
                               account.UserName, 
@@ -156,7 +158,10 @@ namespace CloudApiPrivate.Model
                               device.Udid,
                               device.OSType(),
                               device.OSVersion(),
-                              "1.0");
+                              "1.0",
+                              client_id,
+                              client_secret);
+
             HttpContent content = new StringContent(body, Encoding.UTF8);
             content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
 
@@ -339,7 +344,9 @@ namespace CloudApiPrivate.Model
                               device.Udid,
                               device.OSType(),
                               device.OSVersion(),
-                              "1.0");
+                              "1.0",
+                              client_id,
+                              client_secret);
 
             this.Udid = device.Udid;
             _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: UDid: <{0}>.", this.Udid);

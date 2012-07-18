@@ -15,5 +15,6 @@ namespace CloudApiPrivate.Model
 
         // OS constants
         public const string ShortcutExtension = "lnk";
+
     }
 }

@@ -5,7 +5,7 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
-#define PRODUCTION_BACKEND 
+//#define PRODUCTION_BACKEND 
 
 // Merged 7/3/12
 namespace CloudApiPublic.Model
@@ -37,14 +37,19 @@ namespace CloudApiPublic.Model
 #else
 
         // Registration
-        public const string CLRegistrationCreateRequestURLString  = @"https://auth.cloudburrito.com/user/create.json";
-        public const string CLRegistrationCreateRequestBodyString = @"user[first_name]={0}&user[last_name]={1}&user[email]={2}&user[password]={3}&device[friendly_name]={4}&device[device_uuid]={5}&device[os_type]={6}&device[os_version]={7}&device[app_version]={8}";
+        public const string CLRegistrationCreateRequestURLString  = "https://auth-edge.cloudburrito.com/user/create.json";
+        public const string CLRegistrationCreateRequestBodyString = "user[first_name]={0}&user[last_name]={1}&user[email]={2}&user[password]={3}" +
+                                                                    "&device[friendly_name]={4}&device[device_uuid]={5}&device[os_type]={6}" +
+                                                                    "&device[os_version]={7}&device[app_version]={8}&client_id={9}&client_secret={10}";
 
         // Link/Unlink
-        public const string CLRegistrationUnlinkRequestURLString  = @"https://auth.cloudburrito.com/device/unlink.json";
-        public const string CLRegistrationUnlinkRequestBodyString = @"access_token={0}";
-        public const string CLRegistrationLinkRequestURLString    = @"https://auth.cloudburrito.com/device/link.json";
-        public const string CLRegistrationLinkRequestBodyString   = @"email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&device[os_type]={4}&device[os_version]={5}&device[app_version]={6}";
+        public const string CLRegistrationUnlinkRequestURLString  = "https://auth-edge.cloudburrito.com/device/unlink.json";
+        public const string CLRegistrationUnlinkRequestBodyString = "access_token={0}";
+
+        public const string CLRegistrationLinkRequestURLString    = "https://auth-edge.cloudburrito.com/device/link.json";
+        public const string CLRegistrationLinkRequestBodyString   = "email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&" +
+                                                                     "device[os_type]={4}&device[os_version]={5}&device[app_version]={6}&" +
+                                                                     "client_id={7}&client_secret={8}";
 
         // Meta Data
         public const string CLMetaDataServerURL = @"https://mds-edge.cloudburrito.com";
