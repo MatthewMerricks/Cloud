@@ -35,24 +35,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\websocket4net.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SimpleJson">
-      <HintPath>..\Reference\SimpleJson\Net40\SimpleJson.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Common">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\Net40\$(Configuration)\SuperSocket.ClientEngine.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Core">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\Net40\$(Configuration)\SuperSocket.ClientEngine.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Protocol">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\Net40\$(Configuration)\SuperSocket.ClientEngine.Protocol.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
@@ -103,6 +91,24 @@
     <Compile Include="WebSocketContext.cs" />
     <Compile Include="WebSocketState.cs" />
     <Compile Include="WebSocketVersion.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\simple-json\src\SimpleJson\SimpleJson-Net40.csproj">
+      <Project>{4ee1bc6a-d96b-4bd6-a6f3-2e2135aa9b99}</Project>
+      <Name>SimpleJson-Net40</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SuperSocketClientEngine\Common\Common.csproj">
+      <Project>{87fa4c97-a768-463b-b1d1-317a07c5face}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SuperSocketClientEngine\Core\Core.csproj">
+      <Project>{1bc7e184-8225-425a-900e-9fea38865e20}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SuperSocketClientEngine\Protocol\Protocol.csproj">
+      <Project>{d9a94b6c-7a16-4472-916c-af2cd1b1f226}</Project>
+      <Name>Protocol</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

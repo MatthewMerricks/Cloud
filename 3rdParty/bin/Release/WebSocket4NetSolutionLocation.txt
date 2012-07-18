@@ -1,0 +1,6 @@
+windows-client\3rdParty\Src\WebSocket4NetSource\WebSocket4Net.sln
+
+also includes SuperSocket.ClientEngine.Common
+				      .Core
+				      .Protocol
+	      SimpleJson
