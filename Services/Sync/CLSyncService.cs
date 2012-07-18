@@ -3288,7 +3288,7 @@ namespace win_client.Services.Sync
                 // if (strongSelf) {
 
                 // NSLog(@"Upload Status: %li", [operation.response statusCode]);
-                _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Upload Status: {0}.", operation.Response.StatusCode);
+                _trace.writeToLog(9, " CLSyncService: DispatchUploadEvents: Upload Status: {0}.", (operation.Response == null) ? String.Empty : operation.Response.StatusCode.ToString());
 
                 // if (([operation.response statusCode] == 201 ) || ([operation.response statusCode] == 200 )) {
                 // //TODO : The MDS should be returning 201 for a successfull upload, but there is a bug returning 200. We need to change this back to 201 when this bug has been fixed.

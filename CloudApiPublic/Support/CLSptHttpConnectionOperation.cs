@@ -534,40 +534,32 @@ namespace CloudApiPublic.Support
                     // if (![fileManager contentsEqualAtPath:strongSelf.tempFilePath andPath:strongSelf.responseFilePath]){
                     try
                     {
-                        if (!CLSptFileCompare.FileCompare(this.TempFilePath, this.ResponseFilePath))
+                        bool filesSame = CLSptFileCompare.FileCompare(this.TempFilePath, this.ResponseFilePath, out error);
+                        if (error == null)
                         {
-                            // NSError *replacementError;
-                            // NSURL *responseFilePathURL = [NSURL fileURLWithPath:strongSelf.responseFilePath];
-                            // NSURL *tempFilePathURL = [NSURL fileURLWithPath:strongSelf.tempFilePath];
-                            // NSString *backupName = [[strongSelf.responseFilePath lastPathComponent] stringByAppendingString:@"cloudbackup"];
+                            if (!filesSame)
+                            {
+                                // NSError *replacementError;
+                                // NSURL *responseFilePathURL = [NSURL fileURLWithPath:strongSelf.responseFilePath];
+                                // NSURL *tempFilePathURL = [NSURL fileURLWithPath:strongSelf.tempFilePath];
+                                // NSString *backupName = [[strongSelf.responseFilePath lastPathComponent] stringByAppendingString:@"cloudbackup"];
 
-                            // [fileManager replaceItemAtURL:responseFilePathURL withItemAtURL:tempFilePathURL
-                            //                                                  backupItemName:backupName
-                            //                                                         options:NSFileManagerItemReplacementUsingNewMetadataOnly
-                            //                                                resultingItemURL:nil error:&replacementError];
-                            // if (replacementError){
-                            //     NSLog(@"%s - Could not replace file: %@ ", __FUNCTION__, replacementError);
-                            // }
-                            // Generate a unique filename in the temp directory
-                            string uSaveFilePath = GetUniqueFilePathInTempDirectory();
+                                // [fileManager replaceItemAtURL:responseFilePathURL withItemAtURL:tempFilePathURL
+                                //                                                  backupItemName:backupName
+                                //                                                         options:NSFileManagerItemReplacementUsingNewMetadataOnly
+                                //                                                resultingItemURL:nil error:&replacementError];
+                                // if (replacementError){
+                                //     NSLog(@"%s - Could not replace file: %@ ", __FUNCTION__, replacementError);
+                                // }
 
-                            // Move the existing target file from the target location to the unique file in the temp directory.
-                            try
-                            {
-                                File.Move(this.ResponseFilePath, uSaveFilePath);
-                            }
-                            catch (Exception ex)
-                            {
-                                error += ex;
-                            }
-                            if (error == null)
-                            {
-                                // The backup rename was successful
-                                // Move the downloaded temp file to the target location.
+                                // The target file exists, and it is different than the source file.
+                                // Generate a unique filename in the temp directory
+                                string uSaveFilePath = GetUniqueFilePathInTempDirectory();
+
+                                // Move the existing target file from the target location to the unique file in the temp directory.
                                 try
                                 {
-                                    // Move the downloaded temp file to the target location
-                                    File.Move(this.TempFilePath, this.ResponseFilePath);
+                                    File.Move(this.ResponseFilePath, uSaveFilePath);
                                 }
                                 catch (Exception ex)
                                 {
@@ -575,43 +567,62 @@ namespace CloudApiPublic.Support
                                 }
                                 if (error == null)
                                 {
-                                    // The downloaded file was moved to the target location successfully.
-                                    // Delete the saved unique file in the temp directory.
+                                    // The backup rename was successful
+                                    // Move the downloaded temp file to the target location.
                                     try
                                     {
-                                        File.Delete(uSaveFilePath);
+                                        // Move the downloaded temp file to the target location
+                                        File.Move(this.TempFilePath, this.ResponseFilePath);
                                     }
                                     catch (Exception ex)
                                     {
                                         error += ex;
                                     }
-                                }
+                                    if (error == null)
+                                    {
+                                        // The downloaded file was moved to the target location successfully.
+                                        // Delete the saved unique file in the temp directory.
+                                        try
+                                        {
+                                            File.Delete(uSaveFilePath);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            error += ex;
+                                        }
+                                    }
 
+                                    else
+                                    {
+                                        // Error moving the downloaded file to the target location.
+                                        // Try to recover by moving the saved file back to the target location
+                                        // Log the error
+                                        Exception ex = new Exception("Error moving downloaded file <" + this.TempFilePath + "> to the target location <" + this.ResponseFilePath + ">.");
+                                        error += ex;
+
+                                        // Try to recover the saved file
+                                        try
+                                        {
+                                            File.Move(uSaveFilePath, this.ResponseFilePath);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            error += ex;
+                                        }
+                                    }
+                                }
                                 else
                                 {
-                                    // Error moving the downloaded file to the target location.
-                                    // Try to recover by moving the saved file back to the target location
-                                    // Log the error
-                                    Exception ex = new Exception("Error moving downloaded file <" + this.TempFilePath + "> to the target location <" + this.ResponseFilePath + ">.");
+                                    // Error renaming the backup file.
+                                    Exception ex = new Exception("Error saving the existing target file <" + this.ResponseFilePath + "> to the target location <" + uSaveFilePath + ">.");
                                     error += ex;
-
-                                    // Try to recover the saved file
-                                    try
-                                    {
-                                        File.Move(uSaveFilePath, this.ResponseFilePath);
-                                    }
-                                    catch (Exception)
-                                    {
-                                        error += ex;
-                                    }
                                 }
                             }
-                            else
-                            {
-                                // Error renaming the backup file.
-                                Exception ex = new Exception("Error saving the existing target file <" + this.ResponseFilePath + "> to the target location <" + uSaveFilePath + ">.");
-                                error += ex;
-                            }
+                        }
+                        else
+                        {
+                            // Error comparing the source file and the existing target file.
+                            // Do nothing here.  error has the result of that error.  It will be logged below.
                         }
                     }
                     catch (Exception ex)
@@ -650,6 +661,10 @@ namespace CloudApiPublic.Support
             // Log any errors.
             //TODO: Handle this error.  Enqueue the event to an error retry queue?
             //TODO: Badge this file in error?
+            if (error != null)
+            {
+                _trace.writeToLog(1, "CLSptHttpConnectionOperation: MoveTempFileToResourceFilePath: ERROR: Exception. Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+            }
 
             // This operation is now complete.
             // [self updateCompletedState];
