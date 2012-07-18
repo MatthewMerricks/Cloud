@@ -707,10 +707,10 @@ namespace win_client.Services.Sync
                                     && syncHeaderDictionary.ContainsKey(CLDefinitions.CLClientEventId))
                                 {
                                     KeyValuePair<FileChange, FileStream> findLinkedEvent = (castState == null
-                                            ? (KeyValuePair<FileChange, FileStream>)Helpers.DefaultForType(typeof(KeyValuePair<FileChange, FileStream>))
-                                            : castState
-                                                .FirstOrDefault(currentInitialEvent => currentInitialEvent.Key != null
-                                                    && currentInitialEvent.Key.EventId.ToString() == (syncHeaderDictionary[CLDefinitions.CLClientEventId] ?? string.Empty).ToString()));
+                                        ? (KeyValuePair<FileChange, FileStream>)Helpers.DefaultForType(typeof(KeyValuePair<FileChange, FileStream>))
+                                        : castState
+                                            .FirstOrDefault(currentInitialEvent => currentInitialEvent.Key != null
+                                                && currentInitialEvent.Key.EventId.ToString() == (syncHeaderDictionary[CLDefinitions.CLClientEventId] ?? string.Empty).ToString()));
 
                                     eventsReceived.Add(new KeyValuePair<CLEvent, FileStream>(
                                         CLEvent.EventFromMDSEvent(() =>
@@ -1384,7 +1384,6 @@ namespace win_client.Services.Sync
                             && metadata.ContainsKey(CLDefinitions.CLSyncID)
                             && metadata.GetType() == typeof(Dictionary<string, object>))
                         {
-
                             // get sync id.
                             // NSString *sid = [metadata objectForKey:CLSyncID]; // override with sid sent by server
                             newSid = (string)metadata[CLDefinitions.CLSyncID];

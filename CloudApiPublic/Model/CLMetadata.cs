@@ -260,15 +260,27 @@ namespace CloudApiPublic.Model
                 {
                     jsonToPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataToPath, null);
                 }
+                if (jsonToPath != null)
+                {
+                    jsonToPath = jsonToPath.Replace('/', '\\');
+                }
                 jsonFromPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFromPath, null);
                 if (jsonFromPath == String.Empty)
                 {
                     jsonFromPath = null;
-                }               
+                }
+                else
+                {
+                    jsonFromPath = jsonFromPath.Replace('/', '\\');
+                }
                 jsonTargetPath = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileTarget, null);
                 if (jsonTargetPath == String.Empty)
                 {
                     jsonTargetPath = null;
+                }
+                else
+                {
+                    jsonTargetPath = jsonTargetPath.Replace('/', '\\');
                 }
                 jsonRevision = (string)json.GetValueOrDefault(CLDefinitions.CLMetadataFileRevision, null);
                 DateTime jsonCreationDateTemp = ((DateTime)json.GetValueOrDefault(CLDefinitions.CLMetadataFileCreateDate, new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc)));

@@ -154,8 +154,7 @@ namespace CloudApiPublic.Model
         public static CLEvent EventFromMDSEvent(Func<string> getLastSyncId, 
                                 Func<string> getCloudPath,
                                 //Func<string, FileChange> findFileChangeByPath,
-                                Dictionary<string, 
-                                object> mdsEvent, 
+                                Dictionary<string, object> mdsEvent, 
                                 SyncDirection direction,
                                 FileChange linkedChange = null)
         {
