@@ -539,8 +539,7 @@ namespace win_client.Services.Sync
             }
             else
             {
-                NotificationServiceDidReceivePushNotificationFromServer("test");
-                //TODO: Remove this test code&&&&&&&&&&&&&&&&&&&
+                NotificationServiceDidReceivePushNotificationFromServer("new");
 
                 // Update UI with activity.
                 //TODO: Implement this UI.
@@ -711,7 +710,7 @@ namespace win_client.Services.Sync
                                             ? (KeyValuePair<FileChange, FileStream>)Helpers.DefaultForType(typeof(KeyValuePair<FileChange, FileStream>))
                                             : castState
                                                 .FirstOrDefault(currentInitialEvent => currentInitialEvent.Key != null
-                                                    && currentInitialEvent.Key.EventId.ToString() == syncHeaderDictionary[CLDefinitions.CLClientEventId]));
+                                                    && currentInitialEvent.Key.EventId.ToString() == (syncHeaderDictionary[CLDefinitions.CLClientEventId] ?? string.Empty).ToString()));
 
                                     eventsReceived.Add(new KeyValuePair<CLEvent, FileStream>(
                                         CLEvent.EventFromMDSEvent(() =>
@@ -731,14 +730,35 @@ namespace win_client.Services.Sync
 
                             // Dispatch for processing.
                             // NSMutableDictionary *eventIds = [NSMutableDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, newSid, CLSyncID, nil];
-                            Dictionary<string, object> eventIds = new Dictionary<string, object>()
-                                {
-                                    {CLDefinitions.CLSyncEventID, eid.ToString()},
-                                    {CLDefinitions.CLSyncID, newSid}
-                                };
-
                             // [self performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
-                            PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsReceived, eventIds, CLEventOrigin.CLEventOriginMDS);
+                            PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsReceived, newSid, CLEventOrigin.CLEventOriginMDS);
+                        }
+                        else if (metadata != null
+                            && metadata.Count > 0
+                            && metadata.ContainsKey(CLDefinitions.CLSyncID)
+                            && metadata.GetType() == typeof(Dictionary<string, object>))
+                        {
+                            // There are no events, but the server sent a sid.
+                            _trace.writeToLog(9, "CLSyncService: SyncToCloudWithEvents_andEID: SID, but no events.");
+                            string newSid = (string)metadata[CLDefinitions.CLSyncID];
+
+                            if (newSid != null)
+                            {
+                                if (!_currentSids.Contains(newSid))
+                                {
+                                    _currentSids.Add(newSid);
+                                }
+
+                                Settings.Instance.recordSID(newSid);
+                            }
+
+                            // Update UI with activity.
+                            // [strongSelf animateUIForSync:NO withStatusMessage:menuItemActivityLabelSynced syncActivityCount:0];
+                            //TODO: Implement this.
+                        }
+                        else
+                        {
+                            _trace.writeToLog(9, "CLSyncService: SyncToCloudWithEvents_andEID: ERROR: Malformed event JSON received from server.");
                         }
                     }
                     else
@@ -1359,7 +1379,7 @@ namespace win_client.Services.Sync
                         // if ([[metadata objectForKey:CLSyncEvents] count] > 0) {
                         Dictionary<string, object> metadata = result.JsonResult;
                         if (metadata != null
-                            && metadata.Count > 0
+                            && metadata.Count > 0 
                             && metadata.ContainsKey(CLDefinitions.CLSyncEvents)
                             && metadata.ContainsKey(CLDefinitions.CLSyncID)
                             && metadata.GetType() == typeof(Dictionary<string, object>))
@@ -1411,14 +1431,8 @@ namespace win_client.Services.Sync
                             _trace.writeToLog(9, "CLSyncService: NotificationServiceDidReceivePushNotificationFromServer: Response From Sync From Cloud: {0}.", metadata);
 
                             // NSDictionary *eventIds = [NSDictionary dictionaryWithObjectsAndKeys:eid, CLSyncEventID, sid, CLSyncID, nil];
-                            Dictionary<string, object> eventIds = new Dictionary<string, object>()
-                            {
-                                {CLDefinitions.CLSyncEventID, eid.ToString()},
-                                {CLDefinitions.CLSyncID, newSid}
-                            };
-
                             // [strongSelf performSyncOperationWithEvents:events withEventIDs:eventIds andOrigin:CLEventOriginMDS];
-                            PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsReceived, eventIds, CLEventOrigin.CLEventOriginMDS);
+                            PerformSyncOperationWithEvents_withEventIDs_andOrigin(eventsReceived, newSid, CLEventOrigin.CLEventOriginMDS);
                         }
                         else
                         {
@@ -1460,7 +1474,7 @@ namespace win_client.Services.Sync
         }
 
         //- (void)performSyncOperationWithEvents:(NSArray *)events withEventIDs:(NSDictionary *)ids andOrigin:(CLEventOrigin)origin
-        void PerformSyncOperationWithEvents_withEventIDs_andOrigin(List<KeyValuePair<CLEvent, FileStream>> events, Dictionary<string, object> ids, CLEventOrigin origin)
+        void PerformSyncOperationWithEvents_withEventIDs_andOrigin(List<KeyValuePair<CLEvent, FileStream>> events, string sid, CLEventOrigin origin)
         {
             // Merged 7/10/12
             //NSLog(@"%s", __FUNCTION__);
@@ -1723,7 +1737,7 @@ namespace win_client.Services.Sync
 
             //// Sync finished.
             //[self saveSyncStateWithSID:[ids objectForKey:CLSyncID] andEID:[ids objectForKey:CLSyncEventID]];
-            SaveSyncStateWithSIDAndEID((string)ids[CLDefinitions.CLSyncID], Convert.ToInt64((string)ids[CLDefinitions.CLSyncEventID]));
+            SaveSyncStateWithSIDAndEID(sid);
 
             //// Update UI with activity.
             //TODO: Implement this UI.
@@ -3600,7 +3614,7 @@ namespace win_client.Services.Sync
         }
 
         // - (void)saveSyncStateWithSID:(NSString *)sid andEID:(NSNumber *)eid
-        void SaveSyncStateWithSIDAndEID(string sid, long eid)
+        void SaveSyncStateWithSIDAndEID(string sid)
         {
             // Merged 7/4/12
             // NSLog(@"%s", __FUNCTION__);
@@ -3626,7 +3640,7 @@ namespace win_client.Services.Sync
             //&&&&
 
             // NSLog(@"%s", __FUNCTION__);
-            _trace.writeToLog(9, "CLSyncService: SaveSyncStateWithSIDAndEID: sid: {0}, eid: {1}.", sid, eid);
+            _trace.writeToLog(9, "CLSyncService: SaveSyncStateWithSIDAndEID: sid: {0}.", sid);
 
             // if ([self.currentSIDs containsObject:sid]) {
             if (_currentSids.Contains(sid))
@@ -3656,19 +3670,7 @@ namespace win_client.Services.Sync
             }
 
             // if ([eid integerValue] != [[NSNumber numberWithInteger:CLDotNotSaveId] integerValue]) { // only save for SyncTo Events
-            if (eid != CLDefinitions.CLDoNotSaveId)
-            {
-                // if (eid != nil) {
-                if (eid != 0)
-                {
-                    // [[CLSettings sharedSettings] recordEventId:eid];
-                    Settings.Instance.RecordEventId(eid);
-                }
-            }
-
-            // Added call to indexer to mark completed event in database
-            // -David
-            CLFSMonitoringService.Instance.IndexingAgent.MarkEventAsCompletedOnPreviousSync(eid);
+            // Not needed.
         }
 
         //- (void)performUpdateForSyncEvent:(CLEvent *)event success:(BOOL)success

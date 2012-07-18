@@ -302,7 +302,7 @@ namespace CloudApiPublic.Support
                                 response.Content.ReadAsFileAsync(this.TempFilePath, true).ContinueWith(
                                     (readTask) =>
                                     {
-                                        _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: File copyied to disk.");
+                                        _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: File copied to disk.");
                                     });
                             }
                             catch (Exception ex)

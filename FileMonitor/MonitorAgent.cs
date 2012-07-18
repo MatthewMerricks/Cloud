@@ -829,12 +829,8 @@ namespace FileMonitor
                                         currentChangeToOutput.Key.SetMD5(md5Hasher.Hash);
 
                                         string filePathString = currentChangeToOutput.Key.NewPath.ToString();
-                                        DateTime currentLastAccess = File.GetLastAccessTimeUtc(filePathString);
-                                        DateTime currentLastWrite = File.GetLastWriteTimeUtc(filePathString);
-                                        DateTime currentLastTime = DateTime.Compare(currentLastAccess, currentLastWrite) > 0
-                                            ? currentLastAccess
-                                            : currentLastWrite;
-                                        DateTime currentCreationTime = File.GetCreationTime(filePathString);
+                                        DateTime currentLastTime = File.GetLastWriteTimeUtc(filePathString);
+                                        DateTime currentCreationTime = File.GetCreationTimeUtc(filePathString);
                                         long currentSize = countFileSize;
 
                                         if (currentLastTime.CompareTo(currentChangeToOutput.Key.Metadata.HashableProperties.LastTime) != 0
@@ -1324,21 +1320,13 @@ namespace FileMonitor
                         // set last time and creation time from appropriate info based on whether change is on a folder or file
                         if (isFolder)
                         {
-                            // last time is the greater of the the last access time and the last write time
-                            lastTime = DateTime.Compare(folder.LastAccessTimeUtc, folder.LastWriteTimeUtc) > 0
-                                ? folder.LastAccessTimeUtc
-                                : folder.LastWriteTimeUtc;
-                            // creation time is pulled directly
+                            lastTime = folder.LastWriteTimeUtc;
                             creationTime = folder.CreationTimeUtc;
                         }
                         // change was not a folder, grab times based on file
                         else
                         {
-                            // last time is the greater of the the last access time and the last write time
-                            lastTime = DateTime.Compare(file.LastAccessTimeUtc, file.LastWriteTimeUtc) > 0
-                                ? file.LastAccessTimeUtc
-                                : file.LastWriteTimeUtc;
-                            // creation time is pulled directly
+                            lastTime = file.LastWriteTimeUtc;
                             creationTime = file.CreationTimeUtc;
                         }
 

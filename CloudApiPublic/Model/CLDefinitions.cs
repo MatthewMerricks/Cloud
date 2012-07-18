@@ -163,7 +163,7 @@ namespace CloudApiPublic.Model
         // Cloud Notification Types
         public const string CLNotificationTypeNew = "new";
         public const string CLNotificationTypeUpgrade = "upgrade";
-        public const string CLNotificationTypeShare = "sharw";
+        public const string CLNotificationTypeShare = "share";
 
         // Sync dictionaries
         public const string CLEventKey = "event_id";

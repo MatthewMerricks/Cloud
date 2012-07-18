@@ -522,7 +522,8 @@ namespace SQLIndexer
                         // Grab all events from the database since the previous sync, ordering by id to ensure correct processing logic
                         Event[] existingEvents = indexDB.Events
                             .Include(parent => parent.FileSystemObject)
-                            .Where(currentEvent => currentEvent.SyncCounter == lastSyncCounter)
+                            .Where(currentEvent => (currentEvent.SyncCounter == null && lastSyncCounter == null)
+                                || currentEvent.SyncCounter == lastSyncCounter)
                             .OrderBy(currentEvent => currentEvent.EventId)
                             .ToArray();
 
@@ -911,13 +912,14 @@ namespace SQLIndexer
                         string serverRemappedOldPath = null;
 
                         // pull the sync states for the new path of the current event
+                        Sync firstLastSync = lastSyncs[0];
                         SyncState[] newPathStates = indexDB.SyncStates
                             .Include(parent => parent.FileSystemObject)
                             .Include(parent => parent.ServerLinkedFileSystemObject)
 
                             // the following LINQ to Entities where clause compares the checksums of the event's NewPath
                             // (may have duplicate checksums even when paths differ
-                            .Where(currentSyncState => currentSyncState.SyncCounter == lastSyncs[0].SyncCounter
+                            .Where(currentSyncState => currentSyncState.SyncCounter == firstLastSync.SyncCounter
                                 && (((currentSyncState.FileSystemObject.PathChecksum == null && SqlFunctions.Checksum(currentEvent.FileSystemObject.Path) == null)
                                     || currentSyncState.FileSystemObject.PathChecksum == SqlFunctions.Checksum(currentEvent.FileSystemObject.Path))))
 
@@ -1058,6 +1060,9 @@ namespace SQLIndexer
                                     : serverRemappedFileSystemObject.FileSystemObjectId),
                                 SyncCounter = lastSyncs[0].SyncCounter
                             };
+
+                            // add new sync state to database
+                            indexDB.SyncStates.AddObject(eventSyncState);
                         }
 
                         // move the current event back one sync
@@ -1260,10 +1265,7 @@ namespace SQLIndexer
                 filePathsFound.Add(subDirectory.FullName);
                 // Create properties for the current subdirectory
                 FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(true,
-                    // last time is the greater of the the last access time and the last write time
-                    DateTime.Compare(subDirectory.LastAccessTimeUtc, subDirectory.LastWriteTimeUtc) > 0
-                        ? subDirectory.LastAccessTimeUtc
-                        : subDirectory.LastWriteTimeUtc,
+                    subDirectory.LastWriteTimeUtc,
                     subDirectory.CreationTimeUtc,
                     null);
                 // Grab the last event that matches the current directory path, if any
@@ -1322,10 +1324,7 @@ namespace SQLIndexer
                     filePathsFound.Add(currentFile.FullName);
                     // Find file properties
                     FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(false,
-                        // last time is the greater of the the last access time and the last write time
-                        DateTime.Compare(currentFile.LastAccessTimeUtc, currentFile.LastWriteTimeUtc) > 0
-                            ? currentFile.LastAccessTimeUtc
-                            : currentFile.LastWriteTimeUtc,
+                        currentFile.LastWriteTimeUtc,
                         currentFile.CreationTimeUtc,
                         currentFileLength);
                     // Find the latest change at the current file path, if any exist
@@ -1341,7 +1340,7 @@ namespace SQLIndexer
                             FileMetadata existingIndexPath = indexPaths[currentFile];
 
                             // If the file has changed (different metadata), then process a file modification change
-                            if (!FilePathComparer.Equals(compareProperties, existingIndexPath.HashableProperties))
+                            if (!fileComparer.Equals(compareProperties, existingIndexPath.HashableProperties))
                             {
                                 changeList.Add(new FileChange()
                                 {
