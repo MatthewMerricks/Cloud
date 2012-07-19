@@ -21,6 +21,7 @@ using CloudApiPrivate.Common;
 using CloudApiPublic.Model;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 
 
 namespace CloudApiPrivate.Static
@@ -325,5 +326,34 @@ namespace CloudApiPrivate.Static
             source.Insert(range.Location, withString);
             return source;
         }
+
+        /// <summary> 
+        /// Extend Stream.  Read a stream into a structure.
+        /// </summary> 
+        /// <param name="stream">The source stream.</param> 
+        /// <returns>T. The resulting filled structure.</returns> 
+        /// Call like this:
+        /// MemoryStream ms = new MemoryStream(data);
+        /// StructType filledStructure = ReadStruct<StructType>(ms)
+        /// 
+        /// [StructLayout(LayoutKind.Sequential, CharSet.Ansi, Pack = 1)]
+        /// internal struct StructType
+        /// {
+        ///     [MarshaAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        ///     public byte[] stuff;
+        ///     etc...
+        /// }
+
+        public static T ReadStruct<T>(this Stream stream) where T : struct    
+        {
+            var sz = Marshal.SizeOf(typeof(T));
+            var buffer = new byte[sz];
+            stream.Read(buffer, 0, sz);
+            var pinnedBuffer = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            var structure = (T)Marshal.PtrToStructure(
+                pinnedBuffer.AddrOfPinnedObject(), typeof(T));
+            pinnedBuffer.Free();
+            return structure;
+        } 
     }
 }

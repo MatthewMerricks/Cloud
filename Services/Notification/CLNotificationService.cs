@@ -21,7 +21,6 @@ using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Threading;
 using System.Windows.Forms;
-//&&&&using SignalR;
 using WebSocket4Net;
 using WebSocket4Net.Command;
 using WebSocket4Net.Protocol;
@@ -36,7 +35,6 @@ namespace win_client.Services.Notification
         private static CLNotificationService _instance = null;
         private static object _instanceLocker = new object();
         private static CLTrace _trace;
-        //&&&&private SignalR.Client.Connection _connection;
         private WebSocket _connection;
 
         // True: the push notification service has been started.
@@ -122,62 +120,6 @@ namespace win_client.Services.Notification
             // self.serviceStarted = YES;
             //&&&&
             
-#if TRASH
-            // SignalR implementation
-            try
-            {
-                string query = String.Format("?channel=/channel_{0}&sender={1}", Settings.Instance.Uuid, Settings.Instance.Udid);
-                _trace.writeToLog(1, "CLNotificationService: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>, query: <{1}>.", CLDefinitions.CLNotificationServerURL, query);
-
-                _connection = new SignalR.Client.Connection(CLDefinitions.CLNotificationServerURL, query);
-                _connection.Start(new SignalR.Client.Transports.ServerSentEventsTransport()).ContinueWith(task =>
-                {
-                    if (task.IsFaulted)
-                    {
-                        _trace.writeToLog(1, "CLNotificationService: ConnectPushNotificationServer: ERROR: Failed to connect with the push server: <{0}>.", task.Exception.GetBaseException());
-                    }
-                    else
-                    {
-                        _trace.writeToLog(1, "CLNotificationService: ConnectPushNotificationServer: Connected to the push server with client connection ID: <{0}>.", _connection.ConnectionId);
-                        ServiceStarted = true;
-                        _connection.Reconnected += OnConnectionReconnected;
-                        _connection.Error += OnConnectionError;
-                        _connection.Closed += OnConnectionClosed;
-                        _connection.Received += OnConnectionReceived;
-                    }
-                });
-
-            }
-            catch (Exception ex)
-            {
-                CLError error = ex;
-                _trace.writeToLog(1, "CLNotificationService: ConnectPushNotificationServer: ERROR: Exception connecting with the push server. Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-            }
-        }
-        private void OnConnectionReconnected()
-        {
-            _trace.writeToLog(1, "CLNotificationService: OnConnectionReconnected: Entry.");
-
-        }
-
-        private void OnConnectionError(Exception ex)
-        {
-            CLError error = ex;
-            _trace.writeToLog(1, "CLNotificationService: OnConnectionError: ERROR.  Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-        }
-
-        private void OnConnectionClosed()
-        {
-            _trace.writeToLog(1, "CLNotificationService: OnConnectionClosed: Entry.");
-            ServiceStarted = false;
-        }
-
-        void OnConnectionReceived(string msg)
-        {
-            _trace.writeToLog(1, "CLNotificationService: OnConnectionReceived: Received msg: <{0}.", msg);
-            CLAppMessages.Message_DidReceivePushNotificationFromServer.Send(msg);
-        }
-#endif // TRASH
             // WebSocket4Net implementation.
             try
             {
