@@ -214,6 +214,51 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /Views/WindowCloudAlreadyRunning.xaml.
+        /// </summary>
+        public static string startupUriAlreadyRunning {
+            get {
+                return ResourceManager.GetString("startupUriAlreadyRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NavigationWindow.xaml.
+        /// </summary>
+        public static string startupUriFirstTimeSetup {
+            get {
+                return ResourceManager.GetString("startupUriFirstTimeSetup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /Views/WindowNewCloudFolderOrUnlink.
+        /// </summary>
+        public static string startupUriNewCloudFolderOrUnlink {
+            get {
+                return ResourceManager.GetString("startupUriNewCloudFolderOrUnlink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /Views/WindowRecoverDeletedCloudFolder.
+        /// </summary>
+        public static string startupUriRecoverDeletedCloudFolder {
+            get {
+                return ResourceManager.GetString("startupUriRecoverDeletedCloudFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /Views/WindowInvisible.xaml.
+        /// </summary>
+        public static string startupUriWindowInvisible {
+            get {
+                return ResourceManager.GetString("startupUriWindowInvisible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Check for updates.
         /// </summary>
         public static string SystemTrayContextMenuCheckForUpdates {
@@ -265,6 +310,33 @@ namespace win_client.Resources {
         public static string tourPage1Greeting {
             get {
                 return ResourceManager.GetString("tourPage1Greeting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To continue syncing, please restore your Cloud folder.  You may also choose to unlink this computer from your account..
+        /// </summary>
+        public static string windowCloudFolderBodyMesssage {
+            get {
+                return ResourceManager.GetString("windowCloudFolderBodyMesssage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Locate....
+        /// </summary>
+        public static string windowCloudFolderMissingOkButtonLocate {
+            get {
+                return ResourceManager.GetString("windowCloudFolderMissingOkButtonLocate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restore.
+        /// </summary>
+        public static string windowCloudFolderMissingOkButtonRestore {
+            get {
+                return ResourceManager.GetString("windowCloudFolderMissingOkButtonRestore", resourceCulture);
             }
         }
     }

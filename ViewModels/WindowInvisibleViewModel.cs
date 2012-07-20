@@ -218,7 +218,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               // Exit the application
-                                              CLAppDelegate.Instance.stopCloudAppServicesAndUI();
+                                              CLAppDelegate.Instance.StopCloudAppServicesAndUI();
                                               CLAppDelegate.Instance.ExitApplication();
                                           }));
             }

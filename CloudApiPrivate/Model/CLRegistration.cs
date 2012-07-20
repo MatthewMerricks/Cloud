@@ -363,7 +363,7 @@ namespace CloudApiPrivate.Model
 
                 _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
 
-                isSuccess = processLoginServerResponse(outRegistration, jsonResult, out error);
+                isSuccess = ProcessServerResponse(outRegistration, jsonResult, out error);
 
                 // Set the new UDID after successfull link.. This id is used by the notification server.. 
                 CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
@@ -387,7 +387,7 @@ namespace CloudApiPrivate.Model
         /// <param name="error">An output error object.  This object will be null on a successful return.</param>
         /// <returns>(bool) true: Success</returns>
         /// </summary>
-        bool processLoginServerResponse(CLRegistration outRegistration, string response, out CLError error)
+        bool ProcessServerResponse(CLRegistration outRegistration, string response, out CLError error)
         {
             bool retVal = true;
 
@@ -443,6 +443,100 @@ namespace CloudApiPrivate.Model
 
             return retVal;
         }
+
+        /// <summary>
+        /// Unlink this device from the account by synchronous communication with the server.
+        /// <param name="key">The Udid to unlink.</param>
+        /// <param name="error">An output error object.  This object will be null on a successful return.</param>
+        /// <returns>(bool) true: Success</returns>
+        /// </summary>
+        //- (BOOL)unlinkDeviceWithAccessKey:(NSString *)key
+        public bool UnlinkDeviceWithAccessKey(string key, out CLError error)
+        {
+            // Merged 7/20/12
+            // BOOL success = YES;
+        
+            // // create registration http request
+            // AsyncHTTP *ahttp = [AsyncHTTP asyncHTTPWithRedirect:YES];
+    
+            // NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:CLRegistrationUnlinkRequestURLString]];
+            // [request setHTTPMethod:@"POST"];
+    
+            // NSString *body = [NSString stringWithFormat:CLRegistrationUnlinkRequestBodyString, key];
+    
+            // NSLog(@"%s - Link Request:\n\n%@\n\n", __FUNCTION__, body);
+            // [request setHTTPBody:[body dataUsingEncoding:NSUTF8StringEncoding]];
+    
+            // // send request to server 
+            // dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{ 
+            //    [ahttp issueRequest:request];
+            // });
+    
+            // if ([ahttp error] != nil) {
+        
+            //     self.error_ = [ahttp error]; 
+            //     success = NO;
+        
+            // } else {
+        
+            //     if ([ahttp statusCode] == HTTP_OK_200) {
+            
+            //         NSLog(@"%s - Registration Response:\n\n%@\n\n", __FUNCTION__, [ahttp dataAsString]);
+            //         success = [self processServerResponse:[ahttp dataAsString]];
+            
+            //     } else {
+            
+            //         NSMutableDictionary *errorDetail = [NSMutableDictionary dictionary];
+            //         [errorDetail setValue:[NSString stringWithFormat:@"Ops. We're sorry, it seems like something went terribly wrong. Error: %ld", [ahttp statusCode]]
+            //                        forKey:NSLocalizedDescriptionKey];
+            
+            //         self.error_ = [NSError errorWithDomain:@"com.cloud.error" code:[ahttp statusCode] userInfo:errorDetail];
+            //         success = NO;
+            //     }
+            // }
+    
+            // return success;
+            //&&&&
+
+            bool isSuccess = false;
+            error = null;
+
+            HttpClient client = new HttpClient();
+
+            string body = String.Format(CLDefinitions.CLRegistrationUnlinkRequestURLString, CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
+
+            _trace.writeToLog(1, "CLRegistration.cs: Unlink. Udid: <{0}>.", CloudApiPrivate.Model.Settings.Settings.Instance.Udid);
+
+            HttpContent content = new StringContent(body, Encoding.UTF8);
+            content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
+
+            // Perform the Post and wait for the result synchronously.
+            var result = client.PostAsync(CLDefinitions.CLRegistrationUnlinkRequestURLString, content).Result;
+            if (result.IsSuccessStatusCode)
+            {
+
+                string jsonResult = result.Content.ReadAsStringAsync().Result;
+
+                _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
+
+                CLRegistration dummyRegistration = new CLRegistration();
+                isSuccess = ProcessServerResponse(dummyRegistration, jsonResult, out error);
+
+                // Set the new UDID after successfull link.. This id is used by the notification server.. 
+                CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
+            }
+            else
+            {
+                error = new CLError();
+                error.errorCode = (int)result.StatusCode;
+                error.errorDescription = String.Format(CLSptResourceManager.Instance.ResMgr.GetString("ExceptionUnlinkingWithCode"), error.errorCode);
+                error.errorDomain = CLError.ErrorDomain_Application;
+                isSuccess = false;
+            }
+
+            return isSuccess;
+        }
+
 
         #endregion
     }

@@ -30,16 +30,15 @@ using win_client.SystemTray.TrayIcon;
 using win_client.ViewModels;
 using win_client.Views;
 using win_client.Services.ServicesManager;
-//&&&&
 using System.Data;
 using System.Data.OleDb;
 using CloudApiPublic.Static;
-using CloudApiPrivate.Static;
 using Microsoft.Win32;
 using Shell32;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using CloudApiPrivate.Model;
 
 namespace win_client.AppDelegate
 {
@@ -56,12 +55,18 @@ namespace win_client.AppDelegate
         private static CLAppDelegate _instance = null;
         private static object InstanceLocker = new object();
         private static CLTrace _trace;
-        private bool _isAlreadyRunning = false;
-        private bool _isFirstTimeSetupNeeded = false;
-        private ResourceManager _resourceManager = null;
         //&&&&private TrayIcon _trayIcon;
         #endregion
         #region Public Properties
+
+        public string StartupUrlRelative { get; set; }
+        public string FoundOriginalCloudFolderPath { get; set; }
+        public DateTime FoundDeletedCloudFolderDeletionTimeLocal { get; set; }
+        public string FoundPathToDeletedCloudFolderRFile { get; set; }
+        public string FoundPathToDeletedCloudFolderIFile { get; set; }
+
+
+        private bool _isAlreadyRunning = false;
         public bool IsAlreadyRunning
         {
             get
@@ -70,6 +75,7 @@ namespace win_client.AppDelegate
             }
         }
 
+        private bool _isFirstTimeSetupNeeded = false;
         public bool IsFirstTimeSetupNeeded
         {
             get
@@ -78,6 +84,7 @@ namespace win_client.AppDelegate
             }
         }
 
+        private ResourceManager _resourceManager = null;
         public ResourceManager ResourceManager
         {
             get
@@ -87,6 +94,15 @@ namespace win_client.AppDelegate
         }
 
         #endregion
+
+        private string _windowCloudFolderMissingOkButtonContent;
+
+        public string WindowCloudFolderMissingOkButtonContent
+        {
+            get { return _windowCloudFolderMissingOkButtonContent; }
+            set { _windowCloudFolderMissingOkButtonContent = value; }
+        }
+        
 
         #region "Life Cycle"
         /// <summary>
@@ -151,219 +167,6 @@ namespace win_client.AppDelegate
             public string FileParentDirectory { get; set; }
         }
 
-        private string LocateCloudFolderInRecycleBin(DateTime cloudPathCreationTime)
-        {
-            Shell Shl = new Shell();
-            Folder Recycler = Shl.NameSpace(10);
-            //int countItems =
-
-            List<RecyclerDetails> recyclerItems = new List<RecyclerDetails>();
-
-            foreach (object currentItem in Recycler.Items())
-            {
-                FolderItem castItem = currentItem as FolderItem;
-                if (castItem != null)
-                {
-                    recyclerItems.Add(new RecyclerDetails()
-                    {
-                        CreationDate = Recycler.GetDetailsOf(castItem,
-                            RecyclerDetails.CreationDateIndex),
-                        FileName = Recycler.GetDetailsOf(castItem,
-                            RecyclerDetails.FileNameIndex),
-                        FileParentDirectory = Recycler.GetDetailsOf(castItem,
-                            RecyclerDetails.FileParentDirectoryIndex)
-                    });
-                }
-            }
-
-            DateTime cloudPathCreationTimePlusOneSecond = cloudPathCreationTime + TimeSpan.FromSeconds(1);
-
-            foreach (RecyclerDetails folder in recyclerItems)
-            {
-                if (folder.FileName == "CloudX")
-                {
-                    int i = 0;
-                    i++;
-                }
-            }
-
-            return recyclerItems.Where(currentDetails => 
-                {   
-                    DateTime timeFromRecycleBin = DateTime.Parse(Helpers.CleanDateTimeString(currentDetails.CreationDate));
-                    return timeFromRecycleBin >= cloudPathCreationTime && timeFromRecycleBin < cloudPathCreationTimePlusOneSecond;
-                })
-                .Select(currentDetails => Path.Combine(currentDetails.FileParentDirectory, currentDetails.FileName))
-                .FirstOrDefault();
-        }
-
-        private static void EmptyRecycleBinX()
-        {
-            string recycleLocation = String.Empty;
-            string strKeyPath = "SOFTWARE\\Microsoft\\Protected Storage System Provider";
-            RegistryKey regKey = Registry.CurrentUser.OpenSubKey(strKeyPath);
-            string[] arrSubKeys = regKey.GetSubKeyNames();
-            if (IsVista() || IsWin7())    //Methods are described below
-            {
-                recycleLocation = "$Recycle.bin";
-            }
-            else
-            {
-                recycleLocation = "RECYCLER";
-            }
-            ObjectQuery query = new ObjectQuery("Select * from Win32_LogicalDisk Where DriveType = 3");
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-            ManagementObjectCollection queryCollection = searcher.Get();
-            foreach (ManagementObject mgtObject in queryCollection)
-            {
-                string strTmpDrive = mgtObject["Name"].ToString();
-                //if (bSIDExists == true)  // default is true
-                foreach (string strSubKey in arrSubKeys)
-                {
-                    string regKeySID = strSubKey;
-                    string recycleBinLocation = (strTmpDrive + "\\" + recycleLocation + "\\" + regKeySID + "\\");
-                    if (recycleBinLocation != "" && Directory.Exists(recycleBinLocation))
-                    {
-                        DirectoryInfo recycleBin = new DirectoryInfo(recycleBinLocation);
-                        // Clean Files
-                        FileInfo[] recycleBinFiles = recycleBin.GetFiles();
-                        foreach (FileInfo fileToClean in recycleBinFiles)
-                        {
-                            try
-                            {
-                                Console.WriteLine("File to delete: <{0}>.", fileToClean.ToString());
-                                //fileToClean.Delete();
-                            }
-                            catch (Exception)
-                            {
-                                // Ignore exceptions and try to move next file
-                            }
-                        }
-                        // Clean Folders
-                        DirectoryInfo[] recycleBinFolders = recycleBin.GetDirectories();
-                        foreach (DirectoryInfo folderToClean in recycleBinFolders)
-                        {
-                            try
-                            {
-                                Console.WriteLine("Folder to delete: <{0}>.", folderToClean.ToString());
-                                folderToClean.Delete(true);
-                            }
-                            catch (Exception)
-                            {
-                                // Ignore exceptions and try to move next file
-                            }
-                        }
-                        Console.WriteLine("Cleaned up location: {0}", recycleBinLocation);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Locate the cloud folder in the recycle bin via it's creation time.
-        /// </summary>
-        /// <param name="cloudFolderCreationTime">  The original cloud folder creation time</param>
-        /// <param name="foundOriginalPath"> If found, the original path.</param>
-        /// <<param name="foundDeletionTime"> If found, the deletion time.</param>
-        /// <returns>bool: True: Cloud folder found.</returns>
-        bool LocateCloudFolderInRecycleBin(DateTime cloudFolderCreationTime, out string foundOriginalPath, out DateTime foundDeletionTime)
-        {
-            try
-            {
-                string recycleLocation = String.Empty;
-                string strKeyPath = "SOFTWARE\\Microsoft\\Protected Storage System Provider";
-                RegistryKey regKey = Registry.CurrentUser.OpenSubKey(strKeyPath);
-                string[] arrSubKeys = regKey.GetSubKeyNames();
-                if (IsVista() || IsWin7())
-                {
-                    recycleLocation = "$Recycle.bin";
-                }
-                else
-                {
-                    recycleLocation = "RECYCLER";
-                }
-                ObjectQuery query = new ObjectQuery("Select * from Win32_LogicalDisk Where DriveType = 3");
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-                ManagementObjectCollection queryCollection = searcher.Get();
-                foreach (ManagementObject mgtObject in queryCollection)
-                {
-                    string strTmpDrive = mgtObject["Name"].ToString();
-                    //if (bSIDExists == true)  // default is true
-                    foreach (string strSubKey in arrSubKeys)
-                    {
-                        string regKeySID = strSubKey;
-                        string recycleBinLocation = (strTmpDrive + "\\" + recycleLocation + "\\" + regKeySID + "\\");
-                        if (recycleBinLocation != "" && Directory.Exists(recycleBinLocation))
-                        {
-                            DirectoryInfo recycleBin = new DirectoryInfo(recycleBinLocation);
-
-                            // Get the list of folders
-                            DirectoryInfo[] recycleBinFolders = recycleBin.GetDirectories();
-                            foreach (DirectoryInfo folder in recycleBinFolders)
-                            {
-                                if (folder.CreationTime == cloudFolderCreationTime)
-                                {
-                                    // This is our cloud folder.  Find the original path.  That is in the corresponding
-                                    // $I file.  e.g., if the name of this $R file is $RABCDEF, then locate the file
-                                    // with name $IABCDEF.  The deletion time is stored in 8 bytes at offset 0x10 in the
-                                    /// $I file.  The Unicode original path string is stored at offset 0x18.  The
-                                    // path string is a maximum of 260 characters (or 520 bytes), including the double
-                                    // null termination.
-                                    byte[] fileBytes = File.ReadAllBytes(recycleBinLocation + "\\$I" + folder.Name.Substring(2));
-
-                                    // Parse out the DateTime ticks.
-                                    const int offsetDateTimeTicks = 0x10;
-                                    const int offsetPath = 0x18;
-                                    const int lengthPath = 520;
-                                    UInt64 ulTicks = 0;
-
-                                    for (int index = offsetDateTimeTicks; index < offsetPath; ++index)
-                                    {
-                                        ulTicks |= ((UInt64)fileBytes[index]) << ((index - offsetDateTimeTicks) * 8);
-                                    }
-
-                                    // Parse out the original path
-                                    string originalPath = String.Empty;
-                                    UInt16 uChar = 0;
-                                    for (int index = offsetPath; index < (offsetPath + lengthPath); ++index)
-                                    {
-                                        int tempShift = fileBytes[index] << ((index % 2) * 8);
-                                        uChar |= (UInt16)tempShift;
-
-                                        if (index != offsetPath && (index % 2) != 0)
-                                        {
-                                            if (uChar == 0)
-                                            {
-                                                break;
-                                            }
-
-                                            originalPath += (char)uChar;
-                                            uChar = 0;
-                                        }
-                                    }
-
-                                    DateTime deletionTime = new DateTime((long)ulTicks);
-
-                                    foundOriginalPath = originalPath;
-                                    foundDeletionTime = deletionTime;
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                foundOriginalPath = null;
-                foundDeletionTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
-                return false;
-            }
-
-            foundOriginalPath = null;
-            foundDeletionTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
-            return false;
-        }
-        
         /// <summary>
         /// Lazy initialization
         /// </summary>
@@ -371,78 +174,21 @@ namespace win_client.AppDelegate
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         private void initAppDelegate()
         {
-            //&&&&& TEST ONLY
-            DateTime currentTime = DateTime.Now;
-            //DateTime pastTime = currentTime - TimeSpan.FromDays(60);
-            DateTime pastTime = Settings.Instance.CloudFolderCreationTime;
-            DateTime pastTimePlusOneSecond = pastTime + TimeSpan.FromSeconds(1);
-            string sPastTime = pastTime.ToString("yyyy-MM-dd HH:mm:ss");
-            string sPastTimePlusOneSecond = pastTimePlusOneSecond.ToString("yyyy-MM-dd HH:mm:ss");
-            string sSql = String.Format("SELECT System.ItemPathDisplay, System.ItemType, System.DateCreated FROM SYSTEMINDEX WHERE " + 
-                                        "System.ItemType='Directory' AND System.DateCreated>='{0}' AND System.DateCreated<'{1}'", sPastTime, sPastTimePlusOneSecond);
-            //AND System.DateCreated = '{0}'
-            //AND System.ItemPathDisplay LIKE '%Cloud%' 
-
-            List<string> resultingPaths = new List<string>();
-            using (OleDbConnection objConnection = new OleDbConnection("Provider=Search.CollatorDSO;Extended Properties='Application=Windows';"))
-            {
-                OleDbCommand cmd = new OleDbCommand(sSql, objConnection);
-                try
-                {
-                    objConnection.Open();
-                    OleDbDataReader reader = cmd.ExecuteReader();
-                    Console.WriteLine("Starting.......");
-                    while (reader.Read())
-                    {
-                        Console.WriteLine(reader[0] + "," + reader[1] + "," + reader[2]);
-                        resultingPaths.Add((string)reader[0]);
-                    }
-                    reader.Close();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
-            }
-
-            resultingPaths.RemoveAll(x => { return (x.LastPathComponent().Equals("Pictures", StringComparison.InvariantCulture) || x.LastPathComponent().Equals("Public", StringComparison.InvariantCulture)); });
-
-            // Now search the recycle bin.
-            string foundOriginalPath;
-            DateTime foundDeletionTime;
-            bool foundDeletedCloudFolder = LocateCloudFolderInRecycleBin(pastTime, out foundOriginalPath, out foundDeletionTime);
-
-            if (foundDeletedCloudFolder)
-            {
-                Console.WriteLine(String.Format("Found folder: Original path: <{0}>, DeletionTime: {1}.", foundOriginalPath, foundDeletionTime));
-            }
-
-
-
             //// TODO: Needed? registers application to listen to url handling events.
             //[[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(handleURLFromEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 
             // we only allow one instance of our app.
+            StartupUrlRelative = _resourceManager.GetString("startupUriWindowInvisible");     // assume we will simply start running with no UI displayed
             if (isCloudAppAlreadyRunning())
             {
                 // Tell the app.xaml.cs instance logic that we are already running.
                 _isAlreadyRunning = true;
+                StartupUrlRelative = _resourceManager.GetString("startupUriAlreadyRunning");
                 return;
             }
 
-            if (isFirstTimeSetupNeeded())
-            {
-                // Tell the app.xaml.cs instance logic that we need the welcome dialog.
-                _isFirstTimeSetupNeeded = true;
-
-            }
-            else {
-                // DO NOTHING HERE.  The WindowInvisible will be loaded and the loaded event will invoke the
-                // startCloudAppServicesAndUI() method on the UI thread after a small delay.  This insures
-                // that the system tray icon support is in place before we initialize the services.
-                //startCloudAppServicesAndUI();
-            }
+            // Determine which window we will show on startup
+            SetupCloudAppLaunchMode();
         }
 
         /// <summary>
@@ -484,7 +230,7 @@ namespace win_client.AppDelegate
                     // user just moved it.  I don't think this is possible on Windows, but is there
                     // some way we could find the moved folder; moved while this program was not running?
                     needed = true;
-                    unlinkFromCloudDotCom();
+                    UnlinkFromCloudDotCom();
                 }
             }
     
@@ -540,32 +286,89 @@ namespace win_client.AppDelegate
         /// Unlink this device from Cloud.com
         /// </summary>
         
-        private bool unlinkFromCloudDotCom()
+
+
+        //- (BOOL)unlinkFromCloudDotCom
+        public bool UnlinkFromCloudDotCom()
         {
-            bool rc = true;
-    
-            // TODO: tell cloud service to untrust this device and wait for confirmation.
-            //&&&&CLRegistration *registration = new CLRegistration();
-            //&&&&rc = registration.unlinkDeviceWithAccessKey(Settings.Instance.Akey);
-    
-            // stop services.
-            stopCloudAppServicesAndUI();
-    
-            // clean our settings
+            //BOOL rc = YES;
+
+            //// todo: tell cloud service to untrust this device and wait for confirmation.
+            //CLRegistration *regstration = [[CLRegistration alloc] init];
+            //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
+            
+
+            //// stop services.
+            //CLAppDelegate *delegate = [NSApp delegate];
+            //[delegate stopCloudAppServicesAndUI];
+
+            //// clean our settings
+            //[[CLSettings sharedSettings] resetSettings];
+
+            //[[CLCoreDataController defaultController] removeCoreDataStore];
+
+            //// Stop the badging agent.  Do this synchronously because the system may be immediately exiting.
+            //NSString *path = [[[NSBundle mainBundle] pathForResource:@"LICENSE" ofType:@""] stringByDeletingLastPathComponent];
+            //NSString *cmd = [path stringByAppendingString:@"/CloudApp.bundle/CloudApp.app/Contents/MacOS/CloudApp -d"];
+            //system([cmd UTF8String]);
+
+            //return rc;
+            //&&&& 
+
+            //BOOL rc = YES;
+            // Note: allocated below.
+
+            //// todo: tell cloud service to untrust this device and wait for confirmation.
+            //CLRegistration *regstration = [[CLRegistration alloc] init];
+            //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
+            CLRegistration registration = new CLRegistration();
+            CLError error = null;
+            bool rc = registration.UnlinkDeviceWithAccessKey(Settings.Instance.Akey, out error);
+
+            //// stop services.
+            //CLAppDelegate *delegate = [NSApp delegate];
+            //[delegate stopCloudAppServicesAndUI];
+            StopCloudAppServicesAndUI();
+
+            //// clean our settings
+            //[[CLSettings sharedSettings] resetSettings];
             Settings.Instance.resetSettings();
-    
+
+            //[[CLCoreDataController defaultController] removeCoreDataStore];
+            //TODO: Is SQLIndexer terminated properly?
+
+            //// Stop the badging agent.  Do this synchronously because the system may be immediately exiting.
+            //NSString *path = [[[NSBundle mainBundle] pathForResource:@"LICENSE" ofType:@""] stringByDeletingLastPathComponent];
+            //NSString *cmd = [path stringByAppendingString:@"/CloudApp.bundle/CloudApp.app/Contents/MacOS/CloudApp -d"];
+            //system([cmd UTF8String]);
+            //TODO: Stop the badging service.
+
+            //return rc;
             return rc;
-        
         }
 
         /// <summary>
         /// Perform one-time installation (cloud folder, and any OS support)
         /// </summary>
-        public void stopCloudAppServicesAndUI()
+        //- (void)stopCloudAppServicesAndUI
+        public void StopCloudAppServicesAndUI()
         {
-            // TODO: Remove all of the OS integration
+            // Merged 7/20/12
+            // // Remove the status item from the menu bar.
+            // [[NSStatusBar systemStatusBar] removeStatusItem:[self.appController statusItem]];
+            // [self.appController setStatusItem:nil];
 
-            // Stop core services
+            // // Stop core services
+            // [[CLServicesManager sharedService] stopCoreServices];
+            //&&&&
+
+            // // Remove the status item from the menu bar.
+            // [[NSStatusBar systemStatusBar] removeStatusItem:[self.appController statusItem]];
+            // [self.appController setStatusItem:nil];
+            // TODO: Remove the system tray icon?
+
+            // // Stop core services
+            // [[CLServicesManager sharedService] stopCoreServices];
             CLServicesManager.Instance.StopCoreServices();
         }
 
@@ -596,7 +399,7 @@ namespace win_client.AppDelegate
                 _trace.writeToLog(1, "Cloud folder created at <{0}>.", Settings.Instance.CloudFolderPath);
 
                 // Set setup process completed
-                Settings.Instance.CloudFolderCreationTime = creationTime;
+                Settings.Instance.CloudFolderCreationTimeUtc = creationTime;
                 Settings.Instance.setCloudAppSetupCompleted(true);
 
                 // Start services, added a small delay to allow the OS to create folder.
@@ -614,19 +417,6 @@ namespace win_client.AppDelegate
         /// </summary>
         public void startCloudAppServicesAndUI()
         {
-            // We might not have an application main window.  However, we need one for the
-            // system tray support.
-            //&&&&&Window mainWindow = Application.Current.MainWindow;
-            //&&&&&if (mainWindow == null)
-            //&&&&&{
-            //&&&&&    mainWindow = new WindowInvisibleView();
-            //&&&&&    mainWindow.Show();
-            //&&&&&}
-
-            // Create the system tray icon
-            //&&&&_trayIcon = new TrayIcon(mainWindow);
-            //&&&&_trayIcon.Show(global::win_client.Resources.Resources.SystemTrayIcon, "Cloud");
-
             // Start core services
             CLServicesManager.Instance.StartCoreServices();
         }
@@ -645,7 +435,7 @@ namespace win_client.AppDelegate
                     Directory.CreateDirectory(cloudFolderPath);
                     Directory.CreateDirectory(cloudFolderPath + @"\Public");
                     Directory.CreateDirectory(cloudFolderPath + @"\Pictures");
-                    creationTime = Directory.GetCreationTime(cloudFolderPath);
+                    creationTime = Directory.GetCreationTimeUtc(cloudFolderPath);
                 }
                 else
                 {
@@ -663,7 +453,7 @@ namespace win_client.AppDelegate
             {
                 CLError err = new CLError();
                 err.errorDomain = CLError.ErrorDomain_Application;
-                err.errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("appDelegateExceptionCreatingFolder");
+                err.errorDescription = _resourceManager.GetString("appDelegateExceptionCreatingFolder");
                 err.errorCode = (int)CLError.ErrorCodes.Exception;
                 err.errorInfo = new Dictionary<string,object>();
                 err.errorInfo.Add(CLError.ErrorInfo_Exception, e);
@@ -682,6 +472,45 @@ namespace win_client.AppDelegate
         }
 
         //- (void)setupCloudAppLaunchMode
+            //if (isFirstTimeSetupNeeded())
+            //{
+            //    // Tell the app.xaml.cs instance logic that we need the welcome dialog.
+            //    _isFirstTimeSetupNeeded = true;
+
+            //}
+            //else {
+            //    // DO NOTHING HERE.  The WindowInvisible will be loaded and the loaded event will invoke the
+            //    // startCloudAppServicesAndUI() method on the UI thread after a small delay.  This insures
+            //    // that the system tray icon support is in place before we initialize the services.
+            //    //startCloudAppServicesAndUI();
+            //}
+
+        //- (void)cloudFolderHasBeenDeleted:(NSString *)path
+        void CloudFolderHasBeenDeleted(string path)
+        {
+            // Merged 7/20//12
+            // // here we have to halt. this means the folder has been deleted.
+            // [self stopCloudAppServicesAndUI];
+    
+            // // show the repair window
+            // self.folderMissingController = [[CLFolderMissingController alloc] initWithWindowNibName:@"CLFolderMissingController"];
+            // [self.folderMissingController setCloudFolderPath:path];
+            // [self.folderMissingController showWindow:self.folderMissingController.window];
+            // [self.folderMissingController.window orderFrontRegardless];
+            ///&&&&
+            ///
+            // // here we have to halt. this means the folder has been deleted.
+            // [self stopCloudAppServicesAndUI];
+            StopCloudAppServicesAndUI();
+
+            // // show the repair window
+            // self.folderMissingController = [[CLFolderMissingController alloc] initWithWindowNibName:@"CLFolderMissingController"];
+            // [self.folderMissingController setCloudFolderPath:path];
+            // [self.folderMissingController showWindow:self.folderMissingController.window];
+            // [self.folderMissingController.window orderFrontRegardless];
+            // Note: The window will be shown by App.xaml.cs using the StartupUri determined in this module.
+        }
+
         void SetupCloudAppLaunchMode()
         {
             // Merged 7/19/12
@@ -789,26 +618,234 @@ namespace win_client.AppDelegate
                     //     shouldStartCoreServices = NO;
                     //     [self cloudFolderHasBeenDeleted:nil]; // we couldn't find the folder, ask the user to locate it. 
                     // }
+
+                    // The cloud folder was not found.  Try to locate the folder if it was moved or renamed.
+                    string movedCloudFolderPath = LocateMovedCloudFolder();
+                    if (movedCloudFolderPath != null)
+                    {
+                        // Update the location of the cloud folder path.  We will continue normally and start core services.
+                        Settings.Instance.updateCloudFolderPath(movedCloudFolderPath, Settings.Instance.CloudFolderCreationTimeUtc);
+                    }
+                    else
+                    {
+                        // We didn't locate a moved cloud folder.  Some UI will be displayed, so don't start core services.
+                        shouldStartCoreServices = false;
+
+                        // Try to locate a deleted cloud folder
+                        string foundOriginalPath;
+                        DateTime foundDeletionTimeLocal;
+                        string foundPathToDeletedCloudFolderRFile;
+                        string foundPathToDeletedCloudFolderIFile;
+                        bool isDeletedFolderFound = LocateCloudFolderInRecycleBin(Settings.Instance.CloudFolderPath, Settings.Instance.CloudFolderCreationTimeUtc,
+                                                                            out foundOriginalPath, out foundDeletionTimeLocal, 
+                                                                            out foundPathToDeletedCloudFolderRFile, out foundPathToDeletedCloudFolderIFile);
+                        if (isDeletedFolderFound)
+                        {
+                            // We will put up a window in App.xaml.cs to allow the user to recover the deleted cloud folder.
+                            StartupUrlRelative = _resourceManager.GetString("startupUriRecoverDeletedCloudFolder");
+                            FoundOriginalCloudFolderPath = foundOriginalPath;
+                            FoundDeletedCloudFolderDeletionTimeLocal = foundDeletionTimeLocal;
+                            FoundPathToDeletedCloudFolderRFile = foundPathToDeletedCloudFolderRFile;
+                            FoundPathToDeletedCloudFolderIFile = foundPathToDeletedCloudFolderIFile;
+                            WindowCloudFolderMissingOkButtonContent = _resourceManager.GetString("windowCloudFolderMissingOkButtonRestore");
+                        }
+                        else
+                        {
+                            // We will put up a window in App.xaml.cs to allow the user to make a new cloud folder or unlink.
+                            StartupUrlRelative = _resourceManager.GetString("startupUriNewCloudFolderOrUnlink");
+                            WindowCloudFolderMissingOkButtonContent = _resourceManager.GetString("windowCloudFolderMissingOkButtonLocate");
+                        }
+                    }
                 }
             }
 
             // if (setupNeeded == YES) {
+            if (setupNeeded)
+            {
+                // // can't start our core services if we're not setup
+                // shouldStartCoreServices = NO;
+                shouldStartCoreServices = false;
 
-            //     // can't start our core services if we're not setup
-            //     shouldStartCoreServices = NO;
-
-            //     // welcome our new user
-            //     self.welcomeController  = [[CLWelcomeWindowController alloc] initWithWindowNibName:@"CLWelcomeWindowController"];
-            //     [self.welcomeController showWindow:self.welcomeController.window];
-            //     [[self.welcomeController window] orderFrontRegardless];
-            // }
+                // // welcome our new user
+                // self.welcomeController  = [[CLWelcomeWindowController alloc] initWithWindowNibName:@"CLWelcomeWindowController"];
+                // [self.welcomeController showWindow:self.welcomeController.window];
+                // [[self.welcomeController window] orderFrontRegardless];
+                StartupUrlRelative = _resourceManager.GetString("startupUriFirstTimeSetup");
+            }
 
             // if (shouldStartCoreServices == YES) {
+            if (shouldStartCoreServices)
+            {
+                //     // business as usual, let's take this sync for a spin!
+                //     [self startCloudAppServicesAndUI];
+                // Note: WindowInvisible will fire this soon. 
+                //startCloudAppServicesAndUI();
+            }
+        }
 
-            //     // business as usual, let's take this sync for a spin!
-            //     [self startCloudAppServicesAndUI];
-            // }
+        /// <summary>
+        /// Locate the cloud folder if it was moved, but not deleted.
+        /// </summary>
+        /// <param name="void"></param>
+        /// <returns>string: The moved cloud folder, or null.</returns>
+        private static string LocateMovedCloudFolder()
+        {
+            DateTime cloudFolderCreationTimeUtc = Settings.Instance.CloudFolderCreationTimeUtc;
+            DateTime cloudFolderCreationTimeUtcPlusOneSecond = cloudFolderCreationTimeUtc + TimeSpan.FromSeconds(1);
+            string sCloudFolderCreationTimeUtc = cloudFolderCreationTimeUtc.ToString("yyyy-MM-dd HH:mm:ss");
+            string sCloudFolderCreationTimeUtcPlusOneSecond = cloudFolderCreationTimeUtcPlusOneSecond.ToString("yyyy-MM-dd HH:mm:ss");
+            string sSql = String.Format("SELECT System.ItemPathDisplay, System.ItemType, System.DateCreated FROM SYSTEMINDEX WHERE " +
+                                        "System.ItemType='Directory' AND System.DateCreated >= '{0}' AND System.DateCreated < '{1}'", sCloudFolderCreationTimeUtc, sCloudFolderCreationTimeUtcPlusOneSecond);
 
+            List<string> resultingPaths = new List<string>();
+            using (OleDbConnection objConnection = new OleDbConnection("Provider=Search.CollatorDSO;Extended Properties='Application=Windows';"))
+            {
+                OleDbCommand cmd = new OleDbCommand(sSql, objConnection);
+                try
+                {
+                    objConnection.Open();
+                    OleDbDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        resultingPaths.Add((string)reader[0]);
+                    }
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    CLError error = ex;
+                    _trace.writeToLog(1, "CLAppDelegate: LocateMovedCloudFolder: ERROR: Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                }
+            }
+
+            resultingPaths.RemoveAll(x => { return (x.LastPathComponent().Equals("Pictures", StringComparison.InvariantCulture) || x.LastPathComponent().Equals("Public", StringComparison.InvariantCulture)); });
+            string foundPath = null;
+            if (resultingPaths.Count > 0)
+            {
+                foundPath = resultingPaths[0];
+            }
+            return foundPath;
+        }
+
+        /// <summary>
+        /// Locate the cloud folder in the recycle bin via it's creation time.
+        /// </summary>
+        /// <param name="cloudFolderPath">  The original cloud folder location</param>
+        /// <param name="cloudFolderCreationTime">  The original cloud folder creation time (UTC).</param>
+        /// <param name="foundOriginalPath"> If found, the original path of the folder (where it was deleted from).</param>
+        /// <param name="foundDeletionTimeLocal"> If found, the deletion time (local).</param>
+        /// <param name="foundPathToDeletedCloudFolderRFile"> If found, the full path of the deleted folder $R* file (the actual folder).</param>
+        /// <param name="foundPathToDeletedCloudFolderIFile"> If found, the full path of the deleted folder $I* file (the deleted folder information file).</param>
+        /// <returns>bool: True: Cloud folder found.</returns>
+        bool LocateCloudFolderInRecycleBin(string cloudFolderLocation, DateTime cloudFolderCreationTimeUtc,
+                                            out string foundOriginalPath, out DateTime foundDeletionTimeLocal, out string foundPathToDeletedCloudFolderRFile, out string foundPathToDeletedCloudFolderIFile)
+        {
+            try
+            {
+                string recycleLocation = String.Empty;
+                string strKeyPath = "SOFTWARE\\Microsoft\\Protected Storage System Provider";
+                RegistryKey regKey = Registry.CurrentUser.OpenSubKey(strKeyPath);
+                string[] arrSubKeys = regKey.GetSubKeyNames();
+                if (IsVista() || IsWin7())
+                {
+                    recycleLocation = "$Recycle.bin";
+                }
+                else
+                {
+                    recycleLocation = "RECYCLER";
+                }
+                ObjectQuery query = new ObjectQuery("Select * from Win32_LogicalDisk Where DriveType = 3");
+                ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+                ManagementObjectCollection queryCollection = searcher.Get();
+                foreach (ManagementObject mgtObject in queryCollection)
+                {
+                    // Get the drive letter of this drive.  We will use it if it matches the original cloud folder path.
+                    string strTmpDrive = mgtObject["Name"].ToString();
+                    if (cloudFolderLocation.Substring(0, 2).ToLower().Equals(strTmpDrive.ToLower(), StringComparison.InvariantCulture))
+                    {
+                        // Loop through the recycle bins on this drive (usually just one).
+                        foreach (string strSubKey in arrSubKeys)
+                        {
+                            // Form the full path of the recycle bin and process it if it exists.
+                            string regKeySID = strSubKey;
+                            string recycleBinLocation = (strTmpDrive + "\\" + recycleLocation + "\\" + regKeySID + "\\");
+                            if (recycleBinLocation != "" && Directory.Exists(recycleBinLocation))
+                            {
+                                // Process this directory.  Get the list of folders contained in the recycle bin.  Loop through the folders.
+                                DirectoryInfo recycleBin = new DirectoryInfo(recycleBinLocation);
+                                DirectoryInfo[] recycleBinFolders = recycleBin.GetDirectories();
+                                foreach (DirectoryInfo folder in recycleBinFolders)
+                                {
+                                    // See if this is the original cloud folder.  It is if the folder creation time is equal.
+                                    if (folder.CreationTime.ToUniversalTime() == cloudFolderCreationTimeUtc)
+                                    {
+                                        // This is our cloud folder.  Find the original path.  That is in the corresponding
+                                        // $I file.  e.g., if the name of this $R file is $RABCDEF, then locate the file
+                                        // with name $IABCDEF.  The deletion time is stored in 8 bytes at offset 0x10 in the
+                                        /// $I file.  The Unicode original path string is stored at offset 0x18.  The
+                                        // path string is a maximum of 260 characters (or 520 bytes), including the double
+                                        // null termination.
+                                        string iFilePath = recycleBinLocation + "\\$I" + folder.Name.Substring(2);
+                                        byte[] fileBytes = File.ReadAllBytes(iFilePath);
+
+                                        // Parse out the DateTime ticks.
+                                        const int offsetDateTimeTicks = 0x10;
+                                        const int offsetPath = 0x18;
+                                        const int lengthPath = 520;
+                                        UInt64 ulTicks = 0;
+
+                                        for (int index = offsetDateTimeTicks; index < offsetPath; ++index)
+                                        {
+                                            ulTicks |= ((UInt64)fileBytes[index]) << ((index - offsetDateTimeTicks) * 8);
+                                        }
+
+                                        // Parse out the original path
+                                        string originalPath = String.Empty;
+                                        UInt16 uChar = 0;
+                                        for (int index = offsetPath; index < (offsetPath + lengthPath); ++index)
+                                        {
+                                            int tempShift = fileBytes[index] << ((index % 2) * 8);
+                                            uChar |= (UInt16)tempShift;
+
+                                            if (index != offsetPath && (index % 2) != 0)
+                                            {
+                                                if (uChar == 0)
+                                                {
+                                                    break;
+                                                }
+
+                                                originalPath += (char)uChar;
+                                                uChar = 0;
+                                            }
+                                        }
+
+
+                                        foundOriginalPath = originalPath;
+                                        foundDeletionTimeLocal = DateTime.FromFileTime((long)ulTicks);
+                                        foundPathToDeletedCloudFolderRFile = folder.FullName;
+                                        foundPathToDeletedCloudFolderIFile = iFilePath;
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                foundOriginalPath = null;
+                foundDeletionTimeLocal = (DateTime)Helpers.DefaultForType(typeof(DateTime));
+                foundPathToDeletedCloudFolderRFile = null;
+                foundPathToDeletedCloudFolderIFile = null;
+                return false;
+            }
+
+            foundOriginalPath = null;
+            foundDeletionTimeLocal = (DateTime)Helpers.DefaultForType(typeof(DateTime));
+            foundPathToDeletedCloudFolderRFile = null;
+            foundPathToDeletedCloudFolderIFile = null;
+            return false;
         }
 
         #endregion

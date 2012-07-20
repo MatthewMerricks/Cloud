@@ -108,40 +108,34 @@ namespace win_client
         public App()
         { }
 
+        private ViewModelLocator _vm = new ViewModelLocator();
+
         private void Application_Startup(object sender, StartupEventArgs e) 
         {
-            CLAppDelegate app = CLAppDelegate.Instance;                 // fire up the singleton
-
             // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
             // before the initial list is passed (via InitializeOrReplace)
             CLError error = IconOverlay.Initialize();
+
+            CLAppDelegate app = CLAppDelegate.Instance;                 // fire up the singleton
+
+            // Show the user the error from IconOverlay, if any.
             if (error != null)
             {
                 ((App)Application.Current).StartupUri = new Uri("/Views/BadgeComInitializationErrorView.xaml", UriKind.Relative);
                 //TODO: Incorporate the error description and code below into the BadgeComInitializationErrorView window above.
                 //MessageBox.Show(String.Format("Error initializing Cloud shell integration. Message: {0}, Code: {1}.", error.errorDescription, error.errorCode), "Error.");
             }
-
-            // Todo: add call to IconOverlay.Shutdown() when the application terminates/closes/receives unhandled exception
-
-            // Choose the window to display.
-            if (CLAppDelegate.Instance.IsAlreadyRunning)
-            {
-                ((App)Application.Current).StartupUri = new Uri("/Views/WindowCloudAlreadyRunning.xaml", UriKind.Relative);
-            }
-            else if (CLAppDelegate.Instance.IsFirstTimeSetupNeeded)
-            {
-                ((App)Application.Current).StartupUri = new Uri("NavigationWindow.xaml", UriKind.Relative);
-            }
             else
             {
-                ((App)Application.Current).StartupUri = new Uri("/Views/WindowInvisible.xaml", UriKind.Relative);
+                // Set the window to display, selected in CLAppDelegate.initAppDelegate.
+                ((App)Application.Current).StartupUri = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
             }
         }
 
         private void Application_Exit(object sender, ExitEventArgs e) 
         { 
             //TODO: Clean up...
+            IconOverlay.Shutdown();
         }
 
 #endif  // end WPF

@@ -124,6 +124,24 @@ namespace CloudApiPublic.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while removing this device from your account..
+        /// </summary>
+        internal static string ExceptionUnlinking {
+            get {
+                return ResourceManager.GetString("ExceptionUnlinking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while removing this device from your account.  The error code is {0}..
+        /// </summary>
+        internal static string ExceptionUnlinkingWithCode {
+            get {
+                return ResourceManager.GetString("ExceptionUnlinkingWithCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to bits.
         /// </summary>
         internal static string OsBits {

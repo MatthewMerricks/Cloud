@@ -190,7 +190,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kAddCloudFolderToDesktop = "add_cloud_folder_to_desktop";
         public const string kRecentFileItems = "recent_file_items";
         public const string kUdid = "device_udid";
-        public const string kCloudFolderCreationTime = "cloud_folder_path_creation_time";
+        public const string kCloudFolderCreationTimeUtc = "cloud_folder_path_creation_time";
 
 
         /// <summary>
@@ -510,14 +510,14 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private DateTime _cloudFolderCreationTime;
-        public DateTime CloudFolderCreationTime
+        private DateTime _cloudFolderCreationTimeUtc;
+        public DateTime CloudFolderCreationTimeUtc
         {
-            get { return _cloudFolderCreationTime; }
+            get { return _cloudFolderCreationTimeUtc; }
             set
             {
-                _cloudFolderCreationTime = value;
-                SettingsBase.Write<DateTime>(kCloudFolderCreationTime, value);
+                _cloudFolderCreationTimeUtc = value;
+                SettingsBase.Write<DateTime>(kCloudFolderCreationTimeUtc, value);
             }
         }
 
@@ -669,7 +669,7 @@ namespace CloudApiPrivate.Model.Settings
             // Advanced
             _cloudFolderPath = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));  // get the user's home directory.  e.g., C:\Users\<UserName>\
             _cloudFolderPath = _cloudFolderPath + @"\Cloud";
-            _cloudFolderCreationTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
+            _cloudFolderCreationTimeUtc = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
             _cloudFolderDescriptor = null;
     
@@ -861,10 +861,10 @@ namespace CloudApiPrivate.Model.Settings
                 _cloudFolderPath = tempString;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<DateTime>(kCloudFolderCreationTime, out tempDate);
+            isPresent = SettingsBase.ReadIfPresent<DateTime>(kCloudFolderCreationTimeUtc, out tempDate);
             if (isPresent)
             {
-                _cloudFolderCreationTime = tempDate;
+                _cloudFolderCreationTimeUtc = tempDate;
             }
 
             FileStream tempStream;
@@ -978,7 +978,7 @@ namespace CloudApiPrivate.Model.Settings
         public void updateCloudFolderPath(string path, DateTime creationTime)
         {  
             CloudFolderPath = path;
-            CloudFolderCreationTime = creationTime;
+            CloudFolderCreationTimeUtc = creationTime;
             CloudFolderDescriptor = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 

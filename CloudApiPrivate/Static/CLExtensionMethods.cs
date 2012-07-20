@@ -51,23 +51,18 @@ namespace CloudApiPrivate.Static
         /// </summary>
         public static void ForceValidation(object element)
         {
-            var trace = CLTrace.Instance;
-            trace.writeToLog(0, "ForceValidation: Entry.  element: {0}.", element.ToString());
             for(int i = 0; i < VisualTreeHelper.GetChildrenCount((DependencyObject)element); i++)
             {
                 object child = VisualTreeHelper.GetChild((DependencyObject)element, i);
-                trace.writeToLog(9, "ForceValidation: Found child: {0}. index: {1}.  Recurse.", child.ToString(), i);
                 ForceValidation(child);
             }
 
             BindingExpression bindingExpression = null;
 
             string uiElementType = element.GetType().ToString();
-            trace.writeToLog(9, "ForceValidation: Check this element. uiElementType: {0}.", uiElementType);
             switch (uiElementType)
             {
                 case "System.Windows.Controls.TextBox":
-                    trace.writeToLog(9, "ForceValidation: This is a TextBox.");
                     bindingExpression = ((TextBox)element).GetBindingExpression(TextBox.TextProperty);
                     break;
 
@@ -77,20 +72,17 @@ namespace CloudApiPrivate.Static
                     break;
 #else
                 case "CloudApiPrivate.Common.SecurePasswordBox":
-                    trace.writeToLog(9, "ForceValidation: This is a SecurePasswordBox.");
                     bindingExpression = ((SecurePasswordBox)element).GetBindingExpression(SecurePasswordBox.TextProperty);
                     break;
 #endif
 
                 case "System.Windows.Controls.RadioButton":
-                    trace.writeToLog(9, "ForceValidation: This is a RadioButton.");
                     bindingExpression = ((RadioButton)element).GetBindingExpression(RadioButton.IsCheckedProperty);
                     break;
             }
 
             if (bindingExpression == null || bindingExpression.ParentBinding == null)
             {
-                trace.writeToLog(9, "ForceValidation: Binding or ParentBinding is null.  Return.");
                 return;
             }
 #if SILVERLIGHT 
@@ -98,13 +90,10 @@ namespace CloudApiPrivate.Static
 #else
             if (!bindingExpression.ParentBinding.ValidatesOnDataErrors)
             {
-                trace.writeToLog(9, "ForceValidation: Parent does not validate on data errors.  Return.");
                 return;
             }
 #endif
-            trace.writeToLog(9, "ForceValidation: Update the source for this binding expression.");
             bindingExpression.UpdateSource();
-            trace.writeToLog(9, "ForceValidation: Return.");
         }
 
         /// <summary>

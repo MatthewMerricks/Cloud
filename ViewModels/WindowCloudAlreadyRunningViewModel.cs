@@ -1,5 +1,5 @@
 ﻿//
-//  CloudAlreadyRunningViewModel.cs
+//  WindowCloudAlreadyRunningViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -35,7 +35,7 @@ namespace win_client.ViewModels
     /// <summary>
     /// Page to control the multiple pages of the tour.
     /// </summary>
-    public class CloudAlreadyRunningViewModel : ValidatingViewModelBase, ICleanup
+    public class WindowCloudAlreadyRunningViewModel : ValidatingViewModelBase, ICleanup
     {
 
         #region Instance Variables
@@ -50,7 +50,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Initializes a new instance of the PageHomeViewModel class.
         /// </summary>
-        public CloudAlreadyRunningViewModel(IDataService dataService)
+        public WindowCloudAlreadyRunningViewModel(IDataService dataService)
         {
             _dataService = dataService;
             _dataService.GetData(

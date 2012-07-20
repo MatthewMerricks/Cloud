@@ -65,8 +65,9 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<PageTourViewModel>();
 
             // Window pages
-            SimpleIoc.Default.Register<CloudAlreadyRunningViewModel>();
+            SimpleIoc.Default.Register<WindowCloudAlreadyRunningViewModel>();
             SimpleIoc.Default.Register<WindowInvisibleViewModel>();
+            SimpleIoc.Default.Register<WindowCloudFolderMissingViewModel>();
             SimpleIoc.Default.Register<BadgeComInitializationErrorViewModel>();
 
             // Modal dialog support
@@ -162,11 +163,11 @@ namespace win_client.ViewModels
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public CloudAlreadyRunningViewModel CloudAlreadyRunningViewModel
+        public WindowCloudAlreadyRunningViewModel WindowCloudAlreadyRunningViewModel
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<CloudAlreadyRunningViewModel>();
+                return ServiceLocator.Current.GetInstance<WindowCloudAlreadyRunningViewModel>();
             }
         }
 
@@ -181,6 +182,20 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<WindowInvisibleViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the WindowCloudFolderMissingViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public WindowCloudFolderMissingViewModel WindowCloudFolderMissingViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<WindowCloudFolderMissingViewModel>();
             }
         }
 

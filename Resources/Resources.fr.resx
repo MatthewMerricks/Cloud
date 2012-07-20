@@ -187,4 +187,28 @@
   <data name="loginErrorHeader" xml:space="preserve">
     <value>Error logging in.</value>
   </data>
+  <data name="startupUriAlreadyRunning" xml:space="preserve">
+    <value>/Views/WindowCloudAlreadyRunning.xaml</value>
+  </data>
+  <data name="startupUriFirstTimeSetup" xml:space="preserve">
+    <value>NavigationWindow.xaml</value>
+  </data>
+  <data name="startupUriNewCloudFolderOrUnlink" xml:space="preserve">
+    <value>/Views/WindowNewCloudFolderOrUnlink</value>
+  </data>
+  <data name="startupUriRecoverDeletedCloudFolder" xml:space="preserve">
+    <value>/Views/WindowRecoverDeletedCloudFolder</value>
+  </data>
+  <data name="startupUriWindowInvisible" xml:space="preserve">
+    <value>/Views/WindowInvisible.xaml</value>
+  </data>
+  <data name="windowCloudFolderBodyMesssage" xml:space="preserve">
+    <value>To continue syncing, please restore your Cloud folder.  You may also choose to unlink this computer from your account.</value>
+  </data>
+  <data name="windowCloudFolderMissingOkButtonLocate" xml:space="preserve">
+    <value>Locate...</value>
+  </data>
+  <data name="windowCloudFolderMissingOkButtonRestore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
 </root>
