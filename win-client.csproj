@@ -207,8 +207,6 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
-    <Compile Include="ViewModel\MainViewModel.cs" />
-    <Compile Include="ViewModel\ViewModelLocator.cs" />
     <Compile Include="Views\CloudMessageBoxView.xaml.cs">
       <DependentUpon>CloudMessageBoxView.xaml</DependentUpon>
     </Compile>
