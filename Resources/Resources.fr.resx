@@ -193,22 +193,34 @@
   <data name="startupUriFirstTimeSetup" xml:space="preserve">
     <value>NavigationWindow.xaml</value>
   </data>
-  <data name="startupUriNewCloudFolderOrUnlink" xml:space="preserve">
-    <value>/Views/WindowNewCloudFolderOrUnlink</value>
-  </data>
-  <data name="startupUriRecoverDeletedCloudFolder" xml:space="preserve">
-    <value>/Views/WindowRecoverDeletedCloudFolder</value>
+  <data name="startupUriCloudFolderMissing" xml:space="preserve">
+    <value>/Views/WindowCloudFolderMissing.xaml</value>
   </data>
   <data name="startupUriWindowInvisible" xml:space="preserve">
     <value>/Views/WindowInvisible.xaml</value>
   </data>
   <data name="windowCloudFolderBodyMesssage" xml:space="preserve">
-    <value>To continue syncing, please restore your Cloud folder.  You may also choose to unlink this computer from your account.</value>
+    <value>To continue syncing, please restore your Cloud folder.  You may also choose to remove this computer from your account and exit the application.</value>
   </data>
   <data name="windowCloudFolderMissingOkButtonLocate" xml:space="preserve">
     <value>Locate...</value>
   </data>
   <data name="windowCloudFolderMissingOkButtonRestore" xml:space="preserve">
     <value>Restore</value>
+  </data>
+  <data name="windowCloudFolderMissingErrorBody" xml:space="preserve">
+    <value>A problem occurred while removing your computer from your acccount on the server. </value>
+  </data>
+  <data name="windowCloudFolderMissingErrorHeader" xml:space="preserve">
+    <value>Oh Snap!  Something happened.</value>
+  </data>
+  <data name="windowCloudFolderMissingErrorRightButtonContent" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="windowCloudFolderMissingErrorTitle" xml:space="preserve">
+    <value>Cloud.com</value>
+  </data>
+  <data name="windowCloudFolderMissingFolderBrowserDescription" xml:space="preserve">
+    <value>Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select.</value>
   </data>
 </root>

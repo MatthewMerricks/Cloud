@@ -502,8 +502,10 @@ namespace CloudApiPrivate.Model
             error = null;
 
             HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", "Token=" + CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
 
-            string body = String.Format(CLDefinitions.CLRegistrationUnlinkRequestURLString, CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
+            //string body = String.Format(CLDefinitions.CLRegistrationUnlinkRequestBodyString, CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
+            string body = String.Empty;
 
             _trace.writeToLog(1, "CLRegistration.cs: Unlink. Udid: <{0}>.", CloudApiPrivate.Model.Settings.Settings.Instance.Udid);
 
@@ -512,20 +514,7 @@ namespace CloudApiPrivate.Model
 
             // Perform the Post and wait for the result synchronously.
             var result = client.PostAsync(CLDefinitions.CLRegistrationUnlinkRequestURLString, content).Result;
-            if (result.IsSuccessStatusCode)
-            {
-
-                string jsonResult = result.Content.ReadAsStringAsync().Result;
-
-                _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
-
-                CLRegistration dummyRegistration = new CLRegistration();
-                isSuccess = ProcessServerResponse(dummyRegistration, jsonResult, out error);
-
-                // Set the new UDID after successfull link.. This id is used by the notification server.. 
-                CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
-            }
-            else
+            if (!result.IsSuccessStatusCode)
             {
                 error = new CLError();
                 error.errorCode = (int)result.StatusCode;
@@ -536,7 +525,6 @@ namespace CloudApiPrivate.Model
 
             return isSuccess;
         }
-
 
         #endregion
     }

@@ -26,6 +26,7 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
+using win_client.ViewModelHelpers;
 
 namespace win_client.ViewModels
 {  
@@ -325,7 +326,12 @@ namespace win_client.ViewModels
             else
             {
                 // There was an error registering this user.  Display the error and leave the user on the same page.
-                DisplayErrorMessage(error);
+                CLModalErrorDialog.Instance.DisplayModalErrorMessage(error.errorDescription, _rm.GetString("generalErrorTitle"),
+                                    _rm.GetString("loginErrorHeader"), _rm.GetString("generalOkButtonContent"), 
+                                    ViewGridContainer, returnedViewModelInstance =>
+                                    {
+                                        // Do nothing here when the user clicks the OK button.
+                                    });
             }
         }
 
@@ -361,35 +367,6 @@ namespace win_client.ViewModels
 
             // [[CLSettings sharedSettings] saveAccountSettings:accountDict];
             Settings.Instance.saveAccountSettings(accountDict);
-        }
-
-        /// <summary>
-        /// Display an error message.
-        /// </summary>
-        private void DisplayErrorMessage(CLError error)
-        {
-            _trace.writeToLog(1, "PageHomeViewModel: DisplayErrorMessage:  Error: {0}.", error.errorDescription);
-
-            var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
-            IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
-            IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
-            modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
-            {
-                CloudMessageBoxView_Title = _rm.GetString("generalErrorTitle"),
-                CloudMessageBoxView_WindowWidth = 450,
-                CloudMessageBoxView_WindowHeight = 230,
-                CloudMessageBoxView_HeaderText = _rm.GetString("loginErrorHeader"),
-                CloudMessageBoxView_BodyText = error.errorDescription,
-                CloudMessageBoxView_LeftButtonVisibility = Visibility.Collapsed,
-                CloudMessageBoxView_RightButtonWidth = new GridLength(100),
-                CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
-                CloudMessageBoxView_RightButtonContent = _rm.GetString("generalOkButtonContent"),
-            },
-            ViewGridContainer,
-            returnedViewModelInstance =>
-            {
-                // User clicked OK.  Do nothing here.  Leave the user on the CreateNewAccount page.
-            });
         }
 
         #region Validation

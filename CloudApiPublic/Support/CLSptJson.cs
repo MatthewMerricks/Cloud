@@ -26,7 +26,7 @@ namespace CloudApiPublic.Support
             Dictionary<string, object> values2 = new Dictionary<string, object>(); 
             foreach (KeyValuePair<string, object> d in values) 
             { 
-                if (d.Value.GetType().FullName.Contains("Newtonsoft.Json.Linq.JObject")) 
+                if (d.Value != null && d.Value.GetType().FullName.Contains("Newtonsoft.Json.Linq.JObject")) 
                 { 
                     values2.Add(d.Key, CLSptJsonDeserializeToDictionary(d.Value.ToString())); 
                 } 

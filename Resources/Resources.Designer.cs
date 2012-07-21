@@ -223,29 +223,20 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /Views/WindowCloudFolderMissing.xaml.
+        /// </summary>
+        public static string startupUriCloudFolderMissing {
+            get {
+                return ResourceManager.GetString("startupUriCloudFolderMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to NavigationWindow.xaml.
         /// </summary>
         public static string startupUriFirstTimeSetup {
             get {
                 return ResourceManager.GetString("startupUriFirstTimeSetup", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to /Views/WindowNewCloudFolderOrUnlink.
-        /// </summary>
-        public static string startupUriNewCloudFolderOrUnlink {
-            get {
-                return ResourceManager.GetString("startupUriNewCloudFolderOrUnlink", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to /Views/WindowRecoverDeletedCloudFolder.
-        /// </summary>
-        public static string startupUriRecoverDeletedCloudFolder {
-            get {
-                return ResourceManager.GetString("startupUriRecoverDeletedCloudFolder", resourceCulture);
             }
         }
         
@@ -314,11 +305,56 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To continue syncing, please restore your Cloud folder.  You may also choose to unlink this computer from your account..
+        ///   Looks up a localized string similar to To continue syncing, please restore your Cloud folder.  You may also choose to remove this computer from your account and exit the application..
         /// </summary>
         public static string windowCloudFolderBodyMesssage {
             get {
                 return ResourceManager.GetString("windowCloudFolderBodyMesssage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A problem occurred while removing your computer from your acccount on the server..
+        /// </summary>
+        public static string windowCloudFolderMissingErrorBody {
+            get {
+                return ResourceManager.GetString("windowCloudFolderMissingErrorBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oh Snap!  Something happened..
+        /// </summary>
+        public static string windowCloudFolderMissingErrorHeader {
+            get {
+                return ResourceManager.GetString("windowCloudFolderMissingErrorHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string windowCloudFolderMissingErrorRightButtonContent {
+            get {
+                return ResourceManager.GetString("windowCloudFolderMissingErrorRightButtonContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud.com.
+        /// </summary>
+        public static string windowCloudFolderMissingErrorTitle {
+            get {
+                return ResourceManager.GetString("windowCloudFolderMissingErrorTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select..
+        /// </summary>
+        public static string windowCloudFolderMissingFolderBrowserDescription {
+            get {
+                return ResourceManager.GetString("windowCloudFolderMissingFolderBrowserDescription", resourceCulture);
             }
         }
         

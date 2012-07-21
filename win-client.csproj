@@ -80,6 +80,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>packages\Newtonsoft.Json.4.5.7\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Ookii.Dialogs.Wpf">
+      <HintPath>3rdParty\bin\Debug\Ookii.Dialogs.Wpf.dll</HintPath>
+    </Reference>
     <Reference Include="SignalR.Client">
       <HintPath>packages\SignalR.Client.0.5.2\lib\net40\SignalR.Client.dll</HintPath>
     </Reference>
@@ -192,6 +195,7 @@
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
+    <Compile Include="ViewModelHelpers\CLModalErrorDialog.cs" />
     <Compile Include="ViewModels\BusyIndicatorViewModel.cs" />
     <Compile Include="ViewModels\CloudMessageBoxViewModel.cs" />
     <Compile Include="ViewModels\WindowCloudFolderMissingViewModel.cs" />

@@ -29,6 +29,19 @@ namespace win_client.Views
     {
         public WindowCloudFolderMissing()
         {
+            CLAppMessages.Message_WindowCloudFolderMissingShoudClose.Register(this, OnMessage_WindowCloudFolderMissingShoudClose);
+            Loaded += new RoutedEventHandler(WindowCloudFolderMissing_Loaded);
+        }
+
+        private void OnMessage_WindowCloudFolderMissingShoudClose(string obj)
+        {
+            this.Close();
+        }
+
+        void WindowCloudFolderMissing_Loaded(object sender, RoutedEventArgs e)
+        {
+            WindowCloudFolderMissingViewModel vm = (WindowCloudFolderMissingViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
         }
     }
 }

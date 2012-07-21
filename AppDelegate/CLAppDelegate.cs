@@ -204,40 +204,6 @@ namespace win_client.AppDelegate
         #region "Initialization and Start-up"
 
         /// <summary>
-        /// Check to see whether we should put up the UI, or just run.
-        /// </summary>
-        private bool isFirstTimeSetupNeeded()
-        {
-            bool needed = true;
-            
-            // TODO: here we should go back to our cloud and verify if
-            // device is still valid to help make the correct determination if we need to
-            // setup or not.
-
-            if (Settings.Instance.CompletedSetup)
-            {
-            
-                if (Directory.Exists(Settings.Instance.CloudFolderPath))
-                {
-                    needed = false;
-                }
-                else
-                {
-                    // Oh Snap! - The user has deleted the cloud folder while the app wasn't running.
-                    // Try to remove this device from Cloud.com, and reset all of the settings.
-                    // TODO: The Mac client uses the old descriptor and asks osX for the associated
-                    // path.  If it is found, that should be the new path of the same folder.  The
-                    // user just moved it.  I don't think this is possible on Windows, but is there
-                    // some way we could find the moved folder; moved while this program was not running?
-                    needed = true;
-                    UnlinkFromCloudDotCom();
-                }
-            }
-    
-            return needed;
-        }
-
-        /// <summary>
         /// Check to see if we are already running.
         /// </summary>
         private bool isCloudAppAlreadyRunning()
@@ -289,7 +255,7 @@ namespace win_client.AppDelegate
 
 
         //- (BOOL)unlinkFromCloudDotCom
-        public bool UnlinkFromCloudDotCom()
+        public bool UnlinkFromCloudDotCom(out CLError error)
         {
             //BOOL rc = YES;
 
@@ -322,7 +288,6 @@ namespace win_client.AppDelegate
             //CLRegistration *regstration = [[CLRegistration alloc] init];
             //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
             CLRegistration registration = new CLRegistration();
-            CLError error = null;
             bool rc = registration.UnlinkDeviceWithAccessKey(Settings.Instance.Akey, out error);
 
             //// stop services.
@@ -642,7 +607,7 @@ namespace win_client.AppDelegate
                         if (isDeletedFolderFound)
                         {
                             // We will put up a window in App.xaml.cs to allow the user to recover the deleted cloud folder.
-                            StartupUrlRelative = _resourceManager.GetString("startupUriRecoverDeletedCloudFolder");
+                            StartupUrlRelative = _resourceManager.GetString("startupUriCloudFolderMissing");
                             FoundOriginalCloudFolderPath = foundOriginalPath;
                             FoundDeletedCloudFolderDeletionTimeLocal = foundDeletionTimeLocal;
                             FoundPathToDeletedCloudFolderRFile = foundPathToDeletedCloudFolderRFile;
@@ -652,7 +617,7 @@ namespace win_client.AppDelegate
                         else
                         {
                             // We will put up a window in App.xaml.cs to allow the user to make a new cloud folder or unlink.
-                            StartupUrlRelative = _resourceManager.GetString("startupUriNewCloudFolderOrUnlink");
+                            StartupUrlRelative = _resourceManager.GetString("startupUriCloudFolderMissing");
                             WindowCloudFolderMissingOkButtonContent = _resourceManager.GetString("windowCloudFolderMissingOkButtonLocate");
                         }
                     }
@@ -690,11 +655,33 @@ namespace win_client.AppDelegate
         /// <returns>string: The moved cloud folder, or null.</returns>
         private static string LocateMovedCloudFolder()
         {
+            //using (OleDbConnection conn = new OleDbConnection(
+            //"Provider=Search.CollatorDSO;Extended Properties='Application=Windows';"))
+            //{
+            //    conn.Open();
+            //    OleDbCommand cmd = new OleDbCommand("SELECT TOP 1 System.ItemPathDisplay FROM SYSTEMINDEX WHERE " +
+            //        "System.ItemType = 'Directory' AND System.DateCreated >= '2012-01-01 12:00:00' AND System.DateCreated < '2012-07-21 12:00:00'", conn);
+
+            //    using (OleDbDataReader reader = cmd.ExecuteReader())
+            //    {
+            //        while (reader.Read())
+            //        {
+            //            List<object> row = new List<object>();
+
+            //            for (int i = 0; i < reader.FieldCount; i++)
+            //            {
+            //                row.Add(reader[i]);
+            //            }
+
+            //        }
+            //    }
+            //}
+            //&&&&
             DateTime cloudFolderCreationTimeUtc = Settings.Instance.CloudFolderCreationTimeUtc;
             DateTime cloudFolderCreationTimeUtcPlusOneSecond = cloudFolderCreationTimeUtc + TimeSpan.FromSeconds(1);
             string sCloudFolderCreationTimeUtc = cloudFolderCreationTimeUtc.ToString("yyyy-MM-dd HH:mm:ss");
             string sCloudFolderCreationTimeUtcPlusOneSecond = cloudFolderCreationTimeUtcPlusOneSecond.ToString("yyyy-MM-dd HH:mm:ss");
-            string sSql = String.Format("SELECT System.ItemPathDisplay, System.ItemType, System.DateCreated FROM SYSTEMINDEX WHERE " +
+            string sSql = String.Format("SELECT System.ItemPathDisplay FROM SYSTEMINDEX WHERE " +
                                         "System.ItemType='Directory' AND System.DateCreated >= '{0}' AND System.DateCreated < '{1}'", sCloudFolderCreationTimeUtc, sCloudFolderCreationTimeUtcPlusOneSecond);
 
             List<string> resultingPaths = new List<string>();
