@@ -147,6 +147,7 @@
     <Compile Include="Common\CLBalloonTooltipNotification.cs" />
     <Compile Include="Common\CLConstants.cs" />
     <Compile Include="Common\CLConverters.cs" />
+    <Compile Include="Common\CLCreateCloudFolder.cs" />
     <Compile Include="Common\CLDefaultButtons.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />

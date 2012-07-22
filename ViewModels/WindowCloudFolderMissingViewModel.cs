@@ -45,6 +45,7 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private ResourceManager _rm;
+        private CLTrace _trace; 
 
         #endregion
         
@@ -52,7 +53,7 @@ namespace win_client.ViewModels
         #region Bound Properties
 
         /// <summary>
-        /// The <see cref="BodyMessagee" /> property's name.
+        /// The <see cref="BodyMessage" /> property's name.
         /// </summary>
         public const string BodyMessagePropertyName = "BodyMessage";
         private string _bodyMessage = "";
@@ -158,6 +159,8 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
             _rm = CLAppDelegate.Instance.ResourceManager;
+            _trace = CLAppDelegate.Instance.GetTrace();
+
             BodyMessage = _rm.GetString("windowCloudFolderBodyMesssage");
             OkButtonContent = CLAppDelegate.Instance.WindowCloudFolderMissingOkButtonContent;
         }
@@ -199,30 +202,16 @@ namespace win_client.ViewModels
                                                 if (this.OkButtonContent.Equals(_rm.GetString("windowCloudFolderMissingOkButtonLocate"), StringComparison.InvariantCulture))
                                                 {
                                                     // This is the Locate... case.  Display the Windows Forms folder selection
-                                                    // dialog.
-                                                    VistaFolderBrowserDialog folderBrowser = new VistaFolderBrowserDialog();
-                                                    folderBrowser.Description = _rm.GetString("windowCloudFolderMissingFolderBrowserDescription");
-                                                    folderBrowser.RootFolder = Environment.SpecialFolder.MyDocuments;  // no way to get to the user's home directory.
-                                                    folderBrowser.ShowNewFolderButton = true;
-                                                    folderBrowser.ShowDialog(this);
-                                                    // NOTE:  This must be a message to the view, and the view will set 
-
-#if TRASH
-                                                    ; this must be asynchronous processing
-                                                    display the folder selection dialog, starting in the user's home directory.
-                                                    if user clicked OK
-                                                      get the path of the selected folder
-                                                      create the Cloud directory in the selected folder
-                                                      if error creating the cloud directory
-                                                        display the error message in a modal dialog
-                                                        leave the user on this window when the user clicks OK on the error message modal dialog
-                                                      else no error creating the cloud directory
-                                                        naviagate to WindowInvisible.xaml.  That will start the Cloud app.
-                                                      endelse no error creating the cloud directory
-                                                    else user clicked cancel
-                                                      ; leave the user on this window dialog
-                                                    endelse user clicked cancel
-#endif  // TRASH
+                                                    // dialog.  Tell the view to put up the dialog.  If the user clicks cancel, 
+                                                    // the view will return and we will stay on this window.  If the user clicks
+                                                    // OK, the view will send the WindowCloudFolderMissingViewModel_CreateCloudFolderCommand
+                                                    // back to us, and we will create the cloud folder in that command method.
+                                                    // TODO: This is strange for WPF, since the FolderBrowser is a Windows Form thing.
+                                                    // The processing is synchronous from the VM to the View, show the dialog, wait
+                                                    // for the dialog, then return on cancel, or issue a RelayCommand back to us,
+                                                    // process the RelayCommand, then back to the View, then back to here.
+                                                    // Should we be more asynchronous?
+                                                    CLAppMessages.Message_WindowCloudFolderMissingShouldChooseCloudFolder.Send("");
                                                 }
                                                 else if (this.OkButtonContent.Equals(_rm.GetString("windowCloudFolderMissingOkButtonRestore"), StringComparison.InvariantCulture))
                                                 {
@@ -315,7 +304,7 @@ namespace win_client.ViewModels
                                                 if (error != null)
                                                 {
                                                     CLModalErrorDialog.Instance.DisplayModalErrorMessage(
-                                                           error.errorDescription, 
+                                                           error.errorDescription,
                                                            _rm.GetString("windowCloudFolderMissingErrorTitle"),
                                                            _rm.GetString("windowCloudFolderMissingErrorHeader"),
                                                            _rm.GetString("windowCloudFolderMissingErrorRightButtonContent"),
@@ -325,10 +314,63 @@ namespace win_client.ViewModels
                                                                Application.Current.Shutdown();
                                                            });
                                                 }
+                                                else
+                                                {
+                                                    Application.Current.Shutdown();
+                                                }
                                             }));                                              
             }
         }
 
+
+        /// <summary>
+        /// The user has selected a new cloud folder path.  Create the new cloud folder
+        /// </summary>
+        private RelayCommand<string> _windowCloudFolderMissingViewModel_CreateCloudFolderCommand;
+        public RelayCommand<string> WindowCloudFolderMissingViewModel_CreateCloudFolderCommand
+        {
+            get
+            {
+                return _windowCloudFolderMissingViewModel_CreateCloudFolderCommand
+                    ?? (_windowCloudFolderMissingViewModel_CreateCloudFolderCommand = new RelayCommand<string>(
+                                            (path) =>
+                                            {
+                                                // Create the new cloud folder.
+                                                CLError error = null;
+                                                DateTime creationTime;
+                                                CLCreateCloudFolder.CreateCloudFolder(Settings.Instance.CloudFolderPath, out creationTime, out error);
+                                                if (error == null)
+                                                {
+                                                    // Cloud folder created
+                                                    _trace.writeToLog(1, "WindowCloudFolderMissingViewModel: Cloud folder created at <{0}>.", Settings.Instance.CloudFolderPath);
+
+                                                    // Mark the creation time in Settings.
+                                                    Settings.Instance.CloudFolderCreationTimeUtc = creationTime;
+                                                    Settings.Instance.setCloudAppSetupCompleted(true);
+
+                                                    // Tell this window (view) to close.
+                                                    CLAppMessages.Message_WindowCloudFolderMissingShoudClose.Send("");
+
+                                                    // Navigate to WindowInvisible.  That window will start the core services.
+                                                    WindowInvisibleView nextWindow = new WindowInvisibleView();
+                                                    nextWindow.Show();
+                                                }
+                                                else
+                                                {
+                                                    // Error creating the cloud folder.  Display the error and stay on this dialog.
+                                                    CLModalErrorDialog.Instance.DisplayModalErrorMessage(
+                                                            error.errorDescription,
+                                                            _rm.GetString("windowCloudFolderMissingErrorTitle"),
+                                                            _rm.GetString("windowCloudFolderMissingErrorHeader"),
+                                                            _rm.GetString("windowCloudFolderMissingErrorRightButtonContent"),
+                                                            this.ViewGridContainer, returnedViewModelInstance =>
+                                                            {
+                                                                // Do nothing.  Stay on this dialog.
+                                                            });
+                                                }
+                                            }));
+            }
+        }
         #endregion
     }
 }

@@ -32,7 +32,8 @@ namespace win_client.Common
             Message_GrowlSystemTrayNotification,
             Home_GetClearPasswordField,
             Message_DidReceivePushNotificationFromServer,
-            Message_WindowCloudFolderMissingShoudClose,
+            Message_WindowCloudFolderMissingShouldClose,
+            Message_WindowCloudFolderMissingShouldChooseCloudFolder,
         }
 
         public static class CreateNewAccount_GetClearPasswordField
@@ -169,15 +170,28 @@ namespace win_client.Common
         {
             public static void Send(string notUsed)
             {
-                Messenger.Default.Send(notUsed, MessageTypes.Message_WindowCloudFolderMissingShoudClose);
+                Messenger.Default.Send(notUsed, MessageTypes.Message_WindowCloudFolderMissingShouldClose);
             }
 
             public static void Register(object recipient, Action<string> action)
             {
-                Messenger.Default.Register(recipient, MessageTypes.Message_WindowCloudFolderMissingShoudClose, action);
+                Messenger.Default.Register(recipient, MessageTypes.Message_WindowCloudFolderMissingShouldClose, action);
             }
         }
 
+        public static class Message_WindowCloudFolderMissingShouldChooseCloudFolder
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_WindowCloudFolderMissingShouldChooseCloudFolder);
+            }
 
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_WindowCloudFolderMissingShouldChooseCloudFolder, action);
+            }
+        }
+
+        
     }
 }

@@ -357,7 +357,7 @@ namespace win_client.AppDelegate
 
             // Create the cloud folder
             DateTime creationTime;
-            createCloudFolder(Settings.Instance.CloudFolderPath, out creationTime, out error);
+            CLCreateCloudFolder.CreateCloudFolder(Settings.Instance.CloudFolderPath, out creationTime, out error);
             if (error == null)
             {
                 // Set setup process completed
@@ -384,48 +384,6 @@ namespace win_client.AppDelegate
         {
             // Start core services
             CLServicesManager.Instance.StartCoreServices();
-        }
-
-        /// <summary>
-        /// Perform one-time installation (cloud folder, and any OS support)
-        /// </summary>
-        private void createCloudFolder(string cloudFolderPath, out DateTime creationTime, out CLError error)
-        {
-            error = null;
-
-            try
-            {
-                if (!Directory.Exists(cloudFolderPath))
-                {
-                    Directory.CreateDirectory(cloudFolderPath);
-                    Directory.CreateDirectory(cloudFolderPath + @"\Public");
-                    Directory.CreateDirectory(cloudFolderPath + @"\Pictures");
-                    creationTime = Directory.GetCreationTimeUtc(cloudFolderPath);
-                }
-                else
-                {
-                    creationTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
-                }
-
-                // TODO: Assign our own icon to the newly created Cloud folder
-                // TODO: Assign our own icon to the newly created Cloud\Public folder
-                // TODO: Assign our own icon to the newly created Cloud\Pictures folder
-                // TODO: Set a shortcut to the Cloud folder into Explorer toolbar
-                // TODO: Set a shortcut to the Cloud folder onto the Desktop.
-                // TODO: Add our Cloud app menu and icon to the System Tray.  Set it to be always visible.
-            }
-            catch (Exception e)
-            {
-                CLError err = new CLError();
-                err.errorDomain = CLError.ErrorDomain_Application;
-                err.errorDescription = _resourceManager.GetString("appDelegateExceptionCreatingFolder");
-                err.errorCode = (int)CLError.ErrorCodes.Exception;
-                err.errorInfo = new Dictionary<string,object>();
-                err.errorInfo.Add(CLError.ErrorInfo_Exception, e);
-                error = err;
-                creationTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
-                return;
-            }
         }
 
         /// <summary>
