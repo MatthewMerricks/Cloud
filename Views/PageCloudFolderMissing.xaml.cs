@@ -22,7 +22,7 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
-using Ookii.Dialogs.Wpf;
+using Ookii.Dialogs.WpfMinusTaskDialog;
 using win_client.AppDelegate;
 
 namespace win_client.Views

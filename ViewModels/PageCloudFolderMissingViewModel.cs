@@ -29,7 +29,7 @@ using win_client.AppDelegate;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using win_client.ViewModelHelpers;
-using Ookii.Dialogs.Wpf;
+using Ookii.Dialogs.WpfMinusTaskDialog;
 using CloudApiPrivate.Model;
 
 

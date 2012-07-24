@@ -65,27 +65,5 @@ namespace win_client.Views
               typeof(string),
               typeof(ChildWindow),
               new PropertyMetadata(""));
-
-        public new string Width
-        {
-            get { return (string)GetValue(WidthProperty); }
-            set { SetValue(WidthProperty, value); }
-        }
-        public static readonly DependencyProperty WidthProperty =
-            DependencyProperty.Register("Width",
-              typeof(string),
-              typeof(ChildWindow),
-              new PropertyMetadata(""));
-
-        public new string Height
-        {
-            get { return (string)GetValue(HeightProperty); }
-            set { SetValue(HeightProperty, value); }
-        }
-        public static readonly DependencyProperty HeightProperty =
-            DependencyProperty.Register("Height",
-              typeof(string),
-              typeof(ChildWindow),
-              new PropertyMetadata(""));
     }
 }

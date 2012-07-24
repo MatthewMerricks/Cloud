@@ -51,7 +51,6 @@ namespace win_client.Common
                 err.errorDomain = CLError.ErrorDomain_Application;
                 err.errorDescription = CLAppDelegate.Instance.ResourceManager.GetString("appDelegateExceptionCreatingFolder");
                 err.errorCode = (int)CLError.ErrorCodes.Exception;
-                err.errorInfo = new Dictionary<string, object>();
                 err.errorInfo.Add(CLError.ErrorInfo_Exception, e);
                 error = err;
                 creationTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));

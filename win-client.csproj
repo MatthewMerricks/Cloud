@@ -75,8 +75,8 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>3rdParty\bin\Debug\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Ookii.Dialogs.Wpf">
-      <HintPath>3rdParty\bin\Debug\Ookii.Dialogs.Wpf.dll</HintPath>
+    <Reference Include="Ookii.Dialogs.WpfMinusTaskDialog">
+      <HintPath>3rdParty\bin\Debug\Ookii.Dialogs.WpfMinusTaskDialog.dll</HintPath>
     </Reference>
     <Reference Include="SimpleJson">
       <HintPath>3rdParty\bin\Debug\SimpleJson.dll</HintPath>
