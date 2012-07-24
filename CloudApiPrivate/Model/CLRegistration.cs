@@ -396,7 +396,7 @@ namespace CloudApiPrivate.Model
 
             if (returnDictionary != null)
             {
-                if (((string)returnDictionary["status"]) == "error")
+                if (!returnDictionary.ContainsKey("status") || ((string)returnDictionary["status"]) == "error")
                 {
                     // The server returned an errlr
                     retVal = false;

@@ -66,6 +66,10 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<PageBadgeComInitializationErrorViewModel>();
             SimpleIoc.Default.Register<PageCloudAlreadyRunningViewModel>();
             SimpleIoc.Default.Register<PageInvisibleViewModel>();
+            SimpleIoc.Default.Register<PagePreferencesViewModel>();
+
+            // Navigation frames
+            SimpleIoc.Default.Register<FramePreferencesGeneralViewModel>();
 
             // Window pages
             SimpleIoc.Default.Register<PageCloudFolderMissingViewModel>();
@@ -186,6 +190,20 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// Gets the PagePreferencesViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public PagePreferencesViewModel PagePreferencesViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<PagePreferencesViewModel>();
+            }
+        }
+
+        /// <summary>
         /// Gets the PageCloudFolderMissingViewModel property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
@@ -212,6 +230,21 @@ namespace win_client.ViewModels
                 return ServiceLocator.Current.GetInstance<PageBadgeComInitializationErrorViewModel>();
             }
         }
+
+        /// <summary>
+        /// Gets the FramePreferencesViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FramePreferencesGeneralViewModel FramePreferencesGeneralViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FramePreferencesGeneralViewModel>();
+            }
+        }
+
 
         /// <summary>
         /// Gets the ModalDialogService property.

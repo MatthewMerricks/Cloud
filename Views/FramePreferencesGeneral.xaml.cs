@@ -1,5 +1,5 @@
 ﻿//
-//  PageCreateNewAccount.xaml.cs
+//  FramePreferencesGeneral.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -28,12 +28,12 @@ using win_client.Model;
 
 namespace win_client.Views
 {
-    public partial class PageCreateNewAccount : Page, IOnNavigated
+    public partial class FramePreferencesGeneral : Page, IOnNavigated
     {
         #region "Instance Variables"
 
         private bool _isLoaded = false;
-        private PageCreateNewAccountViewModel _viewModel = null;
+        private FramePreferencesGeneralViewModel _viewModel = null;
 
         #endregion
 
@@ -42,7 +42,7 @@ namespace win_client.Views
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public PageCreateNewAccount()
+        public FramePreferencesGeneral()
         {
             InitializeComponent();
 
@@ -62,7 +62,7 @@ namespace win_client.Views
             CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Register(this, OnCreateNewAccount_GetClearConfirmPasswordField);
 
             // Pass the view's grid to the view model for the dialogs to use.
-            _viewModel = (PageCreateNewAccountViewModel)DataContext;
+            _viewModel = (FramePreferencesGeneralViewModel)DataContext;
             _viewModel.ViewGridContainer = LayoutRoot;
 
         }
@@ -73,7 +73,7 @@ namespace win_client.Views
         void PageCreateNewAccount_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            _viewModel = DataContext as PageCreateNewAccountViewModel;
+            _viewModel = DataContext as FramePreferencesGeneralViewModel;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));

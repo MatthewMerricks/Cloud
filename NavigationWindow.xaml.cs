@@ -15,6 +15,7 @@ using System.IO;
 using win_client.SystemTray.TrayIcon;
 using win_client.AppDelegate;
 using System.Windows.Forms;
+using win_client.Model;
 
 namespace win_client
 {
@@ -28,7 +29,18 @@ namespace win_client
 
         public MyNavigationWindow()
         {
+            this.NavigationService.Navigated += NavigationService_Navigated;
+
             InitializeComponent();
+        }
+
+        void NavigationService_Navigated(object sender, NavigationEventArgs e)
+        {
+            IOnNavigated castContent = e.Content as IOnNavigated;
+            if (castContent != null)
+            {
+                castContent.HandleNavigated(sender, e);
+            }
         }
 
         public void Dispose() 

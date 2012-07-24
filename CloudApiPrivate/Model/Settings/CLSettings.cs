@@ -167,7 +167,6 @@ namespace CloudApiPrivate.Model.Settings
         public const string kUdidRegistered = "r_udid";
         public const string kCompletedSetup = "cs";
         public const string kCloudFolderPath = "cloud_folder_path";
-        public const string kCloudFolderDescriptor = "desktop_shortcut";
         public const string kEid = "eid";
         public const string kSid = "sid";
         public const string kAddCloudFolderToDock = "add_dock_folder";
@@ -505,17 +504,6 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private FileStream _cloudFolderDescriptor;
-        public FileStream CloudFolderDescriptor
-        {
-            get { return _cloudFolderDescriptor; }
-            set
-            {
-                _cloudFolderDescriptor = value;
-                SettingsBase.Write<FileStream>(kCloudFolderDescriptor, value);
-            }
-        }
-
         // todo: property to track selective folders for sync in cloudFolderPath.
 
         // Others
@@ -655,8 +643,6 @@ namespace CloudApiPrivate.Model.Settings
             _cloudFolderPath = _cloudFolderPath + "\\" + CLPrivateDefinitions.CloudDirectoryName;
             _cloudFolderCreationTimeUtc = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
-            _cloudFolderDescriptor = null;
-    
             // Index Services
             _eid = (long)Helpers.DefaultForType(typeof(long));
     
@@ -851,13 +837,6 @@ namespace CloudApiPrivate.Model.Settings
                 _cloudFolderCreationTimeUtc = tempDate;
             }
 
-            FileStream tempStream;
-            isPresent = SettingsBase.ReadIfPresent<FileStream>(kCloudFolderDescriptor, out tempStream);
-            if (isPresent)
-            {
-                _cloudFolderDescriptor = tempStream;
-            }
-    
             // Index Services
             isPresent = SettingsBase.ReadIfPresent<long>(kEid, out uTemp);
             if (isPresent)
@@ -870,11 +849,6 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _addCloudFolderToDock = tempBoolean;
-            }
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(kCloudFolderDescriptor, out tempBoolean);
-            if (isPresent)
-            {
-                _addCloudFolderToDesktop = tempBoolean;
             }
             isPresent = SettingsBase.ReadIfPresent<string>(kSid, out tempString);
             if (isPresent)
@@ -963,7 +937,6 @@ namespace CloudApiPrivate.Model.Settings
         {  
             CloudFolderPath = path;
             CloudFolderCreationTimeUtc = creationTime;
-            CloudFolderDescriptor = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         /// <summary>

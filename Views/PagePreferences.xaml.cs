@@ -1,5 +1,5 @@
 ﻿//
-//  PageTour3.xaml.cs
+//  PagePreferences.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -28,7 +28,7 @@ using win_client.Model;
 
 namespace win_client.Views
 {
-    public partial class PageTour3 : Page, IOnNavigated
+    public partial class PagePreferences : Page, IOnNavigated
     {
         #region "Instance Variables"
 
@@ -39,19 +39,24 @@ namespace win_client.Views
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public PageTour3()
+        public PagePreferences()
         {
             InitializeComponent();
 
             // Register event handlers
-            Loaded += new RoutedEventHandler(PageTour3_Loaded);
-            Unloaded += new RoutedEventHandler(PageTour3_Unloaded);
+            Loaded += new RoutedEventHandler(PagePreferences_Loaded);
+            Unloaded += new RoutedEventHandler(PagePreferences_Unloaded);
 
             // Register messages
-            CLAppMessages.PageTour_NavigationRequest.Register(this,
+            CLAppMessages.PagePreferences_NavigationRequest.Register(this,
                 (uri) => 
                 {
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
+                });
+            CLAppMessages.PagePreferences_FrameNavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.ContentFrame.NavigationService.Navigate(uri, UriKind.Relative);
                 });
         }
 
@@ -60,20 +65,20 @@ namespace win_client.Views
         /// <summary>
         /// Loaded event handler
         /// </summary>
-        void PageTour3_Loaded(object sender, RoutedEventArgs e)
+        void PagePreferences_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            cmdContinue.Focus();
+            //&&&&cmdContinue.Focus();
         }
 
         /// <summary>
         /// Unloaded event handler
         /// </summary>
-        void PageTour3_Unloaded(object sender, RoutedEventArgs e)
+        void PagePreferences_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
 
@@ -92,7 +97,7 @@ namespace win_client.Views
 
                 if (_isLoaded)
                 {
-                    cmdContinue.Focus();
+                    //&&&cmdContinue.Focus();
                 }
             }
             catch (Exception ex)

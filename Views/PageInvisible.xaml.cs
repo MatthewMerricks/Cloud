@@ -27,10 +27,12 @@ using win_client.AppDelegate;
 using System.Windows.Forms;
 using Hardcodet.Wpf.TaskbarNotification;
 using CloudApiPrivate.Static;
+using CloudApiPublic.Model;
+using win_client.Model;
 
 namespace win_client.Views
 {
-    public partial class PageInvisible : Page
+    public partial class PageInvisible : Page, IOnNavigated
     {
         private System.Windows.Forms.ContextMenu _cm =new System.Windows.Forms.ContextMenu();
 
@@ -67,11 +69,6 @@ namespace win_client.Views
             // Set the system tray tooltip.
             tb.TrayToolTip = null;                      // use the standard Windows tooltip (fancy WPF tooltips are available)
 
-            // This page is supposed to be invisible.  Hide the main window.
-            CLAppDelegate.HideMainWindow(Window.GetWindow(this));
-
-            // Registered the navigated event
-            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
             // Start the core services.
             var dispatcher = Dispatcher.CurrentDispatcher;
             dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(100), () => { CLAppDelegate.Instance.startCloudAppServicesAndUI(); });
@@ -82,10 +79,6 @@ namespace win_client.Views
         /// </summary>
         void OnUnloadedCallback(object sender, RoutedEventArgs e)
         {
-            if (NavigationService != null)
-            {
-                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
-            }
             Messenger.Default.Unregister(this);
         }
 
@@ -126,11 +119,21 @@ namespace win_client.Views
         }
 
         /// <summary>
-        /// Navigated event callback.
+        /// Navigated event handler.
         /// </summary>
-        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        CLError IOnNavigated.HandleNavigated(object sender, NavigationEventArgs e)
         {
-            CLAppDelegate.HideMainWindow(Window.GetWindow(this));
+            try
+            {
+                // Hide the window.
+                CLAppDelegate.HideMainWindow(Window.GetWindow(this));
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
+
     }
 }

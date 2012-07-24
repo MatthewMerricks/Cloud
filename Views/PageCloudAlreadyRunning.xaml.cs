@@ -23,10 +23,12 @@ using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
 using win_client.AppDelegate;
+using win_client.Model;
+using CloudApiPublic.Model;
 
 namespace win_client.Views
 {
-    public partial class PageCloudAlreadyRunning : Page
+    public partial class PageCloudAlreadyRunning : Page, IOnNavigated
     {
         /// <summary>
         /// Default constructor.
@@ -50,9 +52,6 @@ namespace win_client.Views
         /// </summary>
         void PageCloudAlreadyRunning_Loaded(object sender, RoutedEventArgs e)
         {
-            // Register the navigated event.
-            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
-
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
         }
@@ -62,22 +61,24 @@ namespace win_client.Views
         /// </summary>
         void PageCloudAlreadyRunning_Unloaded(object sender, RoutedEventArgs e)
         {
-
-            if (NavigationService != null)
-            {
-                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
-            }
             Messenger.Default.Unregister(this);
         }
 
         /// <summary>
         /// Navigated event handler.  Show the window.
         /// </summary>
-        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        CLError IOnNavigated.HandleNavigated(object sender, NavigationEventArgs e)
         {
-            // Show the window.
-            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+            try
+            {
+                // Show the window.
+                CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
-
     }
 }
