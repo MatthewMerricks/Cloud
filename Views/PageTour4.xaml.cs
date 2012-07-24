@@ -22,6 +22,7 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
+using win_client.AppDelegate;
 
 namespace win_client.Views
 {
@@ -33,41 +34,44 @@ namespace win_client.Views
 
         #endregion
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         public PageTour4()
         {
             InitializeComponent();
 
-            // Remove the navigation bar
-            Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() =>
-            {
-                var navWindow = Window.GetWindow(this) as NavigationWindow;
-                if (navWindow != null)
-                {
-                    navWindow.ShowsNavigationUI = false;
-                }
-            }));
-
+            // Register event handlers
             Loaded += new RoutedEventHandler(PageTour4_Loaded);
             Unloaded += new RoutedEventHandler(PageTour4_Unloaded);
 
+            // Register messages
             CLAppMessages.PageTour_NavigationRequest.Register(this,
                 (uri) => 
                 {
-                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
                 });
-
         }
 
         #region "Message Handlers"
 
+        /// <summary>
+        /// Loaded event handler
+        /// </summary>
         void PageTour4_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
+
+            // Show the window.
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             cmdContinue.Focus();
         }
 
+        /// <summary>
+        /// Unloaded event handler
+        /// </summary>
         void PageTour4_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
@@ -79,8 +83,14 @@ namespace win_client.Views
             Messenger.Default.Unregister(this);
         }
 
+        /// <summary>
+        /// Navigated event handler
+        /// </summary>
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
         {
+            // Show the window.
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             if (_isLoaded)
             {
                 cmdContinue.Focus();

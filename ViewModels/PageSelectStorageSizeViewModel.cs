@@ -217,6 +217,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Put up a dialog.  We need credit card info here.  TODO:
         /// </summary>
+        //TODO: Implement this.
         private void ToDoNeedCreditCardInfo() 
         {
             var message = new DialogMessage("This storage selection is not available for beta users.", DialogMessageCallback)

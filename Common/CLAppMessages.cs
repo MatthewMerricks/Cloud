@@ -42,6 +42,8 @@ namespace win_client.Common
             PageTour_NavigationRequest,
             PageSelectStorageSize_NavigationRequest,
             PageHome_NavigationRequest,
+            PageCloudAlreadyRunning_NavigationRequest,
+            PageSetupSelector_NavigationRequest,
         }
 
         public static class CreateNewAccount_GetClearPasswordField
@@ -276,6 +278,32 @@ namespace win_client.Common
             public static void Register(object recipient, Action<Uri> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.PageInvisible_NavigationRequest, action);
+            }
+        }
+
+        public static class PageCloudAlreadyRunning_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageCloudAlreadyRunning_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageCloudAlreadyRunning_NavigationRequest, action);
+            }
+        }
+
+        public static class PageSetupSelector_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageSetupSelector_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageSetupSelector_NavigationRequest, action);
             }
         }       
     }

@@ -36,13 +36,13 @@ namespace win_client.Views
         {
             // Register event handlers
             Loaded += new RoutedEventHandler(PageCloudFolderMissing_Loaded);
+            Unloaded += new RoutedEventHandler(PageCloudFolderMissing_Unloaded);
+
 
             // Register messages
             CLAppMessages.PageCloudFolderMissing_NavigationRequest.Register(this,
                 (uri) =>
                 {
-                    // Navigate to the page with no content.  This will start the core services.
-                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative);
                 });
             CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Register(this, OnMessage_PageCloudFolderMissingShouldChooseCloudFolder);
@@ -85,6 +85,19 @@ namespace win_client.Views
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+        }
+
+        /// <summary>
+        /// Unloaded event handler.
+        /// </summary>
+        void PageCloudFolderMissing_Unloaded(object sender, RoutedEventArgs e)
+        {
+
+            if (NavigationService != null)
+            {
+                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
+            }
+            Messenger.Default.Unregister(this);
         }
 
         /// <summary>

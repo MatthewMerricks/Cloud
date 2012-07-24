@@ -23,6 +23,7 @@ using System.Windows.Data;
 using win_client.Common;
 using System.Globalization;
 using win_client.ViewModels;
+using win_client.AppDelegate;
 
 namespace win_client.Views
 {
@@ -34,42 +35,46 @@ namespace win_client.Views
 
         #endregion
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         public PageSelectStorageSize()
         {
             InitializeComponent();
 
-            // Remove the navigation bar
-            Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() =>
-            {
-                var navWindow = Window.GetWindow(this) as NavigationWindow;
-                if (navWindow != null)
-                {
-                    navWindow.ShowsNavigationUI = false;
-                }
-            }));
-
+            // Register event handlers
             Loaded += new RoutedEventHandler(PageSelectStorageSize_Loaded);
             Unloaded += new RoutedEventHandler(PageSelectStorageSize_Unloaded);
 
-            Messenger.Default.Register<Uri>(this, "PageSelectStorageSize_NavigationRequest",
-                (uri) => 
+            // Register messages
+            CLAppMessages.PageSelectStorageSize_NavigationRequest.Register(this,
+               (uri) => 
                 {
-                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
                 });
             CLAppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
             
         }
 
-         #region "Message Handlers"
+         #region "Event Handlers"
 
+        /// <summary>
+        /// Loaded event handler.
+        /// </summary>
         void PageSelectStorageSize_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
+
+            // Show the window.
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             cmdContinue.Focus();
         }
 
+        /// <summary>
+        /// Unloaded event handler.
+        /// </summary>
         void PageSelectStorageSize_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
@@ -81,6 +86,10 @@ namespace win_client.Views
             Messenger.Default.Unregister(this);
         }
 
+        /// <summary>
+        /// REMOVE THIS.  Need credit card UI.
+        /// </summary>
+        //TODO: Remove this.  Implement the credit card UI.
         private void SelectStorageSize_PresentMessageDialog(DialogMessage msg)
         {
             var result = MessageBox.Show(
@@ -91,8 +100,14 @@ namespace win_client.Views
             msg.ProcessCallback(result);     // Send callback
         }
 
+        /// <summary>
+        /// Navigated event handler.
+        /// </summary>
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
         {
+            // Show the window.
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             if (_isLoaded)
             {
                 cmdContinue.Focus();

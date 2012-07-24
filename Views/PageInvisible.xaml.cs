@@ -43,12 +43,12 @@ namespace win_client.Views
 
             // Register event handlers
             Loaded += new RoutedEventHandler(OnLoadedCallback);
+            Unloaded += new RoutedEventHandler(OnUnloadedCallback);
 
             // Register messages
             CLAppMessages.PageInvisible_NavigationRequest.Register(this,
                 (uri) =>
                 {
-                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative);
                 });
 
@@ -75,6 +75,18 @@ namespace win_client.Views
             // Start the core services.
             var dispatcher = Dispatcher.CurrentDispatcher;
             dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(100), () => { CLAppDelegate.Instance.startCloudAppServicesAndUI(); });
+        }
+
+        /// <summary>
+        /// Unloaded event handler.
+        /// </summary>
+        void OnUnloadedCallback(object sender, RoutedEventArgs e)
+        {
+            if (NavigationService != null)
+            {
+                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
+            }
+            Messenger.Default.Unregister(this);
         }
 
         /// <summary>
