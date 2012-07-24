@@ -1,0 +1,31 @@
+﻿<Window x:Class="JsonValueEvents.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:JsonValueEvents" FontSize="16"
+        Title="MainWindow" Height="400" Width="600" Loaded="Window_Loaded">
+    <Window.Resources>
+        <local:JsonPrimitiveConverter x:Key="jsonPrimitiveConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="3*" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+        <DataGrid Name="grid" AutoGenerateColumns="False" Grid.ColumnSpan="3"
+                  Grid.Row="0" Grid.Column="0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Width="3*" Header="Name" Binding="{Binding Path=Name, Converter={StaticResource jsonPrimitiveConverter}}"/>
+                <DataGridTextColumn Width="4*" Header="Date of birth" Binding="{Binding DOB, Converter={StaticResource jsonPrimitiveConverter}, ConverterParameter=date}"/>
+                <DataGridTextColumn Width="3*" Header="Order amount" Binding="{Binding OrderAmount, Converter={StaticResource jsonPrimitiveConverter}, ConverterParameter=int}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Button Grid.Row="1" Grid.Column="0" Margin="10" Content="Add random row" Click="Button_Add" />
+        <Button Grid.Row="1" Grid.Column="1" Margin="10" Content="Remove random row" Click="Button_Remove" />
+        <Button Grid.Row="1" Grid.Column="2" Margin="10" Content="Update random row" Click="Button_Update" />
+    </Grid>
+</Window>

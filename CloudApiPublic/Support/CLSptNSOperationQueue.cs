@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CloudApiPublic.Model;
 
 namespace CloudApiPublic.Support
 {
@@ -196,7 +197,8 @@ namespace CloudApiPublic.Support
                     break;
                 }
 
-                Task.Delay(100);
+                //Task.Delay(100);
+                Thread.Sleep(100);
             }
         }
 
@@ -241,18 +243,29 @@ namespace CloudApiPublic.Support
             }
         }
 
-        private async void RunOperationAsync(CLSptNSOperation operation)
+        private void RunOperationAsync(CLSptNSOperation operation)
         {
             operation.Executing = true;
             _numberOfActiveOperations++;
-            await Task.Run(() =>
-            {
-                operation.Main();
-                if (operation.CompletionBlock != null)
+            //await Task.Run(() =>
+            //{
+            //});
+            (new Thread(() =>
                 {
-                    operation.CompletionBlock();
-                }
-            });
+                    CLError mainError = operation.Main();
+
+                    CLHTTPConnectionOperation subClassed = operation as CLHTTPConnectionOperation;
+                    if (subClassed != null
+                        && subClassed.CompletionBlock != null)
+                    {
+                        subClassed.CompletionBlock(subClassed, mainError);
+                    }
+                    //if (operation.CompletionBlock != null)
+                    //{
+                    //    operation.CompletionBlock();
+                    //}
+                })).Start();
+            
 
             lock (_operationQueue)
             {

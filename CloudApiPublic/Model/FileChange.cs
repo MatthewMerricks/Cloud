@@ -89,7 +89,7 @@ namespace CloudApiPublic.Model
             }
             catch (Exception ex)
             {
-                md5 = (byte[])Helpers.DefaultForType(typeof(byte[]));
+                md5 = Helpers.DefaultForType<byte[]>();
                 return ex;
             }
             return null;
@@ -111,7 +111,7 @@ namespace CloudApiPublic.Model
             }
             catch (Exception ex)
             {
-                md5 = (string)Helpers.DefaultForType(typeof(string));
+                md5 = Helpers.DefaultForType<string>();
                 return ex;
             }
             return null;

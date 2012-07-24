@@ -4,7 +4,7 @@
 library
 C#
 .cs
-C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Modules\Samples.Modules.Button\obj\Debug\
+C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Modules\Samples.Modules.Button\obj\Debug\
 Samples.Modules.Button
 none
 false
@@ -13,7 +13,7 @@ DEBUG;TRACE
 6-793121941
 
 10-910872559
-16-1270248689
+16-30711707
 NavigationItems\ButtonSpinnerNavItem.xaml;NavigationItems\DropDownButtonNavItem.xaml;NavigationItems\SplitButtonNavItem.xaml;Views\ButtonSpinnerView.xaml;Views\DropDownButtonView.xaml;Views\SplitButtonView.xaml;
 
 False

@@ -707,7 +707,7 @@ namespace win_client.Services.Sync
                                     && syncHeaderDictionary.ContainsKey(CLDefinitions.CLClientEventId))
                                 {
                                     KeyValuePair<FileChange, FileStream> findLinkedEvent = (castState == null
-                                        ? (KeyValuePair<FileChange, FileStream>)Helpers.DefaultForType(typeof(KeyValuePair<FileChange, FileStream>))
+                                        ? Helpers.DefaultForType<KeyValuePair<FileChange, FileStream>>()
                                         : castState
                                             .FirstOrDefault(currentInitialEvent => currentInitialEvent.Key != null
                                                 && currentInitialEvent.Key.EventId.ToString() == (syncHeaderDictionary[CLDefinitions.CLClientEventId] ?? string.Empty).ToString()));
@@ -3281,7 +3281,8 @@ namespace win_client.Services.Sync
             // __weak CLSyncService *weakSelf = self;
 
             // [uploadOperation setOperationCompletionBlock:^(CLHTTPConnectionOperation *operation, id responseObject, NSError *error) {
-            uploadOperation.SetOperationCompletionBlock((CLHTTPConnectionOperation operation, CLError error) =>
+
+            Action<CLHTTPConnectionOperation, CLError> onUploadCompletion = (operation, error) =>
             {
                 // __strong CLSyncService *strongSelf = weakSelf;
                 // if (strongSelf) {
@@ -3346,7 +3347,9 @@ namespace win_client.Services.Sync
                     // [[CLUIActivityService sharedService] updateActivityViewWithProgress:1 timeLeft:0 bytes:0 ofTotalBytes:0 fileCount:0 andActivityType:activityViewLabelSynced];
                 }
                 // }  // strongSelf
-            });
+            };
+
+            uploadOperation.SetOperationCompletionBlock(onUploadCompletion);
 
             // return uploadOperation;
             return uploadOperation;

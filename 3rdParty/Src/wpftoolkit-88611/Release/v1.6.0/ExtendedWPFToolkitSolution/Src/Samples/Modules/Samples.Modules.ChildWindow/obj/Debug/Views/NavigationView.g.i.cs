@@ -9,6 +9,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using Samples.Infrastructure.Controls;
 using Samples.Modules.ChildWindow.Views;
 using System;
 using System.Diagnostics;

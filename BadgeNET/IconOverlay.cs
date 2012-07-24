@@ -136,7 +136,7 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                isInitialized = (bool)Helpers.DefaultForType(typeof(bool));
+                isInitialized = Helpers.DefaultForType<bool>();
                 return ex;
             }
         }
@@ -148,7 +148,7 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                isInitialized = (bool)Helpers.DefaultForType(typeof(bool));
+                isInitialized = Helpers.DefaultForType<bool>();
                 return ex;
             }
             return null;
@@ -337,7 +337,7 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                badgeType = (cloudAppIconBadgeType)Helpers.DefaultForType(typeof(cloudAppIconBadgeType));
+                badgeType = Helpers.DefaultForType<cloudAppIconBadgeType>();
                 return ex;
             }
         }
@@ -356,7 +356,7 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                badgeType = (cloudAppIconBadgeType)Helpers.DefaultForType(typeof(cloudAppIconBadgeType));
+                badgeType = Helpers.DefaultForType<cloudAppIconBadgeType>();
                 return ex;
             }
             return null;

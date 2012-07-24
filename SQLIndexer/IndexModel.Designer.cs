@@ -258,7 +258,7 @@ namespace SQLIndexer
 
         #endregion
 
-        #region Simple Properties
+        #region Primitive Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -277,7 +277,7 @@ namespace SQLIndexer
                 {
                     OnEnumCategoryIdChanging(value);
                     ReportPropertyChanging("EnumCategoryId");
-                    _EnumCategoryId = StructuralObject.SetValidValue(value, "EnumCategoryId");
+                    _EnumCategoryId = StructuralObject.SetValidValue(value);
                     ReportPropertyChanged("EnumCategoryId");
                     OnEnumCategoryIdChanged();
                 }
@@ -302,7 +302,7 @@ namespace SQLIndexer
             {
                 OnNameChanging(value);
                 ReportPropertyChanging("Name");
-                _Name = StructuralObject.SetValidValue(value, false, "Name");
+                _Name = StructuralObject.SetValidValue(value, false);
                 ReportPropertyChanged("Name");
                 OnNameChanged();
             }
@@ -313,6 +313,7 @@ namespace SQLIndexer
 
         #endregion
 
+    
         #region Navigation Properties
     
         /// <summary>
@@ -372,7 +373,7 @@ namespace SQLIndexer
 
         #endregion
 
-        #region Simple Properties
+        #region Primitive Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -391,7 +392,7 @@ namespace SQLIndexer
                 {
                     OnEventIdChanging(value);
                     ReportPropertyChanging("EventId");
-                    _EventId = StructuralObject.SetValidValue(value, "EventId");
+                    _EventId = StructuralObject.SetValidValue(value);
                     ReportPropertyChanged("EventId");
                     OnEventIdChanged();
                 }
@@ -416,7 +417,7 @@ namespace SQLIndexer
             {
                 OnSyncCounterChanging(value);
                 ReportPropertyChanging("SyncCounter");
-                _SyncCounter = StructuralObject.SetValidValue(value, "SyncCounter");
+                _SyncCounter = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("SyncCounter");
                 OnSyncCounterChanged();
             }
@@ -440,7 +441,7 @@ namespace SQLIndexer
             {
                 OnFileChangeTypeCategoryIdChanging(value);
                 ReportPropertyChanging("FileChangeTypeCategoryId");
-                _FileChangeTypeCategoryId = StructuralObject.SetValidValue(value, "FileChangeTypeCategoryId");
+                _FileChangeTypeCategoryId = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("FileChangeTypeCategoryId");
                 OnFileChangeTypeCategoryIdChanged();
             }
@@ -464,7 +465,7 @@ namespace SQLIndexer
             {
                 OnFileChangeTypeEnumIdChanging(value);
                 ReportPropertyChanging("FileChangeTypeEnumId");
-                _FileChangeTypeEnumId = StructuralObject.SetValidValue(value, "FileChangeTypeEnumId");
+                _FileChangeTypeEnumId = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("FileChangeTypeEnumId");
                 OnFileChangeTypeEnumIdChanged();
             }
@@ -488,7 +489,7 @@ namespace SQLIndexer
             {
                 OnPreviousPathChanging(value);
                 ReportPropertyChanging("PreviousPath");
-                _PreviousPath = StructuralObject.SetValidValue(value, true, "PreviousPath");
+                _PreviousPath = StructuralObject.SetValidValue(value, true);
                 ReportPropertyChanged("PreviousPath");
                 OnPreviousPathChanged();
             }
@@ -512,7 +513,7 @@ namespace SQLIndexer
             {
                 OnFileSystemObjectIdChanging(value);
                 ReportPropertyChanging("FileSystemObjectId");
-                _FileSystemObjectId = StructuralObject.SetValidValue(value, "FileSystemObjectId");
+                _FileSystemObjectId = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("FileSystemObjectId");
                 OnFileSystemObjectIdChanged();
             }
@@ -536,7 +537,7 @@ namespace SQLIndexer
             {
                 OnSyncFromChanging(value);
                 ReportPropertyChanging("SyncFrom");
-                _SyncFrom = StructuralObject.SetValidValue(value, "SyncFrom");
+                _SyncFrom = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("SyncFrom");
                 OnSyncFromChanged();
             }
@@ -547,6 +548,7 @@ namespace SQLIndexer
 
         #endregion
 
+    
         #region Navigation Properties
     
         /// <summary>
@@ -694,7 +696,7 @@ namespace SQLIndexer
 
         #endregion
 
-        #region Simple Properties
+        #region Primitive Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -713,7 +715,7 @@ namespace SQLIndexer
                 {
                     OnFileSystemObjectIdChanging(value);
                     ReportPropertyChanging("FileSystemObjectId");
-                    _FileSystemObjectId = StructuralObject.SetValidValue(value, "FileSystemObjectId");
+                    _FileSystemObjectId = StructuralObject.SetValidValue(value);
                     ReportPropertyChanged("FileSystemObjectId");
                     OnFileSystemObjectIdChanged();
                 }
@@ -738,7 +740,7 @@ namespace SQLIndexer
             {
                 OnPathChanging(value);
                 ReportPropertyChanging("Path");
-                _Path = StructuralObject.SetValidValue(value, false, "Path");
+                _Path = StructuralObject.SetValidValue(value, false);
                 ReportPropertyChanged("Path");
                 OnPathChanged();
             }
@@ -762,7 +764,7 @@ namespace SQLIndexer
             {
                 OnLastTimeChanging(value);
                 ReportPropertyChanging("LastTime");
-                _LastTime = StructuralObject.SetValidValue(value, "LastTime");
+                _LastTime = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("LastTime");
                 OnLastTimeChanged();
             }
@@ -786,7 +788,7 @@ namespace SQLIndexer
             {
                 OnCreationTimeChanging(value);
                 ReportPropertyChanging("CreationTime");
-                _CreationTime = StructuralObject.SetValidValue(value, "CreationTime");
+                _CreationTime = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("CreationTime");
                 OnCreationTimeChanged();
             }
@@ -810,7 +812,7 @@ namespace SQLIndexer
             {
                 OnIsFolderChanging(value);
                 ReportPropertyChanging("IsFolder");
-                _IsFolder = StructuralObject.SetValidValue(value, "IsFolder");
+                _IsFolder = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("IsFolder");
                 OnIsFolderChanged();
             }
@@ -834,7 +836,7 @@ namespace SQLIndexer
             {
                 OnSizeChanging(value);
                 ReportPropertyChanging("Size");
-                _Size = StructuralObject.SetValidValue(value, "Size");
+                _Size = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("Size");
                 OnSizeChanged();
             }
@@ -858,7 +860,7 @@ namespace SQLIndexer
             {
                 OnPathChecksumChanging(value);
                 ReportPropertyChanging("PathChecksum");
-                _PathChecksum = StructuralObject.SetValidValue(value, "PathChecksum");
+                _PathChecksum = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("PathChecksum");
                 OnPathChecksumChanged();
             }
@@ -882,7 +884,7 @@ namespace SQLIndexer
             {
                 OnRevisionChanging(value);
                 ReportPropertyChanging("Revision");
-                _Revision = StructuralObject.SetValidValue(value, true, "Revision");
+                _Revision = StructuralObject.SetValidValue(value, true);
                 ReportPropertyChanged("Revision");
                 OnRevisionChanged();
             }
@@ -906,7 +908,7 @@ namespace SQLIndexer
             {
                 OnStorageKeyChanging(value);
                 ReportPropertyChanging("StorageKey");
-                _StorageKey = StructuralObject.SetValidValue(value, true, "StorageKey");
+                _StorageKey = StructuralObject.SetValidValue(value, true);
                 ReportPropertyChanged("StorageKey");
                 OnStorageKeyChanged();
             }
@@ -930,7 +932,7 @@ namespace SQLIndexer
             {
                 OnTargetPathChanging(value);
                 ReportPropertyChanging("TargetPath");
-                _TargetPath = StructuralObject.SetValidValue(value, true, "TargetPath");
+                _TargetPath = StructuralObject.SetValidValue(value, true);
                 ReportPropertyChanged("TargetPath");
                 OnTargetPathChanged();
             }
@@ -941,6 +943,7 @@ namespace SQLIndexer
 
         #endregion
 
+    
         #region Navigation Properties
     
         /// <summary>
@@ -1040,7 +1043,7 @@ namespace SQLIndexer
 
         #endregion
 
-        #region Simple Properties
+        #region Primitive Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1059,7 +1062,7 @@ namespace SQLIndexer
                 {
                     OnEnumIdChanging(value);
                     ReportPropertyChanging("EnumId");
-                    _EnumId = StructuralObject.SetValidValue(value, "EnumId");
+                    _EnumId = StructuralObject.SetValidValue(value);
                     ReportPropertyChanged("EnumId");
                     OnEnumIdChanged();
                 }
@@ -1086,7 +1089,7 @@ namespace SQLIndexer
                 {
                     OnEnumCategoryIdChanging(value);
                     ReportPropertyChanging("EnumCategoryId");
-                    _EnumCategoryId = StructuralObject.SetValidValue(value, "EnumCategoryId");
+                    _EnumCategoryId = StructuralObject.SetValidValue(value);
                     ReportPropertyChanged("EnumCategoryId");
                     OnEnumCategoryIdChanged();
                 }
@@ -1111,7 +1114,7 @@ namespace SQLIndexer
             {
                 OnNameChanging(value);
                 ReportPropertyChanging("Name");
-                _Name = StructuralObject.SetValidValue(value, false, "Name");
+                _Name = StructuralObject.SetValidValue(value, false);
                 ReportPropertyChanged("Name");
                 OnNameChanged();
             }
@@ -1122,6 +1125,7 @@ namespace SQLIndexer
 
         #endregion
 
+    
         #region Navigation Properties
     
         /// <summary>
@@ -1215,7 +1219,7 @@ namespace SQLIndexer
 
         #endregion
 
-        #region Simple Properties
+        #region Primitive Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1232,7 +1236,7 @@ namespace SQLIndexer
             {
                 OnSyncIdChanging(value);
                 ReportPropertyChanging("SyncId");
-                _SyncId = StructuralObject.SetValidValue(value, false, "SyncId");
+                _SyncId = StructuralObject.SetValidValue(value, false);
                 ReportPropertyChanged("SyncId");
                 OnSyncIdChanged();
             }
@@ -1258,7 +1262,7 @@ namespace SQLIndexer
                 {
                     OnSyncCounterChanging(value);
                     ReportPropertyChanging("SyncCounter");
-                    _SyncCounter = StructuralObject.SetValidValue(value, "SyncCounter");
+                    _SyncCounter = StructuralObject.SetValidValue(value);
                     ReportPropertyChanged("SyncCounter");
                     OnSyncCounterChanged();
                 }
@@ -1283,7 +1287,7 @@ namespace SQLIndexer
             {
                 OnRootPathChanging(value);
                 ReportPropertyChanging("RootPath");
-                _RootPath = StructuralObject.SetValidValue(value, false, "RootPath");
+                _RootPath = StructuralObject.SetValidValue(value, false);
                 ReportPropertyChanged("RootPath");
                 OnRootPathChanged();
             }
@@ -1294,6 +1298,7 @@ namespace SQLIndexer
 
         #endregion
 
+    
         #region Navigation Properties
     
         /// <summary>
@@ -1371,7 +1376,7 @@ namespace SQLIndexer
 
         #endregion
 
-        #region Simple Properties
+        #region Primitive Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1390,7 +1395,7 @@ namespace SQLIndexer
                 {
                     OnSyncStateIdChanging(value);
                     ReportPropertyChanging("SyncStateId");
-                    _SyncStateId = StructuralObject.SetValidValue(value, "SyncStateId");
+                    _SyncStateId = StructuralObject.SetValidValue(value);
                     ReportPropertyChanged("SyncStateId");
                     OnSyncStateIdChanged();
                 }
@@ -1415,7 +1420,7 @@ namespace SQLIndexer
             {
                 OnSyncCounterChanging(value);
                 ReportPropertyChanging("SyncCounter");
-                _SyncCounter = StructuralObject.SetValidValue(value, "SyncCounter");
+                _SyncCounter = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("SyncCounter");
                 OnSyncCounterChanged();
             }
@@ -1439,7 +1444,7 @@ namespace SQLIndexer
             {
                 OnFileSystemObjectIdChanging(value);
                 ReportPropertyChanging("FileSystemObjectId");
-                _FileSystemObjectId = StructuralObject.SetValidValue(value, "FileSystemObjectId");
+                _FileSystemObjectId = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("FileSystemObjectId");
                 OnFileSystemObjectIdChanged();
             }
@@ -1463,7 +1468,7 @@ namespace SQLIndexer
             {
                 OnServerLinkedFileSystemObjectIdChanging(value);
                 ReportPropertyChanging("ServerLinkedFileSystemObjectId");
-                _ServerLinkedFileSystemObjectId = StructuralObject.SetValidValue(value, "ServerLinkedFileSystemObjectId");
+                _ServerLinkedFileSystemObjectId = StructuralObject.SetValidValue(value);
                 ReportPropertyChanged("ServerLinkedFileSystemObjectId");
                 OnServerLinkedFileSystemObjectIdChanged();
             }
@@ -1474,6 +1479,7 @@ namespace SQLIndexer
 
         #endregion
 
+    
         #region Navigation Properties
     
         /// <summary>
@@ -1596,4 +1602,5 @@ namespace SQLIndexer
 
     #endregion
 
+    
 }

@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C35BA2D1-6B89-43FF-9A11-404473A26C17}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.ApplicationServer.Common.MSTestUtilities</RootNamespace>
+    <AssemblyName>Microsoft.ApplicationServer.Common.MSTestUtilities</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Microsoft.ApplicationServer.Http.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Moles.Framework">
+      <HintPath>..\..\..\Lib\Pex\0.94.51023.0\tools\VS2010\Microsoft.Moles.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel.dll" />
+    <Reference Include="System.ServiceModel.Web.dll" />
+    <Reference Include="System.Runtime.Serialization.dll" />
+    <Reference Include="System.ServiceModel.Activation.dll" />
+    <Reference Include="System.Web.dll" />
+    <Reference Include="System.Xml.dll" />
+    <Reference Include="System.Xml.Linq.dll" />
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll" />
+    <!--Reference to a $(INETROOT)\private\external\common\TestHost\V4.0\Microsoft.Infrastructure.dll-->
+    <!--Reference to a $(INETROOT)\private\external\common\TestHost\V4.0\Microsoft.Infrastructure.Test.dll-->
+    <!--This was a reference to Moles Fx assemblies ($(INETROOT)\public\ext\Pex\0.94.51023.0\tools\VS2010\Microsoft.Moles.Framework.dll) - ignoring for now-->
+    <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\Microsoft.Net.Http\Microsoft.Net.Http.csproj">
+      <Project>{1A75CF16-5727-4ADA-B15A-3037703FC2ED}</Project>
+      <Name>Microsoft.Net.Http</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Src\Microsoft.ApplicationServer.Http\Microsoft.ApplicationServer.Http.csproj">
+      <Project>{947ABFDB-E1A8-47D5-A982-A7B03CE02BC6}</Project>
+      <Name>Microsoft.ApplicationServer.Http</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\ConfigAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\RefTypeTestData.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\StreamAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\TestDataVariations.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\UnitTestTypeAttribute.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\UnitTestSuite.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\ValueTypeTestData.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\WebHttpServiceHostAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\HttpServiceHostAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\ServiceHostAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\GenericTypeAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\TaskAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\TestDataAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\ExceptionAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\HttpAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\TestData.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\TimeoutConstant.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\UnitTest.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\UnitTestLevel.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\UnitTestLevelAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\IGenericValueContainer.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\INameAndIdContainer.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\INotJsonSerializable.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\ReferenceDataContractType.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\GenericDataContractType.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\GenericXmlSerializableType.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\DataContractEnum.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\DataContractType.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\DerivedDataContractType.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\DerivedPocoType.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\DerivedXmlSerializableType.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\FlagsEnum.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\ISerializableType.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\LongEnum.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\PocoType.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\SimpleEnum.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Types\XmlSerializableType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockAsyncCallback.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockAsyncResult.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockBindingContext.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockBufferManager.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockChannelListener.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockHttpTransportBindingElement.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockOperationBehavior.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockReplyChannel.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockRequestContext.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockUnseekableStream.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Mocks\MockXmlDictionaryWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\BodyParameterService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\BodyStyleService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\GenericWebService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\CustomerService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\DefaultBodyStyleService1.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\DefaultBodyStyleService2.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\EmptyService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\ExceptionService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\HelpPageService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\HttpRequestHeaderService1.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\HttpRequestHeaderService2.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\HttpRequestMessageService1.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\HttpRequestMessageService2.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\HttpResponseHeaderService1.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\HttpResponseHeaderService2.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\HttpResponseMessageService1.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\HttpResponseMessageService2.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\InvalidParameterService1.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\InvalidParameterService2.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\InvalidParameterService3.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\InvalidParameterService4.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\InvalidParameterService5.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\InvalidParameterService6.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\InvalidXmlParameterService1.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\MessageService1.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\MessageService2.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\MessageService3.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\SimpleOperationsService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\TrailingSlashModeService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\TypedMessageService1.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\TypedMessageService2.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\UriTemplateService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\WebGetAndInvokeService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\WebGetService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Test\Services\WebMethodService.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

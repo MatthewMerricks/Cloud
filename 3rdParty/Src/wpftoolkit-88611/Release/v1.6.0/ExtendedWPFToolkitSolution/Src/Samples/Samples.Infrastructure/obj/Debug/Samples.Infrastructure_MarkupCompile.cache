@@ -4,7 +4,7 @@
 library
 C#
 .cs
-C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\
+C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples.Infrastructure\obj\Debug\
 Samples.Infrastructure
 none
 false
@@ -13,7 +13,7 @@ DEBUG;TRACE
 1-731644535
 
 14243317910
-142056454207
+141022223313
 Themes\Generic.xaml;
 
 False

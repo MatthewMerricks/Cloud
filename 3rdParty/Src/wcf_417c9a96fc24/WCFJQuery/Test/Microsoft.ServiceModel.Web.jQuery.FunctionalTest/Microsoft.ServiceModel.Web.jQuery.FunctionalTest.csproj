@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FxCopEnabled>false</FxCopEnabled>
+    <StyleCopEnabled>false</StyleCopEnabled>
+    <FileVersioningEnabled>false</FileVersioningEnabled>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <OutputPath>..\..\..\build\$(Configuration)\WcfJQuery\test\Functional\</OutputPath>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F8FF64C6-AA11-4EC7-8840-CF353ED9B388}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.ServiceModel.Web.Test</RootNamespace>
+    <AssemblyName>Microsoft.ServiceModel.Web.jQuery.FunctionalTest</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\build\Release\WcfJQuery\test\Functional\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\Microsoft.Runtime.Serialization.Json\Microsoft.Runtime.Serialization.Json.csproj">
+      <Project>{A5879BE4-F1F5-4C39-88B9-372ABDEFF843}</Project>
+      <Name>Microsoft.Runtime.Serialization.Json</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Src\Microsoft.ServiceModel.Web.jQuery\Microsoft.ServiceModel.Web.jQuery.csproj">
+      <Project>{7A183D69-9C8B-493A-A3A0-AC9CE0A72CA3}</Project>
+      <Name>Microsoft.ServiceModel.Web.jQuery</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Common\InstanceCreator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Common\JsonValueCreatorSurrogate.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\JsonValueRoundTripComparer.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\ConfigTests.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\FormUrlEncodedTests.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\WebHttpBehavior3WebFaultsTests.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\WebHttpBehavior3PropertiesTests.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\WebHttpBehavior3NegativeTests.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\WebHttpBehavior3Tests.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\JQueryWCFService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(ProjectExtensionsDir)\ProjectExtensions.targets" Condition="Exists('$(ProjectExtensionsDir)\ProjectExtensions.targets')" />
+</Project>

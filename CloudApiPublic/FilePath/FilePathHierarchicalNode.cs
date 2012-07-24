@@ -42,7 +42,7 @@ namespace CloudApiPublic.Model
         /// always check HasValue to be true first to prevent an exception;
         /// must be set by creating a new generic-typed FilePathHierarchicalNodeWithValue
         /// </summary>
-        public KeyValuePair<FilePath, T> Value
+        public virtual KeyValuePair<FilePath, T> Value
         {
             get
             {
@@ -60,14 +60,21 @@ namespace CloudApiPublic.Model
     /// <typeparam name="T"></typeparam>
     public class FilePathHierarchicalNodeWithValue<T> : FilePathHierarchicalNode<T> where T : class
     {
-        protected KeyValuePair<FilePath, T> Value { get; set; }
+        public override KeyValuePair<FilePath, T> Value
+        {
+            get
+            {
+                return _value;
+            }
+        }
+        private KeyValuePair<FilePath, T> _value;
         /// <summary>
         /// Creates the FilePathHierarchical node so that it has a Value
         /// </summary>
         /// <param name="value"></param>
         public FilePathHierarchicalNodeWithValue(KeyValuePair<FilePath, T> value)
         {
-            this.Value = value;
+            this._value = value;
         }
     }
 }

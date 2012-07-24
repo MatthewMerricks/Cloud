@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<interoperabilityWizard xmlns="http://schemas.microsoft.com/serviceModel">
+  <scenario name="Oracle WebLogic" bindingName="webLogicBinding" bindingType="Microsoft.ServiceModel.Interop.WebLogic.Configuration.WebLogicBindingCollectionElement, Microsoft.ServiceModel.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4fc38efee625237e" 
+            description="Interop scenarios for Oracle">
+    <pages>
+      <page title="Main Settings">
+        <description>These settings establish the desired security scenario, and whether reliable messaging 1.1 should be used or not.</description>
+        <field value="SECURITY" caption="Security" tooltip="Specifies the security scenario" isRequired="true">
+          <options>
+            <option name="Username Over Certificate" value="UserNameOverCertificate"/>
+            <option name="Mutual Certificate" value="MutualCertificate"/>
+          </options>
+        </field>
+        <field value="SECURE_CONVERSATION" caption="Secure Conversation" tooltip="Specifies secure conversation would be used or not" defaultValue="false">
+          <options>
+            <option name="Secure Conversation" value="true"/>
+          </options>
+        </field>
+        <field value="RELIABLE_MESSAGING" caption="Reliable Messaging" tooltip="Specifies whether reliable messaging would be used or not" defaultValue="false">
+          <options>
+            <option name="Reliable Messaging" value="true" />
+          </options>
+        </field>
+      </page>
+      <page title="Advanced Settings">
+        <description>Advanced settings that can be set in the binding</description>
+        <field value="ALGORITHM" caption="Algorithm" isRequired="false" defaultValue="Basic256">
+          <options>
+            <option name="Basic 256" value="Basic256"/>
+            <option name="Basic 192" value="Basic192"/>
+            <option name="Basic 128" value="Basic128"/>
+            <option name="Triple DES" value="TripleDes"/>
+            <option name="Basic 256 - RSA 15" value="Basic256Rsa15"/>
+            <option name="Basic 192 - RSA 15" value="Basic192Rsa15"/>
+            <option name="Basic 128 - RSA 15" value="Basic128Rsa15"/>
+            <option name="Triple DES - RSA 15" value="TripleDesRsa15"/>
+            <option name="Basic 256 - Sha 256" value="Basic256Sha256"/>
+            <option name="Basic 192 - Sha 256" value="Basic192Sha256"/>
+            <option name="Basic 128 - Sha 256" value="Basic128Sha256"/>
+            <option name="Triple DES - Sha 256" value="TripleDesSha256"/>
+            <option name="Basic 256 - Sha 256 - RSA 15" value="Basic256Sha256Rsa15"/>
+            <option name="Basic 192 - Sha 256 - RSA 15" value="Basic192Sha256Rsa15"/>
+            <option name="Basic 128 - Sha 256 - RSA 15" value="Basic128Sha256Rsa15"/>
+            <option name="Triple DES - Sha 256 - RSA 15" value="TripleDesSha256Rsa15"/>
+          </options>
+        </field>
+        <field value="ENCODING" caption="Encoding" isRequired="false" defaultValue="Text">
+          <options>
+            <option name="Text" value="Text"/>
+            <option name="MTOM" value="Mtom"/>
+          </options>
+        </field>
+      </page>
+    </pages>
+    <template path="WebLogic.tt" />
+  </scenario>
+  <scenario name="IBM WebSphere" bindingName="webSphereBinding" bindingType="Microsoft.ServiceModel.Interop.WebSphere.Configuration.WebSphereBindingCollectionElement, Microsoft.ServiceModel.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4fc38efee625237e"
+            description="Interop scenarios for Oracle WebSphere">
+    <pages>
+      <page title="Main Settings">
+        <description>These settings establish the desired security scenario, and whether reliable messaging 1.1 should be used or not. </description>
+        <field value="SECURITY" caption="Security" tooltip="Specifies the security scenario"  isRequired="true">
+          <options>
+            <option name="Username Over Certificate" value="UserNameOverCertificate"/>
+            <option name="Mutual Certificate" value="MutualCertificate"/>
+          </options>
+        </field>
+        <field value="SECURE_CONVERSATION" caption="Secure Conversation" tooltip="Specifies secure conversation would be used or not" defaultValue="false">
+          <options>
+            <option name="Secure Conversation" value="true"/>
+          </options>
+        </field>
+        <field value="RELIABLE_MESSAGING" caption="Reliable Messaging" tooltip="Specifies whether reliable messaging would be used or not" defaultValue="false">
+          <options>
+            <option name="Reliable Messaging" value="true" />
+          </options>
+        </field>
+      </page>
+      <page title="Advanced Settings">
+        <description>Advanced settings that can be set in the binding</description>
+        <field value="ALGORITHM" caption="Algorithm" isRequired="false" defaultValue="Default">
+          <options>
+            <option name="Basic 256" value="Basic256"/>
+            <option name="Basic 192" value="Basic192"/>
+            <option name="Basic 128" value="Basic128"/>
+            <option name="Triple DES" value="TripleDes"/>
+            <option name="Basic 256 - RSA" value="Basic256Rsa15"/>
+            <option name="Basic 192 - RSA" value="Basic192Rsa15"/>
+            <option name="Basic 128 - RSA" value="Basic128Rsa15"/>
+            <option name="Triple DES - RSA" value="TripleDesRsa15"/>
+            <option name="Basic 256 - Sha 256" value="Basic256Sha256"/>
+            <option name="Basic 192 - Sha 256" value="Basic192Sha256"/>
+            <option name="Basic 128 - Sha 256" value="Basic128Sha256"/>
+            <option name="Triple DES - Sha 256" value="TripleDesSha256"/>
+            <option name="Basic 256 - Sha 256 - RSA" value="Basic256Sha256Rsa15"/>
+            <option name="Basic 192 - Sha 256 - RSA" value="Basic192Sha256Rsa15"/>
+            <option name="Basic 128 - Sha 256 - RSA" value="Basic128Sha256Rsa15"/>
+            <option name="Triple DES - Sha 256 - RSA" value="TripleDesSha256Rsa15"/>
+          </options>
+        </field>
+        <field value="ENCODING" caption="Encoding" isRequired="false" defaultValue="Text">
+          <options>
+            <option name="Text" value="Text"/>
+            <option name="MTOM" value="Mtom"/>
+          </options>
+        </field>
+      </page>
+    </pages>
+    <template path="WebSphere.tt" />
+  </scenario>
+  <scenario name="Metro" bindingName="metroBinding" bindingType="Microsoft.ServiceModel.Interop.Metro.Configuration.MetroBindingCollectionElement, Microsoft.ServiceModel.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4fc38efee625237e"
+            description="Interop scenarios for Metro">
+    <pages>
+      <page title="Main Settings">
+        <description>These settings establish the desired security scenario, and whether reliable messaging 1.0 should be used or not.</description>
+
+          <field value="SECURITY" caption="Security" tooltip="Specifies the security scenario"  isRequired="true">
+          <options>
+            <option name="Username Over Certificate" value="UserNameOverCertificate"/>
+            <option name="Mutual Certificate" value="MutualCertificate"/>
+          </options>
+        </field>
+        <field value="SECURE_CONVERSATION" caption="Secure Conversation" tooltip="Specifies secure conversation would be used or not" defaultValue="false">
+          <options>
+            <option name="Secure Conversation" value="true"/>
+          </options>
+        </field>
+        <field value="RELIABLE_MESSAGING" caption="Reliable Messaging" tooltip="Specifies whether reliable messaging would be used or not" defaultValue="false">
+          <options>
+            <option name="Reliable Messaging" value="true" />
+          </options>
+        </field>
+      </page>
+      <page title="Advanced Settings">
+        <description>Advanced settings that can be set in the binding</description>
+        <field value="ALGORITHM" caption="Algorithm" isRequired="false" defaultValue="Default">
+          <options>
+            <option name="Basic 256" value="Basic256"/>
+            <option name="Basic 192" value="Basic192"/>
+            <option name="Basic 128" value="Basic128"/>
+            <option name="Triple DES" value="TripleDes"/>
+            <option name="Basic 256 - RSA" value="Basic256Rsa15"/>
+            <option name="Basic 192 - RSA" value="Basic192Rsa15"/>
+            <option name="Basic 128 - RSA" value="Basic128Rsa15"/>
+            <option name="Triple DES - RSA" value="TripleDesRsa15"/>
+            <option name="Basic 256 - Sha 256" value="Basic256Sha256"/>
+            <option name="Basic 192 - Sha 256" value="Basic192Sha256"/>
+            <option name="Basic 128 - Sha 256" value="Basic128Sha256"/>
+            <option name="Triple DES - Sha 256" value="TripleDesSha256"/>
+            <option name="Basic 256 - Sha 256 - RSA" value="Basic256Sha256Rsa15"/>
+            <option name="Basic 192 - Sha 256 - RSA" value="Basic192Sha256Rsa15"/>
+            <option name="Basic 128 - Sha 256 - RSA" value="Basic128Sha256Rsa15"/>
+            <option name="Triple DES - Sha 256 - RSA" value="TripleDesSha256Rsa15"/>
+          </options>
+        </field>
+        <field value="ENCODING" caption="Encoding" isRequired="false" defaultValue="Text">
+          <options>
+            <option name="Text" value="Text"/>
+            <option name="MTOM" value="Mtom"/>
+          </options>
+        </field>
+      </page>
+    </pages>
+    <template path="Metro.tt" />
+  </scenario>
+  <scenario name="Apache Axis 2" bindingName="wso2InteropBinding" bindingType="Microsoft.ServiceModel.Interop.Wso2.Configuration.Wso2InteropBindingCollectionElement, Microsoft.ServiceModel.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4fc38efee625237e"
+            description="Interop scenarios for Apache Axis">
+    <pages>
+      <page title="Main Settings">
+        <description>These settings establish the desired security scenario</description>
+        <field value="PATTERN" caption="Security Pattern" tooltip="Specifies the security pattern" isRequired="true">
+          <options>
+            <option name="Anonymous Over Certificate" value="AnonymousForCertificate"/>
+            <option name="Mutual Certificate" value="MutualCertificateDuplex"/>
+            <option name="Username Over Transport" value="UserNameOverTransport"/>
+            <option name="Username Over Certificate" value="UserNameForCertificate"/>
+            <option name="Secure Conversation" value="SecureConversation"/>
+            <option name="Kerberos" value="Kerberos"/>
+          </options>
+        </field>
+        <field value="SECURE_CONVERSATION" caption="Secure Conversation Bootstrap" tooltip="Specifies the name of the bootstrap binding to use with secure conversation" isRequired="false" defaultValue="">
+          <options>
+            <option name="Anonymous Over Certificate" value="AnonymousForCertificate"/>
+            <option name="Mutual Certificate" value="MutualCertificateDuplex"/>
+            <option name="Username Over Certificate" value="UserNameForCertificate"/>
+          </options>
+        </field>
+      </page>
+    </pages>
+    <template path="WSO2.tt" />
+  </scenario>
+</interoperabilityWizard>

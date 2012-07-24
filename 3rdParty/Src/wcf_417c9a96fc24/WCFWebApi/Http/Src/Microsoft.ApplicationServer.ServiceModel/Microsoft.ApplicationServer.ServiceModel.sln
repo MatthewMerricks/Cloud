@@ -1,0 +1,42 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft_ApplicationServer_ServiceModel_csproj", "Microsoft.ApplicationServer.ServiceModel.csproj", "{420A4BC6-1514-11E0-B2ED-BA35DFD72085}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "1D5EF868-72E4-48DE-A6BE-07B85E0B716E", "{1D5EF868-72E4-48DE-A6BE-07B85E0B716E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "6FF06781-7A16-45D0-AE8A-BF44D086295D", "{6FF06781-7A16-45D0-AE8A-BF44D086295D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ApplicationServer.Common", "D43DFA6C-7CA0-44E9-90EC-D665D8B4CFD3", "{D43DFA6C-7CA0-44E9-90EC-D665D8B4CFD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "______Common_Microsoft_ApplicationServer_Common_Microsoft_ApplicationServer_Common_csproj", "..\..\Common\Microsoft.ApplicationServer.Common\Microsoft.ApplicationServer.Common.csproj", "{B51B4830-DE3F-4AB7-9B1B-6BE886C63EFD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D43DFA6C-7CA0-44E9-90EC-D665D8B4CFD3} = {D43DFA6C-7CA0-44E9-90EC-D665D8B4CFD3}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.AppFabric.Tracing", "E9E454BA-E989-4913-97B3-1F193D004547", "{E9E454BA-E989-4913-97B3-1F193D004547}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "______Common_Microsoft_AppFabric_Tracing_Microsoft_AppFabric_Tracing_csproj", "..\..\Common\Microsoft.AppFabric.Tracing\Microsoft.AppFabric.Tracing.csproj", "{28B1DCB4-EC61-416A-B490-24F659BFD36B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E9E454BA-E989-4913-97B3-1F193D004547} = {E9E454BA-E989-4913-97B3-1F193D004547}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		VSMSBuild|Any CPU = VSMSBuild|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{420A4BC6-1514-11E0-B2ED-BA35DFD72085}.VSMSBuild|Any CPU.ActiveCfg = Debug|Any CPU
+		{420A4BC6-1514-11E0-B2ED-BA35DFD72085}.VSMSBuild|Any CPU.Build.0 = Debug|Any CPU
+		{B51B4830-DE3F-4AB7-9B1B-6BE886C63EFD}.VSMSBuild|Any CPU.ActiveCfg = Debug|Any CPU
+		{B51B4830-DE3F-4AB7-9B1B-6BE886C63EFD}.VSMSBuild|Any CPU.Build.0 = Debug|Any CPU
+		{28B1DCB4-EC61-416A-B490-24F659BFD36B}.VSMSBuild|Any CPU.ActiveCfg = Debug|Any CPU
+		{28B1DCB4-EC61-416A-B490-24F659BFD36B}.VSMSBuild|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6FF06781-7A16-45D0-AE8A-BF44D086295D} = {1D5EF868-72E4-48DE-A6BE-07B85E0B716E}
+		{D43DFA6C-7CA0-44E9-90EC-D665D8B4CFD3} = {6FF06781-7A16-45D0-AE8A-BF44D086295D}
+		{B51B4830-DE3F-4AB7-9B1B-6BE886C63EFD} = {D43DFA6C-7CA0-44E9-90EC-D665D8B4CFD3}
+		{E9E454BA-E989-4913-97B3-1F193D004547} = {6FF06781-7A16-45D0-AE8A-BF44D086295D}
+		{28B1DCB4-EC61-416A-B490-24F659BFD36B} = {E9E454BA-E989-4913-97B3-1F193D004547}
+	EndGlobalSection
+EndGlobal

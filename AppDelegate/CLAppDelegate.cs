@@ -355,7 +355,6 @@ namespace win_client.AppDelegate
                 err.errorDomain = CLError.ErrorDomain_Application;
                 err.errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("appDelegateExceptionCreatingFolder");
                 err.errorCode = (int)CLError.ErrorCodes.Exception;
-                err.errorInfo = new Dictionary<string,object>();
                 err.errorInfo.Add(CLError.ErrorInfo_Exception, e);
                 error = err;
                 return;

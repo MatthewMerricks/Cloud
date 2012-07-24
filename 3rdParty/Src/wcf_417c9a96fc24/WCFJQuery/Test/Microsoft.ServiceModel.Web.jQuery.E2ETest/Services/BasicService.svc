@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="Microsoft.ServiceModel.Web.E2ETest.Services.BasicService" Factory="Microsoft.ServiceModel.Web.E2ETest.Services.BasicServiceHostFactory" CodeBehind="BasicService.svc.cs" %>

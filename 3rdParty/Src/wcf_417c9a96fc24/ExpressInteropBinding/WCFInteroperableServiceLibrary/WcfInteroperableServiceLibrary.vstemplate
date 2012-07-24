@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Type="Project" Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Express Interop WCF Service Library</Name>
+    <Description>Creates a new WCF service library with one of the pre-configured interop bindings</Description>
+    <Icon Package="{2c0f61bf-3c36-468c-94b8-4021965749e7}" ID="401" />
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>WCF</ProjectSubType>
+    <TemplateID>{C7D8AFDE-8264-4A86-8F56-456DC396D161}</TemplateID>
+    <SortOrder>10</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>WcfInteroperableServiceLibrary</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <LocationField>Enabled</LocationField>
+    <RequiredFrameworkVersion>3.0</RequiredFrameworkVersion>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="WcfInteroperableServiceLibrary.csproj" TargetFileName="WcfInteroperableServiceLibrary.csproj" ReplaceParameters="true">
+      <ProjectItem TargetFileName="App.config" ReplaceParameters="true">App.config</ProjectItem>
+			<Folder Name="Lib" TargetFolderName="Lib">
+				<ProjectItem TargetFileName="Microsoft.ServiceModel.Interop.dll">Microsoft.ServiceModel.Interop.dll</ProjectItem>
+			</Folder>
+			<Folder Name="Properties" TargetFolderName="Properties">
+        <ProjectItem TargetFileName="AssemblyInfo.cs" ReplaceParameters="true">AssemblyInfo.cs</ProjectItem>
+      </Folder>
+      <ProjectItem TargetFileName="IService1.cs" ReplaceParameters="true" OpenInEditor="true">IService1.cs</ProjectItem>
+      <ProjectItem TargetFileName="Service1.cs" ReplaceParameters="true">Service1.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Microsoft.ServiceModel.Interop.ExtensionUtils, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4fc38efee625237e</Assembly>
+    <FullClassName>Microsoft.ServiceModel.Interop.ExtensionUtils.ProjectTemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

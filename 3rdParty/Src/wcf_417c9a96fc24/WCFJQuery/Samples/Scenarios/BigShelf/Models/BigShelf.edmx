@@ -1,0 +1,490 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="BigShelfModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+        <EntityContainer Name="BigShelfModelStoreContainer">
+          <EntitySet Name="Books" EntityType="BigShelfModel.Store.Books" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Categories" EntityType="BigShelfModel.Store.Categories" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="CategoryNames" EntityType="BigShelfModel.Store.CategoryNames" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="FlaggedBooks" EntityType="BigShelfModel.Store.FlaggedBooks" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Friends" EntityType="BigShelfModel.Store.Friends" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Profiles" EntityType="BigShelfModel.Store.Profiles" store:Type="Tables" Schema="dbo" />
+          <AssociationSet Name="FK_Books_CategoryNames" Association="BigShelfModel.Store.FK_Books_CategoryNames">
+            <End Role="CategoryNames" EntitySet="CategoryNames" />
+            <End Role="Books" EntitySet="Books" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Categories_CategoryNames" Association="BigShelfModel.Store.FK_Categories_CategoryNames">
+            <End Role="CategoryNames" EntitySet="CategoryNames" />
+            <End Role="Categories" EntitySet="Categories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Categories_Profiles" Association="BigShelfModel.Store.FK_Categories_Profiles">
+            <End Role="Profiles" EntitySet="Profiles" />
+            <End Role="Categories" EntitySet="Categories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FlaggedBooks_Books" Association="BigShelfModel.Store.FK_FlaggedBooks_Books">
+            <End Role="Books" EntitySet="Books" />
+            <End Role="FlaggedBooks" EntitySet="FlaggedBooks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FlaggedBooks_Profiles" Association="BigShelfModel.Store.FK_FlaggedBooks_Profiles">
+            <End Role="Profiles" EntitySet="Profiles" />
+            <End Role="FlaggedBooks" EntitySet="FlaggedBooks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Friends_Friend" Association="BigShelfModel.Store.FK_Friends_Friend">
+            <End Role="Profiles" EntitySet="Profiles" />
+            <End Role="Friends" EntitySet="Friends" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Friends_Profiles" Association="BigShelfModel.Store.FK_Friends_Profiles">
+            <End Role="Profiles" EntitySet="Profiles" />
+            <End Role="Friends" EntitySet="Friends" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Books">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="CategoryId" Type="int" Nullable="false" />
+          <Property Name="ASIN" Type="nchar" Nullable="false" MaxLength="10" />
+          <Property Name="Title" Type="nvarchar" Nullable="false" MaxLength="256" />
+          <Property Name="Author" Type="nvarchar" Nullable="false" MaxLength="256" />
+          <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="PublishDate" Type="date" Nullable="false" />
+          <Property Name="AddedDate" Type="date" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Categories">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="ProfileId" Type="int" Nullable="false" />
+          <Property Name="CategoryId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="CategoryNames">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="FlaggedBooks">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="ProfileId" Type="int" Nullable="false" />
+          <Property Name="BookId" Type="int" Nullable="false" />
+          <Property Name="Rating" Type="int" Nullable="false" />
+          <Property Name="IsFlaggedToRead" Type="int" Nullable="false" StoreGeneratedPattern="Computed" />
+        </EntityType>
+        <EntityType Name="Friends">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="ProfileId" Type="int" Nullable="false" />
+          <Property Name="FriendId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Profiles">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="128" />
+          <Property Name="EmailAddress" Type="nvarchar" MaxLength="128" />
+          <Property Name="AspNetUserGuid" Type="nvarchar" MaxLength="128" />
+        </EntityType>
+        <Association Name="FK_Books_CategoryNames">
+          <End Role="CategoryNames" Type="BigShelfModel.Store.CategoryNames" Multiplicity="1" />
+          <End Role="Books" Type="BigShelfModel.Store.Books" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CategoryNames">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Books">
+              <PropertyRef Name="CategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Categories_CategoryNames">
+          <End Role="CategoryNames" Type="BigShelfModel.Store.CategoryNames" Multiplicity="1" />
+          <End Role="Categories" Type="BigShelfModel.Store.Categories" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CategoryNames">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Categories">
+              <PropertyRef Name="CategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Categories_Profiles">
+          <End Role="Profiles" Type="BigShelfModel.Store.Profiles" Multiplicity="1" />
+          <End Role="Categories" Type="BigShelfModel.Store.Categories" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profiles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Categories">
+              <PropertyRef Name="ProfileId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FlaggedBooks_Books">
+          <End Role="Books" Type="BigShelfModel.Store.Books" Multiplicity="1" />
+          <End Role="FlaggedBooks" Type="BigShelfModel.Store.FlaggedBooks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Books">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="FlaggedBooks">
+              <PropertyRef Name="BookId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FlaggedBooks_Profiles">
+          <End Role="Profiles" Type="BigShelfModel.Store.Profiles" Multiplicity="1" />
+          <End Role="FlaggedBooks" Type="BigShelfModel.Store.FlaggedBooks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profiles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="FlaggedBooks">
+              <PropertyRef Name="ProfileId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Friends_Friend">
+          <End Role="Profiles" Type="BigShelfModel.Store.Profiles" Multiplicity="1" />
+          <End Role="Friends" Type="BigShelfModel.Store.Friends" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profiles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Friends">
+              <PropertyRef Name="FriendId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Friends_Profiles">
+          <End Role="Profiles" Type="BigShelfModel.Store.Profiles" Multiplicity="1" />
+          <End Role="Friends" Type="BigShelfModel.Store.Friends" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profiles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Friends">
+              <PropertyRef Name="ProfileId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="BigShelfModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+        <EntityContainer Name="BigShelfEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Books" EntityType="BigShelfModel.Book" />
+          <EntitySet Name="Categories" EntityType="BigShelfModel.Category" />
+          <EntitySet Name="CategoryNames" EntityType="BigShelfModel.CategoryName" />
+          <EntitySet Name="FlaggedBooks" EntityType="BigShelfModel.FlaggedBook" />
+          <EntitySet Name="Friends" EntityType="BigShelfModel.Friend" />
+          <EntitySet Name="Profiles" EntityType="BigShelfModel.Profile" />
+          <AssociationSet Name="FK_Books_Categories" Association="BigShelfModel.FK_Books_Categories">
+            <End Role="CategoryNames" EntitySet="CategoryNames" />
+            <End Role="Books" EntitySet="Books" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FlaggedBooks_Books" Association="BigShelfModel.FK_FlaggedBooks_Books">
+            <End Role="Books" EntitySet="Books" />
+            <End Role="FlaggedBooks" EntitySet="FlaggedBooks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Categories_CategoryNames" Association="BigShelfModel.FK_Categories_CategoryNames">
+            <End Role="CategoryNames" EntitySet="CategoryNames" />
+            <End Role="Categories" EntitySet="Categories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Categories_Profiles" Association="BigShelfModel.FK_Categories_Profiles">
+            <End Role="Profiles" EntitySet="Profiles" />
+            <End Role="Categories" EntitySet="Categories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FlaggedBooks_Profiles" Association="BigShelfModel.FK_FlaggedBooks_Profiles">
+            <End Role="Profiles" EntitySet="Profiles" />
+            <End Role="FlaggedBooks" EntitySet="FlaggedBooks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Friends_Friend" Association="BigShelfModel.FK_Friends_Friend">
+            <End Role="Profiles" EntitySet="Profiles" />
+            <End Role="Friends" EntitySet="Friends" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Friends_Profile" Association="BigShelfModel.FK_Friends_Profile">
+            <End Role="Profiles" EntitySet="Profiles" />
+            <End Role="Friends" EntitySet="Friends" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Book">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CategoryId" Type="Int32" Nullable="false" />
+          <Property Name="ASIN" Type="String" Nullable="false" MaxLength="10" Unicode="true" FixedLength="true" />
+          <Property Name="Title" Type="String" Nullable="false" MaxLength="256" Unicode="true" FixedLength="false" />
+          <Property Name="Author" Type="String" Nullable="false" MaxLength="256" Unicode="true" FixedLength="false" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="PublishDate" Type="DateTime" Nullable="false" />
+          <Property Name="AddedDate" Type="DateTime" Nullable="false" />
+          <NavigationProperty Name="CategoryName" Relationship="BigShelfModel.FK_Books_Categories" FromRole="Books" ToRole="CategoryNames" />
+          <NavigationProperty Name="FlaggedBooks" Relationship="BigShelfModel.FK_FlaggedBooks_Books" FromRole="Books" ToRole="FlaggedBooks" />
+        </EntityType>
+        <EntityType Name="Category">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="ProfileId" Type="Int32" Nullable="false" />
+          <Property Name="CategoryId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="CategoryName" Relationship="BigShelfModel.FK_Categories_CategoryNames" FromRole="Categories" ToRole="CategoryNames" />
+          <NavigationProperty Name="Profile" Relationship="BigShelfModel.FK_Categories_Profiles" FromRole="Categories" ToRole="Profiles" />
+        </EntityType>
+        <EntityType Name="CategoryName">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Books" Relationship="BigShelfModel.FK_Books_Categories" FromRole="CategoryNames" ToRole="Books" />
+          <NavigationProperty Name="Categories" Relationship="BigShelfModel.FK_Categories_CategoryNames" FromRole="CategoryNames" ToRole="Categories" />
+        </EntityType>
+        <EntityType Name="FlaggedBook">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProfileId" Type="Int32" Nullable="false" />
+          <Property Name="BookId" Type="Int32" Nullable="false" />
+          <Property Name="Rating" Type="Int32" Nullable="false" />
+          <Property Name="IsFlaggedToRead" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <NavigationProperty Name="Book" Relationship="BigShelfModel.FK_FlaggedBooks_Books" FromRole="FlaggedBooks" ToRole="Books" />
+          <NavigationProperty Name="Profile" Relationship="BigShelfModel.FK_FlaggedBooks_Profiles" FromRole="FlaggedBooks" ToRole="Profiles" />
+        </EntityType>
+        <EntityType Name="Friend">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProfileId" Type="Int32" Nullable="false" />
+          <Property Name="FriendId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="FriendProfile" Relationship="BigShelfModel.FK_Friends_Friend" FromRole="Friends" ToRole="Profiles" />
+          <NavigationProperty Name="Profile" Relationship="BigShelfModel.FK_Friends_Profile" FromRole="Friends" ToRole="Profiles" />
+        </EntityType>
+        <EntityType Name="Profile">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="128" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Categories" Relationship="BigShelfModel.FK_Categories_Profiles" FromRole="Profiles" ToRole="Categories" />
+          <NavigationProperty Name="FlaggedBooks" Relationship="BigShelfModel.FK_FlaggedBooks_Profiles" FromRole="Profiles" ToRole="FlaggedBooks" />
+          <NavigationProperty Name="Friends" Relationship="BigShelfModel.FK_Friends_Profile" FromRole="Profiles" ToRole="Friends" />
+          <Property Type="String" Name="EmailAddress" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="AspNetUserGuid" MaxLength="128" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <Association Name="FK_Books_Categories">
+          <End Role="CategoryNames" Type="BigShelfModel.CategoryName" Multiplicity="1" />
+          <End Role="Books" Type="BigShelfModel.Book" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CategoryNames">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Books">
+              <PropertyRef Name="CategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FlaggedBooks_Books">
+          <End Role="Books" Type="BigShelfModel.Book" Multiplicity="1" />
+          <End Role="FlaggedBooks" Type="BigShelfModel.FlaggedBook" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Books">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="FlaggedBooks">
+              <PropertyRef Name="BookId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Categories_CategoryNames">
+          <End Role="CategoryNames" Type="BigShelfModel.CategoryName" Multiplicity="1" />
+          <End Role="Categories" Type="BigShelfModel.Category" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CategoryNames">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Categories">
+              <PropertyRef Name="CategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Categories_Profiles">
+          <End Role="Profiles" Type="BigShelfModel.Profile" Multiplicity="1" />
+          <End Role="Categories" Type="BigShelfModel.Category" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profiles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Categories">
+              <PropertyRef Name="ProfileId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FlaggedBooks_Profiles">
+          <End Role="Profiles" Type="BigShelfModel.Profile" Multiplicity="1" />
+          <End Role="FlaggedBooks" Type="BigShelfModel.FlaggedBook" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profiles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="FlaggedBooks">
+              <PropertyRef Name="ProfileId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Friends_Friend">
+          <End Role="Profiles" Type="BigShelfModel.Profile" Multiplicity="1" />
+          <End Role="Friends" Type="BigShelfModel.Friend" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profiles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Friends">
+              <PropertyRef Name="FriendId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Friends_Profile">
+          <End Role="Profiles" Type="BigShelfModel.Profile" Multiplicity="1" />
+          <End Role="Friends" Type="BigShelfModel.Friend" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profiles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Friends">
+              <PropertyRef Name="ProfileId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2008/09/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="BigShelfModelStoreContainer" CdmEntityContainer="BigShelfEntities">
+          <EntitySetMapping Name="Books"><EntityTypeMapping TypeName="BigShelfModel.Book"><MappingFragment StoreEntitySet="Books">
+            <ScalarProperty Name="Id" ColumnName="Id" />
+            <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+            <ScalarProperty Name="ASIN" ColumnName="ASIN" />
+            <ScalarProperty Name="Title" ColumnName="Title" />
+            <ScalarProperty Name="Author" ColumnName="Author" />
+            <ScalarProperty Name="Description" ColumnName="Description" />
+            <ScalarProperty Name="PublishDate" ColumnName="PublishDate" />
+            <ScalarProperty Name="AddedDate" ColumnName="AddedDate" />
+          </MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="Categories"><EntityTypeMapping TypeName="BigShelfModel.Category"><MappingFragment StoreEntitySet="Categories">
+            <ScalarProperty Name="Id" ColumnName="Id" />
+            <ScalarProperty Name="ProfileId" ColumnName="ProfileId" />
+            <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+          </MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="CategoryNames"><EntityTypeMapping TypeName="BigShelfModel.CategoryName"><MappingFragment StoreEntitySet="CategoryNames">
+            <ScalarProperty Name="Id" ColumnName="Id" />
+            <ScalarProperty Name="Name" ColumnName="Name" />
+          </MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="FlaggedBooks"><EntityTypeMapping TypeName="BigShelfModel.FlaggedBook"><MappingFragment StoreEntitySet="FlaggedBooks">
+            <ScalarProperty Name="Id" ColumnName="Id" />
+            <ScalarProperty Name="ProfileId" ColumnName="ProfileId" />
+            <ScalarProperty Name="BookId" ColumnName="BookId" />
+            <ScalarProperty Name="Rating" ColumnName="Rating" />
+            <ScalarProperty Name="IsFlaggedToRead" ColumnName="IsFlaggedToRead" />
+          </MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="Friends"><EntityTypeMapping TypeName="BigShelfModel.Friend"><MappingFragment StoreEntitySet="Friends">
+            <ScalarProperty Name="Id" ColumnName="Id" />
+            <ScalarProperty Name="ProfileId" ColumnName="ProfileId" />
+            <ScalarProperty Name="FriendId" ColumnName="FriendId" />
+          </MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="Profiles"><EntityTypeMapping TypeName="BigShelfModel.Profile"><MappingFragment StoreEntitySet="Profiles">
+            <ScalarProperty Name="AspNetUserGuid" ColumnName="AspNetUserGuid" />
+                <ScalarProperty Name="EmailAddress" ColumnName="EmailAddress" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+            <ScalarProperty Name="Name" ColumnName="Name" />
+            </MappingFragment></EntityTypeMapping></EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams>
+      <Diagram Name="BigShelf1">
+        <EntityTypeShape EntityType="BigShelfModel.Book" Width="1.5" PointX="0.75" PointY="7.875" Height="2.9417936197916665" IsExpanded="true" />
+        <EntityTypeShape EntityType="BigShelfModel.Category" Width="1.5" PointX="3" PointY="4.125" Height="1.9802864583333335" IsExpanded="true" />
+        <EntityTypeShape EntityType="BigShelfModel.CategoryName" Width="1.5" PointX="1.5" PointY="13.375" Height="1.7879850260416674" IsExpanded="true" />
+        <EntityTypeShape EntityType="BigShelfModel.FlaggedBook" Width="1.5" PointX="3" PointY="1" Height="2.3648893229166656" IsExpanded="true" />
+        <EntityTypeShape EntityType="BigShelfModel.Friend" Width="1.5" PointX="4.875" PointY="7.875" Height="1.9802864583333317" IsExpanded="true" />
+        <EntityTypeShape EntityType="BigShelfModel.Profile" Width="1.5" PointX="0.75" PointY="3.875" Height="2.1725878906249996" IsExpanded="true" />
+        <AssociationConnector Association="BigShelfModel.FK_Books_Categories" ManuallyRouted="false">
+          <ConnectorPoint PointX="1.875" PointY="13.375" />
+          <ConnectorPoint PointX="1.875" PointY="10.816793619791667" />
+        </AssociationConnector>
+        <AssociationConnector Association="BigShelfModel.FK_FlaggedBooks_Books" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.25" PointY="7.875" />
+          <ConnectorPoint PointX="2.625" PointY="7.5" />
+          <ConnectorPoint PointX="2.625" PointY="1.7739462100423169" />
+          <ConnectorPoint PointX="3" PointY="1.7739462100423169" />
+        </AssociationConnector>
+        <AssociationConnector Association="BigShelfModel.FK_Categories_CategoryNames" ManuallyRouted="false">
+          <ConnectorPoint PointX="3" PointY="14.268992513020834" />
+          <ConnectorPoint PointX="3.78125" PointY="14.268992513020834" />
+          <ConnectorPoint PointX="3.78125" PointY="6.1052864583333335" />
+        </AssociationConnector>
+        <AssociationConnector Association="BigShelfModel.FK_Categories_Profiles" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.25" PointY="5.0862939453125" />
+          <ConnectorPoint PointX="2.5416666666666665" PointY="5.0862939453124989" />
+          <ConnectorPoint PointX="2.7083333333333335" PointY="5.0862939453125" />
+          <ConnectorPoint PointX="3" PointY="5.0862939453125" />
+        </AssociationConnector>
+        <AssociationConnector Association="BigShelfModel.FK_FlaggedBooks_Profiles" ManuallyRouted="false">
+          <ConnectorPoint PointX="1.5" PointY="3.875" />
+          <ConnectorPoint PointX="1.5" PointY="2.6006702664794918" />
+          <ConnectorPoint PointX="2.5416666666666665" PointY="2.6006702664794914" />
+          <ConnectorPoint PointX="2.7083333333333335" PointY="2.6006702664794918" />
+          <ConnectorPoint PointX="3" PointY="2.6006702664794918" />
+        </AssociationConnector>
+        <AssociationConnector Association="BigShelfModel.FK_Friends_Friend" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.25" PointY="3.9492200000000004" />
+          <ConnectorPoint PointX="2.5416666666666665" PointY="3.94922" />
+          <ConnectorPoint PointX="2.7083333333333335" PointY="3.9492200000000004" />
+          <ConnectorPoint PointX="5.8916032031249994" PointY="3.9492200000000004" />
+          <ConnectorPoint PointX="5.8916032031249994" PointY="7.875" />
+        </AssociationConnector>
+        <AssociationConnector Association="BigShelfModel.FK_Friends_Profile" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.25" PointY="3.9804725000000012" />
+          <ConnectorPoint PointX="2.5416666666666665" PointY="3.9804725000000007" />
+          <ConnectorPoint PointX="2.7083333333333335" PointY="3.9804725000000012" />
+          <ConnectorPoint PointX="5.3520491015625" PointY="3.9804725000000012" />
+          <ConnectorPoint PointX="5.3520491015625" PointY="7.875" />
+        </AssociationConnector>
+      </Diagram>
+    </Diagrams>
+  </Designer>
+</edmx:Edmx>

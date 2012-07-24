@@ -175,7 +175,7 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync to the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(string sid, KeyValuePair<FileChange, FileStream>[] processedChanges, Action<CLJsonResultWithError, object> completionHandler, DispatchQueueGeneric queue, Func<string> getCloudDirectory)
+        public void SyncToCloud_WithCompletionHandler_OnQueue_Async(string sid, KeyValuePair<FileChange, FileStream>[] processedChanges, Action<CLJsonResultWithError, object> completionHandler, DispatchQueueGeneric queue, Func<string> getCloudDirectory)
         //public async void SyncToCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError> completionHandler, DispatchQueueGeneric queue)
         {
             // Merged 7/3/12
@@ -234,10 +234,44 @@ namespace CloudApiPrivate
             // Send the request asynchronously
             _trace.writeToLog(9, "CLPrivateRestClient: SyncToCloud_withCompletionHandler_onQueue_async: Sending sync-to request to server.  json: {0}.", json);
 
-            await _client.SendAsync(syncRequest).ContinueWith((task, userState) =>
-            {
-                HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncToServer", userState);
-            }, processedChanges);
+            (new Task<ServerCallbackParameters>(state =>
+                {
+                    ServerCallbackParameters castState = state as ServerCallbackParameters;
+
+                    if (castState != null)
+                    {
+                        try
+                        {
+                            castState.Response = castState.Client.SendAsync(castState.Message).Result;
+                        }
+                        catch (Exception ex)
+                        {
+                            castState.CommunicationException = ex;
+                        }
+                    }
+
+                    return castState;
+
+                }, new ServerCallbackParameters()
+                    {
+                        Client = _client,
+                        Message = syncRequest,
+                        CompletionHandler = completionHandler,
+                        Queue = queue,
+                        HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync,
+                        UserState = processedChanges
+                    })
+                    .ContinueWith<ServerCallbackParameters>(continueTask =>
+                        {
+                            if (continueTask.Result != null
+                                && continueTask.Result.HandleResponseFromServer != null)
+                            {
+                                continueTask.Result.HandleResponseFromServer(continueTask.Result,
+                                    "ErrorPostingSyncToServer");
+                            }
+
+                            return continueTask.Result;
+                        })).RunSynchronously();
         }
 
         /// <summary>
@@ -361,7 +395,7 @@ namespace CloudApiPrivate
         /// <param name="metadata"> a dictionary of actions and items to sync from the cloud.</param>
         /// <param name="completionHandler">An Action object to operate on entries in the dictionary or to handle the error if there is one.</param>
         /// <param name="queue">The GCD queue.</param>
-        public async void SyncFromCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError, object> completionHandler, DispatchQueueGeneric queue)
+        public void SyncFromCloud_WithCompletionHandler_OnQueue_Async(Dictionary<string, object> metadata, Action<CLJsonResultWithError, object> completionHandler, DispatchQueueGeneric queue)
         {
             //NSString *methodPath = @"/sync/from_cloud";
             //NSMutableURLRequest *syncRequest = [self.urlConstructor requestWithMethod:@"POST" path:methodPath parameters:self.JSONParams];
@@ -407,56 +441,94 @@ namespace CloudApiPrivate
 
             // Send the request asynchronously
             _trace.writeToLog(9, "CLPrivateRestClient: SyncFromCloud_withCompletionHandler_onQueue_async: Sending sync-from request to server.  json: {0}.", json);
-            await _client.SendAsync(syncRequest).ContinueWith(task =>
-            {
-                HandleResponseFromServerCallbackAsync(completionHandler, queue, task, "ErrorPostingSyncFromServer", null);
-            });
+
+            (new Task<ServerCallbackParameters>(state =>
+                {
+                    ServerCallbackParameters castState = state as ServerCallbackParameters;
+
+                    if (castState != null)
+                    {
+                        try
+                        {
+                            castState.Response = castState.Client.SendAsync(castState.Message).Result;
+                        }
+                        catch (Exception ex)
+                        {
+                            castState.CommunicationException = ex;
+                        }
+                        return castState;
+                    }
+
+                    return null;
+                }, new ServerCallbackParameters()
+                    {
+                        Client = _client,
+                        Message = syncRequest,
+                        CompletionHandler = completionHandler,
+                        Queue = queue,
+                        HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync
+                    }).ContinueWith<ServerCallbackParameters>(lastTask =>
+                        {
+                            if (lastTask.Result != null)
+                            {
+                                lastTask.Result.HandleResponseFromServer(lastTask.Result, "ErrorPostingSyncFromServer");
+                            }
+                            return lastTask.Result;
+                        })).RunSynchronously();
+        }
+
+        private class ServerCallbackParameters
+        {
+            public HttpClient Client { get; set; }
+            public HttpRequestMessage Message { get; set; }
+            public Action<CLJsonResultWithError, object> CompletionHandler { get; set; }
+            public DispatchQueueGeneric Queue { get; set; }
+            public Action<ServerCallbackParameters, string> HandleResponseFromServer { get; set; }
+            public HttpResponseMessage Response { get; set; }
+            public Exception CommunicationException { get; set; }
+            public object UserState { get; set; }
         }
 
         /// <summary>
-        /// Handle the response from a SynToCloud or SyncFromCloud operation.
+        /// Handle the response from a SyncToCloud or SyncFromCloud operation.
         /// </summary>
-        /// <param name="completionHandler"> The completion action.</param>
-        /// <param name="queue">The GCD queue on which to run the completion action.</param>
-        /// <param name="task">The task continued from the request.</param>
-        /// <param name="resourceErrorMessageKey">T he task continued from the request.</param>
-        private async void HandleResponseFromServerCallbackAsync(Action<CLJsonResultWithError, object> completionHandler, DispatchQueueGeneric queue, Task<HttpResponseMessage> task,
-                                                                string resourceErrorMessageKey, object originalUserState)
+        /// <param name="callbackParams">Parameters required for method</param>
+        /// <param name="resourceErrorMessageKey">The task continued from the request.</param>
+        private void HandleResponseFromServerCallbackAsync(ServerCallbackParameters callbackParams, string resourceErrorMessageKey)
         {
                 Dictionary<string, object> jsonResult = null;
-                HttpResponseMessage response = null;
                 CLError error = new Exception(CLSptResourceManager.Instance.ResMgr.GetString(resourceErrorMessageKey));  // init error which may not be used
                 bool isError = false;       // T: an error was posted
                 bool isSuccess = true;
 
-                Exception ex = task.Exception;
-                if (ex == null)
+                if (callbackParams.CommunicationException == null)
                 {
-                    response = task.Result;
-                    _trace.writeToLog(9, "CLPrivateRestClient: HandleResponseFromServerCallbackAsync: Response from sync-from: {0}.", response.ToString());
+                    if (callbackParams.Response == null)
+                    {
+                        isError = true;
+                        error.AddException(new Exception("Response from server was null"));
+                        isSuccess = false;
+                    }
+                    else
+                    {
+                        _trace.writeToLog(9, "CLPrivateRestClient: HandleResponseFromServerCallbackAsync: Response from sync-from: {0}.", (callbackParams.Response == null ? "Null response" : callbackParams.Response.ToString()));
+                    }
                 }
-
-                if (ex != null)
+                else
                 {
                     // Exception
                     isError = true;
-                    error.AddException(ex);
-                    isSuccess = false;
-                }
-                else if (response == null)
-                {
-                    isError = true;
-                    error.AddException(new Exception("Response from server was null"));
+                    error.AddException(callbackParams.CommunicationException);
                     isSuccess = false;
                 }
 
                 if (isSuccess)
                 {
-                    if (response.StatusCode == HttpStatusCode.OK)
+                    if (callbackParams.Response.StatusCode == HttpStatusCode.OK)
                     {
                         try 
 	                    {
-                            string responseBody = await response.Content.ReadAsStringAsync();   
+                            string responseBody = callbackParams.Response.Content.ReadAsString();
 		                    jsonResult = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseBody);
 	                    }
 	                    catch (Exception exInner)
@@ -468,7 +540,7 @@ namespace CloudApiPrivate
                     else
                     {
                         isError = true;
-                        error.AddException(new Exception(String.Format("Expected status code 200 from server.  Got: {0}", response.StatusCode)));
+                        error.AddException(new Exception(String.Format("Expected status code 200 from server.  Got: {0}", callbackParams.Response.StatusCode)));
                     }  
                 }
 
@@ -483,10 +555,10 @@ namespace CloudApiPrivate
                     Error = error
                 }; 
                 
-                Dispatch.Async(queue,
-                    completionHandler,
+                Dispatch.Async(callbackParams.Queue,
+                    callbackParams.CompletionHandler,
                     userstate,
-                    originalUserState);
+                    callbackParams.UserState);
         }
 
         /// <summary>

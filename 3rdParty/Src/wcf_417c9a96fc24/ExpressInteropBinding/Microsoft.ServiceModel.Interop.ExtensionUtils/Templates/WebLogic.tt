@@ -1,0 +1,21 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+
+<#@ parameter name="BindingName" type="System.String" #>
+<#@ parameter name="ENCODING" type="System.String" #>
+<#@ parameter name="SECURITY" type="System.String" #>
+<#@ parameter name="SECURE_CONVERSATION" type="System.String" #>
+<#@ parameter name="ALGORITHM" type="System.String" #>
+<#@ parameter name="RELIABLE_MESSAGING" type="System.String" #>
+
+<binding name='<#= this.BindingName #>' messageEncoding='<#= this.ENCODING #>'>
+  <security mode='<#= this.SECURITY #>' establishSecurityContext='<#= this.SECURE_CONVERSATION #>' algorithmSuite='<#= this.ALGORITHM #>'/>
+<#
+    if (this.RELIABLE_MESSAGING == "true")
+    {
+#>
+  <reliableSession enabled='true'/>
+<#
+    }
+#>
+</binding>

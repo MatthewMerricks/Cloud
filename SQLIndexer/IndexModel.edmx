@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+<edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
   <!--
     IndexModel.edmx
     Cloud Windows
@@ -11,14 +11,14 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+      <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
         <EntityContainer Name="SQLIndexerStoreContainer">
-          <EntitySet Name="EnumCategories" EntityType="SQLIndexer.Store.EnumCategories" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="Enums" EntityType="SQLIndexer.Store.Enums" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="Events" EntityType="SQLIndexer.Store.Events" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="FileSystemObjects" EntityType="SQLIndexer.Store.FileSystemObjects" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="Syncs" EntityType="SQLIndexer.Store.Syncs" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="SyncStates" EntityType="SQLIndexer.Store.SyncStates" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="EnumCategories" EntityType="SQLIndexer.Store.EnumCategories" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
+          <EntitySet Name="Enums" EntityType="SQLIndexer.Store.Enums" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
+          <EntitySet Name="Events" EntityType="SQLIndexer.Store.Events" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
+          <EntitySet Name="FileSystemObjects" EntityType="SQLIndexer.Store.FileSystemObjects" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
+          <EntitySet Name="Syncs" EntityType="SQLIndexer.Store.Syncs" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
+          <EntitySet Name="SyncStates" EntityType="SQLIndexer.Store.SyncStates" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
           <AssociationSet Name="FK_EnumCategoryId_EnumCategoryId" Association="SQLIndexer.Store.FK_EnumCategoryId_EnumCategoryId">
             <End Role="EnumCategories" EntitySet="EnumCategories" />
             <End Role="Enums" EntitySet="Enums" />
@@ -198,7 +198,7 @@
     </edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
-      <Schema Namespace="SQLIndexer" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+      <Schema Namespace="SQLIndexer" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns="http://schemas.microsoft.com/ado/2008/09/edm" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
         <EntityContainer Name="IndexDBEntities" p1:LazyLoadingEnabled="true">
           <EntitySet Name="EnumCategories" EntityType="SQLIndexer.EnumCategory" />
           <EntitySet Name="SQLEnums" EntityType="SQLIndexer.SQLEnum" />
@@ -399,7 +399,7 @@
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
-      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2008/09/mapping/cs">
         <EntityContainerMapping StorageEntityContainer="SQLIndexerStoreContainer" CdmEntityContainer="IndexDBEntities">
           <EntitySetMapping Name="EnumCategories">
             <EntityTypeMapping TypeName="SQLIndexer.EnumCategory">
@@ -471,7 +471,7 @@
     </edmx:Mappings>
   </edmx:Runtime>
   <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
-  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
     <Connection>
       <DesignerInfoPropertySet>
         <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
@@ -485,6 +485,6 @@
       </DesignerInfoPropertySet>
     </Options>
     <!-- Diagram content (shape and connector positions) -->
-    <Diagrams></Diagrams>
+    <Diagrams />
   </Designer>
 </edmx:Edmx>

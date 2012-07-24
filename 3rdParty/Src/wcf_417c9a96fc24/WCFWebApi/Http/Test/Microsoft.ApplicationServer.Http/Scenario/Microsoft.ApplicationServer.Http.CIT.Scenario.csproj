@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E3B1FA2A-E251-4A9E-BC92-9B4A9FD7C6D9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.ApplicationServer.Http.Channels.Scenario</RootNamespace>
+    <AssemblyName>Microsoft.ApplicationServer.Http.CIT.Scenario</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Microsoft.ApplicationServer.Http.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib.dll" />
+    <Reference Include="System.ServiceModel.dll" />
+    <Reference Include="System.ServiceModel.Web.dll" />
+    <Reference Include="System.ServiceModel.Activation.dll" />
+    <Reference Include="System.Web.dll" />
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll" />
+    <!--Reference to a $(INETROOT)\private\external\common\TestHost\V4.0\Microsoft.Infrastructure.dll-->
+    <!--Reference to a $(INETROOT)\private\external\common\TestHost\V4.0\Microsoft.Infrastructure.Test.dll-->
+    <Reference Include="System.Runtime.Serialization.dll" />
+    <Reference Include="System.Xml.dll" />
+    <Reference Include="System.Xml.Linq.dll" />
+    <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Src\Microsoft.ApplicationServer.Http\Microsoft.ApplicationServer.Http.csproj">
+      <Project>{947ABFDB-E1A8-47D5-A982-A7B03CE02BC6}</Project>
+      <Name>Microsoft.ApplicationServer.Http</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Src\Microsoft.ApplicationServer.ServiceModel\Microsoft.ApplicationServer.ServiceModel.csproj">
+      <Project>{420A4BC6-1514-11E0-B2ED-BA35DFD72085}</Project>
+      <Name>Microsoft.ApplicationServer.ServiceModel</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Src\Microsoft.Net.Http\Microsoft.Net.Http.csproj">
+      <Project>{1A75CF16-5727-4ADA-B15A-3037703FC2ED}</Project>
+      <Name>Microsoft.Net.Http</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Microsoft.ApplicationServer.Common.MSTestUtilities\Microsoft.ApplicationServer.Common.MSTestUtilities.csproj">
+      <Project>{C35BA2D1-6B89-43FF-9A11-404473A26C17}</Project>
+      <Name>Microsoft.ApplicationServer.Common.MSTestUtilities</Name>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Common\CustomEndpointBehavior.cs" />
+    <Compile Include="Common\Customer.cs" />
+    <Compile Include="Common\CustomErrorHandler.cs" />
+    <Compile Include="Common\CustomerService.cs" />
+    <Compile Include="Common\CustomMessageFormatter.cs" />
+    <Compile Include="Common\CustomMessageInspector.cs" />
+    <Compile Include="Common\CustomOperationSelector.cs" />
+    <Compile Include="Common\CustomServiceHost.cs" />
+    <Compile Include="Common\TestHttpBindingParameterBehavior.cs" />
+    <Compile Include="Common\HttpResponseMessageException.cs" />
+    <Compile Include="Common\HttpResponseMessageExtensionMethods.cs" />
+    <Compile Include="Common\ITestServiceContract.cs" />
+    <Compile Include="Common\StringExtensionMethods.cs" />
+    <Compile Include="Common\TestServiceClient.cs" />
+    <Compile Include="Common\TestServiceCommon.cs" />
+    <Compile Include="Common\TestServiceHost.cs" />
+    <Compile Include="Services\ArtifactScenario\ArtifactHttpOperationHandlerFactory.cs" />
+    <Compile Include="Services\ArtifactScenario\ArtifactService.cs" />
+    <Compile Include="Services\ArtifactScenario\GridHandler.cs" />
+    <Compile Include="TestCases\ObjectContentScenarioTests.cs" />
+    <Compile Include="TestCases\TestWebService.cs" />
+    <Compile Include="Common\TestWebServiceBase.cs" />
+    <Compile Include="TestCases\ArtifactScenarioTests.cs" />
+    <Compile Include="TestCases\ChannelTests.cs" />
+    <Compile Include="TestCases\ScenarioTests.cs" />
+    <Compile Include="TestCases\ServiceTests.cs" />
+    <Compile Include="Common\TestServiceBase.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

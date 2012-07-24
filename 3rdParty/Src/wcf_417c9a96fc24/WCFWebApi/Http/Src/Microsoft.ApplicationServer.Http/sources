@@ -1,0 +1,6 @@
+TARGETNAME=Microsoft.ApplicationServer.Http
+TARGETTYPE=NOTARGET
+CLR_TARGETTYPE=DLL
+MSBUILD_VERSION=4.0
+MSBUILD_PROJECT=Microsoft.ApplicationServer.Http.csproj
+SOURCES=    

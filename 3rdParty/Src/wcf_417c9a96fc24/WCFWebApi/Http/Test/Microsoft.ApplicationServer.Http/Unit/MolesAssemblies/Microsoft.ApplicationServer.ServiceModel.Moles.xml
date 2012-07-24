@@ -1,0 +1,241 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.ApplicationServer.ServiceModel.Moles</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElement">
+            <summary>Mole type of <see cref="T:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElement"/>
+            .</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElement.#ctor(Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElement)">
+            <summary>Initializes a new mole for the given instance</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElement.BehaveAsCurrent">
+            <summary>Assigns the &apos;Current&apos; behavior for all methods of the moled type</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElement.BehaveAsNotImplemented">
+            <summary>Assigns the &apos;NotImplemented&apos; behavior for all methods of the moled type</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElement.SetPropertyValueIfNotDefaultValueStringT``1(Microsoft.Moles.Framework.MolesDelegates.Action{System.String,``0})">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElement.SetPropertyValueIfNotDefaultValue``1(System.String,``0)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElement.Behavior">
+            <summary>Assigns the behavior for all methods of the moled type</summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElement.Constructor">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElement.#ctor"/>
+            </summary>
+        </member>
+        <member name="T:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElement.AllInstances">
+            <summary>Define moles for all instances members</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElement.AllInstances.SetPropertyValueIfNotDefaultValueStringT``1(Microsoft.Moles.Framework.MolesDelegates.Action{Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElement,System.String,``0})">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElement.SetPropertyValueIfNotDefaultValue``1(System.String,``0)"/>
+            </summary>
+        </member>
+        <member name="T:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1">
+            <summary>Mole type of <see cref="T:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1"/>
+            .</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.#ctor(Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection{`0})">
+            <summary>Initializes a new mole for the given instance</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.BehaveAsCurrent">
+            <summary>Assigns the &apos;Current&apos; behavior for all methods of the moled type</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.BehaveAsNotImplemented">
+            <summary>Assigns the &apos;NotImplemented&apos; behavior for all methods of the moled type</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.Bind(System.Collections.ICollection)">
+            <summary>Binds the members of the interface to the mole.</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.Bind(System.Collections.IEnumerable)">
+            <summary>Binds the members of the interface to the mole.</summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AddConfigurationElementType">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Add(`1)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.BaseAddConfigurationElement">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.BaseAdd(System.Configuration.ConfigurationElement)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.Behavior">
+            <summary>Assigns the behavior for all methods of the moled type</summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.Clear">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Clear"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.CollectionTypeGet">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.CollectionType"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.ConstructorConfigurationElementCollectionTypeString">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.#ctor(System.Configuration.ConfigurationElementCollectionType,System.String)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.ContainsKeyObject">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.ContainsKey(System.Object)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.CopyToConfigurationElementTypeArrayInt32">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.CopyTo(`1[],System.Int32)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.CreateNewElement">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.CreateNewElement"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.ElementNameGet">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.ElementName"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.IndexOfConfigurationElementType">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.IndexOf(`1)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.ItemGetInt32">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Item(System.Int32)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.ItemGetObject">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Item(System.Object)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.ItemSetInt32ConfigurationElementType">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Item(System.Int32)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.ItemSetObjectConfigurationElementType">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Item(System.Object)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.RemoveAtInt32">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.RemoveAt(System.Int32)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.RemoveAtObject">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.RemoveAt(System.Object)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.RemoveConfigurationElementType">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Remove(`1)"/>
+            </summary>
+        </member>
+        <member name="T:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances">
+            <summary>Define moles for all instances members</summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.AddConfigurationElementType">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Add(`1)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.BaseAddConfigurationElement">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.BaseAdd(System.Configuration.ConfigurationElement)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.Clear">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Clear"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.CollectionTypeGet">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.CollectionType"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.ContainsKeyObject">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.ContainsKey(System.Object)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.CopyToConfigurationElementTypeArrayInt32">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.CopyTo(`1[],System.Int32)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.CreateNewElement">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.CreateNewElement"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.ElementNameGet">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.ElementName"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.IndexOfConfigurationElementType">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.IndexOf(`1)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.ItemGetInt32">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Item(System.Int32)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.ItemGetObject">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Item(System.Object)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.ItemSetInt32ConfigurationElementType">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Item(System.Int32)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.ItemSetObjectConfigurationElementType">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Item(System.Object)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.RemoveAtInt32">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.RemoveAt(System.Int32)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.RemoveAtObject">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.RemoveAt(System.Object)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelConfigurationElementCollection`1.AllInstances.RemoveConfigurationElementType">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelConfigurationElementCollection`1.Remove(`1)"/>
+            </summary>
+        </member>
+        <member name="T:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1">
+            <summary>Mole type of <see cref="T:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelEnhancedConfigurationElementCollection`1"/>
+            .</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.#ctor(Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelEnhancedConfigurationElementCollection{`0})">
+            <summary>Initializes a new mole for the given instance</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.BehaveAsCurrent">
+            <summary>Assigns the &apos;Current&apos; behavior for all methods of the moled type</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.BehaveAsNotImplemented">
+            <summary>Assigns the &apos;NotImplemented&apos; behavior for all methods of the moled type</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.Bind(System.Collections.ICollection)">
+            <summary>Binds the members of the interface to the mole.</summary>
+        </member>
+        <member name="M:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.Bind(System.Collections.IEnumerable)">
+            <summary>Binds the members of the interface to the mole.</summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.BaseAddConfigurationElement">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelEnhancedConfigurationElementCollection`1.BaseAdd(System.Configuration.ConfigurationElement)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.Behavior">
+            <summary>Assigns the behavior for all methods of the moled type</summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.ConstructorString">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelEnhancedConfigurationElementCollection`1.#ctor(System.String)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.ThrowOnDuplicateGet">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelEnhancedConfigurationElementCollection`1.ThrowOnDuplicate"/>
+            </summary>
+        </member>
+        <member name="T:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.AllInstances">
+            <summary>Define moles for all instances members</summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.AllInstances.BaseAddConfigurationElement">
+            <summary>Sets the mole of <see cref="M:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelEnhancedConfigurationElementCollection`1.BaseAdd(System.Configuration.ConfigurationElement)"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.ApplicationServer.ServiceModel.Configuration.Moles.MServiceModelEnhancedConfigurationElementCollection`1.AllInstances.ThrowOnDuplicateGet">
+            <summary>Sets the mole of <see cref="P:Microsoft.ApplicationServer.ServiceModel.Configuration.ServiceModelEnhancedConfigurationElementCollection`1.ThrowOnDuplicate"/>
+            </summary>
+        </member>
+    </members>
+</doc>

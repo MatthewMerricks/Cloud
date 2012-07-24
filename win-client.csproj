@@ -10,9 +10,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>win_client</RootNamespace>
     <AssemblyName>win-client</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -58,30 +57,23 @@
     <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AsyncCtpLibrary">
-      <HintPath>packages\AsyncCTP.0.3\lib\net40\AsyncCtpLibrary.dll</HintPath>
+    <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
+      <HintPath>3rdParty\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
     </Reference>
-    <Reference Include="GalaSoft.MvvmLight.Extras.WPF4, Version=4.0.23.37706, Culture=neutral, PublicKeyToken=1673db7d5906b0ad, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>packages\MvvmLightLibsPreview.4.1.23.0\lib\net40\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
-    </Reference>
-    <Reference Include="GalaSoft.MvvmLight.WPF4, Version=4.0.23.37706, Culture=neutral, PublicKeyToken=63eb5c012e0b3c1c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>packages\MvvmLightLibsPreview.4.1.23.0\lib\net40\GalaSoft.MvvmLight.WPF4.dll</HintPath>
+    <Reference Include="GalaSoft.MvvmLight.WPF4">
+      <HintPath>3rdParty\bin\Debug\GalaSoft.MvvmLight.WPF4.dll</HintPath>
     </Reference>
     <Reference Include="Hardcodet.Wpf.TaskbarNotification">
-      <HintPath>packages\Hardcodet.Wpf.TaskbarNotification.1.0.4.0\lib\net40\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
+      <HintPath>3rdParty\bin\Debug\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>packages\MvvmLightLibsPreview.4.1.23.0\lib\net40\Microsoft.Practices.ServiceLocation.dll</HintPath>
+    <Reference Include="Microsoft.Net.Http">
+      <HintPath>3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>packages\Newtonsoft.Json.4.5.7\lib\net40\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Microsoft.Practices.ServiceLocation">
+      <HintPath>3rdParty\bin\Debug\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
-    <Reference Include="SignalR.Client">
-      <HintPath>packages\SignalR.Client.0.5.2\lib\net40\SignalR.Client.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>3rdParty\bin\Debug\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="SimpleJson">
       <HintPath>3rdParty\bin\Debug\SimpleJson.dll</HintPath>
@@ -97,23 +89,16 @@
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
-    <Reference Include="System.Net.Http">
-      <Private>True</Private>
-      <HintPath>packages\Microsoft.Net.Http.2.0.20505.0\lib\net40\System.Net.Http.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.WebApi.Client.4.0.20505.0\lib\net40\System.Net.Http.Formatting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Net.Http.WebRequest">
-      <Private>True</Private>
-      <HintPath>packages\Microsoft.Net.Http.2.0.20505.0\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
-    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows">
+      <HintPath>..\..\..\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Windows.dll</HintPath>
+    </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\MvvmLightLibsPreview.4.1.23.0\lib\net40\System.Windows.Interactivity.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Program Files (x86)\Microsoft SDKs\Expression\Blend\.NETFramework\v4.0\Libraries\System.Windows.Interactivity.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -131,7 +116,7 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WPFToolkit.Extended">
-      <HintPath>3rdParty\bin\debug\WPFToolkit.Extended.dll</HintPath>
+      <HintPath>3rdParty\bin\Debug\WPFToolkit.Extended.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +132,7 @@
     <Compile Include="Common\CLDefaultButtons.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />
+    <Compile Include="Common\CLSecurePasswordBox.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
     <Compile Include="Model\IDataService.cs" />
@@ -212,17 +198,17 @@
     <Compile Include="Views\BadgeComInitializationErrorView.xaml.cs">
       <DependentUpon>BadgeComInitializationErrorView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\WindowCloudAlreadyRunning.xaml.cs">
-      <DependentUpon>WindowCloudAlreadyRunning.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\FolderSelectionSimpleView.xaml.cs">
-      <DependentUpon>FolderSelectionSimpleView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\PageCreateNewAccount.xaml.cs">
       <DependentUpon>PageCreateNewAccount.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PageHome.xaml.cs">
       <DependentUpon>PageHome.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\WindowCloudAlreadyRunning.xaml.cs">
+      <DependentUpon>WindowCloudAlreadyRunning.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FolderSelectionSimpleView.xaml.cs">
+      <DependentUpon>FolderSelectionSimpleView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\WindowInvisible.xaml.cs">
       <DependentUpon>WindowInvisible.xaml</DependentUpon>
@@ -288,19 +274,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\WindowCloudAlreadyRunning.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\FolderSelectionSimpleView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Views\PageCreateNewAccount.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\PageHome.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\WindowCloudAlreadyRunning.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FolderSelectionSimpleView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -362,7 +348,6 @@
     <None Include="Artwork\PicturesFolderIcon.icns" />
     <None Include="Artwork\PublicFolderIcon.icns" />
     <None Include="Artwork\SidebarCloud.icns" />
-    <None Include="packages.config" />
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
@@ -470,8 +455,19 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <COMReference Include="IWshRuntimeLibrary">
+      <Guid>{F935DC20-1CF0-11D0-ADB9-00C04FD58A0B}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="BadgeNET\BadgeNET.csproj">
-      <Project>{77014147-1A34-4BF6-8FC4-3C85984F8E2E}</Project>
+      <Project>{77014147-1a34-4bf6-8fc4-3c85984f8e2e}</Project>
       <Name>BadgeNET</Name>
     </ProjectReference>
     <ProjectReference Include="CloudApiPrivate\CloudApiPrivate.csproj">
@@ -479,15 +475,15 @@
       <Name>CloudApiPrivate</Name>
     </ProjectReference>
     <ProjectReference Include="CloudApiPublic\CloudSdkPublic.csproj">
-      <Project>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</Project>
+      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudSdkPublic</Name>
     </ProjectReference>
     <ProjectReference Include="Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
-      <Project>{3697919F-7A1E-43BA-BFDB-3EEC2553DD44}</Project>
+      <Project>{3697919f-7a1e-43ba-bfdb-3eec2553dd44}</Project>
       <Name>Dialog.Abstractions.Wpf</Name>
     </ProjectReference>
     <ProjectReference Include="Dialog.Implementors.Wpf\Dialog.Implementors.Wpf.csproj">
-      <Project>{D873958B-87F4-46F6-A6E8-B72FFB08835F}</Project>
+      <Project>{d873958b-87f4-46f6-a6e8-b72ffb08835f}</Project>
       <Name>Dialog.Implementors.Wpf</Name>
     </ProjectReference>
     <ProjectReference Include="FileMonitor\FileMonitor.csproj">
@@ -498,17 +494,6 @@
       <Project>{5ea44f8a-a8ff-48ab-b6f6-c523793e342e}</Project>
       <Name>SQLIndexer</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <COMReference Include="IWshRuntimeLibrary">
-      <Guid>{F935DC20-1CF0-11D0-ADB9-00C04FD58A0B}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

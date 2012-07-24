@@ -1,0 +1,233 @@
+<StyleCopSettings Version="4.3">
+
+  <!-- Files in this SourceFileList are excluded from DocumentationRules only -->
+  <SourceFileList>
+    <Settings>
+      <GlobalSettings>
+        <StringProperty Name="MergeSettingsFiles">Merge</StringProperty>
+      </GlobalSettings>
+
+      <Analyzers>
+        <Analyzer AnalyzerId="Microsoft.StyleCop.CSharp.DocumentationRules">
+          <Rules>
+            <Rule Name="ElementsMustBeDocumented">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="PartialElementsMustBeDocumented">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="EnumerationItemsMustBeDocumented">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="DocumentationMustContainValidXml">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementDocumentationMustHaveSummary">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="PartialElementDocumentationMustHaveSummary">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementDocumentationMustHaveSummaryText">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="PartialElementDocumentationMustHaveSummaryText">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementDocumentationMustNotHaveDefaultSummary">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementParametersMustBeDocumented">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementParameterDocumentationMustMatchElementParameters">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementParameterDocumentationMustDeclareParameterName">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementParameterDocumentationMustHaveText">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementReturnValueMustBeDocumented">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementReturnValueDocumentationMustHaveText">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="VoidReturnValueMustNotBeDocumented">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="GenericTypeParametersMustBeDocumented">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="GenericTypeParametersMustBeDocumentedPartialClass">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="GenericTypeParameterDocumentationMustMatchTypeParameters">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="GenericTypeParameterDocumentationMustDeclareParameterName">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="GenericTypeParameterDocumentationMustHaveText">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="PropertySummaryDocumentationMustMatchAccessors">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="PropertySummaryDocumentationMustOmitSetAccessorWithRestrictedAccess">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="ElementDocumentationMustNotBeCopiedAndPasted">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="SingleLineCommentsMustNotUseDocumentationStyleSlashes">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="DocumentationTextMustNotBeEmpty">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="DocumentationTextMustContainWhitespace">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="DocumentationMustMeetCharacterPercentage">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="DocumentationTextMustMeetMinimumCharacterLength">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="IncludedDocumentationXPathDoesNotExist">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="IncludeNodeDoesNotContainValidFileAndPath">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="FileMustHaveHeader">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="FileHeaderMustShowCopyright">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+            <Rule Name="FileHeaderMustHaveCopyrightText">
+              <RuleSettings>
+                <BooleanProperty Name="Enabled">False</BooleanProperty>
+              </RuleSettings>
+            </Rule>
+          </Rules>
+          <AnalyzerSettings />
+        </Analyzer>
+      </Analyzers>
+
+    </Settings>
+    <SourceFile>ActionOfStreamContent.cs</SourceFile>
+    <SourceFile>AutomaticEndpointGenerator.cs</SourceFile>
+    <SourceFile>ClientContractDescriptionHelper.cs</SourceFile>
+    <SourceFile>HttpErrorHandlerData.cs</SourceFile>
+    <SourceFile>HttpResponseErrorHandler.cs</SourceFile>
+    <SourceFile>HtmlPageBuilder.cs</SourceFile>
+    <SourceFile>HttpConfigurationStrings.cs</SourceFile>
+    <SourceFile>HttpHeaderExtensionMethods.cs</SourceFile>
+    <SourceFile>HttpMessage.cs</SourceFile>
+    <SourceFile>HttpMessageEncoderFactory.cs</SourceFile>
+    <SourceFile>HttpMessageEncodingBindingElement.cs</SourceFile>
+    <SourceFile>HttpMessageEncodingChannelListener.cs</SourceFile>
+    <SourceFile>HttpMessageEncodingRequestContext.cs</SourceFile>
+    <SourceFile>HttpMessageEncodingReplyChannel.cs</SourceFile>
+    <SourceFile>HttpOperationSelectionData.cs</SourceFile>
+    <SourceFile>HttpResponseMessageBuilder.cs</SourceFile>
+    <SourceFile>HttpParameterValueConverter.cs</SourceFile>
+    <SourceFile>MediaRangeMapping.cs</SourceFile>
+    <SourceFile>MediaTypeHeaderValueEqualityComparer.cs</SourceFile>
+    <SourceFile>MediaTypeMappingAggregate.cs</SourceFile>
+    <SourceFile>ParsedMediaTypeHeaderValue.cs</SourceFile>
+    <SourceFile>QueryStringMapping.cs</SourceFile>
+    <SourceFile>TrailingSlashModeHelper.cs</SourceFile>
+    <SourceFile>ReflectionProcessorArgumentBuilder.cs</SourceFile>
+    <SourceFile>MediaTypeHeaderValueComparer.cs</SourceFile>
+    <SourceFile>MediaTypeHeaderValueExtensionMethods.cs</SourceFile>
+    <SourceFile>UriPathExtensionMapping.cs</SourceFile>
+  </SourceFileList>
+
+  <!-- Files in this list are considered legacy.  Do not add new files to this list. -->
+  <SourceFileList>
+    <Settings>
+      <GlobalSettings>
+        <BooleanProperty Name="RulesEnabledByDefault">False</BooleanProperty>
+        <StringProperty Name="MergeSettingsFiles">Linked</StringProperty>
+        <StringProperty Name="LinkedSettingsFile">%INETROOT%\private\source\WCF\Legacy.StyleCop</StringProperty>
+      </GlobalSettings>
+    </Settings>
+    <SourceFile>JsonGlobals.cs</SourceFile>
+    <SourceFile>HelpExampleGenerator.cs</SourceFile>
+    <SourceFile>HelpHtmlBuilder.cs</SourceFile>
+    <SourceFile>NameValueCache.cs</SourceFile>
+    <SourceFile>HelpPage.cs</SourceFile>
+  </SourceFileList>
+</StyleCopSettings>

@@ -1,0 +1,35 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ApplicationServer.Common.MSTestUtilities", "Microsoft.ApplicationServer.Common.MSTestUtilities.csproj", "{C35BA2D1-6B89-43FF-9A11-404473A26C17}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Net.Http", "..\..\..\source\WCF\Microsoft.Net.Http\Microsoft.Net.Http.csproj", "{1A75CF16-5727-4ADA-B15A-3037703FC2ED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reference Projects", "Reference Projects", "{FD5C9306-64D3-439F-B08C-E54AEC97111B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		VSMSBuild|Any CPU = VSMSBuild|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C35BA2D1-6B89-43FF-9A11-404473A26C17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C35BA2D1-6B89-43FF-9A11-404473A26C17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C35BA2D1-6B89-43FF-9A11-404473A26C17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C35BA2D1-6B89-43FF-9A11-404473A26C17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C35BA2D1-6B89-43FF-9A11-404473A26C17}.VSMSBuild|Any CPU.ActiveCfg = Debug|Any CPU
+		{C35BA2D1-6B89-43FF-9A11-404473A26C17}.VSMSBuild|Any CPU.Build.0 = Debug|Any CPU
+		{1A75CF16-5727-4ADA-B15A-3037703FC2ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A75CF16-5727-4ADA-B15A-3037703FC2ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A75CF16-5727-4ADA-B15A-3037703FC2ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A75CF16-5727-4ADA-B15A-3037703FC2ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A75CF16-5727-4ADA-B15A-3037703FC2ED}.VSMSBuild|Any CPU.ActiveCfg = VsMsBuild|Any CPU
+		{1A75CF16-5727-4ADA-B15A-3037703FC2ED}.VSMSBuild|Any CPU.Build.0 = VsMsBuild|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1A75CF16-5727-4ADA-B15A-3037703FC2ED} = {FD5C9306-64D3-439F-B08C-E54AEC97111B}
+	EndGlobalSection
+EndGlobal

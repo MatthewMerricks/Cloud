@@ -1,0 +1,419 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- ClassDataContract -->
+  <data name="DupEnumMemberValue" xml:space="preserve">
+    <value>Type '{2}' contains two members '{0}' 'and '{1}' with the same name '{3}'. Multiple members with the same name in one type are not supported. Consider changing one of the member names using EnumMemberAttribute attribute.</value>
+  </data>
+  <data name="DupMemberName" xml:space="preserve">
+    <value>Type '{2}' contains two members '{0}' 'and '{1}' with the same data member name '{3}'. Multiple members with the same name in one type are not supported. Consider changing one of the member names using DataMemberAttribute attribute.</value>
+  </data>
+  <data name="ISerializableCannotHaveDataContract" xml:space="preserve">
+    <value>Type '{0}' cannot be ISerializable and have DataContractAttribute attribute.</value>
+  </data>
+  <data name="AttributedTypesCannotInheritFromNonAttributedSerializableTypes" xml:space="preserve">
+    <value>Type '{0}' cannot inherit from a type that is not marked with DataContractAttribute or SerializableAttribute.  Consider marking the base type '{1}' with DataContractAttribute or SerializableAttribute, or removing them from the derived type.</value>
+  </data>
+  <data name="OnlyDataContractTypesCanHaveExtensionData" xml:space="preserve">
+    <value>Type '{0}' does not have DataContractAttribute attribute and therefore cannot support IExtensibleDataObject. </value>
+  </data>
+  <data name="InconsistentIsReference" xml:space="preserve">
+    <value>The IsReference setting for type '{0}' is '{1}', but the same setting for its parent class '{2}' is '{3}'. Derived types must have the same value for IsReference as the base type. Change the setting on type '{0}' to '{3}', or on type '{2}' to '{1}', or do not set IsReference explicitly.</value>
+  </data>
+  <data name="ValueTypeCannotHaveIsReference" xml:space="preserve">
+    <value>Value type '{0}' cannot have the IsReference setting of '{1}'. Either change the setting to '{2}', or remove it completely.</value>
+  </data>
+  <data name="TooManyDataMembers" xml:space="preserve">
+    <value>Member '{0}.{1}' has more than one DataMemberAttribute attribute.</value>
+  </data>
+  <data name="NoGetMethodForProperty" xml:space="preserve">
+    <value>No get method for property '{1}' in type '{0}'.</value>
+  </data>
+  <data name="NoSetMethodForProperty" xml:space="preserve">
+    <value>No set method for property '{1}' in type '{0}'.</value>
+  </data>
+  <data name="IndexedPropertyCannotBeSerialized" xml:space="preserve">
+    <value>Property '{1}' in type '{0}' cannot be serialized because serialization of indexed properties is not supported.</value>
+  </data>
+  <data name="InvalidMember" xml:space="preserve">
+    <value>Member '{0}.{1}' cannot be serialized since it is neither a field nor a property, and therefore cannot be marked with the DataMemberAttribute attribute. Remove the DataMemberAttribute attribute from the '{1}' member.</value>
+  </data>
+  <data name="IsRequiredDataMemberOnIsReferenceDataContractType" xml:space="preserve">
+    <value>'{0}.{1}' has the IsRequired setting of '{2}. However, '{0}' has the IsReference setting of '{2}', because either it is set explicitly, or it is derived from a base class. Set IsRequired on '{0}.{1}' to false, or disable IsReference on '{0}'. </value>
+  </data>
+  <data name="TooManyIgnoreDataMemberAttributes" xml:space="preserve">
+    <value>Member '{0}.{1}' has more than one IgnoreDataMemberAttribute attribute.</value>
+  </data>
+  <data name="NonOptionalFieldMemberOnIsReferenceSerializableType" xml:space="preserve">
+    <value>'{0}.{1}' is not marked with OptionalFieldAttribute, thus indicating that it must be serialized. However, '{0}' derives from a class marked with DataContractAttribute and an IsReference setting of '{2}'. It is not possible to have required data members on IsReference classes. Either decorate '{0}.{1}' with OptionalFieldAttribute, or disable the IsReference setting on the appropriate parent class.</value>
+  </data>
+  <data name="DuplicateExtensionDataSetMethod" xml:space="preserve">
+    <value>Invalid IExtensibleDataObject. Both '{0}' and '{1}' in type '{2}' provide property setter.</value>
+  </data>
+  <data name="ExtensionDataSetMustReturnVoid" xml:space="preserve">
+    <value>IExtensibleDataObject property setter '{1}' in type '{0}' must return void.</value>
+  </data>
+  <data name="ExtensionDataSetParameterInvalid" xml:space="preserve">
+    <value>IExtensibleDataObject property setter '{1}' in type '{0}' must have a single parameter of type '{2}'.</value>
+  </data>
+  <data name="DuplicateCallback" xml:space="preserve">
+    <value>Invalid attribute. Both '{0}' and '{1}' in type '{2}' have '{3}'.</value>
+  </data>
+  <data name="DuplicateAttribute" xml:space="preserve">
+    <value>Invalid Callback. Method '{3}' in type '{2}' has both '{0}' and '{1}'.</value>
+  </data>
+  <data name="CallbacksCannotBeVirtualMethods" xml:space="preserve">
+    <value>Virtual Method '{0}' of type '{1}' cannot be marked with '{2}' attribute.</value>
+  </data>
+  <data name="CallbackMustReturnVoid" xml:space="preserve">
+    <value>Serialization Callback '{1}' in type '{0}' must return void.</value>
+  </data>
+  <data name="CallbackParameterInvalid" xml:space="preserve">
+    <value>Serialization Callback '{1}' in type '{0}' must have a single parameter of type '{2}'.</value>
+  </data>
+  <data name="ValueTypeCannotHaveBaseType" xml:space="preserve">
+    <value>Data contract '{0}' from namespace '{1}' is a value type and cannot have base contract '{2}' from namespace '{3}'.</value>
+  </data>
+  <data name="ReadOnlyClassDeserialization" xml:space="preserve">
+    <value>{0} The class cannot be deserialized.</value>
+  </data>
+  <data name="NonAttributedSerializableTypesMustHaveDefaultConstructor" xml:space="preserve">
+    <value>The Type '{0}' must have a parameterless constructor.</value>
+  </data>
+  <!-- CollectionDataCotnract -->
+  <data name="CollectionTypeCannotBeBuiltIn" xml:space="preserve">
+    <value>{0} is a built-in type and cannot be a collection.</value>
+  </data>
+  <data name="CollectionTypeCannotHaveDataContract" xml:space="preserve">
+    <value>{0} has DataContractAttribute attribute.</value>
+  </data>
+  <data name="CollectionTypeIsNotIEnumerable" xml:space="preserve">
+    <value>{0} does not implement IEnumerable interface.</value>
+  </data>
+  <data name="CollectionTypeDoesNotHaveDefaultCtor" xml:space="preserve">
+    <value>{0} does not have a default constructor.</value>
+  </data>
+  <data name="CollectionTypeDoesNotHaveAddMethod" xml:space="preserve">
+    <value>{0} does not have a valid Add method with parameter of type '{1}'.</value>
+  </data>
+  <data name="CollectionTypeHasMultipleDefinitionsOfInterface" xml:space="preserve">
+    <value>{0} has multiple definitions of interface '{1}'.</value>
+  </data>
+  <data name="InvalidCollectionDataContract" xml:space="preserve">
+    <value>Type '{0}' with CollectionDataContractAttribute attribute is an invalid collection type since it</value>
+  </data>
+  <data name="InvalidCollectionType" xml:space="preserve">
+    <value>Type '{0}' is an invalid collection type since it</value>
+  </data>
+  <data name="ReadOnlyCollectionDeserialization" xml:space="preserve">
+    <value>Collection type '{0}' cannot be deserialized since it</value>
+  </data>
+  <data name="InvalidCollectionContractKeyNoDictionary" xml:space="preserve">
+    <value>The collection data contract type '{0}' specifies '{1}' for the KeyName property. This is not allowed since the type is not IDictionary. Remove the setting for the KeyName property.</value>
+  </data>
+  <data name="InvalidCollectionContractValueNoDictionary" xml:space="preserve">
+    <value>The collection data contract type '{0}' specifies '{1}' for the ValueName property. This is not allowed since the type is not IDictionary. Remove the setting for the ValueName property.</value>
+  </data>
+  <data name="SupportForMultidimensionalArraysNotPresent" xml:space="preserve">
+    <value>Multi-dimensional arrays are not supported.</value>
+  </data>
+  <data name="CollectionMustHaveGetEnumeratorMethod" xml:space="preserve">
+    <value>Collection type '{0}' does not have a valid GetEnumerator method.</value>
+  </data>
+  <data name="CollectionMustHaveItemType" xml:space="preserve">
+    <value>Collection type '{0}' must have a non-null item type.</value>
+  </data>
+  <data name="CollectionMustHaveAddMethod" xml:space="preserve">
+    <value>Collection type '{0}' does not have a valid Add method.</value>
+  </data>
+  <data name="DupKeyValueName" xml:space="preserve">
+    <value>The collection data contract type '{0}' specifies the same value '{1}' for both the KeyName and the ValueName properties. This is not allowed. Consider changing either the KeyName or the ValueName property.</value>
+  </data>
+  <!-- DataContract -->
+  <data name="ClassDataContractReturnedForGetOnlyCollection" xml:space="preserve">
+    <value>The use of type '{0}' as a get-only collection is not supported with NetDataContractSerializer.  Consider marking the type with the CollectionDataContractAttribute attribute or the SerializableAttribute attribute or adding a setter to the property.</value>
+  </data>
+  <data name="RecursiveCollectionType" xml:space="preserve">
+    <value>Type '{0}' is a recursive collection data contract which is not supported. Consider modifying the definition of collection '{0}' to remove references to itself.</value>
+  </data>
+  <data name="TooManyCollectionContracts" xml:space="preserve">
+    <value>Type '{0}' has more than one CollectionDataContractAttribute attribute.</value>
+  </data>
+  <data name="TooManyDataContracts" xml:space="preserve">
+    <value>Type '{0}' has more than one DataContractAttribute attribute.</value>
+  </data>
+  <data name="DataContractNamespaceIsNotValid" xml:space="preserve">
+    <value>DataContract namespace '{0}' is not a valid URI.</value>
+  </data>
+  <data name="DataContractNamespaceReserved" xml:space="preserve">
+    <value>DataContract namespace '{0}' cannot be specified since it is reserved.</value>
+  </data>
+  <data name="InvalidGlobalDataContractNamespace" xml:space="preserve">
+    <value>CLR namespace '{0}' cannot have ContractNamespace set to null.</value>
+  </data>
+  <data name="DataContractNamespaceAlreadySet" xml:space="preserve">
+    <value>ContractNamespaceAttribute attribute maps CLR namespace '{2}' to multiple data contract namespaces '{0}' and '{1}'. You can map a CLR namespace to only one data contract namespace.</value>
+  </data>
+  <data name="GenericNameBraceMismatch" xml:space="preserve">
+    <value>The data contract name '{0}' for type '{1}' has a curly brace that is not matched with a closing curly brace. Curly braces have special meaning in data contract names - they are used to customize the naming of data contracts for generic types.</value>
+  </data>
+  <data name="TypeNotSerializable" xml:space="preserve">
+    <value>Type '{0}' cannot be serialized. Consider marking it with the DataContractAttribute attribute, and marking all of its members you want serialized with the DataMemberAttribute attribute.  If the type is a collection, consider marking it with the CollectionDataContractAttribute.  See the Microsoft .NET Framework documentation for other supported types.</value>
+  </data>
+  <data name="GenericParameterNotValid" xml:space="preserve">
+    <value>In the data contract name for type '{1}', there are curly braces with '{0}' inside, which is an invalid value. Curly braces have special meaning in data contract names - they are used to customize the naming of data contracts for generic types. Based on the number of generic parameters this type has, the contents of the curly braces must either be a number between 0 and '{2}' to insert the name of the generic parameter at that index or the '#' symbol to insert a digest of the generic parameter namespaces.</value>
+  </data>
+  <data name="ConfigDataContractSerializerSectionLoadError " xml:space="preserve">
+    <value>DataContractSerializer config section under System.Runtime.Serialization section group could not be loaded. Verify that machine.config is correctly set up.</value>
+  </data>
+  <data name="KnownTypeAttributeEmptyString" xml:space="preserve">
+    <value>Method name specified by KnownTypeAttribute attribute on type '{0}' cannot be the empty string.</value>
+  </data>
+  <data name="KnownTypeAttributeUnknownMethod" xml:space="preserve">
+    <value>KnownTypeAttribute attribute on type '{1}' specifies a method named '{0}' to provide known types. Static method '{0}()' was not found on this type. Ensure that the method exists and is marked as static.</value>
+  </data>
+  <data name="KnownTypeAttributeReturnType " xml:space="preserve">
+    <value>KnownTypeAttribute attribute on type '{0}' specifies a method named '{1}' to provide known types. The return type of this method is invalid because it is not assignable to IEnumerable&lt;Type&gt;. Ensure that the method exists and has a valid signature.</value>
+  </data>
+  <data name="KnownTypeAttributeOneScheme" xml:space="preserve">
+    <value>Type '{0}': If a KnownTypeAttribute attribute specifies a method it must be the only KnownTypeAttribute attribute on that type.</value>
+  </data>
+  <data name="KnownTypeAttributeValidMethodTypes" xml:space="preserve">
+    <value>Method specified by KnownTypeAttribute attribute on type '{0}' does not expose valid types.</value>
+  </data>
+  <data name="KnownTypeAttributeNoData" xml:space="preserve">
+    <value>KnownTypeAttribute attribute on type '{0}' contains no data.</value>
+  </data>
+  <data name="KnownTypeAttributeMethodNull " xml:space="preserve">
+    <value>Method specified by KnownTypeAttribute attribute on type '{0}' returned null.</value>
+  </data>
+  <data name="TypeMustBeConcrete" xml:space="preserve">
+    <value>Error while getting known types for Type '{0}'. The type must not be an open or partial generic class.</value>
+  </data>
+  <data name="KnownTypeConfigClosedGenericDeclared" xml:space="preserve">
+    <value>Declared type '{0}' in config cannot be a closed or partial generic type.</value>
+  </data>
+  <data name="DupContractInKnownTypes" xml:space="preserve">
+    <value>Type '{0}' cannot be added to list of known types since another type '{1}' with the same data contract name '{2}:{3}' is already present. If there are different collections of a particular type - for example, List&lt;Test&gt; and Test[], they cannot both be added as known types.  Consider specifying only one of these types for addition to the known types list.</value>
+  </data>
+  <data name="DataContractCacheOverflow" xml:space="preserve">
+    <value>An internal error has occurred. DataContract cache overflow.</value>
+  </data>
+  <data name="TypeMustNotBeOpenGeneric" xml:space="preserve">
+    <value>Type '{0}' is not a fully instantiated generic class.</value>
+  </data>
+  <data name="RequiresClassDataContractToSetIsISerializable" xml:space="preserve">
+    <value>Only classes can be generated as ISerializable.</value>
+  </data>
+  <!-- DataContractSet -->
+  <data name="GenericTypeNotExportable" xml:space="preserve">
+    <value>Type '{0}' cannot be exported as a schema type because it is an open generic type. You can only export a generic type if all its generic parameter types are actual types.</value>
+  </data>
+  <data name="DupContractInDataContractSet" xml:space="preserve">
+    <value>DataContract with name '{0}' and namespace '{1}' cannot be added to DataContractSet since another contract with the same data contract name is already present and the contracts are not equivalent.</value>
+  </data>
+  <data name="DupTypeContractInDataContractSet" xml:space="preserve">
+    <value>DataContract for type '{0}' cannot be added to DataContractSet since type '{1}' with the same data contract name '{2}' in namespace '{3}' is already present and the contracts are not equivalent.</value>
+  </data>
+  <data name="SurrogatesWithGetOnlyCollectionsNotSupported" xml:space="preserve">
+    <value>Using surrogates with get-only collection properties is not supported.  Consider removing the surrogate associated with '{0}' or adding a setter to '{1}.{2}'.</value>
+  </data>
+  <data name="ReferencedCollectionTypesCannotContainNull" xml:space="preserve">
+    <value>ReferencedCollectionTypes specified via ImportOptions must contain valid types. Cannot contain null.</value>
+  </data>
+  <data name="ReferencedTypeMatchingMessage" xml:space="preserve">
+    <value>(matching)</value>
+  </data>
+  <data name="ReferencedTypeNotMatchingMessage" xml:space="preserve">
+    <value>(not matching)</value>
+  </data>
+  <data name="ReferencedTypesCannotContainNull" xml:space="preserve">
+    <value>ReferencedTypes specified via ImportOptions must contain valid types. Cannot contain null.</value>
+  </data>
+  <data name="AmbiguousReferencedTypes1" xml:space="preserve">
+    <value>List of referenced types contains more than one type with same data contract name. Need to exclude all but one of the following types. Only matching types can be valid references: {0}</value>
+  </data>
+  <data name="AmbiguousReferencedTypes3" xml:space="preserve">
+    <value>List of referenced types contains more than one type with data contract name '{0}' in namespace '{1}'. Need to exclude all but one of the following types. Only matching types can be valid references: {2}</value>
+  </data>
+  <data name="AmbiguousReferencedCollectionTypes1" xml:space="preserve">
+    <value>List of referenced collection types contains more than one type with same data contract name. Include only one of the following types. Only matching types can be valid references: {0}</value>
+  </data>
+  <data name="AmbiguousReferencedCollectionTypes3" xml:space="preserve">
+    <value>List of referenced collection types contains more than one type with data contract name '{0}' in namespace '{1}'. Include only one of the following types. Only matching types can be valid references: {2}</value>
+  </data>
+  <!-- DataTimeOffsetAdaptor -->
+  <data name="XmlInvalidConversion" xml:space="preserve">
+    <value>The value '{0}' cannot be parsed as the type '{1}'.</value>
+  </data>
+  <data name="EnumTypeCannotHaveIsReference" xml:space="preserve">
+    <value>Enum type '{0}' cannot have the IsReference setting of '{1}'. Either change the setting to '{2}', or remove it completely.</value>
+  </data>
+  <data name="InvalidEnumBaseType" xml:space="preserve">
+    <value>Type '{0}' in namespace '{1}' is not a valid base type for enum '{2}' in namespace '{3}'.</value>
+  </data>
+  <data name="TooManyEnumMembers" xml:space="preserve">
+    <value>Member '{0}.{1}' has more than one EnumMemberAttribute attribute.</value>
+  </data>
+  <data name="DataMemberOnEnumField" xml:space="preserve">
+    <value>Member '{0}.{1}' has DataMemberAttribute attribute. Use EnumMemberAttribute attribute instead.</value>
+  </data>
+  <!-- SchemaExporter -->
+  <data name="InvalidXmlDataContractName" xml:space="preserve">
+    <value>XML data contract Name for type '{0}' cannot be set to null or empty string.</value>
+  </data>
+  <data name="InvalidGetSchemaMethod" xml:space="preserve">
+    <value>Type '{0}' cannot have MethodName on XmlSchemaProviderAttribute attribute set to null or empty string.</value>
+  </data>
+  <data name="MissingGetSchemaMethod" xml:space="preserve">
+    <value>Type '{0}' does not have a static method '{1}' that takes a parameter of type 'System.Xml.Schema.XmlSchemaSet' as specified by the XmlSchemaProviderAttribute attribute.</value>
+  </data>
+  <data name="InvalidReturnTypeOnGetSchemaMethod" xml:space="preserve">
+    <value>Method '{0}.{1}()' returns '{2}'. The return type must be compatible with '{3}' or '{4}'.</value>
+  </data>
+  <data name="InvalidNonNullReturnValueByIsAny" xml:space="preserve">
+    <value>Method '{0}.{1}()' returns a non-null value. The return value must be null since IsAny=true.</value>
+  </data>
+  <data name="MissingSchemaType" xml:space="preserve">
+    <value>Schema type '{0}' returned by CLR type '{1}' is not found in the XmlSchemaSet.</value>
+  </data>
+  <data name="InvalidReturnSchemaOnGetSchemaMethod" xml:space="preserve">
+    <value>Method '{0}.GetSchema()' must return a schema with a valid Id.</value>
+  </data>
+  <!-- XmlDataContract -->
+  <data name="IXmlSerializableCannotHaveCollectionDataContract" xml:space="preserve">
+    <value>Type '{0}' cannot be IXmlSerializable and have CollectionDataContractAttribute attribute.</value>
+  </data>
+  <data name="IXmlSerializableCannotHaveDataContract" xml:space="preserve">
+    <value>Type '{0}' cannot be IXmlSerializable and have DataContractAttribute attribute.</value>
+  </data>
+  <data name="IsAnyCannotHaveXmlRoot" xml:space="preserve">
+    <value>Type '{0}' cannot specify an XmlRootAttribute attribute because its IsAny setting is 'true'. This type must write all its contents including the root element. Verify that the IXmlSerializable implementation is correct.</value>
+  </data>
+  <!-- TypeElement-->
+  <data name="KnownTypeConfigIndexOutOfBoundsZero" xml:space="preserve">
+    <value>The type '{0}' in config has '{1}' generic parameters(s). Parameter '{2}' cannot be accessed.</value>
+  </data>
+  <data name="KnownTypeConfigIndexOutOfBounds" xml:space="preserve">
+    <value>The type '{0}' in config has '{1}' generic parameters(s). Parameter '{2}' cannot be accessed. Parameter index must be greater than or equal to 0 and less than '{1}'.</value>
+  </data>
+  <data name="KnownTypeConfigGenericParamMismatch" xml:space="preserve">
+    <value>The type '{0}' in config has '{1}' generic parameter(s) but '{2}' generic argument(s) were provided. The number of generic arguments must match the number of generic parameters.</value>
+  </data>
+</root>

@@ -1,0 +1,329 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Tests for the $.ajax calls to WCF services</title>
+    <link rel="Stylesheet" href="../qunit.css" type="text/css" />
+    <script type="text/javascript" src="../jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="../qunit.js"></script>
+    <script type="text/javascript" src="../json2.js"></script>
+    <script type="text/javascript" src="../TestHelper.js"></script>
+</head>
+<body>
+    <h1 id="qunit-header">
+        Tests for the $.ajax calls to WCF services</h1>
+    <h2 id="qunit-banner">
+    </h2>
+    <h2 id="qunit-userAgent">
+    </h2>
+    <ol id="qunit-tests">
+    </ol>
+    <script type="text/javascript">
+        TestHelper.logService = "../LogService/JSTestService.svc";
+        var basicService = "../Services/BasicService.svc";
+        var hostFactoryService = "../Services/WebHttpHostFactory3Test.svc";
+
+        module("WebHttpBehavior3 POST tests");
+
+        function TestMultipleTypes(httpMethod, url, input, expectedResult) {
+            expect(1);
+            stop();
+
+            $.ajax({
+                type: httpMethod,
+                url: url,
+                data: input,
+                beforeSend: TestHelper.addTestHeader,
+                complete: TestHelper.restartQUnit,
+                error: TestHelper.genericAjaxError,
+                success: function (result, textStatus, req) {
+                    same(result, expectedResult, "Expected result must be the same: " + JSON.stringify(expectedResult));
+                }
+            });
+        }
+
+        function TestMultipleTypesPOST(input, expectedResult) {
+            TestMultipleTypes("POST", basicService + "/EchoJsonValue", input, expectedResult);
+        }
+
+        function TestMultipleTypesGET(input, expectedResult) {
+            TestMultipleTypes("GET", basicService + "/EchoJsonValueGet", input, expectedResult);
+        }
+
+        function TestMultipleTypesPOSTHostFactory(input, expectedResult) {
+            TestMultipleTypes("POST", hostFactoryService + "/EchoJsonValue", input, expectedResult);
+        }
+
+        function TestMultipleTypesGETHostFactory(input, expectedResult) {
+            TestMultipleTypes("GET", hostFactoryService + "/EchoJsonValueGet", input, expectedResult);
+        }
+
+        function TestValidationException(httpMethod, url, input, expectedError) {
+            expect(2);
+            stop();
+
+            $.ajax({
+                type: httpMethod,
+                url: url,
+                data: input,
+                beforeSend: TestHelper.addTestHeader,
+                complete: TestHelper.restartQUnit,
+                error: function (xmlHttpRequest) {
+                    var status = xmlHttpRequest.status;
+                    var response = xmlHttpRequest.responseText;
+                    same(status, 500, "Status must be 500.");
+                    same(response, expectedError, "ExpectedError must be: " + JSON.stringify(expectedError));
+                },
+                success: function (result, textStatus, req) {
+                    ok(false, "Should have got a webfault.");
+                    ok(false, "Should have got a webfault.");
+                }
+            });
+        }
+
+        test("POST operation - canonical example", function () {
+            var input = { a: [4, 5], b: { x: [7], y: 8, z: [9, "true", "undefined", ""] }, c: 1 };
+            var expectedResult = { a: ["4", "5"], b: { x: ["7"], y: "8", z: ["9", "true", "undefined", ""] }, c: "1" };
+            TestMultipleTypesPOST(input, expectedResult);
+        });
+
+        test("POST operation - canonical example using hostfactory", function () {
+            var input = { a: [4, 5], b: { x: [7], y: 8, z: [9, "true", "undefined", ""] }, c: 1 };
+            var expectedResult = { a: ["4", "5"], b: { x: ["7"], y: "8", z: ["9", "true", "undefined", ""] }, c: "1" };
+            TestMultipleTypesPOSTHostFactory(input, expectedResult);
+        });
+
+        test("POST operation - removing empty arrays", function () {
+            var input = { a: 1, b: ["hello", "world"], c: { d: null, e: 1.34, f: []} };
+            var expectedResult = { a: "1", b: ["hello", "world"], c: { d: "null", e: "1.34"} };
+
+            TestMultipleTypesPOST(input, expectedResult);
+        });
+
+        test("POST operation - object 1 - simple object", function () { TestMultipleTypesPOST({ a: 1 }, { a: "1" }) });
+        test("POST operation - object 2 - numeric key", function () { TestMultipleTypesPOST({ 1: 1 }, { 1: "1" }) });
+        test("POST operation - object 3 - nested array", function () { TestMultipleTypesPOST({ a: [1, 2] }, { a: ["1", "2"] }) });
+        test("POST operation - object 4 - nested object", function () { TestMultipleTypesPOST({ a: { b: 1} }, { a: { b: "1"} }) });
+        test("POST operation - object 5 - empty object", function () { TestMultipleTypesPOST({}, ""); });
+        test("POST operation - object 6 - object with empty key", function () { TestMultipleTypesPOST({ a: 1, "": 2 }, { a: "1", "": "2" }) });
+
+        test("POST operation - string 1 - empty", function () { TestMultipleTypesPOST("", ""); });
+        test("POST operation - string 2 - \"normal\"", function () { TestMultipleTypesPOST("abcd", { abcd: null }); });
+        test("POST operation - string 3 - space", function () { TestMultipleTypesPOST("ab cd", { "ab cd": null }); });
+        test("POST operation - string 4 - '+' sign", function () { TestMultipleTypesPOST("ab+cd", { "ab cd": null }); });
+        test("POST operation - string 5 - quotes", function () { TestMultipleTypesPOST("ab\"cd", { "ab\"cd": null }); });
+        test("POST operation - string 6 - special characters inside objects", function () {
+            var input = {
+                space: "hello world",
+                plus: "a+b=c",
+                quote: "\"To be or not to be\"",
+                control1: "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f",
+                control2: "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f",
+                latin: "áéíóú ôãêâà"
+            };
+            TestMultipleTypesPOST(input, input);
+        });
+
+        test("POST operation - boolean 1 - true", function () { TestMultipleTypesPOST({ a: true }, { a: "true" }); });
+        test("POST operation - boolean 2 - false", function () { TestMultipleTypesPOST({ a: false }, { a: "false" }); });
+
+        test("POST operation - null 1 - null", function () { TestMultipleTypesPOST(null, ""); });
+        test("POST operation - null 2 - null inside objects", function () { TestMultipleTypesPOST({ a: null }, { a: "null" }); });
+
+        test("POST operation - number 1 - integer", function () { TestMultipleTypesPOST({ a: 1 }, { a: "1" }); });
+        test("POST operation - number 2 - float", function () { TestMultipleTypesPOST({ a: 1.1111 }, { a: "1.1111" }); });
+        test("POST operation - number 3 - float with sign", function () { TestMultipleTypesPOST({ a: +1.1111 }, { a: "1.1111" }); });
+        test("POST operation - number 4 - float with sign", function () { TestMultipleTypesPOST({ a: -1.1111 }, { a: "-1.1111" }); });
+        test("POST operation - number 5 - MaxValue", function () { TestMultipleTypesPOST({ a: Number.MAX_VALUE }, { a: Number.MAX_VALUE.toString() }); });
+        test("POST operation - number 6 - MinValue", function () { TestMultipleTypesPOST({ a: Number.MIN_VALUE }, { a: Number.MIN_VALUE.toString() }); });
+        test("POST operation - number 7 - NaN", function () { TestMultipleTypesPOST({ a: Number.NaN }, { a: "NaN" }); });
+        test("POST operation - number 8 - +Infinity", function () { TestMultipleTypesPOST({ a: Number.POSITIVE_INFINITY }, { a: "Infinity" }); });
+        test("POST operation - number 9 - -Infinity", function () { TestMultipleTypesPOST({ a: Number.NEGATIVE_INFINITY }, { a: "-Infinity" }); });
+        test("POST operation - number 10 - Hex notation", function () { TestMultipleTypesPOST({ a: 0xff }, { a: "255" }); });
+
+        test("POST operation - arrays 1 - root-level arrays", function () { TestMultipleTypesPOST([1, 2], { "undefined": ["undefined", "undefined"] }); });
+        test("POST operation - arrays 2 - arrays inside objects", function () { TestMultipleTypesPOST({ a: [1, 2] }, { a: ["1", "2"] }); });
+        test("POST operation - arrays 3 - multi-dimensional arrays", function () { TestMultipleTypesPOST({ a: [[1], [2, 3], [4, 5, 6]] }, { a: [["1"], ["2", "3"], ["4", "5", "6"]] }); });
+        test("POST operation - arrays 4 - empty arrays", function () { TestMultipleTypesPOST([], ""); });
+        test("POST operation - arrays 5 - empty arrays inside objects", function () { TestMultipleTypesPOST({ a: [] }, ""); });
+
+        module("WebHttpBehavior3 GET tests");
+        test("GET operation", function () {
+            expect(1);
+            stop();
+
+            $.ajax({
+                type: "GET",
+                url: basicService + "/SumQueryStringParameters",
+                data: { a: 1, b: 2, c: 3, d: 4 },
+                beforeSend: TestHelper.addTestHeader,
+                complete: TestHelper.restartQUnit,
+                error: TestHelper.genericAjaxError,
+                success: function (result, textStatus, req) {
+                    equal(result, 10, "Expecting result to be 10");
+                }
+            });
+        });
+
+        test("GET operation - canonical example", function () {
+            var input = { a: [4, 5], b: { x: [7], y: 8, z: [9, "true", "undefined", ""] }, c: 1 };
+            var expectedResult = { a: ["4", "5"], b: { x: ["7"], y: "8", z: ["9", "true", "undefined", ""] }, c: "1" };
+            TestMultipleTypesGET(input, expectedResult);
+        });
+
+        test("GET operation - canonical example using host factory", function () {
+            var input = { a: [4, 5], b: { x: [7], y: 8, z: [9, "true", "undefined", ""] }, c: 1 };
+            var expectedResult = { a: ["4", "5"], b: { x: ["7"], y: "8", z: ["9", "true", "undefined", ""] }, c: "1" };
+            TestMultipleTypesGETHostFactory(input, expectedResult);
+        });
+
+        test("GET operation - removing empty arrays", function () {
+            var input = { a: 1, b: ["hello", "world"], c: { d: null, e: 1.34, f: []} };
+            var expectedResult = { a: "1", b: ["hello", "world"], c: { d: "null", e: "1.34"} };
+
+            TestMultipleTypesGET(input, expectedResult);
+        });
+
+        test("GET operation - object 1 - simple object", function () { TestMultipleTypesGET({ a: 1 }, { a: "1" }) });
+        test("GET operation - object 2 - numeric key", function () { TestMultipleTypesGET({ 1: 1 }, { 1: "1" }) });
+        test("GET operation - object 3 - nested array", function () { TestMultipleTypesGET({ a: [1, 2] }, { a: ["1", "2"] }) });
+        test("GET operation - object 4 - nested object", function () { TestMultipleTypesGET({ a: { b: 1} }, { a: { b: "1"} }) });
+        test("GET operation - object 5 - empty object", function () { TestMultipleTypesGET({}, {}); });
+
+        test("GET operation - string 1 - empty", function () { TestMultipleTypesGET("", {}); });
+        test("GET operation - string 2 - \"normal\"", function () { TestMultipleTypesGET("abcd", { abcd: null }); });
+        test("GET operation - string 3 - space", function () { TestMultipleTypesGET("ab cd", { "ab cd": null }); });
+        test("GET operation - string 4 - '+' sign", function () { TestMultipleTypesGET("ab+cd", { "ab cd": null }); });
+        test("GET operation - string 5 - quotes", function () { TestMultipleTypesGET("ab\"cd", { "ab\"cd": null }); });
+        test("GET operation - string 6 - special characters inside objects", function () {
+            var input = {
+                space: "hello world",
+                plus: "a+b=c",
+                quote: "\"To be or not to be\"",
+                control1: "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f",
+                control2: "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f",
+                latin: "áéíóú ôãêâà"
+            };
+            TestMultipleTypesGET(input, input);
+        });
+
+        test("GET operation - boolean 1 - true", function () { TestMultipleTypesGET({ a: true }, { a: "true" }); });
+        test("GET operation - boolean 2 - false", function () { TestMultipleTypesGET({ a: false }, { a: "false" }); });
+
+        test("GET operation - null 1 - null", function () { TestMultipleTypesGET(null, {}); });
+        test("GET operation - null 2 - null inside objects", function () { TestMultipleTypesGET({ a: null }, { a: "null" }); });
+
+        test("GET operation - number 1 - integer", function () { TestMultipleTypesGET({ a: 1 }, { a: "1" }); });
+        test("GET operation - number 2 - float", function () { TestMultipleTypesGET({ a: 1.1111 }, { a: "1.1111" }); });
+        test("GET operation - number 3 - float with sign", function () { TestMultipleTypesGET({ a: +1.1111 }, { a: "1.1111" }); });
+        test("GET operation - number 4 - float with sign", function () { TestMultipleTypesGET({ a: -1.1111 }, { a: "-1.1111" }); });
+        test("GET operation - number 5 - MaxValue", function () { TestMultipleTypesGET({ a: Number.MAX_VALUE }, { a: Number.MAX_VALUE.toString() }); });
+        test("GET operation - number 6 - MinValue", function () { TestMultipleTypesGET({ a: Number.MIN_VALUE }, { a: Number.MIN_VALUE.toString() }); });
+        test("GET operation - number 7 - NaN", function () { TestMultipleTypesGET({ a: Number.NaN }, { a: "NaN" }); });
+        test("GET operation - number 8 - +Infinity", function () { TestMultipleTypesGET({ a: Number.POSITIVE_INFINITY }, { a: "Infinity" }); });
+        test("GET operation - number 9 - -Infinity", function () { TestMultipleTypesGET({ a: Number.NEGATIVE_INFINITY }, { a: "-Infinity" }); });
+        test("GET operation - number 10 - Hex notation", function () { TestMultipleTypesGET({ a: 0xff }, { a: "255" }); });
+
+        test("GET operation - arrays 1 - root-level arrays", function () { TestMultipleTypesGET([1, 2], { "undefined": ["undefined", "undefined"] }); });
+        test("GET operation - arrays 2 - arrays inside objects", function () { TestMultipleTypesGET({ a: [1, 2] }, { a: ["1", "2"] }); });
+        test("GET operation - arrays 3 - multi-dimensional arrays", function () { TestMultipleTypesGET({ a: [[1], [2, 3], [4, 5, 6]] }, { a: [["1"], ["2", "3"], ["4", "5", "6"]] }); });
+        test("GET operation - arrays 4 - empty arrays", function () { TestMultipleTypesGET([], {}); });
+        test("GET operation - arrays 5 - empty arrays inside objects", function () { TestMultipleTypesGET({ a: [] }, {}); });
+
+        module("WebHttpBehavior3 - different response encodings");
+
+        test("POST operation - returning UTF-16LE", function () {
+            var input = { a: 123, b: [1, 2], c: "hello" };
+            var expectedResult = { a: '123', b: ['1', '2'], c: "hello" };
+            TestMultipleTypes("POST", basicService + "/utf16le/EchoJsonValue", input, expectedResult);
+        });
+        test("GET operation - returning UTF-16LE", function () {
+            var input = { a: 123, b: [1, 2], c: "hello" };
+            var expectedResult = { a: '123', b: ['1', '2'], c: "hello" };
+            TestMultipleTypes("GET", basicService + "/utf16le/EchoJsonValueGet", input, expectedResult);
+        });
+        test("POST operation - returning UTF-16BE", function () {
+            var input = { a: 123, b: [1, 2], c: "hello" };
+            var expectedResult = { a: '123', b: ['1', '2'], c: "hello" };
+            TestMultipleTypes("POST", basicService + "/utf16be/EchoJsonValue", input, expectedResult);
+        });
+        test("GET operation - returning UTF-16BE", function () {
+            var input = { a: 123, b: [1, 2], c: "hello" };
+            var expectedResult = { a: '123', b: ['1', '2'], c: "hello" };
+            TestMultipleTypes("GET", basicService + "/utf16be/EchoJsonValueGet", input, expectedResult);
+        });
+
+        module("WebHttpBehavior3 - validation exception response");
+
+        test("Validate Presence", function () {
+            var input = { a: "f" };
+            var expectedResult = { a: "f" };
+            TestMultipleTypes("POST", basicService + "/ValidateJsonValue/a/validatepresence", input, expectedResult);
+        });
+        test("Validate Range (which expects a number between 0 and 10)", function () {
+            var input = { a: "7" };
+            var expectedResult = { a: "7" };
+            TestMultipleTypes("POST", basicService + "/ValidateJsonValue/a/validaterange", input, expectedResult);
+        });
+        test("Validate Type Of (using int for sample)", function () {
+            var input = { a: "7" };
+            var expectedResult = { a: "7" };
+            TestMultipleTypes("POST", basicService + "/ValidateJsonValue/a/validatetypeofint", input, expectedResult);
+        });
+        test("Validate String Length", function () {
+            var input = { a: "10CharStri" };
+            var expectedResult = { a: "10CharStri" };
+            TestMultipleTypes("POST", basicService + "/ValidateJsonValue/a/validatestringlength", input, expectedResult);
+        });
+        test("Validate RegEx (which expects a string with 10 chars)", function () {
+            var input = { a: "10CharStri" };
+            var expectedResult = { a: "10CharStri" };
+            TestMultipleTypes("POST", basicService + "/ValidateJsonValue/a/validateregex", input, expectedResult);
+        });
+        test("Validate Custom Simple (which expects a string to contain Char)", function () {
+            var input = { a: "10CharStri" };
+            var expectedResult = { a: "10CharStri" };
+            TestMultipleTypes("POST", basicService + "/ValidateJsonValue/a/validatecustomsimple", input, expectedResult);
+        });
+        test("Validate Custom Complex (which expects a string to contain Char)", function () {
+            var input = { a: "10CharStri" };
+            var expectedResult = { a: "10CharStri" };
+            TestMultipleTypes("POST", basicService + "/ValidateJsonValue/a/validatecustomcomplex", input, expectedResult);
+        });
+        test("Validate Negative - Presence", function () {
+            var input = { a: "f" };
+            var expectedResult = "{\"f\":\"The JsonObject does not contain a key named f.\"}";
+            TestValidationException("POST", basicService + "/ValidateJsonValue/f/validatepresence", input, expectedResult);
+        });
+        test("Validate Negative - Range (which expects a number between 0 and 10)", function () {
+            var input = { a: "100" };
+            var expectedResult = "{\"a\":\"The field a must be between 0 and 10.\"}";
+            TestValidationException("POST", basicService + "/ValidateJsonValue/a/validaterange", input, expectedResult);
+        });
+        test("Validate Negative - Type Of (using int for sample)", function () {
+            var input = { a: "not an int!" };
+            var expectedResult = "{\"a\":\"Field named a is not of type System.Int32.\"}";
+            TestValidationException("POST", basicService + "/ValidateJsonValue/a/validatetypeofint", input, expectedResult);
+        });
+        test("Validate Negative - String Length", function () {
+            var input = { a: "12CharString" };
+            var expectedResult = "{\"a\":\"The field a must be a string with a maximum length of 10.\"}";
+            TestValidationException("POST", basicService + "/ValidateJsonValue/a/validatestringlength", input, expectedResult);
+        });
+        test("Validate Negative - RegEx (which expects a string with 10 chars)", function () {
+            var input = { a: "12CharString" };
+            var expectedResult = "{\"a\":\"The field a must match the regular expression '^.{10}$'.\"}";
+            TestValidationException("POST", basicService + "/ValidateJsonValue/a/validateregex", input, expectedResult);
+        });
+        test("Validate Negative - Custom Simple (which expects a string to contain Char)", function () {
+            var input = { a: "11ChrString" };
+            var expectedResult = "{}";
+            TestValidationException("POST", basicService + "/ValidateJsonValue/a/validatecustomsimple", input, expectedResult);
+        });
+        test("Validate Negative - Custom Complex (which expects a string to contain Char)", function () {
+            var input = { a: "11ChrString" };
+            var expectedResult = "{\"a\":\"String must contain 'Char'\"}";
+            TestValidationException("POST", basicService + "/ValidateJsonValue/a/validatecustomcomplex", input, expectedResult);
+        });
+    </script>
+</body>
+</html>

@@ -13,7 +13,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-    xmlns:common="clr-namespace:CloudApiPrivate.Common;assembly=CloudApiPrivate"
     xmlns:commonClient="clr-namespace:win_client.Common"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
@@ -79,11 +78,11 @@
                          Text="{Binding FullName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="2" VerticalAlignment="Top" Margin="0,5,0,0" Height="29" FontSize="13.333" 
                          Validation.ErrorTemplate="{StaticResource errorTemplate}"
                          commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
-                <common:SecurePasswordBox x:Name="tbPassword" Foreground="Black" Margin="0,5" Grid.Row="5" Grid.Column="1" 
+                <commonClient:SecurePasswordBox x:Name="tbPassword" Foreground="Black" Margin="0,5" Grid.Row="5" Grid.Column="1" 
                          Text="{Binding Password, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="3" d:LayoutOverrides="Height" FontSize="13.333" 
                          Validation.ErrorTemplate="{StaticResource errorTemplate}"
                          commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
-                <common:SecurePasswordBox x:Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="6" Grid.Column="1" d:LayoutOverrides="Height" 
+                <commonClient:SecurePasswordBox x:Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="6" Grid.Column="1" d:LayoutOverrides="Height" 
                          Text="{Binding ConfirmPassword, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="4" FontSize="13.333" 
                          Validation.ErrorTemplate="{StaticResource errorTemplate}"
                          commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>

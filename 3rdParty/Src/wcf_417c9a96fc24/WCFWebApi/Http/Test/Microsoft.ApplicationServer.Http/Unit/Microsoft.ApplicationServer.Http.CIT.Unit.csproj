@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{45C3BEDE-DEE4-40B5-B055-28B8AC01EE78}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.ApplicationServer.Http.Channels.Unit</RootNamespace>
+    <AssemblyName>Microsoft.ApplicationServer.Http.CIT.Unit</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Microsoft.ApplicationServer.Http.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ServiceModel.dll" />
+    <Reference Include="System.ServiceModel.Web.dll" />
+    <Reference Include="System.ServiceModel.Activation.dll" />
+    <Reference Include="System.Web.dll" />
+    <Reference Include="System.configuration.dll" />
+    <Reference Include="System.Runtime.Serialization.dll" />
+    <Reference Include="System.XML.dll" />
+    <Reference Include="System.Xml.Linq.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll" />
+    <!--Reference to a $(INETROOT)\private\external\common\TestHost\V4.0\Microsoft.Infrastructure.dll-->
+    <!--Reference to a $(INETROOT)\private\external\common\TestHost\V4.0\Microsoft.Infrastructure.Test.dll-->
+    <!-- ***** HARD CODING FOR TEST ***** -->
+  </ItemGroup>
+  <ItemGroup>
+    <!--This was a reference to Moles assemblies used by tests ($(INETROOT)\public\ext\Pex\0.94.51023.0\tools\VS2010\Microsoft.ExtendedReflection.dll) - ignoring for now-->
+    <!--This was a reference to Moles Fx assemblies ($(INETROOT)\public\ext\Pex\0.94.51023.0\tools\VS2010\Microsoft.Moles.Framework.dll) - ignoring for now-->
+    <!-- ***** HARD CODING FOR TEST ***** -->
+    <Reference Include="Microsoft.ExtendedReflection">
+      <HintPath>D:\Programming Projects\wcfhttp\Lib\Pex\0.94.51023.0\tools\VS2010\Microsoft.ExtendedReflection.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Moles.Framework">
+      <HintPath>D:\Programming Projects\wcfhttp\Lib\Pex\0.94.51023.0\tools\VS2010\Microsoft.Moles.Framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.ApplicationServer.Http.Moles">
+      <HintPath>$(MolesOutputPath)\Microsoft.ApplicationServer.Http.Moles.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Net.Http.Moles">
+      <HintPath>$(MolesOutputPath)\Microsoft.Net.Http.Moles.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ApplicationServer.ServiceModel.Moles">
+      <HintPath>$(MolesOutputPath)\Microsoft.ApplicationServer.ServiceModel.Moles.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Src\Microsoft.ApplicationServer.Http\Microsoft.ApplicationServer.Http.csproj">
+      <Project>{947ABFDB-E1A8-47D5-A982-A7B03CE02BC6}</Project>
+      <Name>Microsoft.ApplicationServer.Http</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Src\Microsoft.ApplicationServer.ServiceModel\Microsoft.ApplicationServer.ServiceModel.csproj">
+      <Project>{420A4BC6-1514-11E0-B2ED-BA35DFD72085}</Project>
+      <Name>Microsoft.ApplicationServer.ServiceModel</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Src\Microsoft.Net.Http\Microsoft.Net.Http.csproj">
+      <Project>{1A75CF16-5727-4ADA-B15A-3037703FC2ED}</Project>
+      <Name>Microsoft.Net.Http</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Microsoft.ApplicationServer.Common.MSTestUtilities\Microsoft.ApplicationServer.Common.MSTestUtilities.csproj">
+      <Project>{C35BA2D1-6B89-43FF-9A11-404473A26C17}</Project>
+      <Name>Microsoft.ApplicationServer.Common.MSTestUtilities</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Src\Microsoft.ApplicationServer.Common\Microsoft.ApplicationServer.Common.csproj">
+      <Project>{B51B4830-DE3F-4AB7-9B1B-6BE886C63EFD}</Project>
+      <Name>Microsoft.ApplicationServer.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageHandlerChannelBindingElementTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageHandlerChannelFactoryTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpBehaviorElementTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpBindingElementTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpEndpointElementTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpParameterValueConverterTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\OperationHandlerFormatterTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\OperationHandlerPipelineContextTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\OperationHandlerPipelineInfoTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\OperationHandlerPipelineTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\RequestContentHandlerTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\ResponseContentHandlerTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Test\HttpOperationAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Test\HttpParameterAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Test\HttpTestData.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpBehaviorTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpOperationDescriptionExtensionMethodsTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HelpPageTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\TrailingSlashModeTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\UriAndMethodOperationSelectorTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncoderFactoryTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncoderTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncodingBindingElementTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncodingChannelListenerTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncodingReplyChannelTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncodingRequestContextTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageExtensionMethodsTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageHandlerBindingElementTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageHandlerFactoryTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpTransportSecurityElementTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpTransportSecurityTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\Mocks\MockValidMessageHandler.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\Mocks\MockInvalidMessageHandler.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\ActionOfStreamContentTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpBindingSecurityTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpContentExtensionMethodsTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpRequestMessageOfTTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpResponseMessageOfTTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeFormatterExtensionMethodsTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Test\MediaTypeAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpTypeHelperTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\UnitTest.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\JsonMediaTypeFormatterTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeFormatterCollectionTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeFormatterTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\ObjectContentOfTTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\ObjectContentTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Test\ObjectContentAssert.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\UnitTestSuite.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\UriPathExtensionMappingTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpOperationHandlerOfTTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpErrorHandlerTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpInstanceProviderTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpMessageFormatterTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpMessageInspectorTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpOperationDescriptionTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpOperationSelectorTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpParameterCollectionTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpParameterTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpServiceHostTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaRangeMappingTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeHeadeValueComparerTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeHeadeValueEqualityComparerTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeHeadeValueExtensionMethodsTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\ParsedMediaTypeHeaderValueTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpOperationHandlerTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\QueryStringMappingTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\UriTemplateHandlerTests.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\XmlMediaTypeFormatterTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ConfigFiles\Microsoft.ApplicationServer.Http.CIT.Unit.ConfiguredHttpBehaviorTest.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ConfigFiles\Microsoft.ApplicationServer.Http.CIT.Unit.ConfiguredHttpBehaviorWithServiceTest.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ConfigFiles\Microsoft.ApplicationServer.Http.CIT.Unit.ConfiguredHttpBindingTest.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ConfigFiles\Microsoft.ApplicationServer.Http.CIT.Unit.ConfiguredHttpEndpointWithServiceTest.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ConfigFiles\Microsoft.ApplicationServer.Http.CIT.Unit.EmptyConfigurationTest.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <!-- Moles files -->
+  <ItemGroup>
+    <Moles Include="Microsoft.ApplicationServer.Http.moles" />
+    <Moles Include="Microsoft.Net.Http.moles" />
+    <Moles Include="Microsoft.ApplicationServer.ServiceModel.moles" />
+  </ItemGroup>
+  <!--
+  <ItemGroup>
+    <BinplaceCompiled Include="ConfigFiles\*.config">
+      <InProject>false</InProject>
+    </BinplaceCompiled>
+  </ItemGroup>
+  <ItemGroup />
+  -->
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- ***** HARD CODING FOR TEST ***** -->
+  <!--<Import Project="D:\Programming Projects\wcfhttp\Lib\Pex\0.94.51023.0\tools\Microsoft.Moles.targets" />-->
+</Project>

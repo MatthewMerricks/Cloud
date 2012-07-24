@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Calendar Entry</title>
+    <link href="main.css" rel="stylesheet" type="text/css" />
+    <link href="http://ajax.microsoft.com/ajax/jquery.ui/1.8.5/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js" type="text/javascript"></script>
+    <script src="http://ajax.microsoft.com/ajax/jquery.validate/1.5.5/jquery.validate.js" type="text/javascript"></script>
+    <script src="http://ajax.microsoft.com/ajax/jquery.ui/1.8.5/jquery-ui.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(function () {
+            // Apply styles
+            $("h1").addClass("ui-widget-header");
+            $("body").addClass("ui-widget");
+            $("input[type=\"submit\"], input[type=\"reset\"]").button();
+            $("#AvailabilityChoice").buttonset();
+            $("input[type=\"checkbox\"]").button();
+
+            // Apply widgets
+            $("#StartDate, #EndDate").datepicker({
+                dateFormat: $.datepicker.ISO_8601
+            });
+            $("#Guests").autocomplete({
+                source: function (request, response) {
+                    $.getJSON(
+                        "contacts/",
+                        { term: extractLast(request.term) },
+                        response
+                    );
+                },
+                search: function () {
+                    // custom minLength
+                    var term = extractLast(this.value);
+                    if (term.length < 1) {
+                        return false;
+                    }
+                },
+                focus: function () {
+                    // prevent value inserted on focus
+                    return false;
+                },
+                select: function (event, ui) {
+                    var terms = split(this.value);
+                    // remove the current input
+                    terms.pop();
+                    // add the selected item
+                    terms.push(ui.item.value);
+                    // add placeholder to get the comma-and-space at the end
+                    terms.push("");
+                    this.value = terms.join(", ");
+                    return false;
+                }
+            });
+            var validator = $("form").validate({
+                errorClass: "ui-state-error ui-corner-all",
+                highlight: function (element, errorClass, validClass) {
+                    $(element).focus();
+                    $(element.form).find("label[for=" + element.id + "][generated=\"true\"]")
+                    .addClass(errorClass);
+                }
+            });
+            $("form").submit(function () {
+                $(this).find("label[generated=\"true\"]").remove();
+                $.ajax({
+                    type: "POST",
+                    url: "calendar/",
+                    data: $(this).serialize(),
+                    context: this,
+                    success: function (value) {
+                        $(this).prepend("<p class=\"ui-state-highlight ui-corner-all\"><span class=\"ui-icon ui-icon-info\" style=\"float:left\"></span>Form submitted successfully!</p>");
+                    },
+                    error: function (xhr, status, error) {
+                        if (status == "error") {
+                            validator.showErrors($.parseJSON(xhr.responseText));
+                        }
+                    }
+                });
+                return false;
+            });
+
+            var nextMeetingStart = new Date();
+            nextMeetingStart.setHours(nextMeetingStart.getHours() + 1, 0, 0, 0);
+            var nextMeetingEnd = new Date();
+            nextMeetingEnd.setHours(nextMeetingEnd.getHours() + 2, 0, 0, 0);
+            $("#AllDay").change(function () {
+                if (!this.checked) {
+                    $("#StartTime").val(toIsoTime(nextMeetingStart)).show();
+                    $("#EndTime").val(toIsoTime(nextMeetingEnd)).show();
+                } else {
+                    $("#StartTime").hide().val("00:00:01");
+                    $("#EndTime").hide().val("23:59:59");
+                }
+            });
+           
+            // Populate defaults
+            $("#StartDate").val($.datepicker.formatDate($.datepicker.ISO_8601, nextMeetingStart));
+            $("#EndDate").val($.datepicker.formatDate($.datepicker.ISO_8601, nextMeetingEnd));
+            $("#StartTime").val(toIsoTime(nextMeetingStart));
+            $("#EndTime").val(toIsoTime(nextMeetingEnd));
+        });
+        function toIsoTime(date)
+        {
+            return padNumber(date.getHours()) + ":" + padNumber(date.getMinutes()) + ":" + padNumber(date.getSeconds());
+        }
+        function padNumber(number)
+        {
+            if (number < 10) {
+                return "0" + number;
+            } else {
+                return number.toString();
+            }
+        }
+        function split(val) {
+			return val.split(/,\s*/);
+		}
+		function extractLast(term) {
+			return split(term).pop();
+		}
+    </script>
+</head>
+<body>
+    <h1>Create new event</h1>
+    <form method="post" action="calendar/" id="addEntry">
+    <fieldset>
+        <legend>Event Information</legend>
+        <ol>
+            <li>
+                <label for="What">
+                    What</label>
+                <input type="text" name="What" id="What" />
+            </li>
+            <li>
+                <fieldset>
+                    <legend>When</legend>
+                    <input type="text" name="StartDate" id="StartDate" />
+                    <input type="text" name="StartTime" id="StartTime"  />
+                    to
+                    <input type="text" name="EndTime" id="EndTime" />
+                    <input type="text" name="EndDate" id="EndDate" />
+                    <input type="checkbox" name="AllDay" id="AllDay"/><label for="AllDay">All day</label>
+                    
+                </fieldset>
+            </li>
+            <li>
+                <label for="Where">
+                    Where</label>
+                <input type="text" name="Where" id="Where" />
+            </li>
+            <li>
+                <label for="Description">
+                    Description</label>
+                <br />
+                <textarea name="Description" id="Description" rows="5" cols="1"></textarea>
+            </li>
+        </ol>
+    </fieldset>
+    <fieldset>
+        <legend>Options</legend>
+        <ol>
+            <li>
+                <fieldset>
+                    <legend>Reminder</legend>
+                    <input type="text" name="ReminderValue" id="ReminderValue" value="10" />
+                    <select name="ReminderUnits" id="ReminderUnits">
+                        <option value="Minutes">Minutes</option>
+                        <option value="Hours">Hours</option>
+                        <option value="Days">Days</option>
+                        <option value="Weeks">Weeks</option>
+                    </select>
+                </fieldset>
+            </li>
+            <li>
+            <fieldset id="AvailabilityChoice">
+					<legend>Show me as</legend>
+                    <input type="radio" name="ShowMeAs" id="ShowMeAsAvailable" value="Available"/><label for="ShowMeAsAvailable">Available</label>
+                    <input type="radio" name="ShowMeAs" id="ShowMeAsBusy" checked="checked" value="Busy" /><label for="ShowMeAsBusy">Busy</label>
+				</fieldset>
+
+            </li>
+        </ol>
+    </fieldset>
+    <fieldset>
+        <legend>Guests</legend>
+        <ol>
+            <li>
+                <input type="text" name="Guests" id="Guests"  />
+            </li>
+            <li>
+                <fieldset>
+                    <legend>Guests can</legend>
+                    <input type="checkbox" name="ModifyEvent" id="ModifyEvent" value="true" /><label for="ModifyEvent">Modify event</label>
+                    <input type="checkbox" checked="checked" name="InviteOthers" id="InviteOthers" value="true"/><label for="InviteOthers">Invite others</label>
+                    <input type="checkbox" checked="checked" name="SeeGuestList" id="SeeGuestList" value="true"/><label for="SeeGuestList">See guest list</label>
+                </fieldset>
+            </li>
+        </ol>
+    </fieldset>
+    <input type="submit" value="Save" />
+    </form>
+</body>
+</html>

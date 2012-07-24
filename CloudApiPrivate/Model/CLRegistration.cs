@@ -87,7 +87,6 @@ namespace CloudApiPrivate.Model
                         err.errorDomain = CLError.ErrorDomain_Application;
                         err.errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("ExceptionCreatingUserRegistration");
                         err.errorCode = (int)CLError.ErrorCodes.Exception;
-                        err.errorInfo = new Dictionary<string,object>();
                         err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
                         isSuccess = false;
                     }
@@ -165,7 +164,7 @@ namespace CloudApiPrivate.Model
             if (result.IsSuccessStatusCode)
             {
             
-                string jsonResult = result.Content.ReadAsStringAsync().Result;
+                string jsonResult = result.Content.ReadAsString();
 
                 _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
 
@@ -275,7 +274,6 @@ namespace CloudApiPrivate.Model
                     err.errorDomain = CLError.ErrorDomain_Application;
                     err.errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("ExceptionLoggingIn");
                     err.errorCode = (int)CLError.ErrorCodes.Exception;
-                    err.errorInfo = new Dictionary<string, object>();
                     err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
                     isSuccess = false;
                 }
@@ -352,7 +350,7 @@ namespace CloudApiPrivate.Model
             if (result.IsSuccessStatusCode)
             {
 
-                string jsonResult = result.Content.ReadAsStringAsync().Result;
+                string jsonResult = result.Content.ReadAsString();
 
                 _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
 

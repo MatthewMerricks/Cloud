@@ -4,7 +4,7 @@
 library
 C#
 .cs
-C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Modules\Samples.Modules.PropertyGrid\obj\Debug\
+C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Modules\Samples.Modules.PropertyGrid\obj\Debug\
 Samples.Modules.PropertyGrid
 none
 false
@@ -13,7 +13,7 @@ DEBUG;TRACE
 91230561260
 
 13-1243717061
-16-1270248689
+16-30711707
 Resources\LastNameUserControlEditor.xaml;Views\BindingToStructs.xaml;Views\CustomEditors.xaml;Views\CustomItemsSource.xaml;Views\DefaultEditors.xaml;Views\ExpandableProperties.xaml;Views\HomeView.xaml;Views\NavigationView.xaml;Views\SpecifyingProperties.xaml;
 
 False

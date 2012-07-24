@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="WeatherWidget.WeatherService" Factory="WeatherWidget.WebServiceHostFactory3WithJsonP" CodeBehind="WeatherService.svc.cs" %>

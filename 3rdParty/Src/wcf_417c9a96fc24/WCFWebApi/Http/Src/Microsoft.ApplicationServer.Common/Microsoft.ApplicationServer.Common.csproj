@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B51B4830-DE3F-4AB7-9B1B-6BE886C63EFD}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.ApplicationServer.Common</RootNamespace>
+    <AssemblyName>Microsoft.ApplicationServer.Common</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\Build\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\Build\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>bin\Release\Microsoft.ApplicationServer.Common.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Transactions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Common\ActionItem.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\AssertHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\AssertionFailedException.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\AsyncResult.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\BufferedOutputStream.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\AsyncWaitHandle.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\CollectionHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregationSettings.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\HashHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Notification\INotificationService.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Notification\NotificationEvent.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Notification\NotificationReceiver.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Notification\NotificationSender.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\ReadOnlyDictionary.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\CallbackException.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\ChainedAsyncResult.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\CompletedAsyncResult.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\ComputerNameFormat.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\DiagnosticStrings.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\DiagnosticEventProvider.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\DiagnosticTrace.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\DiagnosticTraceSource.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\DictionaryTraceRecord.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\EtwProvider.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\EventLogEventId.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\EventLogger.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\PerformanceCounterNameAttribute.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\StringTraceRecord.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Diagnostics\TraceRecord.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregateGroupKey.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregateTimeWindow.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregateTimeWindowBase.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregateTimeWindowQueue.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregateTimeWindowQueueBase.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregationDefaults.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregationProcessor.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregationSynopsis.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregationSynopsisBase.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\AggregationUtility.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\BaseEvent.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\MetricEvent.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\ResourceEvent.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\RollupAggregateTimeWindow.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\RollupAggregateTimeWindowQueue.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\RollupAggregationProcessor.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Events\RollupAggregationSynopsis.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\ExceptionTrace.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\FatalException.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Fx.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\FXCop.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\InputQueue.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\InternalBufferManager.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Interop\SafeEventLogWriteHandle.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Interop\UnsafeNativeMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\IOThreadScheduler.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\IOThreadTimer.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\PartialTrustHelpers.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\ProviderEventEmitter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\SignalGate.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\SingleItemOrList.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\SynchronizedPool.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\Ticks.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\TimeoutHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\TraceChannel.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\TraceEventLevel.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\TraceEventOpcode.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\TraceLevelHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\TracePayload.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\TypeHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\ValidatingCollection.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Common\WaitCallbackActionItem.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SRCore.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SRCore.resx</DependentUpon>
+    </Compile>
+    <Compile Include="TraceCore.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TraceCore.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SRCore.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SRCore.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TraceCore.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TraceCore.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

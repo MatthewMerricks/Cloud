@@ -19,6 +19,7 @@
     <SccAuxPath />
     <SccProvider>
     </SccProvider>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -40,7 +41,7 @@
     <DocumentationFile>bin\Release\GalaSoft.MvvmLight.WPF4.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>GalaSoft.MvvmLight %28NET4%29.snk</AssemblyOriginatorKeyFile>

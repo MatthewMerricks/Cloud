@@ -35,7 +35,7 @@ namespace CloudApiPublic.Support
 
         private HttpClient _client;
         public HttpClient Client
-        {
+        { 
             get { return _client; }
             set { _client = value; }
         }
@@ -208,6 +208,14 @@ namespace CloudApiPublic.Support
             this.UploadStream = uploadStream;
         }
 
+        private class HttpClientTaskParameters
+        {
+            public HttpClient Client { get; set; }
+            public HttpRequestMessage Message { get; set; }
+            public object UserState { get; set; }
+            public Action<HttpResponseMessage> SetResponse { get; set; }
+        }
+
         public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request)
         {
             //    _operationRequest = request;
@@ -226,7 +234,7 @@ namespace CloudApiPublic.Support
 
 
         //- (void)start {
-        public override void Main()
+        public override CLError Main()
         {
             // Merged 7/13/12
             // if (self.isCancelled != YES) {
@@ -256,138 +264,177 @@ namespace CloudApiPublic.Support
 
             //&&&&&&
 
-            // if (self.isCancelled != YES) {
-            if (!this.IsCancelled)
+            CLError toReturn = null;
+            try
             {
-                // NSRunLoop *currentRunLoop = [NSRunLoop currentRunLoop];
-
-                // [self willChangeValueForKey: @"isExecuting"];
-                // self.executing = YES;
-                // [self didChangeValueForKey: @"isExecuting"];
-                this.Executing = true;
-
-                // Note: Not necessary.  Reworked below.
-                // if (self.responseFilePath && self.isDownloadOperation) {
-                //     [self createStreamToTempFilePath];
-                // }else {
-                //     self.inputStream = [NSInputStream inputStreamWithFileAtPath:self.responseFilePath];
-                // }
-                // self.urlConnection = [NSURLConnection connectionWithRequest:self.operationRequest delegate:self];
-                // [self.urlConnection scheduleInRunLoop:currentRunLoop forMode:NSRunLoopCommonModes];
-                // [self.urlConnection start];
-
-                Task<HttpResponseMessage> task = null;
-                try
+                // if (self.isCancelled != YES) {
+                if (!this.IsCancelled)
                 {
-                    _trace.writeToLog(9, "CLSptHttpConnectionOperation: Main: Send the {0} operation to the server.", this.IsDownloadOperation ? "download" : "upload");
-                    _trace.writeToLog(9, "CLSptHttpConnectionOperation: Main: Response file path: <{0}>.", this.ResponseFilePath);
+                    // NSRunLoop *currentRunLoop = [NSRunLoop currentRunLoop];
 
-                    if (this.IsDownloadOperation)
+                    // [self willChangeValueForKey: @"isExecuting"];
+                    // self.executing = YES;
+                    // [self didChangeValueForKey: @"isExecuting"];
+                    this.Executing = true;
+
+                    // Note: Not necessary.  Reworked below.
+                    // if (self.responseFilePath && self.isDownloadOperation) {
+                    //     [self createStreamToTempFilePath];
+                    // }else {
+                    //     self.inputStream = [NSInputStream inputStreamWithFileAtPath:self.responseFilePath];
+                    // }
+                    // self.urlConnection = [NSURLConnection connectionWithRequest:self.operationRequest delegate:self];
+                    // [self.urlConnection scheduleInRunLoop:currentRunLoop forMode:NSRunLoopCommonModes];
+                    // [self.urlConnection start];
+
+                    Task<HttpResponseMessage> task = null;
+                    try
                     {
-                        // Download operation
-                        CreateStreamToTempFilePath();
-                        task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask) =>
+                        _trace.writeToLog(9, "CLSptHttpConnectionOperation: Main: Send the {0} operation to the server.", this.IsDownloadOperation ? "download" : "upload");
+                        _trace.writeToLog(9, "CLSptHttpConnectionOperation: Main: Response file path: <{0}>.", this.ResponseFilePath);
+
+                        if (this.IsDownloadOperation)
                         {
-                            HttpResponseMessage response = null;
-                            try
+                            // Download operation
+                            CreateStreamToTempFilePath();
+                            task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask) =>
                             {
-                                // Get HTTP response from completed task. 
-                                response = requestTask.Result;
-                                this.Response = response;
+                                HttpResponseMessage response = null;
+                                try
+                                {
+                                    // Get HTTP response from completed task. 
+                                    response = requestTask.Result;
+                                    this.Response = response;
 
-                                // Check that response was successful or throw exception 
-                                response.EnsureSuccessStatusCode();
+                                    // Check that response was successful or throw exception 
+                                    response.EnsureSuccessStatusCode();
 
-                                // Read response asynchronously and save to file 
-                                response.Content.ReadAsFileAsync(this.TempFilePath, true).ContinueWith(
-                                    (readTask) =>
+                                    // Read response asynchronously and save to file 
+                                    response.Content.ReadAsFileAsync(this.TempFilePath, true).ContinueWith(
+                                        (readTask) =>
+                                        {
+                                            _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: File copied to disk.");
+                                        });
+                                }
+                                catch (Exception ex)
+                                {
+                                    toReturn += ex;
+                                    _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception requesting download file transfer.  Msg: {0}, Code: {1}.",
+                                                        toReturn.errorDescription, toReturn.errorCode);
+                                }
+                                return response;
+                            });
+                        }
+                        else
+                        {
+                            // Upload operation
+                            StreamContent fileContent = new StreamContent(this.UploadStream);
+
+                            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                            _operationRequest.Content = fileContent;
+                            _operationRequest.Content.Headers.Add("Content-MD5", Hash);
+                            _operationRequest.Content.Headers.Add("Content-Length", Size);
+
+                            task = new Task<HttpResponseMessage>(state =>
+                                {
+                                    HttpClientTaskParameters castState = state as HttpClientTaskParameters;
+                                    HttpResponseMessage response = null;
+
+                                    if (castState != null
+                                        && castState.Client != null
+                                        && castState.Message != null
+                                        && castState.SetResponse != null)
                                     {
-                                        _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: File copied to disk.");
+                                        try
+                                        {
+                                            response = castState.Client.SendAsync(castState.Message).Result;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            toReturn += ex;
+                                            _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Communication failure for upload. Msg: {0}, Code: {1}.",
+                                                toReturn.errorDescription, toReturn.errorCode);
+                                        }
+
+                                        if (response != null)
+                                        {
+                                            try
+                                            {
+                                                FileStream toUnlock = castState.UserState as FileStream;
+                                                if (toUnlock != null)
+                                                {
+                                                    toUnlock.Dispose();
+                                                }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                toReturn += ex;
+                                                _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception unlocking upload filestream.  Msg: {0}, Code: {1}.",
+                                                                    toReturn.errorDescription, toReturn.errorCode);
+                                            }
+
+                                            try
+                                            {
+                                                // set the response
+                                                castState.SetResponse(response);
+
+                                                // Check that response was successful or throw exception 
+                                                response.EnsureSuccessStatusCode();
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                toReturn += ex;
+                                                _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception getting response from upload file transfer.  Msg: {0}, Code: {1}.",
+                                                                    toReturn.errorDescription, toReturn.errorCode);
+                                            }
+                                        }
+                                    }
+                                    return response;
+
+                                }, new HttpClientTaskParameters()
+                                    {
+                                        Client = _client,
+                                        Message = _operationRequest,
+                                        UserState = this.UploadStream,
+                                        SetResponse = response => this.Response = response
                                     });
-                            }
-                            catch (Exception ex)
-                            {
-                                CLError error = ex;
-                                _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception requesting download file transfer.  Msg: {0}, Code: {1}.",
-                                                    error.errorDescription, error.errorCode);
-                            }
-                            return response;
-                        });
+
+                            task.Start();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        toReturn += ex;
+                        _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception sending request for file upload/download.  Msg: {0}, Code: {1}.",
+                                            toReturn.errorDescription, toReturn.errorCode);
+                    }
+
+                    if (task != null)
+                    {
+                        task.Wait();            // wait here for the file to transfer, or for an error
+                        HandleTaskCompletion(task, "ErrorPuttingUploadOrDownloadToServer");
                     }
                     else
                     {
-                        // Upload operation
-                        StreamContent fileContent = new StreamContent(this.UploadStream);
-
-                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                        _operationRequest.Content = fileContent;
-                        _operationRequest.Content.Headers.Add("Content-MD5", Hash);
-                        _operationRequest.Content.Headers.Add("Content-Length", Size);
-
-
-                        task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask, streamState) =>
-                        {
-                            try
-                            {
-                                FileStream toUnlock = streamState as FileStream;
-                                if (toUnlock != null)
-                                {
-                                    toUnlock.Dispose();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                CLError error = ex;
-                                _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception unlocking upload filestream.  Msg: {0}, Code: {1}.",
-                                                    error.errorDescription, error.errorCode);
-                            }
-
-                            HttpResponseMessage response = null;
-                            try
-                            {
-                                // Get HTTP response from completed task. 
-                                response = requestTask.Result;
-                                this.Response = response;
-
-                                // Check that response was successful or throw exception 
-                                response.EnsureSuccessStatusCode();
-                            }
-                            catch (Exception ex)
-                            {
-                                CLError error = ex;
-                                _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception getting response from upload file transfer.  Msg: {0}, Code: {1}.",
-                                                    error.errorDescription, error.errorCode);
-                            }
-                            return response;
-                        }, this.UploadStream);
+                        _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Task is null.");
                     }
-                }
-                catch (Exception ex)
-                {
-                    CLError error = ex;
-                    _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Exception sending request for file upload/download.  Msg: {0}, Code: {1}.",
-                                        error.errorDescription, error.errorCode);
-                }
-
-                if (task != null)
-                {
-                    task.Wait();            // wait here for the file to transfer, or for an error
-                    HandleTaskCompletion(task, "ErrorPuttingUploadOrDownloadToServer");
-                }
-                else
-                {
-                    _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Task is null.");
-                }
 
 
-                //TODO: Notification required?
-                // [[NSNotificationCenter defaultCenter] postNotificationName:CLHTTPConnectionOperaionDidStartNotification object:self];
+                    //TODO: Notification required?
+                    // [[NSNotificationCenter defaultCenter] postNotificationName:CLHTTPConnectionOperaionDidStartNotification object:self];
 
-                // while (self.isExecuting) {
-                //     [currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
-                // }
+                    // while (self.isExecuting) {
+                    //     [currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+                    // }
+                }
             }
-
+            catch (Exception ex)
+            {
+                toReturn += ex;
+                _trace.writeToLog(1, "CLSptHttpConnectionOperation: Main: ERROR: Unknown error.  Msg: {0}, Code: {1}.",
+                                    toReturn.errorDescription, toReturn.errorCode);
+            }
+            return toReturn;
         }
 
         private void HandleTaskCompletion(Task<HttpResponseMessage> task, string resourceErrorMessageKey)

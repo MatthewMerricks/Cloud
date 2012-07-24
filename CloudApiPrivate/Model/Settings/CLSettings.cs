@@ -190,6 +190,8 @@ namespace CloudApiPrivate.Model.Settings
         public const string kAddCloudFolderToDesktop = "add_cloud_folder_to_desktop";
         public const string kRecentFileItems = "recent_file_items";
         public const string kUdid = "device_udid";
+        public const string kLogErrors = "log_errors";
+        public const string kLogErrorLocation = "log_error_location";
 
 
         /// <summary>
@@ -578,6 +580,32 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
+        // Setting to determine whether errors are logged to disk
+        // Added by David
+        private int _logErrors;
+        public bool LogErrors
+        {
+            get { return _logErrors != 0; }
+            set
+            {
+                _logErrors = (value ? 1 : 0);
+                SettingsBase.Write<int>(kLogErrors, _logErrors);
+            }
+        }
+
+        // Setting for error log locatoin
+        // Added by David
+        private string _errorLogLocation;
+        public string ErrorLogLocation
+        {
+            get { return _errorLogLocation; }
+            set
+            {
+                _errorLogLocation = value;
+                SettingsBase.Write<string>(kLogErrorLocation, value);
+            }
+        }
+
         /// <summary>
         /// Allocate ourselves. We have a private constructor, so no one else can.
         /// </summary>
@@ -620,6 +648,10 @@ namespace CloudApiPrivate.Model.Settings
         {    
             // Load defaults
 
+            // Logging
+            _logErrors = 0;
+            _errorLogLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Cloud\\ErrorLog";
+
             // General
             _startCloudAppWithSystem = (int)buttonState.stateON;
             _animateMenuBarForUpdates = (int)buttonState.stateON;
@@ -661,7 +693,7 @@ namespace CloudApiPrivate.Model.Settings
             _cloudFolderDescriptor = null;
     
             // Index Services
-            _eid = (long)Helpers.DefaultForType(typeof(long));
+            _eid = Helpers.DefaultForType<long>();
     
             // Others
             _addCloudFolderToDock = true;
@@ -671,10 +703,24 @@ namespace CloudApiPrivate.Model.Settings
     
             // Override default options with user preferences
 
-            // General
+            // Logging
             int temp;
             long uTemp;
-            Boolean isPresent = SettingsBase.ReadIfPresent<int>(kStartCloudAppWithSystem, out temp);
+            Boolean isPresent = SettingsBase.ReadIfPresent<int>(kLogErrors, out temp);
+            if (isPresent)
+            {
+                _logErrors = temp;
+            }
+            
+            string tempString;
+            isPresent = SettingsBase.ReadIfPresent<string>(kLogErrorLocation, out tempString);
+            if (isPresent)
+            {
+                _errorLogLocation = tempString;
+            }
+
+            // General
+            isPresent = SettingsBase.ReadIfPresent<int>(kStartCloudAppWithSystem, out temp);
             if (isPresent)
             {
                 _startCloudAppWithSystem = temp;
@@ -761,7 +807,6 @@ namespace CloudApiPrivate.Model.Settings
                 _useProxyType = temp;
             }
 
-            string tempString;
             isPresent = SettingsBase.ReadIfPresent<string>(kProxyServerAddress, out  tempString);
             if (isPresent)
             {

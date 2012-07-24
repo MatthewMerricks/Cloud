@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="interoperabilityWizard" targetNamespace="http://schemas.microsoft.com/serviceModel" xmlns:mstns="http://schemas.microsoft.com/serviceModel" xmlns="http://schemas.microsoft.com/serviceModel" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:element name="interoperabilityWizard" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="scenario" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="pages" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="page" minOccurs="0" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1" />
+                          <xs:element name="field" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="options" minOccurs="0" maxOccurs="1">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="option" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                          <xs:attribute name="name" form="unqualified" type="xs:string" />
+                                          <xs:attribute name="value" form="unqualified" type="xs:string" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute name="value" form="unqualified" type="xs:string" />
+                              <xs:attribute name="caption" form="unqualified" type="xs:string" />
+                              <xs:attribute name="isRequired" form="unqualified" type="xs:boolean" use="optional" />
+                              <xs:attribute name="tooltip" form="unqualified" type="xs:string" />
+                              <xs:attribute name="defaultValue" form="unqualified" type="xs:string" use="optional" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="title" form="unqualified" type="xs:string" />
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="template" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute name="path" form="unqualified" type="xs:string" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="name" form="unqualified" type="xs:string" />
+            <xs:attribute name="bindingName" form="unqualified" type="xs:string" />
+            <xs:attribute name="bindingType" form="unqualified" type="xs:string" />
+            <xs:attribute name="description" form="unqualified" type="xs:string" />
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

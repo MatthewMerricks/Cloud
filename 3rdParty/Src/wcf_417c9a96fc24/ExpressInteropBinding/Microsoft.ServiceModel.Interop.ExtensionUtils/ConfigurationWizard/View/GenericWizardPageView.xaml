@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="Microsoft.ServiceModel.Interop.ConfigurationWizard.View.GenericWizardPageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:view="clr-namespace:Microsoft.ServiceModel.Interop.ConfigurationWizard.View"
+             mc:Ignorable="d" 
+             >
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <view:BooleanToVisibilityConverter WhenFalse="Collapsed" WhenTrue="Visible" x:Key="BooleanToVisibility"/>
+            <view:BooleanToVisibilityConverter WhenFalse="Visible" WhenTrue="Collapsed" x:Key="BooleanToVisibilityInverted"/>
+
+            <Style BasedOn="{StaticResource {x:Type Label}}" TargetType="{x:Type Label}" x:Key="RequiredStyle">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Path=IsRequired}" Value="True">
+                        <Setter Property="FontWeight" Value="Bold" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <ItemsControl ItemsSource="{Binding Fields}" BorderThickness="0" HorizontalContentAlignment="Stretch" MinHeight="170" Margin="0, 8, 0, 0">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Label Content="{Binding Caption}" Style="{StaticResource RequiredStyle}" Margin="2, 0, 0, 5"/>
+                        <ComboBox ItemsSource="{Binding Options}" VerticalAlignment="Center" Margin="5, 0, 3, 2"  Grid.Row="1" SelectedItem="{Binding CurrentOption, Mode=TwoWay}" DisplayMemberPath="Name" Visibility="{Binding HasMultipleOptions, Converter={StaticResource BooleanToVisibility}}" ToolTip="{Binding ToolTip}"/>
+                        <CheckBox Grid.Row="1" VerticalAlignment="Center" IsChecked="{Binding OptionSelected, Mode=TwoWay}" Margin="5, 0, 3, 2" Visibility="{Binding HasSingleOption, Converter={StaticResource BooleanToVisibility}}" ToolTip="{Binding ToolTip}"/>
+                        <TextBox VerticalAlignment="Center" Text="{Binding FieldValue, Mode=TwoWay}" Margin="5, 0, 3, 2" Visibility="{Binding HasOptions, Converter={StaticResource BooleanToVisibilityInverted}}" Grid.Row="1" ToolTip="{Binding ToolTip}"/>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Label FontWeight="Bold" Content="* Fields marked in bold are required" Grid.Row="1"/>
+    </Grid>
+</UserControl>

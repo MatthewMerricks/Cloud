@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Type="Project" Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Express Interop WCF Service Application</Name>
+    <Description>Creates a new WCF service application with one of the pre-configured interop bindings</Description>
+    <Icon Package="{2c0f61bf-3c36-468c-94b8-4021965749e7}" ID="401" />
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>WCF</ProjectSubType>
+    <TemplateID>Microsoft.Web.CSharp.WcfInterop</TemplateID>
+    <SortOrder>11</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>WcfInteroperableServiceApplication</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <LocationField>Enabled</LocationField>
+    <RequiredFrameworkVersion>3.0</RequiredFrameworkVersion>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="WCFInteroperableService.csproj" ReplaceParameters="true">
+      <ProjectItem TargetFileName="Web.config" ReplaceParameters="true">Web.config</ProjectItem>
+			<Folder Name="Lib" TargetFolderName="Lib">
+				<ProjectItem TargetFileName="Microsoft.ServiceModel.Interop.dll">Microsoft.ServiceModel.Interop.dll</ProjectItem>
+			</Folder>
+			<Folder Name="Properties" TargetFolderName="Properties">
+        <ProjectItem TargetFileName="AssemblyInfo.cs" ReplaceParameters="true">AssemblyInfo.cs</ProjectItem>
+      </Folder>
+      <ProjectItem TargetFileName="Service.svc">Service.svc</ProjectItem>
+      <ProjectItem TargetFileName="IService.cs" ReplaceParameters="true" OpenInEditor="true">IService.cs</ProjectItem>
+      <ProjectItem TargetFileName="Service.svc.cs" ReplaceParameters="true">Service.svc.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Microsoft.ServiceModel.Interop.ExtensionUtils, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4fc38efee625237e</Assembly>
+    <FullClassName>Microsoft.ServiceModel.Interop.ExtensionUtils.ProjectTemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

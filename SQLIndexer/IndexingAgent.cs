@@ -60,7 +60,7 @@ namespace SQLIndexer
             }
             catch (Exception ex)
             {
-                newIndexer = (IndexingAgent)Helpers.DefaultForType(typeof(IndexingAgent));
+                newIndexer = Helpers.DefaultForType<IndexingAgent>();
                 return ex;
             }
 
@@ -147,7 +147,7 @@ namespace SQLIndexer
                     // Default the sync states (to null) if there was never a sync
                     if (lastSync == null)
                     {
-                        syncStates = (FilePathDictionary<SyncedObject>)Helpers.DefaultForType(typeof(FilePathDictionary<SyncedObject>));
+                        syncStates = Helpers.DefaultForType<FilePathDictionary<SyncedObject>>();
                     }
                     // If there was a sync, continue on to build the sync state
                     else
@@ -252,7 +252,7 @@ namespace SQLIndexer
             }
             catch (Exception ex)
             {
-                changeEvents = (List<KeyValuePair<FilePath, FileChange>>)Helpers.DefaultForType(typeof(List<KeyValuePair<FilePath, FileChange>>));
+                changeEvents = Helpers.DefaultForType<List<KeyValuePair<FilePath, FileChange>>>();
                 return ex;
             }
             return null;
@@ -436,7 +436,7 @@ namespace SQLIndexer
         public CLError RecordCompletedSync(string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string newRootPath = null)
         {
             // Default the output sync counter
-            syncCounter = (long)Helpers.DefaultForType(typeof(long));
+            syncCounter = Helpers.DefaultForType<long>();
             try
             {
                 // Copy event ids completed in sync to array, defaulting to an empty array
@@ -1104,7 +1104,7 @@ namespace SQLIndexer
                 out indexPaths);
             if (indexPathCreationError != null)
             {
-                throw (Exception)indexPathCreationError.errorInfo[CLError.ErrorInfo_Exception];
+                throw indexPathCreationError.GrabFirstException();
             }
 
             using (IndexDBEntities indexDB = new IndexDBEntities())

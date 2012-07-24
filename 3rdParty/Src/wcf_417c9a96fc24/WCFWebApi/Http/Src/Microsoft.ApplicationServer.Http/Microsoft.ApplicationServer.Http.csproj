@@ -1,0 +1,207 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{947ABFDB-E1A8-47D5-A982-A7B03CE02BC6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.ApplicationServer.Http</RootNamespace>
+    <AssemblyName>Microsoft.ApplicationServer.Http</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\Build\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\Build\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Microsoft.ApplicationServer.Http.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.QueryComposition">
+      <HintPath>..\..\..\..\Lib\QueryComposition\Microsoft.QueryComposition.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Runtime.Serialization.Json">
+      <HintPath>..\..\..\..\Lib\jQuery\Microsoft.Runtime.Serialization.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ServiceModel.Web.jQuery">
+      <HintPath>..\..\..\..\Lib\jQuery\Microsoft.ServiceModel.Web.jQuery.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.ServiceModel.Activation" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <!-- AppFabric Assembly Dependencies -->
+  <!-- AssemblyInfo -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Http\FormUrlEncodedMediaTypeFormatter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\IQueryComposer.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\JsonValueMediaTypeFormatter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\QueryCompositionAttribute.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\QueryCompositionMessageProperty.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\QueryCompositionOperationInvoker.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\UrlQueryComposer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SR.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SR.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <!-- Microsoft.ApplicationServer.Http Source Code -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Http\ActionOfStreamContent.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HtmlPageBuilder.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpBinding.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpBindingParameterBehavior.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpBindingSecurity.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpBindingSecurityMode.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpBindingSecurityModeHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpContentExtensionMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpHeaderExtensionMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpRequestMessage.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpResponseMessage.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpServiceHost.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\HttpTypeHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\JsonMediaTypeFormatter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaRangeMapping.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeConstants.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeFormatter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeFormatterCollection.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeFormatterExtensionMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeHeaderValueComparer.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeHeaderValueEqualityComparer.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeHeaderValueExtensionMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\MediaTypeMapping.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\ObjectContent.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\OperationContextExtensionMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\ParsedMediaTypeHeaderValue.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\QueryStringMapping.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\StandardHttpResponseMessageBuilder.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\TrailingSlashMode.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\TrailingSlashModeHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\UriExtensionMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\UriPathExtensionMapping.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\XmlMediaTypeFormatter.cs" />
+  </ItemGroup>
+  <!-- Microsoft.ApplicationServer.Http.Activation Source Code -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Http\Activation\HttpServiceHostFactory.cs" />
+  </ItemGroup>
+  <!-- Microsoft.ApplicationServer.Http.Channels Source Code -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessage.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncoderFactory.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncodingBindingElement.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncodingChannelListener.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncodingReplyChannel.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageEncodingRequestContext.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageExtensionMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageHandlerBindingElement.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageHandlerChannel.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageHandlerChannelListener.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Channels\HttpMessageHandlerFactory.cs" />
+  </ItemGroup>
+  <!-- Microsoft.ApplicationServer.Http.Configuration Source Code -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpBindingCollectionElement.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpBindingElement.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpBindingSecurityElement.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpBehaviorElement.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpConfigurationStrings.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpEndpointCollectionElement.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Configuration\HttpEndpointElement.cs" />
+  </ItemGroup>
+  <!-- Microsoft.ApplicationServer.Http.Description Source Code -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\ClientContractDescriptionHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpBehavior.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpEndpoint.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpOperationDescription.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpOperationDescriptionExtensionMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpOperationHandlerFactory.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpParameter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpParameterCollection.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpParameterExtensionMethods.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Description\HttpParameterValueConverter.cs" />
+  </ItemGroup>
+  <!-- Microsoft.ApplicationServer.Http.Dispatcher Source Code -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HelpPage.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpErrorHandler.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpMessageFormatter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpMessageInspector.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpInstanceProvider.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpOperationHandler.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpOperationSelector.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpResponseErrorHandler.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\HttpResponseException.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\OperationHandlerFormatter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\OperationHandlerPipeline.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\OperationHandlerPipelineContext.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\OperationHandlerPipelineInfo.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\ReflectionHttpParameterBuilder.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\ResponseContentHandler.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\RequestContentHandler.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\UriAndMethodOperationSelector.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Http\Dispatcher\UriTemplateHandler.cs" />
+  </ItemGroup>
+  <!-- Resources -->
+  <ItemGroup>
+    <EmbeddedResource Include="SR.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>SR.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ApplicationServer.Common\Microsoft.ApplicationServer.Common.csproj">
+      <Project>{B51B4830-DE3F-4AB7-9B1B-6BE886C63EFD}</Project>
+      <Name>Microsoft.ApplicationServer.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ApplicationServer.Serialization\Microsoft.ApplicationServer.Serialization.csproj">
+      <Project>{0EBEE1A7-4E1E-4B65-B5E6-8A13FBB4541F}</Project>
+      <Name>Microsoft.ApplicationServer.Serialization</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ApplicationServer.ServiceModel\Microsoft.ApplicationServer.ServiceModel.csproj">
+      <Project>{420A4BC6-1514-11E0-B2ED-BA35DFD72085}</Project>
+      <Name>Microsoft.ApplicationServer.ServiceModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.Net.Http\Microsoft.Net.Http.csproj">
+      <Project>{1A75CF16-5727-4ADA-B15A-3037703FC2ED}</Project>
+      <Name>Microsoft.Net.Http</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <!-- Resources -->
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

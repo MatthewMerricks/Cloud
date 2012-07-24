@@ -4,16 +4,16 @@
 winexe
 C#
 .cs
-C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples\obj\x86\Debug\
+C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples\obj\x86\Debug\
 Samples
 none
 false
 DEBUG;TRACE
-C:\source\Projects\win-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples\App.xaml
+C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\wpftoolkit-88611\Release\v1.6.0\ExtendedWPFToolkitSolution\Src\Samples\Samples\App.xaml
 3191899487
 
 8-2064289837
-171056107903
+171673289213
 Resources\TextBlockStyles.xaml;Resources\TreeViewStyles.xaml;Shell.xaml;
 
 False

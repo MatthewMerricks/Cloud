@@ -39,5 +39,15 @@ namespace CloudApiPublic.Static
                 findStruct = findStruct.BaseType;
             }
         }
+
+        /// <summary>
+        /// Creates a default instance of a provided type for use with populating out parameters when exceptions are thrown
+        /// </summary>
+        /// <typeparam name="T">Type to return</typeparam>
+        /// <returns>Default value of provided type</returns>
+        public static T DefaultForType<T>()
+        {
+            return (T)DefaultForType(typeof(T));
+        }
     }
 }

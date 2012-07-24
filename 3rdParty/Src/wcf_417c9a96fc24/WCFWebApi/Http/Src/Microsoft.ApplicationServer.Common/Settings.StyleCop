@@ -1,0 +1,62 @@
+<StyleCopSettings Version="4.3">
+  <SourceFileList>
+    <!-- Refer %INETROOT%\private\external\StyleCop\readme.txt for more information -->
+    <Settings>
+      <GlobalSettings>
+        <BooleanProperty Name="RulesEnabledByDefault">False</BooleanProperty>
+        <StringProperty Name="MergeSettingsFiles">Linked</StringProperty>
+        <StringProperty Name="LinkedSettingsFile">%INETROOT%\private\Legacy.StyleCop</StringProperty>
+      </GlobalSettings>
+    </Settings>
+    <SourceFile>ActionItem.cs</SourceFile>
+    <SourceFile>AssertHelper.cs</SourceFile>
+    <SourceFile>AssertionFailedException.cs</SourceFile>
+    <SourceFile>AsyncResult.cs</SourceFile>
+    <SourceFile>AsyncWaitHandle.cs</SourceFile>
+    <SourceFile>CollectionHelper.cs</SourceFile>
+    <SourceFile>ReadOnlyDictionary.cs</SourceFile>
+    <SourceFile>CallbackException.cs</SourceFile>
+    <SourceFile>ChainedAsyncResult.cs</SourceFile>
+    <SourceFile>CompletedAsyncResult.cs</SourceFile>
+    <SourceFile>ComputerNameFormat.cs</SourceFile>
+    <SourceFile>DiagnosticStrings.cs</SourceFile>
+    <SourceFile>DiagnosticEventProvider.cs</SourceFile>
+    <SourceFile>DiagnosticTrace.cs</SourceFile>
+    <SourceFile>DiagnosticTraceSource.cs</SourceFile>
+    <SourceFile>DictionaryTraceRecord.cs</SourceFile>
+    <SourceFile>EtwProvider.cs</SourceFile>
+    <SourceFile>EventLogEventId.cs</SourceFile>
+    <SourceFile>EventLogger.cs</SourceFile>
+    <SourceFile>PerformanceCounterNameAttribute.cs</SourceFile>
+    <SourceFile>StringTraceRecord.cs</SourceFile>
+    <SourceFile>TraceRecord.cs</SourceFile>
+    <SourceFile>ExceptionTrace.cs</SourceFile>
+    <SourceFile>FatalException.cs</SourceFile>
+    <SourceFile>Fx.cs</SourceFile>
+    <SourceFile>FXCop.cs</SourceFile>
+    <SourceFile>HashHelper.cs</SourceFile>
+    <SourceFile>InputQueue.cs</SourceFile>
+    <SourceFile>InternalBufferManager.cs</SourceFile>
+    <SourceFile>SafeEventLogWriteHandle.cs</SourceFile>
+    <SourceFile>UnsafeNativeMethods.cs</SourceFile>
+    <SourceFile>IOThreadScheduler.cs</SourceFile>
+    <SourceFile>IOThreadTimer.cs</SourceFile>
+    <SourceFile>PartialTrustHelpers.cs</SourceFile>
+    <SourceFile>ProviderEventEmitter.cs</SourceFile>
+    <SourceFile>SignalGate.cs</SourceFile>
+    <SourceFile>SynchronizedPool.cs</SourceFile>
+    <SourceFile>Ticks.cs</SourceFile>
+    <SourceFile>TimeoutHelper.cs</SourceFile>
+    <SourceFile>TraceChannel.cs</SourceFile>
+    <SourceFile>TraceEventLevel.cs</SourceFile>
+    <SourceFile>TraceEventOpcode.cs</SourceFile>
+    <SourceFile>TraceLevelHelper.cs</SourceFile>
+    <SourceFile>TracePayload.cs</SourceFile>
+    <SourceFile>WaitCallbackActionItem.cs</SourceFile>
+    <SourceFile>ValidatingCollection.cs</SourceFile>
+    <SourceFile>TypeHelper.cs</SourceFile>
+    <SourceFile>AssemblyInfo.cs</SourceFile>
+    <SourceFile>SRCore.Designer.cs</SourceFile>
+    <SourceFile>TraceCore.Designer.cs</SourceFile>
+  </SourceFileList>
+</StyleCopSettings>

@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FxCopEnabled>false</FxCopEnabled>
+    <StyleCopEnabled>false</StyleCopEnabled>
+    <FileVersioningEnabled>false</FileVersioningEnabled>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <OutputPath>..\..\..\build\$(Configuration)\WcfJQuery\test\Functional\</OutputPath>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5CC8981A-2B63-46A1-8829-819272C2ABE9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.Runtime.Serialization.Json.FunctionalTest</RootNamespace>
+    <AssemblyName>Microsoft.Runtime.Serialization.Json.FunctionalTest</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\..\build\Debug\WcfJQuery\test\Functional\Microsoft.Runtime.Serialization.Json.FunctionalTest.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Common\Log.cs" />
+    <Compile Include="Common\InstanceCreator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Common\TypeLibrary.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Common\Util.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\Json\JsonValueAndComplexTypesTests.cs" />
+    <Compile Include="System\Json\JsonValueDynamicTests.cs" />
+    <Compile Include="System\Json\JsonStringRoundTripTests.cs" />
+    <Compile Include="System\Json\JObjectFunctionalTest.cs" />
+    <Compile Include="System\Json\JsonPrimitiveTests.cs" />
+    <Compile Include="System\Json\JsonValueEventsTests.cs" />
+    <Compile Include="System\Json\JsonValueLinqExtensionsTest.cs" />
+    <Compile Include="System\Json\JsonValuePartialTrustTests.cs" />
+    <Compile Include="System\Json\JsonValueTestHelper.cs" />
+    <Compile Include="System\Json\JsonValueTests.cs" />
+    <Compile Include="System\Json\JsonValueUsageTest.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\Microsoft.Runtime.Serialization.Json\Microsoft.Runtime.Serialization.Json.csproj">
+      <Project>{A5879BE4-F1F5-4C39-88B9-372ABDEFF843}</Project>
+      <Name>Microsoft.Runtime.Serialization.Json</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(ProjectExtensionsDir)\ProjectExtensions.targets" Condition="Exists('$(ProjectExtensionsDir)\ProjectExtensions.targets')" />
+</Project>

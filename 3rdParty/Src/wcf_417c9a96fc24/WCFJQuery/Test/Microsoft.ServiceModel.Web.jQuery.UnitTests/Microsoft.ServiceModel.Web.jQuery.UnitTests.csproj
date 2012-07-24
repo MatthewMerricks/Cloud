@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FxCopEnabled>false</FxCopEnabled>
+    <StyleCopEnabled>false</StyleCopEnabled>
+    <FileVersioningEnabled>false</FileVersioningEnabled>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <OutputPath>..\..\..\build\$(Configuration)\WcfJQuery\test\UnitTest\</OutputPath>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0D17320A-A297-42BD-8EF3-5B5E7F72CA18}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.ServiceModel.Web.UnitTests</RootNamespace>
+    <AssemblyName>Microsoft.ServiceModel.Web.jQuery.UnitTests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Activation" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Common\AnyInstance.cs" />
+    <Compile Include="Microsoft\ServiceModel\Configuration\TestjQueryConfigurationSection.cs" />
+    <Compile Include="Microsoft\ServiceModel\Configuration\WebHttpElement3Test.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\FormUrlEncodingParsingTest.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\JsonValueFormatterTest.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\TestService.cs" />
+    <Compile Include="Common\ExceptionTestHelper.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\WebHttpBehavior3Test.cs" />
+    <Compile Include="Microsoft\ServiceModel\Web\WebServiceHost3Test.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\Microsoft.Runtime.Serialization.Json\Microsoft.Runtime.Serialization.Json.csproj">
+      <Project>{A5879BE4-F1F5-4C39-88B9-372ABDEFF843}</Project>
+      <Name>Microsoft.Runtime.Serialization.Json</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Src\Microsoft.ServiceModel.Web.jQuery\Microsoft.ServiceModel.Web.jQuery.csproj">
+      <Project>{7A183D69-9C8B-493A-A3A0-AC9CE0A72CA3}</Project>
+      <Name>Microsoft.ServiceModel.Web.jQuery</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(ProjectExtensionsDir)\ProjectExtensions.targets" Condition="Exists('$(ProjectExtensionsDir)\ProjectExtensions.targets')" />
+</Project>

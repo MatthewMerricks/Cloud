@@ -10,13 +10,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudApiPublic.Support;
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Threading;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
 using System.Xml.Linq;
 
@@ -38,7 +37,7 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
-                status = (MonitorRunning)Helpers.DefaultForType(typeof(MonitorRunning));
+                status = Helpers.DefaultForType<MonitorRunning>();
                 return ex;
             }
             return null;
@@ -78,7 +77,7 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
-                initialIndexLocker = (ReaderWriterLockSlim)Helpers.DefaultForType(typeof(ReaderWriterLockSlim));
+                initialIndexLocker = Helpers.DefaultForType<ReaderWriterLockSlim>();
                 return ex;
             }
             return null;
@@ -152,65 +151,6 @@ namespace FileMonitor
         }
 
         private Queue<FileChange> ProcessingChanges = new Queue<FileChange>();
-        /// <summary>
-        /// Class to handle queueing up processing changes on a configurable timer,
-        /// must be externally locked on property TimerRunningLocker for all access
-        /// </summary>
-        private class ProcessingQueuesTimer
-        {
-            public bool TimerRunning
-            {
-                get
-                {
-                    return _timerRunning;
-                }
-            }
-            private bool _timerRunning = false;
-            public readonly object TimerRunningLocker = new object();
-            private Action OnTimeout;
-            private int MillisecondTime;
-
-            private ManualResetEvent SleepEvent = new ManualResetEvent(false);
-
-            public ProcessingQueuesTimer(Action onTimeout, int millisecondTime)
-            {
-                this.OnTimeout = onTimeout;
-                this.MillisecondTime = millisecondTime;
-            }
-
-            public void StartTimerIfNotRunning()
-            {
-                if (!_timerRunning)
-                {
-                    _timerRunning = true;
-                    (new Thread(() =>
-                        {
-                            bool SleepEventNeedsReset = SleepEvent.WaitOne(this.MillisecondTime);
-                            lock (TimerRunningLocker)
-                            {
-                                if (SleepEventNeedsReset)
-                                {
-                                    SleepEvent.Reset();
-                                }
-                                _timerRunning = false;
-                                OnTimeout();
-                            }
-                        })).Start();
-                }
-            }
-
-            public void TriggerTimerCompletionImmediately()
-            {
-                if (_timerRunning)
-                {
-                    SleepEvent.Set();
-                }
-                else
-                {
-                    OnTimeout();
-                }
-            }
-        }
         // Field to store timer for queue processing,
         // initialized on construction
         private ProcessingQueuesTimer QueuesTimer;
@@ -246,7 +186,7 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
-                newAgent = (MonitorAgent)Helpers.DefaultForType(typeof(MonitorAgent));
+                newAgent = Helpers.DefaultForType<MonitorAgent>();
                 return ex;
             }
             try
@@ -277,8 +217,13 @@ namespace FileMonitor
                 newAgent.LogProcessingFileChanges = logProcessing;
 
                 // assign timer object that is used for processing the FileChange queues in batches
-                newAgent.QueuesTimer = new ProcessingQueuesTimer(newAgent.ProcessQueuesAfterTimer,
-                    1000);// Collect items in queue for 1 second before batch processing
+                CLError queueTimerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(newAgent.ProcessQueuesAfterTimer,
+                    1000,// Collect items in queue for 1 second before batch processing
+                    out newAgent.QueuesTimer);
+                if (queueTimerError != null)
+                {
+                    return queueTimerError;
+                }
             }
             catch (Exception ex)
             {
@@ -539,7 +484,7 @@ namespace FileMonitor
                                             // if an error occurs during the SQL update, pull out the Exception object and rethrow it
                                             if (mergeError != null)
                                             {
-                                                throw (Exception)mergeError.errorInfo[CLError.ErrorInfo_Exception];
+                                                throw mergeError.GrabFirstException();
                                             }
                                         }
                                         break;
@@ -921,8 +866,8 @@ namespace FileMonitor
                 // append the exception to return;
                 // processing of further items will cease and the output lists will be set to default (null)
 
-                outputChanges = (KeyValuePair<FileChange, FileStream>[])Helpers.DefaultForType(typeof(KeyValuePair<FileChange, FileStream>[]));
-                outputChangesInError = (FileChange[])Helpers.DefaultForType(typeof(FileChange[]));
+                outputChanges = Helpers.DefaultForType<KeyValuePair<FileChange, FileStream>[]>();
+                outputChangesInError = Helpers.DefaultForType<FileChange[]>();
                 return errorCollection + ex;
             }
             // return all recorded erro
@@ -1010,7 +955,7 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
-                status = (MonitorStatus)Helpers.DefaultForType(typeof(MonitorStatus));
+                status = Helpers.DefaultForType<MonitorStatus>();
                 return ex;
             }
             return null;
@@ -1047,7 +992,7 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
-                status = (MonitorStatus)Helpers.DefaultForType(typeof(MonitorStatus));
+                status = Helpers.DefaultForType<MonitorStatus>();
                 return ex;
             }
             return null;

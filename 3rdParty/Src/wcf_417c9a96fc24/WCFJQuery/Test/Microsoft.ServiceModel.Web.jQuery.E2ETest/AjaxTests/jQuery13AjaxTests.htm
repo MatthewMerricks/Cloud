@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Tests for the $.ajax calls to WCF services from jQuery 1.3</title>
+    <link rel="Stylesheet" href="../qunit.css" type="text/css" />
+    <script type="text/javascript" src="../jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="../qunit.js"></script>
+    <script type="text/javascript" src="../TestHelper.js"></script>
+</head>
+<body>
+  <h1 id="qunit-header">Tests for the $.ajax calls to WCF services from jQuery 1.3</h1>
+    <h2 id="qunit-banner"></h2>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests">
+    </ol>
+
+    <script type="text/javascript">
+        TestHelper.logService = "../LogService/JSTestService.svc";
+        var basicService = "../Services/BasicService.svc";
+
+        module("jQuery 1.3 - POST array tests");
+
+        function TestMultipleTypes(httpMethod, url, input, expectedResult) {
+            expect(1);
+            stop();
+
+            $.ajax({
+                type: httpMethod,
+                url: url,
+                data: input,
+                beforeSend: TestHelper.addTestHeader,
+                complete: TestHelper.restartQUnit,
+                error: TestHelper.genericAjaxError,
+                success: function (result, textStatus, req) {
+                    same(result, expectedResult, "Expected result must be the same: " + JSON.stringify(expectedResult));
+                },
+                dataType: "json"
+            });
+        }
+
+        function TestMultipleTypesPOST(input, expectedResult) {
+            TestMultipleTypes("POST", basicService + "/EchoJsonValue", input, expectedResult);
+        }
+
+        function TestMultipleTypesGET(input, expectedResult) {
+            TestMultipleTypes("GET", basicService + "/EchoJsonValueGet", input, expectedResult);
+        }
+
+        test("POST operation - canonical example", function () {
+            var input = { a: [4, 5], b: { x: [7], y: 8, z: [9, "true", "undefined", ""] }, c: 1 };
+            var expectedResult = { a: ["4", "5"], b: "[object Object]", c: "1" };
+            TestMultipleTypesPOST(input, expectedResult);
+        });
+
+        test("POST operation - arrays 1", function () { TestMultipleTypesPOST({ a: [1, 2] }, { a: ["1", "2"] }); });
+        test("POST operation - arrays 2", function () { TestMultipleTypesPOST({ a: [[1], [2, 3], [4, 5, 6]] }, { a: ["1", "2,3", "4,5,6"] }); });
+
+        test("GET operation - canonical example", function () {
+            var input = { a: [4, 5], b: { x: [7], y: 8, z: [9, "true", "undefined", ""] }, c: 1 };
+            var expectedResult = { a: ["4", "5"], b: "[object Object]", c: "1" };
+            TestMultipleTypesGET(input, expectedResult);
+        });
+
+        test("GET operation - arrays 1", function () { TestMultipleTypesGET({ a: [1, 2] }, { a: ["1", "2"] }); });
+        test("GET operation - arrays 2", function () { TestMultipleTypesGET({ a: [[1], [2, 3], [4, 5, 6]] }, { a: ["1", "2,3", "4,5,6"] }); });
+
+    </script>
+  </body>
+</html>

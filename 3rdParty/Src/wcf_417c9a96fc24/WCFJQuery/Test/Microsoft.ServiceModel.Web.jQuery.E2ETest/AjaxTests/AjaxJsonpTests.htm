@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Tests for the $.ajax calls to WCF services using JSONP</title>
+    <link rel="Stylesheet" href="../qunit.css" type="text/css" />
+    <script type="text/javascript" src="../jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="../qunit.js"></script>
+    <script type="text/javascript" src="../json2.js"></script>
+    <script type="text/javascript" src="../TestHelper.js"></script>
+</head>
+<body>
+  <h1 id="qunit-header">Tests for the $.ajax calls to WCF services using JSONP</h1>
+    <h2 id="qunit-banner"></h2>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests">
+    </ol>
+
+    <script type="text/javascript">
+        TestHelper.logService = "../LogService/JSTestService.svc";
+        var jsonpService = "../Services/JsonpEnabledBasicService.svc";
+        var jsonpWithDifferentCallbackNameService = "../Services/JsonpEnabledBasicServiceWithDifferentCallbackName.svc";
+
+        module("WebHttpBehavior3 JSONP tests");
+
+        jsonpGenericAjaxError = function (req, textStatus, errorThrown) {
+            ok(false, "$.ajax call failed; status=" + textStatus + ", errorThrown=" + errorThrown);
+            start();
+        };
+
+        function TestMultipleTypesUsingJsonp(input, expectedResult) {
+            expect(2);
+            stop();
+
+            var url = jsonpService + "/EchoJsonValueGet";
+            var httpMethod = "GET";
+
+            $.ajax({
+                type: httpMethod,
+                url: url,
+                data: input,
+                dataType: "jsonp",
+                beforeSend: TestHelper.addTestHeader,
+                error: jsonpGenericAjaxError,
+                success: function (result, textStatus, req) {
+                    var callback = result.callback;
+                    ok(result.callback, "A callback parameter was passed to the service");
+                    result.callback = undefined;
+                    expectedResult.callback = undefined;
+                    same(result, expectedResult, "Expected result must be the same: " + JSON.stringify(expectedResult));
+                    start();
+                }
+            });
+        }
+
+        test("canonical example", function () {
+            var input = { a: [4, 5], b: { x: [7], y: 8, z: [9, "true", "undefined", ""] }, c: 1 };
+            var expectedResult = { a: ["4", "5"], b: { x: ["7"], y: "8", z: ["9", "true", "undefined", ""] }, c: "1" };
+            TestMultipleTypesUsingJsonp(input, expectedResult);
+        });
+
+        test("object 1 - simple object", function () { TestMultipleTypesUsingJsonp({ a: 1 }, { a: "1" }) });
+        test("object 2 - numeric key", function () { TestMultipleTypesUsingJsonp({ 1: 1 }, { 1: "1" }) });
+        test("object 3 - nested array", function () { TestMultipleTypesUsingJsonp({ a: [1, 2] }, { a: ["1", "2"] }) });
+        test("object 4 - nested object", function () { TestMultipleTypesUsingJsonp({ a: { b: 1} }, { a: { b: "1"} }) });
+        test("object 5 - empty object", function () { TestMultipleTypesUsingJsonp({}, {}); });
+
+        test("string 1 - empty", function () { TestMultipleTypesUsingJsonp("", {}); });
+        test("string 2 - \"normal\"", function () { TestMultipleTypesUsingJsonp("abcd", { abcd: null }); });
+        test("string 3 - space", function () { TestMultipleTypesUsingJsonp("ab cd", { "ab cd": null }); });
+        test("string 4 - '+' sign", function () { TestMultipleTypesUsingJsonp("ab+cd", { "ab cd": null }); });
+        test("string 5 - quotes", function () { TestMultipleTypesUsingJsonp("ab\"cd", { "ab\"cd": null }); });
+        test("string 6 - special characters inside objects", function () {
+            var input = {
+                space: "hello world",
+                plus: "a+b=c",
+                quote: "\"To be or not to be\"",
+                control1: "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f",
+                control2: "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f",
+                latin: "áéíóú ôãêâà"
+            };
+            TestMultipleTypesUsingJsonp(input, input);
+        });
+
+        test("boolean 1 - true", function () { TestMultipleTypesUsingJsonp({ a: true }, { a: "true" }); });
+        test("boolean 2 - false", function () { TestMultipleTypesUsingJsonp({ a: false }, { a: "false" }); });
+
+        test("null 1 - null", function () { TestMultipleTypesUsingJsonp(null, {}); });
+        test("null 2 - null inside objects", function () { TestMultipleTypesUsingJsonp({ a: null }, { a: "null" }); });
+
+        test("number 1 - integer", function () { TestMultipleTypesUsingJsonp({ a: 1 }, { a: "1" }); });
+        test("number 2 - float", function () { TestMultipleTypesUsingJsonp({ a: 1.1111 }, { a: "1.1111" }); });
+        test("number 3 - float with sign", function () { TestMultipleTypesUsingJsonp({ a: +1.1111 }, { a: "1.1111" }); });
+        test("number 4 - float with sign", function () { TestMultipleTypesUsingJsonp({ a: -1.1111 }, { a: "-1.1111" }); });
+        test("number 5 - MaxValue", function () { TestMultipleTypesUsingJsonp({ a: Number.MAX_VALUE }, { a: Number.MAX_VALUE.toString() }); });
+        test("number 6 - MinValue", function () { TestMultipleTypesUsingJsonp({ a: Number.MIN_VALUE }, { a: Number.MIN_VALUE.toString() }); });
+        test("number 7 - NaN", function () { TestMultipleTypesUsingJsonp({ a: Number.NaN }, { a: "NaN" }); });
+        test("number 8 - +Infinity", function () { TestMultipleTypesUsingJsonp({ a: Number.POSITIVE_INFINITY }, { a: "Infinity" }); });
+        test("number 9 - -Infinity", function () { TestMultipleTypesUsingJsonp({ a: Number.NEGATIVE_INFINITY }, { a: "-Infinity" }); });
+        test("number 10 - Hex notation", function () { TestMultipleTypesUsingJsonp({ a: 0xff }, { a: "255" }); });
+
+        test("arrays 1 - root-level arrays", function () { TestMultipleTypesUsingJsonp([1, 2], { "undefined": ["undefined", "undefined"] }); });
+        test("arrays 2 - arrays inside objects", function () { TestMultipleTypesUsingJsonp({ a: [1, 2] }, { a: ["1", "2"] }); });
+        test("arrays 3 - multi-dimensional arrays", function () { TestMultipleTypesUsingJsonp({ a: [[1], [2, 3], [4, 5, 6]] }, { a: [["1"], ["2", "3"], ["4", "5", "6"]] }); });
+        test("arrays 4 - empty arrays", function () { TestMultipleTypesUsingJsonp([], {}); });
+        test("arrays 5 - empty arrays inside objects", function () { TestMultipleTypesUsingJsonp({ a: [] }, {}); });
+
+        module("WebHttpBehavior3 JSONP tests - different callback names");
+
+        test("object containing callback field", function () {
+            expect(2);
+            stop();
+
+            var url = jsonpWithDifferentCallbackNameService + "/EchoJsonValueGet";
+            var httpMethod = "GET";
+            var input = { a: 1, callback: "hello" };
+            var expectedResult = { a: "1", callback: "hello" };
+
+            $.ajax({
+                type: httpMethod,
+                url: url,
+                data: input,
+                dataType: "jsonp",
+                error: jsonpGenericAjaxError,
+                jsonp: "newCallback",
+                success: function (result, textStatus, req) {
+                    var callback = result.newCallback;
+                    ok(result.newCallback, "A callback parameter called \"newCallback\" was passed to the service");
+                    result.newCallback = undefined;
+                    expectedResult.newCallback = undefined;
+                    same(result, expectedResult, "Expected result must be the same: " + JSON.stringify(expectedResult));
+                    start();
+                }
+            });
+        });
+    </script>
+  </body>
+</html>

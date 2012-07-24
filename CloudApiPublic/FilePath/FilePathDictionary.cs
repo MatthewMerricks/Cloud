@@ -89,7 +89,7 @@ namespace CloudApiPublic.Model
             }
             catch (Exception ex)
             {
-                pathDictionary = (FilePathDictionary<T>)Helpers.DefaultForType(typeof(FilePathDictionary<T>));
+                pathDictionary = Helpers.DefaultForType<FilePathDictionary<T>>();
                 return ex;
             }
             // Take the created dictionary and initialize it, any exception will be returned as a CLError
@@ -208,7 +208,7 @@ namespace CloudApiPublic.Model
                             CLError grabRecursionError = currentInnerFolder.GrabHierarchyForPath(null, out innerFolderNode);
                             if (grabRecursionError != null)
                             {
-                                throw (Exception)grabRecursionError.errorInfo[CLError.ErrorInfo_Exception];
+                                throw grabRecursionError.GrabFirstException();
                             }
 
                             // if the inner folder has a value,
@@ -305,7 +305,7 @@ namespace CloudApiPublic.Model
                             CLError recurseHeirarchyError = innerFolders[recursePath].GrabHierarchyForPath(key, out outputNode);
                             if (recurseHeirarchyError != null)
                             {
-                                throw (Exception)recurseHeirarchyError.errorInfo[CLError.ErrorInfo_Exception];
+                                throw recurseHeirarchyError.GrabFirstException();
                             }
                         }
                     }
@@ -320,7 +320,7 @@ namespace CloudApiPublic.Model
             }
             catch (Exception ex)
             {
-                outputNode = (FilePathHierarchicalNode<T>)Helpers.DefaultForType(typeof(FilePathHierarchicalNode<T>));
+                outputNode = Helpers.DefaultForType<FilePathHierarchicalNode<T>>();
                 return ex;
             }
             return null;
@@ -601,7 +601,7 @@ namespace CloudApiPublic.Model
                             this.recursiveRenameCallback);
                         if (innerFolderError != null)
                         {
-                            throw (Exception)innerFolderError.errorInfo[CLError.ErrorInfo_Exception];
+                            throw innerFolderError.GrabFirstException();
                         }
 
                         // recursively call Add on innerFolder to build child structure and eventually add the value
@@ -638,7 +638,7 @@ namespace CloudApiPublic.Model
                         pathsAtCurrentLevel[existingCurrentPath]);
                     if (innerFolderError != null)
                     {
-                        throw (Exception)innerFolderError.errorInfo[CLError.ErrorInfo_Exception];
+                        throw innerFolderError.GrabFirstException();
                     }
 
                     // recursively call Add on innerFolder to build child structure and eventually add the value 

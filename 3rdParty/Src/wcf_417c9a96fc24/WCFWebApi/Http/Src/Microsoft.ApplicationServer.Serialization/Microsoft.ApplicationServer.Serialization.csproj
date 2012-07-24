@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0EBEE1A7-4E1E-4B65-B5E6-8A13FBB4541F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.ApplicationServer.Serialization</RootNamespace>
+    <AssemblyName>Microsoft.ApplicationServer.Serialization</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\Build\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\Build\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Microsoft.ApplicationServer.Serialization.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <!-- AppServer Dependencies -->
+  <!-- AssemblyInfo -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Serialization\Json\JsonGlobals.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <!-- Microsoft.ApplicationServer.Serialization Source Code -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Serialization\ClassDataContract.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\CollectionDataContract.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\DataContract.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\DataContractSet.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\DataMember.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\DateTimeOffsetAdapter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\DictionaryGlobals.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\EnumDataContract.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\GenericParameterDataContract.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\Globals.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\IDataContractSurrogate.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\PrimitiveDataContract.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\SchemaExporter.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\SchemaHelper.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\SerializationMode.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\SpecialTypeDataContract.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\XmlDataContract.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\XmlFormatGeneratorStatics.cs" />
+  </ItemGroup>
+  <!-- Microsoft.ApplicationServer.Serialization.Configuration Source Code -->
+  <ItemGroup>
+    <Compile Include="Microsoft\ApplicationServer\Serialization\Configuration\ParameterElement.cs" />
+    <Compile Include="Microsoft\ApplicationServer\Serialization\Configuration\TypeElement.cs" />
+  </ItemGroup>
+  <!-- Resources -->
+  <ItemGroup>
+    <EmbeddedResource Include="SR.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>SR.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Include="SR.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SR.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ApplicationServer.Common\Microsoft.ApplicationServer.Common.csproj">
+      <Project>{B51B4830-DE3F-4AB7-9B1B-6BE886C63EFD}</Project>
+      <Name>Microsoft.ApplicationServer.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,28 @@
+wcf.codeplex.com Project
+Copyright 2010 Microsoft
+
+wcf.codeplex.com project includes or is derivative of works distributed under the licenses listed below. 
+
+json2
+-----
+Website: http://www.json.org/js.html
+License: Public Domain
+Dependency: The WCFjQuery unit tests use json2.js parser.
+
+jQuery
+------
+Website: http://jquery.com/
+License: MIT License
+Dependency: The WCFjQuery and WebSocket samples and tests utilize jQuery framework. 
+
+QUnit
+-----
+Website: http://github.com/jquery/qunit
+License: MIT License
+Dependency: The WCFjQuery component utilizes QUnit for testing. 
+
+WCF REST Starter Kit Preview 2
+------------------------------
+website: http://www.asp.net/downloads/starter-kits/wcf-rest
+License: Microsoft Source License for ASP.NET Pre-Release Components
+Dependency: The Microsoft.ServiceModel.Web.Http project references Microsoft.HttpClient.dll and Microsoft.HttpClient.Extensions.dll, which are included in the WCF REST Starter Kit Preview 2.  

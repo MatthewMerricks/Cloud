@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CloudApiPublic.Model;
 
 namespace CloudApiPublic.Support
 {
@@ -30,13 +31,6 @@ namespace CloudApiPublic.Support
             get { return _isCancelled; }
             set { _isCancelled = value; }
         }
-
-        private Action _completionBlock;
-        public Action CompletionBlock
-        {
-            get { return _completionBlock; }
-            set { _completionBlock = value; }
-        }
         
         public CLSptNSOperation()
         {
@@ -44,6 +38,6 @@ namespace CloudApiPublic.Support
 
         abstract public void Cancel();
 
-        abstract public void Main();
+        abstract public CLError Main();
     }
 }

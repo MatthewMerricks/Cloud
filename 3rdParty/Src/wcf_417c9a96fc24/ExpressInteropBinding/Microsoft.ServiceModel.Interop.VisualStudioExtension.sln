@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ServiceModel.Interop.Extension", "Microsoft.ServiceModel.Interop.Extension\Microsoft.ServiceModel.Interop.Extension.csproj", "{30C3CBE2-BEE5-423F-8B63-5F3EEA4DC642}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WCFInteroperableServiceLibraryTemplate", "WCFInteroperableServiceLibrary\WCFInteroperableServiceLibraryTemplate.csproj", "{B662659E-0D9F-457A-9C97-1EEE6E4D1AC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WCFInteroperableServiceApplicationTemplate", "WCFInteroperableServiceApplicationTemplate\WCFInteroperableServiceApplicationTemplate.csproj", "{A7CBA84E-1D65-4260-8A07-277F1F518A11}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ServiceModel.Interop.ExtensionUtils", "Microsoft.ServiceModel.Interop.ExtensionUtils\Microsoft.ServiceModel.Interop.ExtensionUtils.csproj", "{112583BC-98B5-4D94-B0FB-8AFEB7674A4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ServiceModel.Interop", "Microsoft.ServiceModel.Interop\Microsoft.ServiceModel.Interop.csproj", "{EB912776-8C1C-4F34-A68E-5592621DD2A3}"
+EndProject
+Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = Microsoft.ServiceModel.Interop.Extension.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{30C3CBE2-BEE5-423F-8B63-5F3EEA4DC642}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30C3CBE2-BEE5-423F-8B63-5F3EEA4DC642}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30C3CBE2-BEE5-423F-8B63-5F3EEA4DC642}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30C3CBE2-BEE5-423F-8B63-5F3EEA4DC642}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B662659E-0D9F-457A-9C97-1EEE6E4D1AC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B662659E-0D9F-457A-9C97-1EEE6E4D1AC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B662659E-0D9F-457A-9C97-1EEE6E4D1AC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B662659E-0D9F-457A-9C97-1EEE6E4D1AC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7CBA84E-1D65-4260-8A07-277F1F518A11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7CBA84E-1D65-4260-8A07-277F1F518A11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7CBA84E-1D65-4260-8A07-277F1F518A11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7CBA84E-1D65-4260-8A07-277F1F518A11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{112583BC-98B5-4D94-B0FB-8AFEB7674A4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{112583BC-98B5-4D94-B0FB-8AFEB7674A4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{112583BC-98B5-4D94-B0FB-8AFEB7674A4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{112583BC-98B5-4D94-B0FB-8AFEB7674A4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB912776-8C1C-4F34-A68E-5592621DD2A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB912776-8C1C-4F34-A68E-5592621DD2A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB912776-8C1C-4F34-A68E-5592621DD2A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB912776-8C1C-4F34-A68E-5592621DD2A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

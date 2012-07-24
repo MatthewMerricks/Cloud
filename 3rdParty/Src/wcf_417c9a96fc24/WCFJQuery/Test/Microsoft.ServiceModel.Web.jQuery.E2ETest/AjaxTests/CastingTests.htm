@@ -1,0 +1,194 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Tests for the $.ajax calls to WCF services with parameters that will be casted on the server</title>
+    <link rel="Stylesheet" href="../qunit.css" type="text/css" />
+    <script type="text/javascript" src="../jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="../qunit.js"></script>
+    <script type="text/javascript" src="../json2.js"></script>
+    <script type="text/javascript" src="../TestHelper.js"></script>
+</head>
+<body>
+  <h1 id="qunit-header">Tests for the $.ajax calls to WCF services with parameters that will be casted on the server</h1>
+    <h2 id="qunit-banner"></h2>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests">
+    </ol>
+
+    <script type="text/javascript">
+        TestHelper.logService = "../LogService/JSTestService.svc";
+        var basicService = "../Services/BasicService.svc";
+
+        function TestCastingOnServer(httpMethod, value, typeName, toStringFormat, expectedResult) {
+            expect(1);
+            stop();
+            var url = basicService + "/ConvertIntoCLRType/a/" + typeName + "?format=" + toStringFormat;
+            var input = { a: value };
+
+            $.ajax({
+                type: httpMethod,
+                url: url,
+                data: input,
+                beforeSend: TestHelper.addTestHeader,
+                complete: TestHelper.restartQUnit,
+                error: TestHelper.genericAjaxError,
+                success: function (result, textStatus, req) {
+                    same(result, expectedResult, "Expected result must be the same: " + JSON.stringify(expectedResult));
+                }
+            });
+        }
+
+        function TestCastingOnServerPOST(value, typeName, toStringFormat, expectedResult) {
+            TestCastingOnServer("POST", value, typeName, toStringFormat, expectedResult);
+        }
+
+        function TestCastingNumbersOnServerPost(value, typeName) {
+            var expectedResult = value.toString();
+            TestCastingOnServerPOST(value, typeName, null, expectedResult);
+        }
+
+        module("DateTime parsing tests");
+
+        test("POST DateTime parsing 1 - new Date().toGMTString()", function () {
+            var input = new Date();
+            var expectedResult = input.getUTCFullYear() + "-" + (input.getUTCMonth() + 1) + "-" + input.getUTCDate() + "-" + input.getUTCHours() + ":" + input.getUTCMinutes() + ":" + input.getUTCSeconds();
+            TestCastingOnServerPOST(input.toGMTString(), "DateTime", "yyyy-M-d-H:m:s", expectedResult);
+        });
+
+        test("POST DateTime parsing 2 - JSON.stringify", function () {
+            var input = new Date();
+            var expectedResult = input.getUTCFullYear() + "-" + (input.getUTCMonth() + 1) + "-" + input.getUTCDate();
+
+            expect(1);
+            stop();
+            var url = basicService + "/ConvertIntoCLRType/a/DateTime?format=yyyy-M-d";
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: JSON.stringify({ a: input }),
+                contentType: "application/json",
+                beforeSend: TestHelper.addTestHeader,
+                complete: TestHelper.restartQUnit,
+                error: TestHelper.genericAjaxError,
+                success: function (result, textStatus, req) {
+                    same(result, expectedResult, "Expected result must be the same: " + JSON.stringify(expectedResult));
+                }
+            });
+        });
+
+        test("POST DateTime parsing 3 - Returning date times", function () {
+            var input = new Date();
+            var expected = input;
+
+            expect(1);
+            if (Date.prototype.toISOString) {
+                stop();
+                var url = basicService + "/EchoDate/a";
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: { a: input.toISOString() },
+                    beforeSend: TestHelper.addTestHeader,
+                    complete: TestHelper.restartQUnit,
+                    error: TestHelper.genericAjaxError,
+                    success: function (result, textStatus, req) {
+                        var date = new Date(Date.parse(result));
+                        same(expected, date, "Expected date must be the same: " + JSON.stringify(expected));
+                    }
+                });
+            } else {
+                ok(true, "This browser doesn't support toISOString, skipping this test");
+            }
+        });
+
+        module('Integer types parsing tests');
+
+        test('POST int parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'int'); });
+        test('POST int parsing 2 - min_int', function () { TestCastingNumbersOnServerPost(-2147483648, 'int'); });
+        test('POST int parsing 3 - max_int', function () { TestCastingNumbersOnServerPost(2147483647, 'int'); });
+        test('POST int parsing 4 - other', function () { TestCastingNumbersOnServerPost(12345678, 'int'); });
+
+        test('POST long parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'long'); });
+        test('POST long parsing 2 - (almost) min_long', function () { TestCastingNumbersOnServerPost(-9223372036854775000, 'long'); });
+        test('POST long parsing 3 - (almost) max_long', function () { TestCastingNumbersOnServerPost(9223372036854775000, 'long'); });
+        test('POST long parsing 4 - other', function () { TestCastingNumbersOnServerPost(1234567890123456, 'long'); });
+
+        test('POST short parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'short'); });
+        test('POST short parsing 2 - min_short', function () { TestCastingNumbersOnServerPost(-32768, 'short'); });
+        test('POST short parsing 3 - max_short', function () { TestCastingNumbersOnServerPost(32767, 'short'); });
+        test('POST short parsing 4 - other', function () { TestCastingNumbersOnServerPost(-12345, 'short'); });
+
+        test('POST sbyte parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'sbyte'); });
+        test('POST sbyte parsing 2 - min_sbyte', function () { TestCastingNumbersOnServerPost(-128, 'sbyte'); });
+        test('POST sbyte parsing 3 - max_sbyte', function () { TestCastingNumbersOnServerPost(127, 'sbyte'); });
+        test('POST sbyte parsing 4 - other', function () { TestCastingNumbersOnServerPost(-12, 'sbyte'); });
+
+        test('POST uint parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'uint'); });
+        test('POST uint parsing 2 - max_uint', function () { TestCastingNumbersOnServerPost(4294967295, 'uint'); });
+        test('POST uint parsing 3 - other', function () { TestCastingNumbersOnServerPost(12345678, 'uint'); });
+
+        test('POST ulong parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'ulong'); });
+        test('POST ulong parsing 2 - (almost) max_ulong', function () { TestCastingNumbersOnServerPost(18446744073709550000, 'ulong'); });
+        test('POST ulong parsing 3 - other', function () { TestCastingNumbersOnServerPost(1234567890123456, 'ulong'); });
+
+        test('POST ushort parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'ushort'); });
+        test('POST ushort parsing 2 - max_ushort', function () { TestCastingNumbersOnServerPost(65535, 'ushort'); });
+        test('POST ushort parsing 3 - other', function () { TestCastingNumbersOnServerPost(42345, 'ushort'); });
+
+        test('POST byte parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'byte'); });
+        test('POST byte parsing 2 - max_byte', function () { TestCastingNumbersOnServerPost(255, 'byte'); });
+        test('POST byte parsing 3 - other', function () { TestCastingNumbersOnServerPost(123, 'byte'); });
+
+        test('POST decimal parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'decimal'); });
+        test('POST decimal parsing 2 - negative', function () { TestCastingNumbersOnServerPost(-792281625142643375, 'decimal'); });
+        test('POST decimal parsing 3 - positive', function () { TestCastingNumbersOnServerPost(792281625142643375, 'decimal'); });
+        test('POST decimal parsing 4 - other', function () { TestCastingNumbersOnServerPost(7922816251426433.759354395, 'decimal'); });
+
+        function GetExpectedResultForFloatingPoint(value) {
+            // when converting to string, the exponential notation is 'e' on JS,
+            //   while on .NET it uses 'E'. I'll simply convert the expected result to upper case here.
+            return value.toString().toUpperCase();
+        }
+
+        test('POST double parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'double'); });
+        test('POST double parsing 2 - max_double', function () {
+            var value = Number.MAX_VALUE;
+            var expectedResult = GetExpectedResultForFloatingPoint(value);
+            TestCastingOnServerPOST(value, 'double', null, expectedResult);
+        });
+        test('POST double parsing 3 - (almost) min_double', function () {
+            var value = 1.2345e-300;
+            var expectedResult = GetExpectedResultForFloatingPoint(value);
+            TestCastingOnServerPOST(value, 'double', null, expectedResult);
+        });
+        test('POST double parsing 4 - NaN', function () { TestCastingNumbersOnServerPost(Number.NaN, 'double'); });
+        test('POST double parsing 5 - neg infinity', function () { TestCastingNumbersOnServerPost(Number.NEGATIVE_INFINITY, 'double'); });
+        test('POST double parsing 6 - pos infinity', function () { TestCastingNumbersOnServerPost(Number.POSITIVE_INFINITY, 'double'); });
+        test('POST double parsing 7 - other', function () {
+            var value = 1.212123123e-34;
+            var expectedResult = GetExpectedResultForFloatingPoint(value);
+            TestCastingOnServerPOST(value, 'double', null, expectedResult);
+        });
+
+        test('POST float parsing 1 - zero', function () { TestCastingNumbersOnServerPost(0, 'float'); });
+        test('POST float parsing 2 - max_float', function () {
+            var value = 3.202E+38;
+            var expectedResult = GetExpectedResultForFloatingPoint(value);
+            TestCastingOnServerPOST(value, 'float', null, expectedResult);
+        });
+        test('POST float parsing 3 - (almost) min_float', function () {
+            var value = 1.401298E-44;
+            var expectedResult = GetExpectedResultForFloatingPoint(value);
+            TestCastingOnServerPOST(value, 'float', null, expectedResult);
+        });
+        test('POST float parsing 4 - NaN', function () { TestCastingNumbersOnServerPost(Number.NaN, 'float'); });
+        test('POST float parsing 5 - neg infinity', function () { TestCastingNumbersOnServerPost(Number.NEGATIVE_INFINITY, 'float'); });
+        test('POST float parsing 6 - pos infinity', function () { TestCastingNumbersOnServerPost(Number.POSITIVE_INFINITY, 'float'); });
+        test('POST float parsing 7 - other', function () {
+            var value = 1.212123123e-14;
+            var expectedResult = GetExpectedResultForFloatingPoint(value);
+            TestCastingOnServerPOST(value, 'double', null, expectedResult);
+        });
+    </script>
+  </body>
+</html>
