@@ -508,6 +508,10 @@
       <Project>{5ea44f8a-a8ff-48ab-b6f6-c523793e342e}</Project>
       <Name>SQLIndexer</Name>
     </ProjectReference>
+    <ProjectReference Include="Sync\Sync.csproj">
+      <Project>{45e4664c-c207-4605-af85-54b587819107}</Project>
+      <Name>Sync</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

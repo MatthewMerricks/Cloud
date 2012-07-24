@@ -14,13 +14,13 @@ using System.Threading.Tasks;
 
 namespace CloudApiPublic.Model
 {
-    public partial class FilePathDictionary<T>
+    public sealed partial class FilePathDictionary<T>
     {
         /// <summary>
         /// Used to flatten the keys from each FilePathDictionary in a collection of FilePathDictionaries into a collection of all keys
         /// </summary>
         /// <typeparam name="InnerT">Generic type of the FilePathDictionary to flatten</typeparam>
-        private class FlattenedFilePathDictionaryKeys<InnerT> : ICollection<FilePath> where InnerT : class
+        private sealed class FlattenedFilePathDictionaryKeys<InnerT> : ICollection<FilePath> where InnerT : class
         {
             ICollection<FilePathDictionary<InnerT>> unflattenedCollection;
             public FlattenedFilePathDictionaryKeys(ICollection<FilePathDictionary<InnerT>> unflattenedCollection)

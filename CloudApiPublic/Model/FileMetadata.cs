@@ -16,7 +16,7 @@ namespace CloudApiPublic.Model
     /// <summary>
     /// Contains data used to compare files or folders along with an MD5 checksum to establish identity
     /// </summary>
-    public class FileMetadata
+    public sealed class FileMetadata
     {
         /// <summary>
         /// Section of comparable properties used to determine uniqueness of a file change
@@ -107,7 +107,7 @@ namespace CloudApiPublic.Model
     /// Custom comparer for FileMetadataHashableProperties which generates a better than
     /// default hash code for reduced hash conflicts when used in a Dictionary/Hashset
     /// </summary>
-    public class FileMetadataHashableComparer : EqualityComparer<FileMetadataHashableProperties>
+    public sealed class FileMetadataHashableComparer : EqualityComparer<FileMetadataHashableProperties>
     {
         /// <summary>
         /// Override for equality comparison of FileMetadataHashableProperties

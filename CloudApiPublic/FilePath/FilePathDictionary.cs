@@ -16,7 +16,7 @@ namespace CloudApiPublic.Model
     /// (use with callbacks to retrieve subsequent renames or deletions)
     /// </summary>
     /// <typeparam name="T">Any reference type</typeparam>
-    public partial class FilePathDictionary<T> : IDictionary<FilePath, T> where T : class
+    public sealed partial class FilePathDictionary<T> : IDictionary<FilePath, T> where T : class
     {
         #region private members
         /// <summary>

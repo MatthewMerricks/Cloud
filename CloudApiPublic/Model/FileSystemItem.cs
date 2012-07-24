@@ -15,7 +15,7 @@ using CloudApiPublic.Support;
 
 namespace CloudApiPublic.Model
 {
-    public class FileSystemItem /*: NSManagedObject*/
+    public sealed class FileSystemItem /*: NSManagedObject*/
     {
         public string Path
         {

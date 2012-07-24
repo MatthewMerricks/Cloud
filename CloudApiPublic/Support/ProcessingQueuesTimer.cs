@@ -13,7 +13,7 @@ namespace CloudApiPublic.Support
     /// Class to handle queueing up processing changes on a configurable timer,
     /// must be externally locked on property TimerRunningLocker for all access
     /// </summary>
-    public class ProcessingQueuesTimer
+    public sealed class ProcessingQueuesTimer
     {
         /// <summary>
         /// Returns whether the current processing queue timer is running;

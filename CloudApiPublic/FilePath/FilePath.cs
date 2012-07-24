@@ -13,7 +13,7 @@ namespace CloudApiPublic.Model
     /// ToString returns a combined representation (i.e. "C:\A\B\C\D.txt"),
     /// Implicitly converted from FileInfo and DirectoryInfo
     /// </summary>
-    public class FilePath
+    public sealed class FilePath
     {
         /// <summary>
         /// File or folder name

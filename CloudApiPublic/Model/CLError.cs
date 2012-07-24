@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace CloudApiPublic.Model
 {
-    public class CLError
+    public sealed class CLError
     {
         // Common error codes
         public enum ErrorCodes : int
@@ -26,11 +26,20 @@ namespace CloudApiPublic.Model
         // errorInfo keys
         public const string ErrorInfo_Exception = "Exception";
         public const string ErrorInfo_FileStreamToDispose = "FileStream";
+        /// <summary>
+        /// errorInfo key for the last recorded status in the Run method in Sync class
+        /// </summary>
         public const string ErrorInfo_Sync_Run_Status = "SyncRunStatus";
 
         public string errorDomain;
         public string errorDescription;
         public int errorCode;
+        /// <summary>
+        /// Returns the dictionary of infoes for the current CLError;
+        /// it is never null
+        /// </summary>
+        // Converted to property with only a getter to prevent any possibility of null reference errors
+        // -David
         public Dictionary<string, object> errorInfo
         {
             get
@@ -46,8 +55,8 @@ namespace CloudApiPublic.Model
 
         public CLError()
         {
-            errorDomain = "";
-            errorDescription = "";
+            errorDomain = string.Empty;
+            errorDescription = string.Empty;
             errorCode = 0;
         }
 
@@ -76,6 +85,8 @@ namespace CloudApiPublic.Model
             return err;
         }
 
+        // Added so we can append FileStream objects which can later be disposed upon error handling
+        // -David
         public static CLError operator +(CLError err, FileStream fStream)
         {
             if (err == null)
@@ -87,6 +98,8 @@ namespace CloudApiPublic.Model
             return err;
         }
 
+        // Added so we can append FileStream objects which can later be disposed upon error handling
+        // -David
         public void AddFileStream(FileStream fStream)
         {
             this.errorInfo.Add(CLError.ErrorInfo_FileStreamToDispose +
@@ -105,6 +118,10 @@ namespace CloudApiPublic.Model
             }
         }
 
+        /// <summary>
+        /// Takes all the FileStream instances out of this error and returns them for disposal
+        /// </summary>
+        /// <returns>Returns dequeued FileStream objects</returns>
         public IEnumerable<FileStream> DequeueFileStreams()
         {
             FileStream tryCast;
@@ -124,6 +141,12 @@ namespace CloudApiPublic.Model
                 .Select(currentPair => removeAndReturnValue(currentPair, this.errorInfo.Remove));
         }
 
+        /// <summary>
+        /// Takes all the FileStream instances out of a CLError and returns them for disposal;
+        /// returns an empty array for null input
+        /// </summary>
+        /// <param name="err">CLError for FileStream dequeue</param>
+        /// <returns>Returns dequeued FileStream objects</returns>
         public static IEnumerable<FileStream> DequeueFileStreams(CLError err)
         {
             if (err == null)
@@ -133,6 +156,25 @@ namespace CloudApiPublic.Model
             return err.DequeueFileStreams();
         }
 
+        /// <summary>
+        /// Returns the first exception contained in errorInfo within a CLError;
+        /// null for null input
+        /// </summary>
+        /// <param name="err">CLError for pulling exception</param>
+        /// <returns>Returns pulled exception</returns>
+        public static Exception GrabFirstException(CLError err)
+        {
+            if (err == null)
+            {
+                return null;
+            }
+            return err.GrabFirstException();
+        }
+
+        /// <summary>
+        /// Returns the first exception contained in errorInfo within this CLError
+        /// </summary>
+        /// <returns>Returns pulled exception</returns>
         public Exception GrabFirstException()
         {
             object dictionaryValue;
@@ -143,16 +185,62 @@ namespace CloudApiPublic.Model
             return null;
         }
 
-        public static void LogErrors(CLError err, string logLocation, bool loggingEnabled, bool clearFileStreams = true)
+        /// <summary>
+        /// Returns all exceptions contained in the errorInfo within a CLError;
+        /// empty array for null input
+        /// </summary>
+        /// <param name="err">CLError for pullling exceptions</param>
+        /// <returns>Returns pulled exceptions</returns>
+        public static IEnumerable<Exception> GrabExceptions(CLError err)
+        {
+            if (err == null)
+            {
+                return new Exception[0];
+            }
+            return err.GrabExceptions();
+        }
+
+        /// <summary>
+        /// Returns all exceptions contained in the errorInfo of this CLError
+        /// </summary>
+        /// <returns>Returns pulled exceptions</returns>
+        public IEnumerable<Exception> GrabExceptions()
+        {
+            List<Exception> toReturn = new List<Exception>();
+            foreach (Exception currentValue in this.errorInfo.Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception))
+                .Select(currentPair => currentPair.Value))
+            {
+                Exception castValue = currentValue as Exception;
+                if (castValue != null)
+                {
+                    toReturn.Add(castValue);
+                }
+            }
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Logs error information to the specified location if loggingEnabled parameter is passed as true for a CLError
+        /// </summary>
+        /// <param name="err">CLError to log</param>
+        /// <param name="logLocation">Base location for log files before date and extention are appended</param>
+        /// <param name="loggingEnabled">Determines whether logging will actually occur</param>
+        public static void LogErrors(CLError err, string logLocation, bool loggingEnabled)
         {
             if (err != null)
             {
-                err.LogErrors(logLocation, loggingEnabled, clearFileStreams);
+                err.LogErrors(logLocation, loggingEnabled);
             }
         }
 
-        public void LogErrors(string logLocation, bool loggingEnabled, bool clearFileStreams = true)
+        /// <summary>
+        /// Logs error information to the specified location if loggingEnabled parameter is passed as true for this CLError
+        /// </summary>
+        /// <param name="logLocation">Base location for log files before date and extention are appended</param>
+        /// <param name="loggingEnabled">Determines whether logging will actually occur</param>
+        public void LogErrors(string logLocation, bool loggingEnabled)
         {
+            // skip logging if it is either disabled or the location of the log is invalid
             if (loggingEnabled
                 && !string.IsNullOrWhiteSpace(logLocation))
             {
@@ -160,24 +248,34 @@ namespace CloudApiPublic.Model
                 {
                     FileInfo logFile = new FileInfo(logLocation);
 
+                    // if the parent directory of the log file does not exist then create it
                     if (!logFile.Directory.Exists)
                     {
                         logFile.Directory.Create();
                     }
 
+                    // create a list for storing all the dates encoded into existing log file names
                     List<DateTime> logDates = new List<DateTime>();
+                    // store the current date (UTC)
                     DateTime currentDate = DateTime.UtcNow.Date;
+                    // define boolean for whether the existing list of logs contains the current date,
+                    // defaulting to it not being found
                     bool currentDateFound = false;
 
+                    // loop through all files within the parent directory of the log files
                     foreach (FileInfo currentFile in logFile.Directory.EnumerateFiles())
                     {
+                        // if the current file to check has the name of a log file
+                        // and if its length is consistent with adding a date and the file extension,
+                        // then process the current file as a log file
                         if (currentFile.Name.StartsWith(logFile.Name)
                             && currentFile.Name.Length == (logFile.Name.Length + 12))//12 is the sum of 4 and 8; 4 is the length of ".txt", the file extension; 8 is the length of the date time format YYYYMMDD
                         {
+                            // pull out the portion of the file name of the date;
+                            // should be in the format YYYYMMDD
                             string nameDatePortion = currentFile.Name.Substring(logFile.Name.Length, currentFile.Name.Length - logFile.Name.Length - 4); //4 is the length of ".txt", the file extension
-                            
-                            // the date portion of the log name should be in the format YYYYMMDD
 
+                            // run a series of int.TryParse on the date portions of the file name
                             int nameDateYear;
                             if (int.TryParse(nameDatePortion.Substring(0, 4), out nameDateYear))
                             {
@@ -187,15 +285,22 @@ namespace CloudApiPublic.Model
                                     int nameDateDay;
                                     if (int.TryParse(nameDatePortion.Substring(6), out nameDateDay))
                                     {
+                                        // all date time part parsing was successful,
+                                        // but it is still possible one of the components is outside an acceptable range to construct a datetime
+
                                         try
                                         {
+                                            // create the DateTime from parts
                                             DateTime nameDate = new DateTime(nameDateYear, nameDateMonth, nameDateDay, currentDate.Hour, currentDate.Minute, currentDate.Second, DateTimeKind.Utc);
+                                            // if the date portion of the parsed DateTime each match the same portions of the current date,
+                                            // then mark the currentDateFound as true
                                             if (nameDate.Year == currentDate.Year
                                                 && nameDate.Month == currentDate.Month
                                                 && nameDate.Day == currentDate.Day)
                                             {
                                                 currentDateFound = true;
                                             }
+                                            // add the parsed DateTime to the list of all log files found
                                             logDates.Add(nameDate);
                                         }
                                         catch
@@ -207,13 +312,18 @@ namespace CloudApiPublic.Model
                         }
                     }
 
+                    // if there will be more than 10 log files after the current log is appended,
+                    // then loop through the oldest ones and delete them
                     if (logDates.Count > (currentDateFound ? 10 : 9))
                     {
+                        // loop through the log files older than the most recent 10
                         foreach (DateTime logToRemove in logDates.OrderByDescending(orderDate => orderDate.Ticks).Skip(currentDateFound ? 10 : 9))
                         {
+                            // build the log file path based on the current date to delete
                             string currentDeletePath = logFile.FullName +
                                 logToRemove.ToString("yyyyMMdd") + // formats to YYYYMMDD
                                 ".txt";
+                            // attempt to delete the current, old log file
                             try
                             {
                                 File.Delete(currentDeletePath);
@@ -226,43 +336,82 @@ namespace CloudApiPublic.Model
 
                     try
                     {
+                        // build FileInfo from path built from base log name and current date
                         FileInfo currentLogFile = new FileInfo(logFile.FullName +
                                 currentDate.ToString("yyyyMMdd") + // formats to YYYYMMDD
                                 ".txt");
+                        // if a log file did not exist for the current date then create it
                         if (!currentDateFound)
                         {
                             currentLogFile.Create();
                         }
+                        // grab a writer for appending to the log in a auto-disposing context
                         using (StreamWriter logWriter = currentLogFile.AppendText())
                         {
+                            // for each custom error key status,
+                            // if the key/value pair exists in errorInfo then write them first to the log
+                            #region custom error key statuses
                             if (this.errorInfo.ContainsKey(CLError.ErrorInfo_Sync_Run_Status))
                             {
                                 logWriter.WriteLine(this.errorInfo[CLError.ErrorInfo_Sync_Run_Status]);
                             }
+                            #endregion
+
+                            // write the message of this error to the log
                             logWriter.WriteLine(this.errorDescription);
+
+                            // pull out the values from the errorInfo key/value pairs whose keys start with the exception name
                             foreach (object currentException in this.errorInfo
                                 .Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception))
                                 .Select(currentPair => currentPair.Value))
                             {
+                                // try cast the current value as an exception
                                 Exception castException = currentException as Exception;
                                 if (castException != null)
                                 {
+                                    // define a string for storing the StackTrace, defaulting to null
+                                    string stack = null;
+                                    // I don't know if it's dangerous to pull out the StackTrace, so I wrap it safely
+                                    try
+                                    {
+                                        stack = castException.StackTrace;
+                                    }
+                                    catch
+                                    {
+                                    }
+
+                                    // keep track of how many inner exceptions have recursed to increase tab amount
                                     int tabCounter = 1;
+                                    // define function to build spaces by tab count
                                     Func<int, string> makeTabs = tabCount =>
-                                        new string(Enumerable.Range(0, 4 * tabCount)
-                                            .Select(currentTabSpace => ' ')
+                                        new string(Enumerable.Range(0, 4 * tabCount)// the "4 *" multiplier means each tab is 4 spaces
+                                            .Select(currentTabSpace => ' ')// components of the tab are spaces
                                             .ToArray());
+                                    // recurse through inner exceptions, each time with an extra tab appended
                                     while (castException != null)
                                     {
+                                        // write the current exception message to the log after the tabCounter worth of tabs
                                         logWriter.WriteLine(
                                             makeTabs(tabCounter) +
                                             castException.Message);
 
+                                        // prepare for next inner exception recursion
                                         castException = castException.InnerException;
                                         tabCounter++;
                                     }
+
+                                    // if a StackTrace was found,
+                                    // then write it to the log
+                                    if (!string.IsNullOrWhiteSpace(stack))
+                                    {
+                                        // write the StackTrace to the log with 1 tab
+                                        logWriter.WriteLine(
+                                            makeTabs(1) + "StackTrace:" + Environment.NewLine +
+                                            stack);
+                                    }
                                 }
                             }
+                            // end log with one extra line to seperate from next error entries
                             logWriter.WriteLine();
                         }
                     }

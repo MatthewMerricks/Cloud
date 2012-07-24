@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace CloudApiPublic.Model
 {
-    public partial class FilePathDictionary<T>
+    public sealed partial class FilePathDictionary<T>
     {
         /// <summary>
         /// Used to flatten the values from each FilePathDictionary in a collection of FilePathDictionaries into a collection of all values
         /// </summary>
         /// <typeparam name="InnerT">Generic type of the FilePathDictionary to flatten</typeparam>
-        private class FlattenedFilePathDictionaryValues<InnerT> : ICollection<InnerT> where InnerT : class
+        private sealed class FlattenedFilePathDictionaryValues<InnerT> : ICollection<InnerT> where InnerT : class
         {
             ICollection<FilePathDictionary<InnerT>> unflattenedCollection;
             public FlattenedFilePathDictionaryValues(ICollection<FilePathDictionary<InnerT>> unflattenedCollection)

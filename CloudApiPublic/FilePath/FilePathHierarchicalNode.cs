@@ -58,7 +58,7 @@ namespace CloudApiPublic.Model
     /// Extends the generic-typed FilePathHierarchicalNode to store the node Value
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class FilePathHierarchicalNodeWithValue<T> : FilePathHierarchicalNode<T> where T : class
+    public sealed class FilePathHierarchicalNodeWithValue<T> : FilePathHierarchicalNode<T> where T : class
     {
         public override KeyValuePair<FilePath, T> Value
         {

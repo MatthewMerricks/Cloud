@@ -18,7 +18,7 @@ using CloudApiPublic.Model;
 // Merged 7/3/12
 namespace CloudApiPublic.Model
 {
-    public class CLMetadata
+    public sealed class CLMetadata
     {
         public string Path
         {
@@ -380,7 +380,7 @@ namespace CloudApiPublic.Model
             }
         }
 
-        public class CLMetadataProcessedInternals
+        public sealed class CLMetadataProcessedInternals
         {
             public Nullable<DateTime> CreationDate { get; private set; }
             public Nullable<DateTime> ModifiedDate { get; private set; }

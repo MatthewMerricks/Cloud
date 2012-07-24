@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace CloudApiPublic.Model
 {
-    public class GenericHolder<T>
+    public sealed class GenericHolder<T>
     {
         public T Value { get; set; }
 

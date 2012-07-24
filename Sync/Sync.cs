@@ -63,6 +63,11 @@ namespace Sync
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
+        /// <summary>
+        /// Primary method for all syncing (both From and To),
+        /// synchronized so only a single thread can access it at a time
+        /// </summary>
+        /// <returns>Returns errors that occurred while syncing, if any</returns>
         public static CLError Run()
         {
             CLError toReturn = null;
@@ -114,8 +119,12 @@ namespace Sync
             {
                 toReturn += ex;
                 toReturn.errorInfo.Add(CLError.ErrorInfo_Sync_Run_Status, syncStatus);
+                CLError disposalError = toReturn.DequeueFileStreams().DisposeAllStreams();
+                foreach (Exception disposalException in CLError.GrabExceptions(disposalError))
+                {
+                    toReturn += ex;
+                }
                 toReturn.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                toReturn.DequeueFileStreams().DisposeAllStreams();
                 return toReturn;
             }
             return null;

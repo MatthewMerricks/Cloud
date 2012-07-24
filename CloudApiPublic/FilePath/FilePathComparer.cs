@@ -10,7 +10,7 @@ namespace CloudApiPublic.Model
     /// Comparer to be used in all dictionaries or hashsets on FilePath objects,
     /// also used to perform a deep compare between FilePath objects manually
     /// </summary>
-    public class FilePathComparer : EqualityComparer<FilePath>
+    public sealed class FilePathComparer : EqualityComparer<FilePath>
     {
         /// <summary>
         /// Overridden Equals for comparing FilePaths by deep compare

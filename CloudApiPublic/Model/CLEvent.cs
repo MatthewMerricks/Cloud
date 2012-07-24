@@ -15,7 +15,7 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.Model
 {
-    public class CLEvent
+    public sealed class CLEvent
     {
         public CLMetadata Metadata
         {
