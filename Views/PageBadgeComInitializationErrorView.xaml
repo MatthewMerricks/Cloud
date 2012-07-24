@@ -7,7 +7,7 @@
 //  Copyright (c) Cloud.com. All rights reserved.<ResourceDictionary
 -->
 
-<Window x:Class="win_client.Views.BadgeComInitializationErrorView" 
+<Page x:Class="win_client.Views.PageBadgeComInitializationErrorView" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -15,22 +15,22 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
     mc:Ignorable="d"
-    DataContext="{Binding BadgeComInitializationErrorViewModel, Source={StaticResource Locator}}" 
-    Title="Already Running!" Height="390" Width="510" >
+    DataContext="{Binding PageBadgeComInitializationErrorViewModel, Source={StaticResource Locator}}" 
+    Title="Error Initializing!" Height="442" Width="624" >
 
-    <Window.Resources>
+    <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </Window.Resources>
+    </Page.Resources>
     
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="48"/>
             <ColumnDefinition  Width="45"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="22"/>
             <ColumnDefinition Width="22"/>
         </Grid.ColumnDefinitions>
@@ -64,8 +64,8 @@
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
         	<Button x:Name="cmdOK" Content="OK" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding BadgeComInitializationErrorViewModel_OkCommand, Mode=OneTime}" TabIndex="0"
+        		Command="{Binding PageBadgeComInitializationErrorViewModel_OkCommand, Mode=OneTime}" TabIndex="0"
         		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" />
         </Grid>
     </Grid>
-</Window>
+</Page>

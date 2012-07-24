@@ -21,6 +21,7 @@ using System.Windows.Threading;
 using GalaSoft.MvvmLight.Messaging;
 using win_client.ViewModels;
 using win_client.Common;
+using win_client.AppDelegate;
 
 namespace win_client.Views
 {
@@ -50,17 +51,12 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageHome_Loaded);
             Unloaded += new RoutedEventHandler(PageHome_Unloaded);
 
-#if SILVERLIGHT
-            Messenger.Default.Register<Uri>(this, "PageHome_NavigationRequest",
-                (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-#else
             Messenger.Default.Register<Uri>(this, "PageHome_NavigationRequest",
                 (uri) =>
                 {
                     this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
                 });
-#endif
 
             CLAppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
             CLAppMessages.Home_GetClearPasswordField.Register(this, OnHome_GetClearPasswordField);
@@ -76,9 +72,10 @@ namespace win_client.Views
         {
             _isLoaded = true;
             _viewModel = DataContext as PageHomeViewModel;
-#if !SILVERLIGHT
+
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo); ;
-#endif
             tbEMail.Focus();
         }
 
@@ -86,20 +83,14 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
-#if !SILVERLIGHT
             if (NavigationService != null)
             {
                 NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
             }
-#endif
             Messenger.Default.Unregister(this);
         }
 
-#if SILVERLIGHT
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-#else
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
-#endif
         {
             if(_isLoaded)
             {

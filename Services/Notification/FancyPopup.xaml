@@ -49,7 +49,7 @@
       VerticalAlignment="Top"
       Width="72"
       Height="72"
-      Source="/Images/Preferences.png"
+      Source="/Artwork/cloud128.png"
       Stretch="Fill" x:Name="image" RenderTransformOrigin="0.5,0.5" >
     	<Image.RenderTransform>
     		<TransformGroup>

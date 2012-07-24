@@ -66,6 +66,8 @@ namespace win_client.AppDelegate
         public string FoundPathToDeletedCloudFolderIFile { get; set; }
 
 
+        public Window AppMainWindow { get; set; }
+
         private bool _isAlreadyRunning = false;
         public bool IsAlreadyRunning
         {
@@ -95,12 +97,12 @@ namespace win_client.AppDelegate
 
         #endregion
 
-        private string _windowCloudFolderMissingOkButtonContent;
+        private string _pageCloudFolderMissingOkButtonContent;
 
-        public string WindowCloudFolderMissingOkButtonContent
+        public string PageCloudFolderMissingOkButtonContent
         {
-            get { return _windowCloudFolderMissingOkButtonContent; }
-            set { _windowCloudFolderMissingOkButtonContent = value; }
+            get { return _pageCloudFolderMissingOkButtonContent; }
+            set { _pageCloudFolderMissingOkButtonContent = value; }
         }
         
 
@@ -178,7 +180,7 @@ namespace win_client.AppDelegate
             //[[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(handleURLFromEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 
             // we only allow one instance of our app.
-            StartupUrlRelative = _resourceManager.GetString("startupUriWindowInvisible");     // assume we will simply start running with no UI displayed
+            StartupUrlRelative = _resourceManager.GetString("startupUriPageInvisible");     // assume we will simply start running with no UI displayed
             if (isCloudAppAlreadyRunning())
             {
                 // Tell the app.xaml.cs instance logic that we are already running.
@@ -368,11 +370,7 @@ namespace win_client.AppDelegate
                 Settings.Instance.setCloudAppSetupCompleted(true);
 
                 // Start services, added a small delay to allow the OS to create folder.
-#if SILVERLIGHT 
-                var dispatcher = Deployment.Current.Dispatcher; 
-#else 
                 var dispatcher = Dispatcher.CurrentDispatcher; 
-#endif              
                 dispatcher.DelayedInvoke(TimeSpan.FromSeconds(2), () => { startCloudAppServicesAndUI(); });
             }
         }
@@ -402,7 +400,7 @@ namespace win_client.AppDelegate
 
             //}
             //else {
-            //    // DO NOTHING HERE.  The WindowInvisible will be loaded and the loaded event will invoke the
+            //    // DO NOTHING HERE.  The PageInvisible will be loaded and the loaded event will invoke the
             //    // startCloudAppServicesAndUI() method on the UI thread after a small delay.  This insures
             //    // that the system tray icon support is in place before we initialize the services.
             //    //startCloudAppServicesAndUI();
@@ -570,13 +568,13 @@ namespace win_client.AppDelegate
                             FoundDeletedCloudFolderDeletionTimeLocal = foundDeletionTimeLocal;
                             FoundPathToDeletedCloudFolderRFile = foundPathToDeletedCloudFolderRFile;
                             FoundPathToDeletedCloudFolderIFile = foundPathToDeletedCloudFolderIFile;
-                            WindowCloudFolderMissingOkButtonContent = _resourceManager.GetString("windowCloudFolderMissingOkButtonRestore");
+                            PageCloudFolderMissingOkButtonContent = _resourceManager.GetString("pageCloudFolderMissingOkButtonRestore");
                         }
                         else
                         {
                             // We will put up a window in App.xaml.cs to allow the user to make a new cloud folder or unlink.
                             StartupUrlRelative = _resourceManager.GetString("startupUriCloudFolderMissing");
-                            WindowCloudFolderMissingOkButtonContent = _resourceManager.GetString("windowCloudFolderMissingOkButtonLocate");
+                            PageCloudFolderMissingOkButtonContent = _resourceManager.GetString("pageCloudFolderMissingOkButtonLocate");
                         }
                     }
                 }
@@ -601,7 +599,7 @@ namespace win_client.AppDelegate
             {
                 //     // business as usual, let's take this sync for a spin!
                 //     [self startCloudAppServicesAndUI];
-                // Note: WindowInvisible will fire this soon. 
+                // Note: PageInvisible will fire this soon. 
                 //startCloudAppServicesAndUI();
             }
         }
@@ -794,6 +792,45 @@ namespace win_client.AppDelegate
         }
 
         #endregion
+        #region Support Functions
+
+        /// <summary>
+        /// Show the main window.  Call this whenever a page loads in the NavigationWindow.
+        /// </summary>
+        /// <param name="void"></param>
+        /// <returns>void</returns>
+        public static void ShowMainWindow(Window window)
+        {
+            // Set the containing window to be invisible
+            window.Width = 640;
+            window.Height = 480;
+            window.MinWidth = 640;
+            window.MinHeight = 480;
+            window.WindowStyle = WindowStyle.ThreeDBorderWindow;
+            window.Visibility = System.Windows.Visibility.Visible;
+            window.ShowInTaskbar = true;
+            window.ShowActivated = true;
+            window.Show();
+        }
+
+        /// <summary>
+        /// Hide the main window.  Call this whenever navigating to PageInvisible.
+        /// </summary>
+        /// <param name="void"></param>
+        /// <returns>void</returns>
+        public static void HideMainWindow(Window window)
+        {
+            // Set the containing window to be invisible
+            window.Width = 0;
+            window.Height = 0;
+            window.MinWidth = 0;
+            window.MinHeight = 0;
+            window.WindowStyle = WindowStyle.None;
+            window.Visibility = System.Windows.Visibility.Hidden;
+            window.ShowInTaskbar = false;
+            window.ShowActivated = false;
+        }
+        #endregion  
     }
 } 
 

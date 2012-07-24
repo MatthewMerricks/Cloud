@@ -9,7 +9,7 @@ using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using System;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Data;
@@ -308,7 +308,7 @@ namespace win_client.ViewModels
                     var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
                     IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
                     IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
-                    modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
+                    modalDialogService.ShowDialog(dialog, new DialogCloudMessageBoxViewModel
                     {
                         CloudMessageBoxView_Title = userMessageTitle,
                         CloudMessageBoxView_WindowWidth = 450,
@@ -334,11 +334,7 @@ namespace win_client.ViewModels
                             notifyParms.Add(CLConstants.kFolderLocation, "");
                             notifyParms.Add(CLConstants.kMergeFolders, true);
                             OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-#if SILVERLIGHT 
-                            var dispatcher = Deployment.Current.Dispatcher; 
-#else 
                             var dispatcher = Dispatcher.CurrentDispatcher; 
-#endif                      
                             dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
                         }
                         else
@@ -351,7 +347,7 @@ namespace win_client.ViewModels
                             // TODO: We need the FolderBrowserDialog from WPF.  Either switch to WPF for the Windows
                             // desktop, or implement a WPF ActiveX DLL to perform that function.
                             var dialogFolderSelection = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_FolderSelectionSimpleView);
-                            modalDialogService.ShowDialog(dialogFolderSelection, new FolderSelectionSimpleViewModel
+                            modalDialogService.ShowDialog(dialogFolderSelection, new DialogFolderSelectionSimpleViewModel
                             {
                                 FolderSelectionSimpleViewModel_FolderLocationText = cloudFolderRoot,
                                 FolderSelectionSimpleViewModel_ButtonLeftText = _rm.GetString("folderSelectionSimpleButtonLeftText"),
@@ -367,11 +363,7 @@ namespace win_client.ViewModels
                                     notifyParms.Add(CLConstants.kFolderLocation, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
                                     notifyParms.Add(CLConstants.kMergeFolders, false);
                                     OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-#if SILVERLIGHT 
-                                    var dispatcher = Deployment.Current.Dispatcher; 
-#else
                                     var dispatcher = Dispatcher.CurrentDispatcher;
-#endif
                                     dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
                                 }
                                 else
@@ -394,7 +386,7 @@ namespace win_client.ViewModels
                     var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
                     IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
                     IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
-                    modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
+                    modalDialogService.ShowDialog(dialog, new DialogCloudMessageBoxViewModel
                     {
                         CloudMessageBoxView_Title = _rm.GetString("appDelegateErrorInstallingTitle"),
                         CloudMessageBoxView_WindowWidth = 450,
@@ -414,11 +406,7 @@ namespace win_client.ViewModels
                         if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
                         {
                             // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
-#if SILVERLIGHT 
-                            var dispatcher = Deployment.Current.Dispatcher; 
-#else
                             var dispatcher = Dispatcher.CurrentDispatcher;
-#endif
                             dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
                         }
                         else

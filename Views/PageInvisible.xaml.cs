@@ -1,5 +1,5 @@
 ﻿//
-//  WindowInvisible.xaml.cs
+//  PageInvisible.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -30,43 +30,66 @@ using CloudApiPrivate.Static;
 
 namespace win_client.Views
 {
-    public partial class WindowInvisibleView : Window
+    public partial class PageInvisible : Page
     {
         private System.Windows.Forms.ContextMenu _cm =new System.Windows.Forms.ContextMenu();
 
-        public WindowInvisibleView()
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public PageInvisible()
         {
             InitializeComponent();
 
-            Width = 0;
-            Height = 0;
-            WindowStyle = WindowStyle.None;
-            ShowInTaskbar = false;
-            ShowActivated = false;
-
+            // Register event handlers
             Loaded += new RoutedEventHandler(OnLoadedCallback);
 
-            Messenger.Default.Register<CLBalloonTooltipNotification>(this, "Message_BalloonTooltipSystemTrayNotification", (tooltipInfo) => { OnCLBalloonTooltipNotificationMessage(tooltipInfo);});
-            Messenger.Default.Register<CLGrowlNotification>(this, "Message_GrowlSystemTrayNotification", (growlInfo) => { OnMessage_GrowlSystemTrayNotificationMessage(growlInfo); });
+            // Register messages
+            CLAppMessages.PageInvisible_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
+
+            CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Register(this, (tooltipInfo) => { OnCLBalloonTooltipNotificationMessage(tooltipInfo); });
+            CLAppMessages.Message_GrowlSystemTrayNotification.Register(this, (growlInfo) => { OnMessage_GrowlSystemTrayNotificationMessage(growlInfo); });
         }
 
+        /// <summary>
+        /// Loaded event handler
+        /// </summary>
         void OnLoadedCallback(object sender, RoutedEventArgs e)
         {
+            // Set the containing window to be invisible
+            CLAppDelegate.HideMainWindow(Window.GetWindow(this));
+
+            // Set the system tray tooltip.
             tb.TrayToolTip = null;                      // use the standard Windows tooltip (fancy WPF tooltips are available)
 
-#if SILVERLIGHT 
-            var dispatcher = Deployment.Current.Dispatcher; 
-#else
+            // This page is supposed to be invisible.  Hide the main window.
+            CLAppDelegate.HideMainWindow(Window.GetWindow(this));
+
+            // Registered the navigated event
+            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
+            // Start the core services.
             var dispatcher = Dispatcher.CurrentDispatcher;
-#endif
             dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(100), () => { CLAppDelegate.Instance.startCloudAppServicesAndUI(); });
         }
 
-        void  MenuItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        /// <summary>
+        /// System tray icon was right-clicked.
+        /// </summary>
+        void MenuItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             System.Windows.MessageBox.Show(e.ClickedItem.Text);
         }
 
+        /// <summary>
+        /// Show the system tray balloon tooltip notification.  This is the one that pulls out the
+        /// icon to the system tray and points to it from the balloon.
+        /// This is a callback driven by a message receipt.
+        /// </summary>
         void OnCLBalloonTooltipNotificationMessage(CLBalloonTooltipNotification tooltipInfo)
         {
             // Show this tooltip in the system tray.  It will automatically fade after several seconds.
@@ -80,10 +103,22 @@ namespace win_client.Views
             }
         }
 
+        /// <summary>
+        /// Show the slide-up WPF notification.
+        /// This is a callback driven by a message receipt.
+        /// </summary>
         void OnMessage_GrowlSystemTrayNotificationMessage(CLGrowlNotification growlInfo)
         {
             // Show this growl over the system tray.  It will automatically fade after several seconds.
             tb.ShowCustomBalloon(growlInfo.WpfControl, growlInfo.Animation, growlInfo.TimeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Navigated event callback.
+        /// </summary>
+        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        {
+            CLAppDelegate.HideMainWindow(Window.GetWindow(this));
         }
     }
 }

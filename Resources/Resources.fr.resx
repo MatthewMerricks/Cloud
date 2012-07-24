@@ -188,39 +188,39 @@
     <value>Error logging in.</value>
   </data>
   <data name="startupUriAlreadyRunning" xml:space="preserve">
-    <value>/Views/WindowCloudAlreadyRunning.xaml</value>
+    <value>/Views/PageCloudAlreadyRunning.xaml</value>
   </data>
   <data name="startupUriFirstTimeSetup" xml:space="preserve">
-    <value>NavigationWindow.xaml</value>
+    <value>/Views/PageHome.xaml</value>
   </data>
   <data name="startupUriCloudFolderMissing" xml:space="preserve">
-    <value>/Views/WindowCloudFolderMissing.xaml</value>
+    <value>/Views/PageCloudFolderMissing.xaml</value>
   </data>
-  <data name="startupUriWindowInvisible" xml:space="preserve">
-    <value>/Views/WindowInvisible.xaml</value>
+  <data name="startupUriPageInvisible" xml:space="preserve">
+    <value>/Views/PageInvisible.xaml</value>
   </data>
-  <data name="windowCloudFolderBodyMesssage" xml:space="preserve">
+  <data name="pageCloudFolderMissingBodyMesssage" xml:space="preserve">
     <value>To continue syncing, please restore your Cloud folder.  You may also choose to remove this computer from your account and exit the application.</value>
   </data>
-  <data name="windowCloudFolderMissingOkButtonLocate" xml:space="preserve">
+  <data name="pageCloudFolderMissingOkButtonLocate" xml:space="preserve">
     <value>Locate...</value>
   </data>
-  <data name="windowCloudFolderMissingOkButtonRestore" xml:space="preserve">
+  <data name="pageCloudFolderMissingOkButtonRestore" xml:space="preserve">
     <value>Restore</value>
   </data>
-  <data name="windowCloudFolderMissingErrorBody" xml:space="preserve">
+  <data name="pageCloudFolderMissingErrorBody" xml:space="preserve">
     <value>A problem occurred while removing your computer from your acccount on the server. </value>
   </data>
-  <data name="windowCloudFolderMissingErrorHeader" xml:space="preserve">
+  <data name="pageCloudFolderMissingErrorHeader" xml:space="preserve">
     <value>Oh Snap!  Something happened.</value>
   </data>
-  <data name="windowCloudFolderMissingErrorRightButtonContent" xml:space="preserve">
+  <data name="pageCloudFolderMissingErrorRightButtonContent" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="windowCloudFolderMissingErrorTitle" xml:space="preserve">
+  <data name="pageCloudFolderMissingErrorTitle" xml:space="preserve">
     <value>Cloud.com</value>
   </data>
-  <data name="windowCloudFolderMissingFolderBrowserDescription" xml:space="preserve">
+  <data name="pageCloudFolderMissingFolderBrowserDescription" xml:space="preserve">
     <value>Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select.</value>
   </data>
 </root>

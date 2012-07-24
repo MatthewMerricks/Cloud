@@ -52,10 +52,6 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageSetupSelector_Loaded);
             Unloaded += new RoutedEventHandler(PageSetupSelector_Unloaded);
 
-#if SILVERLIGHT
-            Messenger.Default.Register<Uri>(this, "PageSetupSelector_NavigationRequest",
-                (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-#else
             Messenger.Default.Register<Uri>(this, "PageSetupSelector_NavigationRequest",
                 (uri) => 
                 {
@@ -67,7 +63,6 @@ namespace win_client.Views
                     this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
                 });
-#endif
             PageSetupSelectorViewModel vm = (PageSetupSelectorViewModel)DataContext;
             vm.ViewGridContainer = LayoutRoot;
         }
@@ -91,9 +86,7 @@ namespace win_client.Views
         void PageSetupSelector_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-#if !SILVERLIGHT
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
-#endif
             cmdContinue.Focus();
         }
 
@@ -101,20 +94,14 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
-#if !SILVERLIGHT
             if (NavigationService != null)
             {
                 NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
             }
-#endif
             Messenger.Default.Unregister(this);
         }
 
-#if SILVERLIGHT
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-#else
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
-#endif
         {
             if (_isLoaded)
             {

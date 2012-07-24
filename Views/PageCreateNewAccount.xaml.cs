@@ -53,17 +53,12 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageCreateNewAccount_Loaded);
             Unloaded += new RoutedEventHandler(PageCreateNewAccount_Unloaded);
 
-#if SILVERLIGHT
-            Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
-                (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-#else
-            Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
+            CLAppMessages.PageCreateNewAccount_NavigationRequest.Register(this,
                 (uri) =>
                 {
                     this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
                 });
-#endif
 
             CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
             CLAppMessages.CreateNewAccount_GetClearPasswordField.Register(this, OnCreateNewAccount_GetClearPasswordField);
@@ -79,9 +74,7 @@ namespace win_client.Views
             _isLoaded = true;
             _viewModel = DataContext as PageCreateNewAccountViewModel;
 
-#if !SILVERLIGHT
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
-#endif
             tbEMail.Focus();
         }
 
@@ -89,20 +82,14 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
-#if !SILVERLIGHT
             if (NavigationService != null)
             {
                 NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
             }
-#endif
             Messenger.Default.Unregister(this);
         }
 
-#if SILVERLIGHT
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-#else
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
-#endif
         {
             if (_isLoaded)
             {

@@ -32,8 +32,16 @@ namespace win_client.Common
             Message_GrowlSystemTrayNotification,
             Home_GetClearPasswordField,
             Message_DidReceivePushNotificationFromServer,
-            Message_WindowCloudFolderMissingShouldClose,
-            Message_WindowCloudFolderMissingShouldChooseCloudFolder,
+            Message_PageCloudFolderMissingShouldChooseCloudFolder,
+
+            // Navigation requests
+            PageCloudFolderMissing_NavigationRequest,
+            PageCreateNewAccount_NavigationRequest,
+            PageInvisible_NavigationRequest,
+            PageBadgeComInitializationError_NavigationRequest,
+            PageTour_NavigationRequest,
+            PageSelectStorageSize_NavigationRequest,
+            PageHome_NavigationRequest,
         }
 
         public static class CreateNewAccount_GetClearPasswordField
@@ -166,32 +174,109 @@ namespace win_client.Common
             }
         }
 
-        public static class Message_WindowCloudFolderMissingShoudClose
+        public static class Message_PageCloudFolderMissingShouldChooseCloudFolder
         {
             public static void Send(string notUsed)
             {
-                Messenger.Default.Send(notUsed, MessageTypes.Message_WindowCloudFolderMissingShouldClose);
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageCloudFolderMissingShouldChooseCloudFolder);
             }
 
             public static void Register(object recipient, Action<string> action)
             {
-                Messenger.Default.Register(recipient, MessageTypes.Message_WindowCloudFolderMissingShouldClose, action);
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageCloudFolderMissingShouldChooseCloudFolder, action);
             }
         }
 
-        public static class Message_WindowCloudFolderMissingShouldChooseCloudFolder
+        // Navigation requests
+        public static class PageCloudFolderMissing_NavigationRequest
         {
-            public static void Send(string notUsed)
+            public static void Send(Uri targetPage)
             {
-                Messenger.Default.Send(notUsed, MessageTypes.Message_WindowCloudFolderMissingShouldChooseCloudFolder);
+                Messenger.Default.Send(targetPage, MessageTypes.PageCloudFolderMissing_NavigationRequest);
             }
 
-            public static void Register(object recipient, Action<string> action)
+            public static void Register(object recipient, Action<Uri> action)
             {
-                Messenger.Default.Register(recipient, MessageTypes.Message_WindowCloudFolderMissingShouldChooseCloudFolder, action);
+                Messenger.Default.Register(recipient, MessageTypes.PageCloudFolderMissing_NavigationRequest, action);
             }
         }
 
-        
+        public static class PageCreateNewAccount_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageCreateNewAccount_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageCreateNewAccount_NavigationRequest, action);
+            }
+        }
+
+        public static class PageHome_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageHome_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageHome_NavigationRequest, action);
+            }
+        }
+
+        public static class PageSelectStorageSize_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageSelectStorageSize_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageSelectStorageSize_NavigationRequest, action);
+            }
+        }
+
+        public static class PageTour_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageTour_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageTour_NavigationRequest, action);
+            }
+        }
+
+        public static class PageBadgeComInitializationError_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageBadgeComInitializationError_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageBadgeComInitializationError_NavigationRequest, action);
+            }
+        }
+
+        public static class PageInvisible_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageInvisible_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageInvisible_NavigationRequest, action);
+            }
+        }       
     }
 }

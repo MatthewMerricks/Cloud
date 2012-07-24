@@ -50,17 +50,12 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageTour4_Loaded);
             Unloaded += new RoutedEventHandler(PageTour4_Unloaded);
 
-#if SILVERLIGHT
-            Messenger.Default.Register<Uri>(this, "PageTour_NavigationRequest",
-                (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-#else
-            Messenger.Default.Register<Uri>(this, "PageTour_NavigationRequest",
+            CLAppMessages.PageTour_NavigationRequest.Register(this,
                 (uri) => 
                 {
                     this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
                 });
-#endif
 
         }
 
@@ -69,9 +64,7 @@ namespace win_client.Views
         void PageTour4_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-#if !SILVERLIGHT
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
-#endif
             cmdContinue.Focus();
         }
 
@@ -79,20 +72,14 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
-#if !SILVERLIGHT
             if (NavigationService != null)
             {
                 NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
             }
-#endif
             Messenger.Default.Unregister(this);
         }
 
-#if SILVERLIGHT
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-#else
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
-#endif
         {
             if (_isLoaded)
             {

@@ -16,5 +16,8 @@ namespace CloudApiPrivate.Model
         // OS constants
         public const string ShortcutExtension = "lnk";
 
+        // Cloud directory constants
+        public const string CloudDirectoryName = "Cloud";
+
     }
 }

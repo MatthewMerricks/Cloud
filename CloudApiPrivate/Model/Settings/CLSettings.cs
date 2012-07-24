@@ -80,11 +80,7 @@ namespace CloudApiPrivate.Model.Settings
             Boolean rc = false;
             value = default(TT);
 
-#if SILVERLIGHT
-            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
-#else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
-#endif
             if (settings != null && settings.Contains(name))
             {
                 value = (TT)settings[name];
@@ -100,11 +96,7 @@ namespace CloudApiPrivate.Model.Settings
       
         public static TT Read<TT>(string name, TT defaultValue)        
         {
-#if SILVERLIGHT
-            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
-#else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
-#endif
             TT value;
             if(settings == null || !settings.TryGetValue<TT>(name, out value)) 
             {
@@ -115,11 +107,7 @@ namespace CloudApiPrivate.Model.Settings
      
         public static void Write<TT>(string name, TT value)        
         {
-#if SILVERLIGHT
-            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
-#else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
-#endif
             if (settings == null) 
             {
                 return;           
@@ -138,11 +126,7 @@ namespace CloudApiPrivate.Model.Settings
 
         public static void Clear()        
         {
-#if SILVERLIGHT
-            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
-#else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
-#endif
             settings.Clear();
             settings.Save();        
         }
@@ -668,7 +652,7 @@ namespace CloudApiPrivate.Model.Settings
     
             // Advanced
             _cloudFolderPath = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));  // get the user's home directory.  e.g., C:\Users\<UserName>\
-            _cloudFolderPath = _cloudFolderPath + @"\Cloud";
+            _cloudFolderPath = _cloudFolderPath + "\\" + CLPrivateDefinitions.CloudDirectoryName;
             _cloudFolderCreationTimeUtc = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
             _cloudFolderDescriptor = null;

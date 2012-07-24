@@ -66,15 +66,9 @@ namespace CloudApiPrivate.Static
                     bindingExpression = ((TextBox)element).GetBindingExpression(TextBox.TextProperty);
                     break;
 
-#if SILVERLIGHT 
-                case "System.Windows.Controls.PasswordBox":
-                    bindingExpression = ((PasswordBox)element).GetBindingExpression(PasswordBox.PasswordProperty);
-                    break;
-#else
                 case "CloudApiPrivate.Common.SecurePasswordBox":
                     bindingExpression = ((SecurePasswordBox)element).GetBindingExpression(SecurePasswordBox.TextProperty);
                     break;
-#endif
 
                 case "System.Windows.Controls.RadioButton":
                     bindingExpression = ((RadioButton)element).GetBindingExpression(RadioButton.IsCheckedProperty);
@@ -85,14 +79,10 @@ namespace CloudApiPrivate.Static
             {
                 return;
             }
-#if SILVERLIGHT 
-            if(!bindingExpression.ParentBinding.ValidatesOnNotifyDataErrors) return;
-#else
             if (!bindingExpression.ParentBinding.ValidatesOnDataErrors)
             {
                 return;
             }
-#endif
             bindingExpression.UpdateSource();
         }
 

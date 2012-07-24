@@ -1,5 +1,5 @@
 //
-//  CloudMessageBoxViewModel.cs
+//  DialogCloudMessageBoxViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -9,15 +9,15 @@ using System.Windows.Input;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using Dialog.Implementors.Wpf.MVVM;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using win_client.Model;
 using System.Windows;
 
 namespace win_client.ViewModels
 {
-    public class CloudMessageBoxViewModel : ValidatingViewModelBase
+    public class DialogCloudMessageBoxViewModel : ValidatingViewModelBase
     {
-        public CloudMessageBoxViewModel()
+        public DialogCloudMessageBoxViewModel()
         {
 
         }

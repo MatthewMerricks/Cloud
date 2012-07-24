@@ -1,5 +1,5 @@
 ﻿//
-//  WindowCloudFolderMissingViewModel.cs
+//  PageCloudFolderMissingViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -10,7 +10,7 @@ using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using System;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Data;
@@ -30,6 +30,7 @@ using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using win_client.ViewModelHelpers;
 using Ookii.Dialogs.Wpf;
+using CloudApiPrivate.Model;
 
 
 namespace win_client.ViewModels
@@ -38,7 +39,7 @@ namespace win_client.ViewModels
     /// <summary>
     /// Page to control the multiple pages of the tour.
     /// </summary>
-    public class WindowCloudFolderMissingViewModel : ValidatingViewModelBase, ICleanup
+    public class PageCloudFolderMissingViewModel : ValidatingViewModelBase, ICleanup
     {
 
         #region Instance Variables
@@ -144,7 +145,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Initializes a new instance of the PageHomeViewModel class.
         /// </summary>
-        public WindowCloudFolderMissingViewModel(IDataService dataService)
+        public PageCloudFolderMissingViewModel(IDataService dataService)
         {
             _dataService = dataService;
             _dataService.GetData(
@@ -161,8 +162,8 @@ namespace win_client.ViewModels
             _rm = CLAppDelegate.Instance.ResourceManager;
             _trace = CLAppDelegate.Instance.GetTrace();
 
-            BodyMessage = _rm.GetString("windowCloudFolderBodyMesssage");
-            OkButtonContent = CLAppDelegate.Instance.WindowCloudFolderMissingOkButtonContent;
+            BodyMessage = _rm.GetString("pageCloudFolderMissingBodyMesssage");
+            OkButtonContent = CLAppDelegate.Instance.PageCloudFolderMissingOkButtonContent;
         }
 
         /// <summary>
@@ -187,45 +188,42 @@ namespace win_client.ViewModels
         /// selection dialog to allow the user to select a folder in which to make
         /// a new Cloud folder.  The Cloud folder will be constructed in the folder
         /// selected by the user.  If the user cancels the folder selection dialog,
-        /// he will be left on this WindowCloudFolderMissing dialog in the same state.
+        /// he will be left on this PageCloudFolderMissing dialog in the same state.
         /// </summary>
-        private RelayCommand _windowCloudFolderMissingViewModel_OkCommand;
-        public RelayCommand WindowCloudFolderMissingViewModel_OkCommand
+        private RelayCommand _pageCloudFolderMissingViewModel_OkCommand;
+        public RelayCommand PageCloudFolderMissingViewModel_OkCommand
         {
             get
             {
-                return _windowCloudFolderMissingViewModel_OkCommand
-                    ?? (_windowCloudFolderMissingViewModel_OkCommand = new RelayCommand(
+                return _pageCloudFolderMissingViewModel_OkCommand
+                    ?? (_pageCloudFolderMissingViewModel_OkCommand = new RelayCommand(
                                             () =>
                                             {
                                                 // Process the OK button click.
-                                                if (this.OkButtonContent.Equals(_rm.GetString("windowCloudFolderMissingOkButtonLocate"), StringComparison.InvariantCulture))
+                                                if (this.OkButtonContent.Equals(_rm.GetString("pageCloudFolderMissingOkButtonLocate"), StringComparison.InvariantCulture))
                                                 {
                                                     // This is the Locate... case.  Display the Windows Forms folder selection
                                                     // dialog.  Tell the view to put up the dialog.  If the user clicks cancel, 
                                                     // the view will return and we will stay on this window.  If the user clicks
-                                                    // OK, the view will send the WindowCloudFolderMissingViewModel_CreateCloudFolderCommand
+                                                    // OK, the view will send the PageCloudFolderMissingViewModel_CreateCloudFolderCommand
                                                     // back to us, and we will create the cloud folder in that command method.
                                                     // TODO: This is strange for WPF, since the FolderBrowser is a Windows Form thing.
                                                     // The processing is synchronous from the VM to the View, show the dialog, wait
                                                     // for the dialog, then return on cancel, or issue a RelayCommand back to us,
                                                     // process the RelayCommand, then back to the View, then back to here.
                                                     // Should we be more asynchronous?
-                                                    CLAppMessages.Message_WindowCloudFolderMissingShouldChooseCloudFolder.Send("");
+                                                    CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Send("");
                                                 }
-                                                else if (this.OkButtonContent.Equals(_rm.GetString("windowCloudFolderMissingOkButtonRestore"), StringComparison.InvariantCulture))
+                                                else if (this.OkButtonContent.Equals(_rm.GetString("pageCloudFolderMissingOkButtonRestore"), StringComparison.InvariantCulture))
                                                 {
                                                     // This is the Restore case.  Restore the cloud folder from the recycle bin.
                                                     CLError error = null;
                                                     RestoreCloudFolderFromRecycleBin(out error);
                                                     if (error == null)
                                                     {
-                                                        // Tell this window (view) to close.
-                                                        CLAppMessages.Message_WindowCloudFolderMissingShoudClose.Send("");
-
-                                                        // Navigate to WindowInvisible.  That window will start the core services.
-                                                        WindowInvisibleView nextWindow = new WindowInvisibleView();
-                                                        nextWindow.Show();
+                                                        // Navigate to the PageInvisible page.  This will start the core services.
+                                                        Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+                                                        CLAppMessages.PageCloudFolderMissing_NavigationRequest.Send(nextPage);
                                                     }
                                                     else
                                                     {
@@ -233,9 +231,9 @@ namespace win_client.ViewModels
                                                         // Leave the user on this dialog when the user clicks OK on the error message modal dialog
                                                         CLModalErrorDialog.Instance.DisplayModalErrorMessage(
                                                                 error.errorDescription, 
-                                                                _rm.GetString("windowCloudFolderMissingErrorTitle"),
-                                                                _rm.GetString("windowCloudFolderMissingErrorHeader"),
-                                                                _rm.GetString("windowCloudFolderMissingErrorRightButtonContent"),
+                                                                _rm.GetString("pageCloudFolderMissingErrorTitle"),
+                                                                _rm.GetString("pageCloudFolderMissingErrorHeader"),
+                                                                _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
                                                                 this.ViewGridContainer, returnedViewModelInstance =>
                                                                 {
                                                                     // If the cloud folder actually exists at the new location, then we
@@ -245,19 +243,16 @@ namespace win_client.ViewModels
                                                                     // the OK button to "Locate...".
                                                                     if (Directory.Exists(Settings.Instance.CloudFolderPath))
                                                                     {
-                                                                        // Tell this window (view) to close.
-                                                                        CLAppMessages.Message_WindowCloudFolderMissingShoudClose.Send("");
-
-                                                                        // Navigate to WindowInvisible.  That window will start the core services.
-                                                                        WindowInvisibleView nextWindow = new WindowInvisibleView();
-                                                                        nextWindow.Show();
+                                                                        // Navigate to the PageInvisible page.  This will start the core services.
+                                                                        Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+                                                                        CLAppMessages.PageCloudFolderMissing_NavigationRequest.Send(nextPage);
                                                                     }
                                                                     else
                                                                     {
-                                                                        // Just leave the user on this same WindowCloudFolderMissing window,
+                                                                        // Just leave the user on this same PageCloudFolderMissing window,
                                                                         // but change the OK button to Locate... since we had trouble
                                                                         // restoring the folder from the recycle bin.
-                                                                        this.OkButtonContent = _rm.GetString("windowCloudFolderMissingOkButtonLocate");
+                                                                        this.OkButtonContent = _rm.GetString("pageCloudFolderMissingOkButtonLocate");
                                                                     }
                                                                 });
                                                     }
@@ -288,13 +283,13 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked the OK button.
         /// </summary>
-        private RelayCommand _windowCloudFolderMissingViewModel_UnlinkCommand;
-        public RelayCommand WindowCloudFolderMissingViewModel_UnlinkCommand
+        private RelayCommand _pageCloudFolderMissingViewModel_UnlinkCommand;
+        public RelayCommand PageCloudFolderMissingViewModel_UnlinkCommand
         {
             get
             {
-                return _windowCloudFolderMissingViewModel_UnlinkCommand
-                    ?? (_windowCloudFolderMissingViewModel_UnlinkCommand = new RelayCommand(
+                return _pageCloudFolderMissingViewModel_UnlinkCommand
+                    ?? (_pageCloudFolderMissingViewModel_UnlinkCommand = new RelayCommand(
                                             () =>
                                             {
                                                 // Process the Remove button click.
@@ -305,9 +300,9 @@ namespace win_client.ViewModels
                                                 {
                                                     CLModalErrorDialog.Instance.DisplayModalErrorMessage(
                                                            error.errorDescription,
-                                                           _rm.GetString("windowCloudFolderMissingErrorTitle"),
-                                                           _rm.GetString("windowCloudFolderMissingErrorHeader"),
-                                                           _rm.GetString("windowCloudFolderMissingErrorRightButtonContent"),
+                                                           _rm.GetString("pageCloudFolderMissingErrorTitle"),
+                                                           _rm.GetString("pageCloudFolderMissingErrorHeader"),
+                                                           _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
                                                            this.ViewGridContainer, returnedViewModelInstance =>
                                                            {
                                                                // Exit the app when the user clicks the OK button.
@@ -326,43 +321,42 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user has selected a new cloud folder path.  Create the new cloud folder
         /// </summary>
-        private RelayCommand<string> _windowCloudFolderMissingViewModel_CreateCloudFolderCommand;
-        public RelayCommand<string> WindowCloudFolderMissingViewModel_CreateCloudFolderCommand
+        private RelayCommand<string> _pageCloudFolderMissingViewModel_CreateCloudFolderCommand;
+        public RelayCommand<string> PageCloudFolderMissingViewModel_CreateCloudFolderCommand
         {
             get
             {
-                return _windowCloudFolderMissingViewModel_CreateCloudFolderCommand
-                    ?? (_windowCloudFolderMissingViewModel_CreateCloudFolderCommand = new RelayCommand<string>(
+                return _pageCloudFolderMissingViewModel_CreateCloudFolderCommand
+                    ?? (_pageCloudFolderMissingViewModel_CreateCloudFolderCommand = new RelayCommand<string>(
                                             (path) =>
                                             {
                                                 // Create the new cloud folder.
                                                 CLError error = null;
                                                 DateTime creationTime;
-                                                CLCreateCloudFolder.CreateCloudFolder(Settings.Instance.CloudFolderPath, out creationTime, out error);
+                                                string cloudDirectoryName = path + "\\" + CLPrivateDefinitions.CloudDirectoryName;
+                                                CLCreateCloudFolder.CreateCloudFolder(cloudDirectoryName, out creationTime, out error);
                                                 if (error == null)
                                                 {
                                                     // Cloud folder created
-                                                    _trace.writeToLog(1, "WindowCloudFolderMissingViewModel: Cloud folder created at <{0}>.", Settings.Instance.CloudFolderPath);
+                                                    _trace.writeToLog(1, "PageCloudFolderMissingViewModel: Cloud folder created at <{0}>.", Settings.Instance.CloudFolderPath);
 
                                                     // Mark the creation time in Settings.
                                                     Settings.Instance.CloudFolderCreationTimeUtc = creationTime;
+                                                    Settings.Instance.updateCloudFolderPath(cloudDirectoryName, creationTime);
                                                     Settings.Instance.setCloudAppSetupCompleted(true);
 
-                                                    // Tell this window (view) to close.
-                                                    CLAppMessages.Message_WindowCloudFolderMissingShoudClose.Send("");
-
-                                                    // Navigate to WindowInvisible.  That window will start the core services.
-                                                    WindowInvisibleView nextWindow = new WindowInvisibleView();
-                                                    nextWindow.Show();
+                                                    // Navigate to the PageInvisible page.  This will start the core services.
+                                                    Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+                                                    CLAppMessages.PageCloudFolderMissing_NavigationRequest.Send(nextPage);
                                                 }
                                                 else
                                                 {
                                                     // Error creating the cloud folder.  Display the error and stay on this dialog.
                                                     CLModalErrorDialog.Instance.DisplayModalErrorMessage(
                                                             error.errorDescription,
-                                                            _rm.GetString("windowCloudFolderMissingErrorTitle"),
-                                                            _rm.GetString("windowCloudFolderMissingErrorHeader"),
-                                                            _rm.GetString("windowCloudFolderMissingErrorRightButtonContent"),
+                                                            _rm.GetString("pageCloudFolderMissingErrorTitle"),
+                                                            _rm.GetString("pageCloudFolderMissingErrorHeader"),
+                                                            _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
                                                             this.ViewGridContainer, returnedViewModelInstance =>
                                                             {
                                                                 // Do nothing.  Stay on this dialog.

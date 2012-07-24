@@ -1,5 +1,5 @@
 //
-//  FolderSelectionSimpleViewModel.cs
+//  DialogFolderSelectionSimpleViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -9,16 +9,16 @@ using System.Windows.Input;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using Dialog.Implementors.Wpf.MVVM;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using win_client.Model;
 using CloudApiPrivate.Model.Settings;
 using System.Windows;
 
 namespace win_client.ViewModels
 {
-    public class FolderSelectionSimpleViewModel : ValidatingViewModelBase
+    public class DialogFolderSelectionSimpleViewModel : ValidatingViewModelBase
     {
-        public FolderSelectionSimpleViewModel()
+        public DialogFolderSelectionSimpleViewModel()
         {
 
         }

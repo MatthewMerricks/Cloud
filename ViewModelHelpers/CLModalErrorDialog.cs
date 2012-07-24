@@ -65,14 +65,14 @@ namespace win_client.ViewModelHelpers
         /// </summary>
         public void DisplayModalErrorMessage(string errorMessage, string title, string headerText, 
                                 string rightButtonContent, Grid container,
-                                System.Action<CloudMessageBoxViewModel> actionOkButtonHandler)
+                                System.Action<DialogCloudMessageBoxViewModel> actionOkButtonHandler)
         {
             _trace.writeToLog(1, "CLModalErrorDialog: DisplayModalErrorMessage:  Error: {0}.", errorMessage);
 
             var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
             IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
             IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
-            modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
+            modalDialogService.ShowDialog(dialog, new DialogCloudMessageBoxViewModel
             {
                 CloudMessageBoxView_Title = title,
                 CloudMessageBoxView_WindowWidth = 450,

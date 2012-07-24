@@ -12,7 +12,7 @@ using win_client.Model;
 using System;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Controls;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using win_client.Common;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
@@ -237,7 +237,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               Uri nextPage = new System.Uri(CLConstants.kPageCreateNewAccount, System.UriKind.Relative);
-                                              SendNavigationRequestMessage(nextPage);
+                                              CLAppMessages.PageHome_NavigationRequest.Send(nextPage);
                                           }));
             }
         }
@@ -253,12 +253,8 @@ namespace win_client.ViewModels
                     ?? (_pageHome_SignInCommand = new RelayCommand(
                                           () =>
                                           {
-#if SILVERLIGHT
-                                              CLExtensionMethods.ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
-#else
                                               var layoutRoot = LogicalTreeHelper.FindLogicalNode(Application.Current.MainWindow, "LayoutRoot") as UIElement; 
                                               CLExtensionMethods.ForceValidation(layoutRoot);
-#endif
                                               if(!HasErrors)
                                               {
                                                   RequestLogin();
@@ -321,7 +317,7 @@ namespace win_client.ViewModels
 
                 // Navigate to the SelectStorage page.
                 Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
-                SendNavigationRequestMessage(nextPage);
+                CLAppMessages.PageHome_NavigationRequest.Send(nextPage);
             }
             else
             {
@@ -395,14 +391,6 @@ namespace win_client.ViewModels
         }
 
         #endregion
-
-        /// <summary>
-        /// Send a navigation request.
-        /// </summary>
-        protected void SendNavigationRequestMessage(Uri uri) 
-        {
-            Messenger.Default.Send<Uri>(uri, "PageHome_NavigationRequest");
-        }
 
     }
 }

@@ -12,14 +12,14 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-    xmlns:win_client="clr-namespace:win_client.Common"
+    xmlns:w="clr-namespace:win_client.Common"
     mc:Ignorable="d">
     
     <!-- Converters -->
-    <win_client:RadioButtonConverter x:Key="RadioButtonConverter" />
-    <win_client:RadioButtonUnselectedVisibilityConverter x:Key="RadioButtonUnselectedVisibilityConverter" />
-    <win_client:BoolIsVisible2VisibilityConverter x:Key="BoolIsVisible2VisibilityConverter" />
-    <win_client:DefaultButtonHub x:Key="defaultHub" />
+    <w:RadioButtonConverter x:Key="RadioButtonConverter" />
+    <w:RadioButtonUnselectedVisibilityConverter x:Key="RadioButtonUnselectedVisibilityConverter" />
+    <w:BoolIsVisible2VisibilityConverter x:Key="BoolIsVisible2VisibilityConverter" />
+    <w:DefaultButtonHub x:Key="defaultHub" />
 
     <!-- Our own styled button. -->
     <ControlTemplate x:Key="StyledButtonTemplate" TargetType="Button">

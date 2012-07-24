@@ -1,5 +1,5 @@
 ﻿//
-//  WindowInvisibleViewModel.cs
+//  PageInvisibleViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -10,7 +10,7 @@ using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using System;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Data;
@@ -35,7 +35,7 @@ namespace win_client.ViewModels
     /// <summary>
     /// Page to control the multiple pages of the tour.
     /// </summary>
-    public class WindowInvisibleViewModel : ViewModelBase, ICleanup
+    public class PageInvisibleViewModel : ViewModelBase, ICleanup
     {
 
         #region Instance Variables
@@ -52,7 +52,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Initializes a new instance of the PageHomeViewModel class.
         /// </summary>
-        public WindowInvisibleViewModel(IDataService dataService)
+        public PageInvisibleViewModel(IDataService dataService)
         {
             _dataService = dataService;
             _dataService.GetData(

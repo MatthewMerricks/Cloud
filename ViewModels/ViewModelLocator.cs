@@ -63,24 +63,24 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<PageSelectStorageSizeViewModel>();
             SimpleIoc.Default.Register<PageSetupSelectorViewModel>();
             SimpleIoc.Default.Register<PageTourViewModel>();
+            SimpleIoc.Default.Register<PageBadgeComInitializationErrorViewModel>();
+            SimpleIoc.Default.Register<PageCloudAlreadyRunningViewModel>();
+            SimpleIoc.Default.Register<PageInvisibleViewModel>();
 
             // Window pages
-            SimpleIoc.Default.Register<WindowCloudAlreadyRunningViewModel>();
-            SimpleIoc.Default.Register<WindowInvisibleViewModel>();
-            SimpleIoc.Default.Register<WindowCloudFolderMissingViewModel>();
-            SimpleIoc.Default.Register<BadgeComInitializationErrorViewModel>();
+            SimpleIoc.Default.Register<PageCloudFolderMissingViewModel>();
 
             // Modal dialog support
             SimpleIoc.Default.Register<IModalDialogService, ModalDialogService>();
             SimpleIoc.Default.Register<IMessageBoxService, MessageBoxService>();
 
             // Modal dialogs
-            SimpleIoc.Default.Register<IModalWindow>( () => new CloudMessageBoxView(), CLConstants.kDialogBox_CloudMessageBoxView, false);
-            SimpleIoc.Default.Register<IModalWindow>( () => new FolderSelectionSimpleView(), CLConstants.kDialogBox_FolderSelectionSimpleView, false);
+            SimpleIoc.Default.Register<IModalWindow>(() => new DialogCloudMessageBoxView(), CLConstants.kDialogBox_CloudMessageBoxView, false);
+            SimpleIoc.Default.Register<IModalWindow>(() => new DialogFolderSelectionSimpleView(), CLConstants.kDialogBox_FolderSelectionSimpleView, false);
 
             // Modal dialog view models
-            SimpleIoc.Default.Register<CloudMessageBoxViewModel>();
-            SimpleIoc.Default.Register<FolderSelectionSimpleViewModel>();
+            SimpleIoc.Default.Register<DialogCloudMessageBoxViewModel>();
+            SimpleIoc.Default.Register<DialogFolderSelectionSimpleViewModel>();
 
             // Growls
             SimpleIoc.Default.Register<FancyBalloon>();
@@ -158,58 +158,58 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
-        /// Gets the CloudAlreadyRunningViewModel property.
+        /// Gets the PageCloudAlreadyRunningViewModel property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public WindowCloudAlreadyRunningViewModel WindowCloudAlreadyRunningViewModel
+        public PageCloudAlreadyRunningViewModel PageCloudAlreadyRunningViewModel
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<WindowCloudAlreadyRunningViewModel>();
+                return ServiceLocator.Current.GetInstance<PageCloudAlreadyRunningViewModel>();
             }
         }
 
         /// <summary>
-        /// Gets the WindowInvisibleViewModel property.
+        /// Gets the PageInvisibleViewModel property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public WindowInvisibleViewModel WindowInvisibleViewModel
+        public PageInvisibleViewModel PageInvisibleViewModel
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<WindowInvisibleViewModel>();
+                return ServiceLocator.Current.GetInstance<PageInvisibleViewModel>();
             }
         }
 
         /// <summary>
-        /// Gets the WindowCloudFolderMissingViewModel property.
+        /// Gets the PageCloudFolderMissingViewModel property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public WindowCloudFolderMissingViewModel WindowCloudFolderMissingViewModel
+        public PageCloudFolderMissingViewModel PageCloudFolderMissingViewModel
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<WindowCloudFolderMissingViewModel>();
+                return ServiceLocator.Current.GetInstance<PageCloudFolderMissingViewModel>();
             }
         }
 
         /// <summary>
-        /// Gets the BadgeComInitializationErrorViewModel property.
+        /// Gets the PageBadgeComInitializationErrorViewModel property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public BadgeComInitializationErrorViewModel BadgeComInitializationErrorViewModel
+        public PageBadgeComInitializationErrorViewModel PageBadgeComInitializationErrorViewModel
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<BadgeComInitializationErrorViewModel>();
+                return ServiceLocator.Current.GetInstance<PageBadgeComInitializationErrorViewModel>();
             }
         }
 
@@ -242,16 +242,16 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
-        /// Gets the CloudMessageBoxView property.
+        /// Gets the DialogCloudMessageBoxView property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public CloudMessageBoxView CloudMessageBoxView
+        public DialogCloudMessageBoxView DialogCloudMessageBoxView
         {
             get
             {
-                return (CloudMessageBoxView)ServiceLocator.Current.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
+                return (DialogCloudMessageBoxView)ServiceLocator.Current.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
             }
         }
 
@@ -261,25 +261,25 @@ namespace win_client.ViewModels
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public FolderSelectionSimpleView FolderSelectionSimpleView
+        public DialogFolderSelectionSimpleView FolderSelectionSimpleView
         {
             get
             {
-                return (FolderSelectionSimpleView)ServiceLocator.Current.GetInstance<FolderSelectionSimpleView>(CLConstants.kDialogBox_FolderSelectionSimpleView);
+                return (DialogFolderSelectionSimpleView)ServiceLocator.Current.GetInstance<DialogFolderSelectionSimpleView>(CLConstants.kDialogBox_FolderSelectionSimpleView);
             }
         }
 
         /// <summary>
-        /// Gets the CloudMessageBoxViewModel property.
+        /// Gets the DialogCloudMessageBoxViewModel property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public CloudMessageBoxViewModel CloudMessageBoxViewModel
+        public DialogCloudMessageBoxViewModel DialogCloudMessageBoxViewModel
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<CloudMessageBoxViewModel>();
+                return ServiceLocator.Current.GetInstance<DialogCloudMessageBoxViewModel>();
             }
         }
 
@@ -289,11 +289,11 @@ namespace win_client.ViewModels
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public FolderSelectionSimpleViewModel FolderSelectionSimpleViewModel
+        public DialogFolderSelectionSimpleViewModel FolderSelectionSimpleViewModel
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<FolderSelectionSimpleViewModel>();
+                return ServiceLocator.Current.GetInstance<DialogFolderSelectionSimpleViewModel>();
             }
         }
 

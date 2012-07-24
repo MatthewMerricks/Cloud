@@ -1,5 +1,5 @@
 ﻿//
-//  WindowCloudAlreadyRunningViewModel.cs
+//  PageBadgeComInitializationErrorViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -10,7 +10,7 @@ using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using System;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Data;
@@ -35,13 +35,13 @@ namespace win_client.ViewModels
     /// <summary>
     /// Page to control the multiple pages of the tour.
     /// </summary>
-    public class WindowCloudAlreadyRunningViewModel : ValidatingViewModelBase, ICleanup
+    public class PageBadgeComInitializationErrorViewModel : ValidatingViewModelBase, ICleanup
     {
 
         #region Instance Variables
 
         private readonly IDataService _dataService;
-        private RelayCommand _cloudAlreadyRunningViewModel_OkCommand;
+        private RelayCommand _pageBadgeComInitializationErrorViewModel_OkCommand;
         private ResourceManager _rm;
 
         #endregion
@@ -50,7 +50,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Initializes a new instance of the PageHomeViewModel class.
         /// </summary>
-        public WindowCloudAlreadyRunningViewModel(IDataService dataService)
+        public PageBadgeComInitializationErrorViewModel(IDataService dataService)
         {
             _dataService = dataService;
             _dataService.GetData(
@@ -83,12 +83,12 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked the OK button.
         /// </summary>
-        public RelayCommand CloudAlreadyRunningViewModel_OkCommand
+        public RelayCommand PageBadgeComInitializationErrorViewModel_OkCommand
         {
             get
             {
-                return _cloudAlreadyRunningViewModel_OkCommand
-                    ?? (_cloudAlreadyRunningViewModel_OkCommand = new RelayCommand(
+                return _pageBadgeComInitializationErrorViewModel_OkCommand
+                    ?? (_pageBadgeComInitializationErrorViewModel_OkCommand = new RelayCommand(
                                             () =>
                                             {
                                                 // Exit the application

@@ -1,5 +1,5 @@
 ﻿//
-//  BadgeComInitializationErrorView.xaml.cs
+//  PageCloudAlreadyRunning.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -25,9 +25,9 @@ using win_client.ViewModels;
 
 namespace win_client.Views
 {
-    public partial class BadgeComInitializationErrorView : Window
+    public partial class PageCloudAlreadyRunning : Page
     {
-        public BadgeComInitializationErrorView()
+        public PageCloudAlreadyRunning()
         {
         }
 

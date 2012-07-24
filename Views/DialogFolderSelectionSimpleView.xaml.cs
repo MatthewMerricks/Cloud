@@ -1,5 +1,5 @@
 ﻿//
-//  FolderSelectionSimpleView.xaml.cs
+//  DialogFolderSelectionSimpleView.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -26,19 +26,19 @@ using Xceed.Wpf.Toolkit;
 
 namespace win_client.Views
 {
-    public partial class FolderSelectionSimpleView : IModalWindow
+    public partial class DialogFolderSelectionSimpleView : IModalWindow
     {
-        public FolderSelectionSimpleView()
+        public DialogFolderSelectionSimpleView()
         {
             InitializeComponent();
 
-            Loaded += new RoutedEventHandler(FolderSelectionSimpleView_Loaded);
+            Loaded += new RoutedEventHandler(DialogFolderSelectionSimpleView_Loaded);
         }
 
         //TODO: FocusedElement is a ChildWindow DependencyProperty, properly registered, but for some reason some of
         // the dependency properties are not firing.  FocusedElement is one of them.  Setting this property
         // via the code-behind works however, so we do it here.
-        void FolderSelectionSimpleView_Loaded(object sender, RoutedEventArgs e)
+        void DialogFolderSelectionSimpleView_Loaded(object sender, RoutedEventArgs e)
         {
             FocusedElement = btnOK;
         }

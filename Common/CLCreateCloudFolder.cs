@@ -33,12 +33,10 @@ namespace win_client.Common
                     Directory.CreateDirectory(cloudFolderPath);
                     Directory.CreateDirectory(cloudFolderPath + @"\Public");
                     Directory.CreateDirectory(cloudFolderPath + @"\Pictures");
-                    creationTime = Directory.GetCreationTimeUtc(cloudFolderPath);
                 }
-                else
-                {
-                    creationTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
-                }
+
+                // The creation time is the newly created time (above), or the existing directory creation time.
+                creationTime = Directory.GetCreationTimeUtc(cloudFolderPath);
 
                 // TODO: Assign our own icon to the newly created Cloud folder
                 // TODO: Assign our own icon to the newly created Cloud\Public folder

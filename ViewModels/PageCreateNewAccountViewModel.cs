@@ -10,7 +10,7 @@ using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using System;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Data;
@@ -406,7 +406,8 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 Uri nextPage = new System.Uri(CLConstants.kPageHome, System.UriKind.Relative);
-                                                SendNavigationRequestMessage(nextPage);
+                                                CLAppMessages.PageCreateNewAccount_NavigationRequest.Send(nextPage);
+
                                             }));
             }
         }
@@ -422,12 +423,8 @@ namespace win_client.ViewModels
                     ?? (_pageCreateNewAccount_ContinueCommand = new RelayCommand(
                                             () =>
                                             {
-#if SILVERLIGHT
-                                                CLExtensionMethods.ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
-#else
                                                 var layoutRoot = LogicalTreeHelper.FindLogicalNode(Application.Current.MainWindow, "LayoutRoot") as UIElement; 
                                                 CLExtensionMethods.ForceValidation(layoutRoot);
-#endif
                                                 if(!HasErrors)
                                                 {
                                                     // The user's entries are correct.  Process the form.
@@ -484,7 +481,7 @@ namespace win_client.ViewModels
 
                 // Navigate to the SelectStorage page.
                 Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
-                SendNavigationRequestMessage(nextPage);
+                CLAppMessages.PageCreateNewAccount_NavigationRequest.Send(nextPage);
             } 
             else
             {
@@ -611,14 +608,6 @@ namespace win_client.ViewModels
             _eMail = Settings.Instance.UserName;
             _fullName = Settings.Instance.UserFullName;
             _computerName = Settings.Instance.DeviceName;
-        }
-
-        /// <summary>
-        /// Send a navigation request.
-        /// </summary>
-        protected void SendNavigationRequestMessage(Uri uri) 
-        {
-            Messenger.Default.Send<Uri>(uri, "PageCreateNewAccount_NavigationRequest");
         }
 
         #endregion

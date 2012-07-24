@@ -10,7 +10,7 @@ using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using System;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Data;
@@ -122,7 +122,7 @@ namespace win_client.ViewModels
                                                         Settings.Instance.setCloudQuota(5);
 
                                                         Uri nextPage = new System.Uri(CLConstants.kPageSetupSelector, System.UriKind.Relative);
-                                                        SendNavigationRequestMessage(nextPage);
+                                                        CLAppMessages.PageSelectStorageSize_NavigationRequest.Send(nextPage);
                                                         break;
                                                     case StorageSizeSelections.Size50Gb:
                                                     case StorageSizeSelections.Size500Gb:
@@ -226,15 +226,6 @@ namespace win_client.ViewModels
             };
 
             CLAppMessages.SelectStorageSize_PresentMessageDialog.Send(message);
-        }
-
-
-        /// <summary>
-        /// Send a navigation request.
-        /// </summary>
-        protected void SendNavigationRequestMessage(Uri uri) 
-        {
-            Messenger.Default.Send<Uri>(uri, "PageSelectStorageSize_NavigationRequest");
         }
 
         #endregion

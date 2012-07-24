@@ -72,9 +72,8 @@
     <Reference Include="Hardcodet.Wpf.TaskbarNotification">
       <HintPath>packages\Hardcodet.Wpf.TaskbarNotification.1.0.4.0\lib\net40\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>packages\MvvmLightPreview.4.1.23.0\lib\net40\Microsoft.Practices.ServiceLocation.dll</HintPath>
+    <Reference Include="Microsoft.Practices.ServiceLocation">
+      <HintPath>3rdParty\bin\Debug\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -197,13 +196,12 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalErrorDialog.cs" />
-    <Compile Include="ViewModels\BusyIndicatorViewModel.cs" />
-    <Compile Include="ViewModels\CloudMessageBoxViewModel.cs" />
-    <Compile Include="ViewModels\WindowCloudFolderMissingViewModel.cs" />
-    <Compile Include="ViewModels\WindowCloudAlreadyRunningViewModel.cs" />
-    <Compile Include="ViewModels\BadgeComInitializationErrorViewModel.cs" />
-    <Compile Include="ViewModels\WindowInvisibleViewModel.cs" />
-    <Compile Include="ViewModels\FolderSelectionSimpleViewModel.cs" />
+    <Compile Include="ViewModels\DialogCloudMessageBoxViewModel.cs" />
+    <Compile Include="ViewModels\PageCloudFolderMissingViewModel.cs" />
+    <Compile Include="ViewModels\PageCloudAlreadyRunningViewModel.cs" />
+    <Compile Include="ViewModels\PageBadgeComInitializationErrorViewModel.cs" />
+    <Compile Include="ViewModels\PageInvisibleViewModel.cs" />
+    <Compile Include="ViewModels\DialogFolderSelectionSimpleViewModel.cs" />
     <Compile Include="ViewModels\NotifyPropertyChanged.cs" />
     <Compile Include="ViewModels\PageCreateNewAccountViewModel.cs" />
     <Compile Include="ViewModels\PageHomeViewModel.cs" />
@@ -212,20 +210,20 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
-    <Compile Include="Views\CloudMessageBoxView.xaml.cs">
-      <DependentUpon>CloudMessageBoxView.xaml</DependentUpon>
+    <Compile Include="Views\DialogCloudMessageBoxView.xaml.cs">
+      <DependentUpon>DialogCloudMessageBoxView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\BadgeComInitializationErrorView.xaml.cs">
-      <DependentUpon>BadgeComInitializationErrorView.xaml</DependentUpon>
+    <Compile Include="Views\PageBadgeComInitializationErrorView.xaml.cs">
+      <DependentUpon>PageBadgeComInitializationErrorView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\WindowCloudFolderMissing.xaml.cs">
-      <DependentUpon>WindowCloudFolderMissing.xaml</DependentUpon>
+    <Compile Include="Views\PageCloudFolderMissing.xaml.cs">
+      <DependentUpon>PageCloudFolderMissing.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\WindowCloudAlreadyRunning.xaml.cs">
-      <DependentUpon>WindowCloudAlreadyRunning.xaml</DependentUpon>
+    <Compile Include="Views\PageCloudAlreadyRunning.xaml.cs">
+      <DependentUpon>PageCloudAlreadyRunning.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\FolderSelectionSimpleView.xaml.cs">
-      <DependentUpon>FolderSelectionSimpleView.xaml</DependentUpon>
+    <Compile Include="Views\DialogFolderSelectionSimpleView.xaml.cs">
+      <DependentUpon>DialogFolderSelectionSimpleView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PageCreateNewAccount.xaml.cs">
       <DependentUpon>PageCreateNewAccount.xaml</DependentUpon>
@@ -233,8 +231,8 @@
     <Compile Include="Views\PageHome.xaml.cs">
       <DependentUpon>PageHome.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\WindowInvisible.xaml.cs">
-      <DependentUpon>WindowInvisible.xaml</DependentUpon>
+    <Compile Include="Views\PageInvisible.xaml.cs">
+      <DependentUpon>PageInvisible.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PageSelectStorageSize.xaml.cs">
       <DependentUpon>PageSelectStorageSize.xaml</DependentUpon>
@@ -289,23 +287,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\CloudMessageBoxView.xaml">
+    <Page Include="Views\DialogCloudMessageBoxView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\BadgeComInitializationErrorView.xaml">
+    <Page Include="Views\PageBadgeComInitializationErrorView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\WindowCloudFolderMissing.xaml">
+    <Page Include="Views\PageCloudFolderMissing.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\WindowCloudAlreadyRunning.xaml">
+    <Page Include="Views\PageCloudAlreadyRunning.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\FolderSelectionSimpleView.xaml">
+    <Page Include="Views\DialogFolderSelectionSimpleView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -317,7 +315,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\WindowInvisible.xaml">
+    <Page Include="Views\PageInvisible.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -357,10 +355,12 @@
     <EmbeddedResource Include="Resources\Resources.fr.resx">
       <LastGenOutput>Resources.fr1.Designer.cs</LastGenOutput>
       <Generator>PublicResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="app.config">
       <SubType>Designer</SubType>
