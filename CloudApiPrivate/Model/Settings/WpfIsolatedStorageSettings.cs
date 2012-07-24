@@ -8,7 +8,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace CloudApiPrivate.Model.Settings
 {
-#if !SILVERLIGHT
 
     /// <summary>
     /// This class is implemented to store user settings in an Isolated storage file.
@@ -261,5 +260,4 @@ namespace CloudApiPrivate.Model.Settings
 
         #endregion
     }
-#endif  // !SILVERLIGHT
 }

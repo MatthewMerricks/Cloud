@@ -74,8 +74,8 @@ namespace win_client.Services.UiActivity
             // Start a timer for testing.
             _pollTimer = new System.Threading.Timer((s) => { TimerFiredCallback(); }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(1));
 
-            WindowInvisibleViewModel vmWindowInvisible = SimpleIoc.Default.GetInstance<WindowInvisibleViewModel>();
-            vmWindowInvisible.TaskbarIconVisibility = System.Windows.Visibility.Visible;
+            PageInvisibleViewModel vmPageInvisible = SimpleIoc.Default.GetInstance<PageInvisibleViewModel>();
+            vmPageInvisible.TaskbarIconVisibility = System.Windows.Visibility.Visible;
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace win_client.Services.UiActivity
                     // Put up a test balloon tooltip.  It will automatically fade.
                     _trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test balloon from the system tray.");
                     CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
-                    Messenger.Default.Send<CLBalloonTooltipNotification>(tooltipInfo, "Message_BalloonTooltipSystemTrayNotification");
+                    CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Send(tooltipInfo);
                 }));
             }
 
@@ -117,7 +117,7 @@ namespace win_client.Services.UiActivity
                     var window = SimpleIoc.Default.GetInstance<FancyBalloon>();
                     window.BalloonText = "Hello Cloud!";
                     CLGrowlNotification growlInfo = new CLGrowlNotification(window, System.Windows.Controls.Primitives.PopupAnimation.Slide, 2500);
-                    Messenger.Default.Send<CLGrowlNotification>(growlInfo, "Message_GrowlSystemTrayNotification");
+                    CLAppMessages.Message_GrowlSystemTrayNotification.Send(growlInfo);
                 }));
             }
         }

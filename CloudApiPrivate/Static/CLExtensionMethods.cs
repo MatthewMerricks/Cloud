@@ -21,6 +21,7 @@ using CloudApiPrivate.Common;
 using CloudApiPublic.Model;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 
 
 namespace CloudApiPrivate.Static
@@ -50,60 +51,39 @@ namespace CloudApiPrivate.Static
         /// </summary>
         public static void ForceValidation(object element)
         {
-            var trace = CLTrace.Instance;
-            trace.writeToLog(0, "ForceValidation: Entry.  element: {0}.", element.ToString());
             for(int i = 0; i < VisualTreeHelper.GetChildrenCount((DependencyObject)element); i++)
             {
                 object child = VisualTreeHelper.GetChild((DependencyObject)element, i);
-                trace.writeToLog(9, "ForceValidation: Found child: {0}. index: {1}.  Recurse.", child.ToString(), i);
                 ForceValidation(child);
             }
 
             BindingExpression bindingExpression = null;
 
             string uiElementType = element.GetType().ToString();
-            trace.writeToLog(9, "ForceValidation: Check this element. uiElementType: {0}.", uiElementType);
             switch (uiElementType)
             {
                 case "System.Windows.Controls.TextBox":
-                    trace.writeToLog(9, "ForceValidation: This is a TextBox.");
                     bindingExpression = ((TextBox)element).GetBindingExpression(TextBox.TextProperty);
                     break;
 
-#if SILVERLIGHT 
-                case "System.Windows.Controls.PasswordBox":
-                    bindingExpression = ((PasswordBox)element).GetBindingExpression(PasswordBox.PasswordProperty);
-                    break;
-#else
                 case "CloudApiPrivate.Common.SecurePasswordBox":
-                    trace.writeToLog(9, "ForceValidation: This is a SecurePasswordBox.");
                     bindingExpression = ((SecurePasswordBox)element).GetBindingExpression(SecurePasswordBox.TextProperty);
                     break;
-#endif
 
                 case "System.Windows.Controls.RadioButton":
-                    trace.writeToLog(9, "ForceValidation: This is a RadioButton.");
                     bindingExpression = ((RadioButton)element).GetBindingExpression(RadioButton.IsCheckedProperty);
                     break;
             }
 
             if (bindingExpression == null || bindingExpression.ParentBinding == null)
             {
-                trace.writeToLog(9, "ForceValidation: Binding or ParentBinding is null.  Return.");
                 return;
             }
-#if SILVERLIGHT 
-            if(!bindingExpression.ParentBinding.ValidatesOnNotifyDataErrors) return;
-#else
             if (!bindingExpression.ParentBinding.ValidatesOnDataErrors)
             {
-                trace.writeToLog(9, "ForceValidation: Parent does not validate on data errors.  Return.");
                 return;
             }
-#endif
-            trace.writeToLog(9, "ForceValidation: Update the source for this binding expression.");
             bindingExpression.UpdateSource();
-            trace.writeToLog(9, "ForceValidation: Return.");
         }
 
         /// <summary>
@@ -325,5 +305,34 @@ namespace CloudApiPrivate.Static
             source.Insert(range.Location, withString);
             return source;
         }
+
+        /// <summary> 
+        /// Extend Stream.  Read a stream into a structure.
+        /// </summary> 
+        /// <param name="stream">The source stream.</param> 
+        /// <returns>T. The resulting filled structure.</returns> 
+        /// Call like this:
+        /// MemoryStream ms = new MemoryStream(data);
+        /// StructType filledStructure = ReadStruct<StructType>(ms)
+        /// 
+        /// [StructLayout(LayoutKind.Sequential, CharSet.Ansi, Pack = 1)]
+        /// internal struct StructType
+        /// {
+        ///     [MarshaAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        ///     public byte[] stuff;
+        ///     etc...
+        /// }
+
+        public static T ReadStruct<T>(this Stream stream) where T : struct    
+        {
+            var sz = Marshal.SizeOf(typeof(T));
+            var buffer = new byte[sz];
+            stream.Read(buffer, 0, sz);
+            var pinnedBuffer = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            var structure = (T)Marshal.PtrToStructure(
+                pinnedBuffer.AddrOfPinnedObject(), typeof(T));
+            pinnedBuffer.Free();
+            return structure;
+        } 
     }
 }

@@ -460,8 +460,31 @@ namespace SQLIndexer
                             : lastSync.SyncCounter);
                         // Default root path from last sync if it was not passed in
                         newRootPath = string.IsNullOrEmpty(newRootPath)
-                            ? lastSync.RootPath
+                            ? (lastSync == null ? null : lastSync.RootPath)
                             : newRootPath;
+
+                        if (string.IsNullOrEmpty(newRootPath))
+                        {
+                            throw new Exception("Path cannot be found for sync root");
+                        }
+
+                        FilePath previousRoot = (lastSync == null ? null : lastSync.RootPath);
+                        FilePath newRoot = newRootPath;
+
+                        if (string.IsNullOrWhiteSpace(syncId))
+                        {
+                            if (lastSync != null)
+                            {
+                                syncId = lastSync.SyncId;
+                            }
+                            else
+                            {
+                                throw new Exception("Could not find a sync id");
+                            }
+                        }
+
+                        bool syncStatesNeedRemap = previousRoot != null
+                            && !FilePathComparer.Instance.Equals(previousRoot, newRoot);
 
                         // Create the new sync database object
                         Sync newSync = new Sync()
@@ -496,16 +519,67 @@ namespace SQLIndexer
                                 .Include(parent => parent.ServerLinkedFileSystemObject)
                                 .Where(currentSync => currentSync.SyncCounter == (long)lastSyncCounter))
                             {
+                                string localPath = currentState.FileSystemObject.Path;
+                                string serverPath = (currentState.ServerLinkedFileSystemObject == null ? null : currentState.ServerLinkedFileSystemObject.Path);
+
+                                if (syncStatesNeedRemap)
+                                {
+                                    FilePath originalLocalPath = localPath;
+                                    FilePath originalServerPath = serverPath;
+
+                                    FilePath overlappingLocal = originalLocalPath.FindOverlappingPath(previousRoot);
+                                    if (overlappingLocal != null)
+                                    {
+                                        FilePath renamedOverlapChild = originalLocalPath;
+                                        FilePath renamedOverlap = renamedOverlapChild.Parent;
+
+                                        while (renamedOverlap != null)
+                                        {
+                                            if (FilePathComparer.Instance.Equals(renamedOverlap, previousRoot))
+                                            {
+                                                renamedOverlapChild.Parent = newRoot;
+                                                localPath = originalLocalPath.ToString();
+                                                break;
+                                            }
+
+                                            renamedOverlapChild = renamedOverlap;
+                                            renamedOverlap = renamedOverlap.Parent;
+                                        }
+                                    }
+
+                                    if (originalServerPath != null)
+                                    {
+                                        FilePath overlappingServer = originalServerPath.FindOverlappingPath(previousRoot);
+                                        if (overlappingServer != null)
+                                        {
+                                            FilePath renamedOverlapChild = overlappingServer;
+                                            FilePath renamedOverlap = renamedOverlapChild.Parent;
+
+                                            while (renamedOverlap != null)
+                                            {
+                                                if (FilePathComparer.Instance.Equals(renamedOverlap, previousRoot))
+                                                {
+                                                    renamedOverlapChild.Parent = newRoot;
+                                                    serverPath = overlappingServer.ToString();
+                                                    break;
+                                                }
+
+                                                renamedOverlapChild = renamedOverlap;
+                                                renamedOverlap = renamedOverlap.Parent;
+                                            }
+                                        }
+                                    }
+                                }
 
                                 // Check if previous syncstate had a server-remapped path to store
                                 if (currentState.ServerLinkedFileSystemObject != null)
                                 {
-                                    serverRemappedPaths.Add(currentState.FileSystemObject.Path,
-                                        currentState.ServerLinkedFileSystemObject.Path);
+                                    serverRemappedPaths.Add(localPath,
+                                        serverPath);
                                 }
 
                                 // Add the previous sync state to the dictionary as the baseline before changes
-                                newSyncStates.Add(currentState.FileSystemObject.Path,
+                                newSyncStates.Add(localPath,
                                     new FileMetadata()
                                     {
                                         HashableProperties = new FileMetadataHashableProperties(currentState.FileSystemObject.IsFolder,
@@ -530,6 +604,58 @@ namespace SQLIndexer
                         // Loop through existing events to process into the new sync states
                         foreach (Event previousEvent in existingEvents)
                         {
+                            string newPath = previousEvent.FileSystemObject.Path;
+                            string oldPath = previousEvent.PreviousPath;
+
+                            if (syncStatesNeedRemap)
+                            {
+                                FilePath originalNewPath = newPath;
+                                FilePath originalOldPath = oldPath;
+
+                                FilePath overlappingLocal = originalNewPath.FindOverlappingPath(previousRoot);
+                                if (overlappingLocal != null)
+                                {
+                                    FilePath renamedOverlapChild = originalNewPath;
+                                    FilePath renamedOverlap = renamedOverlapChild.Parent;
+
+                                    while (renamedOverlap != null)
+                                    {
+                                        if (FilePathComparer.Instance.Equals(renamedOverlap, previousRoot))
+                                        {
+                                            renamedOverlapChild.Parent = newRoot;
+                                            newPath = originalNewPath.ToString();
+                                            break;
+                                        }
+
+                                        renamedOverlapChild = renamedOverlap;
+                                        renamedOverlap = renamedOverlap.Parent;
+                                    }
+                                }
+
+                                if (originalOldPath != null)
+                                {
+                                    FilePath overlappingServer = originalOldPath.FindOverlappingPath(previousRoot);
+                                    if (overlappingServer != null)
+                                    {
+                                        FilePath renamedOverlapChild = overlappingServer;
+                                        FilePath renamedOverlap = renamedOverlapChild.Parent;
+
+                                        while (renamedOverlap != null)
+                                        {
+                                            if (FilePathComparer.Instance.Equals(renamedOverlap, previousRoot))
+                                            {
+                                                renamedOverlapChild.Parent = newRoot;
+                                                oldPath = overlappingServer.ToString();
+                                                break;
+                                            }
+
+                                            renamedOverlapChild = renamedOverlap;
+                                            renamedOverlap = renamedOverlap.Parent;
+                                        }
+                                    }
+                                }
+                            }
+
                             // If the current database event is in the list of events that are completed,
                             // the syncstates have to be modified appropriately to include the change
                             if (Array.BinarySearch(syncedEventIdsEnumerated, previousEvent.EventId) >= 0)
@@ -537,7 +663,7 @@ namespace SQLIndexer
                                 switch (changeEnums[previousEvent.FileChangeTypeEnumId])
                                 {
                                     case FileChangeType.Created:
-                                        newSyncStates.Add(previousEvent.FileSystemObject.Path,
+                                        newSyncStates.Add(newPath,
                                             new FileMetadata()
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
@@ -550,12 +676,12 @@ namespace SQLIndexer
                                             });
                                         break;
                                     case FileChangeType.Deleted:
-                                        newSyncStates.Remove(previousEvent.FileSystemObject.Path);
+                                        newSyncStates.Remove(newPath);
                                         break;
                                     case FileChangeType.Modified:
-                                        if (newSyncStates.ContainsKey(previousEvent.FileSystemObject.Path))
+                                        if (newSyncStates.ContainsKey(newPath))
                                         {
-                                            FileMetadata modifiedMetadata = newSyncStates[previousEvent.FileSystemObject.Path];
+                                            FileMetadata modifiedMetadata = newSyncStates[newPath];
                                             modifiedMetadata.HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                     previousEvent.FileSystemObject.LastTime,
                                                     previousEvent.FileSystemObject.CreationTime,
@@ -566,7 +692,7 @@ namespace SQLIndexer
                                         }
                                         else
                                         {
-                                            newSyncStates.Add(previousEvent.FileSystemObject.Path,
+                                            newSyncStates.Add(newPath,
                                                 new FileMetadata()
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
@@ -580,13 +706,13 @@ namespace SQLIndexer
                                         }
                                         break;
                                     case FileChangeType.Renamed:
-                                        if (newSyncStates.ContainsKey(previousEvent.FileSystemObject.Path))
+                                        if (newSyncStates.ContainsKey(newPath))
                                         {
-                                            if (newSyncStates.ContainsKey(previousEvent.PreviousPath))
+                                            if (newSyncStates.ContainsKey(oldPath))
                                             {
-                                                newSyncStates.Remove(previousEvent.PreviousPath);
+                                                newSyncStates.Remove(oldPath);
                                             }
-                                            FileMetadata renameMetadata = newSyncStates[previousEvent.FileSystemObject.Path];
+                                            FileMetadata renameMetadata = newSyncStates[newPath];
                                             renameMetadata.HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                     previousEvent.FileSystemObject.LastTime,
                                                     previousEvent.FileSystemObject.CreationTime,
@@ -595,11 +721,11 @@ namespace SQLIndexer
                                             renameMetadata.Revision = previousEvent.FileSystemObject.Revision;
                                             renameMetadata.StorageKey = previousEvent.FileSystemObject.StorageKey;
                                         }
-                                        else if (newSyncStates.ContainsKey(previousEvent.PreviousPath))
+                                        else if (newSyncStates.ContainsKey(oldPath))
                                         {
-                                            newSyncStates.Rename(previousEvent.PreviousPath, previousEvent.FileSystemObject.Path);
+                                            newSyncStates.Rename(oldPath, newPath);
 
-                                            FileMetadata renameMetadata = newSyncStates[previousEvent.FileSystemObject.Path];
+                                            FileMetadata renameMetadata = newSyncStates[newPath];
                                             renameMetadata.HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                     previousEvent.FileSystemObject.LastTime,
                                                     previousEvent.FileSystemObject.CreationTime,
@@ -610,7 +736,7 @@ namespace SQLIndexer
                                         }
                                         else
                                         {
-                                            newSyncStates.Add(previousEvent.FileSystemObject.Path,
+                                            newSyncStates.Add(newPath,
                                                 new FileMetadata()
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
@@ -630,6 +756,11 @@ namespace SQLIndexer
                             else
                             {
                                 previousEvent.SyncCounter = syncCounter;
+                                if (syncStatesNeedRemap)
+                                {
+                                    previousEvent.FileSystemObject.Path = newPath;
+                                    previousEvent.PreviousPath = oldPath;
+                                }
                             }
                         }
 
@@ -707,6 +838,37 @@ namespace SQLIndexer
             }
             return null;
         }
+
+        /// <summary>
+        /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
+        /// </summary>
+        /// <returns></returns>
+        public CLError WipeIndex(string newRootPath)
+        {
+            try
+            {
+                using (TransactionScope scope = new TransactionScope())
+                {
+                    using (IndexDBEntities indexDB = new IndexDBEntities())
+                    {
+                        Sync emptySync = new Sync()
+                        {
+                            SyncId = IdForEmptySync,
+                            RootPath = newRootPath
+                        };
+                        indexDB.Syncs.AddObject(emptySync);
+                        indexDB.SaveChanges();
+                        scope.Complete();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+        private const string IdForEmptySync = "0";
         
         /// <summary>
         /// Writes a new set of sync states to the database after a sync completes,

@@ -80,11 +80,7 @@ namespace CloudApiPrivate.Model.Settings
             Boolean rc = false;
             value = default(TT);
 
-#if SILVERLIGHT
-            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
-#else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
-#endif
             if (settings != null && settings.Contains(name))
             {
                 value = (TT)settings[name];
@@ -100,11 +96,7 @@ namespace CloudApiPrivate.Model.Settings
       
         public static TT Read<TT>(string name, TT defaultValue)        
         {
-#if SILVERLIGHT
-            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
-#else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
-#endif
             TT value;
             if(settings == null || !settings.TryGetValue<TT>(name, out value)) 
             {
@@ -115,11 +107,7 @@ namespace CloudApiPrivate.Model.Settings
      
         public static void Write<TT>(string name, TT value)        
         {
-#if SILVERLIGHT
-            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
-#else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
-#endif
             if (settings == null) 
             {
                 return;           
@@ -138,11 +126,7 @@ namespace CloudApiPrivate.Model.Settings
 
         public static void Clear()        
         {
-#if SILVERLIGHT
-            IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;            
-#else
             IsolatedStorageSettings settings = IsolatedStorageSettings.Instance;
-#endif
             settings.Clear();
             settings.Save();        
         }
@@ -192,6 +176,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kUdid = "device_udid";
         public const string kLogErrors = "log_errors";
         public const string kLogErrorLocation = "log_error_location";
+        public const string kCloudFolderCreationTimeUtc = "cloud_folder_path_creation_time";
 
 
         /// <summary>
@@ -511,6 +496,17 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
+        private DateTime _cloudFolderCreationTimeUtc;
+        public DateTime CloudFolderCreationTimeUtc
+        {
+            get { return _cloudFolderCreationTimeUtc; }
+            set
+            {
+                _cloudFolderCreationTimeUtc = value;
+                SettingsBase.Write<DateTime>(kCloudFolderCreationTimeUtc, value);
+            }
+        }
+
         private FileStream _cloudFolderDescriptor;
         public FileStream CloudFolderDescriptor
         {
@@ -657,7 +653,7 @@ namespace CloudApiPrivate.Model.Settings
             _animateMenuBarForUpdates = (int)buttonState.stateON;
             _showDesktopNotificationForUpdates = (int)buttonState.stateON;
             _cloudAppLanguage = (int)cloudAppLanguageType.cloudAppLanguageEN;
-            _dateWeLastCheckedForSoftwareUpdate = DateTime.MinValue;
+            _dateWeLastCheckedForSoftwareUpdate = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
             // Setup
             _useDefaultSetup = true;
@@ -688,7 +684,8 @@ namespace CloudApiPrivate.Model.Settings
     
             // Advanced
             _cloudFolderPath = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));  // get the user's home directory.  e.g., C:\Users\<UserName>\
-            _cloudFolderPath = _cloudFolderPath + @"\Cloud";
+            _cloudFolderPath = _cloudFolderPath + "\\" + CLPrivateDefinitions.CloudDirectoryName;
+            _cloudFolderCreationTimeUtc = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
             _cloudFolderDescriptor = null;
     
@@ -893,6 +890,12 @@ namespace CloudApiPrivate.Model.Settings
                 _cloudFolderPath = tempString;
             }
 
+            isPresent = SettingsBase.ReadIfPresent<DateTime>(kCloudFolderCreationTimeUtc, out tempDate);
+            if (isPresent)
+            {
+                _cloudFolderCreationTimeUtc = tempDate;
+            }
+
             FileStream tempStream;
             isPresent = SettingsBase.ReadIfPresent<FileStream>(kCloudFolderDescriptor, out tempStream);
             if (isPresent)
@@ -1001,9 +1004,10 @@ namespace CloudApiPrivate.Model.Settings
         /// <summary>
         /// Record the new Cloud folder path.
         /// </summary>
-        public void updateCloudFolderPath(string path)
+        public void updateCloudFolderPath(string path, DateTime creationTime)
         {  
-            CloudFolderPath = path; 
+            CloudFolderPath = path;
+            CloudFolderCreationTimeUtc = creationTime;
             CloudFolderDescriptor = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 

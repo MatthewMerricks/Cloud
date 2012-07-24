@@ -542,7 +542,10 @@ namespace win_client.Services.FileSystemDispatcher
 
             // __block BOOL rc = NO;
             // __block NSError *err = nil;
-            bool rc = false;
+            GenericHolder<bool> rc = new GenericHolder<bool>()
+            {
+                Value = false
+            };
             CLError err = null;
 
             // This is the proper format if and when we decide to add perrmision attributes.
@@ -594,6 +597,8 @@ namespace win_client.Services.FileSystemDispatcher
                             System.IO.File.SetLastWriteTime(path, modifiedDate);
                             System.IO.File.SetLastAccessTime(path, modifiedDate);
                         }
+
+                        GenericHolder<bool>.GenericSet(userState, true);
                     }
                     else
                     {
@@ -605,7 +610,7 @@ namespace win_client.Services.FileSystemDispatcher
                 {
                     err = e;
                 }
-            }, null, null);
+            }, null, rc);
 
             if (err != null)
             {
@@ -616,7 +621,7 @@ namespace win_client.Services.FileSystemDispatcher
              
             //return rc;
             error = err;
-            return rc;
+            return rc.Value;
         }
 
         //- (BOOL)createSymbLinkAtPath:(NSString *)path withTarget:(NSString *)target

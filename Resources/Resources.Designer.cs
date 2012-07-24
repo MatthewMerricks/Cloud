@@ -214,6 +214,114 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To continue syncing, please restore your Cloud folder.  You may also choose to remove this computer from your account and exit the application..
+        /// </summary>
+        public static string pageCloudFolderMissingBodyMesssage {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingBodyMesssage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A problem occurred while removing your computer from your acccount on the server..
+        /// </summary>
+        public static string pageCloudFolderMissingErrorBody {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingErrorBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oh Snap!  Something happened..
+        /// </summary>
+        public static string pageCloudFolderMissingErrorHeader {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingErrorHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string pageCloudFolderMissingErrorRightButtonContent {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingErrorRightButtonContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud.com.
+        /// </summary>
+        public static string pageCloudFolderMissingErrorTitle {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingErrorTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select..
+        /// </summary>
+        public static string pageCloudFolderMissingFolderBrowserDescription {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingFolderBrowserDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Locate....
+        /// </summary>
+        public static string pageCloudFolderMissingOkButtonLocate {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingOkButtonLocate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restore.
+        /// </summary>
+        public static string pageCloudFolderMissingOkButtonRestore {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingOkButtonRestore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /Views/PageCloudAlreadyRunning.xaml.
+        /// </summary>
+        public static string startupUriAlreadyRunning {
+            get {
+                return ResourceManager.GetString("startupUriAlreadyRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /Views/PageCloudFolderMissing.xaml.
+        /// </summary>
+        public static string startupUriCloudFolderMissing {
+            get {
+                return ResourceManager.GetString("startupUriCloudFolderMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /Views/PageHome.xaml.
+        /// </summary>
+        public static string startupUriFirstTimeSetup {
+            get {
+                return ResourceManager.GetString("startupUriFirstTimeSetup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /Views/PageInvisible.xaml.
+        /// </summary>
+        public static string startupUriPageInvisible {
+            get {
+                return ResourceManager.GetString("startupUriPageInvisible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Check for updates.
         /// </summary>
         public static string SystemTrayContextMenuCheckForUpdates {

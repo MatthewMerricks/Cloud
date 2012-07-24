@@ -22,6 +22,7 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
+using win_client.AppDelegate;
 
 namespace win_client.Views
 {
@@ -35,87 +36,69 @@ namespace win_client.Views
 
         #region "Life Cycle
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         public PageSetupSelector()
         {
             InitializeComponent();
 
-            // Remove the navigation bar
-            Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() =>
-            {
-                var navWindow = Window.GetWindow(this) as NavigationWindow;
-                if (navWindow != null)
-                {
-                    navWindow.ShowsNavigationUI = false;
-                }
-            }));
-
+            // Register event handlers
             Loaded += new RoutedEventHandler(PageSetupSelector_Loaded);
             Unloaded += new RoutedEventHandler(PageSetupSelector_Unloaded);
 
-#if SILVERLIGHT
-            Messenger.Default.Register<Uri>(this, "PageSetupSelector_NavigationRequest",
-                (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-#else
-            Messenger.Default.Register<Uri>(this, "PageSetupSelector_NavigationRequest",
+            // Register messages
+            CLAppMessages.PageSetupSelector_NavigationRequest.Register(this,
                 (uri) => 
                 {
-                    if (!_isLoaded)
-                    {
-                        int i = 0;
-                        i++;
-                    }
-                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
                 });
-#endif
+
+            // Pass the view's grid to the viewmodel for use with the dialogs.
             PageSetupSelectorViewModel vm = (PageSetupSelectorViewModel)DataContext;
             vm.ViewGridContainer = LayoutRoot;
         }
 
         #endregion
 
-        #region "Public Methods"
-        /// <summary>
-        /// Get this view instance. <See cref="getViewInstance" />
-        /// </summary>
-        public PageSetupSelector getViewInstance()
-        {
-            return this;
-        }
-
-        #endregion
-
-
         #region "Message Handlers"
 
+        /// <summary>
+        /// Loaded event handler.
+        /// </summary>
         void PageSetupSelector_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-#if !SILVERLIGHT
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
-#endif
+
+            // Show the window.
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             cmdContinue.Focus();
         }
 
+        /// <summary>
+        /// Unloaded event handler.
+        /// </summary>
         void PageSetupSelector_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
 
-#if !SILVERLIGHT
             if (NavigationService != null)
             {
                 NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
             }
-#endif
             Messenger.Default.Unregister(this);
         }
 
-#if SILVERLIGHT
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-#else
+        /// <summary>
+        /// Navigated event handler.
+        /// </summary>
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
-#endif
         {
+            // Show the window.
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             if (_isLoaded)
             {
                 cmdContinue.Focus();

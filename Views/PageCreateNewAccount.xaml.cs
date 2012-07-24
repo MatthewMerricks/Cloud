@@ -22,6 +22,7 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
+using win_client.AppDelegate;
 
 namespace win_client.Views
 {
@@ -36,81 +37,77 @@ namespace win_client.Views
 
         #region "Life Cycle"
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         public PageCreateNewAccount()
         {
             InitializeComponent();
 
-            // Remove the navigation bar
-            Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() =>
-            {
-                var navWindow = Window.GetWindow(this) as NavigationWindow;
-                if (navWindow != null)
-                {
-                    navWindow.ShowsNavigationUI = false;
-                }
-            }));
-
+            // Register event handlers
             Loaded += new RoutedEventHandler(PageCreateNewAccount_Loaded);
             Unloaded += new RoutedEventHandler(PageCreateNewAccount_Unloaded);
 
-#if SILVERLIGHT
-            Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
-                (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-#else
-            Messenger.Default.Register<Uri>(this, "PageCreateNewAccount_NavigationRequest",
+            // Register messages
+            CLAppMessages.PageCreateNewAccount_NavigationRequest.Register(this,
                 (uri) =>
                 {
-                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
                 });
-#endif
 
             CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
             CLAppMessages.CreateNewAccount_GetClearPasswordField.Register(this, OnCreateNewAccount_GetClearPasswordField);
             CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Register(this, OnCreateNewAccount_GetClearConfirmPasswordField);
 
-            PageCreateNewAccountViewModel vm = (PageCreateNewAccountViewModel)DataContext;
-            vm.ViewGridContainer = LayoutRoot;
+            // Pass the view's grid to the view model for the dialogs to use.
+            _viewModel = (PageCreateNewAccountViewModel)DataContext;
+            _viewModel.ViewGridContainer = LayoutRoot;
 
         }
 
+        /// <summary>
+        /// Loaded event handler.
+        /// </summary>
         void PageCreateNewAccount_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
             _viewModel = DataContext as PageCreateNewAccountViewModel;
 
-#if !SILVERLIGHT
+            // Show the window.
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
-#endif
             tbEMail.Focus();
         }
 
+        /// <summary>
+        /// Unloaded event handler.
+        /// </summary>
         void PageCreateNewAccount_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
 
-#if !SILVERLIGHT
             if (NavigationService != null)
             {
                 NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
             }
-#endif
             Messenger.Default.Unregister(this);
         }
 
-#if SILVERLIGHT
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-#else
+        /// <summary>
+        /// Navigated event handler.
+        /// </summary>
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
-#endif
         {
+            // Show the window.
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             if (_isLoaded)
             {
                 tbEMail.Focus();
             }
 
-            var vm = DataContext as PageCreateNewAccountViewModel;
-            vm.PageCreateNewAccount_NavigatedToCommand.Execute(null);
+            _viewModel.PageCreateNewAccount_NavigatedToCommand.Execute(null);
         }
         #endregion
 
@@ -162,8 +159,6 @@ namespace win_client.Views
         }
 
         #endregion "ChangeScreenMessage"
-
-
 
     }
 }

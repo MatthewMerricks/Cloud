@@ -21,6 +21,7 @@ using System.Windows.Threading;
 using GalaSoft.MvvmLight.Messaging;
 using win_client.ViewModels;
 using win_client.Common;
+using win_client.AppDelegate;
 
 namespace win_client.Views
 {
@@ -33,82 +34,81 @@ namespace win_client.Views
 
         #endregion
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         public PageHome()
         {
             InitializeComponent();
 
-            // Remove the navigation bar
-            Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() =>
-            {
-                var navWindow = Window.GetWindow(this) as NavigationWindow;
-                if (navWindow != null)
-                {
-                    navWindow.ShowsNavigationUI = false;
-                }
-            }));
-
+            // Register event handlers
             Loaded += new RoutedEventHandler(PageHome_Loaded);
             Unloaded += new RoutedEventHandler(PageHome_Unloaded);
 
-#if SILVERLIGHT
-            Messenger.Default.Register<Uri>(this, "PageHome_NavigationRequest",
-                (uri) => ((Frame)(Application.Current.RootVisual as MainPage).FindName("ContentFrame")).Navigate(uri));
-#else
-            Messenger.Default.Register<Uri>(this, "PageHome_NavigationRequest",
+            // Register messages
+            CLAppMessages.PageHome_NavigationRequest.Register(this,
                 (uri) =>
                 {
-                    this.NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo);
                     this.NavigationService.Navigate(uri, UriKind.Relative); 
                 });
-#endif
 
             CLAppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
             CLAppMessages.Home_GetClearPasswordField.Register(this, OnHome_GetClearPasswordField);
 
-            PageHomeViewModel vm = (PageHomeViewModel)DataContext;
-            vm.ViewGridContainer = LayoutRoot;
+            // Pass the view's grid to the view model for the dialogs to use.
+            _viewModel = (PageHomeViewModel)DataContext;
+            _viewModel.ViewGridContainer = LayoutRoot;
 
         }
 
-        #region "Message Handlers"
+        #region "Event Handlers"
 
+        /// <summary>
+        /// Loaded event handler.
+        /// </summary>
         void PageHome_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
             _viewModel = DataContext as PageHomeViewModel;
-#if !SILVERLIGHT
+
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
             NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo); ;
-#endif
             tbEMail.Focus();
         }
 
+        /// <summary>
+        /// Unloaded event handler.
+        /// </summary>
         void PageHome_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
 
-#if !SILVERLIGHT
             if (NavigationService != null)
             {
                 NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
             }
-#endif
             Messenger.Default.Unregister(this);
         }
 
-#if SILVERLIGHT
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-#else
+        /// <summary>
+        /// Navigated event handler.
+        /// </summary>
         protected void OnNavigatedTo(object sender, NavigationEventArgs e)
-#endif
         {
             if(_isLoaded)
             {
                 tbEMail.Focus();
             }
 
-            var vm = DataContext as PageHomeViewModel;
-            vm.PageHome_NavigatedToCommand.Execute(null);
+            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
+            _viewModel.PageHome_NavigatedToCommand.Execute(null);
+        
         }
+
+        #endregion
+        #region Message Handlers
 
         private void OnHome_FocusToError_Message(string notUsed)
         {

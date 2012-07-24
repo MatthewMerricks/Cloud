@@ -10,7 +10,7 @@ using win_client.Model;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using System;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Data;
@@ -164,15 +164,16 @@ namespace win_client.ViewModels
                                                 RaisePropertyChanged(TourPageNumberPropertyName);
                                                 if (_tourPageNumber <= 0)
                                                 {
-                                                    // Make the current window invisible.
-                                                    MakeMainWindowInvisible();
+                                                    // Navigate to the PageInvisible page.  This will start the core services.
+                                                    Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+                                                    CLAppMessages.PageTour_NavigationRequest.Send(nextPage);
                                                 }
                                                 else
                                                 {
                                                     // Go to the next page
                                                     nextPageName = string.Format("{0}{1}{2}", CLConstants.kPageTour, _tourPageNumber.ToString(), CLConstants.kXamlSuffix);
                                                     Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
-                                                    SendNavigationRequestMessage(nextPage);
+                                                    CLAppMessages.PageTour_NavigationRequest.Send(nextPage);
                                                 }
 
                                             }));
@@ -196,44 +197,20 @@ namespace win_client.ViewModels
                                                 RaisePropertyChanged(TourPageNumberPropertyName);
                                                 if (_tourPageNumber > 5)
                                                 {
-                                                    // Make the current window invisible.
-                                                    MakeMainWindowInvisible();
+                                                    // Navigate to the PageInvisible page.  This will start the core services.
+                                                    Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+                                                    CLAppMessages.PageTour_NavigationRequest.Send(nextPage);
                                                 }
                                                 else
                                                 {
                                                     // Go to the next page
                                                     nextPageName = string.Format("{0}{1}{2}", CLConstants.kPageTour, _tourPageNumber.ToString(), CLConstants.kXamlSuffix);
                                                     Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
-                                                    SendNavigationRequestMessage(nextPage);
+                                                    CLAppMessages.PageTour_NavigationRequest.Send(nextPage);
                                                 }
 
                                             }));                                              
             }
-        }
-
-        /// <summary>
-        /// Make the application main window invisible.  The application is running in the system tray now.
-        /// </summary>
-        private static void MakeMainWindowInvisible()
-        {
-            Application.Current.MainWindow.Height = 0;
-            Application.Current.MainWindow.Width = 0;
-            Application.Current.MainWindow.WindowStyle = WindowStyle.None;
-            Application.Current.MainWindow.ShowInTaskbar = false;
-            Application.Current.MainWindow.ShowActivated = false;
-            Application.Current.MainWindow.Visibility = Visibility.Collapsed;
-        }
-
-        #endregion
-
-        #region Supporting Functions
-
-        /// <summary>
-        /// Send a navigation request.
-        /// </summary>
-        protected void SendNavigationRequestMessage(Uri uri) 
-        {
-            Messenger.Default.Send<Uri>(uri, "PageTour_NavigationRequest");
         }
 
         #endregion

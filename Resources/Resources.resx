@@ -187,4 +187,40 @@
   <data name="loginErrorHeader" xml:space="preserve">
     <value>Error logging in.</value>
   </data>
+  <data name="startupUriAlreadyRunning" xml:space="preserve">
+    <value>/Views/PageCloudAlreadyRunning.xaml</value>
+  </data>
+  <data name="startupUriFirstTimeSetup" xml:space="preserve">
+    <value>/Views/PageHome.xaml</value>
+  </data>
+  <data name="startupUriCloudFolderMissing" xml:space="preserve">
+    <value>/Views/PageCloudFolderMissing.xaml</value>
+  </data>
+  <data name="startupUriPageInvisible" xml:space="preserve">
+    <value>/Views/PageInvisible.xaml</value>
+  </data>
+  <data name="pageCloudFolderMissingBodyMesssage" xml:space="preserve">
+    <value>To continue syncing, please restore your Cloud folder.  You may also choose to remove this computer from your account and exit the application.</value>
+  </data>
+  <data name="pageCloudFolderMissingOkButtonLocate" xml:space="preserve">
+    <value>Locate...</value>
+  </data>
+  <data name="pageCloudFolderMissingOkButtonRestore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="pageCloudFolderMissingErrorBody" xml:space="preserve">
+    <value>A problem occurred while removing your computer from your acccount on the server.</value>
+  </data>
+  <data name="pageCloudFolderMissingErrorHeader" xml:space="preserve">
+    <value>Oh Snap!  Something happened.</value>
+  </data>
+  <data name="pageCloudFolderMissingErrorRightButtonContent" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="pageCloudFolderMissingErrorTitle" xml:space="preserve">
+    <value>Cloud.com</value>
+  </data>
+  <data name="pageCloudFolderMissingFolderBrowserDescription" xml:space="preserve">
+    <value>Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select.</value>
+  </data>
 </root>

@@ -12,7 +12,7 @@ using win_client.Model;
 using System;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Controls;
-using MVVMProductsDemo.ViewModels;
+using win_client.ViewModels;
 using win_client.Common;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
@@ -26,6 +26,7 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
+using win_client.ViewModelHelpers;
 
 namespace win_client.ViewModels
 {  
@@ -236,7 +237,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               Uri nextPage = new System.Uri(CLConstants.kPageCreateNewAccount, System.UriKind.Relative);
-                                              SendNavigationRequestMessage(nextPage);
+                                              CLAppMessages.PageHome_NavigationRequest.Send(nextPage);
                                           }));
             }
         }
@@ -252,12 +253,8 @@ namespace win_client.ViewModels
                     ?? (_pageHome_SignInCommand = new RelayCommand(
                                           () =>
                                           {
-#if SILVERLIGHT
-                                              CLExtensionMethods.ForceValidation(((MainPage)App.Current.RootVisual).LayoutRoot);
-#else
                                               var layoutRoot = LogicalTreeHelper.FindLogicalNode(Application.Current.MainWindow, "LayoutRoot") as UIElement; 
                                               CLExtensionMethods.ForceValidation(layoutRoot);
-#endif
                                               if(!HasErrors)
                                               {
                                                   RequestLogin();
@@ -320,12 +317,17 @@ namespace win_client.ViewModels
 
                 // Navigate to the SelectStorage page.
                 Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
-                SendNavigationRequestMessage(nextPage);
+                CLAppMessages.PageHome_NavigationRequest.Send(nextPage);
             }
             else
             {
                 // There was an error registering this user.  Display the error and leave the user on the same page.
-                DisplayErrorMessage(error);
+                CLModalErrorDialog.Instance.DisplayModalErrorMessage(error.errorDescription, _rm.GetString("generalErrorTitle"),
+                                    _rm.GetString("loginErrorHeader"), _rm.GetString("generalOkButtonContent"), 
+                                    ViewGridContainer, returnedViewModelInstance =>
+                                    {
+                                        // Do nothing here when the user clicks the OK button.
+                                    });
             }
         }
 
@@ -363,35 +365,6 @@ namespace win_client.ViewModels
             Settings.Instance.saveAccountSettings(accountDict);
         }
 
-        /// <summary>
-        /// Display an error message.
-        /// </summary>
-        private void DisplayErrorMessage(CLError error)
-        {
-            _trace.writeToLog(1, "PageHomeViewModel: DisplayErrorMessage:  Error: {0}.", error.errorDescription);
-
-            var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
-            IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
-            IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
-            modalDialogService.ShowDialog(dialog, new CloudMessageBoxViewModel
-            {
-                CloudMessageBoxView_Title = _rm.GetString("generalErrorTitle"),
-                CloudMessageBoxView_WindowWidth = 450,
-                CloudMessageBoxView_WindowHeight = 230,
-                CloudMessageBoxView_HeaderText = _rm.GetString("loginErrorHeader"),
-                CloudMessageBoxView_BodyText = error.errorDescription,
-                CloudMessageBoxView_LeftButtonVisibility = Visibility.Collapsed,
-                CloudMessageBoxView_RightButtonWidth = new GridLength(100),
-                CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
-                CloudMessageBoxView_RightButtonContent = _rm.GetString("generalOkButtonContent"),
-            },
-            ViewGridContainer,
-            returnedViewModelInstance =>
-            {
-                // User clicked OK.  Do nothing here.  Leave the user on the CreateNewAccount page.
-            });
-        }
-
         #region Validation
         /// <summary>
         /// Validate the EMail property.
@@ -418,14 +391,6 @@ namespace win_client.ViewModels
         }
 
         #endregion
-
-        /// <summary>
-        /// Send a navigation request.
-        /// </summary>
-        protected void SendNavigationRequestMessage(Uri uri) 
-        {
-            Messenger.Default.Send<Uri>(uri, "PageHome_NavigationRequest");
-        }
 
     }
 }
