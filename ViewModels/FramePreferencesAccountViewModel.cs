@@ -1,5 +1,5 @@
 ﻿//
-//  FramePreferencesViewModel.cs
+//  FramePreferencesAccountViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -44,7 +44,7 @@ namespace win_client.ViewModels
     /// See http://www.galasoft.ch/mvvm/getstarted
     /// </para>
     /// </summary>
-    public class FramePreferencesGeneralViewModel : ValidatingViewModelBase
+    public class FramePreferencesAccountViewModel : ValidatingViewModelBase
     {
         #region Instance Variables
 
@@ -69,7 +69,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Initializes a new instance of the PageHomeViewModel class.
         /// </summary>
-        public FramePreferencesGeneralViewModel(IDataService dataService)
+        public FramePreferencesAccountViewModel(IDataService dataService)
         {
             _dataService = dataService;
             _dataService.GetData(
@@ -166,17 +166,17 @@ namespace win_client.ViewModels
         #endregion
       
         #region Commands
-        private ICommand _framePreferencesGeneral_CheckForUpdatesCommand;
+        private ICommand _framePreferencesAccount_CheckForUpdatesCommand;
 
         /// <summary>
-        /// Gets the FramePreferencesGeneral_CheckForUpdatesCommand.
+        /// Gets the FramePreferencesAccount_CheckForUpdatesCommand.
         /// </summary>
-        public ICommand FramePreferencesGeneral_CheckForUpdatesCommand
+        public ICommand FramePreferencesAccount_CheckForUpdatesCommand
         {
             get
             {
-                return _framePreferencesGeneral_CheckForUpdatesCommand
-                    ?? (_framePreferencesGeneral_CheckForUpdatesCommand = new RelayCommand(
+                return _framePreferencesAccount_CheckForUpdatesCommand
+                    ?? (_framePreferencesAccount_CheckForUpdatesCommand = new RelayCommand(
                                           () =>
                                           {
                                               // Record the time of the last update check

@@ -1,5 +1,5 @@
 ﻿//
-//  FramePreferencesGeneral.xaml.cs
+//  FramePreferencesAccount.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -29,12 +29,12 @@ using System.Linq.Expressions;
 
 namespace win_client.Views
 {
-    public partial class FramePreferencesGeneral : Page, IOnNavigated
+    public partial class FramePreferencesAccount : Page, IOnNavigated
     {
         #region "Private Instance Variables"
 
         private bool _isLoaded = false;
-        private FramePreferencesGeneralViewModel _viewModel = null;
+        private FramePreferencesAccountViewModel _viewModel = null;
 
         #endregion
 
@@ -43,16 +43,16 @@ namespace win_client.Views
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public FramePreferencesGeneral()
+        public FramePreferencesAccount()
         {
             InitializeComponent();
 
             // Register event handlers
-            Loaded += new RoutedEventHandler(FramePreferencesGeneral_Loaded);
-            Unloaded += new RoutedEventHandler(FramePreferencesGeneral_Unloaded);
+            Loaded += new RoutedEventHandler(FramePreferencesAccount_Loaded);
+            Unloaded += new RoutedEventHandler(FramePreferencesAccount_Unloaded);
 
             // Pass the view's grid to the view model for the dialogs to use.
-            _viewModel = (FramePreferencesGeneralViewModel)DataContext;
+            _viewModel = (FramePreferencesAccountViewModel)DataContext;
             _viewModel.ViewGridContainer = LayoutRoot;
 
         }
@@ -70,7 +70,7 @@ namespace win_client.Views
         // The big long member expression tree results in an automatically generated string "Preferences".
         private static readonly string PreferencesPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name;
         public static readonly DependencyProperty PreferencesProperty =
-            DependencyProperty.Register(PreferencesPropertyName, typeof(CLPreferences), typeof(FramePreferencesGeneral), new PropertyMetadata(null, OnPreferencesChanged));
+            DependencyProperty.Register(PreferencesPropertyName, typeof(CLPreferences), typeof(FramePreferencesAccount), new PropertyMetadata(null, OnPreferencesChanged));
         private static void OnPreferencesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { } 
 
         #endregion
@@ -78,10 +78,10 @@ namespace win_client.Views
         /// <summary>
         /// Loaded event handler.
         /// </summary>
-        void FramePreferencesGeneral_Loaded(object sender, RoutedEventArgs e)
+        void FramePreferencesAccount_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            _viewModel = DataContext as FramePreferencesGeneralViewModel;
+            _viewModel = DataContext as FramePreferencesAccountViewModel;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -92,7 +92,7 @@ namespace win_client.Views
         /// <summary>
         /// Unloaded event handler.
         /// </summary>
-        void FramePreferencesGeneral_Unloaded(object sender, RoutedEventArgs e)
+        void FramePreferencesAccount_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
 

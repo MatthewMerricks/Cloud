@@ -150,6 +150,7 @@
     <Compile Include="Common\CLDefaultButtons.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />
+    <Compile Include="Model\CLPreferences.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
     <Compile Include="Model\IDataService.cs" />
@@ -197,6 +198,7 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalErrorDialog.cs" />
+    <Compile Include="ViewModels\FramePreferencesAccountViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesGeneralViewModel.cs" />
     <Compile Include="ViewModels\PagePreferencesViewModel.cs" />
     <Compile Include="ViewModels\DialogCloudMessageBoxViewModel.cs" />
@@ -213,6 +215,9 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\FramePreferencesAccount.xaml.cs">
+      <DependentUpon>FramePreferencesAccount.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\FramePreferencesGeneral.xaml.cs">
       <DependentUpon>FramePreferencesGeneral.xaml</DependentUpon>
     </Compile>
@@ -293,6 +298,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesAccount.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

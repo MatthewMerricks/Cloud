@@ -34,7 +34,7 @@ namespace win_client
             InitializeComponent();
         }
 
-        void NavigationService_Navigated(object sender, NavigationEventArgs e)
+        public static void NavigationService_Navigated(object sender, NavigationEventArgs e)
         {
             IOnNavigated castContent = e.Content as IOnNavigated;
             if (castContent != null)

@@ -20,7 +20,7 @@ namespace CloudApiPrivate.Model.Settings
 {
     #region "Enums"
 
-    enum cloudAppLanguageType
+    public enum cloudAppLanguageType
     {
         cloudAppLanguageEN = 0,
         cloudAppLanguageES = 1,
@@ -32,28 +32,28 @@ namespace CloudApiPrivate.Model.Settings
         cloudAppLanguageCN = 7,
     };
 
-    enum uploadSpeedLimitType
+    public enum uploadSpeedLimitType
     {
         uploadSpeedLimitDontLimit = 0,
         uploadSpeedLimitAutoLimit = 1,
         uploadSpeedLimitLimitTo = 2,
     };
 
-    enum useProxySettingType
+    public enum useProxySettingType
     {
         useProxySettingNoProxy = 0,
         useProxySettingAutoDetect = 1,
         useProxySettingNoManual = 2,
     };
 
-    enum useProxyTypes
+    public enum useProxyTypes
     {
         useProxyHTTP = 0,
         useProxySOCK4 = 1,
         useProxySOCK5 = 2,
     };
 
-    enum buttonState
+    public enum buttonState
     {
         stateOFF = 0,
         stateON = 1,
@@ -143,6 +143,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kStartCloudAppWithSystem = "start_cloud_app_with_system";
         public const string kAnimateMenuBarForUpdates = "animate_menu_bar_for_updates";
         public const string kShowDesktopNotificationForUpdates = "show_desktop_notification_for_updates";
+        public const string kUseColorIconForCloudFolder = "colored_folder_icon";
         public const string kCloudAppLanguage = "cloud_app_language";
         public const string kDateWeLastCheckedForSoftwareUpdate = "date_we_last_checked_for_software_update";
         public const string kUseDefaultSetup = "use_default_setup";
@@ -181,35 +182,46 @@ namespace CloudApiPrivate.Model.Settings
         /// </summary>
         
         // General
-        private int _startCloudAppWithSystem;
-        public int StartCloudAppWithSystem {
+        private bool _startCloudAppWithSystem;
+        public bool StartCloudAppWithSystem {
         get {return _startCloudAppWithSystem; } 
         set
             {
                 _startCloudAppWithSystem = value;
-                SettingsBase.Write<int>(kStartCloudAppWithSystem, value);
+                SettingsBase.Write<bool>(kStartCloudAppWithSystem, value);
             }
         }
 
-        private int _animateMenuBarForUpdates;
-        public int AnimateMenuBarForUpdates
+        private bool _animateMenuBarForUpdates;
+        public bool AnimateMenuBarForUpdates
         {
             get { return _animateMenuBarForUpdates; }
             set
             {
                 _animateMenuBarForUpdates = value;
-                SettingsBase.Write<int>(kAnimateMenuBarForUpdates, value);
+                SettingsBase.Write<bool>(kAnimateMenuBarForUpdates, value);
             }
         }
 
-        private int _showDesktopNotificationForUpdates;
-        public int ShowDesktopNotificationForUpdates
+        private bool _showDesktopNotificationForUpdates;
+        public bool ShowDesktopNotificationForUpdates
         {
             get { return _showDesktopNotificationForUpdates; }
             set
             {
                 _showDesktopNotificationForUpdates = value;
-                SettingsBase.Write<int>(kCloudAppLanguage, value);
+                SettingsBase.Write<bool>(kCloudAppLanguage, value);
+            }
+        }
+
+        private bool _useColorIconForCloudFolder;
+        public bool UseColorIconForCloudFolder
+        {
+            get { return _useColorIconForCloudFolder; }
+            set
+            {
+                _useColorIconForCloudFolder = value;
+                SettingsBase.Write<bool>(kUseColorIconForCloudFolder, value);
             }
         }
 
@@ -605,9 +617,10 @@ namespace CloudApiPrivate.Model.Settings
             // Load defaults
 
             // General
-            _startCloudAppWithSystem = (int)buttonState.stateON;
-            _animateMenuBarForUpdates = (int)buttonState.stateON;
-            _showDesktopNotificationForUpdates = (int)buttonState.stateON;
+            _startCloudAppWithSystem = true;
+            _animateMenuBarForUpdates = true;
+            _showDesktopNotificationForUpdates = true;
+            _useColorIconForCloudFolder = false;
             _cloudAppLanguage = (int)cloudAppLanguageType.cloudAppLanguageEN;
             _dateWeLastCheckedForSoftwareUpdate = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
@@ -657,23 +670,30 @@ namespace CloudApiPrivate.Model.Settings
             // General
             int temp;
             long uTemp;
-            Boolean isPresent = SettingsBase.ReadIfPresent<int>(kStartCloudAppWithSystem, out temp);
+            bool bTemp;
+            Boolean isPresent = SettingsBase.ReadIfPresent<bool>(kStartCloudAppWithSystem, out bTemp);
             if (isPresent)
             {
-                _startCloudAppWithSystem = temp;
+                _startCloudAppWithSystem = bTemp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(kAnimateMenuBarForUpdates, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kAnimateMenuBarForUpdates, out bTemp);
             if (isPresent)
             {
-                _animateMenuBarForUpdates = temp;
+                _animateMenuBarForUpdates = bTemp;
             }
 
 
-            isPresent = SettingsBase.ReadIfPresent<int>(kShowDesktopNotificationForUpdates, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kShowDesktopNotificationForUpdates, out bTemp);
             if (isPresent)
             {
-                _showDesktopNotificationForUpdates = temp;
+                _showDesktopNotificationForUpdates = bTemp;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<bool>(kUseColorIconForCloudFolder, out bTemp);
+            if (isPresent)
+            {
+                _useColorIconForCloudFolder = bTemp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<int>(kCloudAppLanguage, out temp);

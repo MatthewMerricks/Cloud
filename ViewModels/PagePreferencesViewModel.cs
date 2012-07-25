@@ -67,6 +67,37 @@ namespace win_client.ViewModels
 
             _rm = CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
+            _preferences = new CLPreferences();
+            GetPreferencesFromSettings();
+        }
+
+        /// <summary>
+        /// The <see cref="Preferences" /> property's name.
+        /// </summary>
+        public const string PreferencesPropertyName = "Preferences";
+        private CLPreferences _preferences = null;
+
+        /// <summary>
+        /// Sets and gets the ViewGridContainer property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public CLPreferences Preferences
+        {
+            get
+            {
+                return _preferences;
+            }
+
+            set
+            {
+                if (_preferences == value)
+                {
+                    return;
+                }
+
+                _preferences = value;
+                RaisePropertyChanged(PreferencesPropertyName);
+            }
         }
 
         /// <summary>
@@ -110,6 +141,10 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_OkCommand = new RelayCommand(
                                           () =>
                                           {
+                                              // Save the preferences set by the user.
+                                              SetPreferencesToSettings();
+
+                                              // Navigate to PageInvisible
                                               Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
                                               CLAppMessages.PagePreferences_NavigationRequest.Send(nextPage);
                                           }));
@@ -128,6 +163,10 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_CancelCommand = new RelayCommand(
                                           () =>
                                           {
+                                              // Reset the preferences from the last saved state
+                                              GetPreferencesFromSettings();
+
+                                              // Navigate to PageInvisible
                                               Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
                                               CLAppMessages.PagePreferences_NavigationRequest.Send(nextPage);
                                           }));
@@ -146,8 +185,10 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_GeneralCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPage = new System.Uri(CLConstants.kFramePreferencesGeneral, System.UriKind.Relative);
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest.Send(nextPage);
+                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesGeneral, System.UriKind.Relative);
+                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+
+                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
                                           }));
             }
         }
@@ -223,5 +264,35 @@ namespace win_client.ViewModels
                                           }));
             }
         }
+
+        #region Private Support Functions
+
+        /// <summary>
+        /// Get the current prefereces from the user's Settings.
+        /// </summary>
+        private void GetPreferencesFromSettings()
+        {
+            // General pane
+            _preferences.ShouldAnimateMenuBarIcon = Settings.Instance.AnimateMenuBarForUpdates;
+            _preferences.ShouldShowDesktopNotification = Settings.Instance.ShowDesktopNotificationForUpdates;
+            _preferences.ShouldStartCloudWhenSystemStarts = Settings.Instance.StartCloudAppWithSystem;
+            _preferences.ShouldUseCloudAsFolderIcon = Settings.Instance.UseColorIconForCloudFolder;
+            _preferences.Language = (cloudAppLanguageType)Settings.Instance.CloudAppLanguage;
+        }
+
+        /// <summary>
+        /// Persist the memory settings to the user's Settings.
+        /// </summary>
+        private void SetPreferencesToSettings()
+        {
+            // General pane
+            Settings.Instance.AnimateMenuBarForUpdates = _preferences.ShouldAnimateMenuBarIcon;
+            Settings.Instance.ShowDesktopNotificationForUpdates = _preferences.ShouldShowDesktopNotification;
+            Settings.Instance.StartCloudAppWithSystem = _preferences.ShouldStartCloudWhenSystemStarts;
+            Settings.Instance.UseColorIconForCloudFolder = _preferences.ShouldUseCloudAsFolderIcon;
+            Settings.Instance.CloudAppLanguage = (int)_preferences.Language;
+        }
+
+        #endregion
     }
 }

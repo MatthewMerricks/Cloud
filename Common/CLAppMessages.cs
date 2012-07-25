@@ -10,6 +10,7 @@ using System.IO;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Navigation;
 using System.Collections.Generic;
+using win_client.Model;
 
 
 namespace win_client.Common
@@ -46,6 +47,8 @@ namespace win_client.Common
             PageSetupSelector_NavigationRequest,
             PagePreferences_NavigationRequest,
             PagePreferences_FrameNavigationRequest,
+            PagePreferences_FrameNavigationRequest_WithPreferences,
+
         }
 
         public static class CreateNewAccount_GetClearPasswordField
@@ -332,6 +335,19 @@ namespace win_client.Common
             public static void Register(object recipient, Action<Uri> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.PagePreferences_FrameNavigationRequest, action);
+            }
+        }
+
+        public static class PagePreferences_FrameNavigationRequest_WithPreferences
+        {
+            public static void Send(KeyValuePair<Uri, CLPreferences> targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PagePreferences_FrameNavigationRequest_WithPreferences);
+            }
+
+            public static void Register(object recipient, Action<KeyValuePair<Uri, CLPreferences>> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PagePreferences_FrameNavigationRequest_WithPreferences, action);
             }
         }
     }

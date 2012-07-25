@@ -42,42 +42,44 @@
         </Grid.Background>
         
         <Image Grid.Column="0" Margin="8" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="/win-client;component/Artwork/cloud256.png"/>
-        <Image Grid.Column="0" Margin="8" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="/win-client;component/Artwork/cl_wlcm_ptrn.png" Stretch="Fill"/>
         <TextBlock Text="Preferences" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,0,0" FontSize="36" Opacity="0.5"/>
 
-        <Frame x:Name="ContentFrame" Grid.Column="1" Grid.Row="1" NavigationUIVisibility="Hidden" BorderThickness="0" Margin="8" >
+        <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" BorderThickness="0" Margin="8" Grid.Column="1" Grid.Row="1" >
             <Frame.Background>
-                <ImageBrush ImageSource="/win-client;component/Artwork/cl_inside_region_transparent.png" Stretch="Fill"/>
+                <ImageBrush ImageSource="/win-client;component/Artwork/cl_inside_region_transparent.png" Stretch="Fill" />
             </Frame.Background>
         </Frame>
 
         <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Vertical">
+            <StackPanel.Background>
+                <ImageBrush ImageSource="/win-client;component/Artwork/cl_wlcm_ptrn.png" Stretch="Fill"/>
+            </StackPanel.Background>
             
-            <Button Margin="8,10,8,5" Command="{Binding PagePreferences_GeneralCommand, Mode=OneTime}" >
+            <Button x:Name="cmdGeneral" Margin="8,15,8,5" Command="{Binding PagePreferences_GeneralCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/Artwork/continue.png"/>
                     <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center">General</Label>
                 </StackPanel>
             </Button>
-            <Button Margin="8,5,8,5" Command="{Binding PagePreferences_AccountCommand, Mode=OneTime}" >
+            <Button x:Name="cmdAccount" Margin="8,5,8,5" Command="{Binding PagePreferences_AccountCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/cancel.png"/>
                     <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Account"/>
                 </StackPanel>
             </Button>
-            <Button Margin="8,5,8,5" Command="{Binding PagePreferences_NetworkCommand, Mode=OneTime}" >
+            <Button x:Name="cmdNetwork" Margin="8,5,8,5" Command="{Binding PagePreferences_NetworkCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/add.png"/>
                     <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Network"/>
                 </StackPanel>
             </Button>
-            <Button Margin="8,5,8,5" Command="{Binding PagePreferences_AdvancedCommand, Mode=OneTime}" >
+            <Button x:Name="cmdAdvanced" Margin="8,5,8,5" Command="{Binding PagePreferences_AdvancedCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/cl_skip_up.png"/>
                     <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Advanced"/>
                 </StackPanel>
             </Button>
-            <Button Margin="8,5,8,5" Command="{Binding PagePreferences_AboutCommand, Mode=OneTime}" >
+            <Button x:Name="cmdAbout" Margin="8,5,8,5" Command="{Binding PagePreferences_AboutCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/cl_skipicon.png"/>
                     <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="About"/>
@@ -87,16 +89,16 @@
                 
         <Grid Grid.Column="1" Grid.Row="2" Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="218*"/>
-                <ColumnDefinition Width="125*"/>
-                <ColumnDefinition Width="119"/>
+                <ColumnDefinition Width="228*"/>
+                <ColumnDefinition Width="149*"/>
+                <ColumnDefinition Width="138"/>
             </Grid.ColumnDefinitions>
             <Button x:Name="cmdOk" Content="OK" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PagePreferences_OkCommand, Mode=OneTime}" TabIndex="0" Height="40" Grid.Column="2" 
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="10,0,10,10" Width="104"/>
+        		Command="{Binding PagePreferences_OkCommand, Mode=OneTime}" TabIndex="0" Height="40" Grid.Column="1" 
+        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="14,8,7,18" Width="100" MinWidth="100"/>
             <Button x:Name="cmdCancel" Content="Cancel" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PagePreferences_CancelCommand, Mode=OneTime}" TabIndex="1" Height="40" Grid.Column="1" 
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="10,0,10,10" Width="98" />
+        		Command="{Binding PagePreferences_CancelCommand, Mode=OneTime}" TabIndex="1" Height="40" Grid.Column="2" 
+        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="25,8,13,18" Width="100" MinWidth="100"/>
         </Grid>
 
     </Grid>
