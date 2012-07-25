@@ -226,7 +226,7 @@ namespace win_client.ViewModels
                                             {
                                                 // Return to the storage size selector dialog
                                                 Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
-                                                SendNavigationRequestMessage(nextPage);
+                                                CLAppMessages.PageSetupSelector_NavigationRequest.Send(nextPage);
                                             }));
             }
         }
@@ -420,7 +420,7 @@ namespace win_client.ViewModels
                     // Start the tour
                     string nextPageName = string.Format("{0}{1}{2}", CLConstants.kPageTour, 1, CLConstants.kXamlSuffix);
                     Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
-                    SendNavigationRequestMessage(nextPage);
+                    CLAppMessages.PageSetupSelector_NavigationRequest.Send(nextPage);
                 }
             }
             else
@@ -468,16 +468,5 @@ namespace win_client.ViewModels
 
         #endregion
 
-        #region Supporting Functions
-
-        /// <summary>
-        /// Send a navigation request.
-        /// </summary>
-        protected void SendNavigationRequestMessage(Uri uri) 
-        {
-            Messenger.Default.Send<Uri>(uri, "PageSetupSelector_NavigationRequest");
-        }
-
-        #endregion
     }
 }

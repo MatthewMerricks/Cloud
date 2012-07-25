@@ -20,7 +20,7 @@ namespace CloudApiPrivate.Model.Settings
 {
     #region "Enums"
 
-    enum cloudAppLanguageType
+    public enum cloudAppLanguageType
     {
         cloudAppLanguageEN = 0,
         cloudAppLanguageES = 1,
@@ -32,28 +32,28 @@ namespace CloudApiPrivate.Model.Settings
         cloudAppLanguageCN = 7,
     };
 
-    enum uploadSpeedLimitType
+    public enum uploadSpeedLimitType
     {
         uploadSpeedLimitDontLimit = 0,
         uploadSpeedLimitAutoLimit = 1,
         uploadSpeedLimitLimitTo = 2,
     };
 
-    enum useProxySettingType
+    public enum useProxySettingType
     {
         useProxySettingNoProxy = 0,
         useProxySettingAutoDetect = 1,
         useProxySettingNoManual = 2,
     };
 
-    enum useProxyTypes
+    public enum useProxyTypes
     {
         useProxyHTTP = 0,
         useProxySOCK4 = 1,
         useProxySOCK5 = 2,
     };
 
-    enum buttonState
+    public enum buttonState
     {
         stateOFF = 0,
         stateON = 1,
@@ -143,6 +143,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kStartCloudAppWithSystem = "start_cloud_app_with_system";
         public const string kAnimateMenuBarForUpdates = "animate_menu_bar_for_updates";
         public const string kShowDesktopNotificationForUpdates = "show_desktop_notification_for_updates";
+        public const string kUseColorIconForCloudFolder = "colored_folder_icon";
         public const string kCloudAppLanguage = "cloud_app_language";
         public const string kDateWeLastCheckedForSoftwareUpdate = "date_we_last_checked_for_software_update";
         public const string kUseDefaultSetup = "use_default_setup";
@@ -167,7 +168,6 @@ namespace CloudApiPrivate.Model.Settings
         public const string kUdidRegistered = "r_udid";
         public const string kCompletedSetup = "cs";
         public const string kCloudFolderPath = "cloud_folder_path";
-        public const string kCloudFolderDescriptor = "desktop_shortcut";
         public const string kEid = "eid";
         public const string kSid = "sid";
         public const string kAddCloudFolderToDock = "add_dock_folder";
@@ -184,35 +184,46 @@ namespace CloudApiPrivate.Model.Settings
         /// </summary>
         
         // General
-        private int _startCloudAppWithSystem;
-        public int StartCloudAppWithSystem {
+        private bool _startCloudAppWithSystem;
+        public bool StartCloudAppWithSystem {
         get {return _startCloudAppWithSystem; } 
         set
             {
                 _startCloudAppWithSystem = value;
-                SettingsBase.Write<int>(kStartCloudAppWithSystem, value);
+                SettingsBase.Write<bool>(kStartCloudAppWithSystem, value);
             }
         }
 
-        private int _animateMenuBarForUpdates;
-        public int AnimateMenuBarForUpdates
+        private bool _animateMenuBarForUpdates;
+        public bool AnimateMenuBarForUpdates
         {
             get { return _animateMenuBarForUpdates; }
             set
             {
                 _animateMenuBarForUpdates = value;
-                SettingsBase.Write<int>(kAnimateMenuBarForUpdates, value);
+                SettingsBase.Write<bool>(kAnimateMenuBarForUpdates, value);
             }
         }
 
-        private int _showDesktopNotificationForUpdates;
-        public int ShowDesktopNotificationForUpdates
+        private bool _showDesktopNotificationForUpdates;
+        public bool ShowDesktopNotificationForUpdates
         {
             get { return _showDesktopNotificationForUpdates; }
             set
             {
                 _showDesktopNotificationForUpdates = value;
-                SettingsBase.Write<int>(kCloudAppLanguage, value);
+                SettingsBase.Write<bool>(kCloudAppLanguage, value);
+            }
+        }
+
+        private bool _useColorIconForCloudFolder;
+        public bool UseColorIconForCloudFolder
+        {
+            get { return _useColorIconForCloudFolder; }
+            set
+            {
+                _useColorIconForCloudFolder = value;
+                SettingsBase.Write<bool>(kUseColorIconForCloudFolder, value);
             }
         }
 
@@ -507,17 +518,6 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private FileStream _cloudFolderDescriptor;
-        public FileStream CloudFolderDescriptor
-        {
-            get { return _cloudFolderDescriptor; }
-            set
-            {
-                _cloudFolderDescriptor = value;
-                SettingsBase.Write<FileStream>(kCloudFolderDescriptor, value);
-            }
-        }
-
         // todo: property to track selective folders for sync in cloudFolderPath.
 
         // Others
@@ -649,9 +649,10 @@ namespace CloudApiPrivate.Model.Settings
             _errorLogLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Cloud\\ErrorLog";
 
             // General
-            _startCloudAppWithSystem = (int)buttonState.stateON;
-            _animateMenuBarForUpdates = (int)buttonState.stateON;
-            _showDesktopNotificationForUpdates = (int)buttonState.stateON;
+            _startCloudAppWithSystem = true;
+            _animateMenuBarForUpdates = true;
+            _showDesktopNotificationForUpdates = true;
+            _useColorIconForCloudFolder = false;
             _cloudAppLanguage = (int)cloudAppLanguageType.cloudAppLanguageEN;
             _dateWeLastCheckedForSoftwareUpdate = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
@@ -687,8 +688,6 @@ namespace CloudApiPrivate.Model.Settings
             _cloudFolderPath = _cloudFolderPath + "\\" + CLPrivateDefinitions.CloudDirectoryName;
             _cloudFolderCreationTimeUtc = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
-            _cloudFolderDescriptor = null;
-    
             // Index Services
             _eid = Helpers.DefaultForType<long>();
     
@@ -703,6 +702,7 @@ namespace CloudApiPrivate.Model.Settings
             // Logging
             int temp;
             long uTemp;
+            bool bTemp;
             Boolean isPresent = SettingsBase.ReadIfPresent<int>(kLogErrors, out temp);
             if (isPresent)
             {
@@ -717,23 +717,29 @@ namespace CloudApiPrivate.Model.Settings
             }
 
             // General
-            isPresent = SettingsBase.ReadIfPresent<int>(kStartCloudAppWithSystem, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kStartCloudAppWithSystem, out bTemp);
             if (isPresent)
             {
-                _startCloudAppWithSystem = temp;
+                _startCloudAppWithSystem = bTemp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(kAnimateMenuBarForUpdates, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kAnimateMenuBarForUpdates, out bTemp);
             if (isPresent)
             {
-                _animateMenuBarForUpdates = temp;
+                _animateMenuBarForUpdates = bTemp;
             }
 
 
-            isPresent = SettingsBase.ReadIfPresent<int>(kShowDesktopNotificationForUpdates, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kShowDesktopNotificationForUpdates, out bTemp);
             if (isPresent)
             {
-                _showDesktopNotificationForUpdates = temp;
+                _showDesktopNotificationForUpdates = bTemp;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<bool>(kUseColorIconForCloudFolder, out bTemp);
+            if (isPresent)
+            {
+                _useColorIconForCloudFolder = bTemp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<int>(kCloudAppLanguage, out temp);
@@ -896,13 +902,6 @@ namespace CloudApiPrivate.Model.Settings
                 _cloudFolderCreationTimeUtc = tempDate;
             }
 
-            FileStream tempStream;
-            isPresent = SettingsBase.ReadIfPresent<FileStream>(kCloudFolderDescriptor, out tempStream);
-            if (isPresent)
-            {
-                _cloudFolderDescriptor = tempStream;
-            }
-    
             // Index Services
             isPresent = SettingsBase.ReadIfPresent<long>(kEid, out uTemp);
             if (isPresent)
@@ -915,11 +914,6 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _addCloudFolderToDock = tempBoolean;
-            }
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(kCloudFolderDescriptor, out tempBoolean);
-            if (isPresent)
-            {
-                _addCloudFolderToDesktop = tempBoolean;
             }
             isPresent = SettingsBase.ReadIfPresent<string>(kSid, out tempString);
             if (isPresent)
@@ -1008,7 +1002,6 @@ namespace CloudApiPrivate.Model.Settings
         {  
             CloudFolderPath = path;
             CloudFolderCreationTimeUtc = creationTime;
-            CloudFolderDescriptor = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         /// <summary>

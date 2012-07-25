@@ -367,11 +367,17 @@ namespace win_client.AppDelegate
 
                 // Set setup process completed
                 Settings.Instance.CloudFolderCreationTimeUtc = creationTime;
+                Settings.Instance.updateCloudFolderPath(Settings.Instance.CloudFolderPath, creationTime);
                 Settings.Instance.setCloudAppSetupCompleted(true);
 
                 // Start services, added a small delay to allow the OS to create folder.
-                var dispatcher = Dispatcher.CurrentDispatcher; 
-                dispatcher.DelayedInvoke(TimeSpan.FromSeconds(2), () => { startCloudAppServicesAndUI(); });
+                //TODO: We don't start the core services here because the user is still viewing the user
+                // interface, and the PageInvisible page that has the system tray icon support is not
+                // in place yet.  The user will view the tour (or skip it), and then PageInvisible
+                // will be shown, and that will install the system tray support.  Is this the proper
+                // design???
+                //var dispatcher = Dispatcher.CurrentDispatcher; 
+                //dispatcher.DelayedInvoke(TimeSpan.FromSeconds(2), () => { startCloudAppServicesAndUI(); });
             }
         }
 
@@ -802,15 +808,18 @@ namespace win_client.AppDelegate
         public static void ShowMainWindow(Window window)
         {
             // Set the containing window to be invisible
-            window.Width = 640;
-            window.Height = 480;
-            window.MinWidth = 640;
-            window.MinHeight = 480;
-            window.WindowStyle = WindowStyle.ThreeDBorderWindow;
-            window.Visibility = System.Windows.Visibility.Visible;
-            window.ShowInTaskbar = true;
-            window.ShowActivated = true;
-            window.Show();
+            if (window != null)
+            {
+                window.Width = 640;
+                window.Height = 480;
+                window.MinWidth = 640;
+                window.MinHeight = 480;
+                window.WindowStyle = WindowStyle.ThreeDBorderWindow;
+                window.Visibility = System.Windows.Visibility.Visible;
+                window.ShowInTaskbar = true;
+                window.ShowActivated = true;
+                window.Show();
+            }
         }
 
         /// <summary>
@@ -821,14 +830,17 @@ namespace win_client.AppDelegate
         public static void HideMainWindow(Window window)
         {
             // Set the containing window to be invisible
-            window.Width = 0;
-            window.Height = 0;
-            window.MinWidth = 0;
-            window.MinHeight = 0;
-            window.WindowStyle = WindowStyle.None;
-            window.Visibility = System.Windows.Visibility.Hidden;
-            window.ShowInTaskbar = false;
-            window.ShowActivated = false;
+            if (window != null)
+            {
+                window.Width = 0;
+                window.Height = 0;
+                window.MinWidth = 0;
+                window.MinHeight = 0;
+                window.WindowStyle = WindowStyle.None;
+                window.Visibility = System.Windows.Visibility.Hidden;
+                window.ShowInTaskbar = false;
+                window.ShowActivated = false;
+            }
         }
         #endregion  
     }

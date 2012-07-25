@@ -24,10 +24,12 @@ using win_client.Common;
 using win_client.ViewModels;
 using Ookii.Dialogs.WpfMinusTaskDialog;
 using win_client.AppDelegate;
+using win_client.Model;
+using CloudApiPublic.Model;
 
 namespace win_client.Views
 {
-    public partial class PageCloudFolderMissing : Page
+    public partial class PageCloudFolderMissing : Page, IOnNavigated
     {
         /// <summary>
         /// Default constructor.
@@ -37,7 +39,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(PageCloudFolderMissing_Loaded);
             Unloaded += new RoutedEventHandler(PageCloudFolderMissing_Unloaded);
-
 
             // Register messages
             CLAppMessages.PageCloudFolderMissing_NavigationRequest.Register(this,
@@ -80,9 +81,6 @@ namespace win_client.Views
             PageCloudFolderMissingViewModel vm = (PageCloudFolderMissingViewModel)DataContext;
             vm.ViewGridContainer = LayoutRoot;
 
-            // Register the navigated event.
-            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
-
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
         }
@@ -92,21 +90,24 @@ namespace win_client.Views
         /// </summary>
         void PageCloudFolderMissing_Unloaded(object sender, RoutedEventArgs e)
         {
-
-            if (NavigationService != null)
-            {
-                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
-            }
             Messenger.Default.Unregister(this);
         }
 
         /// <summary>
-        /// Navigated event handler.  Show the window.
+        /// Navigated event handler.
         /// </summary>
-        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        CLError IOnNavigated.HandleNavigated(object sender, NavigationEventArgs e)
         {
-            // Show the window.
-            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+            try
+            {
+                // Show the window.
+                CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
     }
 }

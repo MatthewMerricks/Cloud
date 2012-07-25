@@ -1,0 +1,105 @@
+﻿<!--
+//
+//  PagePreferences.xaml
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.<ResourceDictionary
+-->
+
+<Page x:Class="win_client.Views.PagePreferences" 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:common="clr-namespace:win_client.Common"
+    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    DataContext="{Binding PagePreferencesViewModel, Source={StaticResource Locator}}" 
+    Title="Select Storage Size"  >
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+    
+    <Grid x:Name="LayoutRoot">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="109"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="29*"/>
+            <RowDefinition Height="159*"/>
+            <RowDefinition Height="66"/>
+        </Grid.RowDefinitions>
+        
+        <Grid.Background>
+            <SolidColorBrush Color="#FFE8E8E8"/>
+        </Grid.Background>
+        
+        <Image Grid.Column="0" Margin="8" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="/win-client;component/Artwork/cloud256.png"/>
+        <TextBlock Text="Preferences" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,0,0" FontSize="36" Opacity="0.5"/>
+
+        <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" BorderThickness="0" Margin="8" Grid.Column="1" Grid.Row="1" >
+            <Frame.Background>
+                <ImageBrush ImageSource="/win-client;component/Artwork/cl_inside_region_transparent.png" Stretch="Fill" />
+            </Frame.Background>
+        </Frame>
+
+        <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Vertical">
+            <StackPanel.Background>
+                <ImageBrush ImageSource="/win-client;component/Artwork/cl_wlcm_ptrn.png" Stretch="Fill"/>
+            </StackPanel.Background>
+            
+            <Button x:Name="cmdGeneral" Margin="8,15,8,5" Command="{Binding PagePreferences_GeneralCommand, Mode=OneTime}" >
+                <StackPanel Orientation="Vertical">
+                    <Image Margin="30,0,30,0" Source="/Artwork/continue.png"/>
+                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center">General</Label>
+                </StackPanel>
+            </Button>
+            <Button x:Name="cmdAccount" Margin="8,5,8,5" Command="{Binding PagePreferences_AccountCommand, Mode=OneTime}" >
+                <StackPanel Orientation="Vertical">
+                    <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/cancel.png"/>
+                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Account"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="cmdNetwork" Margin="8,5,8,5" Command="{Binding PagePreferences_NetworkCommand, Mode=OneTime}" >
+                <StackPanel Orientation="Vertical">
+                    <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/add.png"/>
+                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Network"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="cmdAdvanced" Margin="8,5,8,5" Command="{Binding PagePreferences_AdvancedCommand, Mode=OneTime}" >
+                <StackPanel Orientation="Vertical">
+                    <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/cl_skip_up.png"/>
+                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Advanced"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="cmdAbout" Margin="8,5,8,5" Command="{Binding PagePreferences_AboutCommand, Mode=OneTime}" >
+                <StackPanel Orientation="Vertical">
+                    <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/cl_skipicon.png"/>
+                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="About"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+                
+        <Grid Grid.Column="1" Grid.Row="2" Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="228*"/>
+                <ColumnDefinition Width="149*"/>
+                <ColumnDefinition Width="138"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="cmdOk" Content="OK" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
+        		Command="{Binding PagePreferences_OkCommand, Mode=OneTime}" TabIndex="0" Height="40" Grid.Column="1" 
+        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="14,8,7,18" Width="100" MinWidth="100"/>
+            <Button x:Name="cmdCancel" Content="Cancel" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
+        		Command="{Binding PagePreferences_CancelCommand, Mode=OneTime}" TabIndex="1" Height="40" Grid.Column="2" 
+        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="25,8,13,18" Width="100" MinWidth="100"/>
+        </Grid>
+
+    </Grid>
+</Page>

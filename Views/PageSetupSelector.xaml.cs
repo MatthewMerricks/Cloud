@@ -23,10 +23,12 @@ using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
 using win_client.AppDelegate;
+using CloudApiPublic.Model;
+using win_client.Model;
 
 namespace win_client.Views
 {
-    public partial class PageSetupSelector : Page
+    public partial class PageSetupSelector : Page, IOnNavigated
     {
         #region "Instance Variables"
 
@@ -69,7 +71,6 @@ namespace win_client.Views
         void PageSetupSelector_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -84,28 +85,32 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
-            if (NavigationService != null)
-            {
-                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
-            }
             Messenger.Default.Unregister(this);
         }
 
         /// <summary>
         /// Navigated event handler.
         /// </summary>
-        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        CLError IOnNavigated.HandleNavigated(object sender, NavigationEventArgs e)
         {
-            // Show the window.
-            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
-
-            if (_isLoaded)
+            try
             {
-                cmdContinue.Focus();
-            } 
+                // Show the window.
+                CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            var vm = DataContext as PageSetupSelectorViewModel;
-            vm.PageSetupSelector_NavigatedToCommand.Execute(null);
+                if (_isLoaded)
+                {
+                    cmdContinue.Focus();
+                }
+
+                var vm = DataContext as PageSetupSelectorViewModel;
+                vm.PageSetupSelector_NavigatedToCommand.Execute(null);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
 
         #endregion

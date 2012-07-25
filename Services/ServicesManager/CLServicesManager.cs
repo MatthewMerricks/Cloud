@@ -28,6 +28,7 @@ namespace win_client.Services.ServicesManager
         private static CLServicesManager _instance = null;
         private static object _instanceLocker = new object();
         private static CLTrace _trace;
+        private static bool _coreServicesStarted = false;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -65,12 +66,6 @@ namespace win_client.Services.ServicesManager
         /// </summary>
         public void StartCoreServices()
         {
-            CLError error;
-            _trace.writeToLog(9, "CLServicesManager: startCoreServices: Entry.");
-            bool success = RunShellIntegrationServicesAndSetError(out error);
-            if (!success) {
-                _trace.writeToLog(1, "CLServicesManager: startCoreServices: Failed to run the shell integration support.");
-            }
 
             // Merged 7/16/12
             //// In order, I think... GP
@@ -103,31 +98,39 @@ namespace win_client.Services.ServicesManager
             //    [[CLSyncService sharedService] beginSyncServices];
             //}
 
-            CLBadgingService.Instance.BeginBadgingServices();
-            CLUIActivityService.Instance.BeginUIActivityService(); 
-            CLIndexingService.Instance.StartIndexingService();
-            CLNetworkMonitorService.Instance.BeginNetworkMonitoring();
-            CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
-            CLCFMonitoringService.Instance.BeginCloudFolderMonitoring();
-            if (CLNetworkMonitorService.Instance.CloudReach)
+            if (!_coreServicesStarted)
             {
-                CLSyncService.Instance.BeginSyncServices();
-            }
-            if (CLNetworkMonitorService.Instance.CloudReach)
-            {
-                CLNotificationService.Instance.ConnectPushNotificationServer();
+                _coreServicesStarted = true;
+                CLBadgingService.Instance.BeginBadgingServices();
+                CLUIActivityService.Instance.BeginUIActivityService(); 
+                CLIndexingService.Instance.StartIndexingService();
+                CLNetworkMonitorService.Instance.BeginNetworkMonitoring();
+                CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
+                CLCFMonitoringService.Instance.BeginCloudFolderMonitoring();
+                if (CLNetworkMonitorService.Instance.CloudReach)
+                {
+                    CLSyncService.Instance.BeginSyncServices();
+                }
+                if (CLNetworkMonitorService.Instance.CloudReach)
+                {
+                    CLNotificationService.Instance.ConnectPushNotificationServer();
+                }
             }
         }
 
         public void StopCoreServices()
         {
-            CLUIActivityService.Instance.EndUIActivityService();
-            CLBadgingService.Instance.EndBadgingServices();
-            CLNotificationService.Instance.DisconnectPushNotificationServer();
-            CLNetworkMonitorService.Instance.EndNetworkMonitoring();
-            CLFSMonitoringService.Instance.EndFileSystemMonitoring();
-            CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
-            CLSyncService.Instance.StopSyncServices();
+            if (_coreServicesStarted)
+            {
+                _coreServicesStarted = false;
+                CLUIActivityService.Instance.EndUIActivityService();
+                CLBadgingService.Instance.EndBadgingServices();
+                CLNotificationService.Instance.DisconnectPushNotificationServer();
+                CLNetworkMonitorService.Instance.EndNetworkMonitoring();
+                CLFSMonitoringService.Instance.EndFileSystemMonitoring();
+                CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
+                CLSyncService.Instance.StopSyncServices();
+            }
         }
 
         public void StartSyncServices()
@@ -172,16 +175,5 @@ namespace win_client.Services.ServicesManager
             }
 #endif  // TRASH
         }
-
-        public bool RunShellIntegrationServicesAndSetError(out CLError error)
-        {
-            _trace.writeToLog(9, "CLServicesManager: runShellIntegrationServicesAndSetError: Entry.");
-
-            error = null;
-            //TODO: Run any shell installation programs here.
-
-            return true;
-        }
-
     }
 }

@@ -23,10 +23,12 @@ using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
 using win_client.AppDelegate;
+using CloudApiPublic.Model;
+using win_client.Model;
 
 namespace win_client.Views
 {
-    public partial class PageTour3 : Page
+    public partial class PageTour3 : Page, IOnNavigated
     {
         #region "Instance Variables"
 
@@ -61,7 +63,6 @@ namespace win_client.Views
         void PageTour3_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -76,25 +77,29 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
-            if (NavigationService != null)
-            {
-                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
-            }
             Messenger.Default.Unregister(this);
         }
 
         /// <summary>
-        /// Navigated event handler
+        /// Navigated event handler.
         /// </summary>
-        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        CLError IOnNavigated.HandleNavigated(object sender, NavigationEventArgs e)
         {
-            // Show the window.
-            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
-
-            if (_isLoaded)
+            try
             {
-                cmdContinue.Focus();
+                // Show the window.
+                CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+
+                if (_isLoaded)
+                {
+                    cmdContinue.Focus();
+                }
             }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
 
         #endregion
