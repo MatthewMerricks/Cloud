@@ -205,8 +205,9 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_AccountCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPage = new System.Uri(CLConstants.kFramePreferencesAccount, System.UriKind.Relative);
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest.Send(nextPage);
+                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAccount, System.UriKind.Relative);
+                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
                                           }));
             }
         }
@@ -223,8 +224,9 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_NetworkCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPage = new System.Uri(CLConstants.kFramePreferencesNetwork, System.UriKind.Relative);
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest.Send(nextPage);
+                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesNetwork, System.UriKind.Relative);
+                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
                                           }));
             }
         }
@@ -241,8 +243,9 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_AdvancedCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPage = new System.Uri(CLConstants.kFramePreferencesAdvanced, System.UriKind.Relative);
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest.Send(nextPage);
+                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAdvanced, System.UriKind.Relative);
+                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
                                           }));
             }
         }
@@ -259,8 +262,9 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_AboutCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPage = new System.Uri(CLConstants.kFramePreferencesAbout, System.UriKind.Relative);
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest.Send(nextPage);
+                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAbout, System.UriKind.Relative);
+                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
                                           }));
             }
         }
@@ -278,6 +282,11 @@ namespace win_client.ViewModels
             _preferences.ShouldStartCloudWhenSystemStarts = Settings.Instance.StartCloudAppWithSystem;
             _preferences.ShouldUseCloudAsFolderIcon = Settings.Instance.UseColorIconForCloudFolder;
             _preferences.Language = (cloudAppLanguageType)Settings.Instance.CloudAppLanguage;
+
+            // Account pane 
+            _preferences.Quota = Settings.Instance.Quota;
+            _preferences.UserName = Settings.Instance.UserName;
+            _preferences.DeviceName = Settings.Instance.DeviceName;
         }
 
         /// <summary>
@@ -291,6 +300,11 @@ namespace win_client.ViewModels
             Settings.Instance.StartCloudAppWithSystem = _preferences.ShouldStartCloudWhenSystemStarts;
             Settings.Instance.UseColorIconForCloudFolder = _preferences.ShouldUseCloudAsFolderIcon;
             Settings.Instance.CloudAppLanguage = (int)_preferences.Language;
+
+            // Account pane 
+            Settings.Instance.Quota = _preferences.Quota;
+            Settings.Instance.UserName = _preferences.UserName;
+            Settings.Instance.DeviceName = _preferences.DeviceName;
         }
 
         #endregion

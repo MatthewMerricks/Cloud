@@ -184,7 +184,7 @@
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
-    <Compile Include="ViewModelHelpers\CLModalErrorDialog.cs" />
+    <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
     <Compile Include="ViewModels\FramePreferencesAccountViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesGeneralViewModel.cs" />
     <Compile Include="ViewModels\PagePreferencesViewModel.cs" />

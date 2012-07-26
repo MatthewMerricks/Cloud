@@ -30,6 +30,7 @@ using CloudApiPublic;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Static;
+using win_client.ViewModelHelpers;
 
 namespace win_client.ViewModels
 {
@@ -60,6 +61,8 @@ namespace win_client.ViewModels
         private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
         private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
+        private IModalWindow _dialog = null;        // for use with modal dialogs
+
 
         #endregion
 
@@ -303,76 +306,71 @@ namespace win_client.ViewModels
                     string userMessageButtonSelectNewLocation = _rm.GetString("folderExitTextFieldButtonSelectNewLocation");
                     string userMessageButtonMerge = _rm.GetString("folderExitTextFieldButtonMerge");
 
-                    //Application.Current.MainWindow
+                    // Ask the user to 'Select new location' or 'Merge" the cloud folder.
                     _trace.writeToLog(9, "goForward: Put up 'Select new location' or 'Merge' dialog.");
-                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
-                    IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
-                    IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
-                    modalDialogService.ShowDialog(dialog, new DialogCloudMessageBoxViewModel
-                    {
-                        CloudMessageBoxView_Title = userMessageTitle,
-                        CloudMessageBoxView_WindowWidth = 450,
-                        CloudMessageBoxView_WindowHeight = 250,
-                        CloudMessageBoxView_HeaderText = userMessageHeader,
-                        CloudMessageBoxView_BodyText = userMessageBody,
-                        CloudMessageBoxView_LeftButtonWidth = new GridLength(200),
-                        CloudMessageBoxView_LeftButtonMargin = new Thickness(30, 0, 0, 0),
-                        CloudMessageBoxView_LeftButtonContent = userMessageButtonSelectNewLocation,
-                        CloudMessageBoxView_RightButtonWidth = new GridLength(100),
-                        CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
-                        CloudMessageBoxView_RightButtonContent = userMessageButtonMerge,
-                    },
-                    ViewGridContainer,
-                    returnedViewModelInstance =>
-                    {
-                        _trace.writeToLog(9, "goForward: returnedViewModelInstance: Entry.");
-                        if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
-                        {
-                            // The user selected Merge.  The standard Cloud folder will be used, with the user's existing files in it.
-                            _trace.writeToLog(9, "goForward: User selected Merge.");
-                            var notifyParms = new Dictionary<string, object>();
-                            notifyParms.Add(CLConstants.kFolderLocation, "");
-                            notifyParms.Add(CLConstants.kMergeFolders, true);
-                            OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-                            var dispatcher = Dispatcher.CurrentDispatcher; 
-                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
-                        }
-                        else
-                        {
-                            // The user will select a new Cloud folder location.  Put up a modal dialog for now.
-                            // This dialog will allow the user to simply type in the location of the Cloud folder.
-                            // It will have Back and Continue buttons.  The Continue button will cause validation
-                            // and will save the selected Cloud folder location in the settings.
-                            //
-                            // TODO: We need the FolderBrowserDialog from WPF.  Either switch to WPF for the Windows
-                            // desktop, or implement a WPF ActiveX DLL to perform that function.
-                            var dialogFolderSelection = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_FolderSelectionSimpleView);
-                            modalDialogService.ShowDialog(dialogFolderSelection, new DialogFolderSelectionSimpleViewModel
+                    CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
+                        windowHeight: 250,
+                        leftButtonWidth: 200,
+                        rightButtonWidth: 100,
+                        title: userMessageTitle,
+                        headerText: userMessageHeader,
+                        bodyText: userMessageBody,
+                        leftButtonContent: userMessageButtonSelectNewLocation,
+                        rightButtonContent: userMessageButtonMerge,
+                        container: ViewGridContainer,
+                        dialog: out _dialog,
+                        actionResultHandler:
+                            returnedViewModelInstance =>
                             {
-                                FolderSelectionSimpleViewModel_FolderLocationText = cloudFolderRoot,
-                                FolderSelectionSimpleViewModel_ButtonLeftText = _rm.GetString("folderSelectionSimpleButtonLeftText"),
-                                FolderSelectionSimpleViewModel_ButtonRightText = _rm.GetString("folderSelectionSimpleButtonRightText"),
-                            },
-                            ViewGridContainer,
-                            returnedFolderSelectionSimpleViewModelInstance =>
-                            {
-                                if (dialogFolderSelection.DialogResult.HasValue && dialogFolderSelection.DialogResult.Value)
+                                _trace.writeToLog(9, "goForward: returnedViewModelInstance: Entry.");
+                                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
                                 {
-                                    // The user selected a new folder location.
+                                    // The user selected Merge.  The standard Cloud folder will be used, with the user's existing files in it.
+                                    _trace.writeToLog(9, "goForward: User selected Merge.");
                                     var notifyParms = new Dictionary<string, object>();
-                                    notifyParms.Add(CLConstants.kFolderLocation, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
-                                    notifyParms.Add(CLConstants.kMergeFolders, false);
+                                    notifyParms.Add(CLConstants.kFolderLocation, "");
+                                    notifyParms.Add(CLConstants.kMergeFolders, true);
                                     OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-                                    var dispatcher = Dispatcher.CurrentDispatcher;
+                                    var dispatcher = Dispatcher.CurrentDispatcher; 
                                     dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
                                 }
                                 else
                                 {
-                                    // @@@@@ Do Nothing.  Just leave the user on the underlying SetupSelector dialog.
+                                    // The user will select a new Cloud folder location.  Put up a modal dialog for now.
+                                    // This dialog will allow the user to simply type in the location of the Cloud folder.
+                                    // It will have Back and Continue buttons.  The Continue button will cause validation
+                                    // and will save the selected Cloud folder location in the settings.
+                                    //
+                                    // TODO: We need the FolderBrowserDialog from WPF.  Either switch to WPF for the Windows
+                                    // desktop, or implement a WPF ActiveX DLL to perform that function.
+                                    var dialogFolderSelection = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_FolderSelectionSimpleView);
+                                    IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
+                                    modalDialogService.ShowDialog(dialogFolderSelection, new DialogFolderSelectionSimpleViewModel
+                                    {
+                                        FolderSelectionSimpleViewModel_FolderLocationText = cloudFolderRoot,
+                                        FolderSelectionSimpleViewModel_ButtonLeftText = _rm.GetString("folderSelectionSimpleButtonLeftText"),
+                                        FolderSelectionSimpleViewModel_ButtonRightText = _rm.GetString("folderSelectionSimpleButtonRightText"),
+                                    },
+                                    ViewGridContainer,
+                                    returnedFolderSelectionSimpleViewModelInstance =>
+                                    {
+                                        if (dialogFolderSelection.DialogResult.HasValue && dialogFolderSelection.DialogResult.Value)
+                                        {
+                                            // The user selected a new folder location.
+                                            var notifyParms = new Dictionary<string, object>();
+                                            notifyParms.Add(CLConstants.kFolderLocation, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
+                                            notifyParms.Add(CLConstants.kMergeFolders, false);
+                                            OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
+                                            var dispatcher = Dispatcher.CurrentDispatcher;
+                                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
+                                        }
+                                        else
+                                        {
+                                            // @@@@@ Do Nothing.  Just leave the user on the underlying SetupSelector dialog.
+                                        }
+                                    });
                                 }
                             });
-                        }
-                    });
 
                     return;
                 }
@@ -383,37 +381,27 @@ namespace win_client.ViewModels
                 if (err != null)
                 {
                     // An error occurred.  Show the user an Oh Snap! modal dialog.
-                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
-                    IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
-                    IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
-                    modalDialogService.ShowDialog(dialog, new DialogCloudMessageBoxViewModel
-                    {
-                        CloudMessageBoxView_Title = _rm.GetString("appDelegateErrorInstallingTitle"),
-                        CloudMessageBoxView_WindowWidth = 450,
-                        CloudMessageBoxView_WindowHeight = 225,
-                        CloudMessageBoxView_HeaderText = _rm.GetString("appDelegateErrorInstallingHeader"),
-                        CloudMessageBoxView_BodyText = err.errorDescription,
-                        CloudMessageBoxView_LeftButtonWidth = new GridLength(200),
-                        CloudMessageBoxView_LeftButtonMargin = new Thickness(30, 0, 0, 0),
-                        CloudMessageBoxView_LeftButtonContent = _rm.GetString("appDelegateErrorInstallingButtonIgnore"),
-                        CloudMessageBoxView_RightButtonWidth = new GridLength(100),
-                        CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
-                        CloudMessageBoxView_RightButtonContent = _rm.GetString("appDelegateErrorInstallingButtonTryAgain"),
-                    },
-                    ViewGridContainer,
-                    returnedViewModelInstance =>
-                    {
-                        if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
-                        {
-                            // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
-                            var dispatcher = Dispatcher.CurrentDispatcher;
-                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
-                        }
-                        else
-                        {
-                            // @@@@@@@@@ DO NOTHING @@@@@ The user selected Ignore.  We will just leave them on the SetupSelection page.
-                        }
-                    });
+                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                errorMessage:  err.errorDescription,
+                                title:  _rm.GetString("appDelegateErrorInstallingTitle"),
+                                headerText: _rm.GetString("appDelegateErrorInstallingHeader"),
+                                rightButtonContent: _rm.GetString("appDelegateErrorInstallingButtonTryAgain"),
+                                container: ViewGridContainer,
+                                dialog: out _dialog,
+                                actionOkButtonHandler: 
+                                    returnedViewModelInstance =>
+                                    {
+                                        if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                        {
+                                            // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
+                                            var dispatcher = Dispatcher.CurrentDispatcher;
+                                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
+                                        }
+                                        else
+                                        {
+                                            // @@@@@@@@@ DO NOTHING @@@@@ The user selected Ignore.  We will just leave them on the SetupSelection page.
+                                        }
+                                    });
                 }
                 else
                 {

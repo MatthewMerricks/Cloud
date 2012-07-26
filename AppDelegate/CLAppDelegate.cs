@@ -259,6 +259,7 @@ namespace win_client.AppDelegate
         //- (BOOL)unlinkFromCloudDotCom
         public bool UnlinkFromCloudDotCom(out CLError error)
         {
+            // Merged 7/26/12
             //BOOL rc = YES;
 
             //// todo: tell cloud service to untrust this device and wait for confirmation.

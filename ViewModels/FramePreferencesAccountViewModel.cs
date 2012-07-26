@@ -51,6 +51,7 @@ namespace win_client.ViewModels
         private readonly IDataService _dataService;
         private CLTrace _trace = CLTrace.Instance;
         private ResourceManager _rm;
+        private IModalWindow _dialog = null;        // for use with modal dialogs
 
 
         #endregion
@@ -84,55 +85,11 @@ namespace win_client.ViewModels
                 });
             _rm =  CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
-
-            //TODO: Move the list of languages to a more appropriate place.
-            List<SupportedLanguage> supportedLanguages = new List<SupportedLanguage>
-            {
-                new SupportedLanguage() {Name = "English", Type = cloudAppLanguageType.cloudAppLanguageEN},
-                new SupportedLanguage() {Name = "Georgia", Type = cloudAppLanguageType.cloudAppLanguageGE},
-                new SupportedLanguage() {Name = "China", Type = cloudAppLanguageType.cloudAppLanguageCN},
-                new SupportedLanguage() {Name = "Spain", Type = cloudAppLanguageType.cloudAppLanguageES},
-                new SupportedLanguage() {Name = "France", Type = cloudAppLanguageType.cloudAppLanguageFR},
-                new SupportedLanguage() {Name = "Italy", Type = cloudAppLanguageType.cloudAppLanguageIT},
-                new SupportedLanguage() {Name = "Japan", Type = cloudAppLanguageType.cloudAppLanguageJP},
-                new SupportedLanguage() {Name = "Portugal", Type = cloudAppLanguageType.cloudAppLanguagePT},
-            };
-            _cbSelectYourLanguage_ItemsSource = supportedLanguages;
         }
 
         #endregion
 
         #region Bindable Properties
-
-        /// <summary>
-        /// The <see cref="CbSelectYourLanguage_ItemsSource" /> property's name.
-        /// Source for the supported languages.
-        /// </summary>
-        public const string CbSelectYourLanguage_ItemsSourcePropertyName = "CbSelectYourLanguage_ItemsSource";
-        private List<SupportedLanguage> _cbSelectYourLanguage_ItemsSource = null;
-        /// <summary>
-        /// Sets and gets the CbSelectYourLanguage_ItemsSource property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        public List<SupportedLanguage> CbSelectYourLanguage_ItemsSource
-        {
-            get
-            {
-                return _cbSelectYourLanguage_ItemsSource;
-            }
-
-            set
-            {
-                if (_cbSelectYourLanguage_ItemsSource == value)
-                {
-                    return;
-                }
-
-                _cbSelectYourLanguage_ItemsSource = value;
-                RaisePropertyChanged(CbSelectYourLanguage_ItemsSourcePropertyName);
-            }
-        }
-
 
         /// <summary>
         /// The <see cref="ViewGridContainer" /> property's name.
@@ -166,32 +123,88 @@ namespace win_client.ViewModels
         #endregion
       
         #region Commands
-        private ICommand _framePreferencesAccount_CheckForUpdatesCommand;
 
         /// <summary>
-        /// Gets the FramePreferencesAccount_CheckForUpdatesCommand.
+        /// Gets the FramePreferencesAccount_UnlinkThisComputerCommand.
         /// </summary>
-        public ICommand FramePreferencesAccount_CheckForUpdatesCommand
+        private ICommand _framePreferencesAccount_UnlinkThisComputerCommand;
+        public ICommand FramePreferencesAccount_UnlinkThisComputerCommand
         {
             get
             {
-                return _framePreferencesAccount_CheckForUpdatesCommand
-                    ?? (_framePreferencesAccount_CheckForUpdatesCommand = new RelayCommand(
-                                          () =>
-                                          {
-                                              // Record the time of the last update check
-                                              Settings.Instance.DateWeLastCheckedForSoftwareUpdate = DateTime.Now;
+                return _framePreferencesAccount_UnlinkThisComputerCommand
+                    ?? (_framePreferencesAccount_UnlinkThisComputerCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                //TODO: Actually check to see if there are any updates.
+                                                CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
+                                                    windowHeight: 250,
+                                                    leftButtonWidth: 75,
+                                                    rightButtonWidth: 75,
+                                                    title: "Remove this Device?",
+                                                    headerText: "Unlink this device from your account?",
+                                                    bodyText: "Do you want to remove this computer from your account?  Other devices in your account will continue to sync your files.",
+                                                    leftButtonContent: "No",
+                                                    rightButtonContent: "Yes",
+                                                    container: ViewGridContainer,
+                                                    dialog: out _dialog,
+                                                    actionResultHandler: 
+                                                        returnedViewModelInstance =>
+                                                        {
+                                                            // Do nothing here when the user clicks the OK button.
+                                                            _trace.writeToLog(9, "FramePreferencesAccount: Unlink device: Entry.");
+                                                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                                            {
+                                                                // The user said yes.  Unlink this device.
+                                                                _trace.writeToLog(9, "FramePreferencesAccount: Unlink device: User said yes.");
+                                                                CLError error = null;
+                                                                CLAppDelegate.Instance.UnlinkFromCloudDotCom(out error);
+                                                                //TODO: Handle any errors here.
 
-                                              //TODO: Actually check to see if there are any updates.
-                                              CLModalErrorDialog.Instance.DisplayModalErrorMessage("You are currently running the latest version of the Cloud application.", "Information",
-                                                                                "Update check complete.", _rm.GetString("generalOkButtonContent"),
-                                                                                ViewGridContainer, returnedViewModelInstance =>
-                                                                                {
-                                                                                    // Do nothing here when the user clicks the OK button.
-                                                                                });
+                                                                // Restart ourselves now
+                                                                System.Windows.Forms.Application.Restart();
+                                                                System.Windows.Application.Current.Shutdown();
+                                                            }
+                                                            else
+                                                            {
+                                                                // The user said no.  Do nothing.
+                                                            }
+                                                        }
+                                                );
                                           }));
             }
         }
+
+        /// <summary>
+        /// Gets the FramePreferencesAccount_UnlinkThisComputerCommand.
+        /// </summary>
+        private ICommand _framePreferencesAccount_GetMoreSpaceCommand;
+        public ICommand FramePreferencesAccount_GetMoreSpaceCommand
+        {
+            get
+            {
+                return _framePreferencesAccount_GetMoreSpaceCommand
+                    ?? (_framePreferencesAccount_GetMoreSpaceCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                //TODO: Actually handle a request for more space.
+                                                CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                                    errorMessage: "You can't get more space right now.  It's not implemented yet..",
+                                                    title: "Information",
+                                                    headerText: "Get more space complete.",
+                                                    rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                                    container: ViewGridContainer,
+                                                    dialog: out _dialog,
+                                                    actionOkButtonHandler:
+                                                      returnedViewModelInstance =>
+                                                      {
+                                                          // Do nothing here when the user clicks the OK button.
+                                                      }
+                                                );
+                                            }));
+            }
+        }
+
         #endregion
 
     }

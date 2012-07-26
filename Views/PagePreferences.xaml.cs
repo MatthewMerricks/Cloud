@@ -64,6 +64,7 @@ namespace win_client.Views
             CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Register(this,
                 (nextPage) =>
                 {
+                    this.PageGrid = this.LayoutRoot;
                     this.Preferences = nextPage.Value;
                     this.ContentFrame.NavigationService.Navigate(nextPage.Key, this);
                 });
@@ -83,6 +84,21 @@ namespace win_client.Views
             DependencyProperty.Register(((MemberExpression)((Expression<Func<PagePreferences, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name, typeof(CLPreferences), typeof(PagePreferences), new PropertyMetadata(null, OnPreferencesChanged));
 
         private static void OnPreferencesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { }
+
+        // The Page's grid object.  Frame views will pass this grid to the Frame view's ViewModel for use by the modal dialogs so the entire Page window will be grayed and inaccessible.
+        public Grid PageGrid
+        {
+            get { return (Grid)GetValue(PageGridProperty); }
+            set { SetValue(PageGridProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
+        // The big long member expression tree results in an automatically generated string "Preferences".
+        private static readonly string PageGridPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, Grid>>)(parent => parent.PageGrid)).Body).Member.Name;
+        public static readonly DependencyProperty PageGridProperty =
+            DependencyProperty.Register(PageGridPropertyName, typeof(Grid), typeof(PagePreferences), new PropertyMetadata(null, OnPageGridChanged));
+        private static void OnPageGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { } 
+
         #endregion
 
         #region "Message Handlers"

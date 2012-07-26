@@ -82,6 +82,27 @@ namespace win_client.Common
         }
     }
 
+    public class QuotaConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            int? inputValue = value as int?;
+            if (inputValue != null)
+            {
+                return (string)inputValue.ToString() + ".0GB Used";
+            }
+            else
+            {
+                return (string)String.Empty;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return null;
+        }
+    }
+
     public class DebugConverter : IValueConverter
     {
         public DebugConverter()

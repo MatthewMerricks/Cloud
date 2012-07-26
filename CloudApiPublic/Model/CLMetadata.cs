@@ -269,7 +269,7 @@ namespace CloudApiPublic.Model
                 {
                     jsonFromPath = null;
                 }
-                else
+                else if (jsonFromPath != null)
                 {
                     jsonFromPath = jsonFromPath.Replace('/', '\\');
                 }
@@ -278,7 +278,7 @@ namespace CloudApiPublic.Model
                 {
                     jsonTargetPath = null;
                 }
-                else
+                else if (jsonTargetPath != null)
                 {
                     jsonTargetPath = jsonTargetPath.Replace('/', '\\');
                 }

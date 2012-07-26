@@ -45,7 +45,7 @@ namespace CloudApiPrivate
             _client.BaseAddress = _uri;
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", "Token=\"" + Settings.Instance.Akey + "\"");
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
-            _client.Timeout = TimeSpan.FromSeconds(_CLRestClientDefaultHTTPTimeOutInterval);
+            //&&&&HttpDavidTODO: Set the timeout.  The HttpClient source we have doesn't support this. _client.Timeout = TimeSpan.FromSeconds(_CLRestClientDefaultHTTPTimeOutInterval);
             _trace = CLTrace.Instance;
         }
 
@@ -234,10 +234,53 @@ namespace CloudApiPrivate
             // Send the request asynchronously
             _trace.writeToLog(9, "CLPrivateRestClient: SyncToCloud_withCompletionHandler_onQueue_async: Sending sync-to request to server.  json: {0}.", json);
 
-            (new Task<ServerCallbackParameters>(state =>
+            //(new Task<ServerCallbackParameters>(state =>
+            //    {
+            //        ServerCallbackParameters castState = state as ServerCallbackParameters;
+
+            //        if (castState != null)
+            //        {
+            //            try
+            //            {
+            //                castState.Response = castState.Client.SendAsync(castState.Message).Result;
+            //            }
+            //            catch (Exception ex)
+            //            {
+            //                castState.CommunicationException = ex;
+            //            }
+            //        }
+
+            //        return castState;
+
+            //    }, new ServerCallbackParameters()
+            //        {
+            //            Client = _client,
+            //            Message = syncRequest,
+            //            CompletionHandler = completionHandler,
+            //            Queue = queue,
+            //            HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync,
+            //            UserState = processedChanges
+            //        })
+            //        .ContinueWith<ServerCallbackParameters>(continueTask =>
+            //            {
+            //                if (continueTask.Result != null
+            //                    && continueTask.Result.HandleResponseFromServer != null)
+            //                {
+            //                    continueTask.Result.HandleResponseFromServer(continueTask.Result,
+            //                        "ErrorPostingSyncToServer");
+            //                }
+
+            //                return continueTask.Result;
+            //            })).RunSynchronously();
+            //&&&&HttpDavid
+
+            // First task to send the sync-to request
+            Task<ServerCallbackParameters> syncTask = new Task<ServerCallbackParameters>(
+                // Task function parameter.  Takes the user state object, and returns ServerCallbackParameters.
+                state =>
                 {
                     ServerCallbackParameters castState = state as ServerCallbackParameters;
-
+    
                     if (castState != null)
                     {
                         try
@@ -249,29 +292,36 @@ namespace CloudApiPrivate
                             castState.CommunicationException = ex;
                         }
                     }
-
+    
                     return castState;
+                },
+                // User state parameter
+                new ServerCallbackParameters()
+                {
+                    Client = _client,
+                    Message = syncRequest,
+                    CompletionHandler = completionHandler,
+                    Queue = queue,
+                    HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync,
+                    UserState = processedChanges
+                });
 
-                }, new ServerCallbackParameters()
+            // Second task to process the sync-to result.
+            Task<ServerCallbackParameters> continuationTask = syncTask.ContinueWith<ServerCallbackParameters>(
+                continueTask =>
+                {
+                    if (continueTask.Result != null
+                        && continueTask.Result.HandleResponseFromServer != null)
                     {
-                        Client = _client,
-                        Message = syncRequest,
-                        CompletionHandler = completionHandler,
-                        Queue = queue,
-                        HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync,
-                        UserState = processedChanges
-                    })
-                    .ContinueWith<ServerCallbackParameters>(continueTask =>
-                        {
-                            if (continueTask.Result != null
-                                && continueTask.Result.HandleResponseFromServer != null)
-                            {
-                                continueTask.Result.HandleResponseFromServer(continueTask.Result,
-                                    "ErrorPostingSyncToServer");
-                            }
+                        continueTask.Result.HandleResponseFromServer(continueTask.Result,
+                            "ErrorPostingSyncToServer");
+                    }
 
-                            return continueTask.Result;
-                        })).RunSynchronously();
+                    return continueTask.Result;
+                });
+
+            // Start the first task to send the request.
+            syncTask.Start();
         }
 
         /// <summary>
@@ -442,7 +492,45 @@ namespace CloudApiPrivate
             // Send the request asynchronously
             _trace.writeToLog(9, "CLPrivateRestClient: SyncFromCloud_withCompletionHandler_onQueue_async: Sending sync-from request to server.  json: {0}.", json);
 
-            (new Task<ServerCallbackParameters>(state =>
+            //&&&&HttpDavid
+            //(new Task<ServerCallbackParameters>(state =>
+            //    {
+            //        ServerCallbackParameters castState = state as ServerCallbackParameters;
+
+            //        if (castState != null)
+            //        {
+            //            try
+            //            {
+            //                castState.Response = castState.Client.SendAsync(castState.Message).Result;
+            //            }
+            //            catch (Exception ex)
+            //            {
+            //                castState.CommunicationException = ex;
+            //            }
+            //            return castState;
+            //        }
+
+            //        return null;
+            //    }, new ServerCallbackParameters()
+            //        {
+            //            Client = _client,
+            //            Message = syncRequest,
+            //            CompletionHandler = completionHandler,
+            //            Queue = queue,
+            //            HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync
+            //        }).ContinueWith<ServerCallbackParameters>(lastTask =>
+            //            {
+            //                if (lastTask.Result != null)
+            //                {
+            //                    lastTask.Result.HandleResponseFromServer(lastTask.Result, "ErrorPostingSyncFromServer");
+            //                }
+            //                return lastTask.Result;
+            //            })).RunSynchronously();
+
+            // First task to send the sync-from request.
+            Task<ServerCallbackParameters> syncTask = new Task<ServerCallbackParameters>(
+                // First parameter: The task's function.  The first parameter is the user state as an object, and it returns ServerCallbackParameters.
+                state =>
                 {
                     ServerCallbackParameters castState = state as ServerCallbackParameters;
 
@@ -460,21 +548,30 @@ namespace CloudApiPrivate
                     }
 
                     return null;
-                }, new ServerCallbackParameters()
+                }, 
+                // Second parameter: The ServerCallbackParameters
+                new ServerCallbackParameters()
+                {
+                    Client = _client,
+                    Message = syncRequest,
+                    CompletionHandler = completionHandler,
+                    Queue = queue,
+                    HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync
+                });
+                
+            // The second task.
+            Task<ServerCallbackParameters> continuationTask = syncTask.ContinueWith<ServerCallbackParameters>(
+                lastTask =>
+                {
+                    if (lastTask.Result != null)
                     {
-                        Client = _client,
-                        Message = syncRequest,
-                        CompletionHandler = completionHandler,
-                        Queue = queue,
-                        HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync
-                    }).ContinueWith<ServerCallbackParameters>(lastTask =>
-                        {
-                            if (lastTask.Result != null)
-                            {
-                                lastTask.Result.HandleResponseFromServer(lastTask.Result, "ErrorPostingSyncFromServer");
-                            }
-                            return lastTask.Result;
-                        })).RunSynchronously();
+                        lastTask.Result.HandleResponseFromServer(lastTask.Result, "ErrorPostingSyncFromServer");
+                    }
+                    return lastTask.Result;
+                });
+
+            // Start the first task to send the request.
+            syncTask.Start();
         }
 
         private class ServerCallbackParameters

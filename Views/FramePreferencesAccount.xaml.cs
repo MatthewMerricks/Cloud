@@ -54,9 +54,7 @@ namespace win_client.Views
             // Pass the view's grid to the view model for the dialogs to use.
             _viewModel = (FramePreferencesAccountViewModel)DataContext;
             _viewModel.ViewGridContainer = LayoutRoot;
-
         }
-
 
         #region Dependency Properties
 
@@ -67,7 +65,7 @@ namespace win_client.Views
         }
 
         // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
-        // The big long member expression tree results in an automatically generated string "Preferences".
+        // The big long member expression tree results in an automatically generated string "Preferences".  Better than hardcoding the string.
         private static readonly string PreferencesPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name;
         public static readonly DependencyProperty PreferencesProperty =
             DependencyProperty.Register(PreferencesPropertyName, typeof(CLPreferences), typeof(FramePreferencesAccount), new PropertyMetadata(null, OnPreferencesChanged));
@@ -86,7 +84,6 @@ namespace win_client.Views
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            //tbEMail.Focus();
         }
 
         /// <summary>
@@ -119,7 +116,7 @@ namespace win_client.Views
 
                 if (_isLoaded)
                 {
-                    chkStartCloudWhenSystemStarts.Focus();
+                    //TODO: Give some control focus?  Maybe not.  Only two buttons here.
                 }
             }
             catch (Exception ex)
@@ -130,55 +127,5 @@ namespace win_client.Views
         }
 
         #endregion
-
-        #region "Message Handlers"
-
-        private void OnCreateNewAccount_GetClearPasswordField(string notUsed)
-        {
-            //string clearPassword = tbPassword.Text;
-            //if (_viewModel != null)
-            //{
-            //    _viewModel.Password2 = clearPassword;
-            //}
-        }
-
-        private void OnCreateNewAccount_GetClearConfirmPasswordField(string notUsed)
-        {
-            //string clearConfirmPassword = tbConfirmPassword.Text;
-            //if (_viewModel != null)
-            //{
-            //    _viewModel.ConfirmPassword2 = clearConfirmPassword;
-            //}
-        }
-
-        private void OnCreateNewAccount_FocusToError_Message(string notUsed)
-        {
-            //if (Validation.GetHasError(tbEMail) == true )  {
-            //    tbEMail.Focus();
-            //    return;
-            //}
-            //if (Validation.GetHasError(tbFullName) == true )  {
-            //    tbFullName.Focus();
-            //    return;
-            //}
-            //if(Validation.GetHasError(this.tbPassword) == true)
-            //    {
-            //    tbPassword.Focus();
-            //    return;
-            //}
-            //if(Validation.GetHasError(tbConfirmPassword) == true)
-            //{
-            //    tbConfirmPassword.Focus();
-            //    return;
-            //}
-            //if(Validation.GetHasError(tbComputerName) == true)
-            //{
-            //    tbComputerName.Focus();
-            //    return;
-            //}
-        }
-
-        #endregion "ChangeScreenMessage"
-
     }
 }

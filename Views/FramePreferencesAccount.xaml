@@ -21,7 +21,6 @@
     DataContext="{Binding FramePreferencesAccountViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Cloud Preferences"
     Name="FramePreferencesAccountRoot">
-    <!-- parentNS:FramePreferencesAccount.Preferences="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=parentNS:PagePreferences}, Path=Preferences, Mode=OneWay}" -->
 
     <Page.Resources>
         <ResourceDictionary>
@@ -34,30 +33,31 @@
 
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="55*"/>
-            <ColumnDefinition  Width="545*"/>
-            <ColumnDefinition Width="24*"/>
+            <ColumnDefinition Width="45*"/>
+            <ColumnDefinition  Width="551*"/>
+            <ColumnDefinition Width="28*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="37*"/>
-            <RowDefinition Height="162*"/>
-            <RowDefinition Height="22*"/>
+            <RowDefinition Height="58*"/>
+            <RowDefinition Height="199*"/>
+            <RowDefinition Height="19*"/>
+            <RowDefinition Height="151*"/>
+            <RowDefinition Height="15*"/>
         </Grid.RowDefinitions>
             
         <Grid.Background>              
             <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
         </Grid.Background>
-                           
-        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Column="1" Grid.Row="1" />
         
+        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Column="1" Grid.Row="1" />
+
+        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Column="1" Grid.Row="3" />
+
         <Grid Grid.Column="1" Grid.Row="1" >
     		<Grid.RowDefinitions>
-                <RowDefinition Height="5"/>
+                <RowDefinition Height="10"/>
                 <RowDefinition Height="*"/>
-    			<RowDefinition Height="*"/>
-    			<RowDefinition Height="*"/>
-    			<RowDefinition Height="*"/>
-    			<RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
     			<RowDefinition Height="*"/>
                 <RowDefinition Height="10"/>
             </Grid.RowDefinitions>
@@ -67,28 +67,32 @@
                 <ColumnDefinition Width="302*"/>
                 <ColumnDefinition/>
     		</Grid.ColumnDefinitions>
-            <TextBlock TextWrapping="Wrap" Text="Startup: " Foreground="Black" FontSize="16" Grid.Row="1" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <CheckBox x:Name="chkStartCloudWhenSystemStarts"  Content="Start Cloud when system starts" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" FontSize="16" Width="Auto"
-                      IsChecked="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.ShouldStartCloudWhenSystemStarts, Mode=TwoWay}" Height="Auto" ToolTip="Check to start Cloud application at system startup."/>
+            <TextBlock TextWrapping="Wrap" Text="Storage: " Foreground="Black" FontSize="16" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="1" />
+            <TextBlock x:Name="tbStorageUsed" TextWrapping="Wrap" Foreground="Black" FontSize="16" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="1"
+                       Text="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.Quota, Mode=OneWay, Converter={StaticResource QuotaConverter}}"
+                       ToolTip="This is the total amount of storage space provided to your account."/>
+
+            <TextBlock TextWrapping="Wrap" Text="Account: " Foreground="Black" FontSize="16" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="2"  />
+            <TextBlock x:Name="tbAccountName" TextWrapping="Wrap" Foreground="Black" FontSize="16" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="2" 
+                       Text="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.UserName, Mode=OneWay, Converter={StaticResource DebugConverter}}"
+                       ToolTip="This is your account user name."/>
             
-            <TextBlock TextWrapping="Wrap" Text="When files update: " Foreground="Black" FontSize="16" Grid.Row="2" TextAlignment="Right" VerticalAlignment="Center" Height="Auto"  />
-            <CheckBox x:Name="chkAnimateMenuBarIcon" Content="Animate menu bar icon" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" FontSize="16" Width="Auto"
-                      IsChecked="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.ShouldAnimateMenuBarIcon, Mode=TwoWay}" Height="Auto" ToolTip="Check to animate the system tray Cloud icon when files are being updated."/>
-            <CheckBox x:Name="chkShowDesktopNotification" Content="Show desktop notification" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" FontSize="16" Width="Auto" 
-                      IsChecked="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.ShouldShowDesktopNotification}" Height="Auto" ToolTip="Check to show an animation on the desktop when files are being updated."/>
-            
-            <TextBlock TextWrapping="Wrap" Text="Cloud folder: " Foreground="Black" FontSize="16" Grid.Row="4" TextAlignment="Right" VerticalAlignment="Center" Height="Auto"/>
-            <CheckBox x:Name="chkUseCloudAsFolderIcon" Content="Use cloud as folder icon" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" FontSize="16" Width="Auto" 
-                      IsChecked="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.ShouldUseCloudAsFolderIcon, Mode=TwoWay}" Height="Auto" ToolTip="Check to use the Cloud icon as the folder icon on your Cloud folder."/>
-                        
-            <TextBlock TextWrapping="Wrap" Text="Select your language: " Foreground="Black" FontSize="16" Grid.Row="5" TextAlignment="Right" VerticalAlignment="Center" Height="Auto"/>            
-            <ComboBox x:Name="cbSelectYourLanguage" HorizontalAlignment="Center" VerticalAlignment="Center" Width="Auto" Grid.Column="2" Grid.Row="5" MinWidth="150" FontSize="16" Margin="0,0,30,0"
-                      ItemsSource="{Binding CbSelectYourLanguage_ItemsSource, Mode=TwoWay, Converter={StaticResource DebugConverter}}" DisplayMemberPath="Name" ToolTip="Select your language."
-                      SelectedValuePath="Type" SelectedValue="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.Language, Mode=TwoWay, Converter={StaticResource DebugConverter}}" Height="Auto"/>
-            
-            <TextBlock TextWrapping="Wrap" Text="Updates: " Foreground="Black" FontSize="16" Grid.Row="6" TextAlignment="Right" VerticalAlignment="Center" Height="Auto"  />
-            <Button x:Name="cmdCheckForUpdates" Content="Check for Updates" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="2" Grid.Row="6" Height="Auto" Width="Auto" Margin="0,0,30,0"
-                    Command="{Binding FramePreferencesAccount_CheckForUpdatesCommand, Mode=OneTime}" MinWidth="150" ToolTip="Click to check for available updates to your Cloud application."/>
+            <TextBlock TextWrapping="Wrap" Text="Computer name: " Foreground="Black" FontSize="16" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="3"  />
+            <TextBlock x:Name="tbComputerName" TextWrapping="Wrap" Foreground="Black" FontSize="16" TextAlignment="Left" VerticalAlignment="Stretch" Height="Auto" Grid.Column="2" Grid.Row="3" 
+                       Text="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.DeviceName, Mode=OneWay, Converter={StaticResource DebugConverter}}" 
+                       ToolTip="This is the device name representing this computer in your account."/>
+        </Grid>
+        <Grid Grid.Row="3" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="10"/>
+            </Grid.RowDefinitions>
+            <Button x:Name="cmdGetMoreSpace" Content="Get more space..." VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="0 " Grid.Row="2" Height="Auto" Width="Auto" 
+                    Command="{Binding FramePreferencesAccount_GetMoreSpaceCommand, Mode=OneTime}" MinWidth="200" ToolTip="Click to get more storage space in your Cloud account."  />
+            <Button x:Name="cmdUnlinkThisComputer" Content="Unlink this computer..." VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="1" Grid.Row="1" Height="Auto" Width="Auto" 
+                	Command="{Binding FramePreferencesAccount_UnlinkThisComputerCommand, Mode=OneTime}" MinWidth="200" ToolTip="Click to remove this computer from your Cloud account." />
         </Grid>
     </Grid>
 </Page>

@@ -51,7 +51,7 @@ namespace win_client.ViewModels
         private readonly IDataService _dataService;
         private CLTrace _trace = CLTrace.Instance;
         private ResourceManager _rm;
-
+        private IModalWindow _dialog = null;        // for use with modal dialogs
 
         #endregion
 
@@ -183,12 +183,19 @@ namespace win_client.ViewModels
                                               Settings.Instance.DateWeLastCheckedForSoftwareUpdate = DateTime.Now;
 
                                               //TODO: Actually check to see if there are any updates.
-                                              CLModalErrorDialog.Instance.DisplayModalErrorMessage("You are currently running the latest version of the Cloud application.", "Information",
-                                                                                "Update check complete.", _rm.GetString("generalOkButtonContent"),
-                                                                                ViewGridContainer, returnedViewModelInstance =>
-                                                                                {
-                                                                                    // Do nothing here when the user clicks the OK button.
-                                                                                });
+                                              CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                                  errorMessage: "You are currently running the latest version of the Cloud application.",
+                                                  title: "Information",
+                                                  headerText: "Update check complete.",
+                                                  rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                                  container: ViewGridContainer,
+                                                  dialog: out _dialog,
+                                                  actionOkButtonHandler: 
+                                                    returnedViewModelInstance =>
+                                                    {
+                                                        // Do nothing here when the user clicks the OK button.
+                                                    }
+                                              );
                                           }));
             }
         }

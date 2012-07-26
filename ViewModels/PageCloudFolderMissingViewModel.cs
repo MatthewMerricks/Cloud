@@ -46,7 +46,8 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private ResourceManager _rm;
-        private CLTrace _trace; 
+        private CLTrace _trace;
+        private IModalWindow _dialog = null;        // for use with modal dialogs
 
         #endregion
         
@@ -229,32 +230,36 @@ namespace win_client.ViewModels
                                                     {
                                                         // Display the error message in a modal dialog
                                                         // Leave the user on this dialog when the user clicks OK on the error message modal dialog
-                                                        CLModalErrorDialog.Instance.DisplayModalErrorMessage(
+                                                        CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
                                                                 error.errorDescription, 
                                                                 _rm.GetString("pageCloudFolderMissingErrorTitle"),
                                                                 _rm.GetString("pageCloudFolderMissingErrorHeader"),
                                                                 _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
-                                                                this.ViewGridContainer, returnedViewModelInstance =>
-                                                                {
-                                                                    // If the cloud folder actually exists at the new location, then we
-                                                                    // were successful at moving it, even if an error was thrown.  In this
-                                                                    // case, we will just use it and continue starting core services.
-                                                                    // Otherwise, we will leave the user on this dialog, but change
-                                                                    // the OK button to "Locate...".
-                                                                    if (Directory.Exists(Settings.Instance.CloudFolderPath))
+                                                                this.ViewGridContainer, 
+                                                                dialog: out _dialog,
+                                                                actionOkButtonHandler: 
+                                                                    returnedViewModelInstance =>
                                                                     {
-                                                                        // Navigate to the PageInvisible page.  This will start the core services.
-                                                                        Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
-                                                                        CLAppMessages.PageCloudFolderMissing_NavigationRequest.Send(nextPage);
+                                                                        // If the cloud folder actually exists at the new location, then we
+                                                                        // were successful at moving it, even if an error was thrown.  In this
+                                                                        // case, we will just use it and continue starting core services.
+                                                                        // Otherwise, we will leave the user on this dialog, but change
+                                                                        // the OK button to "Locate...".
+                                                                        if (Directory.Exists(Settings.Instance.CloudFolderPath))
+                                                                        {
+                                                                            // Navigate to the PageInvisible page.  This will start the core services.
+                                                                            Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+                                                                            CLAppMessages.PageCloudFolderMissing_NavigationRequest.Send(nextPage);
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            // Just leave the user on this same PageCloudFolderMissing window,
+                                                                            // but change the OK button to Locate... since we had trouble
+                                                                            // restoring the folder from the recycle bin.
+                                                                            this.OkButtonContent = _rm.GetString("pageCloudFolderMissingOkButtonLocate");
+                                                                        }
                                                                     }
-                                                                    else
-                                                                    {
-                                                                        // Just leave the user on this same PageCloudFolderMissing window,
-                                                                        // but change the OK button to Locate... since we had trouble
-                                                                        // restoring the folder from the recycle bin.
-                                                                        this.OkButtonContent = _rm.GetString("pageCloudFolderMissingOkButtonLocate");
-                                                                    }
-                                                                });
+                                                        );
                                                     }
                                                 }
                                             }));                                              
@@ -298,16 +303,20 @@ namespace win_client.ViewModels
                                                 CLAppDelegate.Instance.UnlinkFromCloudDotCom(out error);
                                                 if (error != null)
                                                 {
-                                                    CLModalErrorDialog.Instance.DisplayModalErrorMessage(
-                                                           error.errorDescription,
-                                                           _rm.GetString("pageCloudFolderMissingErrorTitle"),
-                                                           _rm.GetString("pageCloudFolderMissingErrorHeader"),
-                                                           _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
-                                                           this.ViewGridContainer, returnedViewModelInstance =>
-                                                           {
-                                                               // Exit the app when the user clicks the OK button.
-                                                               Application.Current.Shutdown();
-                                                           });
+                                                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                                        errorMessage: error.errorDescription,
+                                                        title: _rm.GetString("pageCloudFolderMissingErrorTitle"),
+                                                        headerText: _rm.GetString("pageCloudFolderMissingErrorHeader"),
+                                                        rightButtonContent: _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
+                                                        container: this.ViewGridContainer,
+                                                        dialog: out _dialog,
+                                                        actionOkButtonHandler: 
+                                                            returnedViewModelInstance =>
+                                                            {
+                                                                // Exit the app when the user clicks the OK button.
+                                                                Application.Current.Shutdown();
+                                                            }
+                                                    );
                                                 }
                                                 else
                                                 {
@@ -352,15 +361,19 @@ namespace win_client.ViewModels
                                                 else
                                                 {
                                                     // Error creating the cloud folder.  Display the error and stay on this dialog.
-                                                    CLModalErrorDialog.Instance.DisplayModalErrorMessage(
-                                                            error.errorDescription,
-                                                            _rm.GetString("pageCloudFolderMissingErrorTitle"),
-                                                            _rm.GetString("pageCloudFolderMissingErrorHeader"),
-                                                            _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
-                                                            this.ViewGridContainer, returnedViewModelInstance =>
+                                                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                                        errorMessage: error.errorDescription,
+                                                        title: _rm.GetString("pageCloudFolderMissingErrorTitle"),
+                                                        headerText: _rm.GetString("pageCloudFolderMissingErrorHeader"),
+                                                        rightButtonContent: _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
+                                                        container: this.ViewGridContainer,
+                                                        dialog: out _dialog,
+                                                        actionOkButtonHandler:
+                                                            returnedViewModelInstance =>
                                                             {
                                                                 // Do nothing.  Stay on this dialog.
-                                                            });
+                                                            }
+                                                    );
                                                 }
                                             }));
             }

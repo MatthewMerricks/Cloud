@@ -22,5 +22,10 @@ namespace win_client.Model
         public bool ShouldShowDesktopNotification { get; set; }
         public bool ShouldUseCloudAsFolderIcon { get; set; }
         public cloudAppLanguageType Language { get; set; }
+
+        // Account pane (FramePreferencesAccount)
+        public int Quota { get; set; }
+        public string UserName { get; set; }
+        public string DeviceName { get; set; }
     }
 }

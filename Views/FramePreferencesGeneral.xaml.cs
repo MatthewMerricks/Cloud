@@ -53,13 +53,12 @@ namespace win_client.Views
 
             // Pass the view's grid to the view model for the dialogs to use.
             _viewModel = (FramePreferencesGeneralViewModel)DataContext;
-            _viewModel.ViewGridContainer = LayoutRoot;
-
         }
 
 
         #region Dependency Properties
 
+        // The preferences data object.  This view will be bound to it.
         public CLPreferences Preferences
         {
             get { return (CLPreferences)GetValue(PreferencesProperty); }
@@ -73,6 +72,20 @@ namespace win_client.Views
             DependencyProperty.Register(PreferencesPropertyName, typeof(CLPreferences), typeof(FramePreferencesGeneral), new PropertyMetadata(null, OnPreferencesChanged));
         private static void OnPreferencesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { } 
 
+        // The Page's grid object.  This view will pass this grid to this view's ViewModel for use by the modal dialogs so the entire Page window will be grayed and inaccessible.
+        public Grid PageGrid
+        {
+            get { return (Grid)GetValue(PageGridProperty); }
+            set { SetValue(PageGridProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
+        // The big long member expression tree results in an automatically generated string "Preferences".
+        private static readonly string PageGridPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, Grid>>)(parent => parent.PageGrid)).Body).Member.Name;
+        public static readonly DependencyProperty PageGridProperty =
+            DependencyProperty.Register(PageGridPropertyName, typeof(Grid), typeof(FramePreferencesGeneral), new PropertyMetadata(null, OnPageGridChanged));
+        private static void OnPageGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { } 
+
         #endregion
 
         /// <summary>
@@ -82,6 +95,7 @@ namespace win_client.Views
         {
             _isLoaded = true;
             _viewModel = DataContext as FramePreferencesGeneralViewModel;
+            _viewModel.ViewGridContainer = PageGrid;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -117,6 +131,14 @@ namespace win_client.Views
                         Mode = BindingMode.OneWay
                     });
 
+                this.SetBinding(PageGridProperty,
+                    new Binding()
+                    {
+                        Source = e.ExtraData,
+                        Path = new PropertyPath(PageGridPropertyName),
+                        Mode = BindingMode.OneWay
+                    });
+
                 if (_isLoaded)
                 {
                     chkStartCloudWhenSystemStarts.Focus();
@@ -130,55 +152,5 @@ namespace win_client.Views
         }
 
         #endregion
-
-        #region "Message Handlers"
-
-        private void OnCreateNewAccount_GetClearPasswordField(string notUsed)
-        {
-            //string clearPassword = tbPassword.Text;
-            //if (_viewModel != null)
-            //{
-            //    _viewModel.Password2 = clearPassword;
-            //}
-        }
-
-        private void OnCreateNewAccount_GetClearConfirmPasswordField(string notUsed)
-        {
-            //string clearConfirmPassword = tbConfirmPassword.Text;
-            //if (_viewModel != null)
-            //{
-            //    _viewModel.ConfirmPassword2 = clearConfirmPassword;
-            //}
-        }
-
-        private void OnCreateNewAccount_FocusToError_Message(string notUsed)
-        {
-            //if (Validation.GetHasError(tbEMail) == true )  {
-            //    tbEMail.Focus();
-            //    return;
-            //}
-            //if (Validation.GetHasError(tbFullName) == true )  {
-            //    tbFullName.Focus();
-            //    return;
-            //}
-            //if(Validation.GetHasError(this.tbPassword) == true)
-            //    {
-            //    tbPassword.Focus();
-            //    return;
-            //}
-            //if(Validation.GetHasError(tbConfirmPassword) == true)
-            //{
-            //    tbConfirmPassword.Focus();
-            //    return;
-            //}
-            //if(Validation.GetHasError(tbComputerName) == true)
-            //{
-            //    tbComputerName.Focus();
-            //    return;
-            //}
-        }
-
-        #endregion "ChangeScreenMessage"
-
     }
 }

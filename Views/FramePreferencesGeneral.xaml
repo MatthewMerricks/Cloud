@@ -21,7 +21,6 @@
     DataContext="{Binding FramePreferencesGeneralViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Cloud Preferences"
     Name="FramePreferencesGeneralRoot">
-    <!-- parentNS:FramePreferencesGeneral.Preferences="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=parentNS:PagePreferences}, Path=Preferences, Mode=OneWay}" -->
 
     <Page.Resources>
         <ResourceDictionary>
