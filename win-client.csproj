@@ -185,6 +185,8 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
+    <Compile Include="ViewModels\DialogPreferencesNetworkProxiesViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesNetworkViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesAccountViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesGeneralViewModel.cs" />
     <Compile Include="ViewModels\PagePreferencesViewModel.cs" />
@@ -202,6 +204,12 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\DialogPreferencesNetworkProxies.xaml.cs">
+      <DependentUpon>DialogPreferencesNetworkProxies.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesNetwork.xaml.cs">
+      <DependentUpon>FramePreferencesNetwork.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\FramePreferencesAccount.xaml.cs">
       <DependentUpon>FramePreferencesAccount.xaml</DependentUpon>
     </Compile>
@@ -285,6 +293,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DialogPreferencesNetworkProxies.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesNetwork.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

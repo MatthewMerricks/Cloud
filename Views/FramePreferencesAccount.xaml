@@ -38,11 +38,11 @@
             <ColumnDefinition Width="28*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="58*"/>
-            <RowDefinition Height="199*"/>
+            <RowDefinition Height="37"/>
+            <RowDefinition Height="194*"/>
             <RowDefinition Height="19*"/>
-            <RowDefinition Height="151*"/>
-            <RowDefinition Height="15*"/>
+            <RowDefinition Height="157*"/>
+            <RowDefinition Height="33*"/>
         </Grid.RowDefinitions>
             
         <Grid.Background>              

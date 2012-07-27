@@ -1,5 +1,5 @@
 ﻿//
-//  PageCreateNewAccount.xaml.cs
+//  DialogPreferencesNetworkProxies.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -26,13 +26,13 @@ using Xceed.Wpf.Toolkit;
 
 namespace win_client.Views
 {
-    public partial class DialogCloudMessageBoxView : ChildWindow, IModalWindow
+    public partial class DialogPreferencesNetworkProxies : ChildWindow, IModalWindow
     {
-        public DialogCloudMessageBoxView()
+        public DialogPreferencesNetworkProxies()
         {
             InitializeComponent();
 
-            Loaded += new RoutedEventHandler(DialogCloudMessageBoxView_Loaded);
+            Loaded += new RoutedEventHandler(DialogPreferencesNetworkProxies_Loaded);
         }
 
         // Button clicks set the DialogResult.
@@ -49,9 +49,10 @@ namespace win_client.Views
         //TODO: FocusedElement is a ChildWindow DependencyProperty, properly registered, but for some reason some of
         // the dependency properties are not firing.  FocusedElement is one of them.  Setting this property
         // via the code-behind works however, so we do it here.
-        void DialogCloudMessageBoxView_Loaded(object sender, RoutedEventArgs e)
+        void DialogPreferencesNetworkProxies_Loaded(object sender, RoutedEventArgs e)
         {
             FocusedElement = btnOK;
         }
+
     }
 }

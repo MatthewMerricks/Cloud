@@ -21,7 +21,8 @@
     <w:BoolIsVisible2VisibilityConverter x:Key="BoolIsVisible2VisibilityConverter" />
     <w:QuotaConverter x:Key="QuotaConverter" />
     <w:DefaultButtonHub x:Key="defaultHub" />
-
+    <w:EnumMatchToBooleanConverter x:Key="EnumMatchToBooleanConverter" />
+    
     <!-- Our own styled button. -->
     <ControlTemplate x:Key="StyledButtonTemplate" TargetType="Button">
         <Grid x:Name="MainGrid">

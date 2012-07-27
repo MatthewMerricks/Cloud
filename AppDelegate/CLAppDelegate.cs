@@ -34,7 +34,6 @@ using System.Data;
 using System.Data.OleDb;
 using CloudApiPublic.Static;
 using Microsoft.Win32;
-using Shell32;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;

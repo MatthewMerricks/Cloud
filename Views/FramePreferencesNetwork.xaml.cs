@@ -1,5 +1,5 @@
 ﻿//
-//  FramePreferencesAccount.xaml.cs
+//  FramePreferencesNetwork.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -29,12 +29,12 @@ using System.Linq.Expressions;
 
 namespace win_client.Views
 {
-    public partial class FramePreferencesAccount : Page, IOnNavigated
+    public partial class FramePreferencesNetwork : Page, IOnNavigated
     {
         #region "Private Instance Variables"
 
         private bool _isLoaded = false;
-        private FramePreferencesAccountViewModel _viewModel = null;
+        private FramePreferencesNetworkViewModel _viewModel = null;
 
         #endregion
 
@@ -43,16 +43,16 @@ namespace win_client.Views
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public FramePreferencesAccount()
+        public FramePreferencesNetwork()
         {
             InitializeComponent();
 
             // Register event handlers
-            Loaded += new RoutedEventHandler(FramePreferencesAccount_Loaded);
-            Unloaded += new RoutedEventHandler(FramePreferencesAccount_Unloaded);
+            Loaded += new RoutedEventHandler(FramePreferencesNetwork_Loaded);
+            Unloaded += new RoutedEventHandler(FramePreferencesNetwork_Unloaded);
 
             // Pass the view's grid to the view model for the dialogs to use.
-            _viewModel = (FramePreferencesAccountViewModel)DataContext;
+            _viewModel = (FramePreferencesNetworkViewModel)DataContext;
         }
 
         #region Dependency Properties
@@ -67,7 +67,7 @@ namespace win_client.Views
         // The big long member expression tree results in an automatically generated string "Preferences".  Better than hardcoding the string.
         private static readonly string PreferencesPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name;
         public static readonly DependencyProperty PreferencesProperty =
-            DependencyProperty.Register(PreferencesPropertyName, typeof(CLPreferences), typeof(FramePreferencesAccount), new PropertyMetadata(null, OnPreferencesChanged));
+            DependencyProperty.Register(PreferencesPropertyName, typeof(CLPreferences), typeof(FramePreferencesNetwork), new PropertyMetadata(null, OnPreferencesChanged));
         private static void OnPreferencesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { }
 
         // The Page's grid object.  This view will pass this grid to this view's ViewModel for use by the modal dialogs so the entire Page window will be grayed and inaccessible.
@@ -81,7 +81,7 @@ namespace win_client.Views
         // The big long member expression tree results in an automatically generated string "Preferences".
         private static readonly string PageGridPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, Grid>>)(parent => parent.PageGrid)).Body).Member.Name;
         public static readonly DependencyProperty PageGridProperty =
-            DependencyProperty.Register(PageGridPropertyName, typeof(Grid), typeof(FramePreferencesAccount), new PropertyMetadata(null, OnPageGridChanged));
+            DependencyProperty.Register(PageGridPropertyName, typeof(Grid), typeof(FramePreferencesNetwork), new PropertyMetadata(null, OnPageGridChanged));
         private static void OnPageGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { }
 
         #endregion
@@ -89,10 +89,10 @@ namespace win_client.Views
         /// <summary>
         /// Loaded event handler.
         /// </summary>
-        void FramePreferencesAccount_Loaded(object sender, RoutedEventArgs e)
+        void FramePreferencesNetwork_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            _viewModel = DataContext as FramePreferencesAccountViewModel;
+            _viewModel = DataContext as FramePreferencesNetworkViewModel;
             _viewModel.ViewGridContainer = PageGrid;
 
             // Show the window.
@@ -103,7 +103,7 @@ namespace win_client.Views
         /// <summary>
         /// Unloaded event handler.
         /// </summary>
-        void FramePreferencesAccount_Unloaded(object sender, RoutedEventArgs e)
+        void FramePreferencesNetwork_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
 

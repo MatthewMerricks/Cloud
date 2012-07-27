@@ -17,6 +17,8 @@ namespace win_client.Common
         // Dialog boxes
         public const string kDialogBox_CloudMessageBoxView = "dialog_box_CloudMessageBoxView";
         public const string kDialogBox_FolderSelectionSimpleView = "dialog_box_FolderSelectionSimpleView";
+        public const string kDialogBox_PreferencesNetworkProxies = "dialog_box_PreferencesNetworkProxies";
+        public const string kDialogBox_PreferencesNetworkBandwidth = "dialog_box_PreferencesNetworkBandwidth";
 
         // Page URIs
         public const string kPageHome = "/Views/PageHome.xaml";

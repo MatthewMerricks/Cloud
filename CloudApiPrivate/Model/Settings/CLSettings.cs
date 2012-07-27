@@ -11,9 +11,11 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Resources;
 using CloudApiPrivate;
 using CloudApiPrivate.Static;
 using CloudApiPublic.Static;
+using CloudApiPrivate.Static.FriendlyEnumValues;
 
 
 namespace CloudApiPrivate.Model.Settings
@@ -41,9 +43,12 @@ namespace CloudApiPrivate.Model.Settings
 
     public enum useProxySettingType
     {
+        [LocalizableDescription("useProxySettingNoProxy", typeof(ResourceType))]
         useProxySettingNoProxy = 0,
+        [LocalizableDescription("useProxySettingNoProxy", typeof(string))]
         useProxySettingAutoDetect = 1,
-        useProxySettingNoManual = 2,
+        [LocalizableDescription("useProxySettingManual", typeof(string))]
+        useProxySettingManual = 2,
     };
 
     public enum useProxyTypes

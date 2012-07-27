@@ -64,6 +64,7 @@
     <Compile Include="Model\Settings\CLSettings.cs" />
     <Compile Include="Model\Settings\WpfIsolatedStorageSettings.cs" />
     <Compile Include="Static\CLExtensionMethods.cs" />
+    <Compile Include="Static\CLFriendlyEnumValues.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">

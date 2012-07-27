@@ -46,27 +46,17 @@ namespace win_client.ViewModels
     /// </summary>
     public class FramePreferencesAccountViewModel : ValidatingViewModelBase
     {
-        #region Instance Variables
+        #region Private Instance Variables
 
         private readonly IDataService _dataService;
         private CLTrace _trace = CLTrace.Instance;
         private ResourceManager _rm;
         private IModalWindow _dialog = null;        // for use with modal dialogs
 
-
         #endregion
 
-        #region Private Class Definitions
-
-        public class SupportedLanguage
-        {
-            public string Name { get; set; }
-            public cloudAppLanguageType Type { get; set; }
-        }
-
-        #endregion  
-
         #region Life Cycle
+
         /// <summary>
         /// Initializes a new instance of the PageHomeViewModel class.
         /// </summary>
@@ -191,7 +181,7 @@ namespace win_client.ViewModels
                                                 CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
                                                     errorMessage: "You can't get more space right now.  It's not implemented yet..",
                                                     title: "Information",
-                                                    headerText: "Get more space complete.",
+                                                    headerText: "Not implemented!",
                                                     rightButtonContent: _rm.GetString("generalOkButtonContent"),
                                                     container: ViewGridContainer,
                                                     dialog: out _dialog,
