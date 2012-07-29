@@ -121,36 +121,66 @@ namespace win_client.Common
         }
     }
 
+    //public class EnumMatchToBooleanConverter : IValueConverter
+    //{
+    //    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    //    {
+    //        if (targetType.IsAssignableFrom(typeof(Boolean)) && targetType.IsAssignableFrom(typeof(String)))
+    //            throw new ArgumentException("EnumConverter can only convert to boolean or string.");
+    //        if (targetType == typeof(String))
+    //            return value.ToString();
+
+    //        return String.Compare(value.ToString(), (String)parameter, StringComparison.InvariantCultureIgnoreCase) == 0;
+    //    }
+
+    //    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    //    {
+    //        if (targetType.IsAssignableFrom(typeof(Boolean)) && targetType.IsAssignableFrom(typeof(String)))
+    //            throw new ArgumentException("EnumConverter can only convert back value from a string or a boolean.");
+    //        if (!targetType.IsEnum)
+    //            throw new ArgumentException("EnumConverter can only convert value to an Enum Type.");
+
+    //        if (value.GetType() == typeof(String))
+    //        {
+    //            return Enum.Parse(targetType, (String)value, true);
+    //        }
+
+    //        //We have a boolean, as for binding to a checkbox. we use parameter 
+    //        if ((Boolean)value)
+    //            return Enum.Parse(targetType, (String)parameter, true);
+
+    //        return Binding.DoNothing;
+    //    }
+    //} 
+
     public class EnumMatchToBooleanConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null || parameter == null)
+            var ParameterString = parameter as string;
+            if (ParameterString == null)
             {
-                return false;
+                return DependencyProperty.UnsetValue;
             }
 
-            string checkValue = value.ToString();
-            string targetValue = parameter.ToString();
-            return checkValue.Equals(targetValue, StringComparison.InvariantCultureIgnoreCase);
+            if (Enum.IsDefined(value.GetType(), value) == false)
+            {
+                return DependencyProperty.UnsetValue;
+            }
+
+            object paramvalue = Enum.Parse(value.GetType(), ParameterString);
+            return paramvalue.Equals(value);
         }
 
-        public object ConvertBack(object value, Type targetType,
-                                  object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null || parameter == null)
+            var ParameterString = parameter as string;
+            if (ParameterString == null)
             {
-                return null;
+                return DependencyProperty.UnsetValue;
             }
 
-            bool useValue = (bool)value;
-            string targetValue = parameter.ToString();
-            if (useValue)
-            {
-                return Enum.Parse(targetType, targetValue);
-            }
-
-            return null;
+            return Enum.Parse(targetType, ParameterString);
         }
-    }   
+    }
 }

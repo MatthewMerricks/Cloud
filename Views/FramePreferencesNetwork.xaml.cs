@@ -94,6 +94,7 @@ namespace win_client.Views
             _isLoaded = true;
             _viewModel = DataContext as FramePreferencesNetworkViewModel;
             _viewModel.ViewGridContainer = PageGrid;
+            _viewModel.Preferences = Preferences;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));

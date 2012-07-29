@@ -19,15 +19,14 @@
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:commonClient="clr-namespace:win_client.Common"
     mc:Ignorable="d"
-    DataContext="{Binding DialogPreferencesNetworkProxiesViewModel, Source={StaticResource Locator}}"
     IsModal="True"
     WindowStartupLocation="Center" 
     WindowState="Open"
     Grid.RowSpan="2147483647"
     Grid.ColumnSpan="2147483647"
-    Caption="{Binding CloudMessageBoxView_Title, Mode=TwoWay}" 
-    Height="434"
-    Width="491"
+    Caption="{Binding DialogPreferencesNetworkProxies_Title, Mode=OneWay}" 
+    Height="420"
+    Width="515"
     Name="DialogPreferencesNetworkProxiesRoot"
     >
     
@@ -37,7 +36,7 @@
             <ObjectDataProvider x:Key="dataFromEnum"
                     MethodName="GetValues" ObjectType="{x:Type System:Enum}">
                 <ObjectDataProvider.MethodParameters>
-                    <x:Type TypeName="settings:useProxySettingType"/>
+                    <x:Type TypeName="settings:useProxyTypes"/>
                 </ObjectDataProvider.MethodParameters>
             </ObjectDataProvider>
             
@@ -57,7 +56,7 @@
             <RowDefinition Height="81*"/>
             <RowDefinition Height="8*"/>
             <RowDefinition Height="37.5"/>
-            <RowDefinition Height="6"/>
+            <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         
         <Image Source="/win-client;component/Artwork/cl_wlcm_div.png" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"/>
@@ -68,17 +67,18 @@
         		<ColumnDefinition Width="344*"/>
         	</Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition/>
+                <RowDefinition Height="10"/>
+                <RowDefinition/>
+                <RowDefinition Height="10"/>
                 <RowDefinition/>
                 <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
+                <RowDefinition Height="5" />
                 <RowDefinition/>
             </Grid.RowDefinitions>
             
@@ -90,31 +90,37 @@
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <RadioButton Content="No Proxy" GroupName="ProxySettings" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="0" Margin="10,0,0,0"
-                             IsChecked="{Binding rbProxySettings, Mode=TwoWay, Converter={StaticResource EnumMatchToBooleanConverter}, ConverterParameter=useProxySettingNoProxy}"/>
-                <RadioButton Content="Auto-Detect" GroupName="ProxySettings" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="1" Margin="10,0,0,0"
-                             IsChecked="{Binding rbProxySettings, Mode=TwoWay, Converter={StaticResource EnumMatchToBooleanConverter}, ConverterParameter=useProxySettingAutoDetect}"/>
-                <RadioButton Content="Manual" GroupName="ProxySettings" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="2" Margin="10,0,0,0"
-                             IsChecked="{Binding RbProxySettings, Mode=TwoWay, Converter={StaticResource EnumMatchToBooleanConverter}, ConverterParameter=useProxySettingNoManual}"/>
+                <RadioButton Content="No Proxy" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="0" Margin="10,0,0,0"
+                             IsChecked="{Binding RbProxySettingsNoProxy, Mode=TwoWay}"/>
+                <RadioButton Content="Auto-Detect" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="1" Margin="10,0,0,0"
+                             IsChecked="{Binding RbProxySettingsAutoDetect, Mode=TwoWay}"/>
+                <RadioButton Content="Manual" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="2" Margin="10,0,0,0"
+                             IsChecked="{Binding RbProxySettingsManual, Mode=TwoWay}"/>
             </Grid>
             
             <!-- Proxy Type -->
             <TextBlock TextWrapping="Wrap" Text="Proxy type: " Foreground="Black" FontSize="16" Grid.Row="5" TextAlignment="Right" VerticalAlignment="Center" Height="Auto"/>
             <ComboBox x:Name="cbProxyType" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150" Grid.Column="1" Grid.Row="5" MinWidth="150" FontSize="16" Margin="10,0,0,0"
-                      ItemsSource="{Binding Source={StaticResource dataFromEnum}}" ToolTip="Select the type of the proxy to use."
-                      SelectedValue="{Binding ElementName=DialogPreferencesNetworkProxiesRoot, Path=Preferences.ProxySettingType, Mode=TwoWay, Converter={StaticResource DebugConverter}}" Height="Auto"/>
+                    ItemsSource="{Binding Source={StaticResource dataFromEnum}}" ToolTip="Select the type of the proxy to use."
+                    SelectedValue="{Binding CbProxyType, Mode=TwoWay, Converter={StaticResource DebugConverter}}" Height="Auto" Grid.RowSpan="2">
+              <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                      <TextBlock Text="{Binding Path=. ,Mode=OneWay, Converter={StaticResource EnumToFriendlyNameConverter}}" FontSize="16" Height="Auto"/>
+                  </DataTemplate>
+              </ComboBox.ItemTemplate>
+              </ComboBox>
 
             <!-- Server -->
             <TextBlock TextWrapping="Wrap" Text="Proxy Server: " Foreground="Black" FontSize="16" Grid.Row="7" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
             <StackPanel Grid.Column="1" Grid.Row="7" Orientation="Horizontal" >               
-                <TextBox x:Name="tbProxyServerAddress" TextAlignment="Left" Foreground="Black" Margin="10,0,0,0" Grid.Column="1" Grid.Row="7"
-                             Text="{Binding ProxyServerAddress, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="16" Width="225"
-                             HorizontalAlignment="Left"
+                <TextBox x:Name="tbProxyServerAddress" TextAlignment="Left" Foreground="Black" Grid.Column="1" Grid.Row="7"
+                             Text="{Binding ProxyServerAddress, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="16" Width="225" Height="Auto"
+                             HorizontalAlignment="Left" VerticalAlignment="Center"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}">
                 </TextBox>
                 <TextBlock TextWrapping="Wrap" Text=":" Foreground="Black" FontSize="13.333" Grid.Column="1" Grid.Row="7" TextAlignment="Left" VerticalAlignment="Center" Height="Auto" Margin="5,0,0,0" />
-                <TextBox x:Name="tbProxyServerPort" TextAlignment="Left" Foreground="Black" Grid.Column="1" Grid.Row="7"
+                <TextBox x:Name="tbProxyServerPort" TextAlignment="Left" Foreground="Black" Grid.Column="1" Grid.Row="7" VerticalAlignment="Center"
                              Text="{Binding ProxyServerPort, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="16" Width="75" Margin="5,0,0,0"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}">
@@ -123,42 +129,41 @@
             
             <!-- Server Authentication -->
             <CheckBox x:Name="chkServerRequiresAPassword" Content="Proxy Server requires a password" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="9" Grid.Column="1" FontSize="16" Width="250" 
-                      IsChecked="{Binding ElementName=FramePreferencesGeneralRoot, Path=Preferences.ShouldShowDesktopNotification}" Height="Auto" ToolTip="Check to show an animation on the desktop when files are being updated."/>
+                      IsChecked="{Binding CbServerRequiresAPassword, Mode=TwoWay}" Height="Auto" ToolTip="Check to show an animation on the desktop when files are being updated." />
             <TextBlock TextWrapping="Wrap" Text="User name: " Foreground="Black" FontSize="16" Grid.Row="10" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
             <TextBox x:Name="tbProxyServerUsername" TextAlignment="Left" Foreground="Black" Margin="10,0,0,0" Grid.Column="1" Grid.Row="10"
                              Text="{Binding ProxyServerUsername, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="16" Width="250"
-                             HorizontalAlignment="Left"
+                             HorizontalAlignment="Left" VerticalAlignment="Center"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}">
             </TextBox>
-            <TextBlock TextWrapping="Wrap" Text="Password: " Foreground="Black" FontSize="16" Grid.Row="11" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <commonClient:SecurePasswordBox x:Name="tbProxyServerPassword" TextAlignment="Left" Foreground="Black" Margin="10,0,0,0" Grid.Column="1" Grid.Row="11"
+            <TextBlock TextWrapping="Wrap" Text="Password: " Foreground="Black" FontSize="16" Grid.Row="12" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
+            <commonClient:SecurePasswordBox x:Name="tbProxyServerPassword" TextAlignment="Left" Foreground="Black" Margin="10,0,0,0" Grid.Column="1" Grid.Row="12"
                              Text="{Binding ProxyServerPassword, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="16" Width="250"
-                             HorizontalAlignment="Left"
+                             HorizontalAlignment="Left" VerticalAlignment="Center"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}">
             </commonClient:SecurePasswordBox>
-
         </Grid>
         <Grid Grid.Row="2" Grid.RowSpan="1" >
         	<Grid.ColumnDefinitions>
         	   <ColumnDefinition Width="30"/>
-               <ColumnDefinition Width="{Binding CloudMessageBoxView_LeftButtonWidth, Mode=TwoWay}"/>
-               <ColumnDefinition Width="*"/>
-               <ColumnDefinition Width="{Binding CloudMessageBoxView_RightButtonWidth, Mode=TwoWay}" />
-               <ColumnDefinition Width="22"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="{Binding DialogPreferencesNetworkProxies_LeftButtonWidth, Mode=OneWay}"/>
+                <ColumnDefinition Width="{Binding DialogPreferencesNetworkProxies_RightButtonWidth, Mode=OneWay}"/>
+                <ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
         	<Button FontSize="13.333" Background="#FF49C3FB" 
         		Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click" TabIndex="1"
-        		Grid.Column="1"
-        		Margin="{Binding CloudMessageBoxView_LeftButtonMargin, Mode=TwoWay}"  
-        		Content="{Binding CloudMessageBoxView_LeftButtonContent, Mode=TwoWay}" 
-                Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=TwoWay}"/>
+        		Grid.Column="2"
+        		Margin="{Binding DialogPreferencesNetworkProxies_LeftButtonMargin, Mode=OneWay}"
+        		Content="{Binding DialogPreferencesNetworkProxies_LeftButtonContent, Mode=OneWay}" 
+                Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=OneWay}"/>
         	<Button x:Name="btnOK" FontSize="13.333" Background="#FF49C3FB" Grid.Column="3"
         		Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click"
         		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="0"
-        		Margin="{Binding CloudMessageBoxView_RightButtonMargin, Mode=TwoWay}" 
-        		Content="{Binding CloudMessageBoxView_RightButtonContent, Mode=TwoWay}" />
+        		Margin="{Binding DialogPreferencesNetworkProxies_RightButtonMargin, Mode=OneWay}" 
+        		Content="{Binding DialogPreferencesNetworkProxies_RightButtonContent, Mode=OneWay}" />
         </Grid>
     </Grid>
 </controls:ChildWindow>

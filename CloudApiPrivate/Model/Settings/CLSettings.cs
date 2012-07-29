@@ -16,6 +16,7 @@ using CloudApiPrivate;
 using CloudApiPrivate.Static;
 using CloudApiPublic.Static;
 using CloudApiPrivate.Static.FriendlyEnumValues;
+using CloudApiPrivate.Resources;
 
 
 namespace CloudApiPrivate.Model.Settings
@@ -43,18 +44,18 @@ namespace CloudApiPrivate.Model.Settings
 
     public enum useProxySettingType
     {
-        [LocalizableDescription("useProxySettingNoProxy", typeof(ResourceType))]
         useProxySettingNoProxy = 0,
-        [LocalizableDescription("useProxySettingNoProxy", typeof(string))]
         useProxySettingAutoDetect = 1,
-        [LocalizableDescription("useProxySettingManual", typeof(string))]
         useProxySettingManual = 2,
     };
 
     public enum useProxyTypes
     {
+        [LocalizableDescription("useProxyHTTP", typeof(Resources.Resources))]
         useProxyHTTP = 0,
+        [LocalizableDescription("useProxySOCK4", typeof(Resources.Resources))]
         useProxySOCK4 = 1,
+        [LocalizableDescription("useProxySOCK5", typeof(Resources.Resources))]
         useProxySOCK5 = 2,
     };
 

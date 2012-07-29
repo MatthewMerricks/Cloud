@@ -13,6 +13,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:w="clr-namespace:win_client.Common"
+    xmlns:friendly_enums="clr-namespace:CloudApiPrivate.Static.FriendlyEnumValues;assembly=CloudApiPrivate"
     mc:Ignorable="d">
     
     <!-- Converters -->
@@ -22,6 +23,7 @@
     <w:QuotaConverter x:Key="QuotaConverter" />
     <w:DefaultButtonHub x:Key="defaultHub" />
     <w:EnumMatchToBooleanConverter x:Key="EnumMatchToBooleanConverter" />
+    <friendly_enums:EnumToFriendlyNameConverter x:Key="EnumToFriendlyNameConverter" />
     
     <!-- Our own styled button. -->
     <ControlTemplate x:Key="StyledButtonTemplate" TargetType="Button">
