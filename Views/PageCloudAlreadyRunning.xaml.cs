@@ -38,13 +38,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(PageCloudAlreadyRunning_Loaded);
             Unloaded += new RoutedEventHandler(PageCloudAlreadyRunning_Unloaded);
-
-            // Register messages
-            CLAppMessages.PageCloudAlreadyRunning_NavigationRequest.Register(this,
-                (uri) =>
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative);
-                });
         }
 
         /// <summary>
@@ -52,6 +45,13 @@ namespace win_client.Views
         /// </summary>
         void PageCloudAlreadyRunning_Loaded(object sender, RoutedEventArgs e)
         {
+            // Register messages
+            CLAppMessages.PageCloudAlreadyRunning_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
+
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
         }

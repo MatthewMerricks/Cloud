@@ -35,6 +35,7 @@ namespace win_client.Common
             Message_DidReceivePushNotificationFromServer,
             Message_PageCloudFolderMissingShouldChooseCloudFolder,
             DialogPreferencesNetworkProxies_GetClearPasswordField,
+            DialogPreferencesNetworkProxies_SetClearPasswordField,
             DialogPreferencesNetworkProxies_FocusToError_Message,
 
             // Navigation requests
@@ -206,6 +207,19 @@ namespace win_client.Common
             public static void Register(object recipient, Action<string> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.DialogPreferencesNetworkProxies_GetClearPasswordField, action);
+            }
+        }
+
+        public static class DialogPreferencesNetworkProxies_SetClearPasswordField
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.DialogPreferencesNetworkProxies_SetClearPasswordField);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.DialogPreferencesNetworkProxies_SetClearPasswordField, action);
             }
         }
 

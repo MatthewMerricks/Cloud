@@ -46,13 +46,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(PageTour2_Loaded);
             Unloaded += new RoutedEventHandler(PageTour2_Unloaded);
-
-            // Register messages
-            CLAppMessages.PageTour_NavigationRequest.Register(this,
-                (uri) => 
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative); 
-                });
         }
 
         #region "Message Handlers"
@@ -63,6 +56,13 @@ namespace win_client.Views
         void PageTour2_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
+
+            // Register messages
+            CLAppMessages.PageTour_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));

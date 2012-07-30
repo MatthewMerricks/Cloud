@@ -47,6 +47,13 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(OnLoadedCallback);
             Unloaded += new RoutedEventHandler(OnUnloadedCallback);
 
+        }
+
+        /// <summary>
+        /// Loaded event handler
+        /// </summary>
+        void OnLoadedCallback(object sender, RoutedEventArgs e)
+        {
             // Register messages
             CLAppMessages.PageInvisible_NavigationRequest.Register(this,
                 (uri) =>
@@ -56,13 +63,7 @@ namespace win_client.Views
 
             CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Register(this, (tooltipInfo) => { OnCLBalloonTooltipNotificationMessage(tooltipInfo); });
             CLAppMessages.Message_GrowlSystemTrayNotification.Register(this, (growlInfo) => { OnMessage_GrowlSystemTrayNotificationMessage(growlInfo); });
-        }
 
-        /// <summary>
-        /// Loaded event handler
-        /// </summary>
-        void OnLoadedCallback(object sender, RoutedEventArgs e)
-        {
             // Set the containing window to be invisible
             CLAppDelegate.HideMainWindow(Window.GetWindow(this));
 

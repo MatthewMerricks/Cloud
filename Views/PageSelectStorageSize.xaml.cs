@@ -47,15 +47,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(PageSelectStorageSize_Loaded);
             Unloaded += new RoutedEventHandler(PageSelectStorageSize_Unloaded);
-
-            // Register messages
-            CLAppMessages.PageSelectStorageSize_NavigationRequest.Register(this,
-               (uri) => 
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative); 
-                });
-            CLAppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
-            
         }
 
          #region "Event Handlers"
@@ -66,6 +57,14 @@ namespace win_client.Views
         void PageSelectStorageSize_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
+
+            // Register messages
+            CLAppMessages.PageSelectStorageSize_NavigationRequest.Register(this,
+               (uri) =>
+               {
+                   this.NavigationService.Navigate(uri, UriKind.Relative);
+               });
+            CLAppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));

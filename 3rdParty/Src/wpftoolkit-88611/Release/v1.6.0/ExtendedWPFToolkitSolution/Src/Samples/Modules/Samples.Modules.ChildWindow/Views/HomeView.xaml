@@ -92,7 +92,9 @@
                            Left="{Binding Value, ElementName=_txtLeft, Mode=TwoWay}"
                            Top="{Binding Value, ElementName=_txtTop, Mode=TwoWay}"
                            WindowStartupLocation="{Binding SelectedItem, ElementName=_cboWindowStartupLocations}" 
-                           WindowState="{Binding SelectedItem, ElementName=_cboWindowState}">
+                           WindowState="{Binding SelectedItem, ElementName=_cboWindowState}"
+                           BorderBrush="Black"
+                           >
             <Grid Margin="10" >
                <Grid.RowDefinitions>
                   <RowDefinition Height="Auto" />

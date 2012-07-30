@@ -115,6 +115,15 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cloud Network Proxy Server Preferences.
+        /// </summary>
+        public static string DialogPreferencesNetworkProxiesTitle {
+            get {
+                return ResourceManager.GetString("DialogPreferencesNetworkProxiesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There&apos;s already a folder called Cloud in {0}.  Do you want to merge all the existing files in that folder to your Cloud folder, or select a new Cloud folder location?.
         /// </summary>
         public static string folderExitTextFieldBody {
@@ -282,6 +291,51 @@ namespace win_client.Resources {
         public static string pageCloudFolderMissingOkButtonRestore {
             get {
                 return ResourceManager.GetString("pageCloudFolderMissingOkButtonRestore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud About Preferences.
+        /// </summary>
+        public static string PagePreferencesAboutTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesAboutTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud Account Preferences.
+        /// </summary>
+        public static string PagePreferencesAccountTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesAccountTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud Advanced Preferences.
+        /// </summary>
+        public static string PagePreferencesAdvancedTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesAdvancedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud General Preferences.
+        /// </summary>
+        public static string PagePreferencesGeneralTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesGeneralTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud Network Preferences.
+        /// </summary>
+        public static string PagePreferencesNetworkTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesNetworkTitle", resourceCulture);
             }
         }
         

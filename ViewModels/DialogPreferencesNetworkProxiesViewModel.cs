@@ -16,12 +16,16 @@ using CloudApiPrivate.Model.Settings;
 using win_client.Common;
 using CloudApiPrivate.Static;
 using System.Windows.Controls;
+using CloudApiPrivate.Common;
 
 namespace win_client.ViewModels
 {
     public class DialogPreferencesNetworkProxiesViewModel : ValidatingViewModelBase
     {
         #region Private Instance Variables
+
+        private const double _kNoProxyOpacity = 0.60;
+        private const double _kProxyActiveOpacity = 1.00;
 
         #endregion
 
@@ -83,21 +87,9 @@ namespace win_client.ViewModels
                     return;
                 }
 
-                // Set the bindable properties with the current preferences.  Do this without triggering
-                // PropertyChanged events.
-                _rbProxySettingsNoProxy = value.ProxySettingType == useProxySettingType.useProxySettingNoProxy ? true : false;
-                _rbProxySettingsAutoDetect = value.ProxySettingType == useProxySettingType.useProxySettingAutoDetect ? true : false;
-                _rbProxySettingsManual = value.ProxySettingType == useProxySettingType.useProxySettingManual ? true : false;
-                _cbProxyType = value.ProxyType;
-                _proxyServerAddress = value.ProxyServerAddress;
-                _proxyServerPort = value.ProxyServerPort.ToString();
-                _cbServerRequiresAPassword = value.ProxyServerRequiresPassword;
-                _proxyServerUsername = value.ProxyServerUserName;
-                _proxyServerPassword = value.ProxyServerPassword;
-
-                // Set the property
+                // Set the passed in preferences to a property.
                 _dialogPreferencesNetworkProxies_Preferences = value;
-                RaisePropertyChanged(DialogPreferencesNetworkProxies_PreferencesPropertyName);
+
             }
         }
 
@@ -117,8 +109,20 @@ namespace win_client.ViewModels
             {
                 if (_rbProxySettingsNoProxy != value)
                 {
+                    if (value)
+                    {
+                        RbProxySettingsAutoDetect = false;
+                        RbProxySettingsManual = false;
+                        CbServerRequiresAPassword = false;
+                        ProxyActiveInactiveOpacity = _kNoProxyOpacity;          // dim the controls that won't be used
+                    }
+                    else
+                    {
+                        ProxyActiveInactiveOpacity = _kProxyActiveOpacity;
+                    }
+                    _rbProxySettingsNoProxy = value;
                     DialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingNoProxy;
-                    CLExtensionMethods.ForceValidation(_viewLayoutRoot);
+                    CheckValidation();
                     RaisePropertyChanged(RbProxySettingsNoProxyPropertyName);
                 }
             }
@@ -140,8 +144,14 @@ namespace win_client.ViewModels
             {
                 if (_rbProxySettingsAutoDetect != value)
                 {
+                    if (value)
+                    {
+                        RbProxySettingsNoProxy = false;
+                        RbProxySettingsManual = false;
+                    }
+                    _rbProxySettingsAutoDetect = value;
                     DialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingAutoDetect;
-                    CLExtensionMethods.ForceValidation(_viewLayoutRoot);
+                    CheckValidation();
                     RaisePropertyChanged(RbProxySettingsAutoDetectPropertyName);
                 }
             }
@@ -163,8 +173,14 @@ namespace win_client.ViewModels
             {
                 if (_rbProxySettingsManual!= value)
                 {
+                    if (value)
+                    {
+                        RbProxySettingsNoProxy = false;
+                        RbProxySettingsAutoDetect = false;
+                    }
+                    _rbProxySettingsManual = value;
                     DialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingManual;
-                    CLExtensionMethods.ForceValidation(_viewLayoutRoot);
+                    CheckValidation();
                     RaisePropertyChanged(RbProxySettingsManualPropertyName);
                 }
             }
@@ -190,7 +206,7 @@ namespace win_client.ViewModels
                 }
 
                 _cbProxyType = value;
-                CLExtensionMethods.ForceValidation(_viewLayoutRoot);
+                CheckValidation();
                 RaisePropertyChanged(CbProxyTypePropertyName);
             }
         }
@@ -213,9 +229,13 @@ namespace win_client.ViewModels
                 {
                     return;
                 }
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = string.Empty;
+                }
 
                 _proxyServerAddress = value;
-                CLExtensionMethods.ForceValidation(_viewLayoutRoot);
+                CheckValidation();
                 RaisePropertyChanged(ProxyServerAddressPropertyName);
             }
         }
@@ -238,9 +258,13 @@ namespace win_client.ViewModels
                 {
                     return;
                 }
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = string.Empty;
+                }
 
                 _proxyServerPort = value;
-                CLExtensionMethods.ForceValidation(_viewLayoutRoot);
+                CheckValidation();
                 RaisePropertyChanged(ProxyServerPortPropertyName);
             }
         }
@@ -265,7 +289,7 @@ namespace win_client.ViewModels
                 }
 
                 _cbServerRequiresAPassword = value;
-                CLExtensionMethods.ForceValidation(_viewLayoutRoot);
+                CheckValidation();
                 RaisePropertyChanged(CbServerRequiresAPasswordPropertyName);
             }
         }
@@ -284,13 +308,17 @@ namespace win_client.ViewModels
 
             set
             {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = string.Empty;
+                }
                 if (_proxyServerUsername == value)
                 {
                     return;
                 }
 
                 _proxyServerUsername = value;
-                CLExtensionMethods.ForceValidation(_viewLayoutRoot);
+                CheckValidation();
                 RaisePropertyChanged(ProxyServerUsernamePropertyName);
             }
         }
@@ -313,6 +341,11 @@ namespace win_client.ViewModels
 
             set
             {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = string.Empty;
+                }
+                CLAppMessages.DialogPreferencesNetworkProxies_SetClearPasswordField.Send(value);
                 _proxyServerPassword2 = value;
             }
         }
@@ -346,8 +379,33 @@ namespace win_client.ViewModels
                 }
 
                 _proxyServerPassword = value;
-                CLExtensionMethods.ForceValidation(_viewLayoutRoot);
+                CheckValidation();
                 RaisePropertyChanged(ProxyServerPasswordPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="ProxyActiveInactiveOpacity" /> property's name.
+        /// Set to dim the controls when "No Proxy" is selected.
+        /// </summary>
+        public const string ProxyActiveInactiveOpacityPropertyName = "ProxyActiveInactiveOpacity";
+        private double _proxyActiveInactiveOpacity = 0.0;
+        public double ProxyActiveInactiveOpacity
+        {
+            get
+            {
+                return _proxyActiveInactiveOpacity;
+            }
+
+            set
+            {
+                if (_proxyActiveInactiveOpacity == value)
+                {
+                    return;
+                }
+
+                _proxyActiveInactiveOpacity = value;
+                RaisePropertyChanged(ProxyActiveInactiveOpacityPropertyName);
             }
         }
 
@@ -635,6 +693,7 @@ namespace win_client.ViewModels
                     ?? (_dialogPreferencesNetworkProxiesViewModel_UpdateCommand = new RelayCommand(
                                           () =>
                                           {
+                                              CheckValidation();
                                               CLExtensionMethods.ForceValidation(_viewLayoutRoot);
                                               if (!HasErrors)
                                               {
@@ -653,16 +712,23 @@ namespace win_client.ViewModels
                                                       _dialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingManual;
                                                   }
                                                   _dialogPreferencesNetworkProxies_Preferences.ProxyType = _cbProxyType;
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerAddress = _proxyServerAddress;
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerPort = int.Parse(_proxyServerPort);
+                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerAddress = string.IsNullOrWhiteSpace(_proxyServerAddress) ? string.Empty : _proxyServerAddress;
+                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerPort =  string.IsNullOrWhiteSpace(_proxyServerPort) ? 0 : int.Parse(_proxyServerPort);
                                                   _dialogPreferencesNetworkProxies_Preferences.ProxyServerRequiresPassword = _cbServerRequiresAPassword;
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerUserName = _proxyServerUsername;
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerPassword = _proxyServerPassword2;
+                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerUserName = string.IsNullOrWhiteSpace(_proxyServerUsername) ? string.Empty : _proxyServerUsername;
+
+                                                  // Get the clear password again.
+                                                  CLAppMessages.DialogPreferencesNetworkProxies_GetClearPasswordField.Send("");
+                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerPassword =
+                                                                CLSecureString.EncryptString(CLSecureString.ToSecureString(_proxyServerPassword2));
+                                                  _proxyServerPassword2 = string.Empty;   // clear it from memory again
                                               }
                                               else
                                               {
                                                   CLAppMessages.DialogPreferencesNetworkProxies_FocusToError_Message.Send("");
                                               }
+
+                                              _proxyServerPassword2 = string.Empty;   // clear from memory
                                           }));
             }
         }
@@ -686,51 +752,119 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// Gets the DialogPreferencesNetworkProxiesViewModel_ViewLoadedCommand.
+        /// </summary>
+        private ICommand _dialogPreferencesNetworkProxiesViewModel_ViewLoadedCommand;
+        public ICommand DialogPreferencesNetworkProxiesViewModel_ViewLoadedCommand
+        {
+            get
+            {
+                return _dialogPreferencesNetworkProxiesViewModel_ViewLoadedCommand
+                    ?? (_dialogPreferencesNetworkProxiesViewModel_ViewLoadedCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The view has loaded.  Set all of the view-bound properties.
+                                              RbProxySettingsNoProxy = _dialogPreferencesNetworkProxies_Preferences.ProxySettingType == useProxySettingType.useProxySettingNoProxy ? true : false;
+                                              RbProxySettingsAutoDetect = _dialogPreferencesNetworkProxies_Preferences.ProxySettingType == useProxySettingType.useProxySettingAutoDetect ? true : false;
+                                              RbProxySettingsManual = _dialogPreferencesNetworkProxies_Preferences.ProxySettingType == useProxySettingType.useProxySettingManual ? true : false;
+                                              CbProxyType = _dialogPreferencesNetworkProxies_Preferences.ProxyType;
+                                              ProxyServerAddress = _dialogPreferencesNetworkProxies_Preferences.ProxyServerAddress;
+                                              if (string.IsNullOrWhiteSpace(ProxyServerAddress))
+                                              {
+                                                  ProxyServerAddress = string.Empty;
+                                              }
+                                              ProxyServerPort = _dialogPreferencesNetworkProxies_Preferences.ProxyServerPort == 0 ? string.Empty : 
+                                                                            _dialogPreferencesNetworkProxies_Preferences.ProxyServerPort.ToString();
+                                              CbServerRequiresAPassword = _dialogPreferencesNetworkProxies_Preferences.ProxyServerRequiresPassword;
+                                              if (string.IsNullOrWhiteSpace(ProxyServerAddress))
+                                              {
+                                                  ProxyServerAddress = string.Empty;
+                                              }
+                                              ProxyServerUsername = _dialogPreferencesNetworkProxies_Preferences.ProxyServerUserName;
+                                              if (string.IsNullOrWhiteSpace(ProxyServerUsername))
+                                              {
+                                                  ProxyServerUsername = string.Empty;
+                                              }
+                                              ProxyServerPassword2 = CLSecureString.ToInsecureString(CLSecureString.DecryptString(_dialogPreferencesNetworkProxies_Preferences.ProxyServerPassword));
+                                              if (string.IsNullOrWhiteSpace(ProxyServerPassword2))
+                                              {
+                                                  _proxyServerPassword2 = string.Empty;
+                                              }
+
+                                              // Make sure the proper opacity is set
+                                              if (_rbProxySettingsNoProxy)
+                                              {
+                                                  ProxyActiveInactiveOpacity = _kNoProxyOpacity;
+                                              }
+                                              else
+                                              {
+                                                  ProxyActiveInactiveOpacity = _kProxyActiveOpacity;
+                                              }
+                                          }));
+            }
+        }
+
         #endregion
 
         #region Validation
 
         /// <summary>
+        /// Check validation of all validated controls.
+        /// </summary>
+        private void CheckValidation()
+        {
+            ValidateProxyServerUsername();
+            ValidateProxyServerAddress();
+            ValidateProxyServerPort();
+            ValidateProxyServerPassword();
+        }
+
+
+        /// <summary>
         /// Validate the ProxyServerUsername property.
         /// </summary>
-        private void ValidateProxyServerUsername(string username)
+        private void ValidateProxyServerUsername()
         {
-            RemoveAllErrorsForPropertyName("ProxyServerUsername");
-            if (_cbServerRequiresAPassword && username.Length == 0)
+            RemoveAllErrorsForPropertyName(ProxyServerUsernamePropertyName);
+            if (_cbServerRequiresAPassword && _proxyServerUsername.Length == 0)
             {
-                AddError("ProxyServerUsername", "The user name must be specified.");
+                AddError(ProxyServerUsernamePropertyName, "The user name must be specified.");
             }
         }
 
         /// <summary>
         /// Validate the ProxyServerAddress property.
         /// </summary>
-        private void ValidateProxyServerAddress(string proxyServerAddress)
+        private void ValidateProxyServerAddress()
         {
-            RemoveAllErrorsForPropertyName("ProxyServerAddress");
-            if (!_rbProxySettingsNoProxy && proxyServerAddress.Length == 0)
+            RemoveAllErrorsForPropertyName(ProxyServerAddressPropertyName);
+            if (!_rbProxySettingsNoProxy && _proxyServerAddress.Length == 0)
             {
-                AddError("ProxyServerAddress", "The proxy server address must be specified.");
+                AddError(ProxyServerAddressPropertyName, "The proxy server address must be specified.");
             }
         }
 
         /// <summary>
         /// Validate the ProxyServerPort property.
         /// </summary>
-        private void ValidateProxyServerPort(string proxyServerPort)
+        private void ValidateProxyServerPort()
         {
-            RemoveAllErrorsForPropertyName("ProxyServerPort");
-            if (_rbProxySettingsNoProxy && proxyServerPort.Length != 0)
-            {
-                AddError("ProxyServerPort", "The proxy server port must not be specified.");
-            }
-            else if (proxyServerPort.Length > 0)
+            RemoveAllErrorsForPropertyName(ProxyServerPortPropertyName);
+            if (_proxyServerPort.Length > 0)
             {
                 int port;
-                bool parseSuccessful = int.TryParse(proxyServerPort, out port);
+                bool parseSuccessful = int.TryParse(_proxyServerPort, out port);
                 if (!parseSuccessful)
                 {
-                    AddError("ProxyServerPort", "Please enter a positive integer less than or equal to 65,535.");
+                    AddError(ProxyServerPortPropertyName, "Please enter a positive integer less than or equal to 65,535.");
+                }
+                else
+                {
+                    if (port < 0 || port > 65535)
+                    {
+                        AddError(ProxyServerPortPropertyName, "Please enter a positive integer less than or equal to 65,535.");
+                    }
                 }
             }
         }
@@ -738,7 +872,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Validate the ProxyServerPassword property.
         /// </summary>
-        private void ValidateProxyServerPassword(string password)
+        private void ValidateProxyServerPassword()
         {
             //TODO: Should there be validation on the password.  Some installations may require a user name, but no password?
             //RemoveAllErrorsForPropertyName("ProxyServerPassword");

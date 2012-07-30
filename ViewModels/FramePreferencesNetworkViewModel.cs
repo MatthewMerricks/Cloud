@@ -212,15 +212,15 @@ namespace win_client.ViewModels
                                                             new DialogPreferencesNetworkProxiesViewModel
                                                             {
                                                                 DialogPreferencesNetworkProxies_Preferences = this.Preferences,
-                                                                DialogPreferencesNetworkProxies_Title = "Title",
+                                                                DialogPreferencesNetworkProxies_Title = _rm.GetString("DialogPreferencesNetworkProxiesTitle"),
                                                                 DialogPreferencesNetworkProxies_WindowWidth = 515,
                                                                 DialogPreferencesNetworkProxies_WindowHeight = 420,
                                                                 DialogPreferencesNetworkProxies_LeftButtonWidth = new GridLength(120),
                                                                 DialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(0, 0, 50, 0),
-                                                                DialogPreferencesNetworkProxies_LeftButtonContent = "Cancel",
+                                                                DialogPreferencesNetworkProxies_LeftButtonContent = _rm.GetString("generalCancelButtonContent"),
                                                                 DialogPreferencesNetworkProxies_RightButtonWidth = new GridLength(75),
                                                                 DialogPreferencesNetworkProxies_RightButtonMargin = new Thickness(0, 0, 0, 0),
-                                                                DialogPreferencesNetworkProxies_RightButtonContent = "OK",
+                                                                DialogPreferencesNetworkProxies_RightButtonContent = _rm.GetString("generalOkButtonContent"),
                                                             },
                                                             this.ViewGridContainer,
                                                             returnedViewModelInstance =>

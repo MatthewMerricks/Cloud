@@ -268,25 +268,25 @@ namespace CloudApiPrivate.Model.Settings
         }
 
         // Bandwidth
-        private int _useLANForFileSync;
-        public int UseLANForFileSync
+        private bool _useLANForFileSync;
+        public bool UseLANForFileSync
         {
             get { return _useLANForFileSync; }
             set
             {
                 _useLANForFileSync = value;
-                SettingsBase.Write<int>(kUseLanForFileSync, value);
+                SettingsBase.Write<bool>(kUseLanForFileSync, value);
             }
         }
 
-        private int _limitDownloadSpeeds;
-        public int LimitDownloadSpeeds
+        private bool _limitDownloadSpeeds;
+        public bool LimitDownloadSpeeds
         {
             get { return _limitDownloadSpeeds; }
             set
             {
                 _limitDownloadSpeeds = value;
-                SettingsBase.Write<int>(kLimitDownloadSpeeds, value);
+                SettingsBase.Write<bool>(kLimitDownloadSpeeds, value);
             }
         }
 
@@ -301,14 +301,14 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private int _limitUploadSpeeds;
-        public int LimitUploadSpeeds
+        private uploadSpeedLimitType _limitUploadSpeeds;
+        public uploadSpeedLimitType LimitUploadSpeeds
         {
             get { return _limitUploadSpeeds; }
             set
             {
                 _limitUploadSpeeds = value;
-                SettingsBase.Write<int>(kLimitUploadSpeeds, value);
+                SettingsBase.Write<uploadSpeedLimitType>(kLimitUploadSpeeds, value);
             }
         }
 
@@ -323,25 +323,25 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private int _useProxySetting;
-        public int UseProxySetting
+        private useProxySettingType _useProxySetting;
+        public useProxySettingType UseProxySetting
         {
             get { return _useProxySetting; }
             set
             {
                 _useProxySetting = value;
-                SettingsBase.Write<int>(kUseProxySetting, value);
+                SettingsBase.Write<useProxySettingType>(kUseProxySetting, value);
             }
         }
 
-        private int _useProxyType;
-        public int UseProxyType
+        private useProxyTypes _useProxyType;
+        public useProxyTypes UseProxyType
         {
             get { return _useProxyType; }
             set
             {
                 _useProxyType = value;
-                SettingsBase.Write<int>(kUseProxyType, value);
+                SettingsBase.Write<useProxyTypes>(kUseProxyType, value);
             }
         }
 
@@ -367,14 +367,14 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private int _proxyServerRequiresPassword;
-        public int ProxyServerRequiresPassword
+        private bool _proxyServerRequiresPassword;
+        public bool ProxyServerRequiresPassword
         {
             get { return _proxyServerRequiresPassword; }
             set
             {
                 _proxyServerRequiresPassword = value;
-                SettingsBase.Write<int>(kProxyServerRequiresPassword, value);
+                SettingsBase.Write<bool>(kProxyServerRequiresPassword, value);
             }
         }
 
@@ -666,16 +666,16 @@ namespace CloudApiPrivate.Model.Settings
             _useDefaultSetup = true;
     
             // Network
-            _useLANForFileSync = (int)buttonState.stateON;
-            _limitDownloadSpeeds = (int)buttonState.stateOFF;
+            _useLANForFileSync = true;
+            _limitDownloadSpeeds = false;
             _downloadSpeedLimit = 50;
-            _limitUploadSpeeds = (int)uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
+            _limitUploadSpeeds = uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
             _uploadSpeedLimit = 10;
-            _useProxySetting = (int)useProxySettingType.useProxySettingAutoDetect;
-            _useProxyType = (int)useProxyTypes.useProxyHTTP;
+            _useProxySetting = useProxySettingType.useProxySettingAutoDetect;
+            _useProxyType = useProxyTypes.useProxyHTTP;
             _proxyServerAddress = "";
             _proxyServerPort = 8080;
-            _proxyServerRequiresPassword = (int)buttonState.stateOFF;
+            _proxyServerRequiresPassword = false;
             _proxyServerUsername = "";
             _proxyServerPassword = "";
     
@@ -771,18 +771,18 @@ namespace CloudApiPrivate.Model.Settings
 
  
             // Network
-            isPresent = SettingsBase.ReadIfPresent<int>(kUseLanForFileSync, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kUseLanForFileSync, out bTemp);
             if (isPresent)
             {
-                _useLANForFileSync = temp;
+                _useLANForFileSync = bTemp;
             }
 
     
             // Bandwidth
-            isPresent = SettingsBase.ReadIfPresent<int>(kLimitDownloadSpeeds, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kLimitDownloadSpeeds, out bTemp);
             if (isPresent)
             {
-                _limitDownloadSpeeds = temp;
+                _limitDownloadSpeeds = bTemp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<int>(kDownloadSpeedLimit, out temp);
@@ -794,7 +794,7 @@ namespace CloudApiPrivate.Model.Settings
             isPresent = SettingsBase.ReadIfPresent<int>(kLimitUploadSpeeds, out temp);
             if (isPresent)
             {
-                _limitUploadSpeeds = temp;
+                _limitUploadSpeeds = (uploadSpeedLimitType)temp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<int>(kUploadSpeedLimit, out temp);
@@ -807,13 +807,13 @@ namespace CloudApiPrivate.Model.Settings
             isPresent = SettingsBase.ReadIfPresent<int>(kUseProxySetting, out temp);
             if (isPresent)
             {
-                _useProxySetting = temp;
+                _useProxySetting = (useProxySettingType)temp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<int>(kUseProxyType, out temp);
             if (isPresent)
             {
-                _useProxyType = temp;
+                _useProxyType = (useProxyTypes)temp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kProxyServerAddress, out  tempString);
@@ -828,10 +828,10 @@ namespace CloudApiPrivate.Model.Settings
                 _proxyServerPort = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(kProxyServerRequiresPassword, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kProxyServerRequiresPassword, out bTemp);
             if (isPresent)
             {
-                _proxyServerRequiresPassword = temp;
+                _proxyServerRequiresPassword = bTemp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kProxyServerUserName, out tempString);

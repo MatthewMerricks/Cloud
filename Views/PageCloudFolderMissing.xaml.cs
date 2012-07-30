@@ -39,15 +39,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(PageCloudFolderMissing_Loaded);
             Unloaded += new RoutedEventHandler(PageCloudFolderMissing_Unloaded);
-
-            // Register messages
-            CLAppMessages.PageCloudFolderMissing_NavigationRequest.Register(this,
-                (uri) =>
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative);
-                });
-            CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Register(this, OnMessage_PageCloudFolderMissingShouldChooseCloudFolder);
-
         }
 
         /// <summary>
@@ -77,6 +68,14 @@ namespace win_client.Views
         /// </summary>
         void PageCloudFolderMissing_Loaded(object sender, RoutedEventArgs e)
         {
+            // Register messages
+            CLAppMessages.PageCloudFolderMissing_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
+            CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Register(this, OnMessage_PageCloudFolderMissingShouldChooseCloudFolder);
+
             // Set the view's grid into the view model.
             PageCloudFolderMissingViewModel vm = (PageCloudFolderMissingViewModel)DataContext;
             vm.ViewGridContainer = LayoutRoot;

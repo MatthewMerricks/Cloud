@@ -16,7 +16,7 @@
     xmlns:common="clr-namespace:win_client.Common"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PagePreferencesViewModel, Source={StaticResource Locator}}" 
-    Title="Select Storage Size"  >
+    Title="Cloud Preferences"  >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -42,7 +42,7 @@
         </Grid.Background>
         
         <Image Grid.Column="0" Margin="8" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="/win-client;component/Artwork/cloud256.png"/>
-        <TextBlock Text="Preferences" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,0,0" FontSize="36" Opacity="0.5"/>
+        <TextBlock Text="{Binding Title, Mode=OneWay}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,0,0" FontSize="36" Opacity="0.5"/>
 
         <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" BorderThickness="0" Margin="8" Grid.Column="1" Grid.Row="1" >
             <Frame.Background>

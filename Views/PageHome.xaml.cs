@@ -47,16 +47,6 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageHome_Loaded);
             Unloaded += new RoutedEventHandler(PageHome_Unloaded);
 
-            // Register messages
-            CLAppMessages.PageHome_NavigationRequest.Register(this,
-                (uri) =>
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative); 
-                });
-
-            CLAppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
-            CLAppMessages.Home_GetClearPasswordField.Register(this, OnHome_GetClearPasswordField);
-
             // Pass the view's grid to the view model for the dialogs to use.
             _viewModel = (PageHomeViewModel)DataContext;
             _viewModel.ViewGridContainer = LayoutRoot;
@@ -72,6 +62,16 @@ namespace win_client.Views
         {
             _isLoaded = true;
             _viewModel = DataContext as PageHomeViewModel;
+
+            // Register messages
+            CLAppMessages.PageHome_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
+
+            CLAppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
+            CLAppMessages.Home_GetClearPasswordField.Register(this, OnHome_GetClearPasswordField);
 
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 

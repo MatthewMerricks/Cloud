@@ -223,4 +223,22 @@
   <data name="pageCloudFolderMissingFolderBrowserDescription" xml:space="preserve">
     <value>Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select.</value>
   </data>
+  <data name="DialogPreferencesNetworkProxiesTitle" xml:space="preserve">
+    <value>Cloud Network Proxy Server Preferences</value>
+  </data>
+  <data name="PagePreferencesAboutTitle" xml:space="preserve">
+    <value>Cloud About Preferences</value>
+  </data>
+  <data name="PagePreferencesAccountTitle" xml:space="preserve">
+    <value>Cloud Account Preferences</value>
+  </data>
+  <data name="PagePreferencesAdvancedTitle" xml:space="preserve">
+    <value>Cloud Advanced Preferences</value>
+  </data>
+  <data name="PagePreferencesGeneralTitle" xml:space="preserve">
+    <value>Cloud General Preferences</value>
+  </data>
+  <data name="PagePreferencesNetworkTitle" xml:space="preserve">
+    <value>Cloud Network Preferences</value>
+  </data>
 </root>

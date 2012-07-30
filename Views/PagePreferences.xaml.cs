@@ -49,25 +49,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(PagePreferences_Loaded);
             Unloaded += new RoutedEventHandler(PagePreferences_Unloaded);
-
-            // Register messages
-            CLAppMessages.PagePreferences_NavigationRequest.Register(this,
-                (uri) => 
-                {
-                    this.NavigationService.Navigate(uri); 
-                });
-            CLAppMessages.PagePreferences_FrameNavigationRequest.Register(this,
-                (uri) =>
-                {
-                    this.ContentFrame.NavigationService.Navigate(uri);
-                });
-            CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Register(this,
-                (nextPage) =>
-                {
-                    this.PageGrid = this.LayoutRoot;
-                    this.Preferences = nextPage.Value;
-                    this.ContentFrame.NavigationService.Navigate(nextPage.Key, this);
-                });
         }
 
         #region Dependency Properties
@@ -109,6 +90,25 @@ namespace win_client.Views
         void PagePreferences_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
+
+            // Register messages
+            CLAppMessages.PagePreferences_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri);
+                });
+            CLAppMessages.PagePreferences_FrameNavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.ContentFrame.NavigationService.Navigate(uri);
+                });
+            CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Register(this,
+                (nextPage) =>
+                {
+                    this.PageGrid = this.LayoutRoot;
+                    this.Preferences = nextPage.Value;
+                    this.ContentFrame.NavigationService.Navigate(nextPage.Key, this);
+                });
 
             this.ContentFrame.NavigationService.Navigated += MyNavigationWindow.NavigationService_Navigated;
 

@@ -50,17 +50,6 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageCreateNewAccount_Loaded);
             Unloaded += new RoutedEventHandler(PageCreateNewAccount_Unloaded);
 
-            // Register messages
-            CLAppMessages.PageCreateNewAccount_NavigationRequest.Register(this,
-                (uri) =>
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative); 
-                });
-
-            CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
-            CLAppMessages.CreateNewAccount_GetClearPasswordField.Register(this, OnCreateNewAccount_GetClearPasswordField);
-            CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Register(this, OnCreateNewAccount_GetClearConfirmPasswordField);
-
             // Pass the view's grid to the view model for the dialogs to use.
             _viewModel = (PageCreateNewAccountViewModel)DataContext;
             _viewModel.ViewGridContainer = LayoutRoot;
@@ -74,6 +63,17 @@ namespace win_client.Views
         {
             _isLoaded = true;
             _viewModel = DataContext as PageCreateNewAccountViewModel;
+
+            // Register messages
+            CLAppMessages.PageCreateNewAccount_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
+
+            CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
+            CLAppMessages.CreateNewAccount_GetClearPasswordField.Register(this, OnCreateNewAccount_GetClearPasswordField);
+            CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Register(this, OnCreateNewAccount_GetClearConfirmPasswordField);
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));

@@ -49,13 +49,6 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageSetupSelector_Loaded);
             Unloaded += new RoutedEventHandler(PageSetupSelector_Unloaded);
 
-            // Register messages
-            CLAppMessages.PageSetupSelector_NavigationRequest.Register(this,
-                (uri) => 
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative); 
-                });
-
             // Pass the view's grid to the viewmodel for use with the dialogs.
             PageSetupSelectorViewModel vm = (PageSetupSelectorViewModel)DataContext;
             vm.ViewGridContainer = LayoutRoot;
@@ -71,6 +64,13 @@ namespace win_client.Views
         void PageSetupSelector_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
+
+            // Register messages
+            CLAppMessages.PageSetupSelector_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));

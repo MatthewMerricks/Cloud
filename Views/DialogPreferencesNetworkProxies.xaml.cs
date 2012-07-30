@@ -38,10 +38,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(DialogPreferencesNetworkProxies_Loaded);
             Unloaded += new RoutedEventHandler(DialogPreferencesNetworkProxies_Unloaded);
-
-            // Register messages
-            CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Register(this, OnDialogPreferencesNetworkProxies_GetClearPasswordField);
-            CLAppMessages.DialogPreferencesNetworkProxies_FocusToError_Message.Register(this, OnDialogPreferencesNetworkProxies_FocusToError_Message);
         }
 
         /// <summary>
@@ -58,6 +54,14 @@ namespace win_client.Views
         }
 
         /// <summary>
+        /// Set the clear password.
+        /// </summary>
+        private void OnDialogPreferencesNetworkProxies_SetClearPasswordField(string password)
+        {
+            tbProxyServerPassword.Text = password;
+        }
+
+        /// <summary>
         /// The user clicked the OK (update) button.
         /// Button clicks set the DialogResult.
         /// </summary>
@@ -69,7 +73,15 @@ namespace win_client.Views
                 vm.DialogPreferencesNetworkProxiesViewModel_UpdateCommand.Execute(null);
             }
 
-            this.DialogResult = true;
+            // Don't let the user cancel the dialog if it has validation errors
+            if (vm.HasErrors)
+            {
+                e.Handled = true;
+            }
+            else
+            {
+                this.DialogResult = true;
+            }
         }
 
         /// <summary>
@@ -94,9 +106,22 @@ namespace win_client.Views
         // via the code-behind works however, so we do it here.
         void DialogPreferencesNetworkProxies_Loaded(object sender, RoutedEventArgs e)
         {
+            // Register messages
+            CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Register(this, OnDialogPreferencesNetworkProxies_GetClearPasswordField);
+            CLAppMessages.DialogPreferencesNetworkProxies_FocusToError_Message.Register(this, OnDialogPreferencesNetworkProxies_FocusToError_Message);
+            CLAppMessages.DialogPreferencesNetworkProxies_GetClearPasswordField.Register(this, OnDialogPreferencesNetworkProxies_GetClearPasswordField);
+            CLAppMessages.DialogPreferencesNetworkProxies_SetClearPasswordField.Register(this, OnDialogPreferencesNetworkProxies_SetClearPasswordField);
+
             FocusedElement = this.btnOK;
 
+            // Tell the ViewModel that the view has loaded.  This is necessary because setting the fields in the ViewModel
+            // sometimes requires a message to be sent to the view, and if the fields are set in the ViewModel constructor,
+            // the view has not yet registered to receive the messages.
             DialogPreferencesNetworkProxiesViewModel vm = (DialogPreferencesNetworkProxiesViewModel)DataContext;
+            if (vm.DialogPreferencesNetworkProxiesViewModel_ViewLoadedCommand.CanExecute(null))
+            {
+                vm.DialogPreferencesNetworkProxiesViewModel_ViewLoadedCommand.Execute(null);
+            }
             vm.ViewLayoutRoot = this.LayoutRoot;
         }
 
