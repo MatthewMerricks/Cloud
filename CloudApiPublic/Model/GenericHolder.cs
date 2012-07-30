@@ -24,5 +24,11 @@ namespace CloudApiPublic.Model
                 castSet.Value = value;
             }
         }
+
+        public GenericHolder() { }
+        public GenericHolder(T defaultValue)
+        {
+            this.Value = defaultValue;
+        }
     }
 }

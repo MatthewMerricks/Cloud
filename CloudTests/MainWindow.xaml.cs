@@ -29,6 +29,7 @@ using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using FileMonitor;
 using SQLIndexer;
+using Sync;
 
 namespace CloudTests
 {
@@ -83,11 +84,17 @@ namespace CloudTests
         public MainWindow()
         {
             // important
-            this.Closed += new EventHandler(MainWindow_Closed);
+            this.Closed += MainWindow_Closed;
 
             BadgeNET.IconOverlay.Initialize();
 
             InitializeComponent();
+
+            this.Resources.Add("OpenFile", new Microsoft.Win32.OpenFileDialog());
+            this.Resources.Add("OpenFolder", new System.Windows.Forms.FolderBrowserDialog()
+            {
+                SelectedPath = "C:\\Users\\Public\\Documents"
+            });
         }
 
         // important including everything inside
@@ -96,9 +103,10 @@ namespace CloudTests
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void MainWindow_Closed(object sender, EventArgs e)
+        private void MainWindow_Closed(object sender, EventArgs e)
         {
             BadgeNET.IconOverlay.Shutdown();
+            HttpScheduler.DisposeBothSchedulers();
         }
 
         // for testing
@@ -238,8 +246,13 @@ namespace CloudTests
                         IndexingAgent.CreateNewAndInitialize(out indexer);
                         MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath,
                             out folderMonitor,
-                            processedDict => { },
+                            Sync.Sync.Run,
                             indexer.MergeEventIntoDatabase,
+                            (syncId, eventIds, newRootPath) =>
+                                {
+                                    long newSyncCounter;
+                                    return indexer.RecordCompletedSync(syncId, eventIds, out newSyncCounter, newRootPath);
+                                },
                             FileChange_OnQueueing,
                             true);
                         MonitorStatus returnStatus;
@@ -889,7 +902,7 @@ namespace CloudTests
             indexer.RemoveEventsByIds(lastEvents.Select(currentEvent => currentEvent.Value.EventId));
             FilePathDictionary<SyncedObject> lastSyncs;
             indexer.GetLastSyncStates(out lastSyncs);
-            List<int> deleteEvents = new List<int>();
+            List<long> deleteEvents = new List<long>();
             foreach (KeyValuePair<FilePath, SyncedObject> lastSync in lastSyncs)
             {
                 FileChange toDelete = new FileChange()
@@ -901,8 +914,137 @@ namespace CloudTests
                 indexer.AddEvent(toDelete);
                 deleteEvents.Add(toDelete.EventId);
             }
-            int newSync;
+            long newSync;
             indexer.RecordCompletedSync(DateTime.UtcNow.ToLongTimeString(), deleteEvents, out newSync, OpenFolder.SelectedPath);
+        }
+
+        private const string schedulerLogLocation = "C:\\Users\\Public\\Documents\\HttpSchedulerLog.txt";
+        private void HttpSchedulerTests_Click(object sender, RoutedEventArgs e)
+        {
+            #region basic function single task
+            //Task<long> toRun = new Task<long>(state =>
+            //    {
+            //        Nullable<int> castState = state as Nullable<int>;
+            //        if (castState != null)
+            //        {
+            //            bool doNothing = true;
+            //        }
+            //        return 2;
+            //    }, 1);
+            //toRun.ContinueWith(result =>
+            //        {
+            //            long storeResult = result.Result;
+            //        });
+            //toRun.Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.From));
+            #endregion
+
+            #region test concurrent limit
+            GenericHolder<long> incrementor = new GenericHolder<long>();
+            object writeLocker = new object();
+            for (int i = 0; i < 24; i++)
+            {
+                SyncDirection currentDirection = (i % 2 == 0 ? SyncDirection.From : SyncDirection.To);
+
+                Task<KeyValuePair<SyncDirection, KeyValuePair<long, object>>> secondRun = new Task<KeyValuePair<SyncDirection, KeyValuePair<long, object>>>(state =>
+                    {
+                        Nullable<KeyValuePair<SyncDirection, KeyValuePair<GenericHolder<long>, object>>> castState = state as Nullable<KeyValuePair<SyncDirection, KeyValuePair<GenericHolder<long>, object>>>;
+                        if (castState == null)
+                        {
+                            throw new InvalidCastException("state was not castable as GenericHolder<long>");
+                        }
+                        long incrementedValue;
+                        lock (castState.Value.Value.Key)
+                        {
+                            incrementedValue = castState.Value.Value.Key.Value++;
+                        }
+                        Thread.Sleep(10000);
+
+                        return new KeyValuePair<SyncDirection, KeyValuePair<long, object>>(castState.Value.Key, new KeyValuePair<long, object>(incrementedValue, castState.Value.Value.Value));
+
+                    }, new KeyValuePair<SyncDirection, KeyValuePair<GenericHolder<long>, object>>(currentDirection, new KeyValuePair<GenericHolder<long>, object>(incrementor, writeLocker)));
+
+                secondRun.ContinueWith(result =>
+                    {
+                        lock (result.Result.Value.Value)
+                        {
+                            if (result.Result.Value.Key == 11)
+                            {
+                                (new Task(state =>
+                                    {
+                                        Nullable<KeyValuePair<string, object>> castState = state as Nullable<KeyValuePair<string, object>>;
+
+                                        if (castState != null)
+                                        {
+                                            KeyValuePair<string, object> nonNullState = (KeyValuePair<string, object>)castState;
+
+                                            lock (nonNullState.Value)
+                                            {
+                                                File.AppendAllText(schedulerLogLocation,
+                                                    nonNullState.Key + " Number 11 Secondary Task Synchronous" + Environment.NewLine);
+                                            }
+                                        }
+                                    },
+                                    new KeyValuePair<string, object>(result.Result.Key.ToString(), result.Result.Value.Value)))
+                                    .RunSynchronously(HttpScheduler.GetSchedulerByDirection(result.Result.Key));
+                            }
+
+                            File.AppendAllText(schedulerLogLocation,
+                                result.Result.Key.ToString() + " " + result.Result.Value.Key.ToString() + "    " + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + Environment.NewLine);
+                        }
+                    });
+
+                secondRun.Start(HttpScheduler.GetSchedulerByDirection(currentDirection));
+            }
+            #endregion
+
+            #region error bubble without executable
+            //Task<bool> thirdRun = new Task<bool>(() =>
+            //    {
+            //        throw new Exception("This exception should cause a message box to appear (should never happen in normal use!!!)");
+            //    });
+
+            //thirdRun.ContinueWith(result =>
+            //    {
+            //        string extraData = string.Empty;
+            //        try
+            //        {
+            //            extraData = Environment.NewLine + "but has data: " + result.Result.ToString();
+            //        }
+            //        catch
+            //        {
+            //        }
+            //        File.AppendAllText(schedulerLogLocation,
+            //            Environment.NewLine + "The previous task threw an exception: " + result.Exception.GetBaseException().Message + extraData);
+            //    });
+
+            //thirdRun.Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.From));
+            #endregion
+
+            #region error bubble with executable
+            //(new Task<bool>(() =>
+            //    {
+            //        try
+            //        {
+            //            throw new Exception("Inner exception thrown before wrapping");
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            throw new ExecutableException<object>((exceptionState, aggregateException) =>
+            //                {
+            //                    File.AppendAllText(schedulerLogLocation,
+            //                        Environment.NewLine + "The previous task threw an exception: " + aggregateException.GetBaseException().Message +
+            //                        Environment.NewLine + "exceptionState: " + exceptionState);
+            //                }, "My exception state",
+            //                "Wrapped exception for HttpScheduler",
+            //                ex);
+            //        }
+            //    })).Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.From));
+
+            //Thread.Sleep(5000);
+            //GC.Collect();
+            //GC.WaitForPendingFinalizers();
+            //GC.Collect();
+            #endregion
         }
     }
 }

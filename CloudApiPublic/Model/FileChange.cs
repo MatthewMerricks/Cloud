@@ -20,8 +20,10 @@ namespace CloudApiPublic.Model
     /// Class for storing information about a file system change to be passed to the sync service for processing,
     /// implements DelayProcessable to allow timer-delayed action processing (one time only per instance)
     /// </summary>
-    public sealed class FileChange : DelayProcessable<FileChange>
+    public class FileChange : DelayProcessable<FileChange>
     {
+        // If properties are changed/added/removed, make sure to update FileChangeWithDependencies in the Sync project!!
+
         /// <summary>
         /// Current path associated with the file system event
         /// </summary>
@@ -140,6 +142,9 @@ namespace CloudApiPublic.Model
             return null;
         }
         private byte[] MD5 = null;
+        public byte FailureCounter = 0;
+
+        // If properties are changed/added/removed, make sure to update FileChangeWithDependencies in the Sync project!!
 
         /// <summary>
         /// Constructor with required fields of abstract base class,

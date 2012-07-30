@@ -31,7 +31,8 @@ namespace CloudApiPublic.Support
         /// Lock on this object anywhere that starts the timer or checks if it is running
         /// </summary>
         public readonly object TimerRunningLocker = new object();
-        private Action OnTimeout;
+        private Action<object> OnTimeout;
+        private object UserState;
         private int MillisecondTime;
 
         private ManualResetEvent SleepEvent = new ManualResetEvent(false);
@@ -42,12 +43,13 @@ namespace CloudApiPublic.Support
         /// <param name="onTimeout">Action to run when timer runs out</param>
         /// <param name="millisecondTime">Length of timer whenever it is started</param>
         /// <param name="newTimer">Outputs the new ProcessingQueuesTimer that was created</param>
+        /// <param name="UserState">(optional) Userstate to pass to action</param>
         /// <returns>Returns an error creating the ProcessingQueuesTimer, if any</returns>
-        public static CLError CreateAndInitializeProcessingQueuesTimer(Action onTimeout, int millisecondTime, out ProcessingQueuesTimer newTimer)
+        public static CLError CreateAndInitializeProcessingQueuesTimer(Action<object> onTimeout, int millisecondTime, out ProcessingQueuesTimer newTimer, object UserState = null)
         {
             try
             {
-                newTimer = new ProcessingQueuesTimer(onTimeout, millisecondTime);
+                newTimer = new ProcessingQueuesTimer(onTimeout, millisecondTime, UserState);
             }
             catch (Exception ex)
             {
@@ -57,12 +59,13 @@ namespace CloudApiPublic.Support
             return null;
         }
 
-        private ProcessingQueuesTimer(Action onTimeout, int millisecondTime)
+        private ProcessingQueuesTimer(Action<object> onTimeout, int millisecondTime, object UserState)
         {
             if (onTimeout == null)
             {
                 throw new NullReferenceException("onTimeout cannot be null");
             }
+            this.UserState = UserState;
             this.OnTimeout = onTimeout;
             this.MillisecondTime = millisecondTime;
         }
@@ -87,7 +90,7 @@ namespace CloudApiPublic.Support
                             SleepEvent.Reset();
                         }
                         _timerRunning = false;
-                        OnTimeout();
+                        OnTimeout(UserState);
                     }
                 })).Start();
             }
@@ -105,7 +108,7 @@ namespace CloudApiPublic.Support
             }
             else
             {
-                OnTimeout();
+                OnTimeout(UserState);
             }
         }
     }

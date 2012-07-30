@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace CloudApiPublic.Model
 {
@@ -89,6 +90,10 @@ namespace CloudApiPublic.Model
         // -David
         public static CLError operator +(CLError err, FileStream fStream)
         {
+            if (fStream == null)
+            {
+                return err;
+            }
             if (err == null)
             {
                 return ((CLError)new Exception("FileStream added first instead of exception")) + fStream;
@@ -109,12 +114,15 @@ namespace CloudApiPublic.Model
 
         public void AddException(Exception ex, bool replaceErrorDescription = false)
         {
-            this.errorInfo.Add(CLError.ErrorInfo_Exception +
-                    this.errorInfo.Count(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)).ToString(),
-                ex);
-            if (replaceErrorDescription)
+            if (ex != null)
             {
-                this.errorDescription = ex.Message;
+                this.errorInfo.Add(CLError.ErrorInfo_Exception +
+                        this.errorInfo.Count(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)).ToString(),
+                    ex);
+                if (replaceErrorDescription)
+                {
+                    this.errorDescription = ex.Message;
+                }
             }
         }
 
@@ -238,6 +246,7 @@ namespace CloudApiPublic.Model
         /// </summary>
         /// <param name="logLocation">Base location for log files before date and extention are appended</param>
         /// <param name="loggingEnabled">Determines whether logging will actually occur</param>
+        [MethodImpl(MethodImplOptions.Synchronized)] // synchronized so multiple logs don't try writing to the files simultaneously
         public void LogErrors(string logLocation, bool loggingEnabled)
         {
             // skip logging if it is either disabled or the location of the log is invalid
