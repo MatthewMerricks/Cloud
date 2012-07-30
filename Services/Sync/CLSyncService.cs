@@ -490,7 +490,8 @@ namespace win_client.Services.Sync
         {
             KeyValuePair<FileChange, FileStream>[] processedChanges;
             FileChange[] changesInError;
-            CLFSMonitoringService.Instance.MonitorAgent.ProcessFileListForSyncProcessing(out processedChanges, out changesInError);
+            CLError recordErrors = null;
+            CLFSMonitoringService.Instance.MonitorAgent.ProcessFileListForSyncProcessing(recordErrors, out processedChanges, out changesInError);
 
             // Update UI with activity.
             //TODO: Implement this UI.

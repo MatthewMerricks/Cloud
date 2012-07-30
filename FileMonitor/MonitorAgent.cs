@@ -21,7 +21,17 @@ using System.Xml.Linq;
 
 namespace FileMonitor
 {
-    public class MonitorAgent : IDisposable
+    /// <summary>
+    /// Delegate to match MonitorAgent's method ProcessFileListForSyncProcessing which pulls changes for Sync
+    /// </summary>
+    /// <param name="appendedError">CLError from caller to append on any error</param>
+    /// <param name="outputChanges">Output array of FileChanges to process</param>
+    /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
+    public delegate void GrabProcessedChanges(CLError appendedError,
+        out KeyValuePair<FileChange, FileStream>[] outputChanges,
+        out FileChange[] outputChangesInError);
+
+    public sealed class MonitorAgent : IDisposable
     {
         #region public properties
         /// <summary>
@@ -91,13 +101,19 @@ namespace FileMonitor
         private Action<MonitorAgent, FileChange> OnQueueing;
 
         // stores the callback used to process a group of events.  Passed via an intialization parameter
-        private Action OnProcessEventGroupCallback;
+        private Func<GrabProcessedChanges, Func<FileChange, FileChange, CLError>, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>, bool, Func<string, IEnumerable<long>, string, CLError>, CLError> OnProcessEventGroupCallback;
 
         // stores the callback used to add the processed event to the SQL index
         /// <summary>
         /// First parameter is merged event, second parameter is event to remove
         /// </summary>
         private Func<FileChange, FileChange, CLError> ProcessMergeToSQL;
+
+        // stores the callback used to complete a sync with a list of completed events
+        /// <summary>
+        /// First parameter is syncId, second parameter is successfulEventIds, third parameter is newSyncRoot, returns any error that occurred
+        /// </summary>
+        private Func<string, IEnumerable<long>, string, CLError> ProcessCompletedSync;
 
         // store the optional logging boolean initialization parameter
         private bool LogProcessingFileChanges;
@@ -150,7 +166,8 @@ namespace FileMonitor
             public bool folderOnly { get; set; }
         }
 
-        private Queue<FileChange> ProcessingChanges = new Queue<FileChange>();
+        private LinkedList<FileChange> ProcessingChanges = new LinkedList<FileChange>();
+        private const int MaxProcessingChangesBeforeTrigger = 499;
         // Field to store timer for queue processing,
         // initialized on construction
         private ProcessingQueuesTimer QueuesTimer;
@@ -169,14 +186,15 @@ namespace FileMonitor
         /// </summary>
         /// <param name="folderPath">path of root folder to be monitored</param>
         /// <param name="newAgent">returned MonitorAgent</param>
-        /// <param name="onProcessEventGroupCallback">action to be executed when a group of events is to be processed</param>
+        /// <param name="onProcessEventGroupCallback">delegate to be executed when a group of events is to be processed</param>
         /// <param name="onQueueingCallback">(optional) action to be executed evertime a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns>Returns any error that occurred if there was one</returns>
         public static CLError CreateNewAndInitialize(string folderPath,
             out MonitorAgent newAgent,
-            Action onProcessEventGroupCallback,
+            Func<GrabProcessedChanges, Func<FileChange, FileChange, CLError>, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>, bool, Func<string, IEnumerable<long>, string, CLError>, CLError> onProcessEventGroupCallback,
             Func<FileChange, FileChange, CLError> onProcessMergeToSQL,
+            Func<string, IEnumerable<long>, string, CLError> onProcessCompletedSync,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
@@ -214,12 +232,37 @@ namespace FileMonitor
                 newAgent.OnQueueing = onQueueingCallback;
                 newAgent.OnProcessEventGroupCallback = onProcessEventGroupCallback;
                 newAgent.ProcessMergeToSQL = onProcessMergeToSQL;
+                newAgent.ProcessCompletedSync = onProcessCompletedSync;
                 newAgent.LogProcessingFileChanges = logProcessing;
 
                 // assign timer object that is used for processing the FileChange queues in batches
-                CLError queueTimerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(newAgent.ProcessQueuesAfterTimer,
+                CLError queueTimerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(state =>
+                    {
+                        object[] castState = state as object[];
+                        bool parametersMatched = false;
+
+                        if (castState.Length == 2)
+                        {
+                            Action<bool> ProcessQueuesAfterTimer = castState[0] as Action<bool>;
+                            LinkedList<FileChange> ProcessingChanges = state as LinkedList<FileChange>;
+
+                            if (ProcessQueuesAfterTimer != null
+                                && ProcessingChanges != null)
+                            {
+                                parametersMatched = true;
+
+                                ProcessQueuesAfterTimer(ProcessingChanges.Count == 0);
+                            }
+                        }
+
+                        if (!parametersMatched)
+                        {
+                            throw new InvalidOperationException("Parameters not matched");
+                        }
+                    },
                     1000,// Collect items in queue for 1 second before batch processing
-                    out newAgent.QueuesTimer);
+                    out newAgent.QueuesTimer,
+                    new object[] { (Action<bool>)newAgent.ProcessQueuesAfterTimer, newAgent.ProcessingChanges });
                 if (queueTimerError != null)
                 {
                     return queueTimerError;
@@ -233,6 +276,11 @@ namespace FileMonitor
         }
 
         private MonitorAgent() { }
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        ~MonitorAgent()
+        {
+            this.Dispose(false);
+        }
 
         #region public methods
         /// <summary>
@@ -254,6 +302,127 @@ namespace FileMonitor
                 return ex;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Adds a FileChange to the ProcessingQueue;
+        /// will also trigger a sync if one isn't already scheduled to run
+        /// </summary>
+        /// <param name="toAdd">FileChange to queue</param>
+        /// <param name="insertAtTop">Send true for the FileChange to be processed first on the queue, otherwise it will be last</param>
+        /// <returns>Returns an error that occurred queueing the FileChange, if any</returns>
+        public CLError AddFileChangeToTopOfProcessingQueue(FileChange toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
+        {
+            try
+            {
+                if (toAdd == null)
+                {
+                    throw new NullReferenceException("toAdd cannot be null");
+                }
+                return AddFileChangesToTopOfProcessingQueue(new FileChange[] { toAdd }, insertAtTop, errorHolder);
+            }
+            catch (Exception ex)
+            {
+                if (toAdd != null)
+                {
+                    errorHolder.Value = new List<FileChange>(1)
+                    {
+                        toAdd
+                    };
+                }
+                return ex;
+            }
+        }
+
+        /// <summary>
+        /// Adds FileChanges to the ProcessingQueue;
+        /// will also trigger a sync if one isn't alredy scheduled to run
+        /// </summary>
+        /// <param name="toAdd">FileChanges to queue</param>
+        /// <param name="insertAtTop">Send true for the FileChanges to be processed first on the queue, otherwise they will be last</param>
+        /// <returns>Returns an error that occurred queueing the FileChanges, if any</returns>
+        public CLError AddFileChangesToTopOfProcessingQueue(IEnumerable<FileChange> toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
+        {
+            CLError toReturn = null;
+            try
+            {
+                if (toAdd == null)
+                {
+                    toAdd = Enumerable.Empty<FileChange>();
+                }
+
+                // if items are to be inserted at the top,
+                // they must first be reversed to process in the original order
+                if (insertAtTop)
+                {
+                    toAdd = toAdd.Reverse();
+                }
+
+                lock (QueuesTimer.TimerRunningLocker)
+                {
+                    bool itemAdded = false;
+
+                    // loop through the FileChanges to add
+                    foreach (FileChange currentToAdd in toAdd)
+                    {
+                        itemAdded = true;
+
+                        try
+                        {
+                            // add the current FileChange to either the top or bottom of the queue
+                            if (insertAtTop)
+                            {
+                                ProcessingChanges.AddFirst(currentToAdd);
+                            }
+                            else
+                            {
+                                ProcessingChanges.AddLast(currentToAdd);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (errorHolder.Value == null)
+                            {
+                                errorHolder.Value = new List<FileChange>();
+                            }
+                            errorHolder.Value.Add(currentToAdd);
+                            toReturn += ex;
+                        }
+                    }
+
+                    if (itemAdded)
+                    {
+                        // start the processing timer (or trigger immediately if the queue limit is reached)
+                        if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
+                        {
+                            QueuesTimer.TriggerTimerCompletionImmediately();
+                        }
+                        else
+                        {
+                            QueuesTimer.StartTimerIfNotRunning();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (toAdd != null)
+                {
+                    if (errorHolder.Value == null)
+                    {
+                        errorHolder.Value = new List<FileChange>();
+                    }
+                    foreach (FileChange currentChange in toAdd)
+                    {
+                        if (!errorHolder.Value.Contains(currentChange))
+                        {
+                            errorHolder.Value.Add(currentChange);
+                        }
+                    }
+                }
+                toReturn += ex;
+            }
+            return toReturn;
         }
 
         ///// <summary>
@@ -366,15 +535,16 @@ namespace FileMonitor
         /// Method to be called within the context of the main lock of the Sync service
         /// which locks the changed files, updates metadata, and outputs a sorted FileChange array for processing
         /// </summary>
+        /// <param name="appendedError">CLError from caller to append on any error</param>
         /// <param name="inputChanges">Original array of FileChanges</param>
         /// <param name="outputChanges">Output array of FileChanges to process</param>
         /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
         /// <returns>Returns (an) error(s) that occurred finalizing the FileChange array, if any</returns>
-        public CLError ProcessFileListForSyncProcessing(out KeyValuePair<FileChange, FileStream>[] outputChanges,
+        public void ProcessFileListForSyncProcessing(CLError appendedError,
+            out KeyValuePair<FileChange, FileStream>[] outputChanges,
             out FileChange[] outputChangesInError)
         {
-            // error collection will be appended with every item in error
-            CLError errorCollection = null;
+            // appendedError will be appended with every item in error
 
             try
             {
@@ -406,7 +576,8 @@ namespace FileMonitor
                         int currentChangeIndex = 0;
                         while (ProcessingChanges.Count > 0)
                         {
-                            inputChanges[currentChangeIndex] = ProcessingChanges.Dequeue();
+                            inputChanges[currentChangeIndex] = ProcessingChanges.First.Value;
+                            ProcessingChanges.RemoveFirst();
                             currentChangeIndex++;
                         }
                     }
@@ -537,7 +708,7 @@ namespace FileMonitor
                                     case FileChangeType.Modified:
                                         // we do not observe folder modification events since they mean nothing to the server
 
-                                        errorCollection += new Exception("Directory modify event found. It is not supposed to be recorded.");
+                                        appendedError += new Exception("Directory modify event found. It is not supposed to be recorded.");
                                         break;
                                     case FileChangeType.Renamed:
                                         // filter/merge for duplicates and add to the appropropriate output dictionary
@@ -598,28 +769,10 @@ namespace FileMonitor
                                         }
                                         if (inputChangeStream == null)
                                         {
-                                            try
-                                            {
-                                                inputChangeStream = new FileStream(currentInputChange.NewPath.ToString(),
-                                                    FileMode.Open,
-                                                    FileAccess.Read,
-                                                    FileShare.Read);// Lock all other processes from writing during sync
-                                            }
-                                            catch (FileNotFoundException)
-                                            {
-                                                // This logic will be changed!
-                                                // the FileNotFoundExceptions should increment a counter up to a certain point before punting;
-                                                // if that counter gets incremented, this file change should be added back to the top of the next queue to process
-                                                // (the reasoning is that a rename change for the current file change's NewPath might be in the next queue to process,
-                                                //  prevents a problem for false positives on file existance at the previous path since they might correlate to a later file creation event)
-
-                                                ProcessMergeToSQL(null, currentInputChange);
-                                                break;
-                                            }
-                                            catch
-                                            {
-                                                throw;
-                                            }
+                                            inputChangeStream = new FileStream(currentInputChange.NewPath.ToString(),
+                                                FileMode.Open,
+                                                FileAccess.Read,
+                                                FileShare.Read);// Lock all other processes from writing during sync
                                         }
                                         fileCreationsOrModifications.Add(currentInputChange.NewPath,
                                             new KeyValuePair<int, KeyValuePair<FileChange, FileStream>>(changeCounter++,
@@ -673,7 +826,7 @@ namespace FileMonitor
                             // processing will continue
 
                             changesInError.Add(currentInputChange);
-                            errorCollection += ex;
+                            appendedError += ex;
                         }
                     }
                     #endregion
@@ -811,7 +964,7 @@ namespace FileMonitor
                         // processing will continue
 
                         changesInError.Add(currentChangeToOutput.Key);
-                        errorCollection += ex;
+                        appendedError += ex;
                     }
                 }
                 #endregion
@@ -868,10 +1021,8 @@ namespace FileMonitor
 
                 outputChanges = Helpers.DefaultForType<KeyValuePair<FileChange, FileStream>[]>();
                 outputChangesInError = Helpers.DefaultForType<FileChange[]>();
-                return errorCollection + ex;
+                appendedError += ex;
             }
-            // return all recorded erro
-            return errorCollection;
         }
 
         /// <summary>
@@ -1049,20 +1200,37 @@ namespace FileMonitor
             return null;
         }
         #region IDisposable member
+        // Standard IDisposable implementation based on MSDN System.IDisposable
         void IDisposable.Dispose()
         {
-            // lock on current object for changing RunningStatus so it cannot be stopped/started simultaneously
-            lock (this)
-            {
-                // monitor is now set as disposed which will produce errors if startup is called later
-                Disposed = true;
-            }
-            // cleanup FileSystemWatchers
-            StopWatchers();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
 
         #region private methods
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        private void Dispose(bool disposing)
+        {
+            if (!this.Disposed)
+            {
+                // lock on current object for changing RunningStatus so it cannot be stopped/started simultaneously
+                lock (this)
+                {
+                    // monitor is now set as disposed which will produce errors if startup is called later
+                    Disposed = true;
+                }
+
+                // Run dispose on inner managed objects based on disposing condition
+                if (disposing)
+                {
+                    // cleanup FileSystemWatchers
+                    StopWatchers();
+                }
+                
+                // Dispose local unmanaged resources last
+            }
+        }
 
         /// <summary>
         /// Todo: notify system that root monitored folder is protected from changes like deletion;
@@ -2067,8 +2235,8 @@ namespace FileMonitor
 
             lock (QueuesTimer.TimerRunningLocker)
             {
-                ProcessingChanges.Enqueue(sender);
-                if (ProcessingChanges.Count > 499)
+                ProcessingChanges.AddLast(sender);
+                if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
                 {
                     QueuesTimer.TriggerTimerCompletionImmediately();
                 }
@@ -2276,9 +2444,11 @@ namespace FileMonitor
             }
         }
 
-        private void ProcessQueuesAfterTimer()
+        private void ProcessQueuesAfterTimer(bool emptyProcessingQueue)
         {
-            (new Thread(new ThreadStart(this.OnProcessEventGroupCallback))).Start();
+            // run Sync
+            (new Thread(new ParameterizedThreadStart(RunOnProcessEventGroupCallback)))
+                .Start(new object[] { (GrabProcessedChanges)this.ProcessFileListForSyncProcessing, this.ProcessMergeToSQL, emptyProcessingQueue, this.OnProcessEventGroupCallback });
 
             // FileChanges are now sorted when Sync calls back to ProcessFileListForSyncProcessing in this class
 
@@ -2334,6 +2504,34 @@ namespace FileMonitor
             //    batchedChanges[batchedChangeIndex] = currentOtherFile;
             //    batchedChangeIndex++;
             //}\
+        }
+
+        private static void RunOnProcessEventGroupCallback(object state)
+        {
+            object[] castState = state as object[];
+            bool matchedParameters = false;
+
+            if (castState != null
+                && castState.Length == 4)
+            {
+                GrabProcessedChanges argOne = castState[0] as GrabProcessedChanges;
+                Func<FileChange, FileChange, CLError> argTwo = castState[1] as Func<FileChange, FileChange, CLError>;
+                Nullable<bool> argThreeNullable = castState[2] as Nullable<bool>;
+                Func<GrabProcessedChanges, Func<FileChange, FileChange, CLError>, bool, CLError> OnProcessEventGroupCallback = castState[3] as Func<GrabProcessedChanges, Func<FileChange, FileChange, CLError>, bool, CLError>;
+
+                if (argThreeNullable != null
+                    && OnProcessEventGroupCallback != null)
+                {
+                    matchedParameters = true;
+
+                    OnProcessEventGroupCallback(argOne, argTwo, (bool)argThreeNullable);
+                }
+            }
+
+            if (!matchedParameters)
+            {
+                throw new InvalidOperationException("Unable to fire OnProcessEventGroupCallback due to parameter mismatch");
+            }
         }
         #endregion
     }
