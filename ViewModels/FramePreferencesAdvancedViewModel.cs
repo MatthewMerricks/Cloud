@@ -1,0 +1,265 @@
+﻿//
+//  FramePreferencesAdvancedViewModel.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using GalaSoft.MvvmLight;
+using win_client.Model;
+using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Messaging;
+using System;
+using win_client.ViewModels;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Data;
+using System.Windows.Controls;
+using win_client.Common;
+using System.Reflection;
+using System.Linq;
+using CloudApiPrivate.Model;
+using CloudApiPrivate.Model.Settings;
+using CloudApiPrivate.Static;
+using CloudApiPublic;
+using CloudApiPublic.Support;
+using CloudApiPublic.Model;
+using System.Collections.Generic;
+using GalaSoft.MvvmLight.Ioc;
+using Dialog.Abstractions.Wpf.Intefaces;
+using System.Resources;
+using win_client.AppDelegate;
+using win_client.ViewModelHelpers;
+using System.Windows.Input;
+using win_client.Views;
+
+namespace win_client.ViewModels
+{
+         
+    /// <summary>
+    /// This class contains properties that a View can data bind to.
+    /// <para>
+    /// Use the <strong>mvvminpc</strong> snippet to add bindable properties to this ViewModel.
+    /// </para>
+    /// <para>
+    /// See http://www.galasoft.ch/mvvm/getstarted
+    /// </para>
+    /// </summary>
+    public class FramePreferencesAdvancedViewModel : ValidatingViewModelBase
+    {
+        #region Private Instance Variables
+
+        private readonly IDataService _dataService;
+        private CLTrace _trace = CLTrace.Instance;
+        private ResourceManager _rm;
+        private IModalWindow _dialog = null;        // for use with modal dialogs
+
+        #endregion
+
+        #region Life Cycle
+        /// <summary>
+        /// Initializes a new instance of the PageHomeViewModel class.
+        /// </summary>
+        public FramePreferencesAdvancedViewModel(IDataService dataService)
+        {
+            _dataService = dataService;
+            _dataService.GetData(
+                (item, error) =>
+                {
+                    if (error != null)
+                    {
+                        // Report error here
+                        return;
+                    }
+                    //&&&&               WelcomeTitle = item.Title;
+                });
+            _rm =  CLAppDelegate.Instance.ResourceManager;
+            _trace = CLTrace.Instance;
+        }
+
+        #endregion
+
+        #region Bindable Properties
+
+        /// <summary>
+        /// The <see cref="ViewGridContainer" /> property's name.
+        /// </summary>
+        public const string ViewGridContainerPropertyName = "ViewGridContainer";
+        private Grid _viewGridContainer = null;
+
+        /// <summary>
+        /// Sets and gets the ViewGridContainer property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public Grid ViewGridContainer
+        {
+            get
+            {
+                return _viewGridContainer;
+            }
+
+            set
+            {
+                if (_viewGridContainer == value)
+                {
+                    return;
+                }
+
+                _viewGridContainer = value;
+                RaisePropertyChanged(ViewGridContainerPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="Preferences" /> property's name.
+        /// </summary>
+        public const string PreferencesPropertyName = "Preferences";
+        private CLPreferences _preferences = null;
+        public CLPreferences Preferences
+        {
+            get
+            {
+                return _preferences;
+            }
+
+            set
+            {
+                if (_preferences == value)
+                {
+                    return;
+                }
+
+                _preferences = value;
+                RaisePropertyChanged(PreferencesPropertyName);
+            }
+        }
+
+        #endregion
+      
+        #region Commands
+
+        /// <summary>
+        /// Gets the FramePreferencesAdvanced_ChangeCloudFolder.
+        /// </summary>
+        private ICommand _framePreferencesAdvanced_ChangeCloudFolder;
+        public ICommand FramePreferencesAdvanced_ChangeCloudFolder
+        {
+            get
+            {
+                return _framePreferencesAdvanced_ChangeCloudFolder
+                    ?? (_framePreferencesAdvanced_ChangeCloudFolder = new RelayCommand(
+                                            () =>
+                                            {
+                                                //_dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_PreferencesNetworkBandwidth);
+                                                //IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
+                                                //modalDialogService.ShowDialog(
+                                                //            this._dialog,
+                                                //            new DialogPreferencesNetworkBandwidthViewModel
+                                                //            {
+                                                //                DialogPreferencesNetworkBandwidth_Preferences = this.Preferences,
+                                                //                DialogPreferencesNetworkBandwidth_Title = _rm.GetString("DialogPreferencesNetworkBandwidthTitle"),
+                                                //                DialogPreferencesNetworkBandwidth_WindowWidth = 504,
+                                                //                DialogPreferencesNetworkBandwidth_WindowHeight = 325,
+                                                //                DialogPreferencesNetworkBandwidth_LeftButtonWidth = new GridLength(120),
+                                                //                DialogPreferencesNetworkBandwidth_LeftButtonMargin = new Thickness(0, 0, 50, 0),
+                                                //                DialogPreferencesNetworkBandwidth_LeftButtonContent = _rm.GetString("generalOkButtonContent"),
+                                                //                DialogPreferencesNetworkBandwidth_RightButtonWidth = new GridLength(75),
+                                                //                DialogPreferencesNetworkBandwidth_RightButtonMargin = new Thickness(0, 0, 0, 0),
+                                                //                DialogPreferencesNetworkBandwidth_RightButtonContent = _rm.GetString("generalCancelButtonContent"),
+                                                //            },
+                                                //            this.ViewGridContainer,
+                                                //            returnedViewModelInstance =>
+                                                //            {
+                                                //                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                                //                {
+                                                //                    // The user said yes.
+                                                //                }
+                                                //                else
+                                                //                {
+                                                //                    // The user said no.
+                                                //                }
+                                                //            }
+                                                //);
+                                            }));
+            }
+        }
+
+        /// <summary>
+        /// Gets the FramePreferencesAdvanced_ResetCloudFolder.
+        /// </summary>
+        private ICommand _framePreferencesAdvanced_ResetCloudFolder;
+        public ICommand FramePreferencesAdvanced_ResetCloudFolder
+        {
+            get
+            {
+                return _framePreferencesAdvanced_ResetCloudFolder
+                    ?? (_framePreferencesAdvanced_ResetCloudFolder = new RelayCommand(
+                                            () =>
+                                            {
+                                                //_dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_PreferencesNetworkProxies);
+                                                //IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
+                                                //modalDialogService.ShowDialog(
+                                                //            this._dialog,
+                                                //            new DialogPreferencesNetworkProxiesViewModel
+                                                //            {
+                                                //                DialogPreferencesNetworkProxies_Preferences = this.Preferences,
+                                                //                DialogPreferencesNetworkProxies_Title = _rm.GetString("DialogPreferencesNetworkProxiesTitle"),
+                                                //                DialogPreferencesNetworkProxies_WindowWidth = 504,
+                                                //                DialogPreferencesNetworkProxies_WindowHeight = 386,
+                                                //                DialogPreferencesNetworkProxies_LeftButtonWidth = new GridLength(75),
+                                                //                DialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(0, 0, 50, 0),
+                                                //                DialogPreferencesNetworkProxies_LeftButtonContent = _rm.GetString("generalOkButtonContent"),
+                                                //                DialogPreferencesNetworkProxies_RightButtonWidth = new GridLength(75),
+                                                //                DialogPreferencesNetworkProxies_RightButtonMargin = new Thickness(0, 0, 0, 0),
+                                                //                DialogPreferencesNetworkProxies_RightButtonContent = _rm.GetString("generalCancelButtonContent"),
+                                                //            },
+                                                //            this.ViewGridContainer,
+                                                //            returnedViewModelInstance =>
+                                                //            {
+                                                //                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                                //                {
+                                                //                    // The user said yes.
+                                                //                }
+                                                //                else
+                                                //                {
+                                                //                    // The user said no.
+                                                //                }
+                                                //            }
+                                                //);
+                                            }));
+            }
+        }
+
+        /// <summary>
+        /// Gets the FramePreferencesAdvanced_ChangeSelectiveSyncSettings.
+        /// </summary>
+        private ICommand _framePreferencesAdvanced_ChangeSelectiveSyncSettings;
+        public ICommand FramePreferencesAdvanced_ChangeSelectiveSyncSettings
+        {
+            get
+            {
+                return _framePreferencesAdvanced_ChangeSelectiveSyncSettings
+                    ?? (_framePreferencesAdvanced_ChangeSelectiveSyncSettings = new RelayCommand(
+                                            () =>
+                                            {
+                                                //TODO: Actually handle a request to select folders to sync.
+                                                CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                                    errorMessage: "You can't select folders right now.  It's not implemented yet..",
+                                                    title: "Information",
+                                                    headerText: "Not implemented!",
+                                                    rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                                    container: ViewGridContainer,
+                                                    dialog: out _dialog,
+                                                    actionOkButtonHandler:
+                                                      returnedViewModelInstance =>
+                                                      {
+                                                          // Do nothing here when the user clicks the OK button.
+                                                      }
+                                                );
+                                            }));
+            }
+        }
+
+        #endregion
+    }
+}

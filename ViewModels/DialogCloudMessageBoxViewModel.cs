@@ -26,13 +26,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_Title" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_TitlePropertyName = "CloudMessageBoxView_Title";
-
         private string _cloudMessageBoxView_Title = "Title";
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_Title property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public string CloudMessageBoxView_Title
         {
             get
@@ -56,13 +50,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_WindowWidth" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_WindowWidthPropertyName = "CloudMessageBoxView_WindowWidth";
-
         private int _cloudMessageBoxView_WindowWidth = 325;
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_WindowWidth property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public int CloudMessageBoxView_WindowWidth
         {
             get
@@ -86,13 +74,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_WindowHeight" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_WindowHeightPropertyName = "CloudMessageBoxView_WindowHeight";
-
         private int _cloudMessageBoxView_WindowHeight = 210;
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_WindowHeight property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public int CloudMessageBoxView_WindowHeight
         {
             get
@@ -115,13 +97,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_HeaderText" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_HeaderTextPropertyName = "CloudMessageBoxView_HeaderText";
-
         private string _cloudMessageBoxView_HeaderText = "";
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_HeaderText property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public string CloudMessageBoxView_HeaderText
         {
             get
@@ -145,13 +121,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_BodyText" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_BodyTextPropertyName = "CloudMessageBoxView_BodyText";
-
         private string _cloudMessageBoxView_BodyText = "";
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_BodyText property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public string CloudMessageBoxView_BodyText
         {
             get
@@ -175,13 +145,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_LeftButtonWidth" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_LeftButtonWidthPropertyName = "CloudMessageBoxView_LeftButtonWidth";
-
         private GridLength _cloudMessageBoxView_LeftButtonWidth = new GridLength(100);
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_LeftButtonWidth property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public GridLength CloudMessageBoxView_LeftButtonWidth
         {
             get
@@ -205,13 +169,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_LeftButtonMargin" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_LeftButtonMarginPropertyName = "CloudMessageBoxView_LeftButtonMargin";
-
         private Thickness _cloudMessageBoxView_LeftButtonMargin = new Thickness(30, 0, 0, 0);
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_LeftButtonMargin property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public Thickness CloudMessageBoxView_LeftButtonMargin
         {
             get
@@ -235,13 +193,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_LeftButtonContent" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_LeftButtonContentPropertyName = "CloudMessageBoxView_LeftButtonContent";
-
         private string _cloudMessageBoxView_LeftButtonContent = "";
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_LeftButtonContent property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public string CloudMessageBoxView_LeftButtonContent
         {
             get
@@ -265,12 +217,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_LeftButtonVisibility" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_LeftButtonVisibilityPropertyName = "CloudMessageBoxView_LeftButtonVisibility";
-
         private Visibility _cloudMessageBoxView_LeftButtonVisibility = Visibility.Visible;
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_LeftButtonVisibility property.
-        /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
         public Visibility CloudMessageBoxView_LeftButtonVisibility
         {
@@ -295,13 +242,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_RightButtonWidth" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_RightButtonWidthPropertyName = "CloudMessageBoxView_RightButtonWidth";
-
         private GridLength _cloudMessageBoxView_RightButtonWidth = new GridLength(100);
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_RightButtonWidth property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public GridLength CloudMessageBoxView_RightButtonWidth
         {
             get
@@ -325,13 +266,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_RightButtonMargin" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_RightButtonMarginPropertyName = "CloudMessageBoxView_RightButtonMargin";
-
         private Thickness _cloudMessageBoxView_RightButtonMargin = new Thickness(30, 0, 0, 0);
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_RightButtonMargin property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public Thickness CloudMessageBoxView_RightButtonMargin
         {
             get
@@ -355,13 +290,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_RightButtonContent" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_RightButtonContentPropertyName = "CloudMessageBoxView_RightButtonContent";
-
         private string _cloudMessageBoxView_RightButtonContent = "";
-
-        /// <summary>
-        /// Sets and gets the CloudMessageBoxView_RightButtonContent property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public string CloudMessageBoxView_RightButtonContent
         {
             get

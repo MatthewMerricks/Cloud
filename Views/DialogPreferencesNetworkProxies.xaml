@@ -174,19 +174,19 @@
                 <ColumnDefinition Width="{Binding DialogPreferencesNetworkProxies_RightButtonWidth, Mode=OneWay}"/>
                 <ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
-        	<Button FontSize="13.333" Background="#FF49C3FB" 
+        	<Button x:Name="btnOK" FontSize="16" Background="#FF49C3FB" 
         		Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click" TabIndex="1"
         		Grid.Column="2"
         		Margin="{Binding DialogPreferencesNetworkProxies_LeftButtonMargin, Mode=OneWay}"
         		Content="{Binding DialogPreferencesNetworkProxies_LeftButtonContent, Mode=OneWay}" 
+        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" 
                 Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=OneWay}"
-                ToolTip="Click to close this dialog and lose any changes you made here."/>
-        	<Button x:Name="btnOK" FontSize="13.333" Background="#FF49C3FB" Grid.Column="3"
-        		Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="0"
+                ToolTip="Click to close this dialog and keep the changes you made here.  You must still click OK on the containing preferences dialog to save your changes." />
+        	<Button FontSize="16" Background="#FF49C3FB" Grid.Column="3"
+        		Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click" TabIndex="0"
         		Margin="{Binding DialogPreferencesNetworkProxies_RightButtonMargin, Mode=OneWay}" 
         		Content="{Binding DialogPreferencesNetworkProxies_RightButtonContent, Mode=OneWay}" 
-                ToolTip="Click to close this dialog and keep the changes you made here.  You must still click OK on the containing preferences dialog to save your changes." />
+                ToolTip="Click to close this dialog and lose any changes you made here."/>
         </Grid>
     </Grid>
 </controls:ChildWindow>

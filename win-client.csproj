@@ -186,6 +186,7 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
+    <Compile Include="ViewModels\FramePreferencesAdvancedViewModel.cs" />
     <Compile Include="ViewModels\DialogPreferencesNetworkBandwidthViewModel.cs" />
     <Compile Include="ViewModels\DialogPreferencesNetworkProxiesViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesNetworkViewModel.cs" />
@@ -206,6 +207,9 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\FramePreferencesAdvanced.xaml.cs">
+      <DependentUpon>FramePreferencesAdvanced.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DialogPreferencesNetworkBandwidth.xaml.cs">
       <DependentUpon>DialogPreferencesNetworkBandwidth.xaml</DependentUpon>
     </Compile>
@@ -298,6 +302,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesAdvanced.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

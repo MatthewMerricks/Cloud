@@ -196,6 +196,33 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove this Device?.
+        /// </summary>
+        public static string FramePreferencesAccount_RemoveThisDevice {
+            get {
+                return ResourceManager.GetString("FramePreferencesAccount_RemoveThisDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlink this device from your account?.
+        /// </summary>
+        public static string FramePreferencesAccount_UnlinkThisDevice {
+            get {
+                return ResourceManager.GetString("FramePreferencesAccount_UnlinkThisDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you want to remove this computer from your account?  Other devices in your account will continue to sync your files..
+        /// </summary>
+        public static string FramePreferencesAccount_UnlinkThisDeviceBody {
+            get {
+                return ResourceManager.GetString("FramePreferencesAccount_UnlinkThisDeviceBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string generalCancelButtonContent {
@@ -214,11 +241,29 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No.
+        /// </summary>
+        public static string GeneralNoButtonContent {
+            get {
+                return ResourceManager.GetString("GeneralNoButtonContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         public static string generalOkButtonContent {
             get {
                 return ResourceManager.GetString("generalOkButtonContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Yes.
+        /// </summary>
+        public static string GeneralYesButtonContent {
+            get {
+                return ResourceManager.GetString("GeneralYesButtonContent", resourceCulture);
             }
         }
         

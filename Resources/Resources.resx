@@ -244,4 +244,19 @@
   <data name="DialogPreferencesNetworkBandwidthTitle" xml:space="preserve">
     <value>Cloud Network Bandwidth Preferences</value>
   </data>
+  <data name="FramePreferencesAccount_RemoveThisDevice" xml:space="preserve">
+    <value>Remove this Device?</value>
+  </data>
+  <data name="FramePreferencesAccount_UnlinkThisDevice" xml:space="preserve">
+    <value>Unlink this device from your account?</value>
+  </data>
+  <data name="FramePreferencesAccount_UnlinkThisDeviceBody" xml:space="preserve">
+    <value>Do you want to remove this computer from your account?  Other devices in your account will continue to sync your files.</value>
+  </data>
+  <data name="GeneralNoButtonContent" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="GeneralYesButtonContent" xml:space="preserve">
+    <value>Yes</value>
+  </data>
 </root>

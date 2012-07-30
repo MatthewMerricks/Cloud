@@ -1,5 +1,5 @@
 ﻿//
-//  PagePreferences.xaml.cs
+//  FramePreferencesAdvanced.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -26,33 +26,36 @@ using win_client.AppDelegate;
 using CloudApiPublic.Model;
 using win_client.Model;
 using System.Linq.Expressions;
-using System.Windows.Automation.Peers;
-using System.Windows.Automation.Provider;
 
 namespace win_client.Views
 {
-    public partial class PagePreferences : Page, IOnNavigated
+    public partial class FramePreferencesAdvanced : Page, IOnNavigated
     {
-        #region "Instance Variables"
+        #region "Private Instance Variables"
 
         private bool _isLoaded = false;
+        private FramePreferencesAdvancedViewModel _viewModel = null;
 
         #endregion
+
+        #region "Life Cycle"
 
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public PagePreferences()
+        public FramePreferencesAdvanced()
         {
             InitializeComponent();
 
             // Register event handlers
-            Loaded += new RoutedEventHandler(PagePreferences_Loaded);
-            Unloaded += new RoutedEventHandler(PagePreferences_Unloaded);
+            Loaded += new RoutedEventHandler(FramePreferencesAdvanced_Loaded);
+            Unloaded += new RoutedEventHandler(FramePreferencesAdvanced_Unloaded);
+
+            // Pass the view's grid to the view model for the dialogs to use.
+            _viewModel = (FramePreferencesAdvancedViewModel)DataContext;
         }
 
         #region Dependency Properties
-
 
         public CLPreferences Preferences
         {
@@ -61,12 +64,13 @@ namespace win_client.Views
         }
 
         // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
+        // The big long member expression tree results in an automatically generated string "Preferences".  Better than hardcoding the string.
+        private static readonly string PreferencesPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name;
         public static readonly DependencyProperty PreferencesProperty =
-            DependencyProperty.Register(((MemberExpression)((Expression<Func<PagePreferences, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name, typeof(CLPreferences), typeof(PagePreferences), new PropertyMetadata(null, OnPreferencesChanged));
-
+            DependencyProperty.Register(PreferencesPropertyName, typeof(CLPreferences), typeof(FramePreferencesAdvanced), new PropertyMetadata(null, OnPreferencesChanged));
         private static void OnPreferencesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { }
 
-        // The Page's grid object.  Frame views will pass this grid to the Frame view's ViewModel for use by the modal dialogs so the entire Page window will be grayed and inaccessible.
+        // The Page's grid object.  This view will pass this grid to this view's ViewModel for use by the modal dialogs so the entire Page window will be grayed and inaccessible.
         public Grid PageGrid
         {
             get { return (Grid)GetValue(PageGridProperty); }
@@ -77,57 +81,30 @@ namespace win_client.Views
         // The big long member expression tree results in an automatically generated string "Preferences".
         private static readonly string PageGridPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, Grid>>)(parent => parent.PageGrid)).Body).Member.Name;
         public static readonly DependencyProperty PageGridProperty =
-            DependencyProperty.Register(PageGridPropertyName, typeof(Grid), typeof(PagePreferences), new PropertyMetadata(null, OnPageGridChanged));
-        private static void OnPageGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { } 
+            DependencyProperty.Register(PageGridPropertyName, typeof(Grid), typeof(FramePreferencesAdvanced), new PropertyMetadata(null, OnPageGridChanged));
+        private static void OnPageGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { }
 
         #endregion
 
-        #region "Message Handlers"
-
         /// <summary>
-        /// Loaded event handler
+        /// Loaded event handler.
         /// </summary>
-        void PagePreferences_Loaded(object sender, RoutedEventArgs e)
+        void FramePreferencesAdvanced_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-
-            // Register messages
-            CLAppMessages.PagePreferences_NavigationRequest.Register(this,
-                (uri) =>
-                {
-                    this.NavigationService.Navigate(uri);
-                });
-            CLAppMessages.PagePreferences_FrameNavigationRequest.Register(this,
-                (uri) =>
-                {
-                    this.ContentFrame.NavigationService.Navigate(uri);
-                });
-            CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Register(this,
-                (nextPage) =>
-                {
-                    this.PageGrid = this.LayoutRoot;
-                    this.Preferences = nextPage.Value;
-                    this.ContentFrame.NavigationService.Navigate(nextPage.Key, this);
-                });
-
-            this.ContentFrame.NavigationService.Navigated += MyNavigationWindow.NavigationService_Navigated;
-
-            // Ignore F5 refresh for dialogs in this page's frame.
-            this.ContentFrame.NavigationService.Navigating += MyNavigationWindow.NavigationService_Navigating;
-
-            // Ignore F5 refresh for this page.
-            this.NavigationService.Navigating += MyNavigationWindow.NavigationService_Navigating;
+            _viewModel = DataContext as FramePreferencesAdvancedViewModel;
+            _viewModel.ViewGridContainer = PageGrid;
+            _viewModel.Preferences = Preferences;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            //&&&&cmdContinue.Focus();
         }
 
         /// <summary>
-        /// Unloaded event handler
+        /// Unloaded event handler.
         /// </summary>
-        void PagePreferences_Unloaded(object sender, RoutedEventArgs e)
+        void FramePreferencesAdvanced_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
 
@@ -144,18 +121,25 @@ namespace win_client.Views
                 // Show the window.
                 CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
+                this.SetBinding(PreferencesProperty,
+                    new Binding()
+                    {
+                        Source = e.ExtraData,
+                        Path = new PropertyPath(PreferencesPropertyName),
+                        Mode = BindingMode.OneWay
+                    });
+
+                this.SetBinding(PageGridProperty,
+                    new Binding()
+                    {
+                        Source = e.ExtraData,
+                        Path = new PropertyPath(PageGridPropertyName),
+                        Mode = BindingMode.OneWay
+                    });
+
                 if (_isLoaded)
                 {
-                    // Give focus to the General button.
-                    cmdGeneral.Focus();
-
-                    // And auto-click it.
-                    ButtonAutomationPeer peer = new ButtonAutomationPeer(cmdGeneral);
-                    IInvokeProvider invokeProv = peer.GetPattern(PatternInterface.Invoke) as IInvokeProvider;
-                    if (invokeProv != null)
-                    {
-                        invokeProv.Invoke();
-                    }
+                    //TODO: Give some control focus?  Maybe not.  Only two buttons here.
                 }
             }
             catch (Exception ex)
@@ -169,4 +153,3 @@ namespace win_client.Views
 
     }
 }
-

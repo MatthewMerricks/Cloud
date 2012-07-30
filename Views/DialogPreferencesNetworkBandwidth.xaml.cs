@@ -179,6 +179,5 @@ namespace win_client.Views
                 // txtBox.Text = "1";   // make the user do this.
             }
         }
-
     }
 }

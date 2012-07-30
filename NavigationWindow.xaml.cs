@@ -25,15 +25,22 @@ namespace win_client
     public partial class MyNavigationWindow : NavigationWindow, IDisposable
     {
         private TrayIcon m_trayIcon;
-        private bool disposed = false; 
+        private bool disposed = false;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public MyNavigationWindow()
         {
             this.NavigationService.Navigated += NavigationService_Navigated;
+            this.NavigationService.Navigating += NavigationService_Navigating;
 
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Event handler: Navigated.
+        /// </summary>
         public static void NavigationService_Navigated(object sender, NavigationEventArgs e)
         {
             IOnNavigated castContent = e.Content as IOnNavigated;
@@ -43,6 +50,21 @@ namespace win_client
             }
         }
 
+        /// <summary>
+        /// Event handler: Navigating.
+        /// Ignore F5 refresh.
+        /// </summary>
+        public static void NavigationService_Navigating(object sender, NavigatingCancelEventArgs e) 
+        {
+            if (e.NavigationMode == NavigationMode.Refresh)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        /// <summary>
+        /// IDisposable implementation.
+        /// </summary>
         public void Dispose() 
         { 
             Dispose(true); 
@@ -76,6 +98,9 @@ namespace win_client
             disposed = true; 
         }
 
+        /// <summary>
+        /// Wait for the SourceInitialized event to set up the tray icon.
+        /// </summary>
         private void Window_SourceInitialized(object sender, EventArgs e)
         {
 
@@ -88,6 +113,9 @@ namespace win_client
 
         }
 
+        /// <summary>
+        /// Hide the tray icon if the window is visible, and vice versa.
+        /// </summary>
         private void Window_StateChanged(object sender, EventArgs e)
         {
 
@@ -117,6 +145,9 @@ namespace win_client
 
         }
 
+        /// <summary>
+        /// Event handler: Tray icon left double-click.
+        /// </summary>
         void TrayIcon_LeftDoubleClick(object sender, EventArgs e)
         {
             // If window needs opening...
