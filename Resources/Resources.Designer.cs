@@ -115,6 +115,15 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cloud Network Bandwidth Preferences.
+        /// </summary>
+        public static string DialogPreferencesNetworkBandwidthTitle {
+            get {
+                return ResourceManager.GetString("DialogPreferencesNetworkBandwidthTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cloud Network Proxy Server Preferences.
         /// </summary>
         public static string DialogPreferencesNetworkProxiesTitle {

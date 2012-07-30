@@ -102,7 +102,7 @@ namespace win_client.ViewModels
         {
             get
             {
-                return DialogPreferencesNetworkProxies_Preferences.ProxySettingType == useProxySettingType.useProxySettingNoProxy ? true : false;
+                return _rbProxySettingsNoProxy;
             }
 
             set
@@ -114,14 +114,15 @@ namespace win_client.ViewModels
                         RbProxySettingsAutoDetect = false;
                         RbProxySettingsManual = false;
                         CbServerRequiresAPassword = false;
-                        ProxyActiveInactiveOpacity = _kNoProxyOpacity;          // dim the controls that won't be used
+                        ProxyNoProxyOpacity = _kNoProxyOpacity;
+                        ProxyNoProxyControlsEnabled = false;
                     }
                     else
                     {
-                        ProxyActiveInactiveOpacity = _kProxyActiveOpacity;
+                        ProxyNoProxyOpacity = _kProxyActiveOpacity;
+                        ProxyNoProxyControlsEnabled = true;
                     }
                     _rbProxySettingsNoProxy = value;
-                    DialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingNoProxy;
                     CheckValidation();
                     RaisePropertyChanged(RbProxySettingsNoProxyPropertyName);
                 }
@@ -137,7 +138,7 @@ namespace win_client.ViewModels
         {
             get
             {
-                return DialogPreferencesNetworkProxies_Preferences.ProxySettingType == useProxySettingType.useProxySettingAutoDetect ? true : false;
+                return _rbProxySettingsAutoDetect;
             }
 
             set
@@ -150,7 +151,6 @@ namespace win_client.ViewModels
                         RbProxySettingsManual = false;
                     }
                     _rbProxySettingsAutoDetect = value;
-                    DialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingAutoDetect;
                     CheckValidation();
                     RaisePropertyChanged(RbProxySettingsAutoDetectPropertyName);
                 }
@@ -166,7 +166,7 @@ namespace win_client.ViewModels
         {
             get
             {
-                return DialogPreferencesNetworkProxies_Preferences.ProxySettingType == useProxySettingType.useProxySettingManual ? true : false;
+                return _rbProxySettingsManual;
             }
 
             set
@@ -177,9 +177,15 @@ namespace win_client.ViewModels
                     {
                         RbProxySettingsNoProxy = false;
                         RbProxySettingsAutoDetect = false;
+                        ProxyManualOpacity = _kProxyActiveOpacity;
+                        ProxyManualControlsEnabled = true;
+                    }
+                    else
+                    {
+                        ProxyManualOpacity = _kNoProxyOpacity;
+                        ProxyManualControlsEnabled = false;
                     }
                     _rbProxySettingsManual = value;
-                    DialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingManual;
                     CheckValidation();
                     RaisePropertyChanged(RbProxySettingsManualPropertyName);
                 }
@@ -287,6 +293,16 @@ namespace win_client.ViewModels
                 {
                     return;
                 }
+                if (value)
+                {
+                    ProxyAuthenticationControlsOpacity = _kProxyActiveOpacity;
+                    ProxyAuthenticationControlsEnabled = true;
+                }
+                else
+                {
+                    ProxyAuthenticationControlsOpacity = _kNoProxyOpacity;
+                    ProxyAuthenticationControlsEnabled = false;
+                }
 
                 _cbServerRequiresAPassword = value;
                 CheckValidation();
@@ -385,27 +401,152 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
-        /// The <see cref="ProxyActiveInactiveOpacity" /> property's name.
+        /// The <see cref="ProxyManualOpacity" /> property's name.
         /// Set to dim the controls when "No Proxy" is selected.
         /// </summary>
-        public const string ProxyActiveInactiveOpacityPropertyName = "ProxyActiveInactiveOpacity";
-        private double _proxyActiveInactiveOpacity = 0.0;
-        public double ProxyActiveInactiveOpacity
+        public const string ProxyManualOpacityPropertyName = "ProxyManualOpacity";
+        private double _proxyManualOpacity = 0.0;
+        public double ProxyManualOpacity
         {
             get
             {
-                return _proxyActiveInactiveOpacity;
+                return _proxyManualOpacity;
             }
 
             set
             {
-                if (_proxyActiveInactiveOpacity == value)
+                if (_proxyManualOpacity == value)
                 {
                     return;
                 }
 
-                _proxyActiveInactiveOpacity = value;
-                RaisePropertyChanged(ProxyActiveInactiveOpacityPropertyName);
+                _proxyManualOpacity = value;
+                RaisePropertyChanged(ProxyManualOpacityPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="ProxyManualControlsEnabled" /> property's name.
+        /// Enables the manual proxy setting controls.
+        /// </summary>
+        public const string ProxyManualControlsEnabledPropertyName = "ProxyManualControlsEnabled";
+        private bool _proxyManualControlsEnabled = false;
+        public bool ProxyManualControlsEnabled
+        {
+            get
+            {
+                return _proxyManualControlsEnabled;
+            }
+
+            set
+            {
+                if (_proxyManualControlsEnabled == value)
+                {
+                    return;
+                }
+
+                _proxyManualControlsEnabled = value;
+                RaisePropertyChanged(ProxyManualControlsEnabledPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="ProxyNoProxyOpacity" /> property's name.
+        /// Controls the "Server requires password" checkbox.
+        /// </summary>
+        public const string ProxyNoProxyOpacityPropertyName = "ProxyNoProxyOpacity";
+        private double _proxyNoProxyOpacity = _kProxyActiveOpacity;
+        public double ProxyNoProxyOpacity
+        {
+            get
+            {
+                return _proxyNoProxyOpacity;
+            }
+
+            set
+            {
+                if (_proxyNoProxyOpacity == value)
+                {
+                    return;
+                }
+
+                _proxyNoProxyOpacity = value;
+                RaisePropertyChanged(ProxyNoProxyOpacityPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="ProxyNoProxyControlsEnabled" /> property's name.
+        /// Controls the "Server requires password" checkbox.
+        /// </summary>
+        public const string ProxyNoProxyControlsEnabledPropertyName = "ProxyNoProxyControlsEnabled";
+        private bool _proxyNoProxyControlsEnabled = false;
+        public bool ProxyNoProxyControlsEnabled
+        {
+            get
+            {
+                return _proxyNoProxyControlsEnabled;
+            }
+
+            set
+            {
+                if (_proxyNoProxyControlsEnabled == value)
+                {
+                    return;
+                }
+
+                _proxyNoProxyControlsEnabled = value;
+                RaisePropertyChanged(ProxyNoProxyControlsEnabledPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="ProxyAuthenticationControlsOpacity" /> property's name.
+        /// Changes the proxy authentication control opacity to dim them when the server does not require a password.
+        /// </summary>
+        public const string ProxyAuthenticationControlsOpacityPropertyName = "ProxyAuthenticationControlsOpacity";
+        private double _proxyAuthenticationControlsOpacity = _kProxyActiveOpacity;
+        public double ProxyAuthenticationControlsOpacity
+        {
+            get
+            {
+                return _proxyAuthenticationControlsOpacity;
+            }
+
+            set
+            {
+                if (_proxyAuthenticationControlsOpacity == value)
+                {
+                    return;
+                }
+
+                _proxyAuthenticationControlsOpacity = value;
+                RaisePropertyChanged(ProxyAuthenticationControlsOpacityPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="ProxyAuthenticationControlsEnabled" /> property's name.
+        /// Enables the proxy server authentication controls.
+        /// </summary>
+        public const string ProxyAuthenticationControlsEnabledPropertyName = "ProxyAuthenticationControlsEnabled";
+        private bool _proxyAuthenticationControlsEnabled = false;
+        public bool ProxyAuthenticationControlsEnabled
+        {
+            get
+            {
+                return _proxyAuthenticationControlsEnabled;
+            }
+
+            set
+            {
+                if (_proxyAuthenticationControlsEnabled == value)
+                {
+                    return;
+                }
+
+                _proxyAuthenticationControlsEnabled = value;
+                RaisePropertyChanged(ProxyAuthenticationControlsEnabledPropertyName);
             }
         }
 
@@ -413,26 +554,22 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_Title" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_TitlePropertyName = "DialogPreferencesNetworkProxies_Title";
-        private string _DialogPreferencesNetworkProxies_Title = "";
-        /// <summary>
-        /// Sets and gets the DialogPreferencesNetworkProxies_Title property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
+        private string _dialogPreferencesNetworkProxies_Title = "";
         public string DialogPreferencesNetworkProxies_Title
         {
             get
             {
-                return _DialogPreferencesNetworkProxies_Title;
+                return _dialogPreferencesNetworkProxies_Title;
             }
 
             set
             {
-                if (_DialogPreferencesNetworkProxies_Title == value)
+                if (_dialogPreferencesNetworkProxies_Title == value)
                 {
                     return;
                 }
 
-                _DialogPreferencesNetworkProxies_Title = value;
+                _dialogPreferencesNetworkProxies_Title = value;
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_TitlePropertyName);
             }
         }
@@ -441,28 +578,22 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_WindowWidth" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_WindowWidthPropertyName = "DialogPreferencesNetworkProxies_WindowWidth";
-
-        private int _DialogPreferencesNetworkProxies_WindowWidth = 325;
-
-        /// <summary>
-        /// Sets and gets the DialogPreferencesNetworkProxies_WindowWidth property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
+        private int _dialogPreferencesNetworkProxies_WindowWidth = 325;
         public int DialogPreferencesNetworkProxies_WindowWidth
         {
             get
             {
-                return _DialogPreferencesNetworkProxies_WindowWidth;
+                return _dialogPreferencesNetworkProxies_WindowWidth;
             }
 
             set
             {
-                if (_DialogPreferencesNetworkProxies_WindowWidth == value)
+                if (_dialogPreferencesNetworkProxies_WindowWidth == value)
                 {
                     return;
                 }
 
-                _DialogPreferencesNetworkProxies_WindowWidth = value;
+                _dialogPreferencesNetworkProxies_WindowWidth = value;
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_WindowWidthPropertyName);
             }
         }
@@ -471,28 +602,22 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_WindowHeight" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_WindowHeightPropertyName = "DialogPreferencesNetworkProxies_WindowHeight";
-
-        private int _DialogPreferencesNetworkProxies_WindowHeight = 210;
-
-        /// <summary>
-        /// Sets and gets the DialogPreferencesNetworkProxies_WindowHeight property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
+        private int _dialogPreferencesNetworkProxies_WindowHeight = 210;
         public int DialogPreferencesNetworkProxies_WindowHeight
         {
             get
             {
-                return _DialogPreferencesNetworkProxies_WindowHeight;
+                return _dialogPreferencesNetworkProxies_WindowHeight;
             }
 
             set
             {
-                if (_DialogPreferencesNetworkProxies_WindowHeight == value)
+                if (_dialogPreferencesNetworkProxies_WindowHeight == value)
                 {
                     return;
                 }
 
-                _DialogPreferencesNetworkProxies_WindowHeight = value;
+                _dialogPreferencesNetworkProxies_WindowHeight = value;
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_WindowHeightPropertyName);
             }
         }
@@ -502,7 +627,7 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_LeftButtonWidth" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_LeftButtonWidthPropertyName = "DialogPreferencesNetworkProxies_LeftButtonWidth";
-        private GridLength _DialogPreferencesNetworkProxies_LeftButtonWidth = new GridLength(75);
+        private GridLength _dialogPreferencesNetworkProxies_LeftButtonWidth = new GridLength(75);
         /// <summary>
         /// Sets and gets the DialogPreferencesNetworkProxies_LeftButtonWidth property.
         /// Changes to that property's value raise the PropertyChanged event. 
@@ -515,17 +640,17 @@ namespace win_client.ViewModels
         {
             get
             {
-                return _DialogPreferencesNetworkProxies_LeftButtonWidth;
+                return _dialogPreferencesNetworkProxies_LeftButtonWidth;
             }
 
             set
             {
-                if (_DialogPreferencesNetworkProxies_LeftButtonWidth == value)
+                if (_dialogPreferencesNetworkProxies_LeftButtonWidth == value)
                 {
                     return;
                 }
 
-                _DialogPreferencesNetworkProxies_LeftButtonWidth = value;
+                _dialogPreferencesNetworkProxies_LeftButtonWidth = value;
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_LeftButtonWidthPropertyName);
             }
         }
@@ -534,26 +659,22 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_LeftButtonMargin" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_LeftButtonMarginPropertyName = "DialogPreferencesNetworkProxies_LeftButtonMargin";
-        private Thickness _DialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(30, 0, 0, 0);
-        /// <summary>
-        /// Sets and gets the DialogPreferencesNetworkProxies_LeftButtonMargin property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
+        private Thickness _dialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(30, 0, 0, 0);
         public Thickness DialogPreferencesNetworkProxies_LeftButtonMargin
         {
             get
             {
-                return _DialogPreferencesNetworkProxies_LeftButtonMargin;
+                return _dialogPreferencesNetworkProxies_LeftButtonMargin;
             }
 
             set
             {
-                if (_DialogPreferencesNetworkProxies_LeftButtonMargin == value)
+                if (_dialogPreferencesNetworkProxies_LeftButtonMargin == value)
                 {
                     return;
                 }
 
-                _DialogPreferencesNetworkProxies_LeftButtonMargin = value;
+                _dialogPreferencesNetworkProxies_LeftButtonMargin = value;
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_LeftButtonMarginPropertyName);
             }
         }
@@ -562,28 +683,22 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_LeftButtonContent" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_LeftButtonContentPropertyName = "DialogPreferencesNetworkProxies_LeftButtonContent";
-
-        private string _DialogPreferencesNetworkProxies_LeftButtonContent = "";
-
-        /// <summary>
-        /// Sets and gets the DialogPreferencesNetworkProxies_LeftButtonContent property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
+        private string _dialogPreferencesNetworkProxies_LeftButtonContent = "";
         public string DialogPreferencesNetworkProxies_LeftButtonContent
         {
             get
             {
-                return _DialogPreferencesNetworkProxies_LeftButtonContent;
+                return _dialogPreferencesNetworkProxies_LeftButtonContent;
             }
 
             set
             {
-                if (_DialogPreferencesNetworkProxies_LeftButtonContent == value)
+                if (_dialogPreferencesNetworkProxies_LeftButtonContent == value)
                 {
                     return;
                 }
 
-                _DialogPreferencesNetworkProxies_LeftButtonContent = value;
+                _dialogPreferencesNetworkProxies_LeftButtonContent = value;
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_LeftButtonContentPropertyName);
             }
         }
@@ -592,28 +707,22 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_RightButtonWidth" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_RightButtonWidthPropertyName = "DialogPreferencesNetworkProxies_RightButtonWidth";
-
-        private GridLength _DialogPreferencesNetworkProxies_RightButtonWidth = new GridLength(75);
-
-        /// <summary>
-        /// Sets and gets the DialogPreferencesNetworkProxies_RightButtonWidth property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
+        private GridLength _dialogPreferencesNetworkProxies_RightButtonWidth = new GridLength(75);
         public GridLength DialogPreferencesNetworkProxies_RightButtonWidth
         {
             get
             {
-                return _DialogPreferencesNetworkProxies_RightButtonWidth;
+                return _dialogPreferencesNetworkProxies_RightButtonWidth;
             }
 
             set
             {
-                if (_DialogPreferencesNetworkProxies_RightButtonWidth == value)
+                if (_dialogPreferencesNetworkProxies_RightButtonWidth == value)
                 {
                     return;
                 }
 
-                _DialogPreferencesNetworkProxies_RightButtonWidth = value;
+                _dialogPreferencesNetworkProxies_RightButtonWidth = value;
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_RightButtonWidthPropertyName);
             }
         }
@@ -622,28 +731,22 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_RightButtonMargin" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_RightButtonMarginPropertyName = "DialogPreferencesNetworkProxies_RightButtonMargin";
-
-        private Thickness _DialogPreferencesNetworkProxies_RightButtonMargin = new Thickness(30, 0, 0, 0);
-
-        /// <summary>
-        /// Sets and gets the DialogPreferencesNetworkProxies_RightButtonMargin property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
+        private Thickness _dialogPreferencesNetworkProxies_RightButtonMargin = new Thickness(30, 0, 0, 0);
         public Thickness DialogPreferencesNetworkProxies_RightButtonMargin
         {
             get
             {
-                return _DialogPreferencesNetworkProxies_RightButtonMargin;
+                return _dialogPreferencesNetworkProxies_RightButtonMargin;
             }
 
             set
             {
-                if (_DialogPreferencesNetworkProxies_RightButtonMargin == value)
+                if (_dialogPreferencesNetworkProxies_RightButtonMargin == value)
                 {
                     return;
                 }
 
-                _DialogPreferencesNetworkProxies_RightButtonMargin = value;
+                _dialogPreferencesNetworkProxies_RightButtonMargin = value;
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_RightButtonMarginPropertyName);
             }
         }
@@ -652,28 +755,22 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_RightButtonContent" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_RightButtonContentPropertyName = "DialogPreferencesNetworkProxies_RightButtonContent";
-
-        private string _DialogPreferencesNetworkProxies_RightButtonContent = "";
-
-        /// <summary>
-        /// Sets and gets the DialogPreferencesNetworkProxies_RightButtonContent property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
+        private string _dialogPreferencesNetworkProxies_RightButtonContent = "";
         public string DialogPreferencesNetworkProxies_RightButtonContent
         {
             get
             {
-                return _DialogPreferencesNetworkProxies_RightButtonContent;
+                return _dialogPreferencesNetworkProxies_RightButtonContent;
             }
 
             set
             {
-                if (_DialogPreferencesNetworkProxies_RightButtonContent == value)
+                if (_dialogPreferencesNetworkProxies_RightButtonContent == value)
                 {
                     return;
                 }
 
-                _DialogPreferencesNetworkProxies_RightButtonContent = value;
+                _dialogPreferencesNetworkProxies_RightButtonContent = value;
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_RightButtonContentPropertyName);
             }
         }
@@ -792,14 +889,40 @@ namespace win_client.ViewModels
                                                   _proxyServerPassword2 = string.Empty;
                                               }
 
-                                              // Make sure the proper opacity is set
-                                              if (_rbProxySettingsNoProxy)
+                                              // Make sure the proper opacity is set based on the proxy manual setting type.
+                                              if (_rbProxySettingsManual)
                                               {
-                                                  ProxyActiveInactiveOpacity = _kNoProxyOpacity;
+                                                  ProxyManualOpacity = _kProxyActiveOpacity;
+                                                  ProxyManualControlsEnabled = true;
                                               }
                                               else
                                               {
-                                                  ProxyActiveInactiveOpacity = _kProxyActiveOpacity;
+                                                  ProxyManualOpacity = _kNoProxyOpacity;
+                                                  ProxyManualControlsEnabled = false;
+                                              }
+
+                                              // Make sure the proper opacity is set based on the proxy "No Proxy" setting type
+                                              if (_rbProxySettingsNoProxy)
+                                              {
+                                                  ProxyNoProxyOpacity = _kNoProxyOpacity;
+                                                  ProxyNoProxyControlsEnabled = false;
+                                              }
+                                              else
+                                              {
+                                                  ProxyNoProxyOpacity = _kProxyActiveOpacity;
+                                                  ProxyNoProxyControlsEnabled = true;
+                                              }
+
+                                              // Make sure the proper opacity is set based on the "Server requires password" checkbox.
+                                              if (_cbServerRequiresAPassword)
+                                              {
+                                                  ProxyAuthenticationControlsOpacity = _kProxyActiveOpacity;
+                                                  ProxyAuthenticationControlsEnabled = true;
+                                              }
+                                              else
+                                              {
+                                                  ProxyAuthenticationControlsOpacity = _kNoProxyOpacity;
+                                                  ProxyAuthenticationControlsEnabled = false;
                                               }
                                           }));
             }

@@ -154,42 +154,37 @@ namespace win_client.ViewModels
                     ?? (_framePreferencesNetwork_ChangeBandwidthSettings = new RelayCommand(
                                             () =>
                                             {
-                                                //TODO: Actually check to see if there are any updates.
-                                                //CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
-                                                //    windowHeight: 250,
-                                                //    leftButtonWidth: 75,
-                                                //    rightButtonWidth: 75,
-                                                //    title: "Remove this Device?",
-                                                //    headerText: "Unlink this device from your account?",
-                                                //    bodyText: "Do you want to remove this computer from your account?  Other devices in your account will continue to sync your files.",
-                                                //    leftButtonContent: "No",
-                                                //    rightButtonContent: "Yes",
-                                                //    container: ViewGridContainer,
-                                                //    dialog: out _dialog,
-                                                //    actionResultHandler: 
-                                                //        returnedViewModelInstance =>
-                                                //        {
-                                                //            // Do nothing here when the user clicks the OK button.
-                                                //            _trace.writeToLog(9, "FramePreferencesNetwork: Unlink device: Entry.");
-                                                //            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
-                                                //            {
-                                                //                // The user said yes.  Unlink this device.
-                                                //                _trace.writeToLog(9, "FramePreferencesNetwork: Unlink device: User said yes.");
-                                                //                CLError error = null;
-                                                //                CLAppDelegate.Instance.UnlinkFromCloudDotCom(out error);
-                                                //                //TODO: Handle any errors here.
-
-                                                //                // Restart ourselves now
-                                                //                System.Windows.Forms.Application.Restart();
-                                                //                System.Windows.Application.Current.Shutdown();
-                                                //            }
-                                                //            else
-                                                //            {
-                                                //                // The user said no.  Do nothing.
-                                                //            }
-                                                //        }
-                                                //);
-                                          }));
+                                                _dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_PreferencesNetworkBandwidth);
+                                                IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
+                                                modalDialogService.ShowDialog(
+                                                            this._dialog,
+                                                            new DialogPreferencesNetworkBandwidthViewModel
+                                                            {
+                                                                DialogPreferencesNetworkBandwidth_Preferences = this.Preferences,
+                                                                DialogPreferencesNetworkBandwidth_Title = _rm.GetString("DialogPreferencesNetworkBandwidthTitle"),
+                                                                DialogPreferencesNetworkBandwidth_WindowWidth = 504,
+                                                                DialogPreferencesNetworkBandwidth_WindowHeight = 325,
+                                                                DialogPreferencesNetworkBandwidth_LeftButtonWidth = new GridLength(120),
+                                                                DialogPreferencesNetworkBandwidth_LeftButtonMargin = new Thickness(0, 0, 50, 0),
+                                                                DialogPreferencesNetworkBandwidth_LeftButtonContent = _rm.GetString("generalCancelButtonContent"),
+                                                                DialogPreferencesNetworkBandwidth_RightButtonWidth = new GridLength(75),
+                                                                DialogPreferencesNetworkBandwidth_RightButtonMargin = new Thickness(0, 0, 0, 0),
+                                                                DialogPreferencesNetworkBandwidth_RightButtonContent = _rm.GetString("generalOkButtonContent"),
+                                                            },
+                                                            this.ViewGridContainer,
+                                                            returnedViewModelInstance =>
+                                                            {
+                                                                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                                                {
+                                                                    // The user said yes.
+                                                                }
+                                                                else
+                                                                {
+                                                                    // The user said no.
+                                                                }
+                                                            }
+                                                );
+                                            }));
             }
         }
 
@@ -213,8 +208,8 @@ namespace win_client.ViewModels
                                                             {
                                                                 DialogPreferencesNetworkProxies_Preferences = this.Preferences,
                                                                 DialogPreferencesNetworkProxies_Title = _rm.GetString("DialogPreferencesNetworkProxiesTitle"),
-                                                                DialogPreferencesNetworkProxies_WindowWidth = 515,
-                                                                DialogPreferencesNetworkProxies_WindowHeight = 420,
+                                                                DialogPreferencesNetworkProxies_WindowWidth = 504,
+                                                                DialogPreferencesNetworkProxies_WindowHeight = 386,
                                                                 DialogPreferencesNetworkProxies_LeftButtonWidth = new GridLength(120),
                                                                 DialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(0, 0, 50, 0),
                                                                 DialogPreferencesNetworkProxies_LeftButtonContent = _rm.GetString("generalCancelButtonContent"),

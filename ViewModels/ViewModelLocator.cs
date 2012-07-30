@@ -84,11 +84,13 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogCloudMessageBoxView(), CLConstants.kDialogBox_CloudMessageBoxView, false);
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogFolderSelectionSimpleView(), CLConstants.kDialogBox_FolderSelectionSimpleView, false);
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkProxies(), CLConstants.kDialogBox_PreferencesNetworkProxies, false);
+            SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkBandwidth(), CLConstants.kDialogBox_PreferencesNetworkBandwidth, false);
 
             // Modal dialog view models
             SimpleIoc.Default.Register<DialogCloudMessageBoxViewModel>();
             SimpleIoc.Default.Register<DialogFolderSelectionSimpleViewModel>();
             SimpleIoc.Default.Register<DialogPreferencesNetworkProxiesViewModel>();
+            SimpleIoc.Default.Register<DialogPreferencesNetworkBandwidthViewModel>();
 
             // Growls
             SimpleIoc.Default.Register<FancyBalloon>();
@@ -348,6 +350,20 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// Gets the DialogPreferencesNetworkBandwidth property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public DialogPreferencesNetworkBandwidth DialogPreferencesNetworkBandwidth
+        {
+            get
+            {
+                return (DialogPreferencesNetworkBandwidth)ServiceLocator.Current.GetInstance<DialogPreferencesNetworkBandwidth>(CLConstants.kDialogBox_PreferencesNetworkBandwidth);
+            }
+        }
+
+        /// <summary>
         /// Gets the DialogCloudMessageBoxViewModel property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
@@ -386,6 +402,20 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<DialogPreferencesNetworkProxiesViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the DialogPreferencesNetworkBandwidthViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public DialogPreferencesNetworkBandwidthViewModel DialogPreferencesNetworkBandwidthViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<DialogPreferencesNetworkBandwidthViewModel>();
             }
         }
 

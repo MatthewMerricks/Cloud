@@ -25,9 +25,8 @@
     Grid.RowSpan="2147483647"
     Grid.ColumnSpan="2147483647"
     Caption="{Binding DialogPreferencesNetworkProxies_Title, Mode=OneWay}" 
-    Height="420"
-    Width="515"
-    WindowBorderBrush="{x:Static SystemColors.ActiveCaptionBrush}"
+    Height="{Binding DialogPreferencesNetworkProxies_WindowHeight, Mode=OneWay}"
+    Width="{Binding DialogPreferencesNetworkProxies_WindowWidth, Mode=OneWay}"
     Name="DialogPreferencesNetworkProxiesRoot"
     >
     
@@ -104,15 +103,15 @@
             
             <!-- Proxy Type -->
             <TextBlock TextWrapping="Wrap" Text="Proxy type: " Foreground="Black" FontSize="16" Grid.Row="5" TextAlignment="Right" VerticalAlignment="Center" Height="Auto"
-                       Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}" />
+                       Opacity="{Binding ProxyManualOpacity, Mode=OneWay}" />
             <ComboBox x:Name="cbProxyType" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150" Grid.Column="1" Grid.Row="5" MinWidth="150" FontSize="16" Margin="10,0,0,0"
                     ItemsSource="{Binding Source={StaticResource dataFromEnum}}" ToolTip="Select the type of the proxy server to use."
                     SelectedValue="{Binding CbProxyType, Mode=TwoWay, Converter={StaticResource DebugConverter}}" Height="Auto"
-                    Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}" >
+                    Opacity="{Binding ProxyManualOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyManualControlsEnabled, Mode=OneWay}" >
               <ComboBox.ItemTemplate>
                   <DataTemplate>
                       <TextBlock Text="{Binding Path=. ,Mode=OneWay, Converter={StaticResource EnumToFriendlyNameConverter}}" FontSize="16" Height="Auto"
-                                 Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}">
+                                 Opacity="{Binding ProxyManualOpacity, Mode=OneWay}">
                       </TextBlock>
                   </DataTemplate>
               </ComboBox.ItemTemplate>
@@ -120,23 +119,23 @@
 
             <!-- Server -->
             <TextBlock TextWrapping="Wrap" Text="Proxy Server: " Foreground="Black" FontSize="16" Grid.Row="7" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" 
-                       Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}"/>
+                       Opacity="{Binding ProxyManualOpacity, Mode=OneWay}"/>
             <StackPanel Grid.Column="1" Grid.Row="7" Orientation="Horizontal" >               
                 <TextBox x:Name="tbProxyServerAddress" TextAlignment="Left" Foreground="Black" Grid.Column="1" Grid.Row="7"
                              Text="{Binding ProxyServerAddress, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="16" Width="225" Height="Auto" Margin="10,0,0,0"
                              HorizontalAlignment="Left" VerticalAlignment="Center"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
-                             Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}"
+                             Opacity="{Binding ProxyManualOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyManualControlsEnabled, Mode=OneWay}" 
                              ToolTip="Enter the network address of the proxy server (URL)." >
                 </TextBox>
                 <TextBlock TextWrapping="Wrap" Text=":" Foreground="Black" FontSize="13.333" Grid.Column="1" Grid.Row="7" TextAlignment="Left" VerticalAlignment="Center" Height="Auto" Margin="5,0,0,0"
-                           Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}"/>
+                           Opacity="{Binding ProxyManualOpacity, Mode=OneWay}"/>
                 <TextBox x:Name="tbProxyServerPort" TextAlignment="Left" Foreground="Black" Grid.Column="1" Grid.Row="7" VerticalAlignment="Center"
                              Text="{Binding ProxyServerPort, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="16" Width="75" Margin="5,0,0,0"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
-                             Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}"
+                             Opacity="{Binding ProxyManualOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyManualControlsEnabled, Mode=OneWay}" 
                              ToolTip="Enter the port number used for the proxy server, or leave blank if a specific server port is not configured.">
                 </TextBox>
             </StackPanel>
@@ -144,27 +143,27 @@
             <!-- Server Authentication -->
             <CheckBox x:Name="chkServerRequiresAPassword" Content="Proxy Server requires a password" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="9" Grid.Column="1" FontSize="16" Width="250" 
                       IsChecked="{Binding CbServerRequiresAPassword, Mode=TwoWay}" Height="Auto" Margin="10,0,0,0"
-                      Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}"
+                      Opacity="{Binding ProxyNoProxyOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyNoProxyControlsEnabled, Mode=OneWay}"
                       ToolTip="Check this box if the proxy server requires login credentials."/>
             <TextBlock TextWrapping="Wrap" Text="User name: " Foreground="Black" FontSize="16" Grid.Row="10" TextAlignment="Right" VerticalAlignment="Center" Height="Auto"
-                       Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}"/>
+                       Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}"/>
             <TextBox x:Name="tbProxyServerUsername" TextAlignment="Left" Foreground="Black" Margin="10,0,0,0" Grid.Column="1" Grid.Row="10"
                              Text="{Binding ProxyServerUsername, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="16" Width="250"
                              HorizontalAlignment="Left" VerticalAlignment="Center"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
-                             Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}"
+                             Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyAuthenticationControlsEnabledPropertyName, Mode=OneWay}"
                              ToolTip="Enter the proxy server login user name.">
             </TextBox>
             <TextBlock TextWrapping="Wrap" Text="Password: " Foreground="Black" FontSize="16" Grid.Row="12" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" 
-                       Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}"/>
+                       Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}"/>
             <commonClient:SecurePasswordBox x:Name="tbProxyServerPassword" TextAlignment="Left" Foreground="Black" Margin="10,0,0,0" Grid.Column="1" Grid.Row="12"
                              Text="{Binding ProxyServerPassword, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="16" Width="250"
                              HorizontalAlignment="Left" VerticalAlignment="Center"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
-                            Opacity="{Binding ProxyActiveInactiveOpacity, Mode=OneWay}"
-                            ToolTip="Enter the proxy server login password.">
+                             Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyAuthenticationControlsEnabledPropertyName, Mode=OneWay}"
+                             ToolTip="Enter the proxy server login password.">
             </commonClient:SecurePasswordBox>
         </Grid>
         <Grid Grid.Row="2" Grid.RowSpan="1" >
@@ -187,7 +186,7 @@
         		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="0"
         		Margin="{Binding DialogPreferencesNetworkProxies_RightButtonMargin, Mode=OneWay}" 
         		Content="{Binding DialogPreferencesNetworkProxies_RightButtonContent, Mode=OneWay}" 
-                ToolTip="Click to close this dialog and keep the changes you made here.  You must still click OK on the parent preferences dialog to save your changes." />
+                ToolTip="Click to close this dialog and keep the changes you made here.  You must still click OK on the containing preferences dialog to save your changes." />
         </Grid>
     </Grid>
 </controls:ChildWindow>

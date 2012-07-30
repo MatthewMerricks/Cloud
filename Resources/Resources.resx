@@ -241,4 +241,7 @@
   <data name="PagePreferencesNetworkTitle" xml:space="preserve">
     <value>Cloud Network Preferences</value>
   </data>
+  <data name="DialogPreferencesNetworkBandwidthTitle" xml:space="preserve">
+    <value>Cloud Network Bandwidth Preferences</value>
+  </data>
 </root>

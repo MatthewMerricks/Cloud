@@ -37,6 +37,7 @@ namespace win_client.Common
             DialogPreferencesNetworkProxies_GetClearPasswordField,
             DialogPreferencesNetworkProxies_SetClearPasswordField,
             DialogPreferencesNetworkProxies_FocusToError_Message,
+            DialogPreferencesNetworkBandwidth_FocusToError_Message,
 
             // Navigation requests
             PageCloudFolderMissing_NavigationRequest,
@@ -233,6 +234,19 @@ namespace win_client.Common
             public static void Register(object recipient, Action<string> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.DialogPreferencesNetworkProxies_FocusToError_Message, action);
+            }
+        }
+
+        public static class DialogPreferencesNetworkBandwidth_FocusToError_Message
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.DialogPreferencesNetworkBandwidth_FocusToError_Message);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.DialogPreferencesNetworkBandwidth_FocusToError_Message, action);
             }
         }
 

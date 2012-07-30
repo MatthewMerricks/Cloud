@@ -107,7 +107,6 @@ namespace win_client.Views
         void DialogPreferencesNetworkProxies_Loaded(object sender, RoutedEventArgs e)
         {
             // Register messages
-            CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Register(this, OnDialogPreferencesNetworkProxies_GetClearPasswordField);
             CLAppMessages.DialogPreferencesNetworkProxies_FocusToError_Message.Register(this, OnDialogPreferencesNetworkProxies_FocusToError_Message);
             CLAppMessages.DialogPreferencesNetworkProxies_GetClearPasswordField.Register(this, OnDialogPreferencesNetworkProxies_GetClearPasswordField);
             CLAppMessages.DialogPreferencesNetworkProxies_SetClearPasswordField.Register(this, OnDialogPreferencesNetworkProxies_SetClearPasswordField);
