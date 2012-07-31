@@ -96,12 +96,13 @@ namespace CloudApiPublic.Model
             }
             if (err == null)
             {
-                return ((CLError)new Exception("FileStream added first instead of exception")) + fStream;
+                return ((CLError)new Exception(FileStreamFirstMessage)) + fStream;
             }
 
             err.AddFileStream(fStream);
             return err;
         }
+        public const string FileStreamFirstMessage = "FileStream added first instead of exception";
 
         // Added so we can append FileStream objects which can later be disposed upon error handling
         // -David

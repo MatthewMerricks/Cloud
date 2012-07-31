@@ -43,7 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExecutableException.cs" />
-    <Compile Include="FileChangeWithDependencies.cs" />
     <Compile Include="GlobalSyncEvents.cs" />
     <Compile Include="IExecutableException.cs" />
     <Compile Include="Sync.cs" />
