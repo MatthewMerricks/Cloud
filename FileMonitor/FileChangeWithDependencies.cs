@@ -7,30 +7,31 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 
-namespace Sync
+namespace FileMonitor
 {
     /// <summary>
     /// Extension of FileChange to add a property for Dependencies
     /// </summary>
-    internal sealed class FileChangeWithDependencies : FileChange
+    public sealed class FileChangeWithDependencies : FileChange
     {
         /// <summary>
         /// Array copy of the current list of dependencies
         /// ¡¡ Do not call this just to get a count, instead use DependenciesCount !!
         /// </summary>
-        public FileChange[] Dependencies
+        public KeyValuePair<FileChange, FileStream>[] Dependencies
         {
             get
             {
                 return _dependencies.ToArray();
             }
         }
-        private List<FileChange> _dependencies;
+        private List<KeyValuePair<FileChange, FileStream>> _dependencies;
         /// <summary>
         /// Count of current list of dependencies
         /// </summary>
@@ -50,7 +51,7 @@ namespace Sync
         /// <param name="rebuiltFileChange">Output change with dependencies</param>
         /// <param name="DelayCompletedLocker">Optional DelayCompletedLocker required for DelayProcessable methods</param>
         /// <returns>Returns an error in constructing the FileChangeWithDependencies, if any</returns>
-        public CLError CreateAndInitialize(FileChange baseChange, IEnumerable<FileChange> initialDependencies, out FileChangeWithDependencies rebuiltFileChange, object DelayCompletedLocker = null)
+        public CLError CreateAndInitialize(FileChange baseChange, IEnumerable<KeyValuePair<FileChange, FileStream>> initialDependencies, out FileChangeWithDependencies rebuiltFileChange, object DelayCompletedLocker = null)
         {
             try
             {
@@ -73,21 +74,21 @@ namespace Sync
         }
 
         // Base constructor with locker for DelayProcessesable methods followed by copy of parameters from baseChange
-        private FileChangeWithDependencies(FileChange baseChange, IEnumerable<FileChange> initialDependencies, object DelayCompletedLocker)
+        private FileChangeWithDependencies(FileChange baseChange, IEnumerable<KeyValuePair<FileChange, FileStream>> initialDependencies, object DelayCompletedLocker)
             : base(DelayCompletedLocker)
         {
             FillInObjectFromConstructionParameters(baseChange, initialDependencies);
         }
 
         // Base constructor without locker for DelayProcessesable methods followed by copy of parameters from baseChange
-        private FileChangeWithDependencies(FileChange baseChange, IEnumerable<FileChange> initialDependencies)
+        private FileChangeWithDependencies(FileChange baseChange, IEnumerable<KeyValuePair<FileChange, FileStream>> initialDependencies)
             : base()
         {
             FillInObjectFromConstructionParameters(baseChange, initialDependencies);
         }
 
         // Copies parameters from baseChange, sets initial dependency list
-        private void FillInObjectFromConstructionParameters(FileChange baseChange, IEnumerable<FileChange> initialDependencies)
+        private void FillInObjectFromConstructionParameters(FileChange baseChange, IEnumerable<KeyValuePair<FileChange, FileStream>> initialDependencies)
         {
             if (baseChange == null)
             {
@@ -109,7 +110,22 @@ namespace Sync
             base.SetMD5(previousMD5Bytes);
             base.FailureCounter = baseChange.FailureCounter;
 
-            this._dependencies = new List<FileChange>(initialDependencies ?? new FileChange[0]);
+            this._dependencies = new List<KeyValuePair<FileChange, FileStream>>(initialDependencies ?? Enumerable.Empty<KeyValuePair<FileChange, FileStream>>());
+        }
+
+        /// <summary>
+        /// Removes a dependency from the internal list, more expensive than the other overload
+        /// </summary>
+        /// <param name="toRemove">Dependency to remove</param>
+        /// <returns>Returns true if dependency was found and removed, otherwise false</returns>
+        public bool RemoveDependency(FileChange toRemove)
+        {
+            Nullable<KeyValuePair<FileChange, FileStream>> foundItem = this._dependencies.FirstOrDefault(currentDependency => currentDependency.Key == toRemove);
+            if (foundItem == null)
+            {
+                return false;
+            }
+            return this._dependencies.Remove((KeyValuePair<FileChange, FileStream>)foundItem);
         }
 
         /// <summary>
@@ -117,9 +133,24 @@ namespace Sync
         /// </summary>
         /// <param name="toRemove">Dependency to remove</param>
         /// <returns>Returns true if dependency was found and removed, otherwise false</returns>
-        public bool RemoveDependency(FileChange toRemove)
+        public bool RemoveDependency(KeyValuePair<FileChange, FileStream> toRemove)
         {
             return this._dependencies.Remove(toRemove);
+        }
+
+        /// <summary>
+        /// Adds a dependency to the internal list, more expensive than the other overload
+        /// </summary>
+        /// <param name="toAdd">Dependency to add</param>
+        /// <returns>Returns true if the dependency did not already exist and was added, otherwise false</returns>
+        public bool AddDependency(FileChange toAdd)
+        {
+            if (this._dependencies.Any(currentDependency => currentDependency.Key == toAdd))
+            {
+                return false;
+            }
+            this._dependencies.Add(new KeyValuePair<FileChange, FileStream>(toAdd, null));
+            return true;
         }
 
         /// <summary>
@@ -127,7 +158,7 @@ namespace Sync
         /// </summary>
         /// <param name="toAdd">Dependency to add</param>
         /// <returns>Returns true if the dependency did not already exist and was added, otherwise false</returns>
-        public bool AddDependency(FileChange toAdd)
+        public bool AddDependency(KeyValuePair<FileChange, FileStream> toAdd)
         {
             if (this._dependencies.Contains(toAdd))
             {
