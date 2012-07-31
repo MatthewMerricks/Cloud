@@ -17,6 +17,7 @@ using CloudApiPrivate.Static;
 using CloudApiPublic.Static;
 using CloudApiPrivate.Static.FriendlyEnumValues;
 using CloudApiPrivate.Resources;
+using CloudApiPublic.Model;
 
 
 namespace CloudApiPrivate.Model.Settings
@@ -690,8 +691,7 @@ namespace CloudApiPrivate.Model.Settings
             _udidRegistered = false;
     
             // Advanced
-            _cloudFolderPath = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));  // get the user's home directory.  e.g., C:\Users\<UserName>\
-            _cloudFolderPath = _cloudFolderPath + "\\" + CLPrivateDefinitions.CloudDirectoryName;
+            _cloudFolderPath = GetDefaultCloudFolderPath();
             _cloudFolderCreationTimeUtc = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
             // Index Services
@@ -1053,6 +1053,35 @@ namespace CloudApiPrivate.Model.Settings
             // Now persist the result
             _recentFileItems = CLExtensionMethods.DeepCopy(recents);
             SettingsBase.Write<List<string>>("recent_items", _recentFileItems);
+        }
+
+        /// <summary>
+        /// Get the default Cloud folder path.
+        /// </summary>
+        public string GetDefaultCloudFolderPath()
+        {
+            string folder = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));  // get the user's home directory.  e.g., C:\Users\<UserName>\
+            folder = folder + "\\" + CLPrivateDefinitions.CloudDirectoryName;
+            return folder;
+        }
+
+        /// <summary>
+        /// Move the Cloud folder to a new location.
+        /// <param name="existingPath">The full path of the existing Cloud location.</param>
+        /// <param name="newPath">The full path of the new Cloud folder location</param>
+        /// <param name="error">A possible output error.</param>
+        /// </summary>
+        public void MoveCloudDirectoryFromPath_toDestination(string existingPath, string newPath, out CLError error)
+        {
+            error = null;
+            try
+            {
+                Directory.Move(existingPath, newPath);
+            }
+            catch (Exception ex)
+            {
+                error += ex;
+            }
         }
     }
 

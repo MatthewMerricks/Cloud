@@ -126,7 +126,7 @@ namespace win_client.ViewModels
                     ?? (_framePreferencesAccount_UnlinkThisComputerCommand = new RelayCommand(
                                             () =>
                                             {
-                                                //TODO: Actually check to see if there are any updates.
+                                                // Ask the user if it is OK to Unlink, then do it or not.
                                                 CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
                                                     windowHeight: 250,
                                                     leftButtonWidth: 75,

@@ -32,6 +32,7 @@ using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
 using System.Windows.Input;
 using win_client.Views;
+using System.Windows.Threading;
 
 namespace win_client.ViewModels
 {
@@ -75,6 +76,10 @@ namespace win_client.ViewModels
                 });
             _rm =  CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
+
+            // Set the current Cloud folder location.
+            //TODO: Is this OK to do in the constructor?
+            FramePreferencesAdvanced_CloudFolder = Settings.Instance.CloudFolderPath;
         }
 
         #endregion
@@ -134,6 +139,57 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The <see cref="FramePreferencesAdvanced_CloudFolder" /> property's name.
+        /// </summary>
+        public const string FramePreferencesAdvanced_CloudFolderPropertyName = "FramePreferencesAdvanced_CloudFolder";
+        private string _framePreferencesAdvanced_CloudFolder = String.Empty;
+        public string FramePreferencesAdvanced_CloudFolder
+        {
+            get
+            {
+                return _framePreferencesAdvanced_CloudFolder;
+            }
+
+            set
+            {
+                if (_framePreferencesAdvanced_CloudFolder == value)
+                {
+                    return;
+                }
+
+                // Enable or disable the Reset button depending on the Cloud folder path being set (whether it is the default path or not).
+                FramePreferencesAdvanced_ResetButtonEnabled = !value.Equals(Settings.Instance.GetDefaultCloudFolderPath(), StringComparison.InvariantCulture);
+
+                _framePreferencesAdvanced_CloudFolder = value;
+                RaisePropertyChanged(FramePreferencesAdvanced_CloudFolderPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="FramePreferencesAdvanced_ResetButtonEnabled" /> property's name.
+        /// </summary>
+        public const string FramePreferencesAdvanced_ResetButtonEnabledPropertyName = "FramePreferencesAdvanced_ResetButtonEnabled";
+        private bool _framePreferencesAdvanced_ResetButtonEnabled = false;
+        public bool FramePreferencesAdvanced_ResetButtonEnabled
+        {
+            get
+            {
+                return _framePreferencesAdvanced_ResetButtonEnabled;
+            }
+
+            set
+            {
+                if (_framePreferencesAdvanced_ResetButtonEnabled == value)
+                {
+                    return;
+                }
+
+                _framePreferencesAdvanced_ResetButtonEnabled = value;
+                RaisePropertyChanged(FramePreferencesAdvanced_ResetButtonEnabledPropertyName);
+            }
+        }
+
         #endregion
       
         #region Commands
@@ -150,36 +206,49 @@ namespace win_client.ViewModels
                     ?? (_framePreferencesAdvanced_ChangeCloudFolder = new RelayCommand(
                                             () =>
                                             {
-                                                //_dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_PreferencesNetworkBandwidth);
-                                                //IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
-                                                //modalDialogService.ShowDialog(
-                                                //            this._dialog,
-                                                //            new DialogPreferencesNetworkBandwidthViewModel
-                                                //            {
-                                                //                DialogPreferencesNetworkBandwidth_Preferences = this.Preferences,
-                                                //                DialogPreferencesNetworkBandwidth_Title = _rm.GetString("DialogPreferencesNetworkBandwidthTitle"),
-                                                //                DialogPreferencesNetworkBandwidth_WindowWidth = 504,
-                                                //                DialogPreferencesNetworkBandwidth_WindowHeight = 325,
-                                                //                DialogPreferencesNetworkBandwidth_LeftButtonWidth = new GridLength(120),
-                                                //                DialogPreferencesNetworkBandwidth_LeftButtonMargin = new Thickness(0, 0, 50, 0),
-                                                //                DialogPreferencesNetworkBandwidth_LeftButtonContent = _rm.GetString("generalOkButtonContent"),
-                                                //                DialogPreferencesNetworkBandwidth_RightButtonWidth = new GridLength(75),
-                                                //                DialogPreferencesNetworkBandwidth_RightButtonMargin = new Thickness(0, 0, 0, 0),
-                                                //                DialogPreferencesNetworkBandwidth_RightButtonContent = _rm.GetString("generalCancelButtonContent"),
-                                                //            },
-                                                //            this.ViewGridContainer,
-                                                //            returnedViewModelInstance =>
-                                                //            {
-                                                //                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
-                                                //                {
-                                                //                    // The user said yes.
-                                                //                }
-                                                //                else
-                                                //                {
-                                                //                    // The user said no.
-                                                //                }
-                                                //            }
-                                                //);
+                                                CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
+                                                    windowHeight: 250,
+                                                    leftButtonWidth: 75,
+                                                    rightButtonWidth: 75,
+                                                    title: _rm.GetString("FramePreferencesAdvanced_ChangeCloudFolderTitle"),
+                                                    headerText: _rm.GetString("FramePreferencesAdvanced_ChangeCloudFolderHeaderText"),
+                                                    bodyText: _rm.GetString("FramePreferencesAdvanced_ChangeCloudFolderBodyText"),
+                                                    leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                                                    rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                                                    container: ViewGridContainer,
+                                                    dialog: out _dialog,
+                                                    actionResultHandler:
+                                                        returnedViewModelInstance =>
+                                                        {
+                                                            // Do nothing here when the user clicks the OK button.
+                                                            _trace.writeToLog(9, "FramePreferencesAdvanced: Move cloud folder: Entry.");
+                                                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                                            {
+                                                                // The user said yes.  Tell the view to put up the folder browser so the user can select the new location.
+                                                                _trace.writeToLog(9, "FramePreferencesAdvanced: Move cloud folder: User said yes.");
+
+                                                                // Display the Windows Forms folder selection
+                                                                // dialog.  Tell the view to put up the dialog.  If the user clicks cancel, 
+                                                                // the view will return and we will stay on this window.  If the user clicks
+                                                                // OK, the view will send the FramePreferencesAdvancedViewModel_CreateCloudFolderCommand
+                                                                // back to us, and we will create the cloud folder in that command method.
+                                                                // TODO: This is strange for WPF, since the FolderBrowser is a Windows Form thing.
+                                                                // The processing is synchronous from the VM to the View, show the dialog, wait
+                                                                // for the dialog, then return on cancel, or issue a RelayCommand back to us,
+                                                                // process the RelayCommand, then back to the View, then back to here.
+                                                                // Should we be more asynchronous?
+                                                                var dispatcher = Dispatcher.CurrentDispatcher;
+                                                                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                                                                {
+                                                                    CLAppMessages.Message_FramePreferencesAdvanced_ShouldChooseCloudFolder.Send("");
+                                                                });
+                                                            }
+                                                            else
+                                                            {
+                                                                // The user said no.  Do nothing.
+                                                            }
+                                                        }
+                                                );
                                             }));
             }
         }
@@ -196,37 +265,23 @@ namespace win_client.ViewModels
                     ?? (_framePreferencesAdvanced_ResetCloudFolder = new RelayCommand(
                                             () =>
                                             {
-                                                //_dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_PreferencesNetworkProxies);
-                                                //IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
-                                                //modalDialogService.ShowDialog(
-                                                //            this._dialog,
-                                                //            new DialogPreferencesNetworkProxiesViewModel
-                                                //            {
-                                                //                DialogPreferencesNetworkProxies_Preferences = this.Preferences,
-                                                //                DialogPreferencesNetworkProxies_Title = _rm.GetString("DialogPreferencesNetworkProxiesTitle"),
-                                                //                DialogPreferencesNetworkProxies_WindowWidth = 504,
-                                                //                DialogPreferencesNetworkProxies_WindowHeight = 386,
-                                                //                DialogPreferencesNetworkProxies_LeftButtonWidth = new GridLength(75),
-                                                //                DialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(0, 0, 50, 0),
-                                                //                DialogPreferencesNetworkProxies_LeftButtonContent = _rm.GetString("generalOkButtonContent"),
-                                                //                DialogPreferencesNetworkProxies_RightButtonWidth = new GridLength(75),
-                                                //                DialogPreferencesNetworkProxies_RightButtonMargin = new Thickness(0, 0, 0, 0),
-                                                //                DialogPreferencesNetworkProxies_RightButtonContent = _rm.GetString("generalCancelButtonContent"),
-                                                //            },
-                                                //            this.ViewGridContainer,
-                                                //            returnedViewModelInstance =>
-                                                //            {
-                                                //                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
-                                                //                {
-                                                //                    // The user said yes.
-                                                //                }
-                                                //                else
-                                                //                {
-                                                //                    // The user said no.
-                                                //                }
-                                                //            }
-                                                //);
-                                            }));
+                                                // If the Cloud folder is already at the default location, this shouldn't have happened.
+                                                // Just exit, but disable the user's Reset button.
+                                                if (Settings.Instance.CloudFolderPath.Equals(Settings.Instance.GetDefaultCloudFolderPath(), StringComparison.InvariantCulture))
+                                                {
+                                                    FramePreferencesAdvanced_ResetButtonEnabled = false;
+                                                }
+                                                else
+                                                {
+                                                    // Tell the user we will be moving his Cloud folder back to the default location
+                                                    var dispatcher = Dispatcher.CurrentDispatcher;
+                                                    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                                                    {
+                                                        MoveCloudFolderWithUserInteraction(Settings.Instance.CloudFolderPath, Settings.Instance.GetDefaultCloudFolderPath());
+                                                    });
+                                                }
+                                            }));                                                
+
             }
         }
 
@@ -258,6 +313,107 @@ namespace win_client.ViewModels
                                                 );
                                             }));
             }
+        }
+
+        /// <summary>
+        /// The user has selected a new cloud folder path.  Create the new cloud folder
+        /// </summary>
+        private RelayCommand<string> _framePreferencesAdvancedViewModel_CreateCloudFolderCommand;
+        public RelayCommand<string> FramePreferencesAdvancedViewModel_CreateCloudFolderCommand
+        {
+            get
+            {
+                return _framePreferencesAdvancedViewModel_CreateCloudFolderCommand
+                    ?? (_framePreferencesAdvancedViewModel_CreateCloudFolderCommand = new RelayCommand<string>(
+                                            (path) =>
+                                            {
+                                                // The user selected the new location to house the Cloud folder.  Put up another
+                                                // prompt to inform the user about what will happen.  We will create a folder named 'Cloud'
+                                                // inside the selected folder and move the existing Cloud folder and all of the files inside
+                                                // the existing Cloud folder into the new Cloud folder.
+                                                MoveCloudFolderWithUserInteraction(Settings.Instance.CloudFolderPath, path + "\\Cloud");
+                                            }));
+            }
+        }
+
+        /// <summary>
+        /// Move the cloud folder location with user interaction.
+        /// </summary>
+        private void MoveCloudFolderWithUserInteraction(string fromPath, string toPath)
+        {
+            // The user selected the new location to house the Cloud folder.  Put up another
+            // prompt to inform the user about what will happen.  We will create a folder named 'Cloud'
+            // inside the selected folder and move the existing Cloud folder and all of the files inside
+            // the existing Cloud folder into the new Cloud folder.
+            CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
+                windowHeight: 250,
+                leftButtonWidth: 75,
+                rightButtonWidth: 75,
+                title: _rm.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title"),
+                headerText: _rm.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_HeaderText"),
+
+                // The body text is formatted like this:
+                // "This will move your existing Cloud folder and all of the files inside it from the existing location:{0}{1}{2}{3}into the new folder:{4}{5}{6} "
+                bodyText: String.Format(_rm.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_BodyText"), 
+                            Environment.NewLine, 
+                            "\t",
+                            fromPath,
+                            Environment.NewLine,
+                            Environment.NewLine,
+                            "\t",
+                            toPath),
+                leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                container: ViewGridContainer,
+                dialog: out _dialog,
+                actionResultHandler:
+                    returnedViewModelInstance =>
+                    {
+                        // Do nothing here when the user clicks the OK button.
+                        _trace.writeToLog(9, "FramePreferencesAdvanced: OK to move cloud folder?: Entry.");
+                        if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                        {
+                            // The user said yes.  Tell the view to put up the folder browser so the user can select the new location.
+                            _trace.writeToLog(9, "FramePreferencesAdvanced: OK to move cloud folder: User said yes.");
+
+                            // Actually move the Cloud folder and all its files.
+                            CLError error = null;
+                            Settings.Instance.MoveCloudDirectoryFromPath_toDestination(fromPath, toPath, out error);
+                            if (error == null)
+                            {
+                                // Save the new cloud folder path.
+                                Settings.Instance.updateCloudFolderPath(toPath, Settings.Instance.CloudFolderCreationTimeUtc);
+
+                                // Update visible path
+                                FramePreferencesAdvanced_CloudFolder = toPath;
+                            }
+                            else
+                            {
+                                // Display the error message.
+                                var dispatcher = Dispatcher.CurrentDispatcher;
+                                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                                {
+                                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                        errorMessage: _rm.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText"),
+                                        title: _rm.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_Title"),
+                                        headerText: _rm.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText"),
+                                        rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                        container: ViewGridContainer,
+                                        dialog: out _dialog,
+                                        actionOkButtonHandler:
+                                            returnedModalDialogViewModelInstance =>
+                                            {
+                                                // Do nothing here when the user clicks the OK button.  Leave the user on this same FramePreferencesAdvanced dialog.
+                                            });
+                                });
+                            }
+                        }
+                        else
+                        {
+                            // The user said no.  Do nothing.
+                        }
+                    }
+            );
         }
 
         #endregion

@@ -223,6 +223,96 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You will select a location that will contain your new Cloud folder.  A folder named &apos;Cloud&apos; will be created inside the folder you select.  The files in your existing Cloud folder will be moved to the new Cloud folder.  Do you wish to choose a new Cloud folder location?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_ChangeCloudFolderBodyText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ChangeCloudFolderBodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you wish to move your Cloud folder?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_ChangeCloudFolderHeaderText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ChangeCloudFolderHeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change Cloud Folder?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_ChangeCloudFolderTitle {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ChangeCloudFolderTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an error moving your Cloud folder to the new location.   Your files remain in the existing Cloud folder location..
+        /// </summary>
+        public static string FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while moving your Cloud folder..
+        /// </summary>
+        public static string FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oh Snap!.
+        /// </summary>
+        public static string FramePreferencesAdvanced_ErrorMovingCloudFolder_Title {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select..
+        /// </summary>
+        public static string FramePreferencesAdvanced_FolderBrowserDescription {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_FolderBrowserDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This will move your existing Cloud folder and all of the files inside it from the existing location:{0}{1}{2}{3}into the new folder:{4}{5}{6}.
+        /// </summary>
+        public static string FramePreferencesAdvanced_NewCloudFolderSelectedAlert_BodyText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_BodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Should the Cloud folder be moved now?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_NewCloudFolderSelectedAlert_HeaderText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_HeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move Cloud Folder?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string generalCancelButtonContent {

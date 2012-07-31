@@ -26,6 +26,7 @@ using win_client.AppDelegate;
 using CloudApiPublic.Model;
 using win_client.Model;
 using System.Linq.Expressions;
+using Ookii.Dialogs.WpfMinusTaskDialog;
 
 namespace win_client.Views
 {
@@ -96,9 +97,33 @@ namespace win_client.Views
             _viewModel.ViewGridContainer = PageGrid;
             _viewModel.Preferences = Preferences;
 
+            // Register messages
+            CLAppMessages.Message_FramePreferencesAdvanced_ShouldChooseCloudFolder.Register(this, OnMessage_FramePreferencesAdvanced_ShouldChooseCloudFolder);
+
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
+        }
+
+        /// <summary>
+        /// Let the user choose a new Cloud folder location.
+        /// </summary>
+        private void OnMessage_FramePreferencesAdvanced_ShouldChooseCloudFolder(string obj)
+        {
+            VistaFolderBrowserDialog folderBrowser = new VistaFolderBrowserDialog();
+            folderBrowser.Description = CLAppDelegate.Instance.ResourceManager.GetString("FramePreferencesAdvanced_FolderBrowserDescription");
+            folderBrowser.RootFolder = Environment.SpecialFolder.MyDocuments;  // no way to get to the user's home directory.  RootFolder is a SpecialFolder.
+            folderBrowser.ShowNewFolderButton = true;
+            bool? wasOkButtonClicked = folderBrowser.ShowDialog(Window.GetWindow(this));
+            if (wasOkButtonClicked.HasValue && wasOkButtonClicked.Value)
+            {
+                // The user selected a folder.  Deliver the path to the ViewModel to process.
+                FramePreferencesAdvancedViewModel vm = (FramePreferencesAdvancedViewModel)DataContext;
+                if (vm.FramePreferencesAdvancedViewModel_CreateCloudFolderCommand.CanExecute(folderBrowser.SelectedPath))
+                {
+                    vm.FramePreferencesAdvancedViewModel_CreateCloudFolderCommand.Execute(folderBrowser.SelectedPath);
+                }
+            }
         }
 
         /// <summary>

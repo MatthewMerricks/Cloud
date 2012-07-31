@@ -20,7 +20,7 @@
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding FramePreferencesAdvancedViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Cloud Preferences"
-    Name="FramePreferencesAdvancedRoot">
+    x:Name="FramePreferencesAdvancedRoot">
 
     <Page.Resources>
         <ResourceDictionary>
@@ -34,47 +34,43 @@
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="43*"/>
-            <ColumnDefinition  Width="440*"/>
-            <ColumnDefinition Width="98*"/>
-            <ColumnDefinition Width="43*"/>
+            <ColumnDefinition  Width="543*"/>
+            <ColumnDefinition Width="38*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="37"/>
-            <RowDefinition Height="20*"/>
-            <RowDefinition Height="7*"/>
+            <RowDefinition Height="353*"/>
+            <RowDefinition Height="52*"/>
         </Grid.RowDefinitions>
             
         <Grid.Background>              
             <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
         </Grid.Background>
         
-        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" />
+        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Column="1" Grid.Row="1"/>
 
-        <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" >
+        <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"  >
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="324"/>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="163*"/>
+                <ColumnDefinition Width="188"/>
+                <ColumnDefinition Width="230*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="10"/>
-                <RowDefinition Height="31*"/>
-                <RowDefinition Height="109*"/>
-                <RowDefinition Height="140*"/>
-                <RowDefinition Height="10"/>
+                <RowDefinition Height="34*"/>
+                <RowDefinition Height="137*"/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="45"/>
             </Grid.RowDefinitions>
             
-            <TextBlock TextWrapping="Wrap" Text="Cloud folder: " Foreground="Black" FontSize="16" Grid.Row="1" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Top" Height="Auto" />
-            <Rectangle Grid.Column="0" Grid.Row="1" RadiusX="10" RadiusY="10" Fill="LightGray" Margin="10,0,0,0" Grid.RowSpan="2"/>
-            <TextBlock x:Name="tbCloudFolder" TextAlignment="Left" TextWrapping="Wrap" Foreground="Black" Margin="10,0,0,0" Grid.Column="1" Grid.Row="1"
-                             Text="{Binding ProxyServerUsername, Mode=TwoWay, ValidatesOnDataErrors=True}" FontSize="16"
+            <TextBlock TextWrapping="Wrap" Text="Cloud folder: " Foreground="Black" FontSize="16" Grid.Row="1" Grid.Column="0"  TextAlignment="Left" VerticalAlignment="Bottom" Height="Auto" Margin="10,0,0,3" />
+            <Rectangle Grid.Column="0" Grid.Row="2" RadiusX="10" RadiusY="10" Fill="#FFE6E6E6" Margin="10,0,0,0" Grid.ColumnSpan="2"/>
+            <TextBlock x:Name="tbCloudFolder" TextAlignment="Left" TextWrapping="Wrap" Foreground="Black" Margin="10,0,0,0" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"
+                             Text="{Binding FramePreferencesAdvanced_CloudFolder, Mode=TwoWay, ValidatesOnDataErrors=True}" FontSize="16" Opacity="0.70"
                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
-                             commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
-                             Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}" 
-                             IsEnabled="{Binding ProxyAuthenticationControlsEnabledPropertyName, Mode=OneWay}" Grid.RowSpan="2">
-            </TextBlock>
-            <Grid Grid.Column="2" Grid.Row="1" Grid.RowSpan="2">
+                             commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
+            <Grid Grid.Column="2" Grid.Row="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="8"/>
                     <RowDefinition Height="*"/>
@@ -86,13 +82,15 @@
             	            Command="{Binding FramePreferencesAdvanced_ChangeCloudFolder, Mode=OneTime}" ToolTip="Click to change the Cloud folder on this computer." />
                 <Button x:Name="cmdResetCloudFolder" Content="Reset..." VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="2" Grid.Row="2" Height="Auto" Width="Auto"
                             Margin="10,0,0,0" MinWidth="75" TabIndex="1"
+                            IsEnabled="{Binding FramePreferencesAdvanced_ResetButtonEnabled, Mode=OneWay}"
             	            Command="{Binding FramePreferencesAdvanced_ResetCloudFolder, Mode=OneTime}" ToolTip="Click to reset the Cloud folder on this computer to its default location." />
             </Grid>
 
                             
-            <TextBlock TextWrapping="Wrap" Text="Selective sync: " Foreground="Black" FontSize="16" Grid.Row="3" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" Margin="0,59" />
-            <Button x:Name="cmdChangeBandwidthSettings" Content="Change settings..." VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="1 " Grid.Row="3" Height="Auto" Width="150" Margin="10,56,0,56"
-                    Command="{Binding FramePreferencesAdvanced_ChangeSelectiveSyncSettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to select the folders you wish to keep synchronized." TabIndex="2" />
+            <TextBlock TextWrapping="Wrap" Text="Selective sync: " Foreground="Black" FontSize="16" Grid.Row="3" Grid.Column="0"  TextAlignment="Left" VerticalAlignment="Center" Height="Auto" Margin="10,0,0,0"/>
+            <Button x:Name="cmdChangeBandwidthSettings" Content="Change settings..." VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" 
+                    Grid.Column="1 " Grid.Row="3" Height="Auto" Width="150" Margin="10,0,0,0"
+                    Command="{Binding FramePreferencesAdvanced_ChangeSelectiveSyncSettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to select the folders you wish to keep synchronized." TabIndex="2"/>
         </Grid>
     </Grid>
 </Page>

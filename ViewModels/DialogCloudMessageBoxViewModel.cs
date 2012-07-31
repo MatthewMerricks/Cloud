@@ -145,8 +145,8 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_LeftButtonWidth" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_LeftButtonWidthPropertyName = "CloudMessageBoxView_LeftButtonWidth";
-        private GridLength _cloudMessageBoxView_LeftButtonWidth = new GridLength(100);
-        public GridLength CloudMessageBoxView_LeftButtonWidth
+        private double _cloudMessageBoxView_LeftButtonWidth = 100.0;
+        public double CloudMessageBoxView_LeftButtonWidth
         {
             get
             {
@@ -242,8 +242,8 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_RightButtonWidth" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_RightButtonWidthPropertyName = "CloudMessageBoxView_RightButtonWidth";
-        private GridLength _cloudMessageBoxView_RightButtonWidth = new GridLength(100);
-        public GridLength CloudMessageBoxView_RightButtonWidth
+        private double _cloudMessageBoxView_RightButtonWidth = 100.0;
+        public double CloudMessageBoxView_RightButtonWidth
         {
             get
             {
