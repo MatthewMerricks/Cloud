@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+//  NavigationWindow.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +23,9 @@ using win_client.SystemTray.TrayIcon;
 using win_client.AppDelegate;
 using System.Windows.Forms;
 using win_client.Model;
+using CleanShutdown;
+using CleanShutdown.Helpers;
+using win_client.Common;
 
 namespace win_client
 {
@@ -34,8 +44,17 @@ namespace win_client
         {
             this.NavigationService.Navigated += NavigationService_Navigated;
             this.NavigationService.Navigating += NavigationService_Navigating;
+            this.Closing += MyNavigationWindow_Closing;
 
             InitializeComponent();
+        }
+
+        /// <summary>
+        /// This window is closing.
+        /// </summary>
+        void MyNavigationWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = ShutdownService.RequestShutdown();
         }
 
         /// <summary>
@@ -43,6 +62,10 @@ namespace win_client
         /// </summary>
         public static void NavigationService_Navigated(object sender, NavigationEventArgs e)
         {
+            // Cause all pages to unregister their messages because we may be navigating away from them.
+            CLAppMessages.Message_PageMustUnregisterWindowClosingMessage.Send("");
+
+            // Now drive the target page's HandleNavigated() event.  It will reregister for messages as required.
             IOnNavigated castContent = e.Content as IOnNavigated;
             if (castContent != null)
             {

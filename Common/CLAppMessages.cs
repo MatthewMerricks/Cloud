@@ -39,6 +39,7 @@ namespace win_client.Common
             DialogPreferencesNetworkProxies_FocusToError_Message,
             DialogPreferencesNetworkBandwidth_FocusToError_Message,
             Message_FramePreferencesAdvanced_ShouldChooseCloudFolder,
+            Message_PageMustUnregisterWindowClosingMessage,
 
             // Navigation requests
             PageCloudFolderMissing_NavigationRequest,
@@ -261,6 +262,20 @@ namespace win_client.Common
             public static void Register(object recipient, Action<string> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.Message_FramePreferencesAdvanced_ShouldChooseCloudFolder, action);
+            }
+        }
+
+        public static class Message_PageMustUnregisterWindowClosingMessage
+
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageMustUnregisterWindowClosingMessage);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageMustUnregisterWindowClosingMessage, action);
             }
         }
 

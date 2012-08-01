@@ -73,6 +73,7 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<FramePreferencesAccountViewModel>();
             SimpleIoc.Default.Register<FramePreferencesNetworkViewModel>();
             SimpleIoc.Default.Register<FramePreferencesAdvancedViewModel>();
+            SimpleIoc.Default.Register<FramePreferencesAboutViewModel>();
 
             // Window pages
             SimpleIoc.Default.Register<PageCloudFolderMissingViewModel>();
@@ -291,6 +292,20 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<FramePreferencesAdvancedViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the FramePreferencesAboutViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FramePreferencesAboutViewModel FramePreferencesAboutViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FramePreferencesAboutViewModel>();
             }
         }
 

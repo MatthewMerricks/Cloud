@@ -1,0 +1,82 @@
+﻿<!--
+//
+//  FramePreferencesAbout.xaml
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.<ResourceDictionary
+-->
+
+<Page x:Class="win_client.Views.FramePreferencesAbout" 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:common="clr-namespace:CloudApiPrivate.Common;assembly=CloudApiPrivate"
+    xmlns:commonClient="clr-namespace:win_client.Common"
+    xmlns:parentNS="clr-namespace:win_client.Views"
+    xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
+    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    DataContext="{Binding FramePreferencesAboutViewModel, Source={StaticResource Locator}}" 
+    WindowTitle="About Cloud"
+    x:Name="FramePreferencesAboutRoot">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/win-client;component/Skins/ErrorTemplates.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+    
+    <Grid x:Name="LayoutRoot">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="105*"/>
+            <ColumnDefinition Width="403*"/>
+            <ColumnDefinition Width="105*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="34"/>
+            <RowDefinition Height="11"/>
+            <RowDefinition Height="37"/>
+            <RowDefinition Height="14"/>
+            <RowDefinition Height="53"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="19"/>
+        </Grid.RowDefinitions>
+            
+        <Grid.Background>              
+            <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
+        </Grid.Background>
+        
+        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1" Grid.RowSpan="6"/>
+
+        <Image Source="/Artwork/Cl_icon.png" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Height="Auto" Width="Auto"  />
+
+        <TextBlock Text="Version 1.0, Build 42" Foreground="Black" FontSize="16" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="1" Grid.Column="1" Width="Auto"/>
+
+        <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="Black" FontSize="16" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="3" Grid.Column="1" Width="Auto" />
+
+        <Button Name="cmdTwitter" Grid.Row="5" VerticalAlignment="Stretch" HorizontalAlignment="Center"
+                ToolTip="Follow us on twitter at http://twitter.com/clouddotcom."
+                Command="{Binding FramePreferencesAbout_FollowUsOnTwitter, Mode=OneWay}" Grid.Column="1" Width="Auto" >
+            <StackPanel Height="50" Width="50">
+                <Image Source="/Artwork/Twitter.png" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+            </StackPanel>
+        </Button>
+
+
+
+
+
+    
+
+    
+    
+        
+    </Grid>
+</Page>

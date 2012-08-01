@@ -227,7 +227,7 @@
     <value>Cloud Network Proxy Server Preferences</value>
   </data>
   <data name="PagePreferencesAboutTitle" xml:space="preserve">
-    <value>Cloud About Preferences</value>
+    <value>About Cloud</value>
   </data>
   <data name="PagePreferencesAccountTitle" xml:space="preserve">
     <value>Cloud Account Preferences</value>
@@ -288,5 +288,14 @@
   </data>
   <data name="FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title" xml:space="preserve">
     <value>Move Cloud Folder?</value>
+  </data>
+  <data name="PromptExitApplication_BodyText" xml:space="preserve">
+    <value>Click the 'Yes' button to exit the Cloud application.</value>
+  </data>
+  <data name="PromptExitApplication_HeaderText" xml:space="preserve">
+    <value>Do you wish to exit Cloud?</value>
+  </data>
+  <data name="PromptExitApplication_Title" xml:space="preserve">
+    <value>Exit Cloud?</value>
   </data>
 </root>

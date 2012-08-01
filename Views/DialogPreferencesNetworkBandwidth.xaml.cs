@@ -143,13 +143,16 @@ namespace win_client.Views
                 }
                 else
                 {
-                    value--;
+                    if (value > 1)
+                    {
+                        value--;
+                    }
                 }
                 txtBox.Text = value.ToString();
             }
             catch
             {
-                txtBox.Text = "0";
+                // txtBox.Text = "1";       // make the user do this
             }
         }
 
@@ -170,7 +173,10 @@ namespace win_client.Views
                 }
                 else
                 {
-                    value--;
+                    if (value > 1)
+                    {
+                        value--;
+                    }
                 }
                 txtBox.Text = value.ToString();
             }

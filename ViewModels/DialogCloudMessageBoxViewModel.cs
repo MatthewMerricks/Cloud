@@ -12,14 +12,27 @@ using Dialog.Implementors.Wpf.MVVM;
 using win_client.ViewModels;
 using win_client.Model;
 using System.Windows;
+using CloudApiPublic.Support;
+using System.Resources;
+using win_client.AppDelegate;
+using System.ComponentModel;
 
 namespace win_client.ViewModels
 {
     public class DialogCloudMessageBoxViewModel : ValidatingViewModelBase
     {
+        #region Private Instance Variables
+
+        private CLTrace _trace = CLTrace.Instance;
+        private ResourceManager _rm;
+
+        #endregion
+
+
         public DialogCloudMessageBoxViewModel()
         {
-
+            _rm = CLAppDelegate.Instance.ResourceManager;
+            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -169,7 +182,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_LeftButtonMargin" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_LeftButtonMarginPropertyName = "CloudMessageBoxView_LeftButtonMargin";
-        private Thickness _cloudMessageBoxView_LeftButtonMargin = new Thickness(30, 0, 0, 0);
+        private Thickness _cloudMessageBoxView_LeftButtonMargin = new Thickness(0, 0, 0, 0);
         public Thickness CloudMessageBoxView_LeftButtonMargin
         {
             get
@@ -266,7 +279,7 @@ namespace win_client.ViewModels
         /// The <see cref="CloudMessageBoxView_RightButtonMargin" /> property's name.
         /// </summary>
         public const string CloudMessageBoxView_RightButtonMarginPropertyName = "CloudMessageBoxView_RightButtonMargin";
-        private Thickness _cloudMessageBoxView_RightButtonMargin = new Thickness(30, 0, 0, 0);
+        private Thickness _cloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0);
         public Thickness CloudMessageBoxView_RightButtonMargin
         {
             get
@@ -309,5 +322,67 @@ namespace win_client.ViewModels
                 RaisePropertyChanged(CloudMessageBoxView_RightButtonContentPropertyName);
             }
         }
+
+        /// <summary>
+        /// The <see cref="CloudMessageBoxView_RightButtonVisibility" /> property's name.
+        /// </summary>
+        public const string CloudMessageBoxView_RightButtonVisibilityPropertyName = "CloudMessageBoxView_RightButtonVisibility";
+        private Visibility _cloudMessageBoxView_RightButtonVisibility = Visibility.Visible;
+        /// </summary>
+        public Visibility CloudMessageBoxView_RightButtonVisibility
+        {
+            get
+            {
+                return _cloudMessageBoxView_RightButtonVisibility;
+            }
+
+            set
+            {
+                if (_cloudMessageBoxView_RightButtonVisibility == value)
+                {
+                    return;
+                }
+
+                _cloudMessageBoxView_RightButtonVisibility = value;
+                RaisePropertyChanged(CloudMessageBoxView_RightButtonVisibilityPropertyName);
+            }
+        }
+
+        #region Relay Commands
+
+        /// <summary>
+        /// Gets the WindowClosingCommand.
+        /// </summary>
+        private ICommand _windowClosingCommand;
+        public ICommand WindowClosingCommand
+        {
+            get
+            {
+                return _windowClosingCommand
+                    ?? (_windowClosingCommand = new RelayCommand<CancelEventArgs>(
+                                          (args) =>
+                                          {
+                                              args.Cancel = OnClosing();
+                                          }));
+            }
+        }
+
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the cancel.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+            return false;                   // don't cancel the user's request to cancel
+        }
+
+        #endregion
     }
 }

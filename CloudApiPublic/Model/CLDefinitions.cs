@@ -65,6 +65,9 @@ namespace CloudApiPublic.Model
         // Error Domain
         public const string CLCloudAppRestAPIErrorDomain = @"com.cloudapp.networking.error";
 
+        // Twitter page
+        public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
+
         // Sync Header
         public const string CLSyncEventMetadata = "metadata";
         public const string CLSyncEventHeader = "sync_header";

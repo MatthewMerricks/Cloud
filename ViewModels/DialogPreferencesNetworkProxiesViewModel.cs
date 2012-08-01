@@ -17,6 +17,10 @@ using win_client.Common;
 using CloudApiPrivate.Static;
 using System.Windows.Controls;
 using CloudApiPrivate.Common;
+using CloudApiPublic.Support;
+using System.Resources;
+using win_client.AppDelegate;
+using System.ComponentModel;
 
 namespace win_client.ViewModels
 {
@@ -27,12 +31,17 @@ namespace win_client.ViewModels
         private const double _kNoProxyOpacity = 0.60;
         private const double _kProxyActiveOpacity = 1.00;
 
+        private CLTrace _trace = CLTrace.Instance;
+        private ResourceManager _rm;
+
         #endregion
 
         #region Constructors
 
         public DialogPreferencesNetworkProxiesViewModel()
         {
+            _rm = CLAppDelegate.Instance.ResourceManager;
+            _trace = CLTrace.Instance;
         }
 
         #endregion
@@ -627,16 +636,12 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_LeftButtonWidth" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_LeftButtonWidthPropertyName = "DialogPreferencesNetworkProxies_LeftButtonWidth";
-        private GridLength _dialogPreferencesNetworkProxies_LeftButtonWidth = new GridLength(75);
+        private double _dialogPreferencesNetworkProxies_LeftButtonWidth = 75;
         /// <summary>
         /// Sets and gets the DialogPreferencesNetworkProxies_LeftButtonWidth property.
         /// Changes to that property's value raise the PropertyChanged event. 
-        /// Set this to the width desired, plus the right margin.  So
-        /// if you want a width of 75, and a distance between buttons of 50,  set
-        /// LeftButtonMargin = new Thickness(0, 0, 50, 0), and
-        /// LeftButtonWidth = new GridLength(125)
         /// </summary>
-        public GridLength DialogPreferencesNetworkProxies_LeftButtonWidth
+        public double DialogPreferencesNetworkProxies_LeftButtonWidth
         {
             get
             {
@@ -659,7 +664,7 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_LeftButtonMargin" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_LeftButtonMarginPropertyName = "DialogPreferencesNetworkProxies_LeftButtonMargin";
-        private Thickness _dialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(30, 0, 0, 0);
+        private Thickness _dialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(0, 0, 0, 0);
         public Thickness DialogPreferencesNetworkProxies_LeftButtonMargin
         {
             get
@@ -704,11 +709,35 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="DialogPreferencesNetworkProxies_LeftButtonVisibility" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkProxies_LeftButtonVisibilityPropertyName = "DialogPreferencesNetworkProxies_LeftButtonVisibility";
+        private Visibility _dialogPreferencesNetworkProxies_LeftButtonVisibility = Visibility.Visible;
+        public Visibility DialogPreferencesNetworkProxies_LeftButtonVisibility
+        {
+            get
+            {
+                return _dialogPreferencesNetworkProxies_LeftButtonVisibility;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkProxies_LeftButtonVisibility == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkProxies_LeftButtonVisibility = value;
+                RaisePropertyChanged(DialogPreferencesNetworkProxies_LeftButtonVisibilityPropertyName);
+            }
+        }
+
+        /// <summary>
         /// The <see cref="DialogPreferencesNetworkProxies_RightButtonWidth" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_RightButtonWidthPropertyName = "DialogPreferencesNetworkProxies_RightButtonWidth";
-        private GridLength _dialogPreferencesNetworkProxies_RightButtonWidth = new GridLength(75);
-        public GridLength DialogPreferencesNetworkProxies_RightButtonWidth
+        private double _dialogPreferencesNetworkProxies_RightButtonWidth = 75;
+        public double DialogPreferencesNetworkProxies_RightButtonWidth
         {
             get
             {
@@ -731,7 +760,7 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkProxies_RightButtonMargin" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_RightButtonMarginPropertyName = "DialogPreferencesNetworkProxies_RightButtonMargin";
-        private Thickness _dialogPreferencesNetworkProxies_RightButtonMargin = new Thickness(30, 0, 0, 0);
+        private Thickness _dialogPreferencesNetworkProxies_RightButtonMargin = new Thickness(0, 0, 0, 0);
         public Thickness DialogPreferencesNetworkProxies_RightButtonMargin
         {
             get
@@ -774,9 +803,51 @@ namespace win_client.ViewModels
                 RaisePropertyChanged(DialogPreferencesNetworkProxies_RightButtonContentPropertyName);
             }
         }
+
+        /// <summary>
+        /// The <see cref="DialogPreferencesNetworkProxies_RightButtonVisibility" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkProxies_RightButtonVisibilityPropertyName = "DialogPreferencesNetworkProxies_RightButtonVisibility";
+        private Visibility _dialogPreferencesNetworkProxies_RightButtonVisibility = Visibility.Visible;
+        public Visibility DialogPreferencesNetworkProxies_RightButtonVisibility
+        {
+            get
+            {
+                return _dialogPreferencesNetworkProxies_RightButtonVisibility;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkProxies_RightButtonVisibility == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkProxies_RightButtonVisibility = value;
+                RaisePropertyChanged(DialogPreferencesNetworkProxies_RightButtonVisibilityPropertyName);
+            }
+        }
+
         #endregion
 
         #region Relay Commands
+
+        /// <summary>
+        /// Gets the WindowClosingCommand.
+        /// </summary>
+        private ICommand _windowClosingCommand;
+        public ICommand WindowClosingCommand
+        {
+            get
+            {
+                return _windowClosingCommand
+                    ?? (_windowClosingCommand = new RelayCommand<CancelEventArgs>(
+                                          (args) =>
+                                          {
+                                              args.Cancel = OnClosing();
+                                          }));
+            }
+        }
 
         /// <summary>
         /// Gets the DialogPreferencesNetworkProxiesViewModel_UpdateCommand.
@@ -844,7 +915,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               // Handle the cancel
-                                              
+                                              OnClosing();
                                           }));
             }
         }
@@ -962,7 +1033,7 @@ namespace win_client.ViewModels
         private void ValidateProxyServerAddress()
         {
             RemoveAllErrorsForPropertyName(ProxyServerAddressPropertyName);
-            if (!_rbProxySettingsNoProxy && _proxyServerAddress.Length == 0)
+            if (_rbProxySettingsManual && _proxyServerAddress.Length == 0)
             {
                 AddError(ProxyServerAddressPropertyName, "The proxy server address must be specified.");
             }
@@ -1001,6 +1072,22 @@ namespace win_client.ViewModels
             //RemoveAllErrorsForPropertyName("ProxyServerPassword");
         }
 
+
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the cancel.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+            return false;                   // don't cancel the user's request to cancel
+        }
 
         #endregion
     }

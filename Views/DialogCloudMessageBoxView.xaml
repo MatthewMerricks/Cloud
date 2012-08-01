@@ -15,6 +15,7 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:controls="http://schemas.xceed.com/wpf/xaml/toolkit"
     xmlns:common="clr-namespace:win_client.Common"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
     mc:Ignorable="d"
     DataContext="{Binding DialogCloudMessageBoxViewModel, Source={StaticResource Locator}}"
     IsModal="True"
@@ -34,6 +35,13 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </controls:ChildWindow.Resources>
+    
+    <!-- Catch the Window.Closing event, fired when the user clicks the 'X'. -->
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <cmd:EventToCommand Command="{Binding WindowClosingCommand, Mode=OneWay}" PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
     
     <Grid x:Name="LayoutRoot" Margin="0">
         <Grid.RowDefinitions>
@@ -65,16 +73,17 @@
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1">
                 <Button FontSize="16" Background="#FF49C3FB" 
         		    Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click" TabIndex="1"
-                    Width="{Binding CloudMessageBoxView_RightButtonWidth, Mode=TwoWay}"
-        		    Margin="{Binding CloudMessageBoxView_RightButtonMargin, Mode=TwoWay}"  
-        		    Content="{Binding CloudMessageBoxView_RightButtonContent, Mode=TwoWay}" />
+                    Width="{Binding CloudMessageBoxView_RightButtonWidth, Mode=OneWay}"
+        		    Margin="{Binding CloudMessageBoxView_RightButtonMargin, Mode=OneWay}"  
+        		    Content="{Binding CloudMessageBoxView_RightButtonContent, Mode=OneWay}"
+                    Visibility="{Binding CloudMessageBoxView_RightButtonVisibility, Mode=OneWay}"/>
                 <Button x:Name="btnOK" FontSize="16" Background="#FF49C3FB" Grid.Column="1"
         		    Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click"
         		    common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="0"
-                    Width="{Binding CloudMessageBoxView_LeftButtonWidth, Mode=TwoWay}" 
-        		    Margin="{Binding CloudMessageBoxView_LeftButtonMargin, Mode=TwoWay}"  
-        		    Content="{Binding CloudMessageBoxView_LeftButtonContent, Mode=TwoWay}" 
-                    Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=TwoWay}"/>
+                    Width="{Binding CloudMessageBoxView_LeftButtonWidth, Mode=OneWay}" 
+        		    Margin="{Binding CloudMessageBoxView_LeftButtonMargin, Mode=OneWay}"  
+        		    Content="{Binding CloudMessageBoxView_LeftButtonContent, Mode=OneWay}" 
+                    Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=OneWay}"/>
             </StackPanel>
         </Grid>
 

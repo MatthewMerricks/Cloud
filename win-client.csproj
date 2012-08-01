@@ -138,6 +138,7 @@
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
+    <Compile Include="MvvmLightCleanShutdown\ShutdownService.cs" />
     <Compile Include="Model\CLPreferences.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
@@ -151,6 +152,10 @@
     <Compile Include="NavigationWindow.xaml.cs">
       <DependentUpon>NavigationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MvvmLightCleanShutdown\NotificationMessageAction.cs" />
+    <Compile Include="MvvmLightCleanShutdown\NotificationMessageFunc.cs" />
+    <Compile Include="MvvmLightCleanShutdown\NotificationMessageWithCallback.cs" />
+    <Compile Include="MvvmLightCleanShutdown\Notifications.cs" />
     <Compile Include="Resources\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -186,6 +191,7 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
+    <Compile Include="ViewModels\FramePreferencesAboutViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesAdvancedViewModel.cs" />
     <Compile Include="ViewModels\DialogPreferencesNetworkBandwidthViewModel.cs" />
     <Compile Include="ViewModels\DialogPreferencesNetworkProxiesViewModel.cs" />
@@ -207,6 +213,9 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\FramePreferencesAbout.xaml.cs">
+      <DependentUpon>FramePreferencesAbout.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\FramePreferencesAdvanced.xaml.cs">
       <DependentUpon>FramePreferencesAdvanced.xaml</DependentUpon>
     </Compile>
@@ -302,6 +311,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesAbout.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -571,6 +584,9 @@
       <Project>{45e4664c-c207-4605-af85-54b587819107}</Project>
       <Name>Sync</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\cl_icon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

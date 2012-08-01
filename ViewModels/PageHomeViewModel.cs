@@ -27,6 +27,9 @@ using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
+using System.ComponentModel;
+using System.Windows.Input;
+using CleanShutdown.Messaging;
 
 namespace win_client.ViewModels
 {  
@@ -44,9 +47,6 @@ namespace win_client.ViewModels
     {
         private readonly IDataService _dataService;
 
-        private RelayCommand _pageHome_CreateNewAccountCommand;
-        private RelayCommand _pageHome_SignInCommand;
-        private RelayCommand _pageHome_NavigatedToCommand;
         private CLTrace _trace = CLTrace.Instance;
         private ResourceManager _rm;
         private IModalWindow _dialog = null;        // for use with modal dialogs
@@ -71,19 +71,21 @@ namespace win_client.ViewModels
 
             _rm = CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
+
+            // Register to receive the ConfirmShutdown message
+            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                this,
+                message =>
+                {
+                    OnConfirmShutdownMessage(message);
+                });
         }
 
         /// <summary>
         /// The <see cref="EMail" /> property's name.
         /// </summary>
         public const string EMailPropertyName = "EMail";
-
         private string _eMail = Settings.Instance.UserName;
-
-        /// <summary>
-        /// Sets and gets the EMail property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public string EMail
         {
             get
@@ -110,10 +112,6 @@ namespace win_client.ViewModels
         /// </summary>
         public const string Password2PropertyName = "Password2";
         private string _password2 = "";
-        /// <summary>
-        /// Sets the Password2 property.
-        /// This is the clear password. 
-        /// </summary>
         public string Password2
         {
             get
@@ -131,13 +129,7 @@ namespace win_client.ViewModels
         /// The <see cref="Password" /> property's name.
         /// </summary>
         public const string PasswordPropertyName = "Password";
-
         private string _password = "";
-
-        /// <summary>
-        /// Sets and gets the Password property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public string Password
         {
             get
@@ -171,11 +163,6 @@ namespace win_client.ViewModels
         /// </summary>
         public const string ViewGridContainerPropertyName = "ViewGridContainer";
         private Grid _viewGridContainer = null;
-
-        /// <summary>
-        /// Sets and gets the ViewGridContainer property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public Grid ViewGridContainer
         {
             get
@@ -199,13 +186,7 @@ namespace win_client.ViewModels
         /// The <see cref="IsBusy" /> property's name.
         /// </summary>
         public const string IsBusyPropertyName = "IsBusy";
-
         private bool _isBusy = false;
-
-        /// <summary>
-        /// Sets and gets the IsBusy property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public bool IsBusy
         {
             get
@@ -225,10 +206,12 @@ namespace win_client.ViewModels
             }
         }
 
-       
+        #region Relay Commands
+
         /// <summary>
         /// Create new account from the PageHome page.
         /// </summary>
+        private RelayCommand _pageHome_CreateNewAccountCommand;
         public RelayCommand PageHome_CreateNewAccountCommand
         {
             get
@@ -246,6 +229,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Sign in to an existing account from the PageHome page.
         /// </summary>
+        private RelayCommand _pageHome_SignInCommand;
         public RelayCommand PageHome_SignInCommand
         {
             get
@@ -271,6 +255,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The page was navigated to.
         /// </summary>
+        private RelayCommand _pageHome_NavigatedToCommand;
         public RelayCommand PageHome_NavigatedToCommand
         {
             get
@@ -283,6 +268,8 @@ namespace win_client.ViewModels
                                             }));
             }
         }
+
+        #endregion
 
         /// <summary>
         /// Request login to the server with the email and password..
@@ -400,5 +387,41 @@ namespace win_client.ViewModels
 
         #endregion
 
+
+        #region Support Functions
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
+        /// the automatic Window.Close (set true to message.Execute.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                // Cancel the shutdown.  We will do it here.
+                message.Execute(OnClosing());       // true == abort shutdown.
+
+                // NOTE: We may never reach this point if the user said to shut down.
+            }
+        }
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the automatic Window.Close action.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+
+            // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
+            CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer);
+
+            return true;                // cancel the automatic Window close.
+        }
+
+        #endregion
     }
 }

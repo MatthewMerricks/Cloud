@@ -27,6 +27,8 @@ using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
 using CloudApiPublic.Support;
+using System.ComponentModel;
+using System.Windows.Input;
 
 
 namespace win_client.ViewModels
@@ -41,9 +43,6 @@ namespace win_client.ViewModels
         #region Instance Variables
 
         private readonly IDataService _dataService;
-        private RelayCommand _showPreferencesPageCommand;
-        private RelayCommand _checkForUpdatesCommand;
-        private RelayCommand _exitApplicationCommand;
         private ResourceManager _rm;
 
         #endregion
@@ -171,11 +170,12 @@ namespace win_client.ViewModels
 
         #endregion
 
-        #region Commands
+        #region Region Commands
 
         /// <summary>
         /// The user clicked system tray NotifyIcon context menu preferences item.
         /// </summary>
+        private RelayCommand _showPreferencesPageCommand;
         public RelayCommand ShowPreferencesPageCommand
         {
             get
@@ -194,6 +194,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked has selected a choice and will continue.
         /// </summary>
+        private RelayCommand _checkForUpdatesCommand;
         public RelayCommand CheckForUpdatesCommand
         {
             get
@@ -211,6 +212,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Gets the ExitApplicationCommand.
         /// </summary>
+        private RelayCommand _exitApplicationCommand;
         public RelayCommand ExitApplicationCommand
         {
             get
@@ -224,6 +226,22 @@ namespace win_client.ViewModels
                                               CLAppDelegate.Instance.ExitApplication();
                                           }));
             }
+        }
+
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the cancel.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+            return false;                   // don't cancel the user's request to cancel
         }
 
         #endregion

@@ -31,6 +31,9 @@ using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Static;
 using win_client.ViewModelHelpers;
+using System.ComponentModel;
+using System.Windows.Input;
+using CleanShutdown.Messaging;
 
 namespace win_client.ViewModels
 {
@@ -54,11 +57,6 @@ namespace win_client.ViewModels
         #region Instance Variables
 
         private readonly IDataService _dataService;
-        private RelayCommand _pageSetupSelector_NavigatedToCommand;        
-        private RelayCommand _pageSetupSelector_BackCommand;
-        private RelayCommand _pageSetupSelector_ContinueCommand;
-        private RelayCommand _pageSetupSelector_DefaultAreaCommand;
-        private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
         private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
         private IModalWindow _dialog = null;        // for use with modal dialogs
@@ -86,6 +84,14 @@ namespace win_client.ViewModels
                 });
             _rm = CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
+
+            // Register to receive the ConfirmShutdown message
+            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                this,
+                message =>
+                {
+                    OnConfirmShutdownMessage(message);
+                });
         }
 
         /// <summary>
@@ -196,11 +202,12 @@ namespace win_client.ViewModels
         #endregion 
 
       
-        #region Commands
+        #region Relay Commands
 
         /// <summary>
         /// The page was navigated to.
         /// </summary>
+        private RelayCommand _pageSetupSelector_NavigatedToCommand;
         public RelayCommand PageSetupSelector_NavigatedToCommand
         {
             get
@@ -219,6 +226,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked the back button.
         /// </summary>
+        private RelayCommand _pageSetupSelector_BackCommand;
         public RelayCommand PageSetupSelector_BackCommand
         {
             get
@@ -237,6 +245,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked has selected a choice and will continue.
         /// </summary>
+        private RelayCommand _pageSetupSelector_ContinueCommand;
         public RelayCommand PageSetupSelector_ContinueCommand
         {
             get
@@ -254,6 +263,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked the area over the Default radio button.
         /// </summary>
+        private RelayCommand _pageSetupSelector_DefaultAreaCommand;
         public RelayCommand PageSetupSelector_DefaultAreaCommand
         {
             get
@@ -271,6 +281,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked the area over the Advanced radio button.
         /// </summary>
+        private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
         public RelayCommand PageSetupSelector_AdvancedAreaCommand
         {
             get
@@ -456,5 +467,41 @@ namespace win_client.ViewModels
 
         #endregion
 
+
+        #region Support Functions
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
+        /// the automatic Window.Close (set true to message.Execute.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                // Cancel the shutdown.  We will do it here.
+                message.Execute(OnClosing());       // true == abort shutdown.
+
+                // NOTE: We may never reach this point if the user said to shut down.
+            }
+        }
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the automatic Window.Close action.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+
+            // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
+            CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer);
+
+            return true;                // cancel the automatic Window close.
+        }
+
+        #endregion
     }
 }

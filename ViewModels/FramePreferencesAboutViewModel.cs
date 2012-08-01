@@ -1,5 +1,5 @@
 ﻿//
-//  PageBadgeComInitializationErrorViewModel.cs
+//  FramePreferencesAboutViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -18,36 +18,45 @@ using System.Windows.Controls;
 using win_client.Common;
 using System.Reflection;
 using System.Linq;
+using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
-using System.IO;
-using System.Resources;
+using CloudApiPrivate.Static;
+using CloudApiPublic;
+using CloudApiPublic.Support;
+using CloudApiPublic.Model;
+using System.Collections.Generic;
 using GalaSoft.MvvmLight.Ioc;
 using Dialog.Abstractions.Wpf.Intefaces;
-using System.Collections.Generic;
-using win_client.Views;
+using System.Resources;
 using win_client.AppDelegate;
-using CloudApiPublic.Support;
+using win_client.ViewModelHelpers;
 using System.Windows.Input;
+using win_client.Views;
+using System.Windows.Threading;
+using System.Diagnostics;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
-using win_client.ViewModelHelpers;
-
 
 namespace win_client.ViewModels
 {
          
     /// <summary>
-    /// Page to control the multiple pages of the tour.
+    /// This class contains properties that a View can data bind to.
+    /// <para>
+    /// Use the <strong>mvvminpc</strong> snippet to add bindable properties to this ViewModel.
+    /// </para>
+    /// <para>
+    /// See http://www.galasoft.ch/mvvm/getstarted
+    /// </para>
     /// </summary>
-    public class PageBadgeComInitializationErrorViewModel : ValidatingViewModelBase, ICleanup
+    public class FramePreferencesAboutViewModel : ValidatingViewModelBase
     {
-
-        #region Instance Variables
+        #region Private Instance Variables
 
         private readonly IDataService _dataService;
-        private RelayCommand _pageBadgeComInitializationErrorViewModel_OkCommand;
         private CLTrace _trace = CLTrace.Instance;
         private ResourceManager _rm;
+        private IModalWindow _dialog = null;        // for use with modal dialogs
 
         #endregion
 
@@ -55,7 +64,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Initializes a new instance of the PageHomeViewModel class.
         /// </summary>
-        public PageBadgeComInitializationErrorViewModel(IDataService dataService)
+        public FramePreferencesAboutViewModel(IDataService dataService)
         {
             _dataService = dataService;
             _dataService.GetData(
@@ -66,10 +75,9 @@ namespace win_client.ViewModels
                         // Report error here
                         return;
                     }
-
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm = CLAppDelegate.Instance.ResourceManager;
+            _rm =  CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
 
             // Register to receive the ConfirmShutdown message
@@ -81,6 +89,8 @@ namespace win_client.ViewModels
                 });
         }
 
+        #endregion
+
         #region Bindable Properties
 
         /// <summary>
@@ -88,6 +98,11 @@ namespace win_client.ViewModels
         /// </summary>
         public const string ViewGridContainerPropertyName = "ViewGridContainer";
         private Grid _viewGridContainer = null;
+
+        /// <summary>
+        /// Sets and gets the ViewGridContainer property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
         public Grid ViewGridContainer
         {
             get
@@ -107,40 +122,58 @@ namespace win_client.ViewModels
             }
         }
 
-        #endregion
-
         /// <summary>
-        /// Clean up all resources allocated, and save state as needed.
+        /// The <see cref="Preferences" /> property's name.
         /// </summary>
-        public override void Cleanup()
-        {
-            base.Cleanup();
-            _rm = null;
-        }
-
-        #endregion
-     
-        #region Relay Commands
-
-        /// <summary>
-        /// The user clicked the OK button.
-        /// </summary>
-        public RelayCommand PageBadgeComInitializationErrorViewModel_OkCommand
+        public const string PreferencesPropertyName = "Preferences";
+        private CLPreferences _preferences = null;
+        public CLPreferences Preferences
         {
             get
             {
-                return _pageBadgeComInitializationErrorViewModel_OkCommand
-                    ?? (_pageBadgeComInitializationErrorViewModel_OkCommand = new RelayCommand(
-                                            () =>
-                                            {
-                                                // Exit the application
-                                                Application.Current.Shutdown();
-                                            }));                                              
+                return _preferences;
+            }
+
+            set
+            {
+                if (_preferences == value)
+                {
+                    return;
+                }
+
+                _preferences = value;
+                RaisePropertyChanged(PreferencesPropertyName);
             }
         }
 
-        #endregion
 
+        #endregion
+      
+        #region Relay Commands
+
+        /// <summary>
+        /// Gets the FramePreferencesAbout_FollowUsOnTwitter.
+        /// </summary>
+        private ICommand _framePreferencesAbout_FollowUsOnTwitter;
+        public ICommand FramePreferencesAbout_FollowUsOnTwitter
+        {
+            get
+            {
+                return _framePreferencesAbout_FollowUsOnTwitter
+                    ?? (_framePreferencesAbout_FollowUsOnTwitter = new RelayCommand(
+                                            () =>
+                                            {
+                                                // Launch the default browser and send them our twitter page.
+                                                Process proc = new Process();
+                                                proc.StartInfo.UseShellExecute = true;
+                                                proc.StartInfo.FileName = CLDefinitions.CLTwitterPageUrl;
+                                                proc.Start(); 
+                                            }));
+            }
+        }
+
+
+        #endregion
         #region Support Functions
 
         /// <summary>
@@ -168,10 +201,6 @@ namespace win_client.ViewModels
         private bool OnClosing()
         {
             // Clean-up logic here.
-
-            // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
-            CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer);
-
             return true;                // cancel the automatic Window close.
         }
 

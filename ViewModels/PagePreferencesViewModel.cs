@@ -27,6 +27,9 @@ using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
+using System.ComponentModel;
+using System.Windows.Input;
+using CleanShutdown.Messaging;
 
 namespace win_client.ViewModels
 {  
@@ -67,8 +70,17 @@ namespace win_client.ViewModels
 
             _rm = CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
+
             _preferences = new CLPreferences();
             _preferences.GetPreferencesFromSettings();
+
+            // Register to receive the ConfirmShutdown message
+            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                this,
+                message =>
+                {
+                    OnConfirmShutdownMessage(message);
+                });
         }
 
         /// <summary>
@@ -153,6 +165,8 @@ namespace win_client.ViewModels
             }
         }
 
+        #region Relay Commands
+
         /// <summary>
         /// Create new account from the PagePreferences page.
         /// </summary>
@@ -187,12 +201,8 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_CancelCommand = new RelayCommand(
                                           () =>
                                           {
-                                              // Reset the preferences from the last saved state
-                                              _preferences.GetPreferencesFromSettings();
-
-                                              // Navigate to PageInvisible
-                                              Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
-                                              CLAppMessages.PagePreferences_NavigationRequest.Send(nextPage);
+                                              // Reset the preferences from the last saved state and go back to the system tray.
+                                              OnClosing();
                                           }));
             }
         }
@@ -298,7 +308,37 @@ namespace win_client.ViewModels
             }
         }
 
-        #region Private Support Functions
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
+        /// the automatic Window.Close (set true to message.Execute.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                // Cancel the shutdown.  We will do it here.
+                message.Execute(OnClosing());       // true == abort shutdown.
+
+                // NOTE: We may never reach this point if the user said to shut down.
+            }
+        }
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the automatic Window.Close action.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+            return true;                // cancel the automatic Window close.
+        }
 
         #endregion
     }

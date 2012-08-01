@@ -60,6 +60,43 @@ namespace win_client.ViewModelHelpers
             _trace = CLTrace.Instance;
         }
 
+                /// <summary>
+        /// Display a prompt to shutdown the system, and perform the shutdown if the user says OK.
+        /// This is called by any of the Pages.
+        /// </summary>
+        /// <param name="container">The Grid to paint gray and to go "modal" over.</param>
+        public void DisplayModalShutdownPrompt(Grid container)
+        {
+            // A page has been notified to close.  Warn the user and allow him to cancel the close.
+            IModalWindow dialog = null;
+            DisplayModalMessageBox(
+                windowHeight: 250,
+                leftButtonWidth: 75,
+                rightButtonWidth: 75,
+                title: _rm.GetString("PromptExitApplication_Title"),
+                headerText: _rm.GetString("PromptExitApplication_HeaderText"),
+                bodyText: _rm.GetString("PromptExitApplication_BodyText"),
+                leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                container: container,
+                dialog: out dialog,
+                actionResultHandler:
+                    returnedViewModelInstance =>
+                    {
+                        // Do nothing here when the user clicks the OK button.
+                        _trace.writeToLog(9, "DisplayModalShutdownPrompt: Prompt exit application: Entry.");
+                        if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
+                        {
+                            // The user said yes.  Unlink this device.
+                            _trace.writeToLog(9, "DisplayModalShutdownPrompt: Prompt exit application: User said yes.");
+
+                            // Shut down tha app
+                            System.Windows.Application.Current.Shutdown();
+                        }
+                    }
+            );
+        }
+
         /// <summary>
         /// Display an error message inside a grid.
         /// </summary>
@@ -85,6 +122,7 @@ namespace win_client.ViewModelHelpers
                             CloudMessageBoxView_RightButtonWidth = 100,
                             CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
                             CloudMessageBoxView_RightButtonContent = rightButtonContent,
+                            CloudMessageBoxView_RightButtonVisibility = Visibility.Visible,
                         },
                         container,
                         actionOkButtonHandler
@@ -99,7 +137,7 @@ namespace win_client.ViewModelHelpers
                                 out IModalWindow dialog,
                                 System.Action<DialogCloudMessageBoxViewModel> actionResultHandler)
         {
-            _trace.writeToLog(1, "CLModalErrorDialog: DisplayModalMessageBox:  Error: {0}.", bodyText);
+            _trace.writeToLog(1, "CLModalErrorDialog: DisplayModalMessageBox:  Message: {0}.", bodyText);
 
             dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
             IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
@@ -115,9 +153,11 @@ namespace win_client.ViewModelHelpers
                             CloudMessageBoxView_LeftButtonWidth = leftButtonWidth,
                             CloudMessageBoxView_LeftButtonMargin = new Thickness(0, 0, 0, 0),
                             CloudMessageBoxView_LeftButtonContent = leftButtonContent,
+                            CloudMessageBoxView_LeftButtonVisibility = Visibility.Visible,
                             CloudMessageBoxView_RightButtonWidth = rightButtonWidth,
                             CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 30, 0),
                             CloudMessageBoxView_RightButtonContent = rightButtonContent,
+                            CloudMessageBoxView_RightButtonVisibility = Visibility.Visible,
                         },
                         container,
                         actionResultHandler

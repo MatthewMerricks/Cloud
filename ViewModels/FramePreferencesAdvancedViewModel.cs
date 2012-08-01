@@ -33,6 +33,8 @@ using win_client.ViewModelHelpers;
 using System.Windows.Input;
 using win_client.Views;
 using System.Windows.Threading;
+using System.ComponentModel;
+using CleanShutdown.Messaging;
 
 namespace win_client.ViewModels
 {
@@ -77,8 +79,15 @@ namespace win_client.ViewModels
             _rm =  CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
 
+            // Register to receive the ConfirmShutdown message
+            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                this,
+                message =>
+                {
+                    OnConfirmShutdownMessage(message);
+                });
+
             // Set the current Cloud folder location.
-            //TODO: Is this OK to do in the constructor?
             FramePreferencesAdvanced_CloudFolder = Settings.Instance.CloudFolderPath;
         }
 
@@ -192,7 +201,7 @@ namespace win_client.ViewModels
 
         #endregion
       
-        #region Commands
+        #region Relay Commands
 
         /// <summary>
         /// Gets the FramePreferencesAdvanced_ChangeCloudFolder.
@@ -414,6 +423,40 @@ namespace win_client.ViewModels
                         }
                     }
             );
+        }
+
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
+        /// the automatic Window.Close (set true to message.Execute.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                // Cancel the shutdown.  We will do it here.
+                message.Execute(OnClosing());       // true == abort shutdown.
+
+                // NOTE: We may never reach this point if the user said to shut down.
+            }
+        }
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the automatic Window.Close action.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+
+            // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
+            return true;                // cancel the automatic Window close.
         }
 
         #endregion

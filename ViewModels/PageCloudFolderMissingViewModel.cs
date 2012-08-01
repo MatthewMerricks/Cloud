@@ -31,6 +31,8 @@ using CloudApiPublic.Model;
 using win_client.ViewModelHelpers;
 using Ookii.Dialogs.WpfMinusTaskDialog;
 using CloudApiPrivate.Model;
+using System.ComponentModel;
+using System.Windows.Input;
 
 
 namespace win_client.ViewModels
@@ -178,7 +180,7 @@ namespace win_client.ViewModels
 
         #endregion
      
-        #region Commands
+        #region Relay Commands
 
         /// <summary>
         /// The user clicked the OK button.
@@ -378,6 +380,22 @@ namespace win_client.ViewModels
                                             }));
             }
         }
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the cancel.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+            return false;                   // don't cancel the user's request to cancel
+        }
+
         #endregion
     }
 }

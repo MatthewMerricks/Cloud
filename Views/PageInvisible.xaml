@@ -15,6 +15,7 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:tb="clr-namespace:Hardcodet.Wpf.TaskbarNotification;assembly=Hardcodet.Wpf.TaskbarNotification"
     xmlns:local="clr-namespace:win_client.Services.Notification"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     DataContext="{Binding PageInvisibleViewModel, Source={StaticResource Locator}}" 
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     Width="0" Height="0"

@@ -66,6 +66,10 @@ namespace win_client.Views
                });
             CLAppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
 
+            // Pass the view's grid to the view model for the dialogs to use.
+            PageSelectStorageSizeViewModel vm = (PageSelectStorageSizeViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
+
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 

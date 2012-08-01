@@ -17,6 +17,10 @@ using win_client.Common;
 using CloudApiPrivate.Static;
 using System.Windows.Controls;
 using CloudApiPrivate.Common;
+using System.ComponentModel;
+using CloudApiPublic.Support;
+using System.Resources;
+using win_client.AppDelegate;
 
 namespace win_client.ViewModels
 {
@@ -27,12 +31,17 @@ namespace win_client.ViewModels
         private const double _kNotActiveOpacity = 0.60;
         private const double _kActiveOpacity = 1.00;
 
+        private ResourceManager _rm;
+        private CLTrace _trace = CLTrace.Instance;
+
         #endregion
 
         #region Constructors
 
         public DialogPreferencesNetworkBandwidthViewModel()
         {
+            _rm = CLAppDelegate.Instance.ResourceManager;
+            _trace = CLTrace.Instance;
         }
 
         #endregion
@@ -474,16 +483,12 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkBandwidth_LeftButtonWidth" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkBandwidth_LeftButtonWidthPropertyName = "DialogPreferencesNetworkBandwidth_LeftButtonWidth";
-        private GridLength _dialogPreferencesNetworkBandwidth_LeftButtonWidth = new GridLength(75);
+        private double _dialogPreferencesNetworkBandwidth_LeftButtonWidth = 75;
         /// <summary>
         /// Sets and gets the DialogPreferencesNetworkBandwidth_LeftButtonWidth property.
         /// Changes to that property's value raise the PropertyChanged event. 
-        /// Set this to the width desired, plus the right margin.  So
-        /// if you want a width of 75, and a distance between buttons of 50,  set
-        /// LeftButtonMargin = new Thickness(0, 0, 50, 0), and
-        /// LeftButtonWidth = new GridLength(125)
         /// </summary>
-        public GridLength DialogPreferencesNetworkBandwidth_LeftButtonWidth
+        public double DialogPreferencesNetworkBandwidth_LeftButtonWidth
         {
             get
             {
@@ -506,7 +511,7 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkBandwidth_LeftButtonMargin" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkBandwidth_LeftButtonMarginPropertyName = "DialogPreferencesNetworkBandwidth_LeftButtonMargin";
-        private Thickness _dialogPreferencesNetworkBandwidth_LeftButtonMargin = new Thickness(30, 0, 0, 0);
+        private Thickness _dialogPreferencesNetworkBandwidth_LeftButtonMargin = new Thickness(0, 0, 0, 0);
         /// <summary>
         /// Sets and gets the DialogPreferencesNetworkBandwidth_LeftButtonMargin property.
         /// Changes to that property's value raise the PropertyChanged event. 
@@ -555,11 +560,35 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="DialogPreferencesNetworkBandwidth_LeftButtonVisibility" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkBandwidth_LeftButtonVisibilityPropertyName = "DialogPreferencesNetworkBandwidth_LeftButtonVisibility";
+        private Visibility _dialogPreferencesNetworkBandwidth_LeftButtonVisibility = Visibility.Visible;
+        public Visibility DialogPreferencesNetworkBandwidth_LeftButtonVisibility
+        {
+            get
+            {
+                return _dialogPreferencesNetworkBandwidth_LeftButtonVisibility;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkBandwidth_LeftButtonVisibility == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkBandwidth_LeftButtonVisibility = value;
+                RaisePropertyChanged(DialogPreferencesNetworkBandwidth_LeftButtonVisibilityPropertyName);
+            }
+        }
+
+        /// <summary>
         /// The <see cref="DialogPreferencesNetworkBandwidth_RightButtonWidth" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkBandwidth_RightButtonWidthPropertyName = "DialogPreferencesNetworkBandwidth_RightButtonWidth";
-        private GridLength _dialogPreferencesNetworkBandwidth_RightButtonWidth = new GridLength(75);
-        public GridLength DialogPreferencesNetworkBandwidth_RightButtonWidth
+        private double _dialogPreferencesNetworkBandwidth_RightButtonWidth = 75;
+        public double DialogPreferencesNetworkBandwidth_RightButtonWidth
         {
             get
             {
@@ -582,7 +611,7 @@ namespace win_client.ViewModels
         /// The <see cref="DialogPreferencesNetworkBandwidth_RightButtonMargin" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkBandwidth_RightButtonMarginPropertyName = "DialogPreferencesNetworkBandwidth_RightButtonMargin";
-        private Thickness _dialogPreferencesNetworkBandwidth_RightButtonMargin = new Thickness(30, 0, 0, 0);
+        private Thickness _dialogPreferencesNetworkBandwidth_RightButtonMargin = new Thickness(0, 0, 0, 0);
         public Thickness DialogPreferencesNetworkBandwidth_RightButtonMargin
         {
             get
@@ -625,9 +654,52 @@ namespace win_client.ViewModels
                 RaisePropertyChanged(DialogPreferencesNetworkBandwidth_RightButtonContentPropertyName);
             }
         }
+
+        /// <summary>
+        /// The <see cref="DialogPreferencesNetworkBandwidth_RightButtonVisibility" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkBandwidth_RightButtonVisibilityPropertyName = "DialogPreferencesNetworkBandwidth_RightButtonVisibility";
+        private Visibility _dialogPreferencesNetworkBandwidth_RightButtonVisibility = Visibility.Visible;
+        public Visibility DialogPreferencesNetworkBandwidth_RightButtonVisibility
+        {
+            get
+            {
+                return _dialogPreferencesNetworkBandwidth_RightButtonVisibility;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkBandwidth_RightButtonVisibility == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkBandwidth_RightButtonVisibility = value;
+                RaisePropertyChanged(DialogPreferencesNetworkBandwidth_RightButtonVisibilityPropertyName);
+            }
+        }
+
+
         #endregion
 
         #region Relay Commands
+
+        /// <summary>
+        /// Gets the WindowClosingCommand.
+        /// </summary>
+        private ICommand _windowClosingCommand;
+        public ICommand WindowClosingCommand
+        {
+            get
+            {
+                return _windowClosingCommand
+                    ?? (_windowClosingCommand = new RelayCommand<CancelEventArgs>(
+                                          (args) =>
+                                          {
+                                              args.Cancel = OnClosing();
+                                          }));
+            }
+        }
 
         /// <summary>
         /// Gets the DialogPreferencesNetworkBandwidthViewModel_UpdateCommand.
@@ -687,7 +759,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               // Handle the cancel
-                                              
+                                              OnClosing();
                                           }));
             }
         }
@@ -800,6 +872,22 @@ namespace win_client.ViewModels
                     }
                 }
             }
+        }
+
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the cancel.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+            return false;                   // don't cancel the user's request to cancel
         }
 
         #endregion

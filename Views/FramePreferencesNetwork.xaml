@@ -17,9 +17,10 @@
     xmlns:commonClient="clr-namespace:win_client.Common"
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding FramePreferencesNetworkViewModel, Source={StaticResource Locator}}" 
-    WindowTitle="Cloud Preferences"
+    WindowTitle="Cloud Network Preferences"
     Name="FramePreferencesNetworkRoot">
 
     <Page.Resources>
@@ -64,7 +65,7 @@
             
             <TextBlock TextWrapping="Wrap" Text="Sync: " Foreground="Black" FontSize="16" Grid.Row="1" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
             <CheckBox x:Name="chkEnableLanSync"  Content="Enable LAN Sync" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Grid.Column="1" FontSize="16" Width="Auto" Margin="10,0,0,0"
-                      IsChecked="{Binding ElementName=FramePreferencesGeneralRoot, Path=Preferences.ShouldEnableLanSync, Mode=TwoWay}" Height="Auto" ToolTip="Check to enable synchronization at LAN speeds." />
+                      IsChecked="{Binding ElementName=FramePreferencesNetworkRoot, Path=Preferences.ShouldEnableLanSync, Mode=TwoWay}" Height="Auto" ToolTip="Check to enable synchronization at LAN speeds." />
                 
             <TextBlock TextWrapping="Wrap" Text="Bandwidth: " Foreground="Black" FontSize="16" Grid.Row="2" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
             <Button x:Name="cmdChangeBandwidthSettings" Content="Change settings..." VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="1 " Grid.Row="2" Height="Auto" Width="Auto" Margin="10,0,0,0"

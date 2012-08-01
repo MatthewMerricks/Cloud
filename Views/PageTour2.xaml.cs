@@ -64,6 +64,10 @@ namespace win_client.Views
                     this.NavigationService.Navigate(uri, UriKind.Relative);
                 });
 
+            // Set the view's grid into the view model.
+            PageTourViewModel vm = (PageTourViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
+
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 

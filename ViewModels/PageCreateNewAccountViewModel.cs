@@ -30,6 +30,8 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
+using System.ComponentModel;
+using System.Windows.Input;
 
 namespace win_client.ViewModels
 {
@@ -393,8 +395,8 @@ namespace win_client.ViewModels
 
         #endregion
       
-        #region Commands
-         
+        #region Relay Commands
+
         /// <summary>
         /// Back command from the PageCreateNewAccount page.
         /// </summary>
@@ -616,6 +618,22 @@ namespace win_client.ViewModels
             _eMail = Settings.Instance.UserName;
             _fullName = Settings.Instance.UserFullName;
             _computerName = Settings.Instance.DeviceName;
+        }
+
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to cancel the cancel.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+            return false;                   // don't cancel the user's request to cancel
         }
 
         #endregion

@@ -50,7 +50,6 @@ namespace win_client.Views
             // Pass the view's grid to the view model for the dialogs to use.
             _viewModel = (PageHomeViewModel)DataContext;
             _viewModel.ViewGridContainer = LayoutRoot;
-
         }
 
         #region "Event Handlers"
@@ -72,6 +71,7 @@ namespace win_client.Views
 
             CLAppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
             CLAppMessages.Home_GetClearPasswordField.Register(this, OnHome_GetClearPasswordField);
+            CLAppMessages.Message_PageMustUnregisterWindowClosingMessage.Register(this, OnMessage_PageMustUnregisterWindowClosingMessage);
 
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
@@ -110,6 +110,14 @@ namespace win_client.Views
             return null;
         }
 
+        /// <summary>
+        /// NavigationWindow sends this to all pages prior to driving the HandleNavigated event above.
+        /// Upon receipt, the page must unregister the WindowClosingMessage.
+        /// </summary>
+        private void OnMessage_PageMustUnregisterWindowClosingMessage(string obj)
+        {
+            Messenger.Default.Unregister<CleanShutdown.Messaging.NotificationMessageAction<bool>>(this, message => { });
+        }
 
         #endregion
         #region Message Handlers

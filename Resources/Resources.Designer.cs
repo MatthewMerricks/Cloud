@@ -439,7 +439,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cloud About Preferences.
+        ///   Looks up a localized string similar to About Cloud.
         /// </summary>
         public static string PagePreferencesAboutTitle {
             get {
@@ -480,6 +480,33 @@ namespace win_client.Resources {
         public static string PagePreferencesNetworkTitle {
             get {
                 return ResourceManager.GetString("PagePreferencesNetworkTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Click the &apos;Yes&apos; button to exit the Cloud application..
+        /// </summary>
+        public static string PromptExitApplication_BodyText {
+            get {
+                return ResourceManager.GetString("PromptExitApplication_BodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you wish to exit Cloud?.
+        /// </summary>
+        public static string PromptExitApplication_HeaderText {
+            get {
+                return ResourceManager.GetString("PromptExitApplication_HeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exit Cloud?.
+        /// </summary>
+        public static string PromptExitApplication_Title {
+            get {
+                return ResourceManager.GetString("PromptExitApplication_Title", resourceCulture);
             }
         }
         

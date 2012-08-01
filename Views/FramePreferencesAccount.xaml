@@ -17,9 +17,10 @@
     xmlns:commonClient="clr-namespace:win_client.Common"
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding FramePreferencesAccountViewModel, Source={StaticResource Locator}}" 
-    WindowTitle="Cloud Preferences"
+    WindowTitle="Cloud Account Preferences"
     Name="FramePreferencesAccountRoot">
 
     <Page.Resources>

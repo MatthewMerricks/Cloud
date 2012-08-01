@@ -13,6 +13,8 @@
            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
            xmlns:commonClient="clr-namespace:win_client.Common"
+           xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+           xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
            mc:Ignorable="d"
            DataContext="{Binding PageHomeViewModel, Source={StaticResource Locator}}" 
            d:DesignWidth="624" d:DesignHeight="442"
