@@ -27,19 +27,20 @@ namespace FileMonitor
     /// <param name="outputChanges">Output array of FileChanges to process</param>
     /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
     /// <returns>Returns error(s) that occurred while pulling processed changes, if any</returns>
-    public delegate CLError GrabProcessedChanges(out KeyValuePair<FileChange, FileStream>[] outputChanges,
+    public delegate CLError GrabProcessedChanges(IEnumerable<FileChange> initialFailures,
+        out KeyValuePair<FileChange, FileStream>[] outputChanges,
         out FileChange[] outputChangesInError);
 
-    /// <summary>
-    /// Delegate to match MonitorAgent's method SortFileChanges which sorts an input list of FileChanges
-    /// </summary>
-    /// <param name="inputChanges">FileChanges currently running through Sync process to sort</param>
-    /// <param name="outputChanges">Output array of FileChanges to process</param>
-    /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
-    /// <returns>Returns error(s) that occurred while pulling processed changes, if any</returns>
-    public delegate CLError SortChanges(IEnumerable<KeyValuePair<FileChange, FileStream>> inputChanges,
-            out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
-            out FileChange[] outputChangesInError);
+    ///// <summary>
+    ///// Delegate to match MonitorAgent's method SortFileChanges which sorts an input list of FileChanges
+    ///// </summary>
+    ///// <param name="inputChanges">FileChanges currently running through Sync process to sort</param>
+    ///// <param name="outputChanges">Output array of FileChanges to process</param>
+    ///// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
+    ///// <returns>Returns error(s) that occurred while pulling processed changes, if any</returns>
+    //public delegate CLError SortChanges(IEnumerable<KeyValuePair<FileChange, FileStream>> inputChanges,
+    //        out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
+    //        out FileChange[] outputChangesInError);
 
     /// <summary>
     /// Class to cover file monitoring; created with delegates to connect to the SQL indexer and to start Sync communication for new events
@@ -552,29 +553,116 @@ namespace FileMonitor
         /// <param name="outputChanges">Output array of FileChanges to process</param>
         /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
         /// <returns>Returns error(s) that occurred finalizing the FileChange array, if any</returns>
-        public CLError ProcessFileListForSyncProcessing(out KeyValuePair<FileChange, FileStream>[] outputChanges,
-            out FileChange[] outputChangesInError)
+        public CLError ProcessFileListForSyncProcessing(IEnumerable<FileChange> initialFailures,
+            out KeyValuePair<FileChange, FileStream>[] outputChanges,
+            out FileChange[] outputChangesInError,
+            out bool noOuterException)
         {
-            try
+            CLError toReturn = null;
+            lock (QueuedChanges)
             {
-                IEnumerable<KeyValuePair<FileChange, FileStream>> outputChangesEnumerable;
-                CLError toReturn = ProcessAndSortFileChanges(null, true, out outputChangesEnumerable, out outputChangesInError);
-                if (outputChangesEnumerable == null)
+                lock (QueuesTimer.TimerRunningLocker)
                 {
-                    outputChanges = null;
+                    FileChange[] dequeuedProcessingChanges = null;
+                    try
+                    {
+                        dequeuedProcessingChanges = new FileChange[ProcessingChanges.Count];
+                        for (int processingChangeIndex = 0; processingChangeIndex < dequeuedProcessingChanges.Length; processingChangeIndex++)
+                        {
+                            dequeuedProcessingChanges[processingChangeIndex] = ProcessingChanges.Last.Value;
+                            ProcessingChanges.RemoveLast();
+                        }
+
+                        KeyValuePair<FileChangeSource, FileChange>[] orderedChanges =
+
+                            initialFailures.Select(currentFailure => new KeyValuePair<FileChangeSource, FileChange>(FileChangeSource.FailureQueue, currentFailure))
+
+                            .Concat(dequeuedProcessingChanges.Select(currentProcessingChange => new KeyValuePair<FileChangeSource, FileChange>(FileChangeSource.ProcessingChanges, currentProcessingChange)))
+
+                            .Concat(QueuedChanges.Values.Select(currentQueuedChange => new KeyValuePair<FileChangeSource, FileChange>(FileChangeSource.QueuedChanges, currentQueuedChange)))
+
+                            .OrderBy(currentChange => currentChange.Value.EventId)
+
+                            .ToArray();
+
+                        List<KeyValuePair<FileChange, FileStream>> outputChangeList = new List<KeyValuePair<FileChange, FileStream>>();
+                        List<FileChange> outputErrorList = new List<FileChange>();
+                        HashSet<FileChange> pulledChanges = new HashSet<FileChange>();
+
+                        for (int orderedChangeIndex = 0; orderedChangeIndex < orderedChanges.Length; orderedChangeIndex++)
+                        {
+                            KeyValuePair<FileChangeSource, FileChange> currentOrderedChange = orderedChanges[orderedChangeIndex];
+
+                            if (currentOrderedChange.Key != FileChangeSource.QueuedChanges
+                                && !pulledChanges.Contains(currentOrderedChange.Value))
+                            {
+                                try
+                                {
+                                    for (int innerChangeIndex = orderedChangeIndex + 1; innerChangeIndex < orderedChanges.Length; innerChangeIndex++)
+                                    {
+                                        KeyValuePair<FileChangeSource, FileChange> currentInnerChange = orderedChanges[innerChangeIndex];
+
+                                        bool stopChangingPaths = false;
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    outputErrorList.Add(currentOrderedChange.Value);
+                                    toReturn += ex;
+                                }
+                            }
+                        }
+
+                        noOuterException = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (dequeuedProcessingChanges != null)
+                        {
+                            for (int processingChangeIndex = dequeuedProcessingChanges.Length - 1; processingChangeIndex >= 0; processingChangeIndex--)
+                            {
+                                if (dequeuedProcessingChanges[processingChangeIndex] != null)
+                                {
+                                    ProcessingChanges.AddLast(dequeuedProcessingChanges[processingChangeIndex]);
+                                }
+                            }
+                        }
+
+                        outputChanges = Helpers.DefaultForType<KeyValuePair<FileChange, FileStream>[]>();
+                        outputChangesInError = Helpers.DefaultForType<FileChange[]>();
+                        noOuterException = Helpers.DefaultForType<bool>();
+                        toReturn += ex;
+                    }
+                    return toReturn;
                 }
-                else
-                {
-                    outputChanges = outputChangesEnumerable.ToArray();
-                }
-                return toReturn;
             }
-            catch (Exception ex)
-            {
-                outputChanges = Helpers.DefaultForType<KeyValuePair<FileChange, FileStream>[]>();
-                outputChangesInError = Helpers.DefaultForType<FileChange[]>();
-                return ex;
-            }
+
+            //try
+            //{
+            //    IEnumerable<KeyValuePair<FileChange, FileStream>> outputChangesEnumerable;
+            //    CLError toReturn = ProcessAndSortFileChanges(null, true, out outputChangesEnumerable, out outputChangesInError);
+            //    if (outputChangesEnumerable == null)
+            //    {
+            //        outputChanges = null;
+            //    }
+            //    else
+            //    {
+            //        outputChanges = outputChangesEnumerable.ToArray();
+            //    }
+            //    return toReturn;
+            //}
+            //catch (Exception ex)
+            //{
+            //    outputChanges = Helpers.DefaultForType<KeyValuePair<FileChange, FileStream>[]>();
+            //    outputChangesInError = Helpers.DefaultForType<FileChange[]>();
+            //    return ex;
+            //}
+        }
+        private enum FileChangeSource : byte
+        {
+            QueuedChanges,
+            FailureQueue,
+            ProcessingChanges
         }
 
         /// <summary>
@@ -847,6 +935,9 @@ namespace FileMonitor
                 Dictionary<FilePath, KeyValuePair<int, FileChange>> fileDeletions = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
                 Dictionary<FilePath, KeyValuePair<int, FileChange>> folderDeletions = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
 
+                // create list to store rename changes which were removed since they had a prior corresponding creation change
+                HashSet<FileChange> renamesRemoved = new HashSet<FileChange>();
+
                 // create list to store FileChanges in error for direct output
                 List<FileChange> changesInError = new List<FileChange>();
 
@@ -886,6 +977,7 @@ namespace FileMonitor
                     // counter for maintaining order of input changes
                     int changeCounter = 0;
 
+                    #region Action updateFileChangePathFromRenames
                     // define an action which scans through rename changes going forwards (until it finds a matching delete),
                     // rebuilding the NewPath of a FileChange everytime the rename change's OldPath matches
                     Action<FileChange, int> updateFileChangePathFromRenames = (toUpdate, toUpdateIndex) =>
@@ -936,10 +1028,17 @@ namespace FileMonitor
                                     case FileChangeType.Renamed:
                                         // to compare, find where the current chane's NewPath overlaps with the rename change's OldPath
                                         // and see if this overlap is the rename's OldPath itself
-                                        if (FilePathComparer.Instance.Equals(dependencies.Current.NewPath.FindOverlappingPath(possibleRenameChange.OldPath), possibleRenameChange.OldPath))
+                                        FilePath overlappedPath;
+                                        if (FilePathComparer.Instance.Equals((overlappedPath = dependencies.Current.NewPath.FindOverlappingPath(possibleRenameChange.OldPath)), possibleRenameChange.OldPath))
                                         {
                                             // matching rename change found,
                                             // current change's NewPath needs to be rebuilt off the rename change
+
+                                            // if the overlappedPath matches the NewPath of the current file change
+                                            // and the current file change type is a create,
+                                            // then the renamed change should be marked for removal since the creation will occur at the new location instead
+                                            bool renameShouldBeRemoved = dependencies.Current.Type == FileChangeType.Created
+                                                && FilePathComparer.Instance.Equals(dependencies.Current.NewPath, overlappedPath);
 
                                             // child of path of perfect overlap with rename change's OldPath
                                             // (whose parent will be replaced by the change of the rename's NewPath
@@ -970,6 +1069,19 @@ namespace FileMonitor
                                             {
                                                 throw mergeError.GrabFirstException();
                                             }
+
+                                            // if rename should be removed,
+                                            // then remove it from SQL and add it to a list so it does not get added to the output list
+                                            if (renameShouldBeRemoved)
+                                            {
+                                                CLError removeRenameError = ProcessMergeToSQL(null, possibleRenameChange);
+                                                if (removeRenameError != null)
+                                                {
+                                                    throw removeRenameError.GrabFirstException();
+                                                }
+
+                                                renamesRemoved.Add(possibleRenameChange);
+                                            }
                                         }
                                         break;
                                 }
@@ -978,6 +1090,7 @@ namespace FileMonitor
                             dependencies.MoveNext();
                         }
                     };
+                    #endregion
 
                     #region sort and merge input changes
                     // loop for all the indexes in the array of input changes
@@ -997,17 +1110,25 @@ namespace FileMonitor
                                 switch (currentInputChange.Key.Type)
                                 {
                                     case FileChangeType.Created:
-                                        // folder creations require the rename path rebuild;
-                                        // then filter/merge for duplicates and add to the appropropriate output dictionary
-
-                                        updateFileChangePathFromRenames(currentInputChange.Key, inputChangeIndex);
-                                        if (folderCreations.ContainsKey(currentInputChange.Key.NewPath))
+                                        if (folderDeletions.ContainsKey(currentInputChange.Key.NewPath))
                                         {
-                                            ProcessMergeToSQL(currentInputChange.Key, folderCreations[currentInputChange.Key.NewPath].Value);
-                                            folderCreations.Remove(currentInputChange.Key.NewPath);
+                                            working here
+                                                // creation after deletion should cause current and remaining changes to be dependent on the deletion
                                         }
-                                        folderCreations.Add(currentInputChange.Key.NewPath,
-                                            new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange.Key));
+                                        else
+                                        {
+                                            // folder creations require the rename path rebuild;
+                                            // then filter/merge for duplicates and add to the appropropriate output dictionary
+
+                                            updateFileChangePathFromRenames(currentInputChange.Key, inputChangeIndex);
+                                            if (folderCreations.ContainsKey(currentInputChange.Key.NewPath))
+                                            {
+                                                ProcessMergeToSQL(currentInputChange.Key, folderCreations[currentInputChange.Key.NewPath].Value);
+                                                folderCreations.Remove(currentInputChange.Key.NewPath);
+                                            }
+                                            folderCreations.Add(currentInputChange.Key.NewPath,
+                                                new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange.Key));
+                                        }
                                         break;
                                     case FileChangeType.Deleted:
                                         // filter/merge for duplicates and add to the appropropriate output dictionary
@@ -1028,27 +1149,30 @@ namespace FileMonitor
                                     case FileChangeType.Renamed:
                                         // filter/merge for duplicates and add to the appropropriate output dictionary
 
-                                        Dictionary<FilePath, KeyValuePair<int, FileChange>> oldPathDict = null;
-
-                                        if (folderRenames.ContainsKey(currentInputChange.Key.OldPath))
+                                        if (!renamesRemoved.Contains(currentInputChange.Key))
                                         {
-                                            oldPathDict = folderRenames[currentInputChange.Key.OldPath];
+                                            Dictionary<FilePath, KeyValuePair<int, FileChange>> oldPathDict = null;
 
-                                            if (oldPathDict.ContainsKey(currentInputChange.Key.NewPath))
+                                            if (folderRenames.ContainsKey(currentInputChange.Key.OldPath))
                                             {
-                                                ProcessMergeToSQL(currentInputChange.Key, oldPathDict[currentInputChange.Key.NewPath].Value);
-                                                oldPathDict.Remove(currentInputChange.Key.NewPath);
+                                                oldPathDict = folderRenames[currentInputChange.Key.OldPath];
+
+                                                if (oldPathDict.ContainsKey(currentInputChange.Key.NewPath))
+                                                {
+                                                    ProcessMergeToSQL(currentInputChange.Key, oldPathDict[currentInputChange.Key.NewPath].Value);
+                                                    oldPathDict.Remove(currentInputChange.Key.NewPath);
+                                                }
                                             }
-                                        }
 
-                                        if (oldPathDict == null)
-                                        {
-                                            oldPathDict = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
-                                            folderRenames.Add(currentInputChange.Key.OldPath, oldPathDict);
-                                        }
+                                            if (oldPathDict == null)
+                                            {
+                                                oldPathDict = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
+                                                folderRenames.Add(currentInputChange.Key.OldPath, oldPathDict);
+                                            }
 
-                                        oldPathDict.Add(currentInputChange.Key.NewPath,
-                                            new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange.Key));
+                                            oldPathDict.Add(currentInputChange.Key.NewPath,
+                                                new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange.Key));
+                                        }
                                         break;
                                 }
                             }
@@ -1110,27 +1234,30 @@ namespace FileMonitor
                                     case FileChangeType.Renamed:
                                         // filter/merge for duplicates and add to the appropropriate output dictionary
 
-                                        Dictionary<FilePath, KeyValuePair<int, FileChange>> oldPathDict = null;
-
-                                        if (fileRenames.ContainsKey(currentInputChange.Key.OldPath))
+                                        if (!renamesRemoved.Contains(currentInputChange.Key))
                                         {
-                                            oldPathDict = fileRenames[currentInputChange.Key.OldPath];
+                                            Dictionary<FilePath, KeyValuePair<int, FileChange>> oldPathDict = null;
 
-                                            if (oldPathDict.ContainsKey(currentInputChange.Key.NewPath))
+                                            if (fileRenames.ContainsKey(currentInputChange.Key.OldPath))
                                             {
-                                                ProcessMergeToSQL(currentInputChange.Key, oldPathDict[currentInputChange.Key.NewPath].Value);
-                                                oldPathDict.Remove(currentInputChange.Key.NewPath);
+                                                oldPathDict = fileRenames[currentInputChange.Key.OldPath];
+
+                                                if (oldPathDict.ContainsKey(currentInputChange.Key.NewPath))
+                                                {
+                                                    ProcessMergeToSQL(currentInputChange.Key, oldPathDict[currentInputChange.Key.NewPath].Value);
+                                                    oldPathDict.Remove(currentInputChange.Key.NewPath);
+                                                }
                                             }
-                                        }
 
-                                        if (oldPathDict == null)
-                                        {
-                                            oldPathDict = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
-                                            fileRenames.Add(currentInputChange.Key.OldPath, oldPathDict);
-                                        }
+                                            if (oldPathDict == null)
+                                            {
+                                                oldPathDict = new Dictionary<FilePath, KeyValuePair<int, FileChange>>(FilePathComparer.Instance);
+                                                fileRenames.Add(currentInputChange.Key.OldPath, oldPathDict);
+                                            }
 
-                                        oldPathDict.Add(currentInputChange.Key.NewPath,
-                                            new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange.Key));
+                                            oldPathDict.Add(currentInputChange.Key.NewPath,
+                                                new KeyValuePair<int, FileChange>(changeCounter++, currentInputChange.Key));
+                                        }
                                         break;
                                 }
                             }
@@ -1190,10 +1317,45 @@ namespace FileMonitor
                     try
                     {
                         // if the current change represents a folder,
-                        // then there is nothing else to check for so just add to the output list
+                        // then only double check that the folder's existance is consistent with creations/modification/deletions;
+                        // do not perform any additional checks for renames
                         if (currentChangeToOutput.Key.Metadata.HashableProperties.IsFolder)
                         {
-                            outputChangesList.Add(currentChangeToOutput);
+                            switch (currentChangeToOutput.Key.Type)
+                            {
+                                case FileChangeType.Created:
+                                case FileChangeType.Modified:
+                                    if (Directory.Exists(currentChangeToOutput.Key.NewPath.ToString()))
+                                    {
+                                        outputChangesList.Add(currentChangeToOutput);
+                                    }
+                                    else
+                                    {
+                                        CLError mergeError = ProcessMergeToSQL(null, currentChangeToOutput.Key);
+                                        if (mergeError != null)
+                                        {
+                                            throw mergeError.GrabFirstException();
+                                        }
+                                    }
+                                    break;
+                                case FileChangeType.Deleted:
+                                    if (Directory.Exists(currentChangeToOutput.Key.NewPath.ToString()))
+                                    {
+                                        CLError mergeError = ProcessMergeToSQL(null, currentChangeToOutput.Key);
+                                        if (mergeError != null)
+                                        {
+                                            throw mergeError.GrabFirstException();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        outputChangesList.Add(currentChangeToOutput);
+                                    }
+                                    break;
+                                case FileChangeType.Renamed:
+                                    outputChangesList.Add(currentChangeToOutput);
+                                    break;
+                            }
                         }
                         // else if the current change does not represent a folder (represents a file),
                         // then begin checks specific to files
@@ -2360,26 +2522,7 @@ namespace FileMonitor
         /// <param name="state">Userstate, if provided before the delayed processing</param>
         private void ProcessFileChange(FileChange sender, object state)
         {
-            // If the change is a rename that is being removed, take off its old/new path pair
-            if (sender.Type == FileChangeType.Renamed)
-            {
-                if (OldToNewPathRenames.ContainsKey(sender.OldPath)
-                    && FilePathComparer.Instance.Equals(sender.NewPath, OldToNewPathRenames[sender.OldPath]))
-                {
-                    OldToNewPathRenames.Remove(sender.OldPath);
-                }
-            }
-
-            // remove file changes from each queue if they exist
-            if (QueuedChanges.ContainsKey(sender.NewPath)
-                && QueuedChanges[sender.NewPath] == sender)
-            {
-                QueuedChanges.Remove(sender.NewPath);
-            }
-            if (QueuedChangesByMetadata.ContainsKey(sender.Metadata.HashableProperties))
-            {
-                QueuedChangesByMetadata.Remove(sender.Metadata.HashableProperties);
-            }
+            RemoveFileChangeFromQueuedChanges(sender);
 
             lock (QueuesTimer.TimerRunningLocker)
             {
@@ -2392,6 +2535,30 @@ namespace FileMonitor
                 {
                     QueuesTimer.StartTimerIfNotRunning();
                 }
+            }
+        }
+
+        private void RemoveFileChangeFromQueuedChanges(FileChange toRemove)
+        {
+            // If the change is a rename that is being removed, take off its old/new path pair
+            if (toRemove.Type == FileChangeType.Renamed)
+            {
+                if (OldToNewPathRenames.ContainsKey(toRemove.OldPath)
+                    && FilePathComparer.Instance.Equals(toRemove.NewPath, OldToNewPathRenames[toRemove.OldPath]))
+                {
+                    OldToNewPathRenames.Remove(toRemove.OldPath);
+                }
+            }
+
+            // remove file changes from each queue if they exist
+            if (QueuedChanges.ContainsKey(toRemove.NewPath)
+                && QueuedChanges[toRemove.NewPath] == toRemove)
+            {
+                QueuedChanges.Remove(toRemove.NewPath);
+            }
+            if (QueuedChangesByMetadata.ContainsKey(toRemove.Metadata.HashableProperties))
+            {
+                QueuedChangesByMetadata.Remove(toRemove.Metadata.HashableProperties);
             }
         }
 
@@ -2494,9 +2661,9 @@ namespace FileMonitor
                 if (QueuedChanges.ContainsKey(changeRoot))
                 {
                     FileChange rootChange = QueuedChanges[changeRoot];
-                    Action toProcess = () =>
+                    Action<FileChange> toProcess = innerRoot =>
                         {
-                            if (rootChange.Type == FileChangeType.Deleted)
+                            if (innerRoot.Type == FileChangeType.Deleted)
                             {
                                 if (QueuedChanges.ContainsKey(deletePath))
                                 {
@@ -2507,7 +2674,7 @@ namespace FileMonitor
                         };
                     if (rootChange.DelayCompleted)
                     {
-                        toProcess();
+                        toProcess(rootChange);
                     }
                     else
                     {
@@ -2537,10 +2704,10 @@ namespace FileMonitor
                 if (QueuedChanges.ContainsKey(changeRootNew))
                 {
                     FileChange rootChange = QueuedChanges[changeRootNew];
-                    Action toProcess = () =>
+                    Action<FileChange> toProcess = innerRoot =>
                         {
-                            if (rootChange.Type == FileChangeType.Renamed
-                                && FilePathComparer.Instance.Equals(rootChange.OldPath, changeRootOld))
+                            if (innerRoot.Type == FileChangeType.Renamed
+                                && FilePathComparer.Instance.Equals(innerRoot.OldPath, changeRootOld))
                             {
                                 if (QueuedChanges.ContainsKey(oldPath))
                                 {
@@ -2582,7 +2749,7 @@ namespace FileMonitor
                         };
                     if (rootChange.DelayCompleted)
                     {
-                        toProcess();
+                        toProcess(rootChange);
                     }
                     else
                     {
