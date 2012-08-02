@@ -298,4 +298,13 @@
   <data name="PromptExitApplication_Title" xml:space="preserve">
     <value>Exit Cloud?</value>
   </data>
+  <data name="PromptSaveChanges_BodyText" xml:space="preserve">
+    <value>You have made changes to the preferences.  Do you want to save them?</value>
+  </data>
+  <data name="PromptSaveChanges_HeaderText" xml:space="preserve">
+    <value>Save your changes?</value>
+  </data>
+  <data name="PromptSaveChanges_Title" xml:space="preserve">
+    <value>Save?</value>
+  </data>
 </root>

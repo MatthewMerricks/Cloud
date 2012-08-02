@@ -30,6 +30,8 @@ using win_client.ViewModelHelpers;
 using System.ComponentModel;
 using System.Windows.Input;
 using CleanShutdown.Messaging;
+using CleanShutdown.Helpers;
+using CloudApiPrivate.Common;
 
 namespace win_client.ViewModels
 {  
@@ -46,9 +48,12 @@ namespace win_client.ViewModels
     public class PagePreferencesViewModel : ValidatingViewModelBase
     {
         private readonly IDataService _dataService;
-
+        private IModalWindow _dialog = null;        // for use with modal dialogs
         private CLTrace _trace = CLTrace.Instance;
         private ResourceManager _rm;
+        private CLPreferences _originalPreferences;  // to test for changes
+
+        #region Life Cycle
 
         /// <summary>
         /// Initializes a new instance of the PagePreferencesViewModel class.
@@ -70,18 +75,11 @@ namespace win_client.ViewModels
 
             _rm = CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
-
-            _preferences = new CLPreferences();
-            _preferences.GetPreferencesFromSettings();
-
-            // Register to receive the ConfirmShutdown message
-            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
-                this,
-                message =>
-                {
-                    OnConfirmShutdownMessage(message);
-                });
         }
+
+        #endregion
+
+        #region Bindable Properties
 
         /// <summary>
         /// The <see cref="Preferences" /> property's name.
@@ -165,6 +163,32 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The <see cref="WindowCloseOk" /> property's name.
+        /// </summary>
+        public const string WindowCloseOkPropertyName = "WindowCloseOk";
+        private bool _windowCloseOk = false;
+        public bool WindowCloseOk
+        {
+            get
+            {
+                return _windowCloseOk;
+            }
+
+            set
+            {
+                if (_windowCloseOk == value)
+                {
+                    return;
+                }
+
+                _windowCloseOk = value;
+                RaisePropertyChanged(WindowCloseOkPropertyName);
+            }
+        }
+
+        #endregion
+
         #region Relay Commands
 
         /// <summary>
@@ -179,12 +203,8 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_OkCommand = new RelayCommand(
                                           () =>
                                           {
-                                              // Save the preferences set by the user.
-                                              _preferences.SetPreferencesToSettings();
-
-                                              // Navigate to PageInvisible
-                                              Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
-                                              CLAppMessages.PagePreferences_NavigationRequest.Send(nextPage);
+                                              // Save the changes
+                                              CommitChangesAndMinimizeToSystemTray();
                                           }));
             }
         }
@@ -202,7 +222,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               // Reset the preferences from the last saved state and go back to the system tray.
-                                              OnClosing();
+                                              ProcessCancelRequest();
                                           }));
             }
         }
@@ -308,36 +328,97 @@ namespace win_client.ViewModels
             }
         }
 
+        private ICommand _onNavigated;
+
+        /// <summary>
+        /// Gets the OnNavigated.
+        /// </summary>
+        public ICommand OnNavigated
+        {
+            get
+            {
+                return _onNavigated
+                    ?? (_onNavigated = new RelayCommand(
+                                          () =>
+                                          {
+                                              // Get the current preferences from Settings.
+                                              _preferences = new CLPreferences();
+                                              _preferences.GetPreferencesFromSettings();
+                                              _originalPreferences = _preferences.DeepCopy<CLPreferences>();          // make a copy to compare later
+                                          }));
+            }
+        }
+
+        /// <summary>
+        /// The window wants to close.  The user clicked the 'X'.
+        /// This will set the bindable property WindowCloseOk if we will not handle this event.
+        /// </summary>
+        private ICommand _windowCloseRequested;
+        public ICommand WindowCloseRequested
+        {
+            get
+            {
+                return _windowCloseRequested
+                    ?? (_windowCloseRequested = new RelayCommand(
+                                          () =>
+                                          {
+                                              // Handle the request as a cancel request.
+                                              ProcessCancelRequest();
+                                              WindowCloseOk = false;
+                                          }));
+            }
+        }
+
         #endregion
 
         #region Support Functions
 
         /// <summary>
-        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
-        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
-        /// the automatic Window.Close (set true to message.Execute.
+        /// Commit the changes to Settings and minimize to system tray.
         /// </summary>
-        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        private void CommitChangesAndMinimizeToSystemTray()
         {
-            if (message.Notification == Notifications.ConfirmShutdown)
+            // Save the preferences set by the user.
+            if (!CLDeepCompare.IsEqual(_preferences, _originalPreferences))
             {
-                // Cancel the shutdown.  We will do it here.
-                message.Execute(OnClosing());       // true == abort shutdown.
-
-                // NOTE: We may never reach this point if the user said to shut down.
+                _preferences.SetPreferencesToSettings();
             }
+
+            // Navigate to PageInvisible
+            Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+            CLAppMessages.PagePreferences_NavigationRequest.Send(nextPage);
         }
 
         /// <summary>
-        /// Implement window closing logic.
-        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
-        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
-        /// <<returns>true to cancel the automatic Window.Close action.</returns>
+        /// The user is requesting to cancel.  He clicked the 'X', or he clicked the Cancel button.
         /// </summary>
-        private bool OnClosing()
+        private void ProcessCancelRequest()
         {
-            // Clean-up logic here.
-            return true;                // cancel the automatic Window close.
+            // Check for unsaved changes.
+            if (!CLDeepCompare.IsEqual(_preferences, _originalPreferences))
+            {
+                // The user is cancelling and there are unsaved changes.  Ask if he wants to save them.
+                CLModalMessageBoxDialogs.Instance.DisplayModalSaveChangesPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
+                {
+                    _trace.writeToLog(9, "PagePreferencesViewModel: Prompt save changes: Entry.");
+                    if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                    {
+                        // The user said yes.
+                        _trace.writeToLog(9, "PagePreferencesViewModel: Prompt save changes: User said yes.");
+                        _preferences.SetPreferencesToSettings();   // save the changes to Settings.
+                    }
+
+                    // In either case, minimize to the system tray.
+                    Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+                    CLAppMessages.PagePreferences_NavigationRequest.Send(nextPage);
+                });
+            }
+            else
+            {
+                // There are no changes.  Minimize to the system tray.
+                Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+                CLAppMessages.PagePreferences_NavigationRequest.Send(nextPage);
+            }
         }
 
         #endregion

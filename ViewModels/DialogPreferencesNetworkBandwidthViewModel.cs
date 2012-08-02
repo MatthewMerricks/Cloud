@@ -21,11 +21,29 @@ using System.ComponentModel;
 using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
+using win_client.ViewModelHelpers;
+using Dialog.Abstractions.Wpf.Intefaces;
+using System;
+using GalaSoft.MvvmLight.Messaging;
 
 namespace win_client.ViewModels
 {
     public class DialogPreferencesNetworkBandwidthViewModel : ValidatingViewModelBase
     {
+
+        #region BandwidthPreferencesSubset Class
+
+        [Serializable]
+        private class BandwidthPreferencesSubset
+        {
+            public bool ShouldLimitDownloadSpeed { get; set; }
+            public int DownloadSpeedLimitKBPerSecond { get; set; }
+            public uploadSpeedLimitType UploadSpeeedLimitType { get; set; }
+            public int UploadSpeedLimitKBPerSecond { get; set; }
+        }
+
+        #endregion
+
         #region Private Instance Variables
 
         private const double _kNotActiveOpacity = 0.60;
@@ -33,6 +51,13 @@ namespace win_client.ViewModels
 
         private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
+
+        private BandwidthPreferencesSubset _bandwidthPreferencesSubset;             // the current values
+        private BandwidthPreferencesSubset _originalBandwidthPreferencesSubset;     // the original values
+
+        private bool _windowClosingImmediately = false;                             // used to allow the window to close immediately
+
+        IModalWindow _dialog = null;
 
         #endregion
 
@@ -696,7 +721,7 @@ namespace win_client.ViewModels
                     ?? (_windowClosingCommand = new RelayCommand<CancelEventArgs>(
                                           (args) =>
                                           {
-                                              args.Cancel = OnClosing();
+                                              args.Cancel = ProcessCancelCommand();    // true: cancel the window Close.
                                           }));
             }
         }
@@ -717,25 +742,7 @@ namespace win_client.ViewModels
                                               CLExtensionMethods.ForceValidation(_viewLayoutRoot);
                                               if (!HasErrors)
                                               {
-                                                  // Handle the update command.  The user said to save.
-                                                  // Use the bindable properties set by the user to set the current preferences.
-                                                  _DialogPreferencesNetworkBandwidth_Preferences.ShouldLimitDownloadSpeed = !_rbDownloadBandwidthNoLimit;
-
-                                                  if (_rbUploadBandwidthNoLimit)
-                                                  {
-                                                      _DialogPreferencesNetworkBandwidth_Preferences.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitDontLimit;
-                                                  }
-                                                  else if (_rbUploadBandwidthLimit)
-                                                  {
-                                                      _DialogPreferencesNetworkBandwidth_Preferences.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitLimitTo;
-                                                  }
-                                                  else
-                                                  {
-                                                      _DialogPreferencesNetworkBandwidth_Preferences.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
-                                                  }
-
-                                                  _DialogPreferencesNetworkBandwidth_Preferences.DownloadSpeedLimitKBPerSecond = string.IsNullOrWhiteSpace(_tbDownloadBandwidthLimitKBPerSecond) ? 0 : int.Parse(_tbDownloadBandwidthLimitKBPerSecond);
-                                                  _DialogPreferencesNetworkBandwidth_Preferences.UploadSpeedLimitKBPerSecond = string.IsNullOrWhiteSpace(_tbUploadBandwidthLimitKBPerSecond) ? 0 : int.Parse(_tbUploadBandwidthLimitKBPerSecond);
+                                                  ProcessUpdateCommand();
                                               }
                                               else
                                               {
@@ -759,7 +766,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               // Handle the cancel
-                                              OnClosing();
+                                              ProcessCancelCommand();
                                           }));
             }
         }
@@ -776,38 +783,13 @@ namespace win_client.ViewModels
                     ?? (_dialogPreferencesNetworkBandwidthViewModel_ViewLoadedCommand = new RelayCommand(
                                           () =>
                                           {
-                                              // The view has loaded.  Set all of the view-bound properties.
-                                              RbDownloadBandwidthNoLimit = !_DialogPreferencesNetworkBandwidth_Preferences.ShouldLimitDownloadSpeed;
-                                              RbDownloadBandwidthLimit = _DialogPreferencesNetworkBandwidth_Preferences.ShouldLimitDownloadSpeed;
-                                              RbUploadBandwidthNoLimit = _DialogPreferencesNetworkBandwidth_Preferences.UploadSpeeedLimitType == uploadSpeedLimitType.uploadSpeedLimitDontLimit;
-                                              RbUploadBandwidthLimitAutomatically = _DialogPreferencesNetworkBandwidth_Preferences.UploadSpeeedLimitType == uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
-                                              RbUploadBandwidthLimit = _DialogPreferencesNetworkBandwidth_Preferences.UploadSpeeedLimitType == uploadSpeedLimitType.uploadSpeedLimitLimitTo;
-                                              TbDownloadBandwidthLimitKBPerSecond = _DialogPreferencesNetworkBandwidth_Preferences.DownloadSpeedLimitKBPerSecond.ToString();
-                                              TbUploadBandwidthLimitKBPerSecond = _DialogPreferencesNetworkBandwidth_Preferences.UploadSpeedLimitKBPerSecond.ToString();
+                                              // The view has loaded.  Get the subset of the global preferences that this dialog will use.
+                                              _bandwidthPreferencesSubset = GetPreferencesSubsetFromGlobalPreferences(_DialogPreferencesNetworkBandwidth_Preferences);
+                                              _originalBandwidthPreferencesSubset = _bandwidthPreferencesSubset.DeepCopy<BandwidthPreferencesSubset>();  // for change comparison
 
-                                              // Make sure the proper download opacity is set
-                                              if (_rbDownloadBandwidthNoLimit)
-                                              {
-                                                  DownloadRateNotLimitedOpacity = _kNotActiveOpacity;
-                                                  TbDownloadBandwidthLimitEnabled = false;
-                                              }
-                                              else
-                                              {
-                                                  DownloadRateNotLimitedOpacity = _kActiveOpacity;
-                                                  TbDownloadBandwidthLimitEnabled = true;
-                                              }
+                                              SetPropertiesFromPreferencesSubset(_bandwidthPreferencesSubset);
 
-                                              // Make sure the proper upload opacity is set
-                                              if (_rbUploadBandwidthLimit)
-                                              {
-                                                  UploadRateNotLimitedOpacity = _kActiveOpacity;
-                                                  TbUploadBandwidthLimitEnabled = true;
-                                              }
-                                              else
-                                              {
-                                                  UploadRateNotLimitedOpacity = _kNotActiveOpacity;
-                                                  TbUploadBandwidthLimitEnabled = false;
-                                              }
+                                              _windowClosingImmediately = false;                                    // reset this: used to allow the window to close immediately
                                           }));
             }
         }
@@ -879,16 +861,172 @@ namespace win_client.ViewModels
         #region Support Functions
 
         /// <summary>
-        /// Implement window closing logic.
-        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
-        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
-        /// <<returns>true to cancel the cancel.</returns>
+        /// Set the preferences subset for this dialog from the current properties.
+        /// <<returns>BandwidthPreferencesSubset: The output preferences subset.</returns>
         /// </summary>
-        private bool OnClosing()
+        private BandwidthPreferencesSubset SetPreferencesSubsetFromProperties()
         {
-            // Clean-up logic here.
-            return false;                   // don't cancel the user's request to cancel
+            // Handle the update command.  The user said to save.
+            // Use the bindable properties set by the user to set the current preferences.
+            BandwidthPreferencesSubset subsetPreferences = new BandwidthPreferencesSubset();
+
+            subsetPreferences.ShouldLimitDownloadSpeed = !_rbDownloadBandwidthNoLimit;
+
+            if (_rbUploadBandwidthNoLimit)
+            {
+                subsetPreferences.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitDontLimit;
+            }
+            else if (_rbUploadBandwidthLimit)
+            {
+                subsetPreferences.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitLimitTo;
+            }
+            else
+            {
+                subsetPreferences.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
+            }
+
+            subsetPreferences.DownloadSpeedLimitKBPerSecond = string.IsNullOrWhiteSpace(_tbDownloadBandwidthLimitKBPerSecond) ? 0 : int.Parse(_tbDownloadBandwidthLimitKBPerSecond);
+            subsetPreferences.UploadSpeedLimitKBPerSecond = string.IsNullOrWhiteSpace(_tbUploadBandwidthLimitKBPerSecond) ? 0 : int.Parse(_tbUploadBandwidthLimitKBPerSecond);
+
+            return subsetPreferences;
         }
+
+        /// <summary>
+        /// Set this dialog's properties from the current preferences subset.
+        /// <param name="subsetPreferences">The current preferences subset.</param>"/>
+        /// <returns>void</returns>
+        /// </summary>
+        private void SetPropertiesFromPreferencesSubset(BandwidthPreferencesSubset subsetPreferences)
+        {
+            // Set all of the view-bound properties.
+            RbDownloadBandwidthNoLimit = !subsetPreferences.ShouldLimitDownloadSpeed;
+            RbDownloadBandwidthLimit = subsetPreferences.ShouldLimitDownloadSpeed;
+            RbUploadBandwidthNoLimit = subsetPreferences.UploadSpeeedLimitType == uploadSpeedLimitType.uploadSpeedLimitDontLimit;
+            RbUploadBandwidthLimitAutomatically = subsetPreferences.UploadSpeeedLimitType == uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
+            RbUploadBandwidthLimit = subsetPreferences.UploadSpeeedLimitType == uploadSpeedLimitType.uploadSpeedLimitLimitTo;
+            TbDownloadBandwidthLimitKBPerSecond = subsetPreferences.DownloadSpeedLimitKBPerSecond.ToString();
+            TbUploadBandwidthLimitKBPerSecond = subsetPreferences.UploadSpeedLimitKBPerSecond.ToString();
+
+            // Make sure the proper download opacity is set
+            if (_rbDownloadBandwidthNoLimit)
+            {
+                DownloadRateNotLimitedOpacity = _kNotActiveOpacity;
+                TbDownloadBandwidthLimitEnabled = false;
+            }
+            else
+            {
+                DownloadRateNotLimitedOpacity = _kActiveOpacity;
+                TbDownloadBandwidthLimitEnabled = true;
+            }
+
+            // Make sure the proper upload opacity is set
+            if (_rbUploadBandwidthLimit)
+            {
+                UploadRateNotLimitedOpacity = _kActiveOpacity;
+                TbUploadBandwidthLimitEnabled = true;
+            }
+            else
+            {
+                UploadRateNotLimitedOpacity = _kNotActiveOpacity;
+                TbUploadBandwidthLimitEnabled = false;
+            }
+        }
+
+        /// <summary>
+        /// Get the preferences subset for this dialog from the global preferences.
+        /// <param name="globalPreferences">The intput global preferences.</param>
+        /// <<returns>BandwidthPreferencesSubset: The output preferences subset.</returns>
+        /// </summary>
+        private BandwidthPreferencesSubset GetPreferencesSubsetFromGlobalPreferences(CLPreferences globalPreferences)
+        {
+            BandwidthPreferencesSubset bandwidthPreferencesSubset = new BandwidthPreferencesSubset()
+            {
+                ShouldLimitDownloadSpeed = globalPreferences.ShouldLimitDownloadSpeed,
+                DownloadSpeedLimitKBPerSecond = globalPreferences.DownloadSpeedLimitKBPerSecond,
+                UploadSpeeedLimitType = globalPreferences.UploadSpeeedLimitType,
+                UploadSpeedLimitKBPerSecond = globalPreferences.UploadSpeedLimitKBPerSecond,
+            };
+            return bandwidthPreferencesSubset;
+        }
+
+
+        /// <summary>
+        /// Set the preferences subset for this dialog to the global preferences.
+        /// <param name="globalPreferences">The output global preferences to read.</param>
+        /// <param name="subsetPreferences">The input preferences subset.</param>
+        /// <<returns>void.</returns>
+        /// </summary>
+        private void SetPreferencesSubsetToGlobalPreferences(CLPreferences globalPreferences, BandwidthPreferencesSubset subsetPreferences)
+        {
+            globalPreferences.ShouldLimitDownloadSpeed = subsetPreferences.ShouldLimitDownloadSpeed;
+            globalPreferences.DownloadSpeedLimitKBPerSecond = subsetPreferences.DownloadSpeedLimitKBPerSecond;
+            globalPreferences.UploadSpeeedLimitType = subsetPreferences.UploadSpeeedLimitType;
+            globalPreferences.UploadSpeedLimitKBPerSecond = subsetPreferences.UploadSpeedLimitKBPerSecond;
+        }
+
+        /// <summary>
+        /// Commit the preference subset changes to the global preferences.
+        /// </summary>
+        private void ProcessUpdateCommand()
+        {
+            // Pull the changes from the properties into the preferences subset
+            _bandwidthPreferencesSubset = SetPreferencesSubsetFromProperties();
+
+            // Save the preferences set by the user.
+            if (!CLDeepCompare.IsEqual(_bandwidthPreferencesSubset, _originalBandwidthPreferencesSubset))
+            {
+                SetPreferencesSubsetToGlobalPreferences(_DialogPreferencesNetworkBandwidth_Preferences, _bandwidthPreferencesSubset);
+                _originalBandwidthPreferencesSubset = _bandwidthPreferencesSubset.DeepCopy<BandwidthPreferencesSubset>();   // also to the original copy because we saved the changes.
+            }
+        }
+
+        /// <summary>
+        /// The user is requesting to cancel.  He clicked the 'X', or he clicked the Cancel button.
+        /// </summary>
+        /// <<returns>bool: true: Cancel the Window Close operation.</returns>
+        private bool ProcessCancelCommand()
+        {
+            // Ignore this if we are closing immediately
+            if (_windowClosingImmediately)
+            {
+                return false;           // allow the window to close
+            }
+
+            // Pull the changes from the properties into the preferences subset
+            _bandwidthPreferencesSubset = SetPreferencesSubsetFromProperties();
+
+            // Check for unsaved changes.
+            if (!CLDeepCompare.IsEqual(_bandwidthPreferencesSubset, _originalBandwidthPreferencesSubset))
+            {
+                // The user is cancelling and there are unsaved changes.  Ask if he wants to save them.
+                CLModalMessageBoxDialogs.Instance.DisplayModalSaveChangesPrompt(container: ViewLayoutRoot, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
+                {
+                    _trace.writeToLog(9, "DialogPreferencesNetworkBandwidth: Prompt save changes: Entry.");
+                    if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                    {
+                        // The user said yes.
+                        _trace.writeToLog(9, "DialogPreferencesNetworkBandwidth: Prompt save changes: User said yes.");
+                        SetPreferencesSubsetToGlobalPreferences(_DialogPreferencesNetworkBandwidth_Preferences, _bandwidthPreferencesSubset);
+                    }
+
+                    // The parent dialog was told to stay open so this dialog could appear over it.  Now we have
+                    // to cause the parent dialog to close without any processing because it has all been done.
+                    // Send a message to the parent view to tell it to close.  However, that will cause a window closing
+                    // event.  We'll set a flag to indicate that we are done, and use that flag to just ignore
+                    // the window closing event, so we don't get ourselves in a never-ending UI loop.
+                    _windowClosingImmediately = true;
+                    CLAppMessages.Message_DialogPreferencesNetworkBandwidthViewShouldClose.Send("");
+                });
+
+                return true;    // keep the window open.  The child dialog completion will close this dialog.
+            }
+            else
+            {
+                // There are no changes.  Just allow the window to close.
+                return false;
+            }
+        }
+
 
         #endregion
     }

@@ -95,7 +95,7 @@
                     <extToolkit:ButtonSpinner x:Name="spinnerDownloadRate" AllowSpin="True" ShowButtonSpinner="True" VerticalAlignment="Center" Margin="20,0,0,0" 
                                               Spin="ButtonSpinner_DownloadRateSpin" IsEnabled="{Binding TbDownloadBandwidthLimitEnabled, Mode=OneWay}">
                         <TextBox x:Name="tbDownloadBandwidthLimitKBPerSecond" BorderThickness="0" HorizontalContentAlignment="Right" Foreground="Black" VerticalAlignment="Center"
-                             Text="{Binding TbDownloadBandwidthLimitKBPerSecond, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="0" FontSize="16" Width="60"
+                             Text="{Binding TbDownloadBandwidthLimitKBPerSecond, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" TabIndex="0" FontSize="16" Width="60"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}" commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
                              IsEnabled="{Binding TbDownloadBandwidthLimitEnabled, Mode=OneWay}" Opacity="{Binding DownloadRateNotLimitedOpacity, Mode=OneWay}"
                              ToolTip="Enter a positive integer representing the maximum download rate in Kilobytes per Second.">
@@ -127,7 +127,7 @@
                     <extToolkit:ButtonSpinner x:Name="spinnerUploadRate" AllowSpin="True" ShowButtonSpinner="True" VerticalAlignment="Center" Margin="20,0,0,0" 
                                               Spin="ButtonSpinner_UploadRateSpin" IsEnabled="{Binding TbUploadBandwidthLimitEnabled, Mode=OneWay}">
                         <TextBox x:Name="tbUploadBandwidthLimitKBPerSecond" BorderThickness="0" HorizontalContentAlignment="Right" Foreground="Black" VerticalAlignment="Center"
-                             Text="{Binding TbUploadBandwidthLimitKBPerSecond, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="0" FontSize="16" Width="60"
+                             Text="{Binding TbUploadBandwidthLimitKBPerSecond, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" TabIndex="0" FontSize="16" Width="60"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}" commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
                              IsEnabled="{Binding TbUploadBandwidthLimitEnabled, Mode=OneWay}" Opacity="{Binding UploadRateNotLimitedOpacity, Mode=OneWay}"
                              ToolTip="Enter a positive integer representing the maximum upload rate in Kilobytes per Second.">

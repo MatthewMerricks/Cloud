@@ -60,15 +60,14 @@ namespace win_client.ViewModelHelpers
             _trace = CLTrace.Instance;
         }
 
-                /// <summary>
+        /// <summary>
         /// Display a prompt to shutdown the system, and perform the shutdown if the user says OK.
         /// This is called by any of the Pages.
         /// </summary>
         /// <param name="container">The Grid to paint gray and to go "modal" over.</param>
-        public void DisplayModalShutdownPrompt(Grid container)
+        public void DisplayModalShutdownPrompt(Grid container, out IModalWindow dialog, System.Action<DialogCloudMessageBoxViewModel> actionResultHandler)
         {
             // A page has been notified to close.  Warn the user and allow him to cancel the close.
-            IModalWindow dialog = null;
             DisplayModalMessageBox(
                 windowHeight: 250,
                 leftButtonWidth: 75,
@@ -80,20 +79,30 @@ namespace win_client.ViewModelHelpers
                 rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
                 container: container,
                 dialog: out dialog,
-                actionResultHandler:
-                    returnedViewModelInstance =>
-                    {
-                        // Do nothing here when the user clicks the OK button.
-                        _trace.writeToLog(9, "DisplayModalShutdownPrompt: Prompt exit application: Entry.");
-                        if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
-                        {
-                            // The user said yes.  Unlink this device.
-                            _trace.writeToLog(9, "DisplayModalShutdownPrompt: Prompt exit application: User said yes.");
+                actionResultHandler: actionResultHandler
+            );
+        }
 
-                            // Shut down tha app
-                            System.Windows.Application.Current.Shutdown();
-                        }
-                    }
+        /// <summary>
+        /// Display a prompt to save changes.
+        /// This is called by any of the Pages.
+        /// </summary>
+        /// <param name="container">The Grid to paint gray and to go "modal" over.</param>
+        public void DisplayModalSaveChangesPrompt(Grid container, out IModalWindow dialog, System.Action<DialogCloudMessageBoxViewModel> actionResultHandler)
+        {
+            // A page has been notified to close.  Warn the user and allow him to cancel the close.
+            DisplayModalMessageBox(
+                windowHeight: 250,
+                leftButtonWidth: 75,
+                rightButtonWidth: 75,
+                title: _rm.GetString("PromptSaveChanges_Title"),
+                headerText: _rm.GetString("PromptSaveChanges_HeaderText"),
+                bodyText: _rm.GetString("PromptSaveChanges_BodyText"),
+                leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                container: container,
+                dialog: out dialog,
+                actionResultHandler: actionResultHandler
             );
         }
 

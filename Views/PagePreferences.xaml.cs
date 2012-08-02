@@ -28,6 +28,7 @@ using win_client.Model;
 using System.Linq.Expressions;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
@@ -121,6 +122,10 @@ namespace win_client.Views
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
+            // Set our content window to the ViewModel
+            PagePreferencesViewModel vm = (PagePreferencesViewModel)DataContext;
+            vm.ViewGridContainer = this.LayoutRoot;
+
             //&&&&cmdContinue.Focus();
         }
 
@@ -141,6 +146,21 @@ namespace win_client.Views
         {
             try
             {
+                // Send this event to the ViewModel
+                PagePreferencesViewModel vm = (PagePreferencesViewModel)DataContext;
+                if (vm.OnNavigated.CanExecute(null))
+                {
+                    vm.OnNavigated.Execute(null);
+                }
+
+                // Register to receive the ConfirmShutdown message
+                Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                    this,
+                    message =>
+                    {
+                        OnConfirmShutdownMessage(message);
+                    });
+
                 // Show the window.
                 CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
@@ -163,6 +183,37 @@ namespace win_client.Views
                 return ex;
             }
             return null;
+        }
+
+        /// <summary>
+        /// NavigationWindow sends this to all pages prior to driving the HandleNavigated event above.
+        /// Upon receipt, the page must unregister the WindowClosingMessage.
+        /// </summary>
+        private void OnMessage_PageMustUnregisterWindowClosingMessage(string obj)
+        {
+            Messenger.Default.Unregister<CleanShutdown.Messaging.NotificationMessageAction<bool>>(this, message => { });
+        }
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
+        /// the automatic Window.Close (set true to message.Execute.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                // Ask the ViewModel if we should allow the window to close.
+                // This should not block.
+                PagePreferencesViewModel vm = (PagePreferencesViewModel)DataContext;
+                if (vm.WindowCloseRequested.CanExecute(null))
+                {
+                    vm.WindowCloseRequested.Execute(null);
+                }
+
+                // Get the answer and set the real event Cancel flag appropriately.
+                message.Execute(!vm.WindowCloseOk);      // true == abort shutdown
+            }
         }
 
         #endregion

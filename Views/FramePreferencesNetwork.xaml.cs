@@ -26,6 +26,7 @@ using win_client.AppDelegate;
 using CloudApiPublic.Model;
 using win_client.Model;
 using System.Linq.Expressions;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {

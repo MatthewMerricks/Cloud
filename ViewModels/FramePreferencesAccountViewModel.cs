@@ -33,6 +33,7 @@ using win_client.ViewModelHelpers;
 using System.Windows.Input;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
+using CleanShutdown.Helpers;
 
 namespace win_client.ViewModels
 {
@@ -78,13 +79,6 @@ namespace win_client.ViewModels
             _rm =  CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
 
-            // Register to receive the ConfirmShutdown message
-            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
-                this,
-                message =>
-                {
-                    OnConfirmShutdownMessage(message);
-                });
         }
 
         #endregion
@@ -119,7 +113,7 @@ namespace win_client.ViewModels
                 RaisePropertyChanged(ViewGridContainerPropertyName);
             }
         }
-         
+
         #endregion
       
         #region Relay Commands
@@ -208,34 +202,6 @@ namespace win_client.ViewModels
         #endregion
 
         #region Support Functions
-
-        /// <summary>
-        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
-        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
-        /// the automatic Window.Close (set true to message.Execute.
-        /// </summary>
-        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
-        {
-            if (message.Notification == Notifications.ConfirmShutdown)
-            {
-                // Cancel the shutdown.  We will do it here.
-                message.Execute(OnClosing());       // true == abort shutdown.
-
-                // NOTE: We may never reach this point if the user said to shut down.
-            }
-        }
-
-        /// <summary>
-        /// Implement window closing logic.
-        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
-        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
-        /// <<returns>true to cancel the automatic Window.Close action.</returns>
-        /// </summary>
-        private bool OnClosing()
-        {
-            // Clean-up logic here.
-            return true;                // cancel the automatic Window close.
-        }
 
         #endregion
 

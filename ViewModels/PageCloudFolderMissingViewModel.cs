@@ -33,6 +33,7 @@ using Ookii.Dialogs.WpfMinusTaskDialog;
 using CloudApiPrivate.Model;
 using System.ComponentModel;
 using System.Windows.Input;
+using CleanShutdown.Helpers;
 
 
 namespace win_client.ViewModels
@@ -50,9 +51,46 @@ namespace win_client.ViewModels
         private ResourceManager _rm;
         private CLTrace _trace;
         private IModalWindow _dialog = null;        // for use with modal dialogs
+        private bool _isShuttingDown = false;       // true: allow the shutdown if asked
 
         #endregion
-        
+
+        #region Life Cycle
+        /// <summary>
+        /// Initializes a new instance of the PageHomeViewModel class.
+        /// </summary>
+        public PageCloudFolderMissingViewModel(IDataService dataService)
+        {
+            _dataService = dataService;
+            _dataService.GetData(
+                (item, error) =>
+                {
+                    if (error != null)
+                    {
+                        // Report error here
+                        return;
+                    }
+
+                    //&&&&               WelcomeTitle = item.Title;
+                });
+            _rm = CLAppDelegate.Instance.ResourceManager;
+            _trace = CLAppDelegate.Instance.GetTrace();
+
+            BodyMessage = _rm.GetString("pageCloudFolderMissingBodyMesssage");
+            OkButtonContent = CLAppDelegate.Instance.PageCloudFolderMissingOkButtonContent;
+        }
+
+        /// <summary>
+        /// Clean up all resources allocated, and save state as needed.
+        /// </summary>
+        public override void Cleanup()
+        {
+            base.Cleanup();
+            _rm = null;
+        }
+
+        #endregion
+     
 
         #region Bound Properties
 
@@ -141,45 +179,33 @@ namespace win_client.ViewModels
                 RaisePropertyChanged(ViewGridContainerPropertyName);
             }
         }
-        
-        #endregion
 
-        #region Life Cycle
         /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
+        /// The <see cref="WindowCloseOk" /> property's name.
         /// </summary>
-        public PageCloudFolderMissingViewModel(IDataService dataService)
+        public const string WindowCloseOkPropertyName = "WindowCloseOk";
+        private bool _windowCloseOk = false;
+        public bool WindowCloseOk
         {
-            _dataService = dataService;
-            _dataService.GetData(
-                (item, error) =>
+            get
+            {
+                return _windowCloseOk;
+            }
+
+            set
+            {
+                if (_windowCloseOk == value)
                 {
-                    if (error != null)
-                    {
-                        // Report error here
-                        return;
-                    }
+                    return;
+                }
 
-                    //&&&&               WelcomeTitle = item.Title;
-                });
-            _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLAppDelegate.Instance.GetTrace();
-
-            BodyMessage = _rm.GetString("pageCloudFolderMissingBodyMesssage");
-            OkButtonContent = CLAppDelegate.Instance.PageCloudFolderMissingOkButtonContent;
-        }
-
-        /// <summary>
-        /// Clean up all resources allocated, and save state as needed.
-        /// </summary>
-        public override void Cleanup()
-        {
-            base.Cleanup();
-            _rm = null;
+                _windowCloseOk = value;
+                RaisePropertyChanged(WindowCloseOkPropertyName);
+            }
         }
 
         #endregion
-     
+
         #region Relay Commands
 
         /// <summary>
@@ -380,6 +406,26 @@ namespace win_client.ViewModels
                                             }));
             }
         }
+
+        /// <summary>
+        /// The window wants to close.  The user clicked the 'X'.
+        /// This will set the bindable property WindowCloseOk if we will not handle this event.
+        /// </summary>
+        private ICommand _windowCloseRequested;
+        public ICommand WindowCloseRequested
+        {
+            get
+            {
+                return _windowCloseRequested
+                    ?? (_windowCloseRequested = new RelayCommand(
+                                          () =>
+                                          {
+                                              // Handle the request and set the property.
+                                              WindowCloseOk = OnClosing();
+                                          }));
+            }
+        }
+
         #endregion
 
         #region Support Functions
@@ -388,12 +434,35 @@ namespace win_client.ViewModels
         /// Implement window closing logic.
         /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
         /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
-        /// <<returns>true to cancel the cancel.</returns>
+        /// <<returns>true to allow the automatic Window.Close action.</returns>
         /// </summary>
         private bool OnClosing()
         {
             // Clean-up logic here.
-            return false;                   // don't cancel the user's request to cancel
+
+            // Just allow the shutdown if we have already decided to do it.
+            if (_isShuttingDown)
+            {
+                return true;
+            }
+
+            // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
+            CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
+            {
+                // Do nothing here when the user clicks the OK button.
+                _trace.writeToLog(9, "PageCloudFolderMissingViewModel: Prompt exit application: Entry.");
+                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                {
+                    // The user said yes.  Unlink this device.
+                    _trace.writeToLog(9, "PageCloudFolderMissingViewModel: Prompt exit application: User said yes.");
+
+                    // Shut down tha application
+                    _isShuttingDown = true;         // allow the shutdown if asked
+                    ShutdownService.RequestShutdown();
+                }
+            });
+
+            return false;                // cancel the automatic Window close.
         }
 
         #endregion

@@ -511,6 +511,33 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You have made changes to the preferences.  Do you want to save them?.
+        /// </summary>
+        public static string PromptSaveChanges_BodyText {
+            get {
+                return ResourceManager.GetString("PromptSaveChanges_BodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save your changes?.
+        /// </summary>
+        public static string PromptSaveChanges_HeaderText {
+            get {
+                return ResourceManager.GetString("PromptSaveChanges_HeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save?.
+        /// </summary>
+        public static string PromptSaveChanges_Title {
+            get {
+                return ResourceManager.GetString("PromptSaveChanges_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to /Views/PageCloudAlreadyRunning.xaml.
         /// </summary>
         public static string startupUriAlreadyRunning {

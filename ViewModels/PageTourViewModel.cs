@@ -31,6 +31,7 @@ using System.Windows.Input;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
 using win_client.ViewModelHelpers;
+using CleanShutdown.Helpers;
 
 
 namespace win_client.ViewModels
@@ -47,6 +48,8 @@ namespace win_client.ViewModels
         private readonly IDataService _dataService;
         private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
+        private IModalWindow _dialog = null;        // for use with modal dialogs
+        private bool _isShuttingDown = false;       // true: allow the shutdown if asked
 
         #endregion
 
@@ -70,14 +73,6 @@ namespace win_client.ViewModels
                 });
             _rm = CLAppDelegate.Instance.ResourceManager;
             _trace = CLTrace.Instance;
-
-            // Register to receive the ConfirmShutdown message
-            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
-                this,
-                message =>
-                {
-                    OnConfirmShutdownMessage(message);
-                });
 
             _pageTour_GreetingText = String.Format(_rm.GetString("tourPage1Greeting"), Settings.Instance.UserName.Split(CLConstants.kDelimiterChars)[0]);
         }
@@ -179,6 +174,30 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The <see cref="WindowCloseOk" /> property's name.
+        /// </summary>
+        public const string WindowCloseOkPropertyName = "WindowCloseOk";
+        private bool _windowCloseOk = false;
+        public bool WindowCloseOk
+        {
+            get
+            {
+                return _windowCloseOk;
+            }
+
+            set
+            {
+                if (_windowCloseOk == value)
+                {
+                    return;
+                }
+
+                _windowCloseOk = value;
+                RaisePropertyChanged(WindowCloseOkPropertyName);
+            }
+        }
+
         #endregion 
 
       
@@ -252,40 +271,62 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The window wants to close.  The user clicked the 'X'.
+        /// This will set the bindable property WindowCloseOk if we will not handle this event.
+        /// </summary>
+        private ICommand _windowCloseRequested;
+        public ICommand WindowCloseRequested
+        {
+            get
+            {
+                return _windowCloseRequested
+                    ?? (_windowCloseRequested = new RelayCommand(
+                                          () =>
+                                          {
+                                              // Handle the request and set the property.
+                                              WindowCloseOk = OnClosing();
+                                          }));
+            }
+        }
+
         #endregion
 
         #region Support Functions
 
         /// <summary>
-        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
-        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
-        /// the automatic Window.Close (set true to message.Execute.
-        /// </summary>
-        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
-        {
-            if (message.Notification == Notifications.ConfirmShutdown)
-            {
-                // Cancel the shutdown.  We will do it here.
-                message.Execute(OnClosing());       // true == abort shutdown.
-
-                // NOTE: We may never reach this point if the user said to shut down.
-            }
-        }
-
-        /// <summary>
         /// Implement window closing logic.
         /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
         /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
-        /// <<returns>true to cancel the automatic Window.Close action.</returns>
+        /// <<returns>true to allow the automatic Window.Close action.</returns>
         /// </summary>
         private bool OnClosing()
         {
             // Clean-up logic here.
 
-            // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
-            CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer);
+            // Just allow the shutdown if we have already decided to do it.
+            if (_isShuttingDown)
+            {
+                return true;
+            }
 
-            return true;                // cancel the automatic Window close.
+            // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
+            CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
+            {
+                // Do nothing here when the user clicks the OK button.
+                _trace.writeToLog(9, "PageHomeViewModel: Prompt exit application: Entry.");
+                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                {
+                    // The user said yes.  Unlink this device.
+                    _trace.writeToLog(9, "PageHomeViewModel: Prompt exit application: User said yes.");
+
+                    // Shut down tha application
+                    _isShuttingDown = true;         // allow the shutdown if asked
+                    ShutdownService.RequestShutdown();
+                }
+            });
+
+            return false;                // cancel the automatic Window close.
         }
 
         #endregion

@@ -27,6 +27,7 @@ using CloudApiPublic.Model;
 using win_client.Model;
 using System.Linq.Expressions;
 using Ookii.Dialogs.WpfMinusTaskDialog;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {

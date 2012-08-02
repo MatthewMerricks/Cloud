@@ -20,7 +20,9 @@
 // </license>
 // ****************************************************************************
 
+using System;
 using System.Windows;
+using System.Windows.Threading;
 using CleanShutdown.Messaging;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
@@ -30,14 +32,22 @@ namespace CleanShutdown.Helpers
 {
     public static class ShutdownService
     {
+        private static bool weAreReallyShuttingDown = false;
+
         /// <summary>
         /// Request shutdown.
         /// <param name="void"></param>/>
         /// <returns>bool: true: Cancel the original Window.Closing event to prevent automatic window close.</returns>
         /// </summary>
         public static bool RequestShutdown()
-        {
+         {
             var shouldAbortShutdown = false;
+
+            // Short circuit shutdown loops
+            if (weAreReallyShuttingDown)
+            {
+                return shouldAbortShutdown;
+            }
 
             Messenger.Default.Send(new CleanShutdown.Messaging.NotificationMessageAction<bool>(
                                        Notifications.ConfirmShutdown,
@@ -46,10 +56,15 @@ namespace CleanShutdown.Helpers
             if (!shouldAbortShutdown)
             {
                 // This time it is for real
+                weAreReallyShuttingDown = true;
+
                 //Original: Messenger.Default.Send(new CommandMessage(Notifications.NotifyShutdown));
                 Messenger.Default.Send(new NotificationMessage(Notifications.NotifyShutdown));
 
-                Application.Current.Shutdown();
+                Dispatcher.CurrentDispatcher.BeginInvoke((Action)delegate()
+                {
+                    Application.Current.Shutdown();
+                });
             }
 
             return shouldAbortShutdown;
