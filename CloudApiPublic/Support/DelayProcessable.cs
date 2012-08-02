@@ -43,7 +43,7 @@ namespace CloudApiPublic.Support
         // stores whether to throw errors when running the process-related methods
         // (set if the constructor is passed a locker parameter)
         private bool IsProcessable = false;
-        private Queue<Action> SynchronizedPreprocessingActions = new Queue<Action>();
+        private Queue<Action<T>> SynchronizedPreprocessingActions = null;
         #endregion
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace CloudApiPublic.Support
                     {
                         while (SynchronizedPreprocessingActions.Count > 0)
                         {
-                            SynchronizedPreprocessingActions.Dequeue()();
+                            SynchronizedPreprocessingActions.Dequeue()((T)this);
                         }
                     }
 
@@ -213,7 +213,7 @@ namespace CloudApiPublic.Support
         /// </summary>
         /// <param name="toEnqueue">Action to run on preprocessing</param>
         /// <returns>Returns true if action is accepted for preprocessing, otherwise false means action will not be run</returns>
-        public bool EnqueuePreprocessingAction(Action toEnqueue)
+        public bool EnqueuePreprocessingAction(Action<T> toEnqueue)
         {
             // Throw error when object is not processable
             if (!IsProcessable)
@@ -232,7 +232,7 @@ namespace CloudApiPublic.Support
                 // create the queue if necessary
                 if (SynchronizedPreprocessingActions == null)
                 {
-                    SynchronizedPreprocessingActions = new Queue<Action>();
+                    SynchronizedPreprocessingActions = new Queue<Action<T>>();
                 }
                 // enqueue the action to run before normal processing
                 SynchronizedPreprocessingActions.Enqueue(toEnqueue);
@@ -242,15 +242,43 @@ namespace CloudApiPublic.Support
         #endregion
 
         #region IDisposable members
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        ~DelayProcessable()
+        {
+            Dispose(false);
+        }
+        // Standard IDisposable implementation based on MSDN System.IDisposable
         public void Dispose()
         {
-            // lock on this to prevent disposal during resets
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+
+        #region private methods
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        private void Dispose(bool disposing)
+        {
             lock (this)
             {
-                // set delay completed so processing will not fire
-                DelayCompleted = true;
-                // trigger processing thread to break out
-                delayEvent.Set();
+                if (!DelayCompleted)
+                {
+                    // lock on current object for changing DelayCompleted so it cannot be stopped/started simultaneously
+                    lock (this)
+                    {
+                        // set delay completed so processing will not fire
+                        DelayCompleted = true;
+                    }
+
+                    // Run dispose on inner managed objects based on disposing condition
+                    if (disposing)
+                    {
+                        // trigger processing thread to break out
+                        delayEvent.Set();
+                    }
+
+                    // Dispose local unmanaged resources last
+                }
             }
         }
         #endregion

@@ -152,7 +152,6 @@ namespace Sync
         /// <returns>Returns all aggregated errors that occurred during the synchronous part of the Sync process, if any</returns>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public static CLError Run(GrabProcessedChanges grabChangesFromFileSystemMonitor,
-            SortChanges sortFileChanges,
             Func<FileChange, FileChange, CLError> mergeToSql,
             Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> addChangesToProcessingQueue,
             bool respondingToPushNotification,
@@ -172,10 +171,10 @@ namespace Sync
                 {
                     throw new NullReferenceException("grabChangesFromFileSystemMonitor cannot be null");
                 }
-                if (sortFileChanges == null)
-                {
-                    throw new NullReferenceException("sortFileChanges cannot be null");
-                }
+                //if (sortFileChanges == null)
+                //{
+                //    throw new NullReferenceException("sortFileChanges cannot be null");
+                //}
                 if (mergeToSql == null)
                 {
                     throw new NullReferenceException("mergeToSql cannot be null");
@@ -189,81 +188,83 @@ namespace Sync
                     throw new NullReferenceException("completeSyncSql cannot be null");
                 }
 
-                // Grab processed changes (will open locked FileStreams for all file adds/modifies), grabs MD5s and updates metadata
-                // ¡¡Replacing toReturn only works here because no code above has done anything to it; if that changes, pull out exceptions from the returned CLError to append!!
-                KeyValuePair<FileChange, FileStream>[] outputChanges;
-                FileChange[] outputChangesInError;
-                toReturn = grabChangesFromFileSystemMonitor(out outputChanges,
-                    out outputChangesInError);
-                if (outputChangesInError == null)
-                {
-                    outputChangesInError = new FileChange[0];
-                }
 
-                // set errors to queue here with all processed changes and all failed changes so they can be added to failure queue on exception
-                errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>(outputChanges
-                    .Concat(outputChangesInError.Select(currentChangeInError => new KeyValuePair<FileChange, FileStream>(currentChangeInError, null))));
+
+                //// Grab processed changes (will open locked FileStreams for all file adds/modifies), grabs MD5s and updates metadata
+                //// ¡¡Replacing toReturn only works here because no code above has done anything to it; if that changes, pull out exceptions from the returned CLError to append!!
+                //KeyValuePair<FileChange, FileStream>[] outputChanges;
+                //FileChange[] outputChangesInError;
+                //toReturn = grabChangesFromFileSystemMonitor(out outputChanges,
+                //    out outputChangesInError);
+                //if (outputChangesInError == null)
+                //{
+                //    outputChangesInError = new FileChange[0];
+                //}
+
+                //// set errors to queue here with all processed changes and all failed changes so they can be added to failure queue on exception
+                //errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>(outputChanges
+                //    .Concat(outputChangesInError.Select(currentChangeInError => new KeyValuePair<FileChange, FileStream>(currentChangeInError, null))));
 
                 syncStatus = "Sync Run grabbed processed changes";
 
-                // Define changes to set after dependency calculations
-                // (will be top level a.k.a. not have any dependencies)
-                IEnumerable<KeyValuePair<FileChange, FileStream>> topLevelChanges;
+                //// Define changes to set after dependency calculations
+                //// (will be top level a.k.a. not have any dependencies)
+                //IEnumerable<KeyValuePair<FileChange, FileStream>> topLevelChanges;
 
-                // Within a lock on the failure queue (failureTimer.TimerRunningLocker),
-                // check if each current event needs to be moved to a dependency under a failure event or an event in the current batch
-                lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
-                {
-                    // Initialize and fill an array of FileChanges dequeued from the failure queue
-                    FileChange[] dequeuedFailures = new FileChange[FailedChangesQueue.Count];
-                    for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
-                    {
-                        dequeuedFailures[currentQueueIndex] = FailedChangesQueue.Dequeue();
-                    }
+                //// Within a lock on the failure queue (failureTimer.TimerRunningLocker),
+                //// check if each current event needs to be moved to a dependency under a failure event or an event in the current batch
+                //lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
+                //{
+                //    // Initialize and fill an array of FileChanges dequeued from the failure queue
+                //    FileChange[] dequeuedFailures = new FileChange[FailedChangesQueue.Count];
+                //    for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
+                //    {
+                //        dequeuedFailures[currentQueueIndex] = FailedChangesQueue.Dequeue();
+                //    }
 
-                    // Define errors to set after dependency calculations
-                    // (will be top level a.k.a. not have any dependencies)
-                    IEnumerable<FileChange> topLevelErrors;
+                //    // Define errors to set after dependency calculations
+                //    // (will be top level a.k.a. not have any dependencies)
+                //    IEnumerable<FileChange> topLevelErrors;
 
-                    try
-                    {
-                        AssignDependencies(outputChanges,
-                            dequeuedFailures.Concat(
-                                outputChangesInError),
-                            out topLevelChanges,
-                            out topLevelErrors);
-                    }
-                    catch
-                    {
-                        // On error of assigning dependencies,
-                        // put all the original failure queue items back in the failure queue;
-                        // finally, rethrow the exception
-                        for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
-                        {
-                            FailedChangesQueue.Enqueue(dequeuedFailures[currentQueueIndex]);
-                        }
-                        throw;
-                    }
-                    if (topLevelChanges != null)
-                    {
-                        // replace errors queue with dependency-assigned values
-                        errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>(topLevelChanges);
-                    }
-                    if (topLevelErrors != null)
-                    {
-                        foreach (FileChange topLevelError in topLevelErrors)
-                        {
-                            FailedChangesQueue.Enqueue(topLevelError);
+                //    try
+                //    {
+                //        AssignDependencies(outputChanges,
+                //            dequeuedFailures.Concat(
+                //                outputChangesInError),
+                //            out topLevelChanges,
+                //            out topLevelErrors);
+                //    }
+                //    catch
+                //    {
+                //        // On error of assigning dependencies,
+                //        // put all the original failure queue items back in the failure queue;
+                //        // finally, rethrow the exception
+                //        for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
+                //        {
+                //            FailedChangesQueue.Enqueue(dequeuedFailures[currentQueueIndex]);
+                //        }
+                //        throw;
+                //    }
+                //    if (topLevelChanges != null)
+                //    {
+                //        // replace errors queue with dependency-assigned values
+                //        errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>(topLevelChanges);
+                //    }
+                //    if (topLevelErrors != null)
+                //    {
+                //        foreach (FileChange topLevelError in topLevelErrors)
+                //        {
+                //            FailedChangesQueue.Enqueue(topLevelError);
 
-                            // Only start the failure queue timer if there were additional errors from initial processing,
-                            // otherwise there must have been at least one error already on the failure queue (therefore it already had a timer going)
-                            if (outputChangesInError.Length > 0)
-                            {
-                                GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
-                            }
-                        }
-                    }
-                }
+                //            // Only start the failure queue timer if there were additional errors from initial processing,
+                //            // otherwise there must have been at least one error already on the failure queue (therefore it already had a timer going)
+                //            if (outputChangesInError.Length > 0)
+                //            {
+                //                GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
+                //            }
+                //        }
+                //    }
+                //}
 
                 syncStatus = "Sync Run initial dependencies calculated";
 
