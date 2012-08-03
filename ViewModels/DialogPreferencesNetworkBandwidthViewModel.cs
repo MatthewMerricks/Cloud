@@ -861,34 +861,28 @@ namespace win_client.ViewModels
         #region Support Functions
 
         /// <summary>
-        /// Set the preferences subset for this dialog from the current properties.
+        /// Get the preferences subset for this dialog from the current properties.
         /// <<returns>BandwidthPreferencesSubset: The output preferences subset.</returns>
         /// </summary>
-        private BandwidthPreferencesSubset SetPreferencesSubsetFromProperties()
+        private void GetPreferencesSubsetFromProperties()
         {
-            // Handle the update command.  The user said to save.
-            // Use the bindable properties set by the user to set the current preferences.
-            BandwidthPreferencesSubset subsetPreferences = new BandwidthPreferencesSubset();
-
-            subsetPreferences.ShouldLimitDownloadSpeed = !_rbDownloadBandwidthNoLimit;
+            _bandwidthPreferencesSubset.ShouldLimitDownloadSpeed = !_rbDownloadBandwidthNoLimit;
 
             if (_rbUploadBandwidthNoLimit)
             {
-                subsetPreferences.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitDontLimit;
+                _bandwidthPreferencesSubset.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitDontLimit;
             }
             else if (_rbUploadBandwidthLimit)
             {
-                subsetPreferences.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitLimitTo;
+                _bandwidthPreferencesSubset.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitLimitTo;
             }
             else
             {
-                subsetPreferences.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
+                _bandwidthPreferencesSubset.UploadSpeeedLimitType = uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
             }
 
-            subsetPreferences.DownloadSpeedLimitKBPerSecond = string.IsNullOrWhiteSpace(_tbDownloadBandwidthLimitKBPerSecond) ? 0 : int.Parse(_tbDownloadBandwidthLimitKBPerSecond);
-            subsetPreferences.UploadSpeedLimitKBPerSecond = string.IsNullOrWhiteSpace(_tbUploadBandwidthLimitKBPerSecond) ? 0 : int.Parse(_tbUploadBandwidthLimitKBPerSecond);
-
-            return subsetPreferences;
+            _bandwidthPreferencesSubset.DownloadSpeedLimitKBPerSecond = string.IsNullOrWhiteSpace(_tbDownloadBandwidthLimitKBPerSecond) ? 0 : int.Parse(_tbDownloadBandwidthLimitKBPerSecond);
+            _bandwidthPreferencesSubset.UploadSpeedLimitKBPerSecond = string.IsNullOrWhiteSpace(_tbUploadBandwidthLimitKBPerSecond) ? 0 : int.Parse(_tbUploadBandwidthLimitKBPerSecond);
         }
 
         /// <summary>
@@ -970,7 +964,7 @@ namespace win_client.ViewModels
         private void ProcessUpdateCommand()
         {
             // Pull the changes from the properties into the preferences subset
-            _bandwidthPreferencesSubset = SetPreferencesSubsetFromProperties();
+            GetPreferencesSubsetFromProperties();
 
             // Save the preferences set by the user.
             if (!CLDeepCompare.IsEqual(_bandwidthPreferencesSubset, _originalBandwidthPreferencesSubset))
@@ -993,7 +987,7 @@ namespace win_client.ViewModels
             }
 
             // Pull the changes from the properties into the preferences subset
-            _bandwidthPreferencesSubset = SetPreferencesSubsetFromProperties();
+            GetPreferencesSubsetFromProperties();
 
             // Check for unsaved changes.
             if (!CLDeepCompare.IsEqual(_bandwidthPreferencesSubset, _originalBandwidthPreferencesSubset))

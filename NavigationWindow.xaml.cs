@@ -146,13 +146,13 @@ namespace win_client
             if (WindowState == System.Windows.WindowState.Minimized)
             {
 
-                // Make sure tray icon is visible
-                if (!m_trayIcon.IsIconVisible)
-                    m_trayIcon.Show(global::win_client.Resources.Resources.SystemTrayIcon, "I'm In The Tray!");
+                //&&&& Original code
+                //// Make sure tray icon is visible
+                //if (!m_trayIcon.IsIconVisible)
+                //    m_trayIcon.Show(global::win_client.Resources.Resources.SystemTrayIcon, "I'm In The Tray!");
 
-                // No need to put icon in taskbar
-                this.ShowInTaskbar = false;
-
+                //// No need to put icon in taskbar
+                //this.ShowInTaskbar = false;
             }
             else
             {
@@ -162,8 +162,9 @@ namespace win_client
                     m_trayIcon.Hide();
 
                 // Need to show icon in taskbar
-                this.ShowInTaskbar = true;
-
+                //&&&& Original code
+                //this.ShowInTaskbar = true;
+                CLAppDelegate.ShowMainWindow(this);
             }
 
         }

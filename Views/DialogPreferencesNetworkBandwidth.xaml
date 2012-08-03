@@ -26,6 +26,7 @@
     WindowState="Open"
     Grid.RowSpan="2147483647"
     Grid.ColumnSpan="2147483647"
+    DataContext="{Binding DialogPreferencesNetworkBandwidthViewModel, Source={StaticResource Locator}}"
     Caption="{Binding DialogPreferencesNetworkBandwidth_Title, Mode=OneWay}" 
     Height="{Binding DialogPreferencesNetworkBandwidth_WindowHeight, Mode=OneWay}"
     Width="{Binding DialogPreferencesNetworkBandwidth_WindowWidth, Mode=OneWay}"
@@ -40,13 +41,6 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </controls:ChildWindow.Resources>
-    
-    <!-- Catch the Window.Closing event, fired when the user clicks the 'X'. -->
-    <i:Interaction.Triggers>
-        <i:EventTrigger EventName="Closing">
-            <cmd:EventToCommand Command="{Binding WindowClosingCommand, Mode=OneWay}" PassEventArgsToCommand="True"/>
-        </i:EventTrigger>
-    </i:Interaction.Triggers>
     
     <Grid x:Name="LayoutRoot">
         <Grid.Background>

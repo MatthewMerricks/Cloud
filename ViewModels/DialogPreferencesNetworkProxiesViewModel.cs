@@ -21,18 +21,44 @@ using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using System.ComponentModel;
+using System;
+using Dialog.Abstractions.Wpf.Intefaces;
+using win_client.ViewModelHelpers;
 
 namespace win_client.ViewModels
 {
     public class DialogPreferencesNetworkProxiesViewModel : ValidatingViewModelBase
     {
+        #region ProxiesPreferencesSubset Class
+
+        [Serializable]
+        private class ProxiesPreferencesSubset
+        {
+            public useProxySettingType ProxySettingType { get; set; }
+            public useProxyTypes ProxyType { get; set; }
+            public string ProxyServerAddress { get; set; }
+            public int ProxyServerPort { get; set; }
+            public bool ProxyServerRequiresPassword { get; set; }
+            public string ProxyServerUserName { get; set; }
+            public string ProxyServerPassword { get; set; }
+        }
+
+        #endregion
+
         #region Private Instance Variables
 
         private const double _kNoProxyOpacity = 0.60;
         private const double _kProxyActiveOpacity = 1.00;
 
-        private CLTrace _trace = CLTrace.Instance;
         private ResourceManager _rm;
+        private CLTrace _trace = CLTrace.Instance;
+
+        private ProxiesPreferencesSubset _proxiesPreferencesSubset;             // the current values
+        private ProxiesPreferencesSubset _originalProxiesPreferencesSubset;     // the original values
+
+        private bool _windowClosingImmediately = false;                             // used to allow the window to close immediately
+
+        IModalWindow _dialog = null;
 
         #endregion
 
@@ -844,7 +870,7 @@ namespace win_client.ViewModels
                     ?? (_windowClosingCommand = new RelayCommand<CancelEventArgs>(
                                           (args) =>
                                           {
-                                              args.Cancel = OnClosing();
+                                              args.Cancel = ProcessCancelCommand();    // true: cancel the window Close.
                                           }));
             }
         }
@@ -865,38 +891,13 @@ namespace win_client.ViewModels
                                               CLExtensionMethods.ForceValidation(_viewLayoutRoot);
                                               if (!HasErrors)
                                               {
-                                                  // Handle the update command.  The user said to save.
-                                                  // Use the bindable properties set by the user to set the current preferences.
-                                                  if (_rbProxySettingsNoProxy)
-                                                  {
-                                                      _dialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingNoProxy;
-                                                  }
-                                                  else if (_rbProxySettingsAutoDetect)
-                                                  {
-                                                      _dialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingAutoDetect;
-                                                  }
-                                                  else
-                                                  {
-                                                      _dialogPreferencesNetworkProxies_Preferences.ProxySettingType = useProxySettingType.useProxySettingManual;
-                                                  }
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyType = _cbProxyType;
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerAddress = string.IsNullOrWhiteSpace(_proxyServerAddress) ? string.Empty : _proxyServerAddress;
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerPort =  string.IsNullOrWhiteSpace(_proxyServerPort) ? 0 : int.Parse(_proxyServerPort);
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerRequiresPassword = _cbServerRequiresAPassword;
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerUserName = string.IsNullOrWhiteSpace(_proxyServerUsername) ? string.Empty : _proxyServerUsername;
 
-                                                  // Get the clear password again.
-                                                  CLAppMessages.DialogPreferencesNetworkProxies_GetClearPasswordField.Send("");
-                                                  _dialogPreferencesNetworkProxies_Preferences.ProxyServerPassword =
-                                                                CLSecureString.EncryptString(CLSecureString.ToSecureString(_proxyServerPassword2));
-                                                  _proxyServerPassword2 = string.Empty;   // clear it from memory again
+                                                  ProcessUpdateCommand();
                                               }
                                               else
                                               {
                                                   CLAppMessages.DialogPreferencesNetworkProxies_FocusToError_Message.Send("");
                                               }
-
-                                              _proxyServerPassword2 = string.Empty;   // clear from memory
                                           }));
             }
         }
@@ -915,7 +916,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               // Handle the cancel
-                                              OnClosing();
+                                              ProcessCancelCommand();
                                           }));
             }
         }
@@ -932,69 +933,13 @@ namespace win_client.ViewModels
                     ?? (_dialogPreferencesNetworkProxiesViewModel_ViewLoadedCommand = new RelayCommand(
                                           () =>
                                           {
-                                              // The view has loaded.  Set all of the view-bound properties.
-                                              RbProxySettingsNoProxy = _dialogPreferencesNetworkProxies_Preferences.ProxySettingType == useProxySettingType.useProxySettingNoProxy ? true : false;
-                                              RbProxySettingsAutoDetect = _dialogPreferencesNetworkProxies_Preferences.ProxySettingType == useProxySettingType.useProxySettingAutoDetect ? true : false;
-                                              RbProxySettingsManual = _dialogPreferencesNetworkProxies_Preferences.ProxySettingType == useProxySettingType.useProxySettingManual ? true : false;
-                                              CbProxyType = _dialogPreferencesNetworkProxies_Preferences.ProxyType;
-                                              ProxyServerAddress = _dialogPreferencesNetworkProxies_Preferences.ProxyServerAddress;
-                                              if (string.IsNullOrWhiteSpace(ProxyServerAddress))
-                                              {
-                                                  ProxyServerAddress = string.Empty;
-                                              }
-                                              ProxyServerPort = _dialogPreferencesNetworkProxies_Preferences.ProxyServerPort == 0 ? string.Empty : 
-                                                                            _dialogPreferencesNetworkProxies_Preferences.ProxyServerPort.ToString();
-                                              CbServerRequiresAPassword = _dialogPreferencesNetworkProxies_Preferences.ProxyServerRequiresPassword;
-                                              if (string.IsNullOrWhiteSpace(ProxyServerAddress))
-                                              {
-                                                  ProxyServerAddress = string.Empty;
-                                              }
-                                              ProxyServerUsername = _dialogPreferencesNetworkProxies_Preferences.ProxyServerUserName;
-                                              if (string.IsNullOrWhiteSpace(ProxyServerUsername))
-                                              {
-                                                  ProxyServerUsername = string.Empty;
-                                              }
-                                              ProxyServerPassword2 = CLSecureString.ToInsecureString(CLSecureString.DecryptString(_dialogPreferencesNetworkProxies_Preferences.ProxyServerPassword));
-                                              if (string.IsNullOrWhiteSpace(ProxyServerPassword2))
-                                              {
-                                                  _proxyServerPassword2 = string.Empty;
-                                              }
+                                              // The view has loaded.  Get the subset of the global preferences that this dialog will use.
+                                              _proxiesPreferencesSubset = GetPreferencesSubsetFromGlobalPreferences(_dialogPreferencesNetworkProxies_Preferences);
+                                              _originalProxiesPreferencesSubset = _proxiesPreferencesSubset.DeepCopy<ProxiesPreferencesSubset>();  // for change comparison
 
-                                              // Make sure the proper opacity is set based on the proxy manual setting type.
-                                              if (_rbProxySettingsManual)
-                                              {
-                                                  ProxyManualOpacity = _kProxyActiveOpacity;
-                                                  ProxyManualControlsEnabled = true;
-                                              }
-                                              else
-                                              {
-                                                  ProxyManualOpacity = _kNoProxyOpacity;
-                                                  ProxyManualControlsEnabled = false;
-                                              }
+                                              SetPropertiesFromPreferencesSubset(_proxiesPreferencesSubset);
 
-                                              // Make sure the proper opacity is set based on the proxy "No Proxy" setting type
-                                              if (_rbProxySettingsNoProxy)
-                                              {
-                                                  ProxyNoProxyOpacity = _kNoProxyOpacity;
-                                                  ProxyNoProxyControlsEnabled = false;
-                                              }
-                                              else
-                                              {
-                                                  ProxyNoProxyOpacity = _kProxyActiveOpacity;
-                                                  ProxyNoProxyControlsEnabled = true;
-                                              }
-
-                                              // Make sure the proper opacity is set based on the "Server requires password" checkbox.
-                                              if (_cbServerRequiresAPassword)
-                                              {
-                                                  ProxyAuthenticationControlsOpacity = _kProxyActiveOpacity;
-                                                  ProxyAuthenticationControlsEnabled = true;
-                                              }
-                                              else
-                                              {
-                                                  ProxyAuthenticationControlsOpacity = _kNoProxyOpacity;
-                                                  ProxyAuthenticationControlsEnabled = false;
-                                              }
+                                              _windowClosingImmediately = false;                                    // reset this: used to allow the window to close immediately;
                                           }));
             }
         }
@@ -1078,15 +1023,236 @@ namespace win_client.ViewModels
         #region Support Functions
 
         /// <summary>
-        /// Implement window closing logic.
-        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
-        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
-        /// <<returns>true to cancel the cancel.</returns>
+        /// Get the preferences subset for this dialog from the current properties.
+        /// <<returns>ProxiesPreferencesSubset: The output preferences subset.</returns>
         /// </summary>
-        private bool OnClosing()
+        private void GetPreferencesSubsetFromProperties()
         {
-            // Clean-up logic here.
-            return false;                   // don't cancel the user's request to cancel
+            if (_rbProxySettingsNoProxy)
+            {
+                _proxiesPreferencesSubset.ProxySettingType = useProxySettingType.useProxySettingNoProxy;
+            }
+            else if (_rbProxySettingsAutoDetect)
+            {
+                _proxiesPreferencesSubset.ProxySettingType = useProxySettingType.useProxySettingAutoDetect;
+            }
+            else
+            {
+                _proxiesPreferencesSubset.ProxySettingType = useProxySettingType.useProxySettingManual;
+            }
+            _proxiesPreferencesSubset.ProxyType = _cbProxyType;
+            _proxiesPreferencesSubset.ProxyServerAddress = string.IsNullOrWhiteSpace(_proxyServerAddress) ? string.Empty : _proxyServerAddress;
+            _proxiesPreferencesSubset.ProxyServerPort = string.IsNullOrWhiteSpace(_proxyServerPort) ? 0 : int.Parse(_proxyServerPort);
+            _proxiesPreferencesSubset.ProxyServerRequiresPassword = _cbServerRequiresAPassword;
+            _proxiesPreferencesSubset.ProxyServerUserName = string.IsNullOrWhiteSpace(_proxyServerUsername) ? string.Empty : _proxyServerUsername;
+
+            // Get the clear password again.
+            CLAppMessages.DialogPreferencesNetworkProxies_GetClearPasswordField.Send("");
+            _proxiesPreferencesSubset.ProxyServerPassword = CLSecureString.EncryptString(CLSecureString.ToSecureString(_proxyServerPassword2));
+        }
+
+        /// <summary>
+        /// Set this dialog's properties from the current preferences subset.
+        /// <param name="subsetPreferences">The current preferences subset.</param>"/>
+        /// <returns>void</returns>
+        /// </summary>
+        private void SetPropertiesFromPreferencesSubset(ProxiesPreferencesSubset subsetPreferences)
+        {
+            // Set all of the view-bound properties.
+            RbProxySettingsNoProxy = subsetPreferences.ProxySettingType == useProxySettingType.useProxySettingNoProxy ? true : false;
+            RbProxySettingsAutoDetect = subsetPreferences.ProxySettingType == useProxySettingType.useProxySettingAutoDetect ? true : false;
+            RbProxySettingsManual = subsetPreferences.ProxySettingType == useProxySettingType.useProxySettingManual ? true : false;
+            CbProxyType = subsetPreferences.ProxyType;
+            ProxyServerAddress = subsetPreferences.ProxyServerAddress;
+            if (string.IsNullOrWhiteSpace(ProxyServerAddress))
+            {
+                ProxyServerAddress = string.Empty;
+            }
+            ProxyServerPort = subsetPreferences.ProxyServerPort == 0 ? string.Empty :
+                                          subsetPreferences.ProxyServerPort.ToString();
+            CbServerRequiresAPassword = subsetPreferences.ProxyServerRequiresPassword;
+            if (string.IsNullOrWhiteSpace(ProxyServerAddress))
+            {
+                ProxyServerAddress = string.Empty;
+            }
+            ProxyServerUsername = subsetPreferences.ProxyServerUserName;
+            if (string.IsNullOrWhiteSpace(ProxyServerUsername))
+            {
+                ProxyServerUsername = string.Empty;
+            }
+            ProxyServerPassword2 = CLSecureString.ToInsecureString(CLSecureString.DecryptString(subsetPreferences.ProxyServerPassword == null ? String.Empty : subsetPreferences.ProxyServerPassword));
+            if (string.IsNullOrWhiteSpace(ProxyServerPassword2))
+            {
+                _proxyServerPassword2 = string.Empty;
+            }
+
+            // Make sure the proper opacity is set based on the proxy manual setting type.
+            if (_rbProxySettingsManual)
+            {
+                ProxyManualOpacity = _kProxyActiveOpacity;
+                ProxyManualControlsEnabled = true;
+            }
+            else
+            {
+                ProxyManualOpacity = _kNoProxyOpacity;
+                ProxyManualControlsEnabled = false;
+            }
+
+            // Make sure the proper opacity is set based on the proxy "No Proxy" setting type
+            if (_rbProxySettingsNoProxy)
+            {
+                ProxyNoProxyOpacity = _kNoProxyOpacity;
+                ProxyNoProxyControlsEnabled = false;
+            }
+            else
+            {
+                ProxyNoProxyOpacity = _kProxyActiveOpacity;
+                ProxyNoProxyControlsEnabled = true;
+            }
+
+            // Make sure the proper opacity is set based on the "Server requires password" checkbox.
+            if (_cbServerRequiresAPassword)
+            {
+                ProxyAuthenticationControlsOpacity = _kProxyActiveOpacity;
+                ProxyAuthenticationControlsEnabled = true;
+            }
+            else
+            {
+                ProxyAuthenticationControlsOpacity = _kNoProxyOpacity;
+                ProxyAuthenticationControlsEnabled = false;
+            }
+        }
+
+        /// <summary>
+        /// Get the preferences subset for this dialog from the global preferences.
+        /// <param name="globalPreferences">The intput global preferences.</param>
+        /// <<returns>ProxiesPreferencesSubset: The output preferences subset.</returns>
+        /// </summary>
+        private ProxiesPreferencesSubset GetPreferencesSubsetFromGlobalPreferences(CLPreferences globalPreferences)
+        {
+            ProxiesPreferencesSubset ProxiesPreferencesSubset = new ProxiesPreferencesSubset()
+            {
+                ProxySettingType = globalPreferences.ProxySettingType,
+                ProxyType = globalPreferences.ProxyType,
+                ProxyServerAddress = globalPreferences.ProxyServerAddress,
+                ProxyServerPort = globalPreferences.ProxyServerPort,
+                ProxyServerRequiresPassword = globalPreferences.ProxyServerRequiresPassword,
+                ProxyServerUserName = globalPreferences.ProxyServerUserName,
+                ProxyServerPassword = globalPreferences.ProxyServerPassword,
+            };
+            return ProxiesPreferencesSubset;
+        }
+
+
+        /// <summary>
+        /// Set the preferences subset for this dialog to the global preferences.
+        /// <param name="globalPreferences">The output global preferences to read.</param>
+        /// <param name="subsetPreferences">The input preferences subset.</param>
+        /// <<returns>void.</returns>
+        /// </summary>
+        private void SetPreferencesSubsetToGlobalPreferences(CLPreferences globalPreferences, ProxiesPreferencesSubset subsetPreferences)
+        {
+            globalPreferences.ProxySettingType = subsetPreferences.ProxySettingType;
+            globalPreferences.ProxyType = subsetPreferences.ProxyType;
+            globalPreferences.ProxyServerAddress = subsetPreferences.ProxyServerAddress;
+            globalPreferences.ProxyServerPort = subsetPreferences.ProxyServerPort;
+            globalPreferences.ProxyServerRequiresPassword = subsetPreferences.ProxyServerRequiresPassword;
+            globalPreferences.ProxyServerUserName = subsetPreferences.ProxyServerUserName;
+            globalPreferences.ProxyServerPassword = subsetPreferences.ProxyServerPassword;
+        }
+
+        /// <summary>
+        /// Commit the preference subset changes to the global preferences.
+        /// </summary>
+        private void ProcessUpdateCommand()
+        {
+            // Pull the changes from the properties into the preferences subset
+            GetPreferencesSubsetFromProperties();
+
+            // Save the preferences set by the user.
+            if (!PreferenceSubsetsAreEqual(_proxiesPreferencesSubset, _originalProxiesPreferencesSubset))
+            {
+                SetPreferencesSubsetToGlobalPreferences(_dialogPreferencesNetworkProxies_Preferences, _proxiesPreferencesSubset);
+                _originalProxiesPreferencesSubset = _proxiesPreferencesSubset.DeepCopy<ProxiesPreferencesSubset>();   // also to the original copy because we saved the changes.
+            }
+        }
+
+        /// <summary>
+        /// The user is requesting to cancel.  He clicked the 'X', or he clicked the Cancel button.
+        /// </summary>
+        /// <<returns>bool: true: Cancel the Window Close operation.</returns>
+        private bool ProcessCancelCommand()
+        {
+            // Ignore this if we are closing immediately
+            if (_windowClosingImmediately)
+            {
+                return false;           // allow the window to close
+            }
+
+            // Pull the changes from the properties into the preferences subset
+            GetPreferencesSubsetFromProperties();
+
+            // Check for unsaved changes.
+            if (!PreferenceSubsetsAreEqual(_proxiesPreferencesSubset, _originalProxiesPreferencesSubset))
+            {
+                // The user is cancelling and there are unsaved changes.  Ask if he wants to save them.
+                CLModalMessageBoxDialogs.Instance.DisplayModalSaveChangesPrompt(container: ViewLayoutRoot, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
+                {
+                    _trace.writeToLog(9, "DialogPreferencesNetworkProxies: Prompt save changes: Entry.");
+                    if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                    {
+                        // The user said yes.
+                        _trace.writeToLog(9, "DialogPreferencesNetworkProxies: Prompt save changes: User said yes.");
+                        SetPreferencesSubsetToGlobalPreferences(_dialogPreferencesNetworkProxies_Preferences, _proxiesPreferencesSubset);
+                    }
+
+                    // The parent dialog was told to stay open so this dialog could appear over it.  Now we have
+                    // to cause the parent dialog to close without any processing because it has all been done.
+                    // Send a message to the parent view to tell it to close.  However, that will cause a window closing
+                    // event.  We'll set a flag to indicate that we are done, and use that flag to just ignore
+                    // the window closing event, so we don't get ourselves in a never-ending UI loop.
+                    _windowClosingImmediately = true;
+                    CLAppMessages.Message_DialogPreferencesNetworkProxiesViewShouldClose.Send("");
+                });
+
+                return true;    // keep the window open.  The child dialog completion will close this dialog.
+            }
+            else
+            {
+                // There are no changes.  Just allow the window to close.
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Compare two proxy preference subsets.
+        /// Unfortunately, the subset contains an encrypted password.  The encrypted strings are not always the
+        /// same for a given clear text string.  We have to do some nonsense so we can use DeepCompare for the
+        /// other fields.
+        /// </summary>
+        /// <<returns>bool: true: Cancel the Window Close operation.</returns>
+        private bool PreferenceSubsetsAreEqual(ProxiesPreferencesSubset firstSubset, ProxiesPreferencesSubset secondSubset)
+        {
+            // Decrypt both of the passwords
+            string firstClearPassword = CLSecureString.ToInsecureString(CLSecureString.DecryptString(firstSubset.ProxyServerPassword == null ? String.Empty : firstSubset.ProxyServerPassword));
+            string secondClearPassword = CLSecureString.ToInsecureString(CLSecureString.DecryptString(secondSubset.ProxyServerPassword == null ? String.Empty : secondSubset.ProxyServerPassword));
+            if (!firstClearPassword.Equals(secondClearPassword, StringComparison.InvariantCulture))
+            {
+                return false;
+            }
+
+            // The passwords are the same.  Compare the rest, but not the password.
+            string firstEncryptedPassword = firstSubset.ProxyServerPassword;
+            string secondEncryptedPassword = secondSubset.ProxyServerPassword;
+            firstSubset.ProxyServerPassword = String.Empty;
+            secondSubset.ProxyServerPassword = String.Empty;
+
+            bool isEqual = CLDeepCompare.IsEqual(firstSubset, secondSubset);
+
+            firstSubset.ProxyServerPassword = firstEncryptedPassword;
+            secondSubset.ProxyServerPassword = secondEncryptedPassword;
+
+            return isEqual;
         }
 
         #endregion

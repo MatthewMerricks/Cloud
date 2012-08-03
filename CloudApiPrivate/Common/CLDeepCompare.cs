@@ -35,7 +35,22 @@ namespace CloudApiPrivate.Common
                 {
                     if (firstObjectPropertyInfo.Name == secondObjectPropertyInfo.Name)
                     {
-                        result = firstObjectPropertyInfo.GetValue(firstObject, null).ToString() == secondObjectPropertyInfo.GetValue(secondObject, null).ToString();
+                        object firstObjectValue = firstObjectPropertyInfo.GetValue(firstObject, null);
+                        object secondObjectValue = secondObjectPropertyInfo.GetValue(secondObject, null);
+
+                        if (firstObject == null && secondObject == null)
+                        {
+                            result = true;
+                        }
+                        else if (firstObject == null || secondObject == null)
+                        {
+                            result = false;
+                        }
+                        else
+                        {
+                            result = firstObjectPropertyInfo.GetValue(firstObject, null).ToString() == secondObjectPropertyInfo.GetValue(secondObject, null).ToString();
+                        }
+                        
                         if (!result) break;
                     }
                 }

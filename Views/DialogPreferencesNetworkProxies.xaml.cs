@@ -23,6 +23,7 @@ using win_client.Common;
 using win_client.ViewModels;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Xceed.Wpf.Toolkit;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
@@ -36,29 +37,9 @@ namespace win_client.Views
             InitializeComponent();
 
             // Register event handlers
-            Loaded += new RoutedEventHandler(DialogPreferencesNetworkProxies_Loaded);
-            Unloaded += new RoutedEventHandler(DialogPreferencesNetworkProxies_Unloaded);
-        }
-
-        /// <summary>
-        /// Get the clear password and present it to the ViewModel.
-        /// </summary>
-        private void OnDialogPreferencesNetworkProxies_GetClearPasswordField(string obj)
-        {
-            DialogPreferencesNetworkProxiesViewModel vm = (DialogPreferencesNetworkProxiesViewModel)DataContext;
-            string clearPassword = tbProxyServerPassword.Text;
-            if (vm != null)
-            {
-                vm.ProxyServerPassword2 = clearPassword;
-            }
-        }
-
-        /// <summary>
-        /// Set the clear password.
-        /// </summary>
-        private void OnDialogPreferencesNetworkProxies_SetClearPasswordField(string password)
-        {
-            tbProxyServerPassword.Text = password;
+            Loaded += DialogPreferencesNetworkProxies_Loaded;
+            Unloaded += DialogPreferencesNetworkProxies_Unloaded;
+            Closing += DialogPreferencesNetworkProxies_Closing;
         }
 
         /// <summary>
@@ -110,6 +91,15 @@ namespace win_client.Views
             CLAppMessages.DialogPreferencesNetworkProxies_FocusToError_Message.Register(this, OnDialogPreferencesNetworkProxies_FocusToError_Message);
             CLAppMessages.DialogPreferencesNetworkProxies_GetClearPasswordField.Register(this, OnDialogPreferencesNetworkProxies_GetClearPasswordField);
             CLAppMessages.DialogPreferencesNetworkProxies_SetClearPasswordField.Register(this, OnDialogPreferencesNetworkProxies_SetClearPasswordField);
+            CLAppMessages.Message_DialogPreferencesNetworkProxiesViewShouldClose.Register(this, OnMessage_DialogPreferencesNetworkProxiesViewShouldClose);
+
+            // Register to receive the ConfirmShutdown message
+            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                this,
+                message =>
+                {
+                    OnConfirmShutdownMessage(message);
+                });
 
             FocusedElement = this.btnOK;
 
@@ -122,6 +112,35 @@ namespace win_client.Views
                 vm.DialogPreferencesNetworkProxiesViewModel_ViewLoadedCommand.Execute(null);
             }
             vm.ViewLayoutRoot = this.LayoutRoot;
+        }
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// This is a modal dialog.  Prevent the close.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                message.Execute(true);      // true == abort shutdown
+            }
+
+            if (message.Notification == Notifications.QueryModalDialogsActive)
+            {
+                message.Execute(true);      // a modal dialog is active
+            }
+        }
+
+        /// <summary>
+        /// This ChildWindow is closing.
+        /// </summary>
+        void DialogPreferencesNetworkProxies_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            DialogPreferencesNetworkProxiesViewModel vm = (DialogPreferencesNetworkProxiesViewModel)DataContext;
+            if (vm.WindowClosingCommand.CanExecute(e))
+            {
+                vm.WindowClosingCommand.Execute(e);
+            }
         }
 
         /// <summary>
@@ -159,5 +178,33 @@ namespace win_client.Views
             }
         }
 
+        /// <summary>
+        /// Event handler: This view should close.
+        /// </summary>
+        private void OnMessage_DialogPreferencesNetworkProxiesViewShouldClose(string obj)
+        {
+            this.Close();
+        }
+
+        /// <summary>
+        /// Get the clear password and present it to the ViewModel.
+        /// </summary>
+        private void OnDialogPreferencesNetworkProxies_GetClearPasswordField(string obj)
+        {
+            DialogPreferencesNetworkProxiesViewModel vm = (DialogPreferencesNetworkProxiesViewModel)DataContext;
+            string clearPassword = tbProxyServerPassword.Text;
+            if (vm != null)
+            {
+                vm.ProxyServerPassword2 = clearPassword;
+            }
+        }
+
+        /// <summary>
+        /// Set the clear password.
+        /// </summary>
+        private void OnDialogPreferencesNetworkProxies_SetClearPasswordField(string password)
+        {
+            tbProxyServerPassword.Text = password;
+        }
     }
 }

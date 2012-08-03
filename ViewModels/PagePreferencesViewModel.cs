@@ -362,9 +362,26 @@ namespace win_client.ViewModels
                     ?? (_windowCloseRequested = new RelayCommand(
                                           () =>
                                           {
-                                              // Handle the request as a cancel request.
+                                              // The user clicked the 'X' on the NavigationWindow, or pressed Alt-F4.  They are trying to close the
+                                              // window.  Normally, this would be handled as a click on the Cancel button, but there may be one or
+                                              // more modal dialogs active.  For instance, This Page may have FramePreferencesNetwork active, and
+                                              // that page may have the modal dialog DialogPreferencesNetworkProxies active, and that dialog may
+                                              // have another (stacked) modal dialog DialogCloudMessageBox active.  If any modal dialog is active,
+                                              // every involved page, frame or dialog should just ignore the request to close the outer window.
+                                              // We will send a message query to see if any modal dialog is active.
+                                              bool modalDialogIsActive = false;
+                                              Messenger.Default.Send(new CleanShutdown.Messaging.NotificationMessageAction<bool>(
+                                                            Notifications.QueryModalDialogsActive,
+                                                                modalDialogActive => modalDialogIsActive |= modalDialogActive));
+                                              if (modalDialogIsActive)
+                                              {
+                                                  WindowCloseOk = false;        // prevent the window close
+                                                  return;
+                                              }
+
+                                              // Otherwise, handle the request as a cancel request.
                                               ProcessCancelRequest();
-                                              WindowCloseOk = false;
+                                              WindowCloseOk = false;            // prevent the window close
                                           }));
             }
         }

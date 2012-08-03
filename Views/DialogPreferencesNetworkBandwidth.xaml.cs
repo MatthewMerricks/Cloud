@@ -23,6 +23,7 @@ using win_client.Common;
 using win_client.ViewModels;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Xceed.Wpf.Toolkit;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
@@ -36,8 +37,9 @@ namespace win_client.Views
             InitializeComponent();
 
             // Register event handlers
-            Loaded += new RoutedEventHandler(DialogPreferencesNetworkBandwidth_Loaded);
-            Unloaded += new RoutedEventHandler(DialogPreferencesNetworkBandwidth_Unloaded);
+            Loaded += DialogPreferencesNetworkBandwidth_Loaded;
+            Unloaded += DialogPreferencesNetworkBandwidth_Unloaded;
+            Closing += DialogPreferencesNetworkBandwidth_Closing;
         }
 
         /// <summary>
@@ -87,6 +89,15 @@ namespace win_client.Views
         {
             // Register messages
             CLAppMessages.DialogPreferencesNetworkBandwidth_FocusToError_Message.Register(this, OnDialogPreferencesNetworkBandwidth_FocusToError_Message);
+            CLAppMessages.Message_DialogPreferencesNetworkBandwidthViewShouldClose.Register(this, OnMessage_DialogPreferencesNetworkBandwidthViewShouldClose);
+
+            // Register to receive the ConfirmShutdown message
+            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                this,
+                message =>
+                {
+                    OnConfirmShutdownMessage(message);
+                });
 
             FocusedElement = this.btnOK;
 
@@ -99,6 +110,35 @@ namespace win_client.Views
                 vm.DialogPreferencesNetworkBandwidthViewModel_ViewLoadedCommand.Execute(null);
             }
             vm.ViewLayoutRoot = this.LayoutRoot;
+        }
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// This is a modal dialog.  Prevent the close.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                message.Execute(true);      // true == abort shutdown
+            }
+
+            if (message.Notification == Notifications.QueryModalDialogsActive)
+            {
+                message.Execute(true);      // a modal dialog is active
+            }
+        }
+
+        /// <summary>
+        /// This ChildWindow is closing.
+        /// </summary>
+        void DialogPreferencesNetworkBandwidth_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            DialogPreferencesNetworkBandwidthViewModel vm = (DialogPreferencesNetworkBandwidthViewModel)DataContext;
+            if (vm.WindowClosingCommand.CanExecute(e))
+            {
+                vm.WindowClosingCommand.Execute(e);
+            }
         }
 
         /// <summary>
@@ -124,6 +164,14 @@ namespace win_client.Views
                 tbUploadBandwidthLimitKBPerSecond.Focus();
                 return;
             }
+        }
+
+        /// <summary>
+        /// Event handler: This view should close.
+        /// </summary>
+        private void OnMessage_DialogPreferencesNetworkBandwidthViewShouldClose(string obj)
+        {
+            this.Close();
         }
 
         /// <summary>

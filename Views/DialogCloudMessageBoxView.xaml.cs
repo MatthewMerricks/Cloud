@@ -23,6 +23,7 @@ using win_client.Common;
 using win_client.ViewModels;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Xceed.Wpf.Toolkit;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
@@ -51,7 +52,32 @@ namespace win_client.Views
         // via the code-behind works however, so we do it here.
         void DialogCloudMessageBoxView_Loaded(object sender, RoutedEventArgs e)
         {
+            // Register to receive the ConfirmShutdown message
+            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                this,
+                message =>
+                {
+                    OnConfirmShutdownMessage(message);
+                });
+
             FocusedElement = btnOK;
+        }
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// This is a modal dialog.  Prevent the close.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                message.Execute(true);      // true == abort shutdown
+            }
+
+            if (message.Notification == Notifications.QueryModalDialogsActive)
+            {
+                message.Execute(true);      // a modal dialog is active
+            }
         }
     }
 }
