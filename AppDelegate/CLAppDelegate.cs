@@ -94,6 +94,15 @@ namespace win_client.AppDelegate
             }
         }
 
+        private Dispatcher _mainDispatcher = null;
+        public Dispatcher MainDispatcher
+        {
+            get
+            {
+                return _mainDispatcher;
+            }
+        }
+
         #endregion
 
         private string _pageCloudFolderMissingOkButtonContent;
@@ -135,6 +144,7 @@ namespace win_client.AppDelegate
             _trace = CLTrace.Instance;
             Assembly assembly = Assembly.GetExecutingAssembly();
             _resourceManager = new ResourceManager(CLConstants.kResourcesName, assembly);
+            _mainDispatcher = Dispatcher.CurrentDispatcher;
         }
 
         private static bool IsVista()
@@ -814,6 +824,8 @@ namespace win_client.AppDelegate
                 window.Height = 480;
                 window.MinWidth = 640;
                 window.MinHeight = 480;
+                window.Left = 200;                  //TODO: Set from settings
+                window.Top = 200;                   //TODO: Set from settings
                 window.WindowStyle = WindowStyle.ThreeDBorderWindow;
                 window.Visibility = System.Windows.Visibility.Visible;
                 window.ShowInTaskbar = true;
@@ -836,10 +848,12 @@ namespace win_client.AppDelegate
                 window.Height = 0;
                 window.MinWidth = 0;
                 window.MinHeight = 0;
-                window.WindowStyle = WindowStyle.None;
-                window.Visibility = System.Windows.Visibility.Hidden;
+                window.Left = Int32.MaxValue;
+                window.Top = Int32.MaxValue;
                 window.ShowInTaskbar = false;
                 window.ShowActivated = false;
+                window.Visibility = System.Windows.Visibility.Hidden;
+                window.WindowStyle = WindowStyle.None;
             }
         }
         #endregion  

@@ -47,7 +47,7 @@
         x:Name="tb"
         VerticalAlignment="Top"
         IconSource="/Artwork/cloud.ico"
-        ToolTipText="Hello Cloud!"
+        ToolTipText="Cloud"
         ContextMenu="{StaticResource tbMenu}"
         Visibility="{Binding TaskbarIconVisibility, Mode=TwoWay}"
         MenuActivation="RightClick"

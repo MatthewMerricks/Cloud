@@ -138,7 +138,7 @@
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
-    <Compile Include="MvvmLightCleanShutdown\ShutdownService.cs" />
+    <Compile Include="CleanShutdown\ShutdownService.cs" />
     <Compile Include="Model\CLPreferences.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
@@ -152,10 +152,10 @@
     <Compile Include="NavigationWindow.xaml.cs">
       <DependentUpon>NavigationWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MvvmLightCleanShutdown\NotificationMessageAction.cs" />
-    <Compile Include="MvvmLightCleanShutdown\NotificationMessageFunc.cs" />
-    <Compile Include="MvvmLightCleanShutdown\NotificationMessageWithCallback.cs" />
-    <Compile Include="MvvmLightCleanShutdown\Notifications.cs" />
+    <Compile Include="CleanShutdown\NotificationMessageAction.cs" />
+    <Compile Include="CleanShutdown\NotificationMessageFunc.cs" />
+    <Compile Include="CleanShutdown\NotificationMessageWithCallback.cs" />
+    <Compile Include="CleanShutdown\Notifications.cs" />
     <Compile Include="Resources\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

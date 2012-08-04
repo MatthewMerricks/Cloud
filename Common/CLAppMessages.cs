@@ -47,6 +47,7 @@ namespace win_client.Common
             PageCloudFolderMissing_NavigationRequest,
             PageCreateNewAccount_NavigationRequest,
             PageInvisible_NavigationRequest,
+            PageInvisible_TriggerOutOfSystemTrayAnimation,
             PageBadgeComInitializationError_NavigationRequest,
             PageTour_NavigationRequest,
             PageSelectStorageSize_NavigationRequest,
@@ -461,6 +462,19 @@ namespace win_client.Common
             public static void Register(object recipient, Action<KeyValuePair<Uri, CLPreferences>> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.PagePreferences_FrameNavigationRequest_WithPreferences, action);
+            }
+        }
+
+        public static class PageInvisible_TriggerOutOfSystemTrayAnimation
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageInvisible_TriggerOutOfSystemTrayAnimation);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageInvisible_TriggerOutOfSystemTrayAnimation, action);
             }
         }
     }

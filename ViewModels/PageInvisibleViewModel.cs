@@ -240,7 +240,7 @@ namespace win_client.ViewModels
                                             {
                                                 // Show the preferences page
                                                 Uri nextPage = new System.Uri(CLConstants.kPagePreferences, System.UriKind.Relative);
-                                                CLAppMessages.PageInvisible_NavigationRequest.Send(nextPage);
+                                                CLAppMessages.PageInvisible_TriggerOutOfSystemTrayAnimation.Send(nextPage);
                                             }));
             }
         }

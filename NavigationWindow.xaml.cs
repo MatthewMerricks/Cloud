@@ -26,6 +26,8 @@ using win_client.Model;
 using CleanShutdown;
 using CleanShutdown.Helpers;
 using win_client.Common;
+using GalaSoft.MvvmLight.Messaging;
+using CleanShutdown.Messaging;
 
 namespace win_client
 {
@@ -34,8 +36,18 @@ namespace win_client
     /// </summary>
     public partial class MyNavigationWindow : NavigationWindow, IDisposable
     {
+        #region Private Instance Variables
+
         private TrayIcon m_trayIcon;
         private bool disposed = false;
+
+        #endregion
+
+        #region Public Variables
+        public bool firstMinimize = false;                      // set this to indicate that PageInvisible will be the first 
+        #endregion
+
+        #region Life Cycle
 
         /// <summary>
         /// Default constructor
@@ -47,6 +59,30 @@ namespace win_client
             this.Closing += MyNavigationWindow_Closing;
 
             InitializeComponent();
+
+            // Register messages
+            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                this,
+                message =>
+                {
+                    OnQueryNotificationMessageAction(message);
+                });
+        }
+
+        #endregion
+
+        #region Event handlers
+
+        /// <summary>
+        /// We received a query message
+        /// </summary>
+        private void OnQueryNotificationMessageAction(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.QueryFirstPageInvisible)
+            {
+                message.Execute(firstMinimize);     // return the current value.
+                firstMinimize = false;              // only once
+            }
         }
 
         /// <summary>
@@ -77,48 +113,12 @@ namespace win_client
         /// Event handler: Navigating.
         /// Ignore F5 refresh.
         /// </summary>
-        public static void NavigationService_Navigating(object sender, NavigatingCancelEventArgs e) 
+        public static void NavigationService_Navigating(object sender, NavigatingCancelEventArgs e)
         {
             if (e.NavigationMode == NavigationMode.Refresh)
             {
                 e.Cancel = true;
             }
-        }
-
-        /// <summary>
-        /// IDisposable implementation.
-        /// </summary>
-        public void Dispose() 
-        { 
-            Dispose(true); 
-            GC.SuppressFinalize(this); 
-        } 
- 
-        // Leave out the finalizer altogether if this class doesn't own unmanaged
-        // resources itself.
-        //~MyNavigationWindow() 
-        //{ 
-        //    Dispose(false); 
-        //} 
- 
-        // Dispose
-        protected virtual void Dispose(bool disposing) 
-        { 
-            if (!this.disposed) 
-            { 
-                if (disposing) 
-                { 
-                    // Free managed resources, if any
-                    if (m_trayIcon != null)
-                    {
-                        m_trayIcon.Dispose();
-                        m_trayIcon = null;
-                    }
-                } 
-
-                // Free native (unmanaged) resources, if any
-            } 
-            disposed = true; 
         }
 
         /// <summary>
@@ -179,5 +179,47 @@ namespace win_client
                 WindowState = System.Windows.WindowState.Normal;
 
         }
+
+        #endregion
+
+        #region Dispose
+
+        /// <summary>
+        /// IDisposable implementation.
+        /// </summary>
+        public void Dispose() 
+        { 
+            Dispose(true); 
+            GC.SuppressFinalize(this); 
+        } 
+ 
+        // Leave out the finalizer altogether if this class doesn't own unmanaged
+        // resources itself.
+        //~MyNavigationWindow() 
+        //{ 
+        //    Dispose(false); 
+        //} 
+ 
+        // Dispose
+        protected virtual void Dispose(bool disposing) 
+        { 
+            if (!this.disposed) 
+            { 
+                if (disposing) 
+                { 
+                    // Free managed resources, if any
+                    if (m_trayIcon != null)
+                    {
+                        m_trayIcon.Dispose();
+                        m_trayIcon = null;
+                    }
+                } 
+
+                // Free native (unmanaged) resources, if any
+            } 
+            disposed = true; 
+        }
+
+        #endregion
     }
 }
