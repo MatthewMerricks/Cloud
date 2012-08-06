@@ -27,7 +27,7 @@ namespace win_client.Services.ServicesManager
     {
         private static CLServicesManager _instance = null;
         private static object _instanceLocker = new object();
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance;
         private static bool _coreServicesStarted = false;
 
         /// <summary>
@@ -58,7 +58,6 @@ namespace win_client.Services.ServicesManager
         private CLServicesManager()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
         }
         
         /// <summary>

@@ -27,7 +27,7 @@ namespace CloudApiPublic.Support
         private const string CLHTTPConnectionOperaionDidEndNotification = "CLHTTPConnectionOperaionDidEndNotification";
         private const string CLHTTPConnectionOperaionDidStartNotification = "CLHTTPConnectionOperaionDidStartNotification";
 
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance;
 
         delegate /*Task*/ void CLHTTPConnectionOperationProgressBlock(ulong bytes, ulong totalBytes, ulong totalBytesExpected);
 
@@ -224,7 +224,6 @@ namespace CloudApiPublic.Support
             _client = client;
             _operationRequest = request;
             _finished = false;
-            _trace = CLTrace.Instance;
         }
 
         CLHTTPConnectionOperation()

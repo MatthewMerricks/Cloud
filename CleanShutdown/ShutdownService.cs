@@ -27,6 +27,7 @@ using CleanShutdown.Messaging;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
+using win_client.AppDelegate;
 
 namespace CleanShutdown.Helpers
 {
@@ -61,7 +62,7 @@ namespace CleanShutdown.Helpers
                 //Original: Messenger.Default.Send(new CommandMessage(Notifications.NotifyShutdown));
                 Messenger.Default.Send(new NotificationMessage(Notifications.NotifyShutdown));
 
-                Dispatcher.CurrentDispatcher.BeginInvoke((Action)delegate()
+                CLAppDelegate.Instance.MainDispatcher.BeginInvoke((Action)delegate()
                 {
                     Application.Current.Shutdown();
                 });

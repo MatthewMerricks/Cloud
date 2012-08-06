@@ -74,7 +74,6 @@ namespace win_client.ViewModels
                 });
 
             _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
         }
 
         #endregion

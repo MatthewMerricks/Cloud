@@ -28,6 +28,7 @@ using CleanShutdown.Helpers;
 using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
 using CleanShutdown.Messaging;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client
 {
@@ -91,6 +92,13 @@ namespace win_client
         void MyNavigationWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = ShutdownService.RequestShutdown();
+
+            // Save the position of the window if we will be shutting down, and if the window
+            // is visible.
+            if (!e.Cancel && this.WindowStyle != System.Windows.WindowStyle.None && this.Visibility == System.Windows.Visibility.Visible)
+            {
+                Settings.Instance.MainWindowPlacement = this.GetPlacement();
+            }
         }
 
         /// <summary>
@@ -126,10 +134,11 @@ namespace win_client
         /// </summary>
         private void Window_SourceInitialized(object sender, EventArgs e)
         {
+            // Put the window back where it was.
+            //this.SetPlacement(Settings.Instance.MainWindowPlacement);
 
             // Have to wait for source-initialized event to set up the
             // tray icon, or the windows handle will be null
-
             // Create the tray-icon manager object, and register for events
             m_trayIcon = new TrayIcon(this);
             m_trayIcon.LeftDoubleClick += new EventHandler(TrayIcon_LeftDoubleClick);
@@ -145,14 +154,10 @@ namespace win_client
             // If this window is minimized...
             if (WindowState == System.Windows.WindowState.Minimized)
             {
-
-                //&&&& Original code
+                //TODO: RKS Original code.  Necessary?
                 //// Make sure tray icon is visible
                 //if (!m_trayIcon.IsIconVisible)
                 //    m_trayIcon.Show(global::win_client.Resources.Resources.SystemTrayIcon, "I'm In The Tray!");
-
-                //// No need to put icon in taskbar
-                //this.ShowInTaskbar = false;
             }
             else
             {
@@ -160,11 +165,6 @@ namespace win_client
                 // Make sure tray icon is hidden
                 if (m_trayIcon.IsIconVisible)
                     m_trayIcon.Hide();
-
-                // Need to show icon in taskbar
-                //&&&& Original code
-                //this.ShowInTaskbar = true;
-                CLAppDelegate.ShowMainWindow(this);
             }
 
         }

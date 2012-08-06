@@ -86,7 +86,6 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
             _rm =  CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
 
             //TODO: Move the list of languages to a more appropriate place.
             List<SupportedLanguage> supportedLanguages = new List<SupportedLanguage>

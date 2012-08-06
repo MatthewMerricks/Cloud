@@ -33,7 +33,8 @@ namespace win_client.Views
         {
             InitializeComponent();
 
-            Loaded += new RoutedEventHandler(DialogCloudMessageBoxView_Loaded);
+            Loaded +=DialogCloudMessageBoxView_Loaded;
+            Unloaded += DialogCloudMessageBoxView_Unloaded;
         }
 
         // Button clicks set the DialogResult.
@@ -61,6 +62,14 @@ namespace win_client.Views
                 });
 
             FocusedElement = btnOK;
+        }
+
+        /// <summary>
+        /// Unloaded event handler.
+        /// </summary>
+        void DialogCloudMessageBoxView_Unloaded(object sender, RoutedEventArgs e)
+        {
+            Messenger.Default.Unregister(this);
         }
 
         /// <summary>

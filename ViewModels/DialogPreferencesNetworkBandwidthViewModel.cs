@@ -66,7 +66,6 @@ namespace win_client.ViewModels
         public DialogPreferencesNetworkBandwidthViewModel()
         {
             _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
         }
 
         #endregion

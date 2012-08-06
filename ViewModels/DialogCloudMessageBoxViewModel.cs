@@ -32,7 +32,6 @@ namespace win_client.ViewModels
         public DialogCloudMessageBoxViewModel()
         {
             _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>

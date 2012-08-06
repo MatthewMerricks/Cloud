@@ -67,7 +67,6 @@ namespace win_client.ViewModels
         public DialogPreferencesNetworkProxiesViewModel()
         {
             _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
         }
 
         #endregion

@@ -29,7 +29,7 @@ namespace CloudApiPrivate
         private HttpClient _client = null;
         private Uri _uri = null;
         private const int _CLRestClientDefaultHTTPTimeOutInterval = 180;
-        private CLTrace _trace = null;
+        private CLTrace _trace = CLTrace.Instance;
 
         public CLPrivateRestClient()
         {
@@ -46,7 +46,6 @@ namespace CloudApiPrivate
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", "Token=\"" + Settings.Instance.Akey + "\"");
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
             //&&&&HttpDavidTODO: Set the timeout.  The HttpClient source we have doesn't support this. _client.Timeout = TimeSpan.FromSeconds(_CLRestClientDefaultHTTPTimeOutInterval);
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>

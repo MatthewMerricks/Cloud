@@ -36,8 +36,6 @@ namespace win_client.Views
     {
         #region "Instance Variables"
 
-        private bool _isLoaded = false;
-
         #endregion
 
         /// <summary>
@@ -90,8 +88,6 @@ namespace win_client.Views
         /// </summary>
         void PagePreferences_Loaded(object sender, RoutedEventArgs e)
         {
-            _isLoaded = true;
-
             // Register messages
             CLAppMessages.PagePreferences_NavigationRequest.Register(this,
                 (uri) =>
@@ -126,7 +122,16 @@ namespace win_client.Views
             PagePreferencesViewModel vm = (PagePreferencesViewModel)DataContext;
             vm.ViewGridContainer = this.LayoutRoot;
 
-            //&&&&cmdContinue.Focus();
+            // Give focus to the General button.
+            cmdGeneral.Focus();
+
+            // And auto-click it.
+            ButtonAutomationPeer peer = new ButtonAutomationPeer(cmdGeneral);
+            IInvokeProvider invokeProv = peer.GetPattern(PatternInterface.Invoke) as IInvokeProvider;
+            if (invokeProv != null)
+            {
+                invokeProv.Invoke();
+            }
         }
 
         /// <summary>
@@ -134,8 +139,6 @@ namespace win_client.Views
         /// </summary>
         void PagePreferences_Unloaded(object sender, RoutedEventArgs e)
         {
-            _isLoaded = false;
-
             Messenger.Default.Unregister(this);
         }
 
@@ -160,23 +163,6 @@ namespace win_client.Views
                     {
                         OnConfirmShutdownMessage(message);
                     });
-
-                // Show the window.
-                CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
-
-                if (_isLoaded)
-                {
-                    // Give focus to the General button.
-                    cmdGeneral.Focus();
-
-                    // And auto-click it.
-                    ButtonAutomationPeer peer = new ButtonAutomationPeer(cmdGeneral);
-                    IInvokeProvider invokeProv = peer.GetPattern(PatternInterface.Invoke) as IInvokeProvider;
-                    if (invokeProv != null)
-                    {
-                        invokeProv.Invoke();
-                    }
-                }
             }
             catch (Exception ex)
             {

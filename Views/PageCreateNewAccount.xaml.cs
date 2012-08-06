@@ -107,9 +107,6 @@ namespace win_client.Views
                         OnConfirmShutdownMessage(message);
                     });
 
-                // Show the window.
-                CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
-
                 if (_isLoaded)
                 {
                     tbEMail.Focus();

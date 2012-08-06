@@ -37,6 +37,7 @@ using System.Windows.Interop;
 using Microsoft.Win32;
 using CloudApiPublic.Support;
 using System.Resources;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Views
 {
@@ -110,6 +111,7 @@ namespace win_client.Views
         private ResourceManager _rm;
 
         protected delegate void OnAnimateFromSystemTrayCompleteDelegate(Uri nextPage);
+        protected delegate void OnAnimateToSystemTrayCompleteDelegate(CLBalloonTooltipNotification tooltip);
 
         #endregion
 
@@ -131,7 +133,6 @@ namespace win_client.Views
             vm.ViewGridContainer = LayoutRoot;
 
             _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -250,6 +251,12 @@ namespace win_client.Views
             Window pageWindow = Window.GetWindow(this);
             if (pageWindow != null)
             {
+                // Save the current window placement.
+                if (pageWindow.WindowStyle != WindowStyle.None && pageWindow.Visibility == System.Windows.Visibility.Visible)
+                {
+                    Settings.Instance.MainWindowPlacement = pageWindow.GetPlacement();
+                }
+
                 // get the screen dimensions
                 Screen currentScreen = Screen.FromHandle(new WindowInteropHelper(pageWindow).Handle);
                 System.Drawing.Rectangle screenRect = currentScreen.Bounds;
@@ -265,9 +272,24 @@ namespace win_client.Views
                 {
                     // Perform the animation
                     AnimateWindow(ToTray: true, screenRect: screenRect, pageRect: pageRect);
+
+                    // Put up a welcome balloon tooltip.
+                    Dispatcher dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                    OnAnimateToSystemTrayCompleteDelegate del = OnAnimateToSystemTrayComplete;
+                    CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Welcome to the Cloud!", "Drag files here to share.", BalloonIcon.Error, null);
+                    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, tooltipInfo);
                 });
             }
 
+        }
+
+        /// <summary>
+        /// The animation is complete from the system tray.
+        /// Navigate to the next page.
+        /// </summary>
+        protected void OnAnimateToSystemTrayComplete(CLBalloonTooltipNotification tooltip)
+        {
+            OnCLBalloonTooltipNotificationMessage(tooltip);
         }
 
         /// <summary>
@@ -279,13 +301,28 @@ namespace win_client.Views
             Window pageWindow = Window.GetWindow(this);
             if (pageWindow != null)
             {
+                // Get the target rectangle.  The current window is way off-screen, so we can't use
+                // its coordinates.  Get the coordinates from Settings.
+                WINDOWPLACEMENT windowPlacement = new WINDOWPLACEMENT();
+                System.Drawing.Rectangle pageRect = new System.Drawing.Rectangle(200, 200, 640, 480);  // default location
+                bool rc = WindowPlacement.ExtractWindowPlacementInfo(Settings.Instance.MainWindowPlacement, ref windowPlacement);
+                if (rc)
+                {
+                    pageRect.X = windowPlacement.normalPosition.Left;
+                    pageRect.Y = windowPlacement.normalPosition.Top;
+                    pageRect.Width = windowPlacement.normalPosition.Right - windowPlacement.normalPosition.Left;
+                    pageRect.Height = windowPlacement.normalPosition.Bottom - windowPlacement.normalPosition.Top;
+                }
+
+                // Fix up the window's coordinates so the proper screen will be found below.
+                pageWindow.Left = pageRect.X;
+                pageWindow.Top = pageRect.Y;
+                pageWindow.Width = pageRect.Width;
+                pageWindow.Height = pageRect.Height;
+
                 // get the screen dimensions
                 Screen currentScreen = Screen.FromHandle(new WindowInteropHelper(pageWindow).Handle);
                 System.Drawing.Rectangle screenRect = currentScreen.Bounds;
-
-                // And the target rectangle
-                System.Drawing.Rectangle pageRect = new System.Drawing.Rectangle( 200, 200, 640, 480);   //TODO: save and restore the window position
-
 
                 // Start animating on a separate thread
                 Task.Factory.StartNew(() =>
@@ -301,8 +338,13 @@ namespace win_client.Views
             }
         }
 
+        /// <summary>
+        /// The animation is complete from the system tray.
+        /// Navigate to the next page.
+        /// </summary>
         protected void OnAnimateFromSystemTrayComplete(Uri nextPage)
         {
+            // The animation from the system tray is complete.  Navigate to the proper page.
             CLAppMessages.PageInvisible_NavigationRequest.Send(nextPage);
         }
 
@@ -377,15 +419,15 @@ namespace win_client.Views
                     case ABEdge.ABE_BOTTOM:
                     case ABEdge.ABE_RIGHT:
                         // Tray is to the Bottom Right
-                        destPoint = new System.Drawing.Point(screenRect.Width, screenRect.Height);
+                        destPoint = new System.Drawing.Point(BarData.rc.right - 100, BarData.rc.bottom);
                         break;
                     case ABEdge.ABE_LEFT:
                         // Tray is to the Bottom Left
-                        destPoint = new System.Drawing.Point(0, screenRect.Height);
+                        destPoint = new System.Drawing.Point(100, BarData.rc.bottom);
                         break;
                     case ABEdge.ABE_TOP:
                         // Tray is to the Top Right
-                        destPoint = new System.Drawing.Point(screenRect.Width, 0);
+                        destPoint = new System.Drawing.Point(BarData.rc.right, 100);
                         break;
                 }
                 // setup our loop based on the direction

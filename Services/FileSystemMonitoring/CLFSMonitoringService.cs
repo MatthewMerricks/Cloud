@@ -24,7 +24,7 @@ namespace win_client.Services.FileSystemMonitoring
     {
         static readonly CLFSMonitoringService _instance = new CLFSMonitoringService();
         private static Boolean _isLoaded = false;
-        private static CLTrace _trace = null;
+        private static CLTrace _trace = CLTrace.Instance;
         public MonitorAgent MonitorAgent { get; private set; }
         public IndexingAgent IndexingAgent { get; private set; }
 
@@ -52,7 +52,6 @@ namespace win_client.Services.FileSystemMonitoring
         private CLFSMonitoringService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
 
             // Start the indexer at the first reference of the FSM.
             IndexingAgent indexerToSet;

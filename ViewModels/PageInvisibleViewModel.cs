@@ -19,6 +19,7 @@ using win_client.Common;
 using System.Reflection;
 using System.Linq;
 using CloudApiPrivate.Model.Settings;
+using CloudApiPrivate.Static;
 using System.IO;
 using System.Resources;
 using GalaSoft.MvvmLight.Ioc;
@@ -31,6 +32,7 @@ using System.ComponentModel;
 using System.Windows.Input;
 using CleanShutdown.Helpers;
 using win_client.ViewModelHelpers;
+using System.Windows.Threading;
 
 
 namespace win_client.ViewModels
@@ -71,7 +73,6 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
             _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -333,7 +334,15 @@ namespace win_client.ViewModels
 
                     // Shut down tha application
                     _isShuttingDown = true;         // allow the shutdown if asked
-                    ShutdownService.RequestShutdown();
+
+                    // It is tempting to call ShutdownService.RequestShutdown() here, but this dialog
+                    // is still active and would prevent the shutdown.  Allow the dialog to fully close
+                    // and then request the shutdown.
+                    Dispatcher dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                    {
+                        ShutdownService.RequestShutdown();
+                    });
                 }
             });
 

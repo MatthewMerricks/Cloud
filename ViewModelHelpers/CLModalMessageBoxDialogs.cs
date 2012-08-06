@@ -26,7 +26,7 @@ namespace win_client.ViewModelHelpers
     {
         private static CLModalMessageBoxDialogs _instance = null;
         private static object _instanceLocker = new object();
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance;
         private static ResourceManager _rm;
 
         /// <summary>
@@ -57,7 +57,6 @@ namespace win_client.ViewModelHelpers
         private CLModalMessageBoxDialogs()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>

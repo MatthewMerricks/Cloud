@@ -23,7 +23,7 @@ namespace win_client.Services.FileSystemDispatcher
     {
         static readonly CLFSDispatcher _instance = new CLFSDispatcher();
         private static Boolean _isLoaded = false;
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance;
         private static DispatchQueueGeneric _com_cloud_fsd_queue = null;
         public static DispatchQueueGeneric Get_cloud_FSD_queue()
         {
@@ -66,7 +66,6 @@ namespace win_client.Services.FileSystemDispatcher
         private CLFSDispatcher()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
         }
 
         //TODO: Not used?  Thankfully.

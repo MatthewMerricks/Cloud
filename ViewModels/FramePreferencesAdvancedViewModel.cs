@@ -78,7 +78,6 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
             _rm =  CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
 
             // Set the current Cloud folder location.
             FramePreferencesAdvanced_CloudFolder = Settings.Instance.CloudFolderPath;
@@ -239,7 +238,7 @@ namespace win_client.ViewModels
                                                                 // for the dialog, then return on cancel, or issue a RelayCommand back to us,
                                                                 // process the RelayCommand, then back to the View, then back to here.
                                                                 // Should we be more asynchronous?
-                                                                var dispatcher = Dispatcher.CurrentDispatcher;
+                                                                var dispatcher = CLAppDelegate.Instance.MainDispatcher;
                                                                 dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
                                                                 {
                                                                     CLAppMessages.Message_FramePreferencesAdvanced_ShouldChooseCloudFolder.Send("");
@@ -276,7 +275,7 @@ namespace win_client.ViewModels
                                                 else
                                                 {
                                                     // Tell the user we will be moving his Cloud folder back to the default location
-                                                    var dispatcher = Dispatcher.CurrentDispatcher;
+                                                    var dispatcher = CLAppDelegate.Instance.MainDispatcher;
                                                     dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
                                                     {
                                                         MoveCloudFolderWithUserInteraction(Settings.Instance.CloudFolderPath, Settings.Instance.GetDefaultCloudFolderPath());
@@ -396,7 +395,7 @@ namespace win_client.ViewModels
                             else
                             {
                                 // Display the error message.
-                                var dispatcher = Dispatcher.CurrentDispatcher;
+                                var dispatcher = CLAppDelegate.Instance.MainDispatcher;
                                 dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
                                 {
                                     CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(

@@ -184,7 +184,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kLogErrors = "log_errors";
         public const string kLogErrorLocation = "log_error_location";
         public const string kCloudFolderCreationTimeUtc = "cloud_folder_path_creation_time";
-
+        public const string kMainWindowPlacement = "main_window_placement";
 
         /// <summary>
         /// The persistent settings properties.
@@ -609,6 +609,18 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
+        // Main window placement info.
+        private string _mainWindowPlacement;
+        public String MainWindowPlacement
+        {
+            get { return _mainWindowPlacement; }
+            set
+            {
+                _mainWindowPlacement = value;
+                SettingsBase.Write<string>(kMainWindowPlacement, value);
+            }
+        }
+
         /// <summary>
         /// Allocate ourselves. We have a private constructor, so no one else can.
         /// </summary>
@@ -701,7 +713,8 @@ namespace CloudApiPrivate.Model.Settings
             _addCloudFolderToDock = true;
             _addCloudFolderToDesktop = false;
             _sid = "0";
-            _recentFileItems.Clear(); 
+            _recentFileItems.Clear();
+            _mainWindowPlacement = "";
     
             // Override default options with user preferences
 
@@ -938,6 +951,12 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _udid = tempString;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<string>(kMainWindowPlacement, out tempString);
+            if (isPresent)
+            {
+                _mainWindowPlacement = tempString;
             }
         }
         /// <summary>

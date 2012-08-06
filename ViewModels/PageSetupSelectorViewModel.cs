@@ -84,7 +84,6 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
             _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -366,7 +365,7 @@ namespace win_client.ViewModels
                                     notifyParms.Add(CLConstants.kFolderLocation, "");
                                     notifyParms.Add(CLConstants.kMergeFolders, true);
                                     OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-                                    var dispatcher = Dispatcher.CurrentDispatcher; 
+                                    var dispatcher = CLAppDelegate.Instance.MainDispatcher; 
                                     dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
                                 }
                                 else
@@ -396,7 +395,7 @@ namespace win_client.ViewModels
                                             notifyParms.Add(CLConstants.kFolderLocation, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
                                             notifyParms.Add(CLConstants.kMergeFolders, false);
                                             OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-                                            var dispatcher = Dispatcher.CurrentDispatcher;
+                                            var dispatcher = CLAppDelegate.Instance.MainDispatcher;
                                             dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
                                         }
                                         else
@@ -429,7 +428,7 @@ namespace win_client.ViewModels
                                         if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
                                         {
                                             // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
-                                            var dispatcher = Dispatcher.CurrentDispatcher;
+                                            var dispatcher = CLAppDelegate.Instance.MainDispatcher;
                                             dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
                                         }
                                         else
@@ -522,7 +521,15 @@ namespace win_client.ViewModels
 
                     // Shut down tha application
                     _isShuttingDown = true;         // allow the shutdown if asked
-                    ShutdownService.RequestShutdown();
+
+                    // It is tempting to call ShutdownService.RequestShutdown() here, but this dialog
+                    // is still active and would prevent the shutdown.  Allow the dialog to fully close
+                    // and then request the shutdown.
+                    Dispatcher dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                    {
+                        ShutdownService.RequestShutdown();
+                    });
                 }
             });
 

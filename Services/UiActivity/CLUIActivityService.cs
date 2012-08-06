@@ -32,7 +32,7 @@ namespace win_client.Services.UiActivity
     {
         private static CLUIActivityService _instance = null;
         private static object _instanceLocker = new object();
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance;
         private System.Threading.Timer _pollTimer = null;
         private uint _timerTestCount = 0;               //&&&& testing
 
@@ -63,7 +63,6 @@ namespace win_client.Services.UiActivity
         private CLUIActivityService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -102,9 +101,9 @@ namespace win_client.Services.UiActivity
                 System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
                     // Put up a test balloon tooltip.  It will automatically fade.
-                    _trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test balloon from the system tray.");
-                    CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
-                    CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Send(tooltipInfo);
+                    //_trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test balloon from the system tray.");
+                    //CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
+                    //CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Send(tooltipInfo);
                 }));
             }
 

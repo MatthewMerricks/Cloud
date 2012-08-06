@@ -139,6 +139,7 @@
     <Compile Include="Common\CLGrowlNotification.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
     <Compile Include="CleanShutdown\ShutdownService.cs" />
+    <Compile Include="Common\CLWindowPlacement.cs" />
     <Compile Include="Model\CLPreferences.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />

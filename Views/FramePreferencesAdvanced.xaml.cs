@@ -144,9 +144,6 @@ namespace win_client.Views
         {
             try
             {
-                // Show the window.
-                CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
-
                 this.SetBinding(PreferencesProperty,
                     new Binding()
                     {

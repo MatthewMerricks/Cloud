@@ -53,7 +53,8 @@ namespace win_client.AppDelegate
         /// </summary>
         private static CLAppDelegate _instance = null;
         private static object InstanceLocker = new object();
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance; 
+        private static bool _isWindowPlacedFirstTime = false;
         //&&&&private TrayIcon _trayIcon;
         #endregion
         #region Public Properties
@@ -141,7 +142,6 @@ namespace win_client.AppDelegate
         private CLAppDelegate()
         {
             // Initialize members, etc. here.
-            _trace = CLTrace.Instance;
             Assembly assembly = Assembly.GetExecutingAssembly();
             _resourceManager = new ResourceManager(CLConstants.kResourcesName, assembly);
             _mainDispatcher = Dispatcher.CurrentDispatcher;
@@ -358,7 +358,7 @@ namespace win_client.AppDelegate
         }
 
         /// <summary>
-        /// Perform one-time installation (cloud folder, and any OS support)
+        /// Perform one-time installation (cloud folder, and any OS support)is th
         /// </summary>
         public void installCloudServices(out CLError error)
         {
@@ -386,7 +386,7 @@ namespace win_client.AppDelegate
                 // in place yet.  The user will view the tour (or skip it), and then PageInvisible
                 // will be shown, and that will install the system tray support.  Is this the proper
                 // design???
-                //var dispatcher = Dispatcher.CurrentDispatcher; 
+                //var dispatcher = CLAppDelegate.Instance.MainDispatcher; 
                 //dispatcher.DelayedInvoke(TimeSpan.FromSeconds(2), () => { startCloudAppServicesAndUI(); });
             }
         }
@@ -820,16 +820,22 @@ namespace win_client.AppDelegate
             // Set the containing window to be invisible
             if (window != null)
             {
-                window.Width = 640;
-                window.Height = 480;
+                //window.Width = 640;
+                //window.Height = 480;
                 window.MinWidth = 640;
                 window.MinHeight = 480;
-                window.Left = 200;                  //TODO: Set from settings
-                window.Top = 200;                   //TODO: Set from settings
                 window.WindowStyle = WindowStyle.ThreeDBorderWindow;
-                window.Visibility = System.Windows.Visibility.Visible;
+                //window.Visibility = System.Windows.Visibility.Visible;
                 window.ShowInTaskbar = true;
                 window.ShowActivated = true;
+
+                // Show the window, and set the placement if we should.
+                if (!_isWindowPlacedFirstTime || window.Visibility != Visibility.Visible)
+                {
+                    _isWindowPlacedFirstTime = true;
+                    window.SetPlacement(Settings.Instance.MainWindowPlacement);
+                }
+
                 window.Show();
             }
         }
@@ -844,6 +850,13 @@ namespace win_client.AppDelegate
             // Set the containing window to be invisible
             if (window != null)
             {
+                // Save the current position of the window.
+                if (window.WindowStyle != WindowStyle.None && window.Visibility == Visibility.Visible)
+                {
+                    Settings.Instance.MainWindowPlacement = window.GetPlacement();
+                }
+
+                // Make sure the window is truely gone, way off screen...
                 window.Width = 0;
                 window.Height = 0;
                 window.MinWidth = 0;
