@@ -34,6 +34,10 @@ namespace win_client.Views
         #region "Instance Variables"
 
         private bool _isLoaded = false;
+        private bool savedRightButtonIsDefault = false;
+        private bool savedRightButtonIsCancel = false;
+        private bool savedLeftButtonIsDefault = false;
+        private bool savedLeftButtonIsCancel = false;
 
         #endregion
 
@@ -65,6 +69,11 @@ namespace win_client.Views
                 {
                     this.NavigationService.Navigate(uri, UriKind.Relative);
                 });
+            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Register(this, OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties);
+            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Register(this, Message_RestoreIsDefaultAndIsCancelProperties);
+
+            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
+            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Send(this);
 
             // Set the view's grid into the view model.
             PageTourViewModel vm = (PageTourViewModel)DataContext;
@@ -83,7 +92,49 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
+            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
+            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Send(this);
+
+            // Unregister for messages
             Messenger.Default.Unregister(this);
+        }
+
+        /// <summary>
+        /// Save and disable any IsDefault or IsCancel properties.
+        /// </summary>
+        private void OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties(object sender)
+        {
+            PageTour1 castSender = sender as PageTour1;
+            if (castSender != this)
+            {
+                // Save the state of the IsDefault and IsCancel button properties.
+                savedRightButtonIsDefault = this.cmdContinue.IsDefault;
+                savedRightButtonIsCancel = this.cmdContinue.IsCancel;
+                savedLeftButtonIsDefault = this.cmdSkipTour.IsDefault;
+                savedLeftButtonIsCancel = this.cmdSkipTour.IsCancel;
+
+                // Clear the button properties.
+                this.cmdContinue.IsDefault = false;
+                this.cmdContinue.IsCancel = false;
+                this.cmdSkipTour.IsDefault = false;
+                this.cmdSkipTour.IsCancel = false;
+            }
+        }
+
+        /// <summary>
+        /// Restore any IsDefault or IsCancel properties.
+        /// </summary>
+        private void Message_RestoreIsDefaultAndIsCancelProperties(object sender)
+        {
+            PageTour1 castSender = sender as PageTour1;
+            if (castSender != this)
+            {
+                // Restore the state of the IsDefault and IsCancel button properties.
+                this.cmdContinue.IsDefault = savedRightButtonIsDefault;
+                this.cmdContinue.IsCancel = savedRightButtonIsCancel;
+                this.cmdSkipTour.IsDefault = savedLeftButtonIsDefault;
+                this.cmdSkipTour.IsCancel = savedLeftButtonIsCancel;
+            }
         }
 
         /// <summary>

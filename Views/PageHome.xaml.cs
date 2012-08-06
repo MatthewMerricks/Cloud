@@ -35,6 +35,11 @@ namespace win_client.Views
         private PageHomeViewModel _viewModel = null;
         private bool _isLoaded = false;
 
+        private bool savedRightButtonIsDefault = false;
+        private bool savedRightButtonIsCancel = false;
+        private bool savedLeftButtonIsDefault = false;
+        private bool savedLeftButtonIsCancel = false;
+
         #endregion
 
         /// <summary>
@@ -73,6 +78,11 @@ namespace win_client.Views
             CLAppMessages.Home_FocusToError.Register(this, OnHome_FocusToError_Message);
             CLAppMessages.Home_GetClearPasswordField.Register(this, OnHome_GetClearPasswordField);
             CLAppMessages.Message_PageMustUnregisterWindowClosingMessage.Register(this, OnMessage_PageMustUnregisterWindowClosingMessage);
+            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Register(this, OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties);
+            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Register(this, Message_RestoreIsDefaultAndIsCancelProperties);
+
+            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
+            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Send(this);
 
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
@@ -85,7 +95,50 @@ namespace win_client.Views
         void PageHome_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
+
+            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
+            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Send(this);
+
+            // Unregister for messages
             Messenger.Default.Unregister(this);
+        }
+
+        /// <summary>
+        /// Save and disable any IsDefault or IsCancel properties.
+        /// </summary>
+        private void OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties(object sender)
+        {
+            PageHome castSender = sender as PageHome;
+            if (castSender != this)
+            {
+                // Save the state of the IsDefault and IsCancel button properties.
+                savedRightButtonIsDefault = this.cmdSignIn.IsDefault;
+                savedRightButtonIsCancel = this.cmdSignIn.IsCancel;
+                savedLeftButtonIsDefault = this.cmdCreateAccount.IsDefault;
+                savedLeftButtonIsCancel = this.cmdCreateAccount.IsCancel;
+
+                // Clear the button properties.
+                this.cmdSignIn.IsDefault = false;
+                this.cmdSignIn.IsCancel = false;
+                this.cmdCreateAccount.IsDefault = false;
+                this.cmdCreateAccount.IsCancel = false;
+            }
+        }
+
+        /// <summary>
+        /// Restore any IsDefault or IsCancel properties.
+        /// </summary>
+        private void Message_RestoreIsDefaultAndIsCancelProperties(object sender)
+        {
+            PageHome castSender = sender as PageHome;
+            if (castSender != this)
+            {
+                // Restore the state of the IsDefault and IsCancel button properties.
+                this.cmdSignIn.IsDefault = savedRightButtonIsDefault;
+                this.cmdSignIn.IsCancel = savedRightButtonIsCancel;
+                this.cmdCreateAccount.IsDefault = savedLeftButtonIsDefault;
+                this.cmdCreateAccount.IsCancel = savedLeftButtonIsCancel;
+            }
         }
 
         /// <summary>

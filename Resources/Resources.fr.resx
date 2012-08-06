@@ -151,19 +151,19 @@
     <value>Already Exists!</value>
   </data>
   <data name="folderSelectionSimpleButtonLeftText" xml:space="preserve">
-    <value>Cancel</value>
+    <value>_Cancel</value>
   </data>
   <data name="folderSelectionSimpleButtonRightText" xml:space="preserve">
-    <value>Continue</value>
+    <value>Co_ntinue</value>
   </data>
   <data name="generalCancelButtonContent" xml:space="preserve">
-    <value>Cancel</value>
+    <value>_Cancel</value>
   </data>
   <data name="generalErrorTitle" xml:space="preserve">
     <value>Oh Snap!  Something happened.</value>
   </data>
   <data name="generalOkButtonContent" xml:space="preserve">
-    <value>OK</value>
+    <value>_OK</value>
   </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="SystemTrayIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
@@ -173,7 +173,7 @@
     <value>Greetings {0}!  Welcome to Cloud!</value>
   </data>
   <data name="SystemTrayContextMenuExit" xml:space="preserve">
-    <value>Exit</value>
+    <value>_Exit</value>
   </data>
   <data name="SystemTrayContextMenuHeader" xml:space="preserve">
     <value>Cloud</value>
@@ -203,10 +203,10 @@
     <value>To continue syncing, please restore your Cloud folder.  You may also choose to remove this computer from your account and exit the application.</value>
   </data>
   <data name="pageCloudFolderMissingOkButtonLocate" xml:space="preserve">
-    <value>Locate...</value>
+    <value>_Locate...</value>
   </data>
   <data name="pageCloudFolderMissingOkButtonRestore" xml:space="preserve">
-    <value>Restore</value>
+    <value>_Restore</value>
   </data>
   <data name="pageCloudFolderMissingErrorBody" xml:space="preserve">
     <value>A problem occurred while removing your computer from your acccount on the server. </value>
@@ -215,7 +215,7 @@
     <value>Oh Snap!  Something happened.</value>
   </data>
   <data name="pageCloudFolderMissingErrorRightButtonContent" xml:space="preserve">
-    <value>OK</value>
+    <value>_OK</value>
   </data>
   <data name="pageCloudFolderMissingErrorTitle" xml:space="preserve">
     <value>Cloud.com</value>
@@ -254,10 +254,10 @@
     <value>Do you want to remove this computer from your account?  Other devices in your account will continue to sync your files.</value>
   </data>
   <data name="GeneralNoButtonContent" xml:space="preserve">
-    <value>No</value>
+    <value>_No</value>
   </data>
   <data name="GeneralYesButtonContent" xml:space="preserve">
-    <value>Yes</value>
+    <value>_Yes</value>
   </data>
   <data name="FramePreferencesAdvanced_ChangeCloudFolderBodyText" xml:space="preserve">
     <value>You will select a location that will contain your new Cloud folder.  A folder named 'Cloud' will be created inside the folder you select.  The files in your existing Cloud folder will be moved to the new Cloud folder.  Do you wish to choose a new Cloud folder location?</value>
@@ -306,5 +306,62 @@
   </data>
   <data name="PromptSaveChanges_Title" xml:space="preserve">
     <value>Save?</value>
+  </data>
+  <data name="ViewPageCloudFolderMissingButtonRemove" xml:space="preserve">
+    <value>_Remove</value>
+  </data>
+  <data name="ViewPageCreateNewAccountButtonBack" xml:space="preserve">
+    <value>_Back</value>
+  </data>
+  <data name="ViewPageCreateNewAccountButtonContinue" xml:space="preserve">
+    <value>_Continue</value>
+  </data>
+  <data name="ViewPageCreateNewAccountLabelComputerName" xml:space="preserve">
+    <value>Computer _Name:</value>
+  </data>
+  <data name="ViewPageCreateNewAccountLabelConfirmPassword" xml:space="preserve">
+    <value>Confir_mPassword:</value>
+  </data>
+  <data name="ViewPageCreateNewAccountLabelEMail" xml:space="preserve">
+    <value>_EMail:</value>
+  </data>
+  <data name="ViewPageCreateNewAccountLabelFullName" xml:space="preserve">
+    <value>_FullName:</value>
+  </data>
+  <data name="ViewPageCreateNewAccountLabelPassword" xml:space="preserve">
+    <value>_Password:</value>
+  </data>
+  <data name="ViewPageCreateNewAccountLabelThisWillBeYourUsername" xml:space="preserve">
+    <value>This will be your user name.</value>
+  </data>
+  <data name="ViewPageHomeCmdCreateAccount" xml:space="preserve">
+    <value>_Create Account</value>
+  </data>
+  <data name="ViewPageHomeCmdSignIn" xml:space="preserve">
+    <value>_Sign In</value>
+  </data>
+  <data name="ViewPageHomeLabelEMail" xml:space="preserve">
+    <value>_EMail:</value>
+  </data>
+  <data name="ViewPageHomeLabelPassword" xml:space="preserve">
+    <value>_Password:</value>
+  </data>
+  <data name="ViewPageHomeTblkInstruction" xml:space="preserve">
+    <value>_Create a new Cloud account, or sign in with your existing one to continue...</value>
+  </data>
+  <data name="ViewPagePreferencesButtonAbout" xml:space="preserve">
+    <value>Abou_t</value>
+  </data>
+  <data name="ViewPagePreferencesButtonAccount" xml:space="preserve">
+    <value>_Account</value>
+  </data>
+  <data name="ViewPagePreferencesButtonAdvanced" xml:space="preserve">
+    <value>A_dvanced</value>
+  </data>
+  <data name="ViewPagePreferencesButtonGeneral" xml:space="preserve">
+    <value>_General</value>
+  </data>
+  <data name="ViewPagePreferencesButtonNetwork" xml:space="preserve">
+    <value>_Network</value>
   </data>
 </root>

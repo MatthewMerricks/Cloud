@@ -35,6 +35,8 @@ namespace win_client.Views
         #region "Instance Variables"
 
         private bool _isLoaded = false;
+        private bool savedOkButtonIsDefault = false;
+        private bool savedOkButtonIsCancel = false;
 
         #endregion
 
@@ -66,6 +68,11 @@ namespace win_client.Views
                    this.NavigationService.Navigate(uri, UriKind.Relative);
                });
             CLAppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
+            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Register(this, OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties);
+            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Register(this, Message_RestoreIsDefaultAndIsCancelProperties);
+
+            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
+            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Send(this);
 
             // Pass the view's grid to the view model for the dialogs to use.
             PageSelectStorageSizeViewModel vm = (PageSelectStorageSizeViewModel)DataContext;
@@ -84,7 +91,43 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
+            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
+            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Send(this);
+
+            // Unregister for messages
             Messenger.Default.Unregister(this);
+        }
+
+        /// <summary>
+        /// Save and disable any IsDefault or IsCancel properties.
+        /// </summary>
+        private void OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties(object sender)
+        {
+            PageSelectStorageSize castSender = sender as PageSelectStorageSize;
+            if (castSender != this)
+            {
+                // Save the state of the IsDefault and IsCancel button properties.
+                savedOkButtonIsDefault = this.cmdContinue.IsDefault;
+                savedOkButtonIsCancel = this.cmdContinue.IsCancel;
+
+                // Clear the button properties.
+                this.cmdContinue.IsDefault = false;
+                this.cmdContinue.IsCancel = false;
+            }
+        }
+
+        /// <summary>
+        /// Restore any IsDefault or IsCancel properties.
+        /// </summary>
+        private void Message_RestoreIsDefaultAndIsCancelProperties(object sender)
+        {
+            PageSelectStorageSize castSender = sender as PageSelectStorageSize;
+            if (castSender != this)
+            {
+                // Restore the state of the IsDefault and IsCancel button properties.
+                this.cmdContinue.IsDefault = savedOkButtonIsDefault;
+                this.cmdContinue.IsCancel = savedOkButtonIsCancel;
+            }
         }
 
         /// <summary>

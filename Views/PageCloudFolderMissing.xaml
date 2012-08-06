@@ -15,6 +15,7 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
+    xmlns:resx="clr-namespace:win_client.Resources"
     mc:Ignorable="d"
     DataContext="{Binding PageCloudFolderMissingViewModel, Source={StaticResource Locator}}" 
     Title="Cloud.com" Height="442" Width="624" >
@@ -26,6 +27,10 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
+    
+    <Page.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </Page.InputBindings>
     
     <Grid x:Name="LayoutRoot" Margin="0,0,0,0">
         <Grid.ColumnDefinitions>
@@ -66,12 +71,15 @@
         		<ColumnDefinition Width="0.581*"/>
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
-            <Button x:Name="cmdOK" Content="{Binding OkButtonContent, Mode=OneWay}" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageCloudFolderMissingViewModel_OkCommand, Mode=OneTime}" TabIndex="0"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" />
-            <Button x:Name="cmdUnlink" Content="Remove" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageCloudFolderMissingViewModel_UnlinkCommand, Mode=OneTime}" TabIndex="1"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right"/>
+            <Button x:Name="btnRight" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
+        		Command="{Binding PageCloudFolderMissingViewModel_OkCommand, Mode=OneTime}" TabIndex="0" HorizontalAlignment="Right" IsDefault="True" >
+                <AccessText Text="{Binding OkButtonContent, Mode=OneWay}"/>
+            </Button>
+            
+            <Button x:Name="btnLeft" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
+        		Command="{Binding PageCloudFolderMissingViewModel_UnlinkCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Right">
+                <AccessText Text="{x:Static resx:Resources.ViewPageCloudFolderMissingButtonRemove}"/>
+            </Button>
         </Grid>
     </Grid>
 </Page>

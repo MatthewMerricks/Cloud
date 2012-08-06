@@ -190,6 +190,7 @@ namespace win_client.ViewModels
                                                   title: "Information",
                                                   headerText: "Update check complete.",
                                                   rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                                  rightButtonIsDefault: true,
                                                   container: ViewGridContainer,
                                                   dialog: out _dialog,
                                                   actionOkButtonHandler: 

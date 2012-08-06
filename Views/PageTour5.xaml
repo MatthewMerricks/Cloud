@@ -69,7 +69,7 @@
         		Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Left"/>
         	<Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
         		Command="{Binding PageTour_ContinueCommand, Mode=OneTime}" TabIndex="0"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" />
+        		HorizontalAlignment="Right" IsDefault="True"/>
         </Grid>
     </Grid>
 </Page>

@@ -261,11 +261,12 @@ namespace win_client.ViewModels
                                                         // Display the error message in a modal dialog
                                                         // Leave the user on this dialog when the user clicks OK on the error message modal dialog
                                                         CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                                                error.errorDescription, 
-                                                                _rm.GetString("pageCloudFolderMissingErrorTitle"),
-                                                                _rm.GetString("pageCloudFolderMissingErrorHeader"),
-                                                                _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
-                                                                this.ViewGridContainer, 
+                                                                errorMessage: error.errorDescription, 
+                                                                title: _rm.GetString("pageCloudFolderMissingErrorTitle"),
+                                                                headerText: _rm.GetString("pageCloudFolderMissingErrorHeader"),
+                                                                rightButtonContent: _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
+                                                                rightButtonIsDefault: true,
+                                                                container: this.ViewGridContainer, 
                                                                 dialog: out _dialog,
                                                                 actionOkButtonHandler: 
                                                                     returnedViewModelInstance =>
@@ -338,6 +339,7 @@ namespace win_client.ViewModels
                                                         title: _rm.GetString("pageCloudFolderMissingErrorTitle"),
                                                         headerText: _rm.GetString("pageCloudFolderMissingErrorHeader"),
                                                         rightButtonContent: _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
+                                                        rightButtonIsDefault: true,
                                                         container: this.ViewGridContainer,
                                                         dialog: out _dialog,
                                                         actionOkButtonHandler: 
@@ -396,6 +398,7 @@ namespace win_client.ViewModels
                                                         title: _rm.GetString("pageCloudFolderMissingErrorTitle"),
                                                         headerText: _rm.GetString("pageCloudFolderMissingErrorHeader"),
                                                         rightButtonContent: _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
+                                                        rightButtonIsDefault: true,
                                                         container: this.ViewGridContainer,
                                                         dialog: out _dialog,
                                                         actionOkButtonHandler:
@@ -406,6 +409,24 @@ namespace win_client.ViewModels
                                                     );
                                                 }
                                             }));
+            }
+        }
+
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
+                                          }));
             }
         }
 

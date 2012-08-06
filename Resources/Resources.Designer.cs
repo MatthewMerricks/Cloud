@@ -142,7 +142,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Merge.
+        ///   Looks up a localized string similar to _Merge.
         /// </summary>
         public static string folderExitTextFieldButtonMerge {
             get {
@@ -178,7 +178,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cancel.
+        ///   Looks up a localized string similar to _Cancel.
         /// </summary>
         public static string folderSelectionSimpleButtonLeftText {
             get {
@@ -187,7 +187,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Continue.
+        ///   Looks up a localized string similar to Co_ntinue.
         /// </summary>
         public static string folderSelectionSimpleButtonRightText {
             get {
@@ -313,7 +313,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cancel.
+        ///   Looks up a localized string similar to _Cancel.
         /// </summary>
         public static string generalCancelButtonContent {
             get {
@@ -331,7 +331,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No.
+        ///   Looks up a localized string similar to _No.
         /// </summary>
         public static string GeneralNoButtonContent {
             get {
@@ -340,7 +340,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to OK.
+        ///   Looks up a localized string similar to _OK.
         /// </summary>
         public static string generalOkButtonContent {
             get {
@@ -349,7 +349,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Yes.
+        ///   Looks up a localized string similar to _Yes.
         /// </summary>
         public static string GeneralYesButtonContent {
             get {
@@ -394,7 +394,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to OK.
+        ///   Looks up a localized string similar to _OK.
         /// </summary>
         public static string pageCloudFolderMissingErrorRightButtonContent {
             get {
@@ -421,7 +421,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Locate....
+        ///   Looks up a localized string similar to _Locate....
         /// </summary>
         public static string pageCloudFolderMissingOkButtonLocate {
             get {
@@ -430,7 +430,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Restore.
+        ///   Looks up a localized string similar to _Restore.
         /// </summary>
         public static string pageCloudFolderMissingOkButtonRestore {
             get {
@@ -625,6 +625,177 @@ namespace win_client.Resources {
         public static string tourPage1Greeting {
             get {
                 return ResourceManager.GetString("tourPage1Greeting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Remove.
+        /// </summary>
+        public static string ViewPageCloudFolderMissingButtonRemove {
+            get {
+                return ResourceManager.GetString("ViewPageCloudFolderMissingButtonRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Back.
+        /// </summary>
+        public static string ViewPageCreateNewAccountButtonBack {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountButtonBack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Continue.
+        /// </summary>
+        public static string ViewPageCreateNewAccountButtonContinue {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountButtonContinue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Computer _Name:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelComputerName {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelComputerName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confir_m Password:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelConfirmPassword {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelConfirmPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _EMail:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelEMail {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelEMail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Full Name:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelFullName {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelFullName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Password:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelPassword {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This will be your user name..
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelThisWillBeYourUsername {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelThisWillBeYourUsername", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Create Account.
+        /// </summary>
+        public static string ViewPageHomeCmdCreateAccount {
+            get {
+                return ResourceManager.GetString("ViewPageHomeCmdCreateAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Sign In.
+        /// </summary>
+        public static string ViewPageHomeCmdSignIn {
+            get {
+                return ResourceManager.GetString("ViewPageHomeCmdSignIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _EMail:.
+        /// </summary>
+        public static string ViewPageHomeLabelEMail {
+            get {
+                return ResourceManager.GetString("ViewPageHomeLabelEMail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Password:.
+        /// </summary>
+        public static string ViewPageHomeLabelPassword {
+            get {
+                return ResourceManager.GetString("ViewPageHomeLabelPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create a new Cloud account, or sign in with your existing one to continue....
+        /// </summary>
+        public static string ViewPageHomeTblkInstruction {
+            get {
+                return ResourceManager.GetString("ViewPageHomeTblkInstruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Abou_t.
+        /// </summary>
+        public static string ViewPagePreferencesButtonAbout {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonAbout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Account.
+        /// </summary>
+        public static string ViewPagePreferencesButtonAccount {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A_dvanced.
+        /// </summary>
+        public static string ViewPagePreferencesButtonAdvanced {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonAdvanced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _General.
+        /// </summary>
+        public static string ViewPagePreferencesButtonGeneral {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonGeneral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Network.
+        /// </summary>
+        public static string ViewPagePreferencesButtonNetwork {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonNetwork", resourceCulture);
             }
         }
     }

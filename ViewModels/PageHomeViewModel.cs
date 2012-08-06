@@ -298,7 +298,25 @@ namespace win_client.ViewModels
             }
         }
 
-            
+
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
+                                          }));
+            }
+        }
+
         /// <summary>
         /// The window wants to close.  The user clicked the 'X'.
         /// This will set the bindable property WindowCloseOk if we will not handle this event.
@@ -364,6 +382,7 @@ namespace win_client.ViewModels
                     title: _rm.GetString("generalErrorTitle"),
                     headerText: _rm.GetString("loginErrorHeader"),
                     rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                    rightButtonIsDefault: true,
                     container: ViewGridContainer,
                     dialog: out _dialog,
                     actionOkButtonHandler: 

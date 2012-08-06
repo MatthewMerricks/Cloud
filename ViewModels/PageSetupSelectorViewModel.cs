@@ -350,7 +350,11 @@ namespace win_client.ViewModels
                         headerText: userMessageHeader,
                         bodyText: userMessageBody,
                         leftButtonContent: userMessageButtonSelectNewLocation,
+                        leftButtonIsDefault: false,
+                        leftButtonIsCancel: false,
                         rightButtonContent: userMessageButtonMerge,
+                        rightButtonIsDefault: true,
+                        rightButtonIsCancel: false,
                         container: ViewGridContainer,
                         dialog: out _dialog,
                         actionResultHandler:
@@ -420,6 +424,7 @@ namespace win_client.ViewModels
                                 title:  _rm.GetString("appDelegateErrorInstallingTitle"),
                                 headerText: _rm.GetString("appDelegateErrorInstallingHeader"),
                                 rightButtonContent: _rm.GetString("appDelegateErrorInstallingButtonTryAgain"),
+                                rightButtonIsDefault: true,
                                 container: ViewGridContainer,
                                 dialog: out _dialog,
                                 actionOkButtonHandler: 

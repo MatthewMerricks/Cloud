@@ -32,6 +32,11 @@ namespace win_client.Views
 {
     public partial class PageCloudFolderMissing : Page, IOnNavigated
     {
+        private bool savedRightButtonIsDefault = false;
+        private bool savedRightButtonIsCancel = false;
+        private bool savedLeftButtonIsDefault = false;
+        private bool savedLeftButtonIsCancel = false;
+
         /// <summary>
         /// Default constructor.
         /// </summary>
@@ -76,6 +81,11 @@ namespace win_client.Views
                     this.NavigationService.Navigate(uri, UriKind.Relative);
                 });
             CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Register(this, OnMessage_PageCloudFolderMissingShouldChooseCloudFolder);
+            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Register(this, OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties);
+            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Register(this, Message_RestoreIsDefaultAndIsCancelProperties);
+
+            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
+            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Send(this);
 
             // Set the view's grid into the view model.
             PageCloudFolderMissingViewModel vm = (PageCloudFolderMissingViewModel)DataContext;
@@ -90,7 +100,49 @@ namespace win_client.Views
         /// </summary>
         void PageCloudFolderMissing_Unloaded(object sender, RoutedEventArgs e)
         {
+            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
+            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Send(this);
+
+            // Unregister for messages
             Messenger.Default.Unregister(this);
+        }
+
+        /// <summary>
+        /// Save and disable any IsDefault or IsCancel properties.
+        /// </summary>
+        private void OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties(object sender)
+        {
+            PageCloudFolderMissing castSender = sender as PageCloudFolderMissing;
+            if (castSender != this)
+            {
+                // Save the state of the IsDefault and IsCancel button properties.
+                savedRightButtonIsDefault = this.btnRight.IsDefault;
+                savedRightButtonIsCancel = this.btnRight.IsCancel;
+                savedLeftButtonIsDefault = this.btnLeft.IsDefault;
+                savedLeftButtonIsCancel = this.btnLeft.IsCancel;
+
+                // Clear the button properties.
+                this.btnRight.IsDefault = false;
+                this.btnRight.IsCancel = false;
+                this.btnLeft.IsDefault = false;
+                this.btnLeft.IsCancel = false;
+            }
+        }
+
+        /// <summary>
+        /// Restore any IsDefault or IsCancel properties.
+        /// </summary>
+        private void Message_RestoreIsDefaultAndIsCancelProperties(object sender)
+        {
+            PageCloudFolderMissing castSender = sender as PageCloudFolderMissing;
+            if (castSender != this)
+            {
+                // Restore the state of the IsDefault and IsCancel button properties.
+                this.btnRight.IsDefault = savedRightButtonIsDefault;
+                this.btnRight.IsCancel = savedRightButtonIsCancel;
+                this.btnLeft.IsDefault = savedLeftButtonIsDefault;
+                this.btnLeft.IsCancel = savedLeftButtonIsCancel;
+            }
         }
 
         /// <summary>

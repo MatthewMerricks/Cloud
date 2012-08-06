@@ -75,7 +75,11 @@ namespace win_client.ViewModelHelpers
                 headerText: _rm.GetString("PromptExitApplication_HeaderText"),
                 bodyText: _rm.GetString("PromptExitApplication_BodyText"),
                 leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                leftButtonIsDefault: false,
+                leftButtonIsCancel: false,
                 rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                rightButtonIsDefault: true,
+                rightButtonIsCancel: false,
                 container: container,
                 dialog: out dialog,
                 actionResultHandler: actionResultHandler
@@ -98,7 +102,11 @@ namespace win_client.ViewModelHelpers
                 headerText: _rm.GetString("PromptSaveChanges_HeaderText"),
                 bodyText: _rm.GetString("PromptSaveChanges_BodyText"),
                 leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                leftButtonIsDefault: true,
+                leftButtonIsCancel: false,
                 rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                rightButtonIsDefault: false,
+                rightButtonIsCancel: true,
                 container: container,
                 dialog: out dialog,
                 actionResultHandler: actionResultHandler
@@ -108,8 +116,8 @@ namespace win_client.ViewModelHelpers
         /// <summary>
         /// Display an error message inside a grid.
         /// </summary>
-        public void DisplayModalErrorMessage(string errorMessage, string title, string headerText, 
-                                string rightButtonContent, Grid container,
+        public void DisplayModalErrorMessage(string errorMessage, string title, string headerText,
+                                string rightButtonContent, bool rightButtonIsDefault, Grid container,
                                 out IModalWindow dialog,
                                 System.Action<DialogCloudMessageBoxViewModel> actionOkButtonHandler)
         {
@@ -131,6 +139,7 @@ namespace win_client.ViewModelHelpers
                             CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
                             CloudMessageBoxView_RightButtonContent = rightButtonContent,
                             CloudMessageBoxView_RightButtonVisibility = Visibility.Visible,
+                            CloudMessageBoxView_RightButtonIsDefault = rightButtonIsDefault,
                         },
                         container,
                         actionOkButtonHandler
@@ -141,8 +150,9 @@ namespace win_client.ViewModelHelpers
         /// Display a message box with two buttons inside a grid.
         /// </summary>
         public void DisplayModalMessageBox(int windowHeight, int leftButtonWidth, int rightButtonWidth, string title, string headerText, string bodyText, 
-                                string leftButtonContent, string rightButtonContent, Grid container,
-                                out IModalWindow dialog,
+                                string leftButtonContent, bool leftButtonIsDefault, bool leftButtonIsCancel, 
+                                string rightButtonContent, bool rightButtonIsDefault, bool rightButtonIsCancel, 
+                                Grid container, out IModalWindow dialog,
                                 System.Action<DialogCloudMessageBoxViewModel> actionResultHandler)
         {
             _trace.writeToLog(1, "CLModalErrorDialog: DisplayModalMessageBox:  Message: {0}.", bodyText);
@@ -162,10 +172,14 @@ namespace win_client.ViewModelHelpers
                             CloudMessageBoxView_LeftButtonMargin = new Thickness(0, 0, 0, 0),
                             CloudMessageBoxView_LeftButtonContent = leftButtonContent,
                             CloudMessageBoxView_LeftButtonVisibility = Visibility.Visible,
+                            CloudMessageBoxView_LeftButtonIsDefault = leftButtonIsDefault,
+                            CloudMessageBoxView_LeftButtonIsCancel = leftButtonIsCancel,
                             CloudMessageBoxView_RightButtonWidth = rightButtonWidth,
                             CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 30, 0),
                             CloudMessageBoxView_RightButtonContent = rightButtonContent,
                             CloudMessageBoxView_RightButtonVisibility = Visibility.Visible,
+                            CloudMessageBoxView_RightButtonIsDefault = rightButtonIsDefault,
+                            CloudMessageBoxView_RightButtonIsCancel = rightButtonIsCancel,
                         },
                         container,
                         actionResultHandler

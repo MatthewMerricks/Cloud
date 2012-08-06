@@ -16,6 +16,7 @@ using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using System.ComponentModel;
+using win_client.Common;
 
 namespace win_client.ViewModels
 {
@@ -32,6 +33,7 @@ namespace win_client.ViewModels
         public DialogCloudMessageBoxViewModel()
         {
             _rm = CLAppDelegate.Instance.ResourceManager;
+
         }
 
         /// <summary>
@@ -230,7 +232,6 @@ namespace win_client.ViewModels
         /// </summary>
         public const string CloudMessageBoxView_LeftButtonVisibilityPropertyName = "CloudMessageBoxView_LeftButtonVisibility";
         private Visibility _cloudMessageBoxView_LeftButtonVisibility = Visibility.Visible;
-        /// </summary>
         public Visibility CloudMessageBoxView_LeftButtonVisibility
         {
             get
@@ -247,6 +248,60 @@ namespace win_client.ViewModels
 
                 _cloudMessageBoxView_LeftButtonVisibility = value;
                 RaisePropertyChanged(CloudMessageBoxView_LeftButtonVisibilityPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="CloudMessageBoxView_LeftButtonIsDefault" /> property's name.
+        /// </summary>
+        public const string CloudMessageBoxView_LeftButtonIsDefaultPropertyName = "CloudMessageBoxView_LeftButtonIsDefault";
+        private bool _cloudMessageBoxView_LeftButtonIsDefault = false;
+        public bool CloudMessageBoxView_LeftButtonIsDefault
+        {
+            get
+            {
+                return _cloudMessageBoxView_LeftButtonIsDefault;
+            }
+
+            set
+            {
+                if (_cloudMessageBoxView_LeftButtonIsDefault == value)
+                {
+                    return;
+                }
+
+                _cloudMessageBoxView_LeftButtonIsDefault = value;
+                RaisePropertyChanged(CloudMessageBoxView_LeftButtonIsDefaultPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="CloudMessageBoxView_LeftButtonIsCancel" /> property's name.
+        /// </summary>
+        public const string CloudMessageBoxView_LeftButtonIsCancelPropertyName = "CloudMessageBoxView_LeftButtonIsCancel";
+
+        private bool _cloudMessageBoxView_LeftButtonIsCancel = false;
+
+        /// <summary>
+        /// Sets and gets the CloudMessageBoxView_LeftButtonIsCancel property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public bool CloudMessageBoxView_LeftButtonIsCancel
+        {
+            get
+            {
+                return _cloudMessageBoxView_LeftButtonIsCancel;
+            }
+
+            set
+            {
+                if (_cloudMessageBoxView_LeftButtonIsCancel == value)
+                {
+                    return;
+                }
+
+                _cloudMessageBoxView_LeftButtonIsCancel = value;
+                RaisePropertyChanged(CloudMessageBoxView_LeftButtonIsCancelPropertyName);
             }
         }
 
@@ -347,7 +402,79 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The <see cref="CloudMessageBoxView_RightButtonIsDefault" /> property's name.
+        /// </summary>
+        public const string CloudMessageBoxView_RightButtonIsDefaultPropertyName = "CloudMessageBoxView_RightButtonIsDefault";
+        private bool _cloudMessageBoxView_RightButtonIsDefault = false;
+        public bool CloudMessageBoxView_RightButtonIsDefault
+        {
+            get
+            {
+                return _cloudMessageBoxView_RightButtonIsDefault;
+            }
+
+            set
+            {
+                if (_cloudMessageBoxView_RightButtonIsDefault == value)
+                {
+                    return;
+                }
+
+                _cloudMessageBoxView_RightButtonIsDefault = value;
+                RaisePropertyChanged(CloudMessageBoxView_RightButtonIsDefaultPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="CloudMessageBoxView_RightButtonIsCancel" /> property's name.
+        /// </summary>
+        public const string CloudMessageBoxView_RightButtonIsCancelPropertyName = "CloudMessageBoxView_RightButtonIsCancel";
+
+        private bool _cloudMessageBoxView_RightButtonIsCancel = false;
+
+        /// <summary>
+        /// Sets and gets the CloudMessageBoxView_RightButtonIsCancel property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public bool CloudMessageBoxView_RightButtonIsCancel
+        {
+            get
+            {
+                return _cloudMessageBoxView_RightButtonIsCancel;
+            }
+
+            set
+            {
+                if (_cloudMessageBoxView_RightButtonIsCancel == value)
+                {
+                    return;
+                }
+
+                _cloudMessageBoxView_RightButtonIsCancel = value;
+                RaisePropertyChanged(CloudMessageBoxView_RightButtonIsCancelPropertyName);
+            }
+        }
+
         #region Relay Commands
+
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.  Request the view to close.
+                                              CLAppMessages.Message_DialogCloudMessageBoxViewShouldClose.Send("");
+                                          }));
+            }
+        }
 
         /// <summary>
         /// Gets the WindowClosingCommand.

@@ -215,7 +215,11 @@ namespace win_client.ViewModels
                                                     headerText: _rm.GetString("FramePreferencesAdvanced_ChangeCloudFolderHeaderText"),
                                                     bodyText: _rm.GetString("FramePreferencesAdvanced_ChangeCloudFolderBodyText"),
                                                     leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                                                    leftButtonIsDefault: false,
+                                                    leftButtonIsCancel: false,
                                                     rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                                                    rightButtonIsDefault: true,
+                                                    rightButtonIsCancel: false,
                                                     container: ViewGridContainer,
                                                     dialog: out _dialog,
                                                     actionResultHandler:
@@ -304,6 +308,7 @@ namespace win_client.ViewModels
                                                     title: "Information",
                                                     headerText: "Not implemented!",
                                                     rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                                    rightButtonIsDefault: true,
                                                     container: ViewGridContainer,
                                                     dialog: out _dialog,
                                                     actionOkButtonHandler:
@@ -368,7 +373,11 @@ namespace win_client.ViewModels
                             "\t",
                             toPath),
                 leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                leftButtonIsDefault: false,
+                leftButtonIsCancel: false,
                 rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                rightButtonIsDefault: true,
+                rightButtonIsCancel: false,
                 container: ViewGridContainer,
                 dialog: out _dialog,
                 actionResultHandler:
@@ -403,6 +412,7 @@ namespace win_client.ViewModels
                                         title: _rm.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_Title"),
                                         headerText: _rm.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText"),
                                         rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                        rightButtonIsDefault: true,
                                         container: ViewGridContainer,
                                         dialog: out _dialog,
                                         actionOkButtonHandler:

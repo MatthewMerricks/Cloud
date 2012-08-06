@@ -166,6 +166,24 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
+                                          }));
+            }
+        }
+
         #endregion
 
         #region Support Functions

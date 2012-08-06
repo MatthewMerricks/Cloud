@@ -68,27 +68,29 @@
                 <ColumnDefinition Width="0*"/>
     		</Grid.ColumnDefinitions>
             <TextBlock TextWrapping="Wrap" Text="Startup: " Foreground="Black" FontSize="16" Grid.Row="1" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <CheckBox x:Name="chkStartCloudWhenSystemStarts"  Content="Start Cloud when system starts" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" FontSize="16" Width="Auto"
+            <CheckBox x:Name="chkStartCloudWhenSystemStarts"  Content="_Start Cloud when system starts" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" FontSize="16" Width="Auto"
                       IsChecked="{Binding ElementName=FramePreferencesGeneralRoot, Path=Preferences.ShouldStartCloudWhenSystemStarts, Mode=TwoWay}" Height="Auto" ToolTip="Check to start Cloud application at system startup."  />
             
-<TextBlock TextWrapping="Wrap" Text="When files update: " Foreground="Black" FontSize="16" Grid.Row="2" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <CheckBox x:Name="chkAnimateMenuBarIcon" Content="Animate menu bar icon" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" FontSize="16" Width="Auto"
+            <TextBlock TextWrapping="Wrap" Text="When files update: " Foreground="Black" FontSize="16" Grid.Row="2" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
+            <CheckBox x:Name="chkAnimateMenuBarIcon" Content="Ani_mate menu bar icon" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" FontSize="16" Width="Auto"
                       IsChecked="{Binding ElementName=FramePreferencesGeneralRoot, Path=Preferences.ShouldAnimateMenuBarIcon, Mode=TwoWay}" Height="Auto" ToolTip="Check to animate the system tray Cloud icon when files are being updated."  />
-            <CheckBox x:Name="chkShowDesktopNotification" Content="Show desktop notification" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" FontSize="16" Width="Auto" 
+            <CheckBox x:Name="chkShowDesktopNotification" Content="Sho_w desktop notification" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" FontSize="16" Width="Auto" 
                       IsChecked="{Binding ElementName=FramePreferencesGeneralRoot, Path=Preferences.ShouldShowDesktopNotification}" Height="Auto" ToolTip="Check to show an animation on the desktop when files are being updated." />
             
             <TextBlock TextWrapping="Wrap" Text="Cloud folder: " Foreground="Black" FontSize="16" Grid.Row="4" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <CheckBox x:Name="chkUseCloudAsFolderIcon" Content="Use cloud as folder icon" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" FontSize="16" Width="Auto" 
+            <CheckBox x:Name="chkUseCloudAsFolderIcon" Content="Use cloud as _folder icon" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" FontSize="16" Width="Auto" 
                       IsChecked="{Binding ElementName=FramePreferencesGeneralRoot, Path=Preferences.ShouldUseCloudAsFolderIcon, Mode=TwoWay}" Height="Auto" ToolTip="Check to use the Cloud icon as the folder icon on your Cloud folder." />
                         
-<TextBlock TextWrapping="Wrap" Text="Select your language: " Foreground="Black" FontSize="16" Grid.Row="5" TextAlignment="Right" VerticalAlignment="Center" Height="Auto"  />            
+            <Label Content="Select your _language:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="5" Width="Auto" FontSize="16" Margin="0,0,5,0" Height="Auto" Target="cbSelectYourLanguage"  />
             <ComboBox x:Name="cbSelectYourLanguage" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Grid.Column="2" Grid.Row="5" MinWidth="150" FontSize="16" 
                       ItemsSource="{Binding CbSelectYourLanguage_ItemsSource, Mode=TwoWay, Converter={StaticResource DebugConverter}}" DisplayMemberPath="Name" ToolTip="Select your language."
                       SelectedValuePath="Type" SelectedValue="{Binding ElementName=FramePreferencesGeneralRoot, Path=Preferences.Language, Mode=TwoWay, Converter={StaticResource DebugConverter}}" Height="Auto" />
             
-<TextBlock TextWrapping="Wrap" Text="Updates: " Foreground="Black" FontSize="16" Grid.Row="6" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-<Button x:Name="cmdCheckForUpdates" Content="Check for Updates" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="2" Grid.Row="6" Height="Auto" Width="150"
-                    Command="{Binding FramePreferencesGeneral_CheckForUpdatesCommand, Mode=OneTime}" MinWidth="150" ToolTip="Click to check for available updates to your Cloud application." />
+            <TextBlock TextWrapping="Wrap" Text="Updates: " Foreground="Black" FontSize="16" Grid.Row="6" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
+            <Button x:Name="cmdCheckForUpdates"  VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="2" Grid.Row="6" Height="Auto" Width="150"
+                    Command="{Binding FramePreferencesGeneral_CheckForUpdatesCommand, Mode=OneTime}" MinWidth="150" ToolTip="Click to check for available updates to your Cloud application." >
+                <AccessText Text="Check for _Updates"/>
+            </Button>
         </Grid>
     </Grid>
 </Page>

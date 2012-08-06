@@ -138,7 +138,11 @@ namespace win_client.ViewModels
                                                     headerText: _rm.GetString("FramePreferencesAccount_UnlinkThisDevice"),
                                                     bodyText: _rm.GetString("FramePreferencesAccount_UnlinkThisDeviceBody"),
                                                     leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                                                    leftButtonIsDefault: false,
+                                                    leftButtonIsCancel: false,
                                                     rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                                                    rightButtonIsDefault: true,
+                                                    rightButtonIsCancel: false,
                                                     container: ViewGridContainer,
                                                     dialog: out _dialog,
                                                     actionResultHandler: 
@@ -186,6 +190,7 @@ namespace win_client.ViewModels
                                                     title: "Information",
                                                     headerText: "Not implemented!",
                                                     rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                                    rightButtonIsDefault: true,
                                                     container: ViewGridContainer,
                                                     dialog: out _dialog,
                                                     actionOkButtonHandler:

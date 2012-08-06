@@ -15,6 +15,7 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
+    xmlns:resx="clr-namespace:win_client.Resources"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PagePreferencesViewModel, Source={StaticResource Locator}}" 
     Title="Cloud Preferences"  >
@@ -27,6 +28,10 @@
         </ResourceDictionary>
     </Page.Resources>
     
+    <Page.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </Page.InputBindings>
+
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="109"/>
@@ -59,31 +64,32 @@
             <Button x:Name="cmdGeneral" Margin="8,15,8,5" Command="{Binding PagePreferences_GeneralCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/Artwork/continue.png"/>
-                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center">General</Label>
+                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonGeneral}" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
+            
             <Button x:Name="cmdAccount" Margin="8,5,8,5" Command="{Binding PagePreferences_AccountCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/cancel.png"/>
-                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Account"/>
+                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAccount}" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
             <Button x:Name="cmdNetwork" Margin="8,5,8,5" Command="{Binding PagePreferences_NetworkCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/add.png"/>
-                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Network"/>
+                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonNetwork}" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
             <Button x:Name="cmdAdvanced" Margin="8,5,8,5" Command="{Binding PagePreferences_AdvancedCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/cl_skip_up.png"/>
-                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Advanced"/>
+                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAdvanced}" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
             <Button x:Name="cmdAbout" Margin="8,5,8,5" Command="{Binding PagePreferences_AboutCommand, Mode=OneTime}" >
                 <StackPanel Orientation="Vertical">
                     <Image Margin="30,0,30,0" Source="/win-client;component/Artwork/cl_skipicon.png"/>
-                    <Label Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="About"/>
+                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAbout}" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
         </StackPanel>
@@ -94,12 +100,18 @@
                 <ColumnDefinition Width="149*"/>
                 <ColumnDefinition Width="138"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="cmdOk" Content="OK" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
+            <Button x:Name="cmdOk" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
         		Command="{Binding PagePreferences_OkCommand, Mode=OneTime}" TabIndex="0" Height="40" Grid.Column="1" 
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="14,8,7,18" Width="100" MinWidth="100"/>
-            <Button x:Name="cmdCancel" Content="Cancel" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
+        		Width="100" MinWidth="100"  IsDefault="True">
+                <AccessText Text="{x:Static resx:Resources.generalOkButtonContent}"/>
+
+            </Button>
+            
+            <Button x:Name="cmdCancel" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
         		Command="{Binding PagePreferences_CancelCommand, Mode=OneTime}" TabIndex="1" Height="40" Grid.Column="2" 
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="25,8,13,18" Width="100" MinWidth="100"/>
+        		Width="100" MinWidth="100" IsCancel="True">
+                <AccessText Text="{x:Static resx:Resources.generalCancelButtonContent}"/>
+            </Button>
         </Grid>
 
     </Grid>

@@ -49,7 +49,7 @@
         <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneTime}" TabIndex="4" Grid.Row="1" Height="50" Padding="1" Margin="67,0" />
         <Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Background="#FF49C3FB" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" 
                 Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneTime}" TabIndex="1" Height="50" Grid.Row="1"
-                common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="67,0" />
+                Margin="67,0" IsDefault="True" />
         <Grid Grid.Column="1" Margin="48,85,37,8" Grid.ColumnSpan="4">
     		<Grid.RowDefinitions>
     			<RowDefinition Height="0.495*"/>
@@ -66,8 +66,7 @@
 				<Image Margin="0,0,-378,0" Source="/win-client;component/Artwork/cl_folder_icon.png" Height="50" HorizontalAlignment="Left"/>
 				<RadioButton Content="Default" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
                              VerticalContentAlignment="Top" Padding="4,-3,0,0" TabIndex="2" 
-                             IsChecked="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionDefault, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="grpSelections"
-                             common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
+                             IsChecked="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionDefault, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="grpSelections" />
 				<StackPanel Width="260" Margin="10,58,0,0">
 					<TextBlock TextWrapping="Wrap" Text="(we recommend this selection)" FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="20"/>
 					<TextBlock TextWrapping="Wrap" Text="Set up your Cloud with our recommended settings." FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
@@ -82,8 +81,7 @@
 				<Image Margin="0,0,-378,0" Source="/win-client;component/Artwork/cl_icon_cog.png" Height="50" HorizontalAlignment="Left"/>
 				<RadioButton VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" Content="Advanced" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
                              IsChecked="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionAdvanced, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" 
-                             Padding="4,-3,0,0" TabIndex="3" GroupName="grpSelections"
-                             common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
+                             Padding="4,-3,0,0" TabIndex="3" GroupName="grpSelections" />
 				<StackPanel Width="260" Margin="10,58,0,3">
 					<TextBlock TextWrapping="Wrap" Text="You get to choose your Cloud folder location and further sync options." FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 				</StackPanel>

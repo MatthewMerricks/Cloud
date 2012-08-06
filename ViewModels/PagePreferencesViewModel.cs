@@ -349,6 +349,24 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              ProcessCancelRequest();
+                                          }));
+            }
+        }
+
+        /// <summary>
         /// The window wants to close.  The user clicked the 'X'.
         /// This will set the bindable property WindowCloseOk if we will not handle this event.
         /// </summary>

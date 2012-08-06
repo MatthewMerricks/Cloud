@@ -63,8 +63,7 @@
             </Grid.ColumnDefinitions>
             <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="5" RadiusX="8" RadiusY="8" Opacity="0.9" Grid.RowSpan="3"/>
             <Button x:Name="cmdContinue" Content="Continue" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13.333" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-                    Command="{Binding PageSelectStorageSize_ContinueCommand, Mode=OneTime}" TabIndex="1" Grid.Row="2" Margin="19,18,10,19" Height="50"
-                    common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
+                    Command="{Binding PageSelectStorageSize_ContinueCommand, Mode=OneTime}" TabIndex="1" Grid.Row="2" Margin="19,18,10,19" Height="50" IsDefault="True" />
             <Image Grid.Column="1" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
             <Image Grid.Column="1" Margin="0,0,0,19" Grid.Row="1" Source="/win-client;component/Artwork/cl_boxIcon_small.png" Height="63" VerticalAlignment="Bottom"/>
             <Rectangle x:Name="rectShowUnselectedArea5Gb" Fill="#99FFFFFF" Margin="0" RadiusY="8" Grid.Row="1" RadiusX="8" Stroke="#34000000" Grid.Column="1" IsHitTestVisible="False"
@@ -77,7 +76,7 @@
                 Foreground="Blue" FontSize="16" Margin="60,57,28,0" Height="28" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" TextAlignment="Center"/>
             <RadioButton d:LayoutOverrides="VerticalAlignment" RenderTransformOrigin="2.481,4.077" VerticalAlignment="Top" Grid.Column="1" HorizontalAlignment="Left" Margin="41,33,0,0" Grid.Row="1" 
                          IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size5Gb, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="Group1"
-                         common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="2" />
+                         TabIndex="2" />
             <Button x:Name="btnCovering5GbRadioButtonArea" Margin="0" d:LayoutOverrides="Height" Grid.Row="1" Grid.Column="1" 
                     Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSelectStorageSize_5GbAreaCommand, Mode=OneTime}" IsTabStop="False" />
             <Image Grid.Column="2" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
@@ -90,7 +89,7 @@
                 Foreground="Black" FontSize="16" Margin="70,29,48,0" Height="28" VerticalAlignment="Top" Grid.Column="2" Grid.Row="1"/>
             <RadioButton RenderTransformOrigin="2.481,4.077" VerticalAlignment="Top" Grid.Column="2" HorizontalAlignment="Left" Margin="21,33,0,0" Grid.Row="1" d:LayoutOverrides="VerticalAlignment" 
                          IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size50Gb, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="Group1"
-                         common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="3" />
+                         TabIndex="3" />
             <Button x:Name="btnCovering50GbRadioButtonArea" Margin="0" Grid.Row="1" Grid.Column="2" 
                     Style="{StaticResource ButtonTransparentCoveringRadioButton}" d:LayoutOverrides="Height" Command="{Binding PageSelectStorageSize_50GbAreaCommand, Mode=OneTime}" IsTabStop="False" />
             <Image Grid.Column="3" Margin="0" Grid.Row="1" Source="/win-client;component/Artwork/cl_selectStorage_frame_ON.png"/>
@@ -103,7 +102,7 @@
                 Foreground="Blue" FontSize="16" Margin="33,29,71,0" Height="28" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1" TextAlignment="Right"/>
             <RadioButton RenderTransformOrigin="2.481,4.077" VerticalAlignment="Top" Grid.Column="3" HorizontalAlignment="Left" Margin="24,33,0,0" Grid.Row="1" d:LayoutOverrides="VerticalAlignment" 
                          IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size500Gb, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="Group1"
-                         common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="4" />
+                         TabIndex="4" />
             <Button x:Name="btnCovering500GbRadioButtonArea" Margin="0" Grid.Row="1" Grid.Column="3" 
                     Style="{StaticResource ButtonTransparentCoveringRadioButton}" d:LayoutOverrides="Height" Command="{Binding PageSelectStorageSize_500GbAreaCommand, Mode=OneTime}" IsTabStop="False" />
         </Grid>

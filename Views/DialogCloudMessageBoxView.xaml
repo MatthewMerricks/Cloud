@@ -35,7 +35,12 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </controls:ChildWindow.Resources>
-    
+
+    <controls:ChildWindow.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </controls:ChildWindow.InputBindings>
+
+
     <!-- Catch the Window.Closing event, fired when the user clicks the 'X'. -->
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">
@@ -71,19 +76,23 @@
                <ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1">
-                <Button FontSize="16" Background="#FF49C3FB" 
+                <Button x:Name="btnRight" FontSize="16" Background="#FF49C3FB" 
         		    Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click" TabIndex="1"
                     Width="{Binding CloudMessageBoxView_RightButtonWidth, Mode=OneWay}"
         		    Margin="{Binding CloudMessageBoxView_RightButtonMargin, Mode=OneWay}"  
         		    Content="{Binding CloudMessageBoxView_RightButtonContent, Mode=OneWay}"
-                    Visibility="{Binding CloudMessageBoxView_RightButtonVisibility, Mode=OneWay}"/>
-                <Button x:Name="btnOK" FontSize="16" Background="#FF49C3FB" Grid.Column="1"
-        		    Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click"
-        		    common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="0"
+                    Visibility="{Binding CloudMessageBoxView_RightButtonVisibility, Mode=OneWay}"
+                    IsCancel="{Binding CloudMessageBoxView_RightButtonIsCancel, Mode=OneWay}"
+                    IsDefault="{Binding CloudMessageBoxView_RightButtonIsDefault, Mode=OneWay}" />
+                
+                <Button x:Name="btnLeft" FontSize="16" Background="#FF49C3FB" Grid.Column="1"
+        		    Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click" TabIndex="0"
                     Width="{Binding CloudMessageBoxView_LeftButtonWidth, Mode=OneWay}" 
         		    Margin="{Binding CloudMessageBoxView_LeftButtonMargin, Mode=OneWay}"  
         		    Content="{Binding CloudMessageBoxView_LeftButtonContent, Mode=OneWay}" 
-                    Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=OneWay}"/>
+                    Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=OneWay}"
+                    IsCancel="{Binding CloudMessageBoxView_LeftButtonIsCancel, Mode=OneWay}"
+                    IsDefault="{Binding CloudMessageBoxView_LeftButtonIsDefault, Mode=OneWay}" />
             </StackPanel>
         </Grid>
 

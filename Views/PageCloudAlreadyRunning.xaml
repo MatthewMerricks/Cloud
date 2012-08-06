@@ -15,6 +15,7 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
+    xmlns:resx="clr-namespace:win_client.Resources"
     mc:Ignorable="d"
     DataContext="{Binding PageCloudAlreadyRunningViewModel, Source={StaticResource Locator}}" 
     Title="Already Running!" Height="442" Width="624" >
@@ -27,6 +28,10 @@
         </ResourceDictionary>
     </Page.Resources>
     
+    <Page.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </Page.InputBindings>
+
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="48"/>
@@ -64,9 +69,11 @@
         		<ColumnDefinition Width="0.581*"/>
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
-        	<Button x:Name="cmdOK" Content="OK" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
+        	<Button x:Name="cmdOK" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
         		Command="{Binding PageCloudAlreadyRunningViewModel_OkCommand, Mode=OneTime}" TabIndex="0"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" />
+        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" >
+                <AccessText Text="{x:Static resx:Resources.generalOkButtonContent}"/>
+            </Button>
         </Grid>
     </Grid>
 </Page>

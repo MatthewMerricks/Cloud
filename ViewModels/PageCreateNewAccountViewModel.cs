@@ -467,6 +467,24 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
+                                          }));
+            }
+        }
+
+        /// <summary>
         /// Register this user.
         /// </summary>
         private void RequestNewRegistrationAsync()
@@ -519,6 +537,7 @@ namespace win_client.ViewModels
                     title: _rm.GetString("generalErrorTitle"),
                     headerText: _rm.GetString("createNewAccountErrorHeader"),
                     rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                    rightButtonIsDefault: true,
                     container: ViewGridContainer,
                     dialog: out _dialog,
                     actionOkButtonHandler: 
