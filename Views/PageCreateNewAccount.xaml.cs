@@ -80,11 +80,6 @@ namespace win_client.Views
             CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
             CLAppMessages.CreateNewAccount_GetClearPasswordField.Register(this, OnCreateNewAccount_GetClearPasswordField);
             CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Register(this, OnCreateNewAccount_GetClearConfirmPasswordField);
-            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Register(this, OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties);
-            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Register(this, Message_RestoreIsDefaultAndIsCancelProperties);
-
-            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
-            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Send(this);
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -99,49 +94,8 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
-            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
-            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Send(this);
-
             // Unregister for messages
             Messenger.Default.Unregister(this);
-        }
-
-        /// <summary>
-        /// Save and disable any IsDefault or IsCancel properties.
-        /// </summary>
-        private void OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties(object sender)
-        {
-            PageCreateNewAccount castSender = sender as PageCreateNewAccount;
-            if (castSender != this)
-            {
-                // Save the state of the IsDefault and IsCancel button properties.
-                savedRightButtonIsDefault = this.btnRight.IsDefault;
-                savedRightButtonIsCancel = this.btnRight.IsCancel;
-                savedLeftButtonIsDefault = this.btnLeft.IsDefault;
-                savedLeftButtonIsCancel = this.btnLeft.IsCancel;
-
-                // Clear the button properties.
-                this.btnRight.IsDefault = false;
-                this.btnRight.IsCancel = false;
-                this.btnLeft.IsDefault = false;
-                this.btnLeft.IsCancel = false;
-            }
-        }
-
-        /// <summary>
-        /// Restore any IsDefault or IsCancel properties.
-        /// </summary>
-        private void Message_RestoreIsDefaultAndIsCancelProperties(object sender)
-        {
-            PageCreateNewAccount castSender = sender as PageCreateNewAccount;
-            if (castSender != this)
-            {
-                // Restore the state of the IsDefault and IsCancel button properties.
-                this.btnRight.IsDefault = savedRightButtonIsDefault;
-                this.btnRight.IsCancel = savedRightButtonIsCancel;
-                this.btnLeft.IsDefault = savedLeftButtonIsDefault;
-                this.btnLeft.IsCancel = savedLeftButtonIsCancel;
-            }
         }
 
         /// <summary>

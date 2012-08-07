@@ -144,7 +144,12 @@ namespace win_client.Views
             CLAppMessages.PageInvisible_NavigationRequest.Register(this,
                 (uri) =>
                 {
-                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                    //TODO: RKS Once, this.NavigationService was null.  I think it was because I double-clicked multiple times on the
+                    // system tray icon.  PagePreferences was already loaded, and maybe the 2nd double-click tried to navigate a 2nd time???
+                    if (this.NavigationService != null)
+                    {
+                        this.NavigationService.Navigate(uri, UriKind.Relative);
+                    }
                 });
 
             CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Register(this, (tooltipInfo) => { OnCLBalloonTooltipNotificationMessage(tooltipInfo); });
@@ -461,7 +466,7 @@ namespace win_client.Views
                     curPoint = new System.Drawing.Point(startPoint.X + (int)(i * dWidth), startPoint.Y + (int)(i * dHeight));
                     curSize = new System.Drawing.Size((int)((1 - i) * startWidth), (int)((1 - i) * startHeight));
                     ControlPaint.DrawReversibleFrame(new System.Drawing.Rectangle(curPoint, curSize), System.Drawing.Color.Black, FrameStyle.Thick);
-                    System.Threading.Thread.Sleep(15);
+                    System.Threading.Thread.Sleep(1);
                     ControlPaint.DrawReversibleFrame(new System.Drawing.Rectangle(curPoint, curSize), System.Drawing.Color.Black, FrameStyle.Thick);
                 }
 

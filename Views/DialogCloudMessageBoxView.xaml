@@ -5,9 +5,13 @@
 //
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
--->
-
-<controls:ChildWindow x:Class="win_client.Views.DialogCloudMessageBoxView" 
+   IsModal="True"
+    Caption="{Binding CloudMessageBoxView_Title, Mode=TwoWay}" 
+    WindowStartupLocation="Center" 
+    WindowState="Open"
+ -->
+    
+<Window x:Class="win_client.Views.DialogCloudMessageBoxView" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -17,37 +21,21 @@
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
     mc:Ignorable="d"
-    DataContext="{Binding DialogCloudMessageBoxViewModel, Source={StaticResource Locator}}"
-    IsModal="True"
-    WindowStartupLocation="Center" 
-    WindowState="Open"
     Grid.RowSpan="2147483647"
     Grid.ColumnSpan="2147483647"
-    Caption="{Binding CloudMessageBoxView_Title, Mode=TwoWay}" 
+    Title="{Binding CloudMessageBoxView_Title, Mode=TwoWay}" 
     Height="{Binding CloudMessageBoxView_WindowHeight, Mode=TwoWay}"
     Width="{Binding CloudMessageBoxView_WindowWidth, Mode=TwoWay}"
     >
     
-    <controls:ChildWindow.Resources>
+    <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </controls:ChildWindow.Resources>
+    </Window.Resources>
 
-    <controls:ChildWindow.InputBindings>
-        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
-    </controls:ChildWindow.InputBindings>
-
-
-    <!-- Catch the Window.Closing event, fired when the user clicks the 'X'. -->
-    <i:Interaction.Triggers>
-        <i:EventTrigger EventName="Closing">
-            <cmd:EventToCommand Command="{Binding WindowClosingCommand, Mode=OneWay}" PassEventArgsToCommand="True"/>
-        </i:EventTrigger>
-    </i:Interaction.Triggers>
-    
     <Grid x:Name="LayoutRoot" Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -124,4 +112,4 @@
 
     </Grid>
 
-</controls:ChildWindow>
+</Window>

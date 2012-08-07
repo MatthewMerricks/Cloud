@@ -7,7 +7,7 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 -->
 
-<controls:ChildWindow x:Class="win_client.Views.DialogPreferencesNetworkBandwidth" 
+<Window x:Class="win_client.Views.DialogPreferencesNetworkBandwidth" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -21,26 +21,22 @@
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     mc:Ignorable="d"
-    IsModal="True"
-    WindowStartupLocation="Center" 
-    WindowState="Open"
     Grid.RowSpan="2147483647"
     Grid.ColumnSpan="2147483647"
-    DataContext="{Binding DialogPreferencesNetworkBandwidthViewModel, Source={StaticResource Locator}}"
-    Caption="{Binding DialogPreferencesNetworkBandwidth_Title, Mode=OneWay}" 
+    Title="{Binding DialogPreferencesNetworkBandwidth_Title, Mode=OneWay}" 
     Height="{Binding DialogPreferencesNetworkBandwidth_WindowHeight, Mode=OneWay}"
     Width="{Binding DialogPreferencesNetworkBandwidth_WindowWidth, Mode=OneWay}"
     Name="DialogPreferencesNetworkBandwidthRoot" d:DesignWidth="504" d:DesignHeight="325"
     >
     
-    <controls:ChildWindow.Resources>
+    <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
                 <ResourceDictionary Source="/win-client;component/Skins/ErrorTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </controls:ChildWindow.Resources>
+    </Window.Resources>
     
     <Grid x:Name="LayoutRoot">
         <Grid.Background>
@@ -147,17 +143,20 @@
         		    Margin="{Binding DialogPreferencesNetworkBandwidth_RightButtonMargin, Mode=OneWay}" 
           		    Content="{Binding DialogPreferencesNetworkBandwidth_RightButtonContent, Mode=OneWay}"   
 			        Visibility="{Binding DialogPreferencesNetworkBandwidth_RightButtonVisibility, Mode=OneWay}"
-			        ToolTip="Click to close this dialog and lose any changes you made here."/>
+                    IsDefault ="{Binding DialogPreferencesNetworkBandwidth_RightButtonIsDefault, Mode=OneWay}"    
+                    IsCancel ="{Binding DialogPreferencesNetworkBandwidth_RightButtonIsCancel, Mode=OneWay}"    
+			        ToolTip="Click to close this dialog and lose any changes you made here." />
                 <Button x:Name="btnOK" FontSize="16" Background="#FF49C3FB" 
         		    Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click" 
         		    Grid.Column="2" TabIndex="0"
 			        Width="{Binding DialogPreferencesNetworkBandwidth_LeftButtonWidth, Mode=OneWay}"
         		    Margin="{Binding DialogPreferencesNetworkBandwidth_LeftButtonMargin, Mode=OneWay}"
-        		    common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
         		    Content="{Binding DialogPreferencesNetworkBandwidth_LeftButtonContent, Mode=OneWay}" 
 			        Visibility="{Binding DialogPreferencesNetworkBandwidth_LeftButtonVisibility, Mode=OneWay}"
+                    IsDefault ="{Binding DialogPreferencesNetworkBandwidth_LeftButtonIsDefault, Mode=OneWay}"    
+                    IsCancel ="{Binding DialogPreferencesNetworkBandwidth_LeftButtonIsCancel, Mode=OneWay}"    
 			        ToolTip="Click to close this dialog and keep the changes you made here.  You must still click OK on the containing preferences dialog to save your changes." />
             </StackPanel>
         </Grid>
     </Grid>
-</controls:ChildWindow>
+</Window>

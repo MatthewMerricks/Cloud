@@ -458,41 +458,6 @@ namespace win_client.ViewModels
 
         #region Relay Commands
 
-        /// <summary>
-        /// The user pressed the ESC key.
-        /// </summary>
-        private ICommand _cancelCommand;
-        public ICommand CancelCommand
-        {
-            get
-            {
-                return _cancelCommand
-                    ?? (_cancelCommand = new RelayCommand(
-                                          () =>
-                                          {
-                                              // The user pressed the Esc key.  Request the view to close.
-                                              CLAppMessages.Message_DialogCloudMessageBoxViewShouldClose.Send("");
-                                          }));
-            }
-        }
-
-        /// <summary>
-        /// Gets the WindowClosingCommand.
-        /// </summary>
-        private ICommand _windowClosingCommand;
-        public ICommand WindowClosingCommand
-        {
-            get
-            {
-                return _windowClosingCommand
-                    ?? (_windowClosingCommand = new RelayCommand<CancelEventArgs>(
-                                          (args) =>
-                                          {
-                                              args.Cancel = OnClosing();
-                                          }));
-            }
-        }
-
         #endregion
 
         #region Support Functions

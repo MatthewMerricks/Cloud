@@ -27,7 +27,7 @@ using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
-    public partial class DialogPreferencesNetworkProxies : ChildWindow, IModalWindow
+    public partial class DialogPreferencesNetworkProxies : Window, IModalWindow
     {
         /// <summary>
         /// Default constructor.
@@ -39,7 +39,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += DialogPreferencesNetworkProxies_Loaded;
             Unloaded += DialogPreferencesNetworkProxies_Unloaded;
-            Closing += DialogPreferencesNetworkProxies_Closing;
         }
 
         /// <summary>
@@ -101,7 +100,7 @@ namespace win_client.Views
                     OnConfirmShutdownMessage(message);
                 });
 
-            FocusedElement = this.btnOK;
+            this.btnOK.Focus();
 
             // Tell the ViewModel that the view has loaded.  This is necessary because setting the fields in the ViewModel
             // sometimes requires a message to be sent to the view, and if the fields are set in the ViewModel constructor,
@@ -128,18 +127,6 @@ namespace win_client.Views
             if (message.Notification == Notifications.QueryModalDialogsActive)
             {
                 message.Execute(true);      // a modal dialog is active
-            }
-        }
-
-        /// <summary>
-        /// This ChildWindow is closing.
-        /// </summary>
-        void DialogPreferencesNetworkProxies_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            DialogPreferencesNetworkProxiesViewModel vm = (DialogPreferencesNetworkProxiesViewModel)DataContext;
-            if (vm.WindowClosingCommand.CanExecute(e))
-            {
-                vm.WindowClosingCommand.Execute(e);
             }
         }
 
@@ -179,14 +166,6 @@ namespace win_client.Views
         }
 
         /// <summary>
-        /// Event handler: This view should close.
-        /// </summary>
-        private void OnMessage_DialogPreferencesNetworkProxiesViewShouldClose(string obj)
-        {
-            this.Close();
-        }
-
-        /// <summary>
         /// Get the clear password and present it to the ViewModel.
         /// </summary>
         private void OnDialogPreferencesNetworkProxies_GetClearPasswordField(string obj)
@@ -206,5 +185,14 @@ namespace win_client.Views
         {
             tbProxyServerPassword.Text = password;
         }
+
+        /// <summary>
+        /// The ViewModel asked us to close.
+        /// </summary>
+        private void OnMessage_DialogPreferencesNetworkProxiesViewShouldClose(string obj)
+        {
+            this.Close();
+        }
+
     }
 }

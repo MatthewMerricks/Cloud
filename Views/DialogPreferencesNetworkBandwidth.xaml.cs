@@ -27,7 +27,7 @@ using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
-    public partial class DialogPreferencesNetworkBandwidth : ChildWindow, IModalWindow
+    public partial class DialogPreferencesNetworkBandwidth : Window, IModalWindow
     {
         /// <summary>
         /// Default constructor.
@@ -40,6 +40,15 @@ namespace win_client.Views
             Loaded += DialogPreferencesNetworkBandwidth_Loaded;
             Unloaded += DialogPreferencesNetworkBandwidth_Unloaded;
             Closing += DialogPreferencesNetworkBandwidth_Closing;
+        }
+
+        void DialogPreferencesNetworkBandwidth_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            DialogPreferencesNetworkBandwidthViewModel vm = (DialogPreferencesNetworkBandwidthViewModel)DataContext;
+            if (!vm.WindowCloseOk)
+            {
+                e.Cancel = true;
+            }
         }
 
         /// <summary>
@@ -76,7 +85,14 @@ namespace win_client.Views
                 vm.DialogPreferencesNetworkBandwidthViewModel_CancelCommand.Execute(null);
             }
 
-            this.DialogResult = false;
+            if (vm.WindowCloseOk)
+            {
+                this.DialogResult = false;
+            }
+            else
+            {
+                e.Handled = true;
+            }
         }
 
         /// <summary>
@@ -99,7 +115,7 @@ namespace win_client.Views
                     OnConfirmShutdownMessage(message);
                 });
 
-            FocusedElement = this.btnOK;
+            this.btnOK.Focus();
 
             // Tell the ViewModel that the view has loaded.  This is necessary because setting the fields in the ViewModel
             // sometimes requires a message to be sent to the view, and if the fields are set in the ViewModel constructor,
@@ -130,18 +146,6 @@ namespace win_client.Views
         }
 
         /// <summary>
-        /// This ChildWindow is closing.
-        /// </summary>
-        void DialogPreferencesNetworkBandwidth_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            DialogPreferencesNetworkBandwidthViewModel vm = (DialogPreferencesNetworkBandwidthViewModel)DataContext;
-            if (vm.WindowClosingCommand.CanExecute(e))
-            {
-                vm.WindowClosingCommand.Execute(e);
-            }
-        }
-
-        /// <summary>
         /// Unloaded event handler.
         /// </summary>
         void DialogPreferencesNetworkBandwidth_Unloaded(object sender, RoutedEventArgs e)
@@ -167,7 +171,7 @@ namespace win_client.Views
         }
 
         /// <summary>
-        /// Event handler: This view should close.
+        /// The ViewModel asked us to close.
         /// </summary>
         private void OnMessage_DialogPreferencesNetworkBandwidthViewShouldClose(string obj)
         {

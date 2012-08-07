@@ -42,9 +42,6 @@ namespace win_client.Common
             Message_PageMustUnregisterWindowClosingMessage,
             Message_DialogPreferencesNetworkBandwidthViewShouldClose,
             Message_DialogPreferencesNetworkProxiesViewShouldClose,
-            Message_DialogCloudMessageBoxViewShouldClose,
-            Message_SaveAndDisableIsDefaultAndIsCancelProperties,
-            Message_RestoreIsDefaultAndIsCancelProperties,
 
             // Navigation requests
             PageCloudFolderMissing_NavigationRequest,
@@ -286,6 +283,7 @@ namespace win_client.Common
         }
 
         public static class Message_DialogPreferencesNetworkBandwidthViewShouldClose
+
         {
             public static void Send(string notUsed)
             {
@@ -308,45 +306,6 @@ namespace win_client.Common
             public static void Register(object recipient, Action<string> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.Message_DialogPreferencesNetworkProxiesViewShouldClose, action);
-            }
-        }
-
-        public static class Message_DialogCloudMessageBoxViewShouldClose
-        {
-            public static void Send(string notUsed)
-            {
-                Messenger.Default.Send(notUsed, MessageTypes.Message_DialogCloudMessageBoxViewShouldClose);
-            }
-
-            public static void Register(object recipient, Action<string> action)
-            {
-                Messenger.Default.Register(recipient, MessageTypes.Message_DialogCloudMessageBoxViewShouldClose, action);
-            }
-        }
-
-        public static class Message_SaveAndDisableIsDefaultAndIsCancelProperties
-        {
-            public static void Send(object sender)
-            {
-                Messenger.Default.Send(sender, MessageTypes.Message_SaveAndDisableIsDefaultAndIsCancelProperties);
-            }
-
-            public static void Register(object recipient, Action<object> action)
-            {
-                Messenger.Default.Register(recipient, MessageTypes.Message_SaveAndDisableIsDefaultAndIsCancelProperties, action);
-            }
-        }
-
-        public static class Message_RestoreIsDefaultAndIsCancelProperties
-        {
-            public static void Send(object sender)
-            {
-                Messenger.Default.Send(sender, MessageTypes.Message_RestoreIsDefaultAndIsCancelProperties);
-            }
-
-            public static void Register(object recipient, Action<object> action)
-            {
-                Messenger.Default.Register(recipient, MessageTypes.Message_RestoreIsDefaultAndIsCancelProperties, action);
             }
         }
 

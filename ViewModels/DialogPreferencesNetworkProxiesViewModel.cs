@@ -758,6 +758,54 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="DialogPreferencesNetworkProxies_LeftButtonIsDefault" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkProxies_LeftButtonIsDefaultPropertyName = "DialogPreferencesNetworkProxies_LeftButtonIsDefault";
+        private bool _dialogPreferencesNetworkProxies_LeftButtonIsDefault = false;
+        public bool DialogPreferencesNetworkProxies_LeftButtonIsDefault
+        {
+            get
+            {
+                return _dialogPreferencesNetworkProxies_LeftButtonIsDefault;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkProxies_LeftButtonIsDefault == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkProxies_LeftButtonIsDefault = value;
+                RaisePropertyChanged(DialogPreferencesNetworkProxies_LeftButtonIsDefaultPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="_dialogPreferencesNetworkProxies_LeftButtonIsCancel" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkProxies_LeftButtonIsCancelPropertyName = "DialogPreferencesNetworkProxies_LeftButtonIsCancel";
+        private bool _dialogPreferencesNetworkProxies_LeftButtonIsCancel = false;
+        public bool DialogPreferencesNetworkProxies_LeftButtonIsCancel
+        {
+            get
+            {
+                return _dialogPreferencesNetworkProxies_LeftButtonIsCancel;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkProxies_LeftButtonIsCancel == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkProxies_LeftButtonIsCancel = value;
+                RaisePropertyChanged(DialogPreferencesNetworkProxies_LeftButtonIsCancelPropertyName);
+            }
+        }
+
+        /// <summary>
         /// The <see cref="DialogPreferencesNetworkProxies_RightButtonWidth" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkProxies_RightButtonWidthPropertyName = "DialogPreferencesNetworkProxies_RightButtonWidth";
@@ -853,24 +901,79 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The <see cref="DialogPreferencesNetworkProxies_RightButtonIsDefault" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkProxies_RightButtonIsDefaultPropertyName = "DialogPreferencesNetworkProxies_RightButtonIsDefault";
+        private bool _dialogPreferencesNetworkProxies_RightButtonIsDefault = false;
+        public bool DialogPreferencesNetworkProxies_RightButtonIsDefault
+        {
+            get
+            {
+                return _dialogPreferencesNetworkProxies_RightButtonIsDefault;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkProxies_RightButtonIsDefault == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkProxies_RightButtonIsDefault = value;
+                RaisePropertyChanged(DialogPreferencesNetworkProxies_RightButtonIsDefaultPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="DialogPreferencesNetworkProxies_RightButtonIsCancel" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkProxies_RightButtonIsCancelPropertyName = "DialogPreferencesNetworkProxies_RightButtonIsCancel";
+        private bool _dialogPreferencesNetworkProxies_RightButtonIsCancel = false;
+        public bool DialogPreferencesNetworkProxies_RightButtonIsCancel
+        {
+            get
+            {
+                return _dialogPreferencesNetworkProxies_RightButtonIsCancel;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkProxies_RightButtonIsCancel == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkProxies_RightButtonIsCancel = value;
+                RaisePropertyChanged(DialogPreferencesNetworkProxies_RightButtonIsCancelPropertyName);
+            }
+        }
+
         #endregion
 
         #region Relay Commands
 
         /// <summary>
-        /// Gets the WindowClosingCommand.
+        /// The <see cref="WindowCloseOk" /> property's name.
         /// </summary>
-        private ICommand _windowClosingCommand;
-        public ICommand WindowClosingCommand
+        public const string WindowCloseOkPropertyName = "WindowCloseOk";
+        private bool _windowCloseOk = false;
+        public bool WindowCloseOk
         {
             get
             {
-                return _windowClosingCommand
-                    ?? (_windowClosingCommand = new RelayCommand<CancelEventArgs>(
-                                          (args) =>
-                                          {
-                                              args.Cancel = ProcessCancelCommand();    // true: cancel the window Close.
-                                          }));
+                return _windowCloseOk;
+            }
+
+            set
+            {
+                if (_windowCloseOk == value)
+                {
+                    return;
+                }
+
+                _windowCloseOk = value;
+                RaisePropertyChanged(WindowCloseOkPropertyName);
             }
         }
 
@@ -892,6 +995,10 @@ namespace win_client.ViewModels
                                               {
 
                                                   ProcessUpdateCommand();
+
+                                                  // Allow the window to close.
+                                                  WindowCloseOk = true;
+                                                  _windowClosingImmediately = false;
                                               }
                                               else
                                               {
@@ -915,7 +1022,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               // Handle the cancel
-                                              ProcessCancelCommand();
+                                              WindowCloseOk = !ProcessCancelCommand();
                                           }));
             }
         }
@@ -1205,12 +1312,11 @@ namespace win_client.ViewModels
                         SetPreferencesSubsetToGlobalPreferences(_dialogPreferencesNetworkProxies_Preferences, _proxiesPreferencesSubset);
                     }
 
-                    // The parent dialog was told to stay open so this dialog could appear over it.  Now we have
-                    // to cause the parent dialog to close without any processing because it has all been done.
-                    // Send a message to the parent view to tell it to close.  However, that will cause a window closing
-                    // event.  We'll set a flag to indicate that we are done, and use that flag to just ignore
-                    // the window closing event, so we don't get ourselves in a never-ending UI loop.
+                    // Don't handle the cancel again.
                     _windowClosingImmediately = true;
+                    WindowCloseOk = true;
+
+                    // Ask the view to close.
                     CLAppMessages.Message_DialogPreferencesNetworkProxiesViewShouldClose.Send("");
                 });
 

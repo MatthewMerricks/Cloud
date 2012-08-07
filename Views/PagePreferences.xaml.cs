@@ -111,11 +111,6 @@ namespace win_client.Views
                     this.Preferences = nextPage.Value;
                     this.ContentFrame.NavigationService.Navigate(nextPage.Key, this);
                 });
-            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Register(this, OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties);
-            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Register(this, Message_RestoreIsDefaultAndIsCancelProperties);
-
-            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
-            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Send(this);
 
             this.ContentFrame.NavigationService.Navigated += MyNavigationWindow.NavigationService_Navigated;
 
@@ -149,9 +144,6 @@ namespace win_client.Views
         /// </summary>
         void PagePreferences_Unloaded(object sender, RoutedEventArgs e)
         {
-            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
-            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Send(this);
-
             // Unregister for messages
             Messenger.Default.Unregister(this);
         }
@@ -213,44 +205,6 @@ namespace win_client.Views
 
                 // Get the answer and set the real event Cancel flag appropriately.
                 message.Execute(!vm.WindowCloseOk);      // true == abort shutdown
-            }
-        }
-
-        /// <summary>
-        /// Save and disable any IsDefault or IsCancel properties.
-        /// </summary>
-        private void OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties(object sender)
-        {
-            PagePreferences castSender = sender as PagePreferences;
-            if (castSender != this)
-            {
-                // Save the state of the IsDefault and IsCancel button properties.
-                savedCancelButtonIsDefault = this.cmdCancel.IsDefault;
-                savedCancelButtonIsCancel = this.cmdCancel.IsCancel;
-                savedOkButtonIsDefault = this.cmdOk.IsDefault;
-                savedOkButtonIsCancel = this.cmdOk.IsCancel;
-
-                // Clear the button properties.
-                this.cmdCancel.IsDefault = false;
-                this.cmdCancel.IsCancel = false;
-                this.cmdOk.IsDefault = false;
-                this.cmdOk.IsCancel = false;
-            }
-        }
-
-        /// <summary>
-        /// Restore any IsDefault or IsCancel properties.
-        /// </summary>
-        private void Message_RestoreIsDefaultAndIsCancelProperties(object sender)
-        {
-            PagePreferences castSender = sender as PagePreferences;
-            if (castSender != this)
-            {
-                // Restore the state of the IsDefault and IsCancel button properties.
-                this.cmdCancel.IsDefault = savedCancelButtonIsDefault;
-                this.cmdCancel.IsCancel = savedCancelButtonIsCancel;
-                this.cmdOk.IsDefault = savedOkButtonIsDefault;
-                this.cmdOk.IsCancel = savedOkButtonIsCancel;
             }
         }
 

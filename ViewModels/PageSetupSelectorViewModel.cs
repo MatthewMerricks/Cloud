@@ -381,7 +381,7 @@ namespace win_client.ViewModels
                                     //
                                     // TODO: We need the FolderBrowserDialog from WPF.  Either switch to WPF for the Windows
                                     // desktop, or implement a WPF ActiveX DLL to perform that function.
-                                    var dialogFolderSelection = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_FolderSelectionSimpleView);
+                                    var dialogFolderSelection = new DialogFolderSelectionSimpleView();
                                     IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
                                     modalDialogService.ShowDialog(dialogFolderSelection, new DialogFolderSelectionSimpleViewModel
                                     {

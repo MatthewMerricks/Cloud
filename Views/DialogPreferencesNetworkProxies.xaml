@@ -7,7 +7,7 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 -->
 
-<controls:ChildWindow x:Class="win_client.Views.DialogPreferencesNetworkProxies" 
+<Window x:Class="win_client.Views.DialogPreferencesNetworkProxies" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -20,19 +20,15 @@
     xmlns:commonClient="clr-namespace:win_client.Common"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
     mc:Ignorable="d"
-    IsModal="True"
-    WindowStartupLocation="Center" 
-    WindowState="Open"
     Grid.RowSpan="2147483647"
     Grid.ColumnSpan="2147483647"
-    DataContext="{Binding DialogPreferencesNetworkProxiesViewModel, Source={StaticResource Locator}}"
-    Caption="{Binding DialogPreferencesNetworkProxies_Title, Mode=OneWay}" 
+    Title="{Binding DialogPreferencesNetworkProxies_Title, Mode=OneWay}" 
     Height="{Binding DialogPreferencesNetworkProxies_WindowHeight, Mode=OneWay}"
     Width="{Binding DialogPreferencesNetworkProxies_WindowWidth, Mode=OneWay}"
     Name="DialogPreferencesNetworkProxiesRoot"
     >
     
-    <controls:ChildWindow.Resources>
+    <Window.Resources>
         <ResourceDictionary>
             <!-- Bind Enums to ItemsSource -->
             <ObjectDataProvider x:Key="dataFromEnum"
@@ -47,7 +43,7 @@
                 <ResourceDictionary Source="/win-client;component/Skins/ErrorTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </controls:ChildWindow.Resources>
+    </Window.Resources>
     
     <Grid x:Name="LayoutRoot">
         <Grid.Background>
@@ -183,17 +179,20 @@
         		    Margin="{Binding DialogPreferencesNetworkProxies_RightButtonMargin, Mode=OneWay}" 
           		    Content="{Binding DialogPreferencesNetworkProxies_RightButtonContent, Mode=OneWay}"   
 			        Visibility="{Binding DialogPreferencesNetworkProxies_RightButtonVisibility, Mode=OneWay}"
+			        IsDefault="{Binding DialogPreferencesNetworkProxies_RightButtonIsDefault, Mode=OneWay}"
+			        IsCancel="{Binding DialogPreferencesNetworkProxies_RightButtonIsCancel, Mode=OneWay}"
 			        ToolTip="Click to close this dialog and lose any changes you made here."/>
                 <Button x:Name="btnOK" FontSize="16" Background="#FF49C3FB" 
         		    Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click" 
         		    Grid.Column="2" TabIndex="0"
 			        Width="{Binding DialogPreferencesNetworkProxies_LeftButtonWidth, Mode=OneWay}"
         		    Margin="{Binding DialogPreferencesNetworkProxies_LeftButtonMargin, Mode=OneWay}"
-        		    common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
         		    Content="{Binding DialogPreferencesNetworkProxies_LeftButtonContent, Mode=OneWay}" 
 			        Visibility="{Binding DialogPreferencesNetworkProxies_LeftButtonVisibility, Mode=OneWay}"
+			        IsDefault="{Binding DialogPreferencesNetworkProxies_LeftButtonIsDefault, Mode=OneWay}"
+			        IsCancel="{Binding DialogPreferencesNetworkProxies_LeftButtonIsCancel, Mode=OneWay}"
 			        ToolTip="Click to close this dialog and keep the changes you made here.  You must still click OK on the containing preferences dialog to save your changes." />
             </StackPanel>
         </Grid>
     </Grid>
-</controls:ChildWindow>
+</Window>

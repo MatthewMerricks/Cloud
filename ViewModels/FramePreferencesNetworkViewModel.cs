@@ -157,7 +157,7 @@ namespace win_client.ViewModels
                     ?? (_framePreferencesNetwork_ChangeBandwidthSettings = new RelayCommand(
                                             () =>
                                             {
-                                                _dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_PreferencesNetworkBandwidth);
+                                                _dialog = new DialogPreferencesNetworkBandwidth();
                                                 IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
                                                 modalDialogService.ShowDialog(
                                                             this._dialog,
@@ -171,10 +171,14 @@ namespace win_client.ViewModels
                                                                 DialogPreferencesNetworkBandwidth_LeftButtonMargin = new Thickness(0, 0, 50, 0),
                                                                 DialogPreferencesNetworkBandwidth_LeftButtonContent = _rm.GetString("generalOkButtonContent"),
                                                                 DialogPreferencesNetworkBandwidth_LeftButtonVisibility = Visibility.Visible,
+                                                                DialogPreferencesNetworkBandwidth_LeftButtonIsDefault = true,
+                                                                DialogPreferencesNetworkBandwidth_LeftButtonIsCancel = false,
                                                                 DialogPreferencesNetworkBandwidth_RightButtonWidth = 75,
                                                                 DialogPreferencesNetworkBandwidth_RightButtonMargin = new Thickness(0, 0, 30, 0),
                                                                 DialogPreferencesNetworkBandwidth_RightButtonContent = _rm.GetString("generalCancelButtonContent"),
                                                                 DialogPreferencesNetworkBandwidth_RightButtonVisibility = Visibility.Visible,
+                                                                DialogPreferencesNetworkBandwidth_RightButtonIsDefault = false,
+                                                                DialogPreferencesNetworkBandwidth_RightButtonIsCancel = true,
                                                             },
                                                             this.ViewGridContainer,
                                                             returnedViewModelInstance =>
@@ -205,7 +209,7 @@ namespace win_client.ViewModels
                     ?? (_framePreferencesNetwork_ChangeProxySettings = new RelayCommand(
                                             () =>
                                             {
-                                                _dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_PreferencesNetworkProxies);
+                                                _dialog = new DialogPreferencesNetworkProxies();
                                                 IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
                                                 modalDialogService.ShowDialog(
                                                             this._dialog,
@@ -219,10 +223,14 @@ namespace win_client.ViewModels
                                                                 DialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(0, 0, 50, 0),
                                                                 DialogPreferencesNetworkProxies_LeftButtonContent = _rm.GetString("generalOkButtonContent"),
                                                                 DialogPreferencesNetworkProxies_LeftButtonVisibility = Visibility.Visible,
+                                                                DialogPreferencesNetworkProxies_LeftButtonIsDefault = true,
+                                                                DialogPreferencesNetworkProxies_LeftButtonIsCancel = false,
                                                                 DialogPreferencesNetworkProxies_RightButtonWidth = 75,
                                                                 DialogPreferencesNetworkProxies_RightButtonMargin = new Thickness(0, 0, 30, 0),
                                                                 DialogPreferencesNetworkProxies_RightButtonContent = _rm.GetString("generalCancelButtonContent"),
                                                                 DialogPreferencesNetworkProxies_RightButtonVisibility = Visibility.Visible,
+                                                                DialogPreferencesNetworkProxies_RightButtonIsDefault = false,
+                                                                DialogPreferencesNetworkProxies_RightButtonIsCancel = true,
                                                             },
                                                             this.ViewGridContainer,
                                                             returnedViewModelInstance =>

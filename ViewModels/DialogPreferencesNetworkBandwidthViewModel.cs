@@ -608,6 +608,54 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="DialogPreferencesNetworkBandwidth_LeftButtonIsDefault" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkBandwidth_LeftButtonIsDefaultPropertyName = "DialogPreferencesNetworkBandwidth_LeftButtonIsDefault";
+        private bool _dialogPreferencesNetworkBandwidth_LeftButtonIsDefault = false;
+        public bool DialogPreferencesNetworkBandwidth_LeftButtonIsDefault
+        {
+            get
+            {
+                return _dialogPreferencesNetworkBandwidth_LeftButtonIsDefault;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkBandwidth_LeftButtonIsDefault == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkBandwidth_LeftButtonIsDefault = value;
+                RaisePropertyChanged(DialogPreferencesNetworkBandwidth_LeftButtonIsDefaultPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="DialogPreferencesNetworkBandwidth_LeftButtonIsCancel" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkBandwidth_LeftButtonIsCancelPropertyName = "DialogPreferencesNetworkBandwidth_LeftButtonIsCancel";
+        private bool _dialogPreferencesNetworkBandwidth_LeftButtonIsCancel = false;
+        public bool DialogPreferencesNetworkBandwidth_LeftButtonIsCancel
+        {
+            get
+            {
+                return _dialogPreferencesNetworkBandwidth_LeftButtonIsCancel;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkBandwidth_LeftButtonIsCancel == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkBandwidth_LeftButtonIsCancel = value;
+                RaisePropertyChanged(DialogPreferencesNetworkBandwidth_LeftButtonIsCancelPropertyName);
+            }
+        }
+
+        /// <summary>
         /// The <see cref="DialogPreferencesNetworkBandwidth_RightButtonWidth" /> property's name.
         /// </summary>
         public const string DialogPreferencesNetworkBandwidth_RightButtonWidthPropertyName = "DialogPreferencesNetworkBandwidth_RightButtonWidth";
@@ -703,27 +751,58 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The <see cref="DialogPreferencesNetworkBandwidth_RightButtonIsDefault" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkBandwidth_RightButtonIsDefaultPropertyName = "DialogPreferencesNetworkBandwidth_RightButtonIsDefault";
+        private bool _dialogPreferencesNetworkBandwidth_RightButtonIsDefault = false;
+        public bool DialogPreferencesNetworkBandwidth_RightButtonIsDefault
+        {
+            get
+            {
+                return _dialogPreferencesNetworkBandwidth_RightButtonIsDefault;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkBandwidth_RightButtonIsDefault == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkBandwidth_RightButtonIsDefault = value;
+                RaisePropertyChanged(DialogPreferencesNetworkBandwidth_RightButtonIsDefaultPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="DialogPreferencesNetworkBandwidth_RightButtonIsCancel" /> property's name.
+        /// </summary>
+        public const string DialogPreferencesNetworkBandwidth_RightButtonIsCancelPropertyName = "DialogPreferencesNetworkBandwidth_RightButtonIsCancel";
+        private bool _dialogPreferencesNetworkBandwidth_RightButtonIsCancel = false;
+        public bool DialogPreferencesNetworkBandwidth_RightButtonIsCancel
+        {
+            get
+            {
+                return _dialogPreferencesNetworkBandwidth_RightButtonIsCancel;
+            }
+
+            set
+            {
+                if (_dialogPreferencesNetworkBandwidth_RightButtonIsCancel == value)
+                {
+                    return;
+                }
+
+                _dialogPreferencesNetworkBandwidth_RightButtonIsCancel = value;
+                RaisePropertyChanged(DialogPreferencesNetworkBandwidth_RightButtonIsCancelPropertyName);
+            }
+        }
+
 
         #endregion
 
         #region Relay Commands
-
-        /// <summary>
-        /// Gets the WindowClosingCommand.
-        /// </summary>
-        private ICommand _windowClosingCommand;
-        public ICommand WindowClosingCommand
-        {
-            get
-            {
-                return _windowClosingCommand
-                    ?? (_windowClosingCommand = new RelayCommand<CancelEventArgs>(
-                                          (args) =>
-                                          {
-                                              args.Cancel = ProcessCancelCommand();    // true: cancel the window Close.
-                                          }));
-            }
-        }
 
         /// <summary>
         /// Gets the DialogPreferencesNetworkBandwidthViewModel_UpdateCommand.
@@ -751,6 +830,29 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The <see cref="WindowCloseOk" /> property's name.
+        /// </summary>
+        public const string WindowCloseOkPropertyName = "WindowCloseOk";
+        private bool _windowCloseOk = false;
+        public bool WindowCloseOk
+        {
+            get
+            {
+                return _windowCloseOk;
+            }
+
+            set
+            {
+                if (_windowCloseOk == value)
+                {
+                    return;
+                }
+
+                _windowCloseOk = value;
+                RaisePropertyChanged(WindowCloseOkPropertyName);
+            }
+        }
 
         /// <summary>
         /// Gets the DialogPreferencesNetworkBandwidthViewModel_CancelCommand.
@@ -765,7 +867,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                               // Handle the cancel
-                                              ProcessCancelCommand();
+                                              WindowCloseOk = !ProcessCancelCommand();
                                           }));
             }
         }
@@ -788,7 +890,9 @@ namespace win_client.ViewModels
 
                                               SetPropertiesFromPreferencesSubset(_bandwidthPreferencesSubset);
 
-                                              _windowClosingImmediately = false;                                    // reset this: used to allow the window to close immediately
+                                              // Allow the window to close.
+                                              WindowCloseOk = true;
+                                              _windowClosingImmediately = false;
                                           }));
             }
         }
@@ -1002,13 +1106,13 @@ namespace win_client.ViewModels
                         SetPreferencesSubsetToGlobalPreferences(_DialogPreferencesNetworkBandwidth_Preferences, _bandwidthPreferencesSubset);
                     }
 
-                    // The parent dialog was told to stay open so this dialog could appear over it.  Now we have
-                    // to cause the parent dialog to close without any processing because it has all been done.
-                    // Send a message to the parent view to tell it to close.  However, that will cause a window closing
-                    // event.  We'll set a flag to indicate that we are done, and use that flag to just ignore
-                    // the window closing event, so we don't get ourselves in a never-ending UI loop.
+                    // Don't handle the cancel again.
                     _windowClosingImmediately = true;
+                    WindowCloseOk = true;
+
+                    // Ask the view to close.
                     CLAppMessages.Message_DialogPreferencesNetworkBandwidthViewShouldClose.Send("");
+
                 });
 
                 return true;    // keep the window open.  The child dialog completion will close this dialog.

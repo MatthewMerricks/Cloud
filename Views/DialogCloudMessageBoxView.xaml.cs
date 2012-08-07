@@ -27,7 +27,7 @@ using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
-    public partial class DialogCloudMessageBoxView : ChildWindow, IModalWindow
+    public partial class DialogCloudMessageBoxView : Window, IModalWindow
     {
         private bool savedRightButtonIsDefault = false;
         private bool savedRightButtonIsCancel = false;
@@ -65,13 +65,6 @@ namespace win_client.Views
                 {
                     OnConfirmShutdownMessage(message);
                 });
-            CLAppMessages.Message_DialogCloudMessageBoxViewShouldClose.Register(this, OnMessage_DialogCloudMessageBoxViewShouldClose);
-            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Register(this, OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties);
-            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Register(this, Message_RestoreIsDefaultAndIsCancelProperties);
-
-            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
-            CLAppMessages.Message_SaveAndDisableIsDefaultAndIsCancelProperties.Send(this);
-
             // Give focus to the left button.
             //TODO: The caller's should establish the focus position in a parameter.
             btnLeft.Focus();
@@ -84,57 +77,8 @@ namespace win_client.Views
         {
             base.Close();
 
-            // Tell all other listeners to save and disable the IsDefault and IsCancel button properties.  This should be the only active modal dialog.
-            CLAppMessages.Message_RestoreIsDefaultAndIsCancelProperties.Send(this);
-
             // Unregister for messages
             Messenger.Default.Unregister(this);
-        }
-
-        /// <summary>
-        /// This view is being requested to close.
-        /// </summary>
-        private void OnMessage_DialogCloudMessageBoxViewShouldClose(string obj)
-        {
-            this.Close();
-        }
-
-        /// <summary>
-        /// Save and disable any IsDefault or IsCancel properties.
-        /// </summary>
-        private void OnMessage_SaveAndDisableIsDefaultAndIsCancelProperties(object sender)
-        {
-            DialogCloudMessageBoxView castSender = sender as DialogCloudMessageBoxView;
-            if (castSender != this)
-            {
-                // Save the state of the IsDefault and IsCancel button properties.
-                savedRightButtonIsDefault = this.btnRight.IsDefault;
-                savedRightButtonIsCancel = this.btnRight.IsCancel;
-                savedLeftButtonIsDefault = this.btnLeft.IsDefault;
-                savedLeftButtonIsCancel = this.btnLeft.IsCancel;
-
-                // Clear the button properties.
-                this.btnRight.IsDefault = false;
-                this.btnRight.IsCancel = false;
-                this.btnLeft.IsDefault = false;
-                this.btnLeft.IsCancel = false;
-            }
-        }
-
-        /// <summary>
-        /// Restore any IsDefault or IsCancel properties.
-        /// </summary>
-        private void Message_RestoreIsDefaultAndIsCancelProperties(object sender)
-        {
-            DialogCloudMessageBoxView castSender = sender as DialogCloudMessageBoxView;
-            if (castSender != this)
-            {
-                // Restore the state of the IsDefault and IsCancel button properties.
-                this.btnRight.IsDefault = savedRightButtonIsDefault;
-                this.btnRight.IsCancel = savedRightButtonIsCancel;
-                this.btnLeft.IsDefault = savedLeftButtonIsDefault;
-                this.btnLeft.IsCancel = savedLeftButtonIsCancel;
-            }
         }
 
         /// <summary>

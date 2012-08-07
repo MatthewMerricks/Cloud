@@ -26,7 +26,7 @@ using Xceed.Wpf.Toolkit;
 
 namespace win_client.Views
 {
-    public partial class DialogFolderSelectionSimpleView : IModalWindow
+    public partial class DialogFolderSelectionSimpleView : Window, IModalWindow
     {
         public DialogFolderSelectionSimpleView()
         {
@@ -40,7 +40,7 @@ namespace win_client.Views
         // via the code-behind works however, so we do it here.
         void DialogFolderSelectionSimpleView_Loaded(object sender, RoutedEventArgs e)
         {
-            FocusedElement = btnOK;
+            btnOK.Focus();
         }
 
         private void OKButton_Click(object sender, RoutedEventArgs e)

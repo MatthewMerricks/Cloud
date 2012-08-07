@@ -5,6 +5,7 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.using System;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Resources;
@@ -12,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using CloudApiPublic.Model;
 using CloudApiPublic.Support;
 using Dialog.Abstractions.Wpf.Intefaces;
@@ -19,6 +21,8 @@ using GalaSoft.MvvmLight.Ioc;
 using win_client.AppDelegate;
 using win_client.Common;
 using win_client.ViewModels;
+using CloudApiPrivate.Static;
+using win_client.Views;
 
 namespace win_client.ViewModelHelpers
 {
@@ -123,7 +127,11 @@ namespace win_client.ViewModelHelpers
         {
             _trace.writeToLog(1, "CLModalErrorDialog: DisplayModalErrorMessage:  Error: {0}.", errorMessage);
 
-            dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
+
+            //TODO: This is not using the SimpleIoc suppot below because we needed a new instance.
+            //dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
+            dialog = new DialogCloudMessageBoxView();
+
             IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
             modalDialogService.ShowDialog(
                         dialog, 
@@ -157,7 +165,10 @@ namespace win_client.ViewModelHelpers
         {
             _trace.writeToLog(1, "CLModalErrorDialog: DisplayModalMessageBox:  Message: {0}.", bodyText);
 
-            dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
+            //TODO: This is not using the SimpleIoc suppot below because we needed a new instance.
+            //dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
+            dialog = new DialogCloudMessageBoxView();
+
             IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
             modalDialogService.ShowDialog(
                         dialog,

@@ -7,7 +7,7 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 -->
 
-<controls:ChildWindow x:Class="win_client.Views.DialogFolderSelectionSimpleView" 
+<Window x:Class="win_client.Views.DialogFolderSelectionSimpleView" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -16,23 +16,19 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
     mc:Ignorable="d"
-    DataContext="{Binding DialogFolderSelectionSimpleViewModel, Source={StaticResource Locator}}" 
-    IsModal="True"
-    WindowStartupLocation="Center" 
-    WindowState="Open"
     Grid.RowSpan="2147483647"
     Grid.ColumnSpan="2147483647"
-    Caption="Select Cloud Folder" 
+    Title="Select Cloud Folder" 
     Height="237"
     Width="450">
 
-    <controls:ChildWindow.Resources>
+    <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </controls:ChildWindow.Resources>
+    </Window.Resources>
     
     <Grid x:Name="LayoutRoot" Margin="0,0,0,1">
         <Grid.RowDefinitions>
@@ -112,4 +108,4 @@
 
     </Grid>
 
-</controls:ChildWindow>
+</Window>

@@ -55,7 +55,6 @@ namespace win_client.AppDelegate
         private static object InstanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance; 
         private static bool _isWindowPlacedFirstTime = false;
-        //&&&&private TrayIcon _trayIcon;
         #endregion
         #region Public Properties
 
@@ -824,6 +823,8 @@ namespace win_client.AppDelegate
                 //window.Height = 480;
                 window.MinWidth = 640;
                 window.MinHeight = 480;
+                window.MaxWidth = 640;
+                window.MaxHeight = 480;
                 window.WindowStyle = WindowStyle.ThreeDBorderWindow;
                 //window.Visibility = System.Windows.Visibility.Visible;
                 window.ShowInTaskbar = true;
