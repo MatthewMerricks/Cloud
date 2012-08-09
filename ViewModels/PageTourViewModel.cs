@@ -35,6 +35,7 @@ using win_client.ViewModelHelpers;
 using win_client.Resources;
 using CleanShutdown.Helpers;
 using System.Windows.Threading;
+using System.Diagnostics;
 
 
 namespace win_client.ViewModels
@@ -57,7 +58,7 @@ namespace win_client.ViewModels
 
         #region Life Cycle
         /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
+        /// Initializes a new instance of the PageTourViewModel class.
         /// </summary>
         public PageTourViewModel(IDataService dataService)
         {
@@ -72,6 +73,7 @@ namespace win_client.ViewModels
                     }
 
                     //&&&&               WelcomeTitle = item.Title;
+                    PageTour_OpenCloudFolderCommand = true;
                 });
 
             _pageTour_GreetingText = String.Format(Resources.Resources.tourPage1Greeting, Settings.Instance.UserName.Split(CLConstants.kDelimiterChars)[0]);
@@ -88,6 +90,30 @@ namespace win_client.ViewModels
         #endregion
 
         #region "Bindable Properties"
+
+        /// <summary>
+        /// The <see cref="PageTour_OpenCloudFolderCommand" /> property's name.
+        /// </summary>
+        public const string PageTour_OpenCloudFolderCommandPropertyName = "PageTour_OpenCloudFolderCommand";
+        private bool _pageTour_OpenCloudFolderCommand = false;
+        public bool PageTour_OpenCloudFolderCommand
+        {
+            get
+            {
+                return _pageTour_OpenCloudFolderCommand;
+            }
+
+            set
+            {
+                if (_pageTour_OpenCloudFolderCommand == value)
+                {
+                    return;
+                }
+
+                _pageTour_OpenCloudFolderCommand = value;
+                RaisePropertyChanged(PageTour_OpenCloudFolderCommandPropertyName);
+            }
+        }
 
         /// <summary>
         /// The <see cref="PageTour_GreetingText" /> property's name.
@@ -254,6 +280,19 @@ namespace win_client.ViewModels
                                                 RaisePropertyChanged(TourPageNumberPropertyName);
                                                 if (_tourPageNumber > 5)
                                                 {
+                                                    if (_pageTour_OpenCloudFolderCommand)
+                                                    {
+                                                        // Show the Cloud folder with a delay
+                                                        var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                                        dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(1500), () =>
+                                                        {
+                                                            Process proc = new Process();
+                                                            proc.StartInfo.UseShellExecute = true;
+                                                            proc.StartInfo.FileName = Settings.Instance.CloudFolderPath;
+                                                            proc.Start();
+                                                        });
+                                                    }
+
                                                     // Navigate to the PageInvisible page.  This will start the core services.
                                                     Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
                                                     CLAppMessages.PageTour_NavigationRequest.Send(nextPage);
@@ -331,11 +370,11 @@ namespace win_client.ViewModels
             CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
             {
                 // Do nothing here when the user clicks the OK button.
-                _trace.writeToLog(9, "PageHomeViewModel: Prompt exit application: Entry.");
+                _trace.writeToLog(9, "PageTourViewModel: Prompt exit application: Entry.");
                 if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
                 {
                     // The user said yes.  Unlink this device.
-                    _trace.writeToLog(9, "PageHomeViewModel: Prompt exit application: User said yes.");
+                    _trace.writeToLog(9, "PageTourViewModel: Prompt exit application: User said yes.");
 
                     // Shut down tha application
                     _isShuttingDown = true;         // allow the shutdown if asked

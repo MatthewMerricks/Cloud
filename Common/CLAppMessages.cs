@@ -43,6 +43,9 @@ namespace win_client.Common
             Message_DialogPreferencesNetworkProxiesViewShouldClose,
             Message_PageSelectStorageSizeViewSetFocusToContinueButton,
             Message_PageSetupSelectorViewSetFocusToContinueButton,
+            Message_PageFolderSelection_ShouldChooseCloudFolder,
+            Message_PageSetupSelector_ShouldChooseCloudFolder,
+                
 
             // Navigation requests
             PageCloudFolderMissing_NavigationRequest,
@@ -58,6 +61,8 @@ namespace win_client.Common
             PagePreferences_NavigationRequest,
             PagePreferences_FrameNavigationRequest,
             PagePreferences_FrameNavigationRequest_WithPreferences,
+            PageFolderSelection_NavigationRequest,
+            PageTourAdvancedEnd_NavigationRequest,
 
         }
 
@@ -323,6 +328,32 @@ namespace win_client.Common
             }
         }
 
+        public static class Message_PageFolderSelection_ShouldChooseCloudFolder
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageFolderSelection_ShouldChooseCloudFolder);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageFolderSelection_ShouldChooseCloudFolder, action);
+            }
+        }
+
+        public static class Message_PageSetupSelector_ShouldChooseCloudFolder
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageSetupSelector_ShouldChooseCloudFolder);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageSetupSelector_ShouldChooseCloudFolder, action);
+            }
+        }
+
         
 
         // Navigation requests
@@ -482,6 +513,32 @@ namespace win_client.Common
             }
         }
 
+        public static class PageFolderSelection_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageFolderSelection_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageFolderSelection_NavigationRequest, action);
+            }
+        }
+
+        public static class PageTourAdvancedEnd_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageTourAdvancedEnd_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageTourAdvancedEnd_NavigationRequest, action);
+            }
+        }
+        
         public static class PageInvisible_TriggerOutOfSystemTrayAnimation
         {
             public static void Send(Uri targetPage)

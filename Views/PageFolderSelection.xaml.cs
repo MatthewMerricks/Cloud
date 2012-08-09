@@ -1,5 +1,5 @@
 ﻿//
-//  PageCreateNewAccount.xaml.cs
+//  PageFolderSelection.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -26,71 +26,91 @@ using win_client.AppDelegate;
 using CloudApiPublic.Model;
 using win_client.Model;
 using CleanShutdown.Messaging;
+using Ookii.Dialogs.WpfMinusTaskDialog;
 
 namespace win_client.Views
 {
-    public partial class PageCreateNewAccount : Page, IOnNavigated
+    public partial class PageFolderSelection : Page, IOnNavigated
     {
         #region "Instance Variables"
 
         private bool _isLoaded = false;
-        private PageCreateNewAccountViewModel _viewModel = null;
 
         #endregion
 
-        #region "Life Cycle"
+        #region "Life Cycle
 
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public PageCreateNewAccount()
+        public PageFolderSelection()
         {
             InitializeComponent();
 
             // Register event handlers
-            Loaded += new RoutedEventHandler(PageCreateNewAccount_Loaded);
-            Unloaded += new RoutedEventHandler(PageCreateNewAccount_Unloaded);
+            Loaded += new RoutedEventHandler(PageFolderSelection_Loaded);
+            Unloaded += new RoutedEventHandler(PageFolderSelection_Unloaded);
 
-            // Pass the view's grid to the view model for the dialogs to use.
-            _viewModel = (PageCreateNewAccountViewModel)DataContext;
-            _viewModel.ViewGridContainer = LayoutRoot;
-
+            // Pass the view's grid to the viewmodel for use with the dialogs.
+            PageFolderSelectionViewModel vm = (PageFolderSelectionViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
         }
+
+        #endregion
+
+        #region "Message Handlers"
 
         /// <summary>
         /// Loaded event handler.
         /// </summary>
-        void PageCreateNewAccount_Loaded(object sender, RoutedEventArgs e)
+        void PageFolderSelection_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            _viewModel = DataContext as PageCreateNewAccountViewModel;
 
             // Register messages
-            CLAppMessages.PageCreateNewAccount_NavigationRequest.Register(this,
+            CLAppMessages.PageFolderSelection_NavigationRequest.Register(this,
                 (uri) =>
                 {
                     this.NavigationService.Navigate(uri, UriKind.Relative);
                 });
-
-            CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
-            CLAppMessages.CreateNewAccount_GetClearPasswordField.Register(this, OnCreateNewAccount_GetClearPasswordField);
-            CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Register(this, OnCreateNewAccount_GetClearConfirmPasswordField);
+            CLAppMessages.Message_PageFolderSelection_ShouldChooseCloudFolder.Register(this, OnMessage_PageFolderSelection_ShouldChooseCloudFolder);
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            tbEMail.Focus();
+            cmdContinue.Focus();
         }
 
         /// <summary>
         /// Unloaded event handler.
         /// </summary>
-        void PageCreateNewAccount_Unloaded(object sender, RoutedEventArgs e)
+        void PageFolderSelection_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
 
             // Unregister for messages
             Messenger.Default.Unregister(this);
+        }
+
+        /// <summary>
+        /// Let the user choose a new Cloud folder location.
+        /// </summary>
+        private void OnMessage_PageFolderSelection_ShouldChooseCloudFolder(string obj)
+        {
+            VistaFolderBrowserDialog folderBrowser = new VistaFolderBrowserDialog();
+            folderBrowser.Description = win_client.Resources.Resources.PageFolderSelection_FolderBrowserDescription;
+            folderBrowser.RootFolder = Environment.SpecialFolder.MyDocuments;  // no way to get to the user's home directory.  RootFolder is a SpecialFolder.
+            folderBrowser.ShowNewFolderButton = true;
+            bool? wasOkButtonClicked = folderBrowser.ShowDialog(Window.GetWindow(this));
+            if (wasOkButtonClicked.HasValue && wasOkButtonClicked.Value)
+            {
+                // The user selected a folder.  Deliver the path to the ViewModel to process.
+                PageFolderSelectionViewModel vm = (PageFolderSelectionViewModel)DataContext;
+                if (vm.PageFolderSelectionViewModel_CreateCloudFolderCommand.CanExecute(folderBrowser.SelectedPath))
+                {
+                    vm.PageFolderSelectionViewModel_CreateCloudFolderCommand.Execute(folderBrowser.SelectedPath);
+                }
+            }
         }
 
         /// <summary>
@@ -110,10 +130,11 @@ namespace win_client.Views
 
                 if (_isLoaded)
                 {
-                    tbEMail.Focus();
+                    cmdContinue.Focus();
                 }
 
-                _viewModel.PageCreateNewAccount_NavigatedToCommand.Execute(null);
+                var vm = DataContext as PageFolderSelectionViewModel;
+                vm.PageFolderSelection_NavigatedToCommand.Execute(null);
             }
             catch (Exception ex)
             {
@@ -142,7 +163,7 @@ namespace win_client.Views
             {
                 // Ask the ViewModel if we should allow the window to close.
                 // This should not block.
-                PageCreateNewAccountViewModel vm = (PageCreateNewAccountViewModel)DataContext;
+                PageFolderSelectionViewModel vm = (PageFolderSelectionViewModel)DataContext;
                 if (vm.WindowCloseRequested.CanExecute(null))
                 {
                     vm.WindowCloseRequested.Execute(null);
@@ -154,55 +175,6 @@ namespace win_client.Views
         }
 
         #endregion
-
-        #region "Message Handlers"
-
-        private void OnCreateNewAccount_GetClearPasswordField(string notUsed)
-        {
-            string clearPassword = tbPassword.Text;
-            if (_viewModel != null)
-            {
-                _viewModel.Password2 = clearPassword;
-            }
-        }
-
-        private void OnCreateNewAccount_GetClearConfirmPasswordField(string notUsed)
-        {
-            string clearConfirmPassword = tbConfirmPassword.Text;
-            if (_viewModel != null)
-            {
-                _viewModel.ConfirmPassword2 = clearConfirmPassword;
-            }
-        }
-
-        private void OnCreateNewAccount_FocusToError_Message(string notUsed)
-        {
-            if (Validation.GetHasError(tbEMail) == true )  {
-                tbEMail.Focus();
-                return;
-            }
-            if (Validation.GetHasError(tbFullName) == true )  {
-                tbFullName.Focus();
-                return;
-            }
-            if(Validation.GetHasError(this.tbPassword) == true)
-                {
-                tbPassword.Focus();
-                return;
-            }
-            if(Validation.GetHasError(tbConfirmPassword) == true)
-            {
-                tbConfirmPassword.Focus();
-                return;
-            }
-            if(Validation.GetHasError(tbComputerName) == true)
-            {
-                tbComputerName.Focus();
-                return;
-            }
-        }
-
-        #endregion "ChangeScreenMessage"
 
     }
 }

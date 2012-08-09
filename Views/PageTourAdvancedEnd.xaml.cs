@@ -1,5 +1,5 @@
 ﻿//
-//  PageCreateNewAccount.xaml.cs
+//  PageTourAdvancedEnd.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -29,63 +29,56 @@ using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
-    public partial class PageCreateNewAccount : Page, IOnNavigated
+    public partial class PageTourAdvancedEnd : Page, IOnNavigated
     {
         #region "Instance Variables"
 
         private bool _isLoaded = false;
-        private PageCreateNewAccountViewModel _viewModel = null;
 
         #endregion
-
-        #region "Life Cycle"
 
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public PageCreateNewAccount()
+        public PageTourAdvancedEnd()
         {
             InitializeComponent();
 
             // Register event handlers
-            Loaded += new RoutedEventHandler(PageCreateNewAccount_Loaded);
-            Unloaded += new RoutedEventHandler(PageCreateNewAccount_Unloaded);
-
-            // Pass the view's grid to the view model for the dialogs to use.
-            _viewModel = (PageCreateNewAccountViewModel)DataContext;
-            _viewModel.ViewGridContainer = LayoutRoot;
+            Loaded += new RoutedEventHandler(PageTourAdvancedEnd_Loaded);
+            Unloaded += new RoutedEventHandler(PageTourAdvancedEnd_Unloaded);
 
         }
 
+        #region "Message Handlers"
+
         /// <summary>
-        /// Loaded event handler.
+        /// Loaded event handler
         /// </summary>
-        void PageCreateNewAccount_Loaded(object sender, RoutedEventArgs e)
+        void PageTourAdvancedEnd_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            _viewModel = DataContext as PageCreateNewAccountViewModel;
 
             // Register messages
-            CLAppMessages.PageCreateNewAccount_NavigationRequest.Register(this,
+            CLAppMessages.PageTourAdvancedEnd_NavigationRequest.Register(this,
                 (uri) =>
                 {
                     this.NavigationService.Navigate(uri, UriKind.Relative);
                 });
-
-            CLAppMessages.CreateNewAccount_FocusToError.Register(this, OnCreateNewAccount_FocusToError_Message);
-            CLAppMessages.CreateNewAccount_GetClearPasswordField.Register(this, OnCreateNewAccount_GetClearPasswordField);
-            CLAppMessages.CreateNewAccount_GetClearConfirmPasswordField.Register(this, OnCreateNewAccount_GetClearConfirmPasswordField);
+            // Set the view's grid into the view model.
+            PageTourAdvancedEndViewModel vm = (PageTourAdvancedEndViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            tbEMail.Focus();
+            cmdContinue.Focus();
         }
 
         /// <summary>
-        /// Unloaded event handler.
+        /// Unloaded event handler
         /// </summary>
-        void PageCreateNewAccount_Unloaded(object sender, RoutedEventArgs e)
+        void PageTourAdvancedEnd_Unloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
 
@@ -110,10 +103,8 @@ namespace win_client.Views
 
                 if (_isLoaded)
                 {
-                    tbEMail.Focus();
+                    cmdContinue.Focus();
                 }
-
-                _viewModel.PageCreateNewAccount_NavigatedToCommand.Execute(null);
             }
             catch (Exception ex)
             {
@@ -142,7 +133,7 @@ namespace win_client.Views
             {
                 // Ask the ViewModel if we should allow the window to close.
                 // This should not block.
-                PageCreateNewAccountViewModel vm = (PageCreateNewAccountViewModel)DataContext;
+                PageTourAdvancedEndViewModel vm = (PageTourAdvancedEndViewModel)DataContext;
                 if (vm.WindowCloseRequested.CanExecute(null))
                 {
                     vm.WindowCloseRequested.Execute(null);
@@ -154,55 +145,5 @@ namespace win_client.Views
         }
 
         #endregion
-
-        #region "Message Handlers"
-
-        private void OnCreateNewAccount_GetClearPasswordField(string notUsed)
-        {
-            string clearPassword = tbPassword.Text;
-            if (_viewModel != null)
-            {
-                _viewModel.Password2 = clearPassword;
-            }
-        }
-
-        private void OnCreateNewAccount_GetClearConfirmPasswordField(string notUsed)
-        {
-            string clearConfirmPassword = tbConfirmPassword.Text;
-            if (_viewModel != null)
-            {
-                _viewModel.ConfirmPassword2 = clearConfirmPassword;
-            }
-        }
-
-        private void OnCreateNewAccount_FocusToError_Message(string notUsed)
-        {
-            if (Validation.GetHasError(tbEMail) == true )  {
-                tbEMail.Focus();
-                return;
-            }
-            if (Validation.GetHasError(tbFullName) == true )  {
-                tbFullName.Focus();
-                return;
-            }
-            if(Validation.GetHasError(this.tbPassword) == true)
-                {
-                tbPassword.Focus();
-                return;
-            }
-            if(Validation.GetHasError(tbConfirmPassword) == true)
-            {
-                tbConfirmPassword.Focus();
-                return;
-            }
-            if(Validation.GetHasError(tbComputerName) == true)
-            {
-                tbComputerName.Focus();
-                return;
-            }
-        }
-
-        #endregion "ChangeScreenMessage"
-
     }
 }

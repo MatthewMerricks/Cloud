@@ -139,10 +139,10 @@
     <value>There's already a folder called Cloud in {0}.  Do you want to merge all the existing files in that folder to your Cloud folder, or select a new Cloud folder location?</value>
   </data>
   <data name="folderExitTextFieldButtonMerge" xml:space="preserve">
-    <value>Merge</value>
+    <value>_Merge</value>
   </data>
   <data name="folderExitTextFieldButtonSelectNewLocation" xml:space="preserve">
-    <value>Select a new location</value>
+    <value>_Select a new location</value>
   </data>
   <data name="folderExitTextFieldHeader" xml:space="preserve">
     <value>Merge with existing Cloud Folder?</value>
@@ -200,10 +200,10 @@
     <value>/Views/PageInvisible.xaml</value>
   </data>
   <data name="pageCloudFolderMissingBodyMesssage" xml:space="preserve">
-    <value>To continue syncing, please restore your Cloud folder.  You may also choose to remove this computer from your account and exit the application.</value>
+    <value>To continue syncing, please restore your Cloud folder.  You may also choose to remove (unlink) this computer from your account and exit the application.</value>
   </data>
   <data name="pageCloudFolderMissingOkButtonLocate" xml:space="preserve">
-    <value>_Locate...</value>
+    <value>_Locate</value>
   </data>
   <data name="pageCloudFolderMissingOkButtonRestore" xml:space="preserve">
     <value>_Restore</value>
@@ -308,7 +308,7 @@
     <value>Save?</value>
   </data>
   <data name="ViewPageCloudFolderMissingButtonRemove" xml:space="preserve">
-    <value>_Remove</value>
+    <value>_Unlink</value>
   </data>
   <data name="ViewPageCreateNewAccountButtonBack" xml:space="preserve">
     <value>_Back</value>
@@ -363,5 +363,35 @@
   </data>
   <data name="ViewPagePreferencesButtonNetwork" xml:space="preserve">
     <value>_Network</value>
+  </data>
+  <data name="PageFolderSelection_ChangeCloudFolderBodyText" xml:space="preserve">
+    <value>You will select a location that will contain your new Cloud folder.  A folder named 'Cloud' will be created inside the folder you select.  The files in your existing Cloud folder will be moved to the new Cloud folder.  Do you wish to choose a new Cloud folder location?</value>
+  </data>
+  <data name="PageFolderSelection_ChangeCloudFolderHeaderText" xml:space="preserve">
+    <value>Do you wish to change your Cloud folder?</value>
+  </data>
+  <data name="PageFolderSelection_ChangeCloudFolderTitle" xml:space="preserve">
+    <value>Change Cloud Folder Location?</value>
+  </data>
+  <data name="PageFolderSelection_ErrorMovingCloudFolder_BodyText" xml:space="preserve">
+    <value>There was an error moving your Cloud folder to the new location.   Your files remain in the existing Cloud folder location.</value>
+  </data>
+  <data name="PageFolderSelection_ErrorMovingCloudFolder_HeaderText" xml:space="preserve">
+    <value>Error while moving your Cloud folder.</value>
+  </data>
+  <data name="PageFolderSelection_ErrorMovingCloudFolder_Title" xml:space="preserve">
+    <value>Oh Snap!</value>
+  </data>
+  <data name="PageFolderSelection_FolderBrowserDescription" xml:space="preserve">
+    <value>Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select.</value>
+  </data>
+  <data name="PageFolderSelection_NewCloudFolderSelectedAlert_BodyText" xml:space="preserve">
+    <value>This will move your existing Cloud folder and all of the files inside it from the existing location:{0}{1}{2}{3}into the new folder:{4}{5}{6}</value>
+  </data>
+  <data name="PageFolderSelection_NewCloudFolderSelectedAlert_HeaderText" xml:space="preserve">
+    <value>Should the Cloud folder be moved now?</value>
+  </data>
+  <data name="PageFolderSelection_NewCloudFolderSelectedAlert_Title" xml:space="preserve">
+    <value>Move Cloud Folder?</value>
   </data>
 </root>

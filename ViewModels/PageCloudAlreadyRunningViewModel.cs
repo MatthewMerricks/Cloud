@@ -53,7 +53,7 @@ namespace win_client.ViewModels
 
         #region Life Cycle
         /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
+        /// Initializes a new instance of the PageCloudAlreadyRunningViewModel class.
         /// </summary>
         public PageCloudAlreadyRunningViewModel(IDataService dataService)
         {

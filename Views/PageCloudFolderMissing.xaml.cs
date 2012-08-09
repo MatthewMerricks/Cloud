@@ -33,11 +33,6 @@ namespace win_client.Views
 {
     public partial class PageCloudFolderMissing : Page, IOnNavigated
     {
-        private bool savedRightButtonIsDefault = false;
-        private bool savedRightButtonIsCancel = false;
-        private bool savedLeftButtonIsDefault = false;
-        private bool savedLeftButtonIsCancel = false;
-
         /// <summary>
         /// Default constructor.
         /// </summary>

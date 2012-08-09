@@ -1,5 +1,5 @@
 ﻿//
-//  PageInvisibleViewModel.cs
+//  PageTourAdvancedEndViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -28,11 +28,15 @@ using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
 using CloudApiPublic.Support;
-using System.ComponentModel;
 using System.Windows.Input;
-using CleanShutdown.Helpers;
+using System.ComponentModel;
+using CleanShutdown.Messaging;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
+using CleanShutdown.Helpers;
 using System.Windows.Threading;
+using System.Diagnostics;
+using CloudApiPublic.Model;
 
 
 namespace win_client.ViewModels
@@ -41,23 +45,23 @@ namespace win_client.ViewModels
     /// <summary>
     /// Page to control the multiple pages of the tour.
     /// </summary>
-    public class PageInvisibleViewModel : ViewModelBase, ICleanup
+    public class PageTourAdvancedEndViewModel : ValidatingViewModelBase, ICleanup
     {
 
         #region Instance Variables
 
         private readonly IDataService _dataService;
-        private IModalWindow _dialog = null;        // for use with modal dialogs
         private CLTrace _trace = CLTrace.Instance;
+        private IModalWindow _dialog = null;        // for use with modal dialogs
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
 
         #endregion
 
         #region Life Cycle
         /// <summary>
-        /// Initializes a new instance of the PageInvisibleViewModel class.
+        /// Initializes a new instance of the PageTourAdvancedEndViewModel class.
         /// </summary>
-        public PageInvisibleViewModel(IDataService dataService)
+        public PageTourAdvancedEndViewModel(IDataService dataService)
         {
             _dataService = dataService;
             _dataService.GetData(
@@ -70,7 +74,9 @@ namespace win_client.ViewModels
                     }
 
                     //&&&&               WelcomeTitle = item.Title;
+                    PageTourAdvancedEnd_OpenCloudFolderCommand = true;
                 });
+
         }
 
         /// <summary>
@@ -83,92 +89,29 @@ namespace win_client.ViewModels
 
         #endregion
 
-        #region Bindable Properties
+        #region "Bindable Properties"
 
         /// <summary>
-        /// The <see cref="TaskbarIconVisibility" /> property's name.
+        /// The <see cref="PageTourAdvancedEnd_OpenCloudFolderCommand" /> property's name.
         /// </summary>
-        public const string TaskbarIconVisibilityPropertyName = "TaskbarIconVisibility";
-        private Visibility _taskbarIconVisibility = Visibility.Hidden;
-
-        /// <summary>
-        /// Sets and gets the TaskbarIconVisibility property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        public Visibility TaskbarIconVisibility
+        public const string PageTourAdvancedEnd_OpenCloudFolderCommandPropertyName = "PageTourAdvancedEnd_OpenCloudFolderCommand";
+        private bool _pageTourAdvancedEnd_OpenCloudFolderCommand = false;
+        public bool PageTourAdvancedEnd_OpenCloudFolderCommand
         {
             get
             {
-                return _taskbarIconVisibility;
+                return _pageTourAdvancedEnd_OpenCloudFolderCommand;
             }
 
             set
             {
-                if (_taskbarIconVisibility == value)
+                if (_pageTourAdvancedEnd_OpenCloudFolderCommand == value)
                 {
                     return;
                 }
 
-                _taskbarIconVisibility = value;
-                RaisePropertyChanged(TaskbarIconVisibilityPropertyName);
-            }
-        }
-
-        /// <summary>
-        /// The <see cref="TaskbarIconMenuActivation" /> property's name.
-        /// </summary>
-        public const string TaskbarIconMenuActivationPropertyName = "TaskbarIconMenuActivation";
-        private Visibility _taskbarIconMenuActivation = Visibility.Visible;
-
-        /// <summary>
-        /// Sets and gets the TaskbarIconVisibility property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        public Visibility TaskbarIconMenuActivation
-        {
-            get
-            {
-                return _taskbarIconMenuActivation;
-            }
-
-            set
-            {
-                if (_taskbarIconMenuActivation == value)
-                {
-                    return;
-                }
-
-                _taskbarIconMenuActivation = value;
-                RaisePropertyChanged(TaskbarIconMenuActivationPropertyName);
-            }
-        }
-
-        /// <summary>
-        /// The <see cref="TaskbarIconPopupActivation" /> property's name.
-        /// </summary>
-        public const string TaskbarIconPopupActivationPropertyName = "TaskbarIconPopupActivation";
-        private Visibility _taskbarIconPopupActivation = Visibility.Visible;
-
-        /// <summary>
-        /// Sets and gets the TaskbarIconVisibility property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        public Visibility TaskbarIconMenuPopupActivation
-        {
-            get
-            {
-                return _taskbarIconPopupActivation;
-            }
-
-            set
-            {
-                if (_taskbarIconPopupActivation == value)
-                {
-                    return;
-                }
-
-                _taskbarIconPopupActivation = value;
-                RaisePropertyChanged(TaskbarIconPopupActivationPropertyName);
+                _pageTourAdvancedEnd_OpenCloudFolderCommand = value;
+                RaisePropertyChanged(PageTourAdvancedEnd_OpenCloudFolderCommandPropertyName);
             }
         }
 
@@ -220,63 +163,40 @@ namespace win_client.ViewModels
             }
         }
 
-        #endregion
+        #endregion 
 
+      
         #region Relay Commands
-
-        /// <summary>
-        /// The user clicked system tray NotifyIcon context menu preferences item.
-        /// </summary>
-        private RelayCommand _showPreferencesPageCommand;
-        public RelayCommand ShowPreferencesPageCommand
-        {
-            get
-            {
-                return _showPreferencesPageCommand
-                    ?? (_showPreferencesPageCommand = new RelayCommand(
-                                            () =>
-                                            {
-                                                // Show the preferences page
-                                                Uri nextPage = new System.Uri(CLConstants.kPagePreferences, System.UriKind.Relative);
-                                                CLAppMessages.PageInvisible_TriggerOutOfSystemTrayAnimation.Send(nextPage);
-                                            }));
-            }
-        }
 
         /// <summary>
         /// The user clicked has selected a choice and will continue.
         /// </summary>
-        private RelayCommand _checkForUpdatesCommand;
-        public RelayCommand CheckForUpdatesCommand
+        private RelayCommand _PageTourAdvancedEnd_ContinueCommand;
+        public RelayCommand PageTourAdvancedEnd_ContinueCommand
         {
             get
             {
-                return _checkForUpdatesCommand
-                    ?? (_checkForUpdatesCommand = new RelayCommand(
+                return _PageTourAdvancedEnd_ContinueCommand
+                    ?? (_PageTourAdvancedEnd_ContinueCommand = new RelayCommand(
                                             () =>
                                             {
-                                                // Check for updates
+                                                // Show the Cloud folder with a delay
+                                                if (_pageTourAdvancedEnd_OpenCloudFolderCommand)
+                                                {
+                                                    var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                                    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(1500), () =>
+                                                    {
+                                                        Process proc = new Process();
+                                                        proc.StartInfo.UseShellExecute = true;
+                                                        proc.StartInfo.FileName = Settings.Instance.CloudFolderPath;
+                                                        proc.Start();
+                                                    });
+                                                }
+
+                                                // Navigate to the PageInvisible page.  This will start the core services.
+                                                Uri nextPage = new System.Uri(CLConstants.kPageInvisible, System.UriKind.Relative);
+                                                CLAppMessages.PageTourAdvancedEnd_NavigationRequest.Send(nextPage);
                                             }));                                              
-            }
-        }
-
-
-        /// <summary>
-        /// Gets the ExitApplicationCommand.
-        /// </summary>
-        private RelayCommand _exitApplicationCommand;
-        public RelayCommand ExitApplicationCommand
-        {
-            get
-            {
-                return _exitApplicationCommand
-                    ?? (_exitApplicationCommand = new RelayCommand(
-                                          () =>
-                                          {
-                                              // Exit the application
-                                              CLAppDelegate.Instance.StopCloudAppServicesAndUI();
-                                              CLAppDelegate.Instance.ExitApplication();
-                                          }));
             }
         }
 
@@ -295,6 +215,24 @@ namespace win_client.ViewModels
                                           {
                                               // Handle the request and set the property.
                                               WindowCloseOk = OnClosing();
+                                          }));
+            }
+        }
+
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
                                           }));
             }
         }
@@ -323,11 +261,11 @@ namespace win_client.ViewModels
             CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
             {
                 // Do nothing here when the user clicks the OK button.
-                _trace.writeToLog(9, "PageInvisibleViewModel: Prompt exit application: Entry.");
+                _trace.writeToLog(9, "PageTourAdvancedEndViewModel: Prompt exit application: Entry.");
                 if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
                 {
                     // The user said yes.  Unlink this device.
-                    _trace.writeToLog(9, "PageInvisibleViewModel: Prompt exit application: User said yes.");
+                    _trace.writeToLog(9, "PageTourAdvancedEndViewModel: Prompt exit application: User said yes.");
 
                     // Shut down tha application
                     _isShuttingDown = true;         // allow the shutdown if asked

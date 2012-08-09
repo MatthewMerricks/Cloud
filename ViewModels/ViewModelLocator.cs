@@ -68,6 +68,8 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<PageCloudAlreadyRunningViewModel>();
             SimpleIoc.Default.Register<PageInvisibleViewModel>();
             SimpleIoc.Default.Register<PagePreferencesViewModel>();
+            SimpleIoc.Default.Register<PageFolderSelectionViewModel>();
+            SimpleIoc.Default.Register<PageTourAdvancedEndViewModel>();
 
             // Navigation frames
             SimpleIoc.Default.Register<FramePreferencesGeneralViewModel>();
@@ -85,13 +87,11 @@ namespace win_client.ViewModels
 
             // Modal dialogs
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogCloudMessageBoxView(), CLConstants.kDialogBox_CloudMessageBoxView, false);
-            SimpleIoc.Default.Register<IModalWindow>(() => new DialogFolderSelectionSimpleView(), CLConstants.kDialogBox_FolderSelectionSimpleView, false);
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkProxies(), CLConstants.kDialogBox_PreferencesNetworkProxies, false);
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkBandwidth(), CLConstants.kDialogBox_PreferencesNetworkBandwidth, false);
 
             // Modal dialog view models
             SimpleIoc.Default.Register<DialogCloudMessageBoxViewModel>();
-            SimpleIoc.Default.Register<DialogFolderSelectionSimpleViewModel>();
             SimpleIoc.Default.Register<DialogPreferencesNetworkProxiesViewModel>();
             SimpleIoc.Default.Register<DialogPreferencesNetworkBandwidthViewModel>();
 
@@ -209,6 +209,34 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<PagePreferencesViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the PageFolderSelectionViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public PageFolderSelectionViewModel PageFolderSelectionViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<PageFolderSelectionViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the PageTourAdvancedEndViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public PageTourAdvancedEndViewModel PageTourAdvancedEndViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<PageTourAdvancedEndViewModel>();
             }
         }
 
@@ -353,20 +381,6 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
-        /// Gets the FolderSelectionSimpleView property.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
-            "CA1822:MarkMembersAsStatic",
-            Justification = "This non-static member is needed for data binding purposes.")]
-        public DialogFolderSelectionSimpleView DialogFolderSelectionSimpleView
-        {
-            get
-            {
-                return (DialogFolderSelectionSimpleView)ServiceLocator.Current.GetInstance<DialogFolderSelectionSimpleView>(CLConstants.kDialogBox_FolderSelectionSimpleView);
-            }
-        }
-
-        /// <summary>
         /// Gets the DialogPreferencesNetworkProxies property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
@@ -405,20 +419,6 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<DialogCloudMessageBoxViewModel>();
-            }
-        }
-
-        /// <summary>
-        /// Gets the FolderSelectionSimpleViewModel property.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
-            "CA1822:MarkMembersAsStatic",
-            Justification = "This non-static member is needed for data binding purposes.")]
-        public DialogFolderSelectionSimpleViewModel DialogFolderSelectionSimpleViewModel
-        {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<DialogFolderSelectionSimpleViewModel>();
             }
         }
 

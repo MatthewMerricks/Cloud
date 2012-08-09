@@ -60,7 +60,8 @@
         	</Grid.RowDefinitions>
         	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="16" Grid.Row="1"
                     Text="The installation is now complete, and your tour has come to an end. Thanks for spending time with us, enjoy your Cloud experience." />
-        	<CheckBox Content="_Open Cloud Folder" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" IsChecked="True"/>
+        	<CheckBox Content="_Open Cloud Folder" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" 
+                      IsChecked="{Binding PageTour_OpenCloudFolderCommand, Mode=TwoWay}"/>
         </Grid>
         <Grid x:Name="gridButtonArea" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3">
         	<Grid.ColumnDefinitions>

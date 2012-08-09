@@ -35,11 +35,6 @@ namespace win_client.Views
         private PageHomeViewModel _viewModel = null;
         private bool _isLoaded = false;
 
-        private bool savedRightButtonIsDefault = false;
-        private bool savedRightButtonIsCancel = false;
-        private bool savedLeftButtonIsDefault = false;
-        private bool savedLeftButtonIsCancel = false;
-
         #endregion
 
         /// <summary>

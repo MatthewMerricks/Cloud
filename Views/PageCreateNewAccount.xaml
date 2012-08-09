@@ -34,7 +34,7 @@
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
 
-    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=OneWayToSource}" IsBusy="{Binding IsBusy, Mode=OneWayToSource}">
+    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}">
         <Grid x:Name="LayoutRoot">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="0.056*"/>
