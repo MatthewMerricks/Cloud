@@ -247,9 +247,6 @@ namespace CloudApiPublic.Support
         {
             operation.Executing = true;
             _numberOfActiveOperations++;
-            //await Task.Run(() =>
-            //{
-            //});
             (new Thread(() =>
                 {
                     CLError mainError = operation.Main();

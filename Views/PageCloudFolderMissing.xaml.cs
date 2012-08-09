@@ -24,11 +24,20 @@ using win_client.Common;
 using win_client.ViewModels;
 using Ookii.Dialogs.WpfMinusTaskDialog;
 using win_client.AppDelegate;
+using win_client.Model;
+using win_client.Resources;
+using CloudApiPublic.Model;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
-    public partial class PageCloudFolderMissing : Page
+    public partial class PageCloudFolderMissing : Page, IOnNavigated
     {
+        private bool savedRightButtonIsDefault = false;
+        private bool savedRightButtonIsCancel = false;
+        private bool savedLeftButtonIsDefault = false;
+        private bool savedLeftButtonIsCancel = false;
+
         /// <summary>
         /// Default constructor.
         /// </summary>
@@ -37,16 +46,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(PageCloudFolderMissing_Loaded);
             Unloaded += new RoutedEventHandler(PageCloudFolderMissing_Unloaded);
-
-
-            // Register messages
-            CLAppMessages.PageCloudFolderMissing_NavigationRequest.Register(this,
-                (uri) =>
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative);
-                });
-            CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Register(this, OnMessage_PageCloudFolderMissingShouldChooseCloudFolder);
-
         }
 
         /// <summary>
@@ -55,7 +54,7 @@ namespace win_client.Views
         private void OnMessage_PageCloudFolderMissingShouldChooseCloudFolder(string obj)
         {
             VistaFolderBrowserDialog folderBrowser = new VistaFolderBrowserDialog();
-            folderBrowser.Description = CLAppDelegate.Instance.ResourceManager.GetString("pageCloudFolderMissingFolderBrowserDescription");
+            folderBrowser.Description = win_client.Resources.Resources.pageCloudFolderMissingFolderBrowserDescription;
             folderBrowser.RootFolder = Environment.SpecialFolder.MyDocuments;  // no way to get to the user's home directory.  RootFolder is a SpecialFolder.
             folderBrowser.ShowNewFolderButton = true;
             bool? wasOkButtonClicked = folderBrowser.ShowDialog(Window.GetWindow(this));
@@ -76,12 +75,17 @@ namespace win_client.Views
         /// </summary>
         void PageCloudFolderMissing_Loaded(object sender, RoutedEventArgs e)
         {
+            // Register messages
+            CLAppMessages.PageCloudFolderMissing_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
+            CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Register(this, OnMessage_PageCloudFolderMissingShouldChooseCloudFolder);
+
             // Set the view's grid into the view model.
             PageCloudFolderMissingViewModel vm = (PageCloudFolderMissingViewModel)DataContext;
             vm.ViewGridContainer = LayoutRoot;
-
-            // Register the navigated event.
-            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -92,21 +96,61 @@ namespace win_client.Views
         /// </summary>
         void PageCloudFolderMissing_Unloaded(object sender, RoutedEventArgs e)
         {
-
-            if (NavigationService != null)
-            {
-                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
-            }
+            // Unregister for messages
             Messenger.Default.Unregister(this);
         }
 
         /// <summary>
-        /// Navigated event handler.  Show the window.
+        /// Navigated event handler.
         /// </summary>
-        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        CLError IOnNavigated.HandleNavigated(object sender, NavigationEventArgs e)
         {
-            // Show the window.
-            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+            try
+            {
+                // Register to receive the ConfirmShutdown message
+                Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                    this,
+                    message =>
+                    {
+                        OnConfirmShutdownMessage(message);
+                    });
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
+        /// <summary>
+        /// NavigationWindow sends this to all pages prior to driving the HandleNavigated event above.
+        /// Upon receipt, the page must unregister the WindowClosingMessage.
+        /// </summary>
+        private void OnMessage_PageMustUnregisterWindowClosingMessage(string obj)
+        {
+            Messenger.Default.Unregister<CleanShutdown.Messaging.NotificationMessageAction<bool>>(this, message => { });
+        }
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
+        /// the automatic Window.Close (set true to message.Execute.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                // Ask the ViewModel if we should allow the window to close.
+                // This should not block.
+                PageCloudFolderMissingViewModel vm = (PageCloudFolderMissingViewModel)DataContext;
+                if (vm.WindowCloseRequested.CanExecute(null))
+                {
+                    vm.WindowCloseRequested.Execute(null);
+                }
+
+                // Get the answer and set the real event Cancel flag appropriately.
+                message.Execute(!vm.WindowCloseOk);      // true == abort shutdown
+            }
+        }
+
     }
 }

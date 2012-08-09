@@ -34,7 +34,7 @@ namespace win_client.Services.Notification
     {
         private static CLNotificationService _instance = null;
         private static object _instanceLocker = new object();
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance;
         private WebSocket _connection;
 
         // True: the push notification service has been started.
@@ -73,7 +73,6 @@ namespace win_client.Services.Notification
         private CLNotificationService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
         }
 
 

@@ -112,12 +112,17 @@
    <!-- =============================================================================== -->
 
    <SolidColorBrush x:Key="ChildWindowMainBrushColor" Color="#FF3C688D" />
-   <LinearGradientBrush x:Key="BorderBrush" EndPoint="0.5,1" StartPoint="0.5,0">
-      <GradientStop Color="#7FFFFFFF" Offset="0.05" />
-      <GradientStop Color="#B2FFFFFF" Offset="0.07" />
-      <GradientStop Color="#00FFFFFF" Offset="1" />
-   </LinearGradientBrush>
+<LinearGradientBrush x:Key="BorderBrush" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#7FFFFFFF" Offset="0.05" />
+        <GradientStop Color="#B2FFFFFF" Offset="0.07" />
+        <GradientStop Color="#00FFFFFF" Offset="1" />
+    </LinearGradientBrush>
 
+    
+<!--
+    // Original setting below.
+      <Setter Property="WindowBackground" Value="{StaticResource WindowBackgroundBrush}" />
+-->    
    <Style TargetType="{x:Type local:ChildWindow}">
       <Setter Property="Background" Value="#FFFFFFFF" />
       <Setter Property="BorderBrush" Value="{StaticResource WindowDarkBrush}" />
@@ -130,7 +135,7 @@
       <Setter Property="VerticalAlignment" Value="Top" />
       <Setter Property="VerticalContentAlignment" Value="Top" />
       <Setter Property="WindowBorderBrush" Value="{StaticResource WindowDarkBrush}" />
-      <Setter Property="WindowBackground" Value="{StaticResource WindowBackgroundBrush}" />
+      <Setter Property="WindowBackground" Value="{DynamicResource {x:Static SystemColors.ActiveCaptionColorKey}}" />
       <Setter Property="WindowOpacity" Value="1.0" />
       <Setter Property="Template">
          <Setter.Value>
@@ -205,7 +210,7 @@
                                                  IsTabStop="False"
                                                  HorizontalAlignment="Stretch"
                                                  Content="{TemplateBinding Caption}"
-                                                 Foreground="{TemplateBinding CaptionForeground}" />
+                                                 Foreground="{TemplateBinding CaptionForeground}"/>
                               </Grid>
                            </Grid>
                         </Border>

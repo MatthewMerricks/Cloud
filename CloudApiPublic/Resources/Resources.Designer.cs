@@ -22,7 +22,7 @@ namespace CloudApiPublic.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace CloudApiPublic.Resources {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CloudApiPublic.Resources.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace CloudApiPublic.Resources {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops.  We&apos;re sorry, it seems that something went wrong while requesting status from the server..
         /// </summary>
-        internal static string ErrorPostingSyncFromServer {
+        public static string ErrorPostingSyncFromServer {
             get {
                 return ResourceManager.GetString("ErrorPostingSyncFromServer", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops.  We&apos;re sorry, it seems that something went wrong while syncing files to the server..
         /// </summary>
-        internal static string ErrorPostingSyncToServer {
+        public static string ErrorPostingSyncToServer {
             get {
                 return ResourceManager.GetString("ErrorPostingSyncToServer", resourceCulture);
             }
@@ -81,61 +81,61 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops.  We&apos;re sorry, it seems that something when wrong while starting a server file upload or download. .
         /// </summary>
-        internal static string ErrorPuttingUploadOrDownloadToServer {
+        public static string ErrorPuttingUploadOrDownloadToServer {
             get {
                 return ResourceManager.GetString("ErrorPuttingUploadOrDownloadToServer", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while creating your account..
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while creating your account..
         /// </summary>
-        internal static string ExceptionCreatingUserRegistration {
+        public static string ExceptionCreatingUserRegistration {
             get {
                 return ResourceManager.GetString("ExceptionCreatingUserRegistration", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while creating your account.  The error code is {0}..
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while creating your account.  The error code is {0}..
         /// </summary>
-        internal static string ExceptionCreatingUserRegistrationWithCode {
+        public static string ExceptionCreatingUserRegistrationWithCode {
             get {
                 return ResourceManager.GetString("ExceptionCreatingUserRegistrationWithCode", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while logging in..
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while logging in..
         /// </summary>
-        internal static string ExceptionLoggingIn {
+        public static string ExceptionLoggingIn {
             get {
                 return ResourceManager.GetString("ExceptionLoggingIn", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while logging into your account.  The error code is {0}..
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while logging into your account.  The error code is {0}..
         /// </summary>
-        internal static string ExceptionLoggingInWithCode {
+        public static string ExceptionLoggingInWithCode {
             get {
                 return ResourceManager.GetString("ExceptionLoggingInWithCode", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while removing this device from your account..
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while removing this device from your account..
         /// </summary>
-        internal static string ExceptionUnlinking {
+        public static string ExceptionUnlinking {
             get {
                 return ResourceManager.GetString("ExceptionUnlinking", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went terribly wrong while removing this device from your account.  The error code is {0}..
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while removing this device from your account.  The error code is {0}..
         /// </summary>
-        internal static string ExceptionUnlinkingWithCode {
+        public static string ExceptionUnlinkingWithCode {
             get {
                 return ResourceManager.GetString("ExceptionUnlinkingWithCode", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to bits.
         /// </summary>
-        internal static string OsBits {
+        public static string OsBits {
             get {
                 return ResourceManager.GetString("OsBits", resourceCulture);
             }

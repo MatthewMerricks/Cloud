@@ -23,16 +23,23 @@ using win_client.Common;
 using win_client.ViewModels;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Xceed.Wpf.Toolkit;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
-    public partial class DialogCloudMessageBoxView : ChildWindow, IModalWindow
+    public partial class DialogCloudMessageBoxView : Window, IModalWindow
     {
+        private bool savedRightButtonIsDefault = false;
+        private bool savedRightButtonIsCancel = false;
+        private bool savedLeftButtonIsDefault = false;
+        private bool savedLeftButtonIsCancel = false;
+
         public DialogCloudMessageBoxView()
         {
             InitializeComponent();
 
-            Loaded += new RoutedEventHandler(DialogCloudMessageBoxView_Loaded);
+            Loaded +=DialogCloudMessageBoxView_Loaded;
+            Unloaded += DialogCloudMessageBoxView_Unloaded;
         }
 
         // Button clicks set the DialogResult.
@@ -51,19 +58,44 @@ namespace win_client.Views
         // via the code-behind works however, so we do it here.
         void DialogCloudMessageBoxView_Loaded(object sender, RoutedEventArgs e)
         {
-            FocusedElement = btnOK;
+            // Register for messages
+            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                this,
+                message =>
+                {
+                    OnConfirmShutdownMessage(message);
+                });
+            // Give focus to the left button.
+            //TODO: The caller's should establish the focus position in a parameter.
+            btnLeft.Focus();
         }
 
-        // The following added to allow the Title, Width and Height= fields of this ChildWindow to use a binding back to the ViewModel:
-        public string Title
+        /// <summary>
+        /// Unloaded event handler.
+        /// </summary>
+        void DialogCloudMessageBoxView_Unloaded(object sender, RoutedEventArgs e)
         {
-            get { return (string)GetValue(TitleProperty); }
-            set { SetValue(TitleProperty, value); }
+            base.Close();
+
+            // Unregister for messages
+            Messenger.Default.Unregister(this);
         }
-        public static readonly DependencyProperty TitleProperty =
-            DependencyProperty.Register("Title",
-              typeof(string),
-              typeof(ChildWindow),
-              new PropertyMetadata(""));
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// This is a modal dialog.  Prevent the close.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                message.Execute(true);      // true == abort shutdown
+            }
+
+            if (message.Notification == Notifications.QueryModalDialogsActive)
+            {
+                message.Execute(true);      // a modal dialog is active
+            }
+        }
     }
 }

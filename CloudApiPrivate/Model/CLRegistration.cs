@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
+using CloudApiPublic.Resources;
 
 namespace CloudApiPrivate.Model
 {
@@ -87,7 +88,7 @@ namespace CloudApiPrivate.Model
                     {
                         err = new CLError();
                         err.errorDomain = CLError.ErrorDomain_Application;
-                        err.errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("ExceptionCreatingUserRegistration");
+                        err.errorDescription = CloudApiPublic.Resources.Resources.ExceptionCreatingUserRegistration;
                         err.errorCode = (int)CLError.ErrorCodes.Exception;
                         err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
                         isSuccess = false;
@@ -179,7 +180,7 @@ namespace CloudApiPrivate.Model
             {
                 error = new CLError();
                 error.errorCode = (int)result.StatusCode;
-                error.errorDescription = String.Format(CLSptResourceManager.Instance.ResMgr.GetString("ExceptionCreatingUserRegistrationWithCode"), error.errorCode);
+                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionCreatingUserRegistrationWithCode, error.errorCode);
                 error.errorDomain = CLError.ErrorDomain_Application;
                 isSuccess = false;
             }
@@ -244,7 +245,7 @@ namespace CloudApiPrivate.Model
                 retVal = false;
                 error = new CLError();
                 error.errorCode = 1400;
-                error.errorDescription = String.Format(CLSptResourceManager.Instance.ResMgr.GetString("ExceptionCreatingUserRegistrationWithCode"), 1400);
+                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionCreatingUserRegistrationWithCode, 1400);
                 error.errorDomain = CLError.ErrorDomain_Application;            
             }
     
@@ -277,7 +278,7 @@ namespace CloudApiPrivate.Model
                 {
                     err = new CLError();
                     err.errorDomain = CLError.ErrorDomain_Application;
-                    err.errorDescription = CLSptResourceManager.Instance.ResMgr.GetString("ExceptionLoggingIn");
+                    err.errorDescription = CloudApiPublic.Resources.Resources.ExceptionLoggingIn;
                     err.errorCode = (int)CLError.ErrorCodes.Exception;
                     err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
                     isSuccess = false;
@@ -370,7 +371,7 @@ namespace CloudApiPrivate.Model
             {
                 error = new CLError();
                 error.errorCode = (int)result.StatusCode;
-                error.errorDescription = String.Format(CLSptResourceManager.Instance.ResMgr.GetString("ExceptionLoggingInWithCode"), error.errorCode);
+                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionLoggingInWithCode, error.errorCode);
                 error.errorDomain = CLError.ErrorDomain_Application;
                 isSuccess = false;
             }
@@ -394,7 +395,7 @@ namespace CloudApiPrivate.Model
 
             if (returnDictionary != null)
             {
-                if (((string)returnDictionary["status"]) == "error")
+                if (!returnDictionary.ContainsKey("status") || ((string)returnDictionary["status"]) == "error")
                 {
                     // The server returned an errlr
                     retVal = false;
@@ -435,7 +436,7 @@ namespace CloudApiPrivate.Model
                 retVal = false;
                 error = new CLError();
                 error.errorCode = 1400;
-                error.errorDescription = String.Format(CLSptResourceManager.Instance.ResMgr.GetString("ExceptionLoggingInWithCode"), 1400);
+                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionLoggingInWithCode, 1400);
                 error.errorDomain = CLError.ErrorDomain_Application;
             }
 
@@ -485,7 +486,7 @@ namespace CloudApiPrivate.Model
             //     } else {
             
             //         NSMutableDictionary *errorDetail = [NSMutableDictionary dictionary];
-            //         [errorDetail setValue:[NSString stringWithFormat:@"Ops. We're sorry, it seems like something went terribly wrong. Error: %ld", [ahttp statusCode]]
+            //         [errorDetail setValue:[NSString stringWithFormat:@"Ops. We're sorry, it seems like something went wrong. Error: %ld", [ahttp statusCode]]
             //                        forKey:NSLocalizedDescriptionKey];
             
             //         self.error_ = [NSError errorWithDomain:@"com.cloud.error" code:[ahttp statusCode] userInfo:errorDetail];
@@ -516,7 +517,7 @@ namespace CloudApiPrivate.Model
             {
                 error = new CLError();
                 error.errorCode = (int)result.StatusCode;
-                error.errorDescription = String.Format(CLSptResourceManager.Instance.ResMgr.GetString("ExceptionUnlinkingWithCode"), error.errorCode);
+                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionLoggingInWithCode, error.errorCode);
                 error.errorDomain = CLError.ErrorDomain_Application;
                 isSuccess = false;
             }

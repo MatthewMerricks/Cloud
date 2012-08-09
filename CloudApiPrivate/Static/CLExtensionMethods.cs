@@ -22,6 +22,7 @@ using CloudApiPublic.Model;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Windows.Interop;
 
 
 namespace CloudApiPrivate.Static
@@ -333,6 +334,6 @@ namespace CloudApiPrivate.Static
                 pinnedBuffer.AddrOfPinnedObject(), typeof(T));
             pinnedBuffer.Free();
             return structure;
-        } 
+        }
     }
 }

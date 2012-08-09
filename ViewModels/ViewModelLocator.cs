@@ -27,6 +27,7 @@ using win_client.Services.Notification;
 using GalaSoft.MvvmLight.Messaging;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Dialog.Implementors.Wpf.MVVM.Services;
+using System.Windows;
 
 
 namespace win_client.ViewModels
@@ -66,6 +67,14 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<PageBadgeComInitializationErrorViewModel>();
             SimpleIoc.Default.Register<PageCloudAlreadyRunningViewModel>();
             SimpleIoc.Default.Register<PageInvisibleViewModel>();
+            SimpleIoc.Default.Register<PagePreferencesViewModel>();
+
+            // Navigation frames
+            SimpleIoc.Default.Register<FramePreferencesGeneralViewModel>();
+            SimpleIoc.Default.Register<FramePreferencesAccountViewModel>();
+            SimpleIoc.Default.Register<FramePreferencesNetworkViewModel>();
+            SimpleIoc.Default.Register<FramePreferencesAdvancedViewModel>();
+            SimpleIoc.Default.Register<FramePreferencesAboutViewModel>();
 
             // Window pages
             SimpleIoc.Default.Register<PageCloudFolderMissingViewModel>();
@@ -77,10 +86,14 @@ namespace win_client.ViewModels
             // Modal dialogs
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogCloudMessageBoxView(), CLConstants.kDialogBox_CloudMessageBoxView, false);
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogFolderSelectionSimpleView(), CLConstants.kDialogBox_FolderSelectionSimpleView, false);
+            SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkProxies(), CLConstants.kDialogBox_PreferencesNetworkProxies, false);
+            SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkBandwidth(), CLConstants.kDialogBox_PreferencesNetworkBandwidth, false);
 
             // Modal dialog view models
             SimpleIoc.Default.Register<DialogCloudMessageBoxViewModel>();
             SimpleIoc.Default.Register<DialogFolderSelectionSimpleViewModel>();
+            SimpleIoc.Default.Register<DialogPreferencesNetworkProxiesViewModel>();
+            SimpleIoc.Default.Register<DialogPreferencesNetworkBandwidthViewModel>();
 
             // Growls
             SimpleIoc.Default.Register<FancyBalloon>();
@@ -186,6 +199,20 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// Gets the PagePreferencesViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public PagePreferencesViewModel PagePreferencesViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<PagePreferencesViewModel>();
+            }
+        }
+
+        /// <summary>
         /// Gets the PageCloudFolderMissingViewModel property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
@@ -210,6 +237,76 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<PageBadgeComInitializationErrorViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the FramePreferencesGeneralViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FramePreferencesGeneralViewModel FramePreferencesGeneralViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FramePreferencesGeneralViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the FramePreferencesAccountViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FramePreferencesAccountViewModel FramePreferencesAccountViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FramePreferencesAccountViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the FramePreferencesNetworkViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FramePreferencesNetworkViewModel FramePreferencesNetworkViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FramePreferencesNetworkViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the FramePreferencesAdvancedViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FramePreferencesAdvancedViewModel FramePreferencesAdvancedViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FramePreferencesAdvancedViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the FramePreferencesAboutViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FramePreferencesAboutViewModel FramePreferencesAboutViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FramePreferencesAboutViewModel>();
             }
         }
 
@@ -261,11 +358,39 @@ namespace win_client.ViewModels
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public DialogFolderSelectionSimpleView FolderSelectionSimpleView
+        public DialogFolderSelectionSimpleView DialogFolderSelectionSimpleView
         {
             get
             {
                 return (DialogFolderSelectionSimpleView)ServiceLocator.Current.GetInstance<DialogFolderSelectionSimpleView>(CLConstants.kDialogBox_FolderSelectionSimpleView);
+            }
+        }
+
+        /// <summary>
+        /// Gets the DialogPreferencesNetworkProxies property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public DialogPreferencesNetworkProxies DialogPreferencesNetworkProxies
+        {
+            get
+            {
+                return (DialogPreferencesNetworkProxies)ServiceLocator.Current.GetInstance<DialogPreferencesNetworkProxies>(CLConstants.kDialogBox_PreferencesNetworkProxies);
+            }
+        }
+
+        /// <summary>
+        /// Gets the DialogPreferencesNetworkBandwidth property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public DialogPreferencesNetworkBandwidth DialogPreferencesNetworkBandwidth
+        {
+            get
+            {
+                return (DialogPreferencesNetworkBandwidth)ServiceLocator.Current.GetInstance<DialogPreferencesNetworkBandwidth>(CLConstants.kDialogBox_PreferencesNetworkBandwidth);
             }
         }
 
@@ -289,11 +414,39 @@ namespace win_client.ViewModels
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public DialogFolderSelectionSimpleViewModel FolderSelectionSimpleViewModel
+        public DialogFolderSelectionSimpleViewModel DialogFolderSelectionSimpleViewModel
         {
             get
             {
                 return ServiceLocator.Current.GetInstance<DialogFolderSelectionSimpleViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the DialogPreferencesNetworkProxiesViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public DialogPreferencesNetworkProxiesViewModel DialogPreferencesNetworkProxiesViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<DialogPreferencesNetworkProxiesViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the DialogPreferencesNetworkBandwidthViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public DialogPreferencesNetworkBandwidthViewModel DialogPreferencesNetworkBandwidthViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<DialogPreferencesNetworkBandwidthViewModel>();
             }
         }
 

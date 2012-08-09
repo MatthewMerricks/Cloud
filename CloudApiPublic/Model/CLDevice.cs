@@ -8,6 +8,7 @@
 using System;
 using CloudApiPublic.Support;
 using System.Resources;
+using CloudApiPublic.Resources;
 
 namespace CloudApiPublic.Model
 {
@@ -33,7 +34,7 @@ namespace CloudApiPublic.Model
 
         public string OSType()
         {
-            string osType = OSInfo.Name + " " + OSInfo.Edition + " " + OSInfo.Bits.ToString() + " " + CLSptResourceManager.Instance.ResMgr.GetString("OsBits");
+            string osType = OSInfo.Name + " " + OSInfo.Edition + " " + OSInfo.Bits.ToString() + " " +  Resources.Resources.OsBits;
             return osType;
         }
 

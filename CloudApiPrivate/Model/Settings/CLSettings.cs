@@ -11,16 +11,20 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Resources;
 using CloudApiPrivate;
 using CloudApiPrivate.Static;
 using CloudApiPublic.Static;
+using CloudApiPrivate.Static.FriendlyEnumValues;
+using CloudApiPrivate.Resources;
+using CloudApiPublic.Model;
 
 
 namespace CloudApiPrivate.Model.Settings
 {
     #region "Enums"
 
-    enum cloudAppLanguageType
+    public enum cloudAppLanguageType
     {
         cloudAppLanguageEN = 0,
         cloudAppLanguageES = 1,
@@ -32,28 +36,31 @@ namespace CloudApiPrivate.Model.Settings
         cloudAppLanguageCN = 7,
     };
 
-    enum uploadSpeedLimitType
+    public enum uploadSpeedLimitType
     {
         uploadSpeedLimitDontLimit = 0,
         uploadSpeedLimitAutoLimit = 1,
         uploadSpeedLimitLimitTo = 2,
     };
 
-    enum useProxySettingType
+    public enum useProxySettingType
     {
         useProxySettingNoProxy = 0,
         useProxySettingAutoDetect = 1,
-        useProxySettingNoManual = 2,
+        useProxySettingManual = 2,
     };
 
-    enum useProxyTypes
+    public enum useProxyTypes
     {
+        [LocalizableDescription("useProxyHTTP", typeof(Resources.Resources))]
         useProxyHTTP = 0,
+        [LocalizableDescription("useProxySOCK4", typeof(Resources.Resources))]
         useProxySOCK4 = 1,
+        [LocalizableDescription("useProxySOCK5", typeof(Resources.Resources))]
         useProxySOCK5 = 2,
     };
 
-    enum buttonState
+    public enum buttonState
     {
         stateOFF = 0,
         stateON = 1,
@@ -143,6 +150,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kStartCloudAppWithSystem = "start_cloud_app_with_system";
         public const string kAnimateMenuBarForUpdates = "animate_menu_bar_for_updates";
         public const string kShowDesktopNotificationForUpdates = "show_desktop_notification_for_updates";
+        public const string kUseColorIconForCloudFolder = "colored_folder_icon";
         public const string kCloudAppLanguage = "cloud_app_language";
         public const string kDateWeLastCheckedForSoftwareUpdate = "date_we_last_checked_for_software_update";
         public const string kUseDefaultSetup = "use_default_setup";
@@ -167,7 +175,6 @@ namespace CloudApiPrivate.Model.Settings
         public const string kUdidRegistered = "r_udid";
         public const string kCompletedSetup = "cs";
         public const string kCloudFolderPath = "cloud_folder_path";
-        public const string kCloudFolderDescriptor = "desktop_shortcut";
         public const string kEid = "eid";
         public const string kSid = "sid";
         public const string kAddCloudFolderToDock = "add_dock_folder";
@@ -177,42 +184,53 @@ namespace CloudApiPrivate.Model.Settings
         public const string kLogErrors = "log_errors";
         public const string kLogErrorLocation = "log_error_location";
         public const string kCloudFolderCreationTimeUtc = "cloud_folder_path_creation_time";
-
+        public const string kMainWindowPlacement = "main_window_placement";
 
         /// <summary>
         /// The persistent settings properties.
         /// </summary>
         
         // General
-        private int _startCloudAppWithSystem;
-        public int StartCloudAppWithSystem {
+        private bool _startCloudAppWithSystem;
+        public bool StartCloudAppWithSystem {
         get {return _startCloudAppWithSystem; } 
         set
             {
                 _startCloudAppWithSystem = value;
-                SettingsBase.Write<int>(kStartCloudAppWithSystem, value);
+                SettingsBase.Write<bool>(kStartCloudAppWithSystem, value);
             }
         }
 
-        private int _animateMenuBarForUpdates;
-        public int AnimateMenuBarForUpdates
+        private bool _animateMenuBarForUpdates;
+        public bool AnimateMenuBarForUpdates
         {
             get { return _animateMenuBarForUpdates; }
             set
             {
                 _animateMenuBarForUpdates = value;
-                SettingsBase.Write<int>(kAnimateMenuBarForUpdates, value);
+                SettingsBase.Write<bool>(kAnimateMenuBarForUpdates, value);
             }
         }
 
-        private int _showDesktopNotificationForUpdates;
-        public int ShowDesktopNotificationForUpdates
+        private bool _showDesktopNotificationForUpdates;
+        public bool ShowDesktopNotificationForUpdates
         {
             get { return _showDesktopNotificationForUpdates; }
             set
             {
                 _showDesktopNotificationForUpdates = value;
-                SettingsBase.Write<int>(kCloudAppLanguage, value);
+                SettingsBase.Write<bool>(kCloudAppLanguage, value);
+            }
+        }
+
+        private bool _useColorIconForCloudFolder;
+        public bool UseColorIconForCloudFolder
+        {
+            get { return _useColorIconForCloudFolder; }
+            set
+            {
+                _useColorIconForCloudFolder = value;
+                SettingsBase.Write<bool>(kUseColorIconForCloudFolder, value);
             }
         }
 
@@ -251,25 +269,25 @@ namespace CloudApiPrivate.Model.Settings
         }
 
         // Bandwidth
-        private int _useLANForFileSync;
-        public int UseLANForFileSync
+        private bool _useLANForFileSync;
+        public bool UseLANForFileSync
         {
             get { return _useLANForFileSync; }
             set
             {
                 _useLANForFileSync = value;
-                SettingsBase.Write<int>(kUseLanForFileSync, value);
+                SettingsBase.Write<bool>(kUseLanForFileSync, value);
             }
         }
 
-        private int _limitDownloadSpeeds;
-        public int LimitDownloadSpeeds
+        private bool _limitDownloadSpeeds;
+        public bool LimitDownloadSpeeds
         {
             get { return _limitDownloadSpeeds; }
             set
             {
                 _limitDownloadSpeeds = value;
-                SettingsBase.Write<int>(kLimitDownloadSpeeds, value);
+                SettingsBase.Write<bool>(kLimitDownloadSpeeds, value);
             }
         }
 
@@ -284,14 +302,14 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private int _limitUploadSpeeds;
-        public int LimitUploadSpeeds
+        private uploadSpeedLimitType _limitUploadSpeeds;
+        public uploadSpeedLimitType LimitUploadSpeeds
         {
             get { return _limitUploadSpeeds; }
             set
             {
                 _limitUploadSpeeds = value;
-                SettingsBase.Write<int>(kLimitUploadSpeeds, value);
+                SettingsBase.Write<uploadSpeedLimitType>(kLimitUploadSpeeds, value);
             }
         }
 
@@ -306,25 +324,25 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private int _useProxySetting;
-        public int UseProxySetting
+        private useProxySettingType _useProxySetting;
+        public useProxySettingType UseProxySetting
         {
             get { return _useProxySetting; }
             set
             {
                 _useProxySetting = value;
-                SettingsBase.Write<int>(kUseProxySetting, value);
+                SettingsBase.Write<useProxySettingType>(kUseProxySetting, value);
             }
         }
 
-        private int _useProxyType;
-        public int UseProxyType
+        private useProxyTypes _useProxyType;
+        public useProxyTypes UseProxyType
         {
             get { return _useProxyType; }
             set
             {
                 _useProxyType = value;
-                SettingsBase.Write<int>(kUseProxyType, value);
+                SettingsBase.Write<useProxyTypes>(kUseProxyType, value);
             }
         }
 
@@ -350,14 +368,14 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private int _proxyServerRequiresPassword;
-        public int ProxyServerRequiresPassword
+        private bool _proxyServerRequiresPassword;
+        public bool ProxyServerRequiresPassword
         {
             get { return _proxyServerRequiresPassword; }
             set
             {
                 _proxyServerRequiresPassword = value;
-                SettingsBase.Write<int>(kProxyServerRequiresPassword, value);
+                SettingsBase.Write<bool>(kProxyServerRequiresPassword, value);
             }
         }
 
@@ -507,17 +525,6 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private FileStream _cloudFolderDescriptor;
-        public FileStream CloudFolderDescriptor
-        {
-            get { return _cloudFolderDescriptor; }
-            set
-            {
-                _cloudFolderDescriptor = value;
-                SettingsBase.Write<FileStream>(kCloudFolderDescriptor, value);
-            }
-        }
-
         // todo: property to track selective folders for sync in cloudFolderPath.
 
         // Others
@@ -602,6 +609,18 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
+        // Main window placement info.
+        private string _mainWindowPlacement;
+        public String MainWindowPlacement
+        {
+            get { return _mainWindowPlacement; }
+            set
+            {
+                _mainWindowPlacement = value;
+                SettingsBase.Write<string>(kMainWindowPlacement, value);
+            }
+        }
+
         /// <summary>
         /// Allocate ourselves. We have a private constructor, so no one else can.
         /// </summary>
@@ -649,9 +668,10 @@ namespace CloudApiPrivate.Model.Settings
             _errorLogLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Cloud\\ErrorLog";
 
             // General
-            _startCloudAppWithSystem = (int)buttonState.stateON;
-            _animateMenuBarForUpdates = (int)buttonState.stateON;
-            _showDesktopNotificationForUpdates = (int)buttonState.stateON;
+            _startCloudAppWithSystem = true;
+            _animateMenuBarForUpdates = true;
+            _showDesktopNotificationForUpdates = true;
+            _useColorIconForCloudFolder = false;
             _cloudAppLanguage = (int)cloudAppLanguageType.cloudAppLanguageEN;
             _dateWeLastCheckedForSoftwareUpdate = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
@@ -659,16 +679,16 @@ namespace CloudApiPrivate.Model.Settings
             _useDefaultSetup = true;
     
             // Network
-            _useLANForFileSync = (int)buttonState.stateON;
-            _limitDownloadSpeeds = (int)buttonState.stateOFF;
+            _useLANForFileSync = true;
+            _limitDownloadSpeeds = false;
             _downloadSpeedLimit = 50;
-            _limitUploadSpeeds = (int)uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
+            _limitUploadSpeeds = uploadSpeedLimitType.uploadSpeedLimitAutoLimit;
             _uploadSpeedLimit = 10;
-            _useProxySetting = (int)useProxySettingType.useProxySettingAutoDetect;
-            _useProxyType = (int)useProxyTypes.useProxyHTTP;
+            _useProxySetting = useProxySettingType.useProxySettingAutoDetect;
+            _useProxyType = useProxyTypes.useProxyHTTP;
             _proxyServerAddress = "";
             _proxyServerPort = 8080;
-            _proxyServerRequiresPassword = (int)buttonState.stateOFF;
+            _proxyServerRequiresPassword = false;
             _proxyServerUsername = "";
             _proxyServerPassword = "";
     
@@ -683,12 +703,9 @@ namespace CloudApiPrivate.Model.Settings
             _udidRegistered = false;
     
             // Advanced
-            _cloudFolderPath = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));  // get the user's home directory.  e.g., C:\Users\<UserName>\
-            _cloudFolderPath = _cloudFolderPath + "\\" + CLPrivateDefinitions.CloudDirectoryName;
+            _cloudFolderPath = GetDefaultCloudFolderPath();
             _cloudFolderCreationTimeUtc = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
-            _cloudFolderDescriptor = null;
-    
             // Index Services
             _eid = Helpers.DefaultForType<long>();
     
@@ -696,13 +713,15 @@ namespace CloudApiPrivate.Model.Settings
             _addCloudFolderToDock = true;
             _addCloudFolderToDesktop = false;
             _sid = "0";
-            _recentFileItems.Clear(); 
+            _recentFileItems.Clear();
+            _mainWindowPlacement = "";
     
             // Override default options with user preferences
 
             // Logging
             int temp;
             long uTemp;
+            bool bTemp;
             Boolean isPresent = SettingsBase.ReadIfPresent<int>(kLogErrors, out temp);
             if (isPresent)
             {
@@ -717,23 +736,29 @@ namespace CloudApiPrivate.Model.Settings
             }
 
             // General
-            isPresent = SettingsBase.ReadIfPresent<int>(kStartCloudAppWithSystem, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kStartCloudAppWithSystem, out bTemp);
             if (isPresent)
             {
-                _startCloudAppWithSystem = temp;
+                _startCloudAppWithSystem = bTemp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(kAnimateMenuBarForUpdates, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kAnimateMenuBarForUpdates, out bTemp);
             if (isPresent)
             {
-                _animateMenuBarForUpdates = temp;
+                _animateMenuBarForUpdates = bTemp;
             }
 
 
-            isPresent = SettingsBase.ReadIfPresent<int>(kShowDesktopNotificationForUpdates, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kShowDesktopNotificationForUpdates, out bTemp);
             if (isPresent)
             {
-                _showDesktopNotificationForUpdates = temp;
+                _showDesktopNotificationForUpdates = bTemp;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<bool>(kUseColorIconForCloudFolder, out bTemp);
+            if (isPresent)
+            {
+                _useColorIconForCloudFolder = bTemp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<int>(kCloudAppLanguage, out temp);
@@ -759,18 +784,18 @@ namespace CloudApiPrivate.Model.Settings
 
  
             // Network
-            isPresent = SettingsBase.ReadIfPresent<int>(kUseLanForFileSync, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kUseLanForFileSync, out bTemp);
             if (isPresent)
             {
-                _useLANForFileSync = temp;
+                _useLANForFileSync = bTemp;
             }
 
     
             // Bandwidth
-            isPresent = SettingsBase.ReadIfPresent<int>(kLimitDownloadSpeeds, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kLimitDownloadSpeeds, out bTemp);
             if (isPresent)
             {
-                _limitDownloadSpeeds = temp;
+                _limitDownloadSpeeds = bTemp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<int>(kDownloadSpeedLimit, out temp);
@@ -782,7 +807,7 @@ namespace CloudApiPrivate.Model.Settings
             isPresent = SettingsBase.ReadIfPresent<int>(kLimitUploadSpeeds, out temp);
             if (isPresent)
             {
-                _limitUploadSpeeds = temp;
+                _limitUploadSpeeds = (uploadSpeedLimitType)temp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<int>(kUploadSpeedLimit, out temp);
@@ -795,13 +820,13 @@ namespace CloudApiPrivate.Model.Settings
             isPresent = SettingsBase.ReadIfPresent<int>(kUseProxySetting, out temp);
             if (isPresent)
             {
-                _useProxySetting = temp;
+                _useProxySetting = (useProxySettingType)temp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<int>(kUseProxyType, out temp);
             if (isPresent)
             {
-                _useProxyType = temp;
+                _useProxyType = (useProxyTypes)temp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kProxyServerAddress, out  tempString);
@@ -816,10 +841,10 @@ namespace CloudApiPrivate.Model.Settings
                 _proxyServerPort = temp;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(kProxyServerRequiresPassword, out temp);
+            isPresent = SettingsBase.ReadIfPresent<bool>(kProxyServerRequiresPassword, out bTemp);
             if (isPresent)
             {
-                _proxyServerRequiresPassword = temp;
+                _proxyServerRequiresPassword = bTemp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kProxyServerUserName, out tempString);
@@ -896,13 +921,6 @@ namespace CloudApiPrivate.Model.Settings
                 _cloudFolderCreationTimeUtc = tempDate;
             }
 
-            FileStream tempStream;
-            isPresent = SettingsBase.ReadIfPresent<FileStream>(kCloudFolderDescriptor, out tempStream);
-            if (isPresent)
-            {
-                _cloudFolderDescriptor = tempStream;
-            }
-    
             // Index Services
             isPresent = SettingsBase.ReadIfPresent<long>(kEid, out uTemp);
             if (isPresent)
@@ -915,11 +933,6 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _addCloudFolderToDock = tempBoolean;
-            }
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(kCloudFolderDescriptor, out tempBoolean);
-            if (isPresent)
-            {
-                _addCloudFolderToDesktop = tempBoolean;
             }
             isPresent = SettingsBase.ReadIfPresent<string>(kSid, out tempString);
             if (isPresent)
@@ -938,6 +951,12 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _udid = tempString;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<string>(kMainWindowPlacement, out tempString);
+            if (isPresent)
+            {
+                _mainWindowPlacement = tempString;
             }
         }
         /// <summary>
@@ -1008,7 +1027,6 @@ namespace CloudApiPrivate.Model.Settings
         {  
             CloudFolderPath = path;
             CloudFolderCreationTimeUtc = creationTime;
-            CloudFolderDescriptor = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         /// <summary>
@@ -1054,6 +1072,35 @@ namespace CloudApiPrivate.Model.Settings
             // Now persist the result
             _recentFileItems = CLExtensionMethods.DeepCopy(recents);
             SettingsBase.Write<List<string>>("recent_items", _recentFileItems);
+        }
+
+        /// <summary>
+        /// Get the default Cloud folder path.
+        /// </summary>
+        public string GetDefaultCloudFolderPath()
+        {
+            string folder = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));  // get the user's home directory.  e.g., C:\Users\<UserName>\
+            folder = folder + "\\" + CLPrivateDefinitions.CloudDirectoryName;
+            return folder;
+        }
+
+        /// <summary>
+        /// Move the Cloud folder to a new location.
+        /// <param name="existingPath">The full path of the existing Cloud location.</param>
+        /// <param name="newPath">The full path of the new Cloud folder location</param>
+        /// <param name="error">A possible output error.</param>
+        /// </summary>
+        public void MoveCloudDirectoryFromPath_toDestination(string existingPath, string newPath, out CLError error)
+        {
+            error = null;
+            try
+            {
+                Directory.Move(existingPath, newPath);
+            }
+            catch (Exception ex)
+            {
+                error += ex;
+            }
         }
     }
 

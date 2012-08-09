@@ -115,6 +115,24 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cloud Network Bandwidth Preferences.
+        /// </summary>
+        public static string DialogPreferencesNetworkBandwidthTitle {
+            get {
+                return ResourceManager.GetString("DialogPreferencesNetworkBandwidthTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud Network Proxy Server Preferences.
+        /// </summary>
+        public static string DialogPreferencesNetworkProxiesTitle {
+            get {
+                return ResourceManager.GetString("DialogPreferencesNetworkProxiesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There&apos;s already a folder called Cloud in {0}.  Do you want to merge all the existing files in that folder to your Cloud folder, or select a new Cloud folder location?.
         /// </summary>
         public static string folderExitTextFieldBody {
@@ -124,7 +142,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Merge.
+        ///   Looks up a localized string similar to _Merge.
         /// </summary>
         public static string folderExitTextFieldButtonMerge {
             get {
@@ -160,7 +178,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cancel.
+        ///   Looks up a localized string similar to _Cancel.
         /// </summary>
         public static string folderSelectionSimpleButtonLeftText {
             get {
@@ -169,7 +187,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Continue.
+        ///   Looks up a localized string similar to Co_ntinue.
         /// </summary>
         public static string folderSelectionSimpleButtonRightText {
             get {
@@ -178,7 +196,124 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cancel.
+        ///   Looks up a localized string similar to Remove this Device?.
+        /// </summary>
+        public static string FramePreferencesAccount_RemoveThisDevice {
+            get {
+                return ResourceManager.GetString("FramePreferencesAccount_RemoveThisDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlink this device from your account?.
+        /// </summary>
+        public static string FramePreferencesAccount_UnlinkThisDevice {
+            get {
+                return ResourceManager.GetString("FramePreferencesAccount_UnlinkThisDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you want to remove this computer from your account?  Other devices in your account will continue to sync your files..
+        /// </summary>
+        public static string FramePreferencesAccount_UnlinkThisDeviceBody {
+            get {
+                return ResourceManager.GetString("FramePreferencesAccount_UnlinkThisDeviceBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You will select a location that will contain your new Cloud folder.  A folder named &apos;Cloud&apos; will be created inside the folder you select.  The files in your existing Cloud folder will be moved to the new Cloud folder.  Do you wish to choose a new Cloud folder location?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_ChangeCloudFolderBodyText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ChangeCloudFolderBodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you wish to move your Cloud folder?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_ChangeCloudFolderHeaderText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ChangeCloudFolderHeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change Cloud Folder?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_ChangeCloudFolderTitle {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ChangeCloudFolderTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an error moving your Cloud folder to the new location.   Your files remain in the existing Cloud folder location..
+        /// </summary>
+        public static string FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while moving your Cloud folder..
+        /// </summary>
+        public static string FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oh Snap!.
+        /// </summary>
+        public static string FramePreferencesAdvanced_ErrorMovingCloudFolder_Title {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select..
+        /// </summary>
+        public static string FramePreferencesAdvanced_FolderBrowserDescription {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_FolderBrowserDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This will move your existing Cloud folder and all of the files inside it from the existing location:{0}{1}{2}{3}into the new folder:{4}{5}{6}.
+        /// </summary>
+        public static string FramePreferencesAdvanced_NewCloudFolderSelectedAlert_BodyText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_BodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Should the Cloud folder be moved now?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_NewCloudFolderSelectedAlert_HeaderText {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_HeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move Cloud Folder?.
+        /// </summary>
+        public static string FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title {
+            get {
+                return ResourceManager.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Cancel.
         /// </summary>
         public static string generalCancelButtonContent {
             get {
@@ -196,11 +331,29 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to OK.
+        ///   Looks up a localized string similar to _No.
+        /// </summary>
+        public static string GeneralNoButtonContent {
+            get {
+                return ResourceManager.GetString("GeneralNoButtonContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _OK.
         /// </summary>
         public static string generalOkButtonContent {
             get {
                 return ResourceManager.GetString("generalOkButtonContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Yes.
+        /// </summary>
+        public static string GeneralYesButtonContent {
+            get {
+                return ResourceManager.GetString("GeneralYesButtonContent", resourceCulture);
             }
         }
         
@@ -241,7 +394,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to OK.
+        ///   Looks up a localized string similar to _OK.
         /// </summary>
         public static string pageCloudFolderMissingErrorRightButtonContent {
             get {
@@ -268,7 +421,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Locate....
+        ///   Looks up a localized string similar to _Locate....
         /// </summary>
         public static string pageCloudFolderMissingOkButtonLocate {
             get {
@@ -277,11 +430,110 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Restore.
+        ///   Looks up a localized string similar to _Restore.
         /// </summary>
         public static string pageCloudFolderMissingOkButtonRestore {
             get {
                 return ResourceManager.GetString("pageCloudFolderMissingOkButtonRestore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to About Cloud.
+        /// </summary>
+        public static string PagePreferencesAboutTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesAboutTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud Account Preferences.
+        /// </summary>
+        public static string PagePreferencesAccountTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesAccountTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud Advanced Preferences.
+        /// </summary>
+        public static string PagePreferencesAdvancedTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesAdvancedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud General Preferences.
+        /// </summary>
+        public static string PagePreferencesGeneralTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesGeneralTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud Network Preferences.
+        /// </summary>
+        public static string PagePreferencesNetworkTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesNetworkTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Click the &apos;Yes&apos; button to exit the Cloud application..
+        /// </summary>
+        public static string PromptExitApplication_BodyText {
+            get {
+                return ResourceManager.GetString("PromptExitApplication_BodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you wish to exit Cloud?.
+        /// </summary>
+        public static string PromptExitApplication_HeaderText {
+            get {
+                return ResourceManager.GetString("PromptExitApplication_HeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exit Cloud?.
+        /// </summary>
+        public static string PromptExitApplication_Title {
+            get {
+                return ResourceManager.GetString("PromptExitApplication_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have made changes to the preferences.  Do you want to save them?.
+        /// </summary>
+        public static string PromptSaveChanges_BodyText {
+            get {
+                return ResourceManager.GetString("PromptSaveChanges_BodyText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save your changes?.
+        /// </summary>
+        public static string PromptSaveChanges_HeaderText {
+            get {
+                return ResourceManager.GetString("PromptSaveChanges_HeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save?.
+        /// </summary>
+        public static string PromptSaveChanges_Title {
+            get {
+                return ResourceManager.GetString("PromptSaveChanges_Title", resourceCulture);
             }
         }
         
@@ -373,6 +625,177 @@ namespace win_client.Resources {
         public static string tourPage1Greeting {
             get {
                 return ResourceManager.GetString("tourPage1Greeting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Remove.
+        /// </summary>
+        public static string ViewPageCloudFolderMissingButtonRemove {
+            get {
+                return ResourceManager.GetString("ViewPageCloudFolderMissingButtonRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Back.
+        /// </summary>
+        public static string ViewPageCreateNewAccountButtonBack {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountButtonBack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Continue.
+        /// </summary>
+        public static string ViewPageCreateNewAccountButtonContinue {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountButtonContinue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Computer _Name:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelComputerName {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelComputerName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confir_m Password:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelConfirmPassword {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelConfirmPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _EMail:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelEMail {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelEMail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Full Name:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelFullName {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelFullName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Password:.
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelPassword {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This will be your user name..
+        /// </summary>
+        public static string ViewPageCreateNewAccountLabelThisWillBeYourUsername {
+            get {
+                return ResourceManager.GetString("ViewPageCreateNewAccountLabelThisWillBeYourUsername", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Create Account.
+        /// </summary>
+        public static string ViewPageHomeCmdCreateAccount {
+            get {
+                return ResourceManager.GetString("ViewPageHomeCmdCreateAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Sign In.
+        /// </summary>
+        public static string ViewPageHomeCmdSignIn {
+            get {
+                return ResourceManager.GetString("ViewPageHomeCmdSignIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _EMail:.
+        /// </summary>
+        public static string ViewPageHomeLabelEMail {
+            get {
+                return ResourceManager.GetString("ViewPageHomeLabelEMail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Password:.
+        /// </summary>
+        public static string ViewPageHomeLabelPassword {
+            get {
+                return ResourceManager.GetString("ViewPageHomeLabelPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create a new Cloud account, or sign in with your existing one to continue....
+        /// </summary>
+        public static string ViewPageHomeTblkInstruction {
+            get {
+                return ResourceManager.GetString("ViewPageHomeTblkInstruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Abou_t.
+        /// </summary>
+        public static string ViewPagePreferencesButtonAbout {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonAbout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Account.
+        /// </summary>
+        public static string ViewPagePreferencesButtonAccount {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A_dvanced.
+        /// </summary>
+        public static string ViewPagePreferencesButtonAdvanced {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonAdvanced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _General.
+        /// </summary>
+        public static string ViewPagePreferencesButtonGeneral {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonGeneral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Network.
+        /// </summary>
+        public static string ViewPagePreferencesButtonNetwork {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonNetwork", resourceCulture);
             }
         }
     }

@@ -17,7 +17,7 @@ namespace win_client.Services.Badging
     {
         private static CLNetworkMonitorService _instance = null;
         private static object _instanceLocker = new object();
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance;
 
         // True if we have a network connection to MDS
         private bool _cloudReach;
@@ -55,7 +55,7 @@ namespace win_client.Services.Badging
         private CLNetworkMonitorService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
+
             //TODO: Make CloudReach dynamic with network connection to MDS.
             _cloudReach = true;
         }

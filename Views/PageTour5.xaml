@@ -14,6 +14,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageTourViewModel, Source={StaticResource Locator}}" 
     Title="Select Storage Size" >
@@ -26,6 +27,10 @@
         </ResourceDictionary>
     </Page.Resources>
     
+    <Page.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </Page.InputBindings>
+
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="48"/>
@@ -55,7 +60,7 @@
         	</Grid.RowDefinitions>
         	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="16" Grid.Row="1"
                     Text="The installation is now complete, and your tour has come to an end. Thanks for spending time with us, enjoy your Cloud experience." />
-        	<CheckBox Content="Open Cloud Folder" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" IsChecked="True"/>
+        	<CheckBox Content="_Open Cloud Folder" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" IsChecked="True"/>
         </Grid>
         <Grid x:Name="gridButtonArea" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3">
         	<Grid.ColumnDefinitions>
@@ -64,11 +69,16 @@
         		<ColumnDefinition Width="0.581*"/>
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
-        	<Button x:Name="cmdBack" Content="Back" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Left"/>
-        	<Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
+        	<Button x:Name="cmdBack" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
+        		Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Left">
+                <AccessText Text="_Back" />
+            </Button>
+            
+        	<Button x:Name="cmdContinue" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
         		Command="{Binding PageTour_ContinueCommand, Mode=OneTime}" TabIndex="0"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" />
+        		HorizontalAlignment="Right" IsDefault="True">
+                <AccessText Text="_Continue" />
+            </Button>
         </Grid>
     </Grid>
 </Page>

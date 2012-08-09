@@ -37,7 +37,7 @@ namespace win_client.Services.Sync
         #region "Static fields and properties"
         private static CLSyncService _instance = null;
         private static object _instanceLocker = new object();
-        private static CLTrace _trace = null;
+        private static CLTrace _trace = CLTrace.Instance;
         private static CLPrivateRestClient _restClient = null;
         private static CLSptNSOperationQueue _uploadOperationQueue = null;       // this is the upload queue used by the REST client.
         private static CLSptNSOperationQueue _downloadOperationQueue = null;     // this is the download queue used by the REST client.
@@ -116,7 +116,6 @@ namespace win_client.Services.Sync
         private CLSyncService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
 
             // [_sharedService prepareForSyncServiceToStart];
             PrepareForSyncServiceToStart();

@@ -42,7 +42,7 @@ namespace win_client.Services.Indexing
     {
         private static CLIndexingService _instance = null;
         private static object _instanceLocker = new object();
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -71,7 +71,6 @@ namespace win_client.Services.Indexing
         private CLIndexingService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>

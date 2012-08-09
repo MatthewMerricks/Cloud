@@ -35,6 +35,21 @@ namespace win_client.Common
         private const string MatchStrongPassword =
             "^(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?!.*s).*$";
 
+        private const string MatchUrlPattern = "#^http(s)?://[a-z0-9-_.]+\\.[a-z]{2,4}#i";
+
+        /// <summary>
+        /// Checks whether the given parameter is a valid URL.
+        /// </summary>
+        /// <param name="url">Parameter-string that contains a URL.</param>
+        /// <returns>True, when Parameter-string is not null and 
+        /// contains a valid URL;
+        /// otherwise false.</returns>
+        public static bool IsValidUrl(string url)
+        {
+            if(url != null) return Regex.IsMatch(url, MatchUrlPattern);
+            else return false;
+        }
+
         /// <summary>
         /// Checks whether the given Email-Parameter is a valid E-Mail address.
         /// </summary>

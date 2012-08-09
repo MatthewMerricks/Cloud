@@ -23,10 +23,13 @@ using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
 using win_client.AppDelegate;
+using win_client.Model;
+using CloudApiPublic.Model;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
-    public partial class PageBadgeComInitializationErrorView : Page
+    public partial class PageBadgeComInitializationErrorView : Page, IOnNavigated
     {
         /// <summary>
         /// Default constructor.
@@ -36,13 +39,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(PageBadgeComInitializationError_Loaded);
             Unloaded += new RoutedEventHandler(PageBadgeComInitializationError_Unloaded);
-
-            // Register messages
-            CLAppMessages.PageBadgeComInitializationError_NavigationRequest.Register(this,
-                (uri) =>
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative);
-                });
         }
 
         /// <summary>
@@ -50,8 +46,16 @@ namespace win_client.Views
         /// </summary>
         void PageBadgeComInitializationError_Loaded(object sender, RoutedEventArgs e)
         {
-            // Register the navigated event.
-            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
+            // Register messages
+            CLAppMessages.PageBadgeComInitializationError_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
+
+            // Set the view's grid into the view model.
+            PageBadgeComInitializationErrorViewModel vm = (PageBadgeComInitializationErrorViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -62,21 +66,61 @@ namespace win_client.Views
         /// </summary>
         void PageBadgeComInitializationError_Unloaded(object sender, RoutedEventArgs e)
         {
-
-            if (NavigationService != null)
-            {
-                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
-            }
             Messenger.Default.Unregister(this);
         }
 
         /// <summary>
         /// Navigated event handler.  Show the window.
         /// </summary>
-        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        CLError IOnNavigated.HandleNavigated(object sender, NavigationEventArgs e)
         {
-            // Show the window.
-            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
+            try
+            {
+                // Register to receive the ConfirmShutdown message
+                Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                    this,
+                    message =>
+                    {
+                        OnConfirmShutdownMessage(message);
+                    });
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
+
+        /// <summary>
+        /// NavigationWindow sends this to all pages prior to driving the HandleNavigated event above.
+        /// Upon receipt, the page must unregister the WindowClosingMessage.
+        /// </summary>
+        private void OnMessage_PageMustUnregisterWindowClosingMessage(string obj)
+        {
+            Messenger.Default.Unregister<CleanShutdown.Messaging.NotificationMessageAction<bool>>(this, message => { });
+        }
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
+        /// the automatic Window.Close (set true to message.Execute.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                // Ask the ViewModel if we should allow the window to close.
+                // This should not block.
+                PageBadgeComInitializationErrorViewModel vm = (PageBadgeComInitializationErrorViewModel)DataContext;
+                if (vm.WindowCloseRequested.CanExecute(null))
+                {
+                    vm.WindowCloseRequested.Execute(null);
+                }
+
+                // Get the answer and set the real event Cancel flag appropriately.
+                message.Execute(!vm.WindowCloseOk);      // true == abort shutdown
+            }
+        }
+
     }
 }

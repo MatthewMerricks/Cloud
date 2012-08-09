@@ -133,10 +133,13 @@
     <Compile Include="Common\CLConstants.cs" />
     <Compile Include="Common\CLConverters.cs" />
     <Compile Include="Common\CLCreateCloudFolder.cs" />
-    <Compile Include="Common\CLDefaultButtons.cs" />
+    <Compile Include="Common\CLRadioButtonExtended.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
+    <Compile Include="CleanShutdown\ShutdownService.cs" />
+    <Compile Include="Common\CLWindowPlacement.cs" />
+    <Compile Include="Model\CLPreferences.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
     <Compile Include="Model\IDataService.cs" />
@@ -145,9 +148,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Model\IOnNavigated.cs" />
     <Compile Include="NavigationWindow.xaml.cs">
       <DependentUpon>NavigationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CleanShutdown\NotificationMessageAction.cs" />
+    <Compile Include="CleanShutdown\NotificationMessageFunc.cs" />
+    <Compile Include="CleanShutdown\NotificationMessageWithCallback.cs" />
+    <Compile Include="CleanShutdown\Notifications.cs" />
     <Compile Include="Resources\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -182,7 +190,15 @@
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
-    <Compile Include="ViewModelHelpers\CLModalErrorDialog.cs" />
+    <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
+    <Compile Include="ViewModels\FramePreferencesAboutViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesAdvancedViewModel.cs" />
+    <Compile Include="ViewModels\DialogPreferencesNetworkBandwidthViewModel.cs" />
+    <Compile Include="ViewModels\DialogPreferencesNetworkProxiesViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesNetworkViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesAccountViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesGeneralViewModel.cs" />
+    <Compile Include="ViewModels\PagePreferencesViewModel.cs" />
     <Compile Include="ViewModels\DialogCloudMessageBoxViewModel.cs" />
     <Compile Include="ViewModels\PageCloudFolderMissingViewModel.cs" />
     <Compile Include="ViewModels\PageCloudAlreadyRunningViewModel.cs" />
@@ -197,6 +213,30 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\FramePreferencesAbout.xaml.cs">
+      <DependentUpon>FramePreferencesAbout.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesAdvanced.xaml.cs">
+      <DependentUpon>FramePreferencesAdvanced.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DialogPreferencesNetworkBandwidth.xaml.cs">
+      <DependentUpon>DialogPreferencesNetworkBandwidth.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DialogPreferencesNetworkProxies.xaml.cs">
+      <DependentUpon>DialogPreferencesNetworkProxies.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesNetwork.xaml.cs">
+      <DependentUpon>FramePreferencesNetwork.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesAccount.xaml.cs">
+      <DependentUpon>FramePreferencesAccount.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesGeneral.xaml.cs">
+      <DependentUpon>FramePreferencesGeneral.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PagePreferences.xaml.cs">
+      <DependentUpon>PagePreferences.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DialogCloudMessageBoxView.xaml.cs">
       <DependentUpon>DialogCloudMessageBoxView.xaml</DependentUpon>
     </Compile>
@@ -271,6 +311,38 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesAbout.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesAdvanced.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DialogPreferencesNetworkBandwidth.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DialogPreferencesNetworkProxies.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesNetwork.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesAccount.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesGeneral.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PagePreferences.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -512,6 +584,9 @@
       <Project>{45e4664c-c207-4605-af85-54b587819107}</Project>
       <Name>Sync</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\cl_icon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -23,14 +23,21 @@ using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
 using win_client.AppDelegate;
+using CloudApiPublic.Model;
+using win_client.Model;
+using CleanShutdown.Messaging;
 
 namespace win_client.Views
 {
-    public partial class PageTour3 : Page
+    public partial class PageTour3 : Page, IOnNavigated
     {
         #region "Instance Variables"
 
         private bool _isLoaded = false;
+        private bool savedRightButtonIsDefault = false;
+        private bool savedRightButtonIsCancel = false;
+        private bool savedLeftButtonIsDefault = false;
+        private bool savedLeftButtonIsCancel = false;
 
         #endregion
 
@@ -45,12 +52,6 @@ namespace win_client.Views
             Loaded += new RoutedEventHandler(PageTour3_Loaded);
             Unloaded += new RoutedEventHandler(PageTour3_Unloaded);
 
-            // Register messages
-            CLAppMessages.PageTour_NavigationRequest.Register(this,
-                (uri) => 
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative); 
-                });
         }
 
         #region "Message Handlers"
@@ -61,7 +62,17 @@ namespace win_client.Views
         void PageTour3_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
+
+            // Register messages
+            CLAppMessages.PageTour_NavigationRequest.Register(this,
+                (uri) =>
+                {
+                    this.NavigationService.Navigate(uri, UriKind.Relative);
+                });
+
+            // Set the view's grid into the view model.
+            PageTourViewModel vm = (PageTourViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -76,24 +87,65 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
-            if (NavigationService != null)
-            {
-                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
-            }
+            // Unregister for messages
             Messenger.Default.Unregister(this);
         }
 
         /// <summary>
-        /// Navigated event handler
+        /// Navigated event handler.
         /// </summary>
-        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        CLError IOnNavigated.HandleNavigated(object sender, NavigationEventArgs e)
         {
-            // Show the window.
-            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
-
-            if (_isLoaded)
+            try
             {
-                cmdContinue.Focus();
+                // Register to receive the ConfirmShutdown message
+                Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                    this,
+                    message =>
+                    {
+                        OnConfirmShutdownMessage(message);
+                    });
+
+                if (_isLoaded)
+                {
+                    cmdContinue.Focus();
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// NavigationWindow sends this to all pages prior to driving the HandleNavigated event above.
+        /// Upon receipt, the page must unregister the WindowClosingMessage.
+        /// </summary>
+        private void OnMessage_PageMustUnregisterWindowClosingMessage(string obj)
+        {
+            Messenger.Default.Unregister<CleanShutdown.Messaging.NotificationMessageAction<bool>>(this, message => { });
+        }
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
+        /// the automatic Window.Close (set true to message.Execute.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                // Ask the ViewModel if we should allow the window to close.
+                // This should not block.
+                PageTourViewModel vm = (PageTourViewModel)DataContext;
+                if (vm.WindowCloseRequested.CanExecute(null))
+                {
+                    vm.WindowCloseRequested.Execute(null);
+                }
+
+                // Get the answer and set the real event Cancel flag appropriately.
+                message.Execute(!vm.WindowCloseOk);      // true == abort shutdown
             }
         }
 

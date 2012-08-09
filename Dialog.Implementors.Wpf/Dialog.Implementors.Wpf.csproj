@@ -71,6 +71,10 @@
     <Folder Include="Behaviors\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CloudApiPrivate\CloudApiPrivate.csproj">
+      <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
+      <Name>CloudApiPrivate</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
       <Project>{3697919F-7A1E-43BA-BFDB-3EEC2553DD44}</Project>
       <Name>Dialog.Abstractions.Wpf</Name>
