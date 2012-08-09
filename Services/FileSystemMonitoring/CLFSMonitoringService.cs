@@ -13,7 +13,7 @@ using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using FileMonitor;
-using win_client.Services.Sync;
+using Sync;
 using SQLIndexer;
 using CloudApiPublic.Static;
 
@@ -82,8 +82,20 @@ namespace win_client.Services.FileSystemMonitoring
             MonitorAgent monitorToSet;
             CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath,
                 out monitorToSet,
-                CLSyncService.Instance.SyncFromFileSystemMonitor,
-                IndexingAgent.MergeEventIntoDatabase);
+                global::Sync.Sync.Run,
+                IndexingAgent.MergeEventIntoDatabase,
+                (syncId, successfulEventIds, newRootPath) =>
+                {
+                    long newSyncCounter;
+                    return IndexingAgent.RecordCompletedSync(syncId, successfulEventIds, out newSyncCounter, newRootPath);
+                },
+                () =>
+                {
+                    lock (IndexingAgent)
+                    {
+                        return IndexingAgent.LastSyncId;
+                    }
+                });
             if (monitorToSet != null)
                 this.MonitorAgent = monitorToSet;
 

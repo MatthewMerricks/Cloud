@@ -21,7 +21,7 @@ namespace BadgeNET
     /// <summary>
     /// IconOverlay is responsible for keeping a list of badges and synchronizing them with BadgeCOM (the Windows shell extensions for icon overlays)
     /// </summary>
-    public class IconOverlay
+    public class IconOverlay : IDisposable
     {
         #region Singleton pattern
         /// <summary>
@@ -47,6 +47,11 @@ namespace BadgeNET
 
         // Constructor for Singleton pattern is private
         private IconOverlay() { }
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        ~IconOverlay()
+        {
+            this.Dispose(false);
+        }
         #endregion
 
         #region public methods
@@ -375,51 +380,7 @@ namespace BadgeNET
         {
             try
             {
-                // locks on this in case initialization is occurring simultaneously
-                lock (this)
-                {
-                    // only need to shutdown if it was initialized
-                    if (isInitialized)
-                    {
-                        // lock on object containing intial pipe connection running state
-                        lock (pipeLocker)
-                        {
-                            // set runningstate to off
-                            pipeLocker.pipeRunning = false;
-
-                            foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToKill in pipeServerStreams)
-                            {
-                                try
-                                {
-                                    // cleanup initial pipe connection
-
-                                    try
-                                    {
-                                        currentStreamToKill.Value.Dispose();
-                                    }
-                                    catch
-                                    {
-                                    }
-
-                                    //The following is not a fallacy in logic:
-                                    //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
-                                    //so we try to connect to it just in case (will most likely give an unauthorized exception)
-                                    using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
-                                        PipeName + currentStreamToKill.Key,
-                                        PipeDirection.Out,
-                                        PipeOptions.None))
-                                    {
-                                        connectionKillerStream.Connect(100);
-                                    }
-                                }
-                                catch
-                                {
-                                }
-                            }
-                            pipeServerStreams.Clear();
-                        }
-                    }
-                }
+                ((IDisposable)this).Dispose();
             }
             catch (Exception ex)
             {
@@ -428,6 +389,81 @@ namespace BadgeNET
             return null;
         }
         #endregion
+
+        #region IDisposable member
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        void IDisposable.Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        private void Dispose(bool disposing)
+        {
+            if (!this.Disposed)
+            {
+                // lock on current object for changing RunningStatus so it cannot be stopped/started simultaneously
+                lock (this)
+                {
+                    // monitor is now set as disposed which will produce errors if startup is called later
+                    Disposed = true;
+                }
+
+                // Run dispose on inner managed objects based on disposing condition
+                if (disposing)
+                {
+                    // locks on this in case initialization is occurring simultaneously
+                    lock (this)
+                    {
+                        // only need to shutdown if it was initialized
+                        if (isInitialized)
+                        {
+                            // lock on object containing intial pipe connection running state
+                            lock (pipeLocker)
+                            {
+                                // set runningstate to off
+                                pipeLocker.pipeRunning = false;
+
+                                foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToKill in pipeServerStreams)
+                                {
+                                    try
+                                    {
+                                        // cleanup initial pipe connection
+
+                                        try
+                                        {
+                                            currentStreamToKill.Value.Dispose();
+                                        }
+                                        catch
+                                        {
+                                        }
+
+                                        //The following is not a fallacy in logic:
+                                        //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
+                                        //so we try to connect to it just in case (will most likely give an unauthorized exception)
+                                        using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
+                                            PipeName + currentStreamToKill.Key,
+                                            PipeDirection.Out,
+                                            PipeOptions.None))
+                                        {
+                                            connectionKillerStream.Connect(100);
+                                        }
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+                                pipeServerStreams.Clear();
+                            }
+                        }
+                    }
+                }
+
+                // Dispose local unmanaged resources last
+            }
+        }
+        private bool Disposed = false;
 
         /// <summary>
         /// Storage of all badge types by file path

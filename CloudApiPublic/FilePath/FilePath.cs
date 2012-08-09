@@ -207,5 +207,39 @@ namespace CloudApiPublic.Model
         {
             return FindOverlappingPath(this, otherPath);
         }
+
+        /// <summary>
+        /// Determines whether or not the second path is contained within the first path (including if both are perfectly equal)
+        /// </summary>
+        /// <param name="outerPath">First path that may contain the second path</param>
+        /// <param name="innerPath">Second path which may be contained in the first path</param>
+        /// <returns>Returns true if the second path is contained within the first path, otherwise false</returns>
+        public static bool Contains(FilePath outerPath, FilePath innerPath)
+        {
+            if (innerPath == null)
+            {
+                return false;// I do not know if this logically makes sense since anything and nothing contains nothing? Still, null should never be used as a second input.
+            }
+            while (outerPath != null)
+            {
+                if (FilePathComparer.Instance.Equals(outerPath, innerPath))
+                {
+                    return true;
+                }
+
+                outerPath = outerPath.Parent;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether or not an inner path is contained within the current path (including if both are perfectly equal)
+        /// </summary>
+        /// <param name="innerPath">The inner path which may be contained in the current path</param>
+        /// <returns>Returns true if the inner path is contained within the current path, otherwise false</returns>
+        public bool Contains(FilePath innerPath)
+        {
+            return Contains(this, innerPath);
+        }
     }
 }

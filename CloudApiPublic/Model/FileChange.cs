@@ -20,8 +20,10 @@ namespace CloudApiPublic.Model
     /// Class for storing information about a file system change to be passed to the sync service for processing,
     /// implements DelayProcessable to allow timer-delayed action processing (one time only per instance)
     /// </summary>
-    public sealed class FileChange : DelayProcessable<FileChange>
+    public class FileChange : DelayProcessable<FileChange>
     {
+        // If properties are changed/added/removed, make sure to update FileChangeWithDependencies in the Sync project!!
+
         /// <summary>
         /// Current path associated with the file system event
         /// </summary>
@@ -58,6 +60,10 @@ namespace CloudApiPublic.Model
             }
         }
         private SyncDirection _direction = SyncDirection.To;
+        // a global counter which is interlocked-incremented everytime a FileChange is created
+        private static long InMemoryIdCounter = 0;
+        // the current FileChange's incremented id
+        public long InMemoryId { get; private set; }
 
         /// <summary>
         /// Boolean set when already indexed events are requeued in the FileMonitor,
@@ -140,18 +146,34 @@ namespace CloudApiPublic.Model
             return null;
         }
         private byte[] MD5 = null;
+        public byte FailureCounter = 0;
+
+        // If properties are changed/added/removed, make sure to update FileChangeWithDependencies in the Sync project!!
 
         /// <summary>
         /// Constructor with required fields of abstract base class,
         /// DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean
         /// </summary>
         /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
-        public FileChange(object DelayCompletedLocker) : base(DelayCompletedLocker) { }
+        public FileChange(object DelayCompletedLocker) : base(DelayCompletedLocker)
+        {
+            SetIncrementedId();
+        }
         /// <summary>
         /// Constructor for an object to store parameters,
         /// but not be delay-processable
         /// </summary>
-        public FileChange() : base() { }
+        public FileChange() : base()
+        {
+            SetIncrementedId();
+        }
+
+        // method which interlock-increments a static counter and sets the current object's in-memory id accordingly;
+        // must be called from the constructor
+        private void SetIncrementedId()
+        {
+            this.InMemoryId = Interlocked.Increment(ref InMemoryIdCounter);
+        }
 
         /// <summary>
         /// Overriding ToString so that QuickWatch will show KeyValue pairs of FilePaths, FileChanges as { [Path], [File or folder] [ChangeType] }
