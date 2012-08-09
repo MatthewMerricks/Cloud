@@ -65,6 +65,32 @@ namespace CloudApiPublic.Model
         // Error Domain
         public const string CLCloudAppRestAPIErrorDomain = @"com.cloudapp.networking.error";
 
+        // Method Path
+        public const string MethodPathSyncFrom = "/sync/from_cloud";
+
+        // HttpWebRequest Header Key
+        public const string HeaderKeyAuthorization = "Authorization";
+
+        // HttpWebRequest Header Append
+        public const string HeaderAppendToken = "Token=";
+        public const string HeaderAppendContentType = "application/json";
+        public const string HeaderAppendTransferEncoding = "UTF-8";
+        public const string HeaderAppendMethod = "POST";
+        public const string HeaderAppendCloudClient = "Cloud Client";
+
+        public static string WrapInDoubleQuotes(string toWrap)
+        {
+            if (toWrap == null)
+            {
+                return null;
+            }
+            return DoubleQuote + toWrap + DoubleQuote;
+        }
+        private const char DoubleQuote = '\"';
+
+        // Sync Body
+        public const string SyncBodyRelativeRootPath = "/";
+
         // Sync Header
         public const string CLSyncEventMetadata = "metadata";
         public const string CLSyncEventHeader = "sync_header";

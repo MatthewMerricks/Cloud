@@ -9,7 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using CloudApiPrivate.Model.Settings;
@@ -22,6 +24,8 @@ namespace Sync
 {
     public static class Sync
     {
+        private const int HttpTimeoutMilliseconds = 180000;// 180 seconds
+
         private static ProcessingQueuesTimer GetFailureTimer(Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue)
         {
             lock (failureTimerLocker)
@@ -127,13 +131,16 @@ namespace Sync
             {
                 foreach (FileStream currentStream in allStreams)
                 {
-                    try
+                    if (currentStream != null)
                     {
-                        currentStream.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        disposalError += ex;
+                        try
+                        {
+                            currentStream.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            disposalError += ex;
+                        }
                     }
                 }
             }
@@ -155,7 +162,9 @@ namespace Sync
             Func<FileChange, FileChange, CLError> mergeToSql,
             Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> addChangesToProcessingQueue,
             bool respondingToPushNotification,
-            Func<string, IEnumerable<long>, string, CLError> completeSyncSql)
+            Func<string, IEnumerable<long>, string, CLError> completeSyncSql,
+            Func<string> getLastSyncId,
+            DependencyAssignments dependencyAssignment)
         {
             CLError toReturn = null;
             string syncStatus = "Sync Run entered";
@@ -163,7 +172,7 @@ namespace Sync
             // items will be ignored as their successfulEventId is added
             List<KeyValuePair<FileChange, FileStream>> errorsToQueue = null;
             List<long> successfulEventIds = new List<long>();
-            IEnumerable<KeyValuePair<FileChange, FileStream>> thingsThatWereDependenciesToQueue = null;
+            IEnumerable<FileChange> thingsThatWereDependenciesToQueue = null;
             try
             {
                 // assert parameters are set
@@ -171,10 +180,6 @@ namespace Sync
                 {
                     throw new NullReferenceException("grabChangesFromFileSystemMonitor cannot be null");
                 }
-                //if (sortFileChanges == null)
-                //{
-                //    throw new NullReferenceException("sortFileChanges cannot be null");
-                //}
                 if (mergeToSql == null)
                 {
                     throw new NullReferenceException("mergeToSql cannot be null");
@@ -187,86 +192,45 @@ namespace Sync
                 {
                     throw new NullReferenceException("completeSyncSql cannot be null");
                 }
+                if (getLastSyncId == null)
+                {
+                    throw new NullReferenceException("getLastSyncId cannot be null");
+                }
+                if (dependencyAssignment == null)
+                {
+                    throw new NullReferenceException("dependencyAssignment cannot be null");
+                }
 
+                IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges;
+                IEnumerable<FileChange> outputChangesInError;
+                lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
+                {
+                    IEnumerable<FileChange> initialErrors = new FileChange[FailedChangesQueue.Count];
+                    for (int initialErrorIndex = 0; initialErrorIndex < FailedChangesQueue.Count; initialErrorIndex++)
+                    {
+                        ((FileChange[])initialErrors)[initialErrorIndex] = FailedChangesQueue.Dequeue();
+                    }
 
+                    syncStatus = "Sync Run dequeued initial failures for dependency check";
 
-                //// Grab processed changes (will open locked FileStreams for all file adds/modifies), grabs MD5s and updates metadata
-                //// ¡¡Replacing toReturn only works here because no code above has done anything to it; if that changes, pull out exceptions from the returned CLError to append!!
-                //KeyValuePair<FileChange, FileStream>[] outputChanges;
-                //FileChange[] outputChangesInError;
-                //toReturn = grabChangesFromFileSystemMonitor(out outputChanges,
-                //    out outputChangesInError);
-                //if (outputChangesInError == null)
-                //{
-                //    outputChangesInError = new FileChange[0];
-                //}
+                    try
+                    {
+                        toReturn = grabChangesFromFileSystemMonitor(initialErrors,
+                            out outputChanges,
+                            out outputChangesInError);
+                    }
+                    catch (Exception ex)
+                    {
+                        outputChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<FileChange, FileStream>>>();
+                        outputChangesInError = Helpers.DefaultForType<IEnumerable<FileChange>>();
+                        toReturn = ex;
+                    }
+                }
+                // set errors to queue here with all processed changes and all failed changes so they can be added to failure queue on exception
+                errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>(outputChanges
+                    .Concat(outputChangesInError.Select(currentChangeInError => new KeyValuePair<FileChange, FileStream>(currentChangeInError, null))));
 
-                //// set errors to queue here with all processed changes and all failed changes so they can be added to failure queue on exception
-                //errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>(outputChanges
-                //    .Concat(outputChangesInError.Select(currentChangeInError => new KeyValuePair<FileChange, FileStream>(currentChangeInError, null))));
-
-                syncStatus = "Sync Run grabbed processed changes";
-
-                //// Define changes to set after dependency calculations
-                //// (will be top level a.k.a. not have any dependencies)
-                //IEnumerable<KeyValuePair<FileChange, FileStream>> topLevelChanges;
-
-                //// Within a lock on the failure queue (failureTimer.TimerRunningLocker),
-                //// check if each current event needs to be moved to a dependency under a failure event or an event in the current batch
-                //lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
-                //{
-                //    // Initialize and fill an array of FileChanges dequeued from the failure queue
-                //    FileChange[] dequeuedFailures = new FileChange[FailedChangesQueue.Count];
-                //    for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
-                //    {
-                //        dequeuedFailures[currentQueueIndex] = FailedChangesQueue.Dequeue();
-                //    }
-
-                //    // Define errors to set after dependency calculations
-                //    // (will be top level a.k.a. not have any dependencies)
-                //    IEnumerable<FileChange> topLevelErrors;
-
-                //    try
-                //    {
-                //        AssignDependencies(outputChanges,
-                //            dequeuedFailures.Concat(
-                //                outputChangesInError),
-                //            out topLevelChanges,
-                //            out topLevelErrors);
-                //    }
-                //    catch
-                //    {
-                //        // On error of assigning dependencies,
-                //        // put all the original failure queue items back in the failure queue;
-                //        // finally, rethrow the exception
-                //        for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
-                //        {
-                //            FailedChangesQueue.Enqueue(dequeuedFailures[currentQueueIndex]);
-                //        }
-                //        throw;
-                //    }
-                //    if (topLevelChanges != null)
-                //    {
-                //        // replace errors queue with dependency-assigned values
-                //        errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>(topLevelChanges);
-                //    }
-                //    if (topLevelErrors != null)
-                //    {
-                //        foreach (FileChange topLevelError in topLevelErrors)
-                //        {
-                //            FailedChangesQueue.Enqueue(topLevelError);
-
-                //            // Only start the failure queue timer if there were additional errors from initial processing,
-                //            // otherwise there must have been at least one error already on the failure queue (therefore it already had a timer going)
-                //            if (outputChangesInError.Length > 0)
-                //            {
-                //                GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
-                //            }
-                //        }
-                //    }
-                //}
-
-                syncStatus = "Sync Run initial dependencies calculated";
+                syncStatus = "Sync Run grabbed processed changes (with dependencies and final metadata)";
 
                 // Synchronously or asynchronously fire off all events without dependencies that have a storage key (MDS events);
                 // leave changes that did not complete in the errorsToQueue list so they will be added to the failure queue later;
@@ -279,25 +243,37 @@ namespace Sync
                     {
                         if (thingsThatWereDependenciesToQueue != null)
                         {
-                            foreach (KeyValuePair<FileChange, FileStream> currentDependency in thingsThatWereDependenciesToQueue)
-                            {
-                                errorsToQueue.Add(currentDependency);
-                            }
+                            List<FileChange> uploadDependenciesWithoutStreams = new List<FileChange>();
 
-                            CLError sortingError = sortFileChanges(topLevelChanges
-                                    .Except(preprocessedEvents)
-                                    .Concat(thingsThatWereDependenciesToQueue),
-                                out topLevelChanges,
-                                out outputChangesInError);
-                            if (sortingError != null)
+                            foreach (FileChange currentDependency in thingsThatWereDependenciesToQueue)
                             {
-                                foreach (Exception currentSortingException in sortingError.GrabExceptions())
+                                // these conditions ensure that no file uploads without FileStreams are processed in the current batch
+                                if (currentDependency.Metadata == null
+                                    || currentDependency.Metadata.HashableProperties.IsFolder
+                                    || currentDependency.Type == FileChangeType.Deleted
+                                    || currentDependency.Type == FileChangeType.Renamed
+                                    || currentDependency.Direction == SyncDirection.From)
                                 {
-                                    toReturn += currentSortingException;
+                                    errorsToQueue.Add(new KeyValuePair<FileChange, FileStream>(currentDependency, null));
+                                }
+                                else
+                                {
+                                    uploadDependenciesWithoutStreams.Add(currentDependency);
                                 }
                             }
 
-                            thingsThatWereDependenciesToQueue = null;
+                            if (Enumerable.SequenceEqual(thingsThatWereDependenciesToQueue, uploadDependenciesWithoutStreams))
+                            {
+                                return false;
+                            }
+
+                            outputChanges = outputChanges
+                                .Except(preprocessedEvents)
+                                .Concat(thingsThatWereDependenciesToQueue
+                                    .Except(uploadDependenciesWithoutStreams)
+                                    .Select(currentDependencyToQueue => new KeyValuePair<FileChange, FileStream>(currentDependencyToQueue, null)));
+
+                            thingsThatWereDependenciesToQueue = uploadDependenciesWithoutStreams;
                             return true;
                         }
                         return false;
@@ -306,7 +282,7 @@ namespace Sync
                 // process once then repeat if it needs to reprocess for dependencies
                 do
                 {
-                    foreach (KeyValuePair<FileChange, FileStream> topLevelChange in topLevelChanges)
+                    foreach (KeyValuePair<FileChange, FileStream> topLevelChange in outputChanges)
                     {
                         if (topLevelChange.Key.EventId > 0
                             && !preprocessedEventIds.Contains(topLevelChange.Key.EventId)
@@ -368,9 +344,10 @@ namespace Sync
                 IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>> incompleteChanges;
                 IEnumerable<KeyValuePair<bool, FileChange>> changesInError;
                 string newSyncId;
-                Exception communicationException = CommunicateWithServer(topLevelChanges.Except(
+                Exception communicationException = CommunicateWithServer(outputChanges.Except(
                         preprocessedEvents),
                     mergeToSql,
+                    getLastSyncId,
                     respondingToPushNotification,
                     out completedChanges,
                     out incompleteChanges,
@@ -425,21 +402,55 @@ namespace Sync
                         {
                             successfulEventIds.Sort();
 
-                            AssignDependencies(toCheck: (incompleteChanges ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>())
-                                    .Select(currentIncompleteChange => currentIncompleteChange.Value),
+                            List<KeyValuePair<FileChange, FileStream>> uploadFilesWithoutStreams = new List<KeyValuePair<FileChange, FileStream>>(
+                                (thingsThatWereDependenciesToQueue ?? Enumerable.Empty<FileChange>())
+                                .Select(uploadFileWithoutStream => new KeyValuePair<FileChange, FileStream>(uploadFileWithoutStream, null)));
 
-                                alreadyInError: dequeuedFailures
+                            CLError postCommunicationDependencyError = dependencyAssignment((incompleteChanges ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>())
+                                    .Select(currentIncompleteChange => currentIncompleteChange.Value)
+                                    .Concat(uploadFilesWithoutStreams),
+                                dequeuedFailures.Concat((changesInError ?? Enumerable.Empty<KeyValuePair<bool, FileChange>>())
+                                    .Select(currentChangeInError => currentChangeInError.Value)),
+                                out outputChanges,
+                                out topLevelErrors);
+                            if (postCommunicationDependencyError != null)
+                            {
+                                if (outputChanges == null
+                                    || topLevelErrors == null)
+                                {
+                                    throw new AggregateException("Error on dependencyAssignment and outputs are not set", postCommunicationDependencyError.GrabExceptions());
+                                }
+                                else
+                                {
+                                    toReturn += new AggregateException("Error on dependencyAssignment", postCommunicationDependencyError.GrabExceptions());
+                                }
+                            }
 
-                                    .Concat(preprocessedEvents
-                                        .Intersect(errorsToQueue ?? Enumerable.Empty<KeyValuePair<FileChange, FileStream>>())
-                                        .Select(currentPreprocessError => currentPreprocessError.Key)
-                                        .Where(currentPreprocessError => successfulEventIds.BinarySearch(currentPreprocessError.EventId) < 0))
+                            if (outputChanges != null)
+                            {
+                                if (uploadFilesWithoutStreams.Count > 0)
+                                {
+                                    thingsThatWereDependenciesToQueue = outputChanges
+                                        .Select(outputChange => outputChange.Key)
+                                        .Intersect(thingsThatWereDependenciesToQueue);
+                                }
+                                if (thingsThatWereDependenciesToQueue != null
+                                    && thingsThatWereDependenciesToQueue.Count() == 0)
+                                {
+                                    thingsThatWereDependenciesToQueue = null;
+                                }
+                                if (thingsThatWereDependenciesToQueue != null)
+                                {
+                                    outputChanges = outputChanges.Where(outputChange => !thingsThatWereDependenciesToQueue.Contains(outputChange.Key));
+                                }
+                            }
 
-                                    .Concat((changesInError ?? Enumerable.Empty<KeyValuePair<bool, FileChange>>())
-                                        .Select(currentChangeInError => currentChangeInError.Value)),
+                            errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>((outputChanges ?? Enumerable.Empty<KeyValuePair<FileChange, FileStream>>()));
 
-                                outputTopLevels: out topLevelChanges,
-                                outputTopErrors: out topLevelErrors);
+                            foreach (FileChange currentTopLevelError in topLevelErrors ?? Enumerable.Empty<FileChange>())
+                            {
+                                FailedChangesQueue.Enqueue(currentTopLevelError);
+                            }
                         }
                         catch
                         {
@@ -452,15 +463,6 @@ namespace Sync
                             }
                             throw;
                         }
-
-                        // replace errors queue with dependency-assigned values
-                        errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>(topLevelChanges);
-                        foreach (FileChange topLevelError in topLevelErrors)
-                        {
-                            FailedChangesQueue.Enqueue(topLevelError);
-
-                            GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
-                        }
                     }
 
                     syncStatus = "Sync Run post-communication dependencies calculated";
@@ -470,7 +472,7 @@ namespace Sync
                     // Synchronously complete all local operations without dependencies (exclude file upload/download) and record successful events;
                     // If a completed event has dependencies, stick them on the end of the current batch;
                     // If an event fails to complete, leave it on errorsToQueue so it will be added to the failure queue later
-                    foreach (KeyValuePair<FileChange, FileStream> topLevelChange in topLevelChanges)
+                    foreach (KeyValuePair<FileChange, FileStream> topLevelChange in outputChanges)
                     {
                         Nullable<long> successfulEventId;
                         Nullable<KeyValuePair<SyncDirection, Task<long>>> asyncTask;
@@ -481,7 +483,8 @@ namespace Sync
                             successfulEventIds.Add((long)successfulEventId);
 
                             FileChangeWithDependencies changeWithDependencies = topLevelChange.Key as FileChangeWithDependencies;
-                            if (changeWithDependencies != null)
+                            if (changeWithDependencies != null
+                                && changeWithDependencies.DependenciesCount > 0)
                             {
                                 if (thingsThatWereDependenciesToQueue == null)
                                 {
@@ -535,7 +538,7 @@ namespace Sync
                         }
                     }
 
-                    syncStatus = "Sync Run async tasks started after communication";
+                    syncStatus = "Sync Run async tasks started after communication (end of Sync)";
                 }
             }
             catch (Exception ex)
@@ -587,7 +590,7 @@ namespace Sync
                     // if there are any errors in queueing, add the changes to the failure queue instead;
                     // also if there are any errors, add them to the returned aggregated errors
                     GenericHolder<List<FileChange>> queueingErrors = new GenericHolder<List<FileChange>>();
-                    CLError queueingError = addChangesToProcessingQueue(thingsThatWereDependenciesToQueue.Select(currentDependency => currentDependency.Key), true, queueingErrors);
+                    CLError queueingError = addChangesToProcessingQueue(thingsThatWereDependenciesToQueue, /* add to top */ true, queueingErrors);
                     if (queueingErrors.Value != null)
                     {
                         lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
@@ -602,10 +605,7 @@ namespace Sync
                     }
                     if (queueingError != null)
                     {
-                        foreach (Exception queueingException in queueingError.GrabExceptions() ?? Enumerable.Empty<Exception>())
-                        {
-                            toReturn += queueingException;
-                        }
+                        toReturn += new AggregateException("Error adding dependencies to processing queue after sync", queueingError.GrabExceptions());
                     }
                 }
                 catch (Exception ex)
@@ -614,7 +614,7 @@ namespace Sync
                     // instead add them all to the failure queue add add the error to the returned aggregate errors
                     lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
                     {
-                        foreach (FileChange currentDependency in thingsThatWereDependenciesToQueue.Select(currentDependency => currentDependency.Key))
+                        foreach (FileChange currentDependency in thingsThatWereDependenciesToQueue)
                         {
                             FailedChangesQueue.Enqueue(currentDependency);
 
@@ -624,7 +624,7 @@ namespace Sync
                     toReturn += ex;
                 }
             }
-            
+
             // if there are any errors to queue,
             // then for any that are not also in the list of successful events, add then to the failure queue;
             // also add the FileStreams from the changes in error to the aggregated error output so they can be disposed;
@@ -695,51 +695,6 @@ namespace Sync
         }
 
         #region subroutine calls of Sync Run
-
-        private static void AssignDependencies(IEnumerable<KeyValuePair<FileChange, FileStream>> toCheck, IEnumerable<FileChange> alreadyInError, out IEnumerable<KeyValuePair<FileChange, FileStream>> outputTopLevels, out IEnumerable<FileChange> outputTopErrors)
-        {
-            throw new NotImplementedException();
-            // Rebuild FileChange enumerables for output so each item output has no dependencies;
-            // all input changes must be the direct outputs or a subsequent dependency
-
-            if (toCheck == null)
-            {
-                toCheck = Enumerable.Empty<KeyValuePair<FileChange, FileStream>>();
-            }
-            if (alreadyInError == null)
-            {
-                alreadyInError = Enumerable.Empty<FileChange>();
-            }
-
-            List<KeyValuePair<FileChange, FileStream>> topLevelChangesList = new List<KeyValuePair<FileChange, FileStream>>(toCheck);
-            List<FileChange> topLevelErrorsList = new List<FileChange>(alreadyInError);
-
-            KeyValuePair<FileChange, FileStream>[] toCheckArray = toCheck.ToArray();
-            FileChange[] alreadyInErrorArray = alreadyInError.ToArray();
-
-            for (int outerCheckIndex = 0; outerCheckIndex < toCheckArray.Length; outerCheckIndex++)
-            {
-                for (int innerCheckIndex = outerCheckIndex + 1; innerCheckIndex < (toCheckArray.Length + alreadyInErrorArray.Length); innerCheckIndex++)
-                {
-                    KeyValuePair<FileChange, FileStream> currentOuterChange = toCheckArray[outerCheckIndex];
-                    KeyValuePair<FileChange, FileStream> currentInnerChange;
-                    bool innerChangeIsError;
-                    if (innerCheckIndex < toCheckArray.Length)
-                    {
-                        currentInnerChange = toCheckArray[innerCheckIndex];
-                        innerChangeIsError = false;
-                    }
-                    else
-                    {
-                        currentInnerChange = new KeyValuePair<FileChange, FileStream>(alreadyInErrorArray[innerCheckIndex - toCheckArray.Length], null);
-                        innerChangeIsError = true;
-                    }
-
-
-                }
-            }
-        }
-
         private static Exception CompleteFileChange(KeyValuePair<FileChange, FileStream> toComplete, out Nullable<long> immediateSuccessEventId, out Nullable<KeyValuePair<SyncDirection, Task<long>>> asyncTask)
         {
             throw new NotImplementedException();
@@ -758,15 +713,15 @@ namespace Sync
             return null;
         }
 
-        private static Exception CommunicateWithServer(IEnumerable<KeyValuePair<FileChange, FileStream>> toCommunicate, 
+        private static Exception CommunicateWithServer(IEnumerable<KeyValuePair<FileChange, FileStream>> toCommunicate,
             Func<FileChange, FileChange, CLError> mergeToSql,
+            Func<string> getLastSyncId,
             bool respondingToPushNotification,
             out IEnumerable<KeyValuePair<bool, FileChange>> completedChanges,
             out IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>> incompleteChanges,
             out IEnumerable<KeyValuePair<bool, FileChange>> changesInError,
             out string newSyncId)
         {
-            throw new NotImplementedException();
             try
             {
                 KeyValuePair<FileChange, FileStream>[] communicationArray = (toCommunicate ?? Enumerable.Empty<KeyValuePair<FileChange, FileStream>>()).ToArray();
@@ -776,11 +731,51 @@ namespace Sync
                 if (communicationArray.Length > 0
                     || respondingToPushNotification)
                 {
-                    // Run Sync From/Sync To with the list toCommunicate;
-                    // Anything immediately complete should be output as completedChanges;
+                    // Run Sync To with the list toCommunicate;
+                    // Anything immediately completed should be output as completedChanges;
                     // Anything in conflict should be output as changesInError;
                     // Anything else should be output as incompleteChanges;
-                    // The latest data from the server should be merged into each FileChange and then added to DB via mergeToSql
+                    // Mark any new FileChange or any FileChange with altered metadata with a true for return boolean
+                    //     (notifies calling method to run MergeToSQL with the updates)
+
+                    throw new NotImplementedException("Sync To not implemented");
+                }
+                else if (respondingToPushNotification)
+                {
+                    // Run Sync From
+                    // Any events should be output as incompleteChanges, return all with the true boolean
+                    //     (notifies calling method to run MergeToSQL with the updates)
+                    // Should not give any errors/conflicts
+                    // Should not give any completed changes
+
+                    string requestBody;
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        PushSerializer.WriteObject(ms,
+                            new JsonContracts.Push(getLastSyncId()));
+                        requestBody = Encoding.Default.GetString(ms.ToArray());
+                    }
+
+                    byte[] requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
+
+                    HttpWebRequest pushRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom);
+                    pushRequest.Method = CLDefinitions.HeaderAppendMethod;
+                    pushRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient;
+                    pushRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(Settings.Instance.Akey);
+                    pushRequest.SendChunked = false;
+                    pushRequest.Timeout = HttpTimeoutMilliseconds;
+                    pushRequest.ContentType = CLDefinitions.HeaderAppendContentType;
+                    pushRequest.TransferEncoding = CLDefinitions.HeaderAppendTransferEncoding;
+                    pushRequest.ContentLength = requestBodyBytes.Length;
+
+                    using (Stream pushRequestStream = pushRequest.GetRequestStream())
+                    {
+                        pushRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
+                    }
+
+                    WebResponse pushResponse = pushRequest.GetResponse();
+
+                    throw new NotImplementedException("Sync From not completed");
                 }
                 // else if there are no changes to communicate and we're not responding to a push notification,
                 // do not process any communication (instead set all outputs to empty arrays)
@@ -802,6 +797,19 @@ namespace Sync
             }
             return null;
         }
+        private static DataContractJsonSerializer PushSerializer
+        {
+            get
+            {
+                lock (PushSerializerLocker)
+                {
+                    return _pushSerializer
+                        ?? (_pushSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Push)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _pushSerializer = null;
+        private static object PushSerializerLocker = new object();
 
         #endregion
     }

@@ -80,8 +80,24 @@ namespace CloudApiPublic.Support
             if (!_timerRunning)
             {
                 _timerRunning = true;
-                (new Thread(() =>
+                (new Thread(state =>
                 {
+                    object[] castState = state as object[];
+
+                    if (castState == null)
+                    {
+                        throw new NullReferenceException("state is not castable as object[]");
+                    }
+                    if (castState.Length != 2)
+                    {
+                        throw new InvalidOperationException("state as an object array does not have a length of 2");
+                    }
+                    Action<object> castStateAction = castState[0] as Action<object>;
+                    if (castStateAction == null)
+                    {
+                        throw new NullReferenceException("The first object in state as an object array is not castable as an Action<object>");
+                    }
+
                     bool SleepEventNeedsReset = SleepEvent.WaitOne(this.MillisecondTime);
                     lock (TimerRunningLocker)
                     {
@@ -90,9 +106,9 @@ namespace CloudApiPublic.Support
                             SleepEvent.Reset();
                         }
                         _timerRunning = false;
-                        OnTimeout(UserState);
+                        castStateAction(castState[1]);
                     }
-                })).Start();
+                })).Start(new object[] { (Action<object>)this.OnTimeout, this.UserState });
             }
         }
 
