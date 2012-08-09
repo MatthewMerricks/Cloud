@@ -29,6 +29,7 @@ using System.Windows.Media.Imaging;
 using win_client.SystemTray.TrayIcon;
 using win_client.ViewModels;
 using win_client.Views;
+using win_client.Resources;
 using win_client.Services.ServicesManager;
 using System.Data;
 using System.Data.OleDb;
@@ -85,15 +86,6 @@ namespace win_client.AppDelegate
             }
         }
 
-        private ResourceManager _resourceManager = null;
-        public ResourceManager ResourceManager
-        {
-            get
-            {
-                return _resourceManager;
-            }
-        }
-
         private Dispatcher _mainDispatcher = null;
         public Dispatcher MainDispatcher
         {
@@ -142,7 +134,6 @@ namespace win_client.AppDelegate
         {
             // Initialize members, etc. here.
             Assembly assembly = Assembly.GetExecutingAssembly();
-            _resourceManager = new ResourceManager(CLConstants.kResourcesName, assembly);
             _mainDispatcher = Dispatcher.CurrentDispatcher;
         }
 
@@ -188,12 +179,12 @@ namespace win_client.AppDelegate
             //[[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(handleURLFromEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 
             // we only allow one instance of our app.
-            StartupUrlRelative = _resourceManager.GetString("startupUriPageInvisible");     // assume we will simply start running with no UI displayed
+            StartupUrlRelative = Resources.Resources.startupUriPageInvisible;     // assume we will simply start running with no UI displayed
             if (isCloudAppAlreadyRunning())
             {
                 // Tell the app.xaml.cs instance logic that we are already running.
                 _isAlreadyRunning = true;
-                StartupUrlRelative = _resourceManager.GetString("startupUriAlreadyRunning");
+                StartupUrlRelative = Resources.Resources.startupUriAlreadyRunning;
                 return;
             }
 
@@ -206,7 +197,6 @@ namespace win_client.AppDelegate
         /// </summary>
         public void cleanUpAppDelegate()
         {
-            _resourceManager = null;
         }
  
         #endregion
@@ -578,18 +568,18 @@ namespace win_client.AppDelegate
                         if (isDeletedFolderFound)
                         {
                             // We will put up a window in App.xaml.cs to allow the user to recover the deleted cloud folder.
-                            StartupUrlRelative = _resourceManager.GetString("startupUriCloudFolderMissing");
+                            StartupUrlRelative = Resources.Resources.startupUriCloudFolderMissing;
                             FoundOriginalCloudFolderPath = foundOriginalPath;
                             FoundDeletedCloudFolderDeletionTimeLocal = foundDeletionTimeLocal;
                             FoundPathToDeletedCloudFolderRFile = foundPathToDeletedCloudFolderRFile;
                             FoundPathToDeletedCloudFolderIFile = foundPathToDeletedCloudFolderIFile;
-                            PageCloudFolderMissingOkButtonContent = _resourceManager.GetString("pageCloudFolderMissingOkButtonRestore");
+                            PageCloudFolderMissingOkButtonContent = Resources.Resources.pageCloudFolderMissingOkButtonRestore;
                         }
                         else
                         {
                             // We will put up a window in App.xaml.cs to allow the user to make a new cloud folder or unlink.
-                            StartupUrlRelative = _resourceManager.GetString("startupUriCloudFolderMissing");
-                            PageCloudFolderMissingOkButtonContent = _resourceManager.GetString("pageCloudFolderMissingOkButtonLocate");
+                            StartupUrlRelative = Resources.Resources.startupUriCloudFolderMissing;
+                            PageCloudFolderMissingOkButtonContent = Resources.Resources.pageCloudFolderMissingOkButtonLocate;
                         }
                     }
                 }
@@ -606,7 +596,7 @@ namespace win_client.AppDelegate
                 // self.welcomeController  = [[CLWelcomeWindowController alloc] initWithWindowNibName:@"CLWelcomeWindowController"];
                 // [self.welcomeController showWindow:self.welcomeController.window];
                 // [[self.welcomeController window] orderFrontRegardless];
-                StartupUrlRelative = _resourceManager.GetString("startupUriFirstTimeSetup");
+                StartupUrlRelative = Resources.Resources.startupUriFirstTimeSetup;
             }
 
             // if (shouldStartCoreServices == YES) {

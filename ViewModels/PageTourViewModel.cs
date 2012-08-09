@@ -32,6 +32,7 @@ using System.Windows.Input;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
 using CleanShutdown.Helpers;
 using System.Windows.Threading;
 
@@ -48,7 +49,6 @@ namespace win_client.ViewModels
         #region Instance Variables
 
         private readonly IDataService _dataService;
-        private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
         private IModalWindow _dialog = null;        // for use with modal dialogs
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
@@ -73,9 +73,8 @@ namespace win_client.ViewModels
 
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm = CLAppDelegate.Instance.ResourceManager;
 
-            _pageTour_GreetingText = String.Format(_rm.GetString("tourPage1Greeting"), Settings.Instance.UserName.Split(CLConstants.kDelimiterChars)[0]);
+            _pageTour_GreetingText = String.Format(Resources.Resources.tourPage1Greeting, Settings.Instance.UserName.Split(CLConstants.kDelimiterChars)[0]);
         }
 
         /// <summary>
@@ -84,7 +83,6 @@ namespace win_client.ViewModels
         public override void Cleanup()
         {
             base.Cleanup();
-            _rm = null;
         }
 
         #endregion
@@ -287,6 +285,24 @@ namespace win_client.ViewModels
                                           {
                                               // Handle the request and set the property.
                                               WindowCloseOk = OnClosing();
+                                          }));
+            }
+        }
+
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
                                           }));
             }
         }

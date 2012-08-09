@@ -56,7 +56,6 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
         private IModalWindow _dialog = null;        // for use with modal dialogs
 
         #endregion
@@ -78,7 +77,6 @@ namespace win_client.ViewModels
                     }
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm =  CLAppDelegate.Instance.ResourceManager;
         }
 
         #endregion

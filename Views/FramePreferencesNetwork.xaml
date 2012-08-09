@@ -63,17 +63,22 @@
                 <RowDefinition Height="10"/>
             </Grid.RowDefinitions>
             
-            <TextBlock TextWrapping="Wrap" Text="Sync: " Foreground="Black" FontSize="16" Grid.Row="1" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
+            <Label Content="S_ync:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Width="Auto" FontSize="16" Height="Auto" Target="chkEnableLanSync"  />
             <CheckBox x:Name="chkEnableLanSync"  Content="Enable LAN Sync" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Grid.Column="1" FontSize="16" Width="Auto" Margin="10,0,0,0"
                       IsChecked="{Binding ElementName=FramePreferencesNetworkRoot, Path=Preferences.ShouldEnableLanSync, Mode=TwoWay}" Height="Auto" ToolTip="Check to enable synchronization at LAN speeds." />
                 
             <TextBlock TextWrapping="Wrap" Text="Bandwidth: " Foreground="Black" FontSize="16" Grid.Row="2" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <Button x:Name="cmdChangeBandwidthSettings" Content="Change settings..." VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="1 " Grid.Row="2" Height="Auto" Width="Auto" Margin="10,0,0,0"
-                    Command="{Binding FramePreferencesNetwork_ChangeBandwidthSettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to change the Cloud bandwidth settings on this computer."  />
+            <Button x:Name="cmdChangeBandwidthSettings" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="1 " Grid.Row="2" Height="Auto" Width="Auto" Margin="10,0,0,0"
+                    Command="{Binding FramePreferencesNetwork_ChangeBandwidthSettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to change the Cloud bandwidth settings on this computer.">
+                <AccessText Text="Change _settings..." />
+            </Button>
+                
                 
             <TextBlock TextWrapping="Wrap" Text="Proxies: " Foreground="Black" FontSize="16" Grid.Row="3" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <Button x:Name="cmdChangeProxySettings" Content="Change settings..." VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="1" Grid.Row="3" Height="Auto" Width="Auto" Margin="10,0,0,0"
-                	Command="{Binding FramePreferencesNetwork_ChangeProxySettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to change the network proxy settings on this computer." />
+            <Button x:Name="cmdChangeProxySettings" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="1" Grid.Row="3" Height="Auto" Width="Auto" Margin="10,0,0,0"
+                	Command="{Binding FramePreferencesNetwork_ChangeProxySettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to change the network proxy settings on this computer." >
+                <AccessText Text="Chang_e settings..." />
+            </Button>
         </Grid>
     </Grid>
 </Page>

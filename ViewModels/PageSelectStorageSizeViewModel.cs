@@ -27,6 +27,7 @@ using CloudApiPublic.Support;
 using System.Resources;
 using CleanShutdown.Messaging;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
 using Dialog.Abstractions.Wpf.Intefaces;
 using CleanShutdown.Helpers;
 using System.Windows.Threading;
@@ -52,7 +53,6 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private IModalWindow _dialog = null;        // for use with modal dialogs
-        private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
 
@@ -76,7 +76,6 @@ namespace win_client.ViewModels
 
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm = CLAppDelegate.Instance.ResourceManager;
 
         }
         #endregion
@@ -210,6 +209,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 PageSelectStorageSize_SizeSelected = StorageSizeSelections.Size5Gb;
+                                                CLAppMessages.Message_PageSelectStorageSizeViewSetFocusToContinueButton.Send("");
                                             }));
             }
         }
@@ -227,6 +227,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 PageSelectStorageSize_SizeSelected = StorageSizeSelections.Size50Gb;
+                                                CLAppMessages.Message_PageSelectStorageSizeViewSetFocusToContinueButton.Send("");
                                             }));
             }
         }
@@ -244,6 +245,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 PageSelectStorageSize_SizeSelected = StorageSizeSelections.Size500Gb;
+                                                CLAppMessages.Message_PageSelectStorageSizeViewSetFocusToContinueButton.Send("");
                                             }));
             }
         }
@@ -264,6 +266,25 @@ namespace win_client.ViewModels
                                             }));
             }
         }
+
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
+                                          }));
+            }
+        }
+
         #endregion
 
         #region "Callbacks"
@@ -304,13 +325,23 @@ namespace win_client.ViewModels
         //TODO: Implement this.
         private void ToDoNeedCreditCardInfo() 
         {
-            var message = new DialogMessage("This storage selection is not available for beta users.", DialogMessageCallback)
-            {
-                Button = MessageBoxButton.OK,
-                Caption = "Not Available"
-            };
-
-            CLAppMessages.SelectStorageSize_PresentMessageDialog.Send(message);
+            // Put up a dummy message
+            IModalWindow dialog = null;
+            CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                errorMessage: "This storage selection is not available for beta users.",
+                title: "Information",
+                headerText: "Not available.",
+                rightButtonContent: Resources.Resources.generalOkButtonContent,
+                rightButtonIsDefault: true,
+                rightButtonIsCancel: true,
+                container: ViewGridContainer,
+                dialog: out dialog,
+                actionOkButtonHandler:
+                  returnedViewModelInstance =>
+                  {
+                      // Do nothing here when the user clicks the OK button.
+                  }
+            );
         }
 
         /// <summary>

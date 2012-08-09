@@ -23,6 +23,7 @@ using win_client.Common;
 using win_client.ViewModels;
 using CloudApiPrivate.Static;
 using win_client.Views;
+using win_client.Resources;
 
 namespace win_client.ViewModelHelpers
 {
@@ -31,7 +32,6 @@ namespace win_client.ViewModelHelpers
         private static CLModalMessageBoxDialogs _instance = null;
         private static object _instanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance;
-        private static ResourceManager _rm;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -48,7 +48,6 @@ namespace win_client.ViewModelHelpers
                         _instance = new CLModalMessageBoxDialogs();
 
                         // Perform initialization
-                        _rm = CLAppDelegate.Instance.ResourceManager;
                     }
                 }
                 return _instance;
@@ -75,13 +74,13 @@ namespace win_client.ViewModelHelpers
                 windowHeight: 250,
                 leftButtonWidth: 75,
                 rightButtonWidth: 75,
-                title: _rm.GetString("PromptExitApplication_Title"),
-                headerText: _rm.GetString("PromptExitApplication_HeaderText"),
-                bodyText: _rm.GetString("PromptExitApplication_BodyText"),
-                leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                title: Resources.Resources.PromptExitApplication_Title,
+                headerText: Resources.Resources.PromptExitApplication_HeaderText,
+                bodyText: Resources.Resources.PromptExitApplication_BodyText,
+                leftButtonContent: Resources.Resources.GeneralYesButtonContent,
                 leftButtonIsDefault: false,
                 leftButtonIsCancel: false,
-                rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                rightButtonContent: Resources.Resources.GeneralNoButtonContent,
                 rightButtonIsDefault: true,
                 rightButtonIsCancel: false,
                 container: container,
@@ -102,13 +101,13 @@ namespace win_client.ViewModelHelpers
                 windowHeight: 250,
                 leftButtonWidth: 75,
                 rightButtonWidth: 75,
-                title: _rm.GetString("PromptSaveChanges_Title"),
-                headerText: _rm.GetString("PromptSaveChanges_HeaderText"),
-                bodyText: _rm.GetString("PromptSaveChanges_BodyText"),
-                leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                title: Resources.Resources.PromptSaveChanges_Title,
+                headerText: Resources.Resources.PromptSaveChanges_HeaderText,
+                bodyText: Resources.Resources.PromptSaveChanges_BodyText,
+                leftButtonContent: Resources.Resources.GeneralYesButtonContent,
                 leftButtonIsDefault: true,
                 leftButtonIsCancel: false,
-                rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                rightButtonContent: Resources.Resources.GeneralNoButtonContent,
                 rightButtonIsDefault: false,
                 rightButtonIsCancel: true,
                 container: container,
@@ -121,7 +120,7 @@ namespace win_client.ViewModelHelpers
         /// Display an error message inside a grid.
         /// </summary>
         public void DisplayModalErrorMessage(string errorMessage, string title, string headerText,
-                                string rightButtonContent, bool rightButtonIsDefault, Grid container,
+                                string rightButtonContent, bool rightButtonIsDefault, bool rightButtonIsCancel, Grid container,
                                 out IModalWindow dialog,
                                 System.Action<DialogCloudMessageBoxViewModel> actionOkButtonHandler)
         {
@@ -148,6 +147,7 @@ namespace win_client.ViewModelHelpers
                             CloudMessageBoxView_RightButtonContent = rightButtonContent,
                             CloudMessageBoxView_RightButtonVisibility = Visibility.Visible,
                             CloudMessageBoxView_RightButtonIsDefault = rightButtonIsDefault,
+                            CloudMessageBoxView_RightButtonIsCancel = rightButtonIsCancel,
                         },
                         container,
                         actionOkButtonHandler

@@ -46,7 +46,6 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private RelayCommand _cloudAlreadyRunningViewModel_OkCommand;
-        private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
 
@@ -70,7 +69,6 @@ namespace win_client.ViewModels
 
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm = CLAppDelegate.Instance.ResourceManager;
         }
 
         #endregion
@@ -193,7 +191,6 @@ namespace win_client.ViewModels
         public override void Cleanup()
         {
             base.Cleanup();
-            _rm = null;
         }
 
         /// <summary>

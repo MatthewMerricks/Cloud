@@ -40,11 +40,11 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition/>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="9"/>
             <RowDefinition Height="34"/>
-            <RowDefinition Height="11"/>
-            <RowDefinition Height="37"/>
-            <RowDefinition Height="14"/>
-            <RowDefinition Height="53"/>
+            <RowDefinition Height="22"/>
+            <RowDefinition Height="74"/>
             <RowDefinition Height="20"/>
             <RowDefinition Height="19"/>
         </Grid.RowDefinitions>
@@ -55,28 +55,19 @@
         
         <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1" Grid.RowSpan="6"/>
 
-        <Image Source="/Artwork/Cl_icon.png" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Height="Auto" Width="Auto"  />
+        <Image Source="/Artwork/Cl_icon.png" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" />
+    
+        <TextBlock Text="Version 1.0, Build 42" Foreground="Black" FontSize="16" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="1" Grid.Column="1" Width="Auto" />
 
-        <TextBlock Text="Version 1.0, Build 42" Foreground="Black" FontSize="16" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="1" Grid.Column="1" Width="Auto"/>
-
-        <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="Black" FontSize="16" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="3" Grid.Column="1" Width="Auto" />
+        <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="Black" FontSize="16" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="3" Grid.Column="1" Width="Auto"  />
 
         <Button Name="cmdTwitter" Grid.Row="5" VerticalAlignment="Stretch" HorizontalAlignment="Center"
                 ToolTip="Follow us on twitter at http://twitter.com/clouddotcom."
-                Command="{Binding FramePreferencesAbout_FollowUsOnTwitter, Mode=OneWay}" Grid.Column="1" Width="Auto" >
-            <StackPanel Height="50" Width="50">
-                <Image Source="/Artwork/Twitter.png" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                Command="{Binding FramePreferencesAbout_FollowUsOnTwitter, Mode=OneWay}" Grid.Column="1" Width="90" >
+            <StackPanel >
+                <Image Source="/Artwork/Twitter.png" Height="50" Width="50" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+                <AccessText Text="T_witter" HorizontalAlignment="Center"/>
             </StackPanel>
         </Button>
-
-
-
-
-
-    
-
-    
-    
-        
     </Grid>
 </Page>

@@ -108,7 +108,6 @@ namespace win_client.Views
 
         private System.Windows.Forms.ContextMenu _cm =new System.Windows.Forms.ContextMenu();
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
 
         protected delegate void OnAnimateFromSystemTrayCompleteDelegate(Uri nextPage);
         protected delegate void OnAnimateToSystemTrayCompleteDelegate(CLBalloonTooltipNotification tooltip);
@@ -132,7 +131,6 @@ namespace win_client.Views
             PageInvisibleViewModel vm = (PageInvisibleViewModel)DataContext;
             vm.ViewGridContainer = LayoutRoot;
 
-            _rm = CLAppDelegate.Instance.ResourceManager;
         }
 
         /// <summary>

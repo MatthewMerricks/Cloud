@@ -32,6 +32,7 @@ using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
 using System.Windows.Input;
 using win_client.Views;
+using win_client.Resources;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
 using CleanShutdown.Helpers;
@@ -54,7 +55,6 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
         private IModalWindow _dialog = null;        // for use with modal dialogs
 
         #endregion
@@ -76,7 +76,6 @@ namespace win_client.ViewModels
                     }
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm =  CLAppDelegate.Instance.ResourceManager;
 
         }
 
@@ -164,18 +163,18 @@ namespace win_client.ViewModels
                                                             new DialogPreferencesNetworkBandwidthViewModel
                                                             {
                                                                 DialogPreferencesNetworkBandwidth_Preferences = this.Preferences,
-                                                                DialogPreferencesNetworkBandwidth_Title = _rm.GetString("DialogPreferencesNetworkBandwidthTitle"),
+                                                                DialogPreferencesNetworkBandwidth_Title = Resources.Resources.DialogPreferencesNetworkBandwidthTitle,
                                                                 DialogPreferencesNetworkBandwidth_WindowWidth = 504,
                                                                 DialogPreferencesNetworkBandwidth_WindowHeight = 325,
                                                                 DialogPreferencesNetworkBandwidth_LeftButtonWidth = 75,
                                                                 DialogPreferencesNetworkBandwidth_LeftButtonMargin = new Thickness(0, 0, 50, 0),
-                                                                DialogPreferencesNetworkBandwidth_LeftButtonContent = _rm.GetString("generalOkButtonContent"),
+                                                                DialogPreferencesNetworkBandwidth_LeftButtonContent = Resources.Resources.generalOkButtonContent,
                                                                 DialogPreferencesNetworkBandwidth_LeftButtonVisibility = Visibility.Visible,
                                                                 DialogPreferencesNetworkBandwidth_LeftButtonIsDefault = true,
                                                                 DialogPreferencesNetworkBandwidth_LeftButtonIsCancel = false,
                                                                 DialogPreferencesNetworkBandwidth_RightButtonWidth = 75,
                                                                 DialogPreferencesNetworkBandwidth_RightButtonMargin = new Thickness(0, 0, 30, 0),
-                                                                DialogPreferencesNetworkBandwidth_RightButtonContent = _rm.GetString("generalCancelButtonContent"),
+                                                                DialogPreferencesNetworkBandwidth_RightButtonContent = Resources.Resources.generalCancelButtonContent,
                                                                 DialogPreferencesNetworkBandwidth_RightButtonVisibility = Visibility.Visible,
                                                                 DialogPreferencesNetworkBandwidth_RightButtonIsDefault = false,
                                                                 DialogPreferencesNetworkBandwidth_RightButtonIsCancel = true,
@@ -216,18 +215,18 @@ namespace win_client.ViewModels
                                                             new DialogPreferencesNetworkProxiesViewModel
                                                             {
                                                                 DialogPreferencesNetworkProxies_Preferences = this.Preferences,
-                                                                DialogPreferencesNetworkProxies_Title = _rm.GetString("DialogPreferencesNetworkProxiesTitle"),
+                                                                DialogPreferencesNetworkProxies_Title = Resources.Resources.DialogPreferencesNetworkProxiesTitle,
                                                                 DialogPreferencesNetworkProxies_WindowWidth = 504,
                                                                 DialogPreferencesNetworkProxies_WindowHeight = 386,
                                                                 DialogPreferencesNetworkProxies_LeftButtonWidth = 75,
                                                                 DialogPreferencesNetworkProxies_LeftButtonMargin = new Thickness(0, 0, 50, 0),
-                                                                DialogPreferencesNetworkProxies_LeftButtonContent = _rm.GetString("generalOkButtonContent"),
+                                                                DialogPreferencesNetworkProxies_LeftButtonContent = Resources.Resources.generalOkButtonContent,
                                                                 DialogPreferencesNetworkProxies_LeftButtonVisibility = Visibility.Visible,
                                                                 DialogPreferencesNetworkProxies_LeftButtonIsDefault = true,
                                                                 DialogPreferencesNetworkProxies_LeftButtonIsCancel = false,
                                                                 DialogPreferencesNetworkProxies_RightButtonWidth = 75,
                                                                 DialogPreferencesNetworkProxies_RightButtonMargin = new Thickness(0, 0, 30, 0),
-                                                                DialogPreferencesNetworkProxies_RightButtonContent = _rm.GetString("generalCancelButtonContent"),
+                                                                DialogPreferencesNetworkProxies_RightButtonContent = Resources.Resources.generalCancelButtonContent,
                                                                 DialogPreferencesNetworkProxies_RightButtonVisibility = Visibility.Visible,
                                                                 DialogPreferencesNetworkProxies_RightButtonIsDefault = false,
                                                                 DialogPreferencesNetworkProxies_RightButtonIsCancel = true,

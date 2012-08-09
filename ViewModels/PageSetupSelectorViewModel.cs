@@ -31,6 +31,7 @@ using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Static;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
 using System.ComponentModel;
 using System.Windows.Input;
 using CleanShutdown.Messaging;
@@ -58,7 +59,6 @@ namespace win_client.ViewModels
         #region Instance Variables
 
         private readonly IDataService _dataService;
-        private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
         private IModalWindow _dialog = null;        // for use with modal dialogs
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
@@ -83,7 +83,6 @@ namespace win_client.ViewModels
 
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm = CLAppDelegate.Instance.ResourceManager;
         }
 
         /// <summary>
@@ -92,7 +91,6 @@ namespace win_client.ViewModels
         public override void Cleanup()
         {
             base.Cleanup();
-            _rm = null;
         }
 
         #endregion
@@ -276,6 +274,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 PageSetupSelector_OptionSelected = SetupSelectorOptions.OptionDefault;
+                                                CLAppMessages.Message_PageSetupSelectorViewSetFocusToContinueButton.Send("");
                                             }));
             }
         }
@@ -294,6 +293,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 PageSetupSelector_OptionSelected = SetupSelectorOptions.OptionAdvanced;
+                                                CLAppMessages.Message_PageSetupSelectorViewSetFocusToContinueButton.Send("");
                                             }));
             }
         }
@@ -317,6 +317,24 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
+                                          }));
+            }
+        }
+
         #endregion
 
         #region "Installation"
@@ -333,12 +351,12 @@ namespace win_client.ViewModels
                 {
                     // Tell the user that there is already a Cloud folder at that location.  Allow him to choose 'Select new location' or 'Merge'.
                     string cloudFolderRoot = Path.GetDirectoryName(Settings.Instance.CloudFolderPath);  // e.g., "c:/Users/<username>/Documents", if CloudFolderPath is "c:/Users/<username>/Documents/Cloud"
-                    string userMessageBody = _rm.GetString("folderExitTextFieldBody");
+                    string userMessageBody = Resources.Resources.folderExitTextFieldBody;
                     userMessageBody = String.Format(userMessageBody, cloudFolderRoot);
-                    string userMessageTitle = _rm.GetString("folderExitTextFieldTitle");
-                    string userMessageHeader = _rm.GetString("folderExitTextFieldHeader");
-                    string userMessageButtonSelectNewLocation = _rm.GetString("folderExitTextFieldButtonSelectNewLocation");
-                    string userMessageButtonMerge = _rm.GetString("folderExitTextFieldButtonMerge");
+                    string userMessageTitle = Resources.Resources.folderExitTextFieldTitle;
+                    string userMessageHeader = Resources.Resources.folderExitTextFieldHeader;
+                    string userMessageButtonSelectNewLocation = Resources.Resources.folderExitTextFieldButtonSelectNewLocation;
+                    string userMessageButtonMerge = Resources.Resources.folderExitTextFieldButtonMerge;
 
                     // Ask the user to 'Select new location' or 'Merge" the cloud folder.
                     _trace.writeToLog(9, "goForward: Put up 'Select new location' or 'Merge' dialog.");
@@ -386,8 +404,8 @@ namespace win_client.ViewModels
                                     modalDialogService.ShowDialog(dialogFolderSelection, new DialogFolderSelectionSimpleViewModel
                                     {
                                         FolderSelectionSimpleViewModel_FolderLocationText = cloudFolderRoot,
-                                        FolderSelectionSimpleViewModel_ButtonLeftText = _rm.GetString("folderSelectionSimpleButtonLeftText"),
-                                        FolderSelectionSimpleViewModel_ButtonRightText = _rm.GetString("folderSelectionSimpleButtonRightText"),
+                                        FolderSelectionSimpleViewModel_ButtonLeftText = Resources.Resources.folderSelectionSimpleButtonLeftText,
+                                        FolderSelectionSimpleViewModel_ButtonRightText = Resources.Resources.folderSelectionSimpleButtonRightText,
                                     },
                                     ViewGridContainer,
                                     returnedFolderSelectionSimpleViewModelInstance =>
@@ -421,10 +439,11 @@ namespace win_client.ViewModels
                     // An error occurred.  Show the user an Oh Snap! modal dialog.
                     CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
                                 errorMessage:  err.errorDescription,
-                                title:  _rm.GetString("appDelegateErrorInstallingTitle"),
-                                headerText: _rm.GetString("appDelegateErrorInstallingHeader"),
-                                rightButtonContent: _rm.GetString("appDelegateErrorInstallingButtonTryAgain"),
+                                title:  Resources.Resources.appDelegateErrorInstallingTitle,
+                                headerText: Resources.Resources.appDelegateErrorInstallingHeader,
+                                rightButtonContent: Resources.Resources.appDelegateErrorInstallingButtonTryAgain,
                                 rightButtonIsDefault: true,
+                                rightButtonIsCancel: true,
                                 container: ViewGridContainer,
                                 dialog: out _dialog,
                                 actionOkButtonHandler: 

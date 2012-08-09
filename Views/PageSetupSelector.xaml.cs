@@ -76,6 +76,7 @@ namespace win_client.Views
                 {
                     this.NavigationService.Navigate(uri, UriKind.Relative);
                 });
+            CLAppMessages.Message_PageSetupSelectorViewSetFocusToContinueButton.Register(this, OnMessage_PageSetupSelectorViewSetFocusToContinueButton);
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -122,6 +123,14 @@ namespace win_client.Views
                 return ex;
             }
             return null;
+        }
+
+        /// <summary>
+        /// The ViewModel says to give focus to the Continue button.
+        /// </summary>
+        private void OnMessage_PageSetupSelectorViewSetFocusToContinueButton(string obj)
+        {
+            cmdContinue.Focus();
         }
 
         /// <summary>

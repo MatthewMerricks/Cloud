@@ -26,7 +26,6 @@ namespace win_client.Common
             CreateNewAccount_GetClearPasswordField,
             CreateNewAccount_GetClearConfirmPasswordField,
             Home_FocusToError,
-            SelectStorageSize_PresentMessageDialog,
             SetupSelector_PresentMessageDialog,
             Message_ReachabilityChangedNotification,
             Message_BalloonTooltipSystemTrayNotification,
@@ -42,6 +41,8 @@ namespace win_client.Common
             Message_PageMustUnregisterWindowClosingMessage,
             Message_DialogPreferencesNetworkBandwidthViewShouldClose,
             Message_DialogPreferencesNetworkProxiesViewShouldClose,
+            Message_PageSelectStorageSizeViewSetFocusToContinueButton,
+            Message_PageSetupSelectorViewSetFocusToContinueButton,
 
             // Navigation requests
             PageCloudFolderMissing_NavigationRequest,
@@ -122,19 +123,6 @@ namespace win_client.Common
             public static void Register(object recipient, Action<string> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.Home_FocusToError, action);
-            }
-        }
-
-        public static class SelectStorageSize_PresentMessageDialog
-        {
-            public static void Send(DialogMessage message)
-            {
-                Messenger.Default.Send(message, MessageTypes.SelectStorageSize_PresentMessageDialog);
-            }
-
-            public static void Register(object recipient, Action<DialogMessage> action)
-            {
-                Messenger.Default.Register(recipient, MessageTypes.SelectStorageSize_PresentMessageDialog, action);
             }
         }
 
@@ -308,6 +296,34 @@ namespace win_client.Common
                 Messenger.Default.Register(recipient, MessageTypes.Message_DialogPreferencesNetworkProxiesViewShouldClose, action);
             }
         }
+
+        public static class Message_PageSelectStorageSizeViewSetFocusToContinueButton
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageSelectStorageSizeViewSetFocusToContinueButton);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageSelectStorageSizeViewSetFocusToContinueButton, action);
+            }
+        }
+
+        public static class Message_PageSetupSelectorViewSetFocusToContinueButton
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageSetupSelectorViewSetFocusToContinueButton);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageSetupSelectorViewSetFocusToContinueButton, action);
+            }
+        }
+
+        
 
         // Navigation requests
         public static class PageCloudFolderMissing_NavigationRequest

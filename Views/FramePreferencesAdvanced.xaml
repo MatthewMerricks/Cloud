@@ -69,8 +69,7 @@
             <TextBlock x:Name="tbCloudFolder" TextAlignment="Left" TextWrapping="Wrap" Foreground="Black" Margin="10,0,0,0" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"
                              Text="{Binding FramePreferencesAdvanced_CloudFolder, Mode=TwoWay, ValidatesOnDataErrors=True}" FontSize="16" Opacity="0.70"
                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                             Validation.ErrorTemplate="{StaticResource errorTemplate}"
-                             commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"/>
+                             Validation.ErrorTemplate="{StaticResource errorTemplate}" />
             <Grid Grid.Column="2" Grid.Row="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="8"/>
@@ -78,20 +77,27 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="8"/>
                 </Grid.RowDefinitions>
-                <Button x:Name="cmdChangeCloudFolder" Content="Change..." VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="2" Grid.Row="1" Height="Auto" Width="Auto"
+                <Button x:Name="cmdChangeCloudFolder" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="2" Grid.Row="1" Height="Auto" Width="Auto"
                             Margin="10,0,0,0" MinWidth="75" TabIndex="0"
-            	            Command="{Binding FramePreferencesAdvanced_ChangeCloudFolder, Mode=OneTime}" ToolTip="Click to change the Cloud folder on this computer." />
-                <Button x:Name="cmdResetCloudFolder" Content="Reset..." VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="2" Grid.Row="2" Height="Auto" Width="Auto"
+            	            Command="{Binding FramePreferencesAdvanced_ChangeCloudFolder, Mode=OneTime}" ToolTip="Click to change the Cloud folder on this computer.">
+                    <AccessText Text="Chang_e..."/>
+                </Button>
+                
+                <Button x:Name="cmdResetCloudFolder" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="2" Grid.Row="2" Height="Auto" Width="Auto"
                             Margin="10,0,0,0" MinWidth="75" TabIndex="1"
                             IsEnabled="{Binding FramePreferencesAdvanced_ResetButtonEnabled, Mode=OneWay}"
-            	            Command="{Binding FramePreferencesAdvanced_ResetCloudFolder, Mode=OneTime}" ToolTip="Click to reset the Cloud folder on this computer to its default location." />
+            	            Command="{Binding FramePreferencesAdvanced_ResetCloudFolder, Mode=OneTime}" ToolTip="Click to reset the Cloud folder on this computer to its default location.">
+                    <AccessText Text="_Reset..."/>
+                </Button>
             </Grid>
 
                             
             <TextBlock TextWrapping="Wrap" Text="Selective sync: " Foreground="Black" FontSize="16" Grid.Row="3" Grid.Column="0"  TextAlignment="Left" VerticalAlignment="Center" Height="Auto" Margin="10,0,0,0"/>
-            <Button x:Name="cmdChangeBandwidthSettings" Content="Change settings..." VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" 
+            <Button x:Name="cmdChangeBandwidthSettings" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" 
                     Grid.Column="1 " Grid.Row="3" Height="Auto" Width="150" Margin="10,0,0,0"
-                    Command="{Binding FramePreferencesAdvanced_ChangeSelectiveSyncSettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to select the folders you wish to keep synchronized." TabIndex="2"/>
+                    Command="{Binding FramePreferencesAdvanced_ChangeSelectiveSyncSettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to select the folders you wish to keep synchronized." TabIndex="2">
+                <AccessText Text="Change _settings..."/>
+            </Button>
         </Grid>
     </Grid>
 </Page>

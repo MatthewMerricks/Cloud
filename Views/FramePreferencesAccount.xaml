@@ -90,10 +90,15 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="10"/>
             </Grid.RowDefinitions>
-            <Button x:Name="cmdGetMoreSpace" Content="Get more space..." VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="0 " Grid.Row="2" Height="Auto" Width="Auto" 
-                    Command="{Binding FramePreferencesAccount_GetMoreSpaceCommand, Mode=OneTime}" MinWidth="200" ToolTip="Click to get more storage space in your Cloud account."  />
-            <Button x:Name="cmdUnlinkThisComputer" Content="Unlink this computer..." VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="1" Grid.Row="1" Height="Auto" Width="Auto" 
-                	Command="{Binding FramePreferencesAccount_UnlinkThisComputerCommand, Mode=OneTime}" MinWidth="200" ToolTip="Click to remove this computer from your Cloud account." />
+            <Button x:Name="cmdGetMoreSpace" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="0 " Grid.Row="2" Height="Auto" Width="Auto" 
+                    Command="{Binding FramePreferencesAccount_GetMoreSpaceCommand, Mode=OneTime}" MinWidth="200" ToolTip="Click to get more storage space in your Cloud account." >
+                <AccessText Text="Get more s_pace..."/>
+            </Button>
+            
+            <Button x:Name="cmdUnlinkThisComputer" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="1" Grid.Row="1" Height="Auto" Width="Auto" 
+                	Command="{Binding FramePreferencesAccount_UnlinkThisComputerCommand, Mode=OneTime}" MinWidth="200" ToolTip="Click to remove this computer from your Cloud account.">
+                <AccessText Text="_Unlink this computer..."/>
+            </Button>
         </Grid>
     </Grid>
 </Page>

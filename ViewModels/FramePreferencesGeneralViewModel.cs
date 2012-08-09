@@ -30,6 +30,7 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
 using System.Windows.Input;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
@@ -53,7 +54,6 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
         private IModalWindow _dialog = null;        // for use with modal dialogs
 
         #endregion
@@ -85,7 +85,6 @@ namespace win_client.ViewModels
                     }
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm =  CLAppDelegate.Instance.ResourceManager;
 
             //TODO: Move the list of languages to a more appropriate place.
             List<SupportedLanguage> supportedLanguages = new List<SupportedLanguage>
@@ -189,8 +188,9 @@ namespace win_client.ViewModels
                                                   errorMessage: "You are currently running the latest version of the Cloud application.",
                                                   title: "Information",
                                                   headerText: "Update check complete.",
-                                                  rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                                  rightButtonContent: Resources.Resources.generalOkButtonContent,
                                                   rightButtonIsDefault: true,
+                                                  rightButtonIsCancel: true,
                                                   container: ViewGridContainer,
                                                   dialog: out _dialog,
                                                   actionOkButtonHandler: 

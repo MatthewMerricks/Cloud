@@ -42,6 +42,9 @@ namespace win_client.Views
             Closing += DialogPreferencesNetworkBandwidth_Closing;
         }
 
+        /// <summary>
+        /// The window is closing.  Should it close?
+        /// </summary>
         void DialogPreferencesNetworkBandwidth_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             DialogPreferencesNetworkBandwidthViewModel vm = (DialogPreferencesNetworkBandwidthViewModel)DataContext;

@@ -62,13 +62,14 @@
         	<Button FontSize="13.333" Background="#FF49C3FB" 
         		Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click" TabIndex="1"
         		Grid.Column="1"
-        		Margin="0"  
-        		Content="{Binding FolderSelectionSimpleViewModel_ButtonLeftText, Mode=TwoWay}" />
+        		Margin="0" >  
+                <AccessText Text="{Binding FolderSelectionSimpleViewModel_ButtonLeftText, Mode=TwoWay}" />
+            </Button>
         	<Button Name="btnOK" FontSize="13.333" Background="#FF49C3FB" Grid.Column="3"
         		Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="0"
-        		Margin="0" 
-        		Content="{Binding FolderSelectionSimpleViewModel_ButtonRightText, Mode=TwoWay}" />
+        		TabIndex="0" Margin="0" >
+                <AccessText Text="{Binding FolderSelectionSimpleViewModel_ButtonRightText, Mode=TwoWay}" />
+            </Button>
         </Grid>
 
         <Grid Margin="0" Height="173" VerticalAlignment="Top" Grid.RowSpan="4">

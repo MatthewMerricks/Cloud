@@ -27,6 +27,7 @@ using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
 using System.ComponentModel;
 using System.Windows.Input;
 using CleanShutdown.Messaging;
@@ -50,7 +51,6 @@ namespace win_client.ViewModels
         private readonly IDataService _dataService;
         private IModalWindow _dialog = null;        // for use with modal dialogs
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
         private CLPreferences _originalPreferences;  // to test for changes
 
         #region Life Cycle
@@ -73,7 +73,6 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
 
-            _rm = CLAppDelegate.Instance.ResourceManager;
         }
 
         #endregion
@@ -242,7 +241,7 @@ namespace win_client.ViewModels
                                               KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
 
                                               CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = _rm.GetString("PagePreferencesGeneralTitle");
+                                              Title = Resources.Resources.PagePreferencesGeneralTitle;
                                           }));
             }
         }
@@ -262,7 +261,7 @@ namespace win_client.ViewModels
                                               Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAccount, System.UriKind.Relative);
                                               KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
                                               CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = _rm.GetString("PagePreferencesAccountTitle");
+                                              Title = Resources.Resources.PagePreferencesAccountTitle;
                                           }));
             }
         }
@@ -282,7 +281,7 @@ namespace win_client.ViewModels
                                               Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesNetwork, System.UriKind.Relative);
                                               KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
                                               CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = _rm.GetString("PagePreferencesNetworkTitle");
+                                              Title = Resources.Resources.PagePreferencesNetworkTitle;
                                           }));
             }
         }
@@ -302,7 +301,7 @@ namespace win_client.ViewModels
                                               Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAdvanced, System.UriKind.Relative);
                                               KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
                                               CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = _rm.GetString("PagePreferencesAdvancedTitle");
+                                              Title = Resources.Resources.PagePreferencesAdvancedTitle;
                                           }));
             }
         }
@@ -322,7 +321,7 @@ namespace win_client.ViewModels
                                               Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAbout, System.UriKind.Relative);
                                               KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
                                               CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = _rm.GetString("PagePreferencesAboutTitle");
+                                              Title = Resources.Resources.PagePreferencesAboutTitle;
                                           }));
             }
         }

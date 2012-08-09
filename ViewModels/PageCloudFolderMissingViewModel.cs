@@ -30,6 +30,7 @@ using win_client.AppDelegate;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
 using Ookii.Dialogs.WpfMinusTaskDialog;
 using CloudApiPrivate.Model;
 using System.ComponentModel;
@@ -50,7 +51,6 @@ namespace win_client.ViewModels
         #region Instance Variables
 
         private readonly IDataService _dataService;
-        private ResourceManager _rm;
         private CLTrace _trace;
         private IModalWindow _dialog = null;        // for use with modal dialogs
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
@@ -75,10 +75,9 @@ namespace win_client.ViewModels
 
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm = CLAppDelegate.Instance.ResourceManager;
             _trace = CLAppDelegate.Instance.GetTrace();
 
-            BodyMessage = _rm.GetString("pageCloudFolderMissingBodyMesssage");
+            BodyMessage = Resources.Resources.pageCloudFolderMissingBodyMesssage;
             OkButtonContent = CLAppDelegate.Instance.PageCloudFolderMissingOkButtonContent;
         }
 
@@ -88,7 +87,6 @@ namespace win_client.ViewModels
         public override void Cleanup()
         {
             base.Cleanup();
-            _rm = null;
         }
 
         #endregion
@@ -231,7 +229,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 // Process the OK button click.
-                                                if (this.OkButtonContent.Equals(_rm.GetString("pageCloudFolderMissingOkButtonLocate"), StringComparison.InvariantCulture))
+                                                if (this.OkButtonContent.Equals(Resources.Resources.pageCloudFolderMissingOkButtonLocate, StringComparison.InvariantCulture))
                                                 {
                                                     // This is the Locate... case.  Display the Windows Forms folder selection
                                                     // dialog.  Tell the view to put up the dialog.  If the user clicks cancel, 
@@ -245,7 +243,7 @@ namespace win_client.ViewModels
                                                     // Should we be more asynchronous?
                                                     CLAppMessages.Message_PageCloudFolderMissingShouldChooseCloudFolder.Send("");
                                                 }
-                                                else if (this.OkButtonContent.Equals(_rm.GetString("pageCloudFolderMissingOkButtonRestore"), StringComparison.InvariantCulture))
+                                                else if (this.OkButtonContent.Equals(Resources.Resources.pageCloudFolderMissingOkButtonRestore, StringComparison.InvariantCulture))
                                                 {
                                                     // This is the Restore case.  Restore the cloud folder from the recycle bin.
                                                     CLError error = null;
@@ -262,10 +260,11 @@ namespace win_client.ViewModels
                                                         // Leave the user on this dialog when the user clicks OK on the error message modal dialog
                                                         CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
                                                                 errorMessage: error.errorDescription, 
-                                                                title: _rm.GetString("pageCloudFolderMissingErrorTitle"),
-                                                                headerText: _rm.GetString("pageCloudFolderMissingErrorHeader"),
-                                                                rightButtonContent: _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
+                                                                title: Resources.Resources.pageCloudFolderMissingErrorTitle,
+                                                                headerText: Resources.Resources.pageCloudFolderMissingErrorHeader,
+                                                                rightButtonContent: Resources.Resources.pageCloudFolderMissingErrorRightButtonContent,
                                                                 rightButtonIsDefault: true,
+                                                                rightButtonIsCancel: true,
                                                                 container: this.ViewGridContainer, 
                                                                 dialog: out _dialog,
                                                                 actionOkButtonHandler: 
@@ -287,7 +286,7 @@ namespace win_client.ViewModels
                                                                             // Just leave the user on this same PageCloudFolderMissing window,
                                                                             // but change the OK button to Locate... since we had trouble
                                                                             // restoring the folder from the recycle bin.
-                                                                            this.OkButtonContent = _rm.GetString("pageCloudFolderMissingOkButtonLocate");
+                                                                            this.OkButtonContent = Resources.Resources.pageCloudFolderMissingOkButtonLocate;
                                                                         }
                                                                     }
                                                         );
@@ -336,10 +335,11 @@ namespace win_client.ViewModels
                                                 {
                                                     CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
                                                         errorMessage: error.errorDescription,
-                                                        title: _rm.GetString("pageCloudFolderMissingErrorTitle"),
-                                                        headerText: _rm.GetString("pageCloudFolderMissingErrorHeader"),
-                                                        rightButtonContent: _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
+                                                        title: Resources.Resources.pageCloudFolderMissingErrorTitle,
+                                                        headerText: Resources.Resources.pageCloudFolderMissingErrorHeader,
+                                                        rightButtonContent: Resources.Resources.pageCloudFolderMissingErrorRightButtonContent,
                                                         rightButtonIsDefault: true,
+                                                        rightButtonIsCancel: true,
                                                         container: this.ViewGridContainer,
                                                         dialog: out _dialog,
                                                         actionOkButtonHandler: 
@@ -395,10 +395,11 @@ namespace win_client.ViewModels
                                                     // Error creating the cloud folder.  Display the error and stay on this dialog.
                                                     CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
                                                         errorMessage: error.errorDescription,
-                                                        title: _rm.GetString("pageCloudFolderMissingErrorTitle"),
-                                                        headerText: _rm.GetString("pageCloudFolderMissingErrorHeader"),
-                                                        rightButtonContent: _rm.GetString("pageCloudFolderMissingErrorRightButtonContent"),
+                                                        title: Resources.Resources.pageCloudFolderMissingErrorTitle,
+                                                        headerText: Resources.Resources.pageCloudFolderMissingErrorHeader,
+                                                        rightButtonContent: Resources.Resources.pageCloudFolderMissingErrorRightButtonContent,
                                                         rightButtonIsDefault: true,
+                                                        rightButtonIsCancel: true,
                                                         container: this.ViewGridContainer,
                                                         dialog: out _dialog,
                                                         actionOkButtonHandler:

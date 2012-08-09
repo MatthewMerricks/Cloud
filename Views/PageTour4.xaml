@@ -27,6 +27,10 @@
         </ResourceDictionary>
     </Page.Resources>
     
+    <Page.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </Page.InputBindings>
+
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="48"/>
@@ -83,11 +87,16 @@
         		<ColumnDefinition Width="0.581*"/>
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
-        	<Button x:Name="cmdBack" Content="Back" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Left"/>
-        	<Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
+        	<Button x:Name="cmdBack" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
+        		Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Left">
+                <AccessText Text="_Back" />
+            </Button>
+            
+        	<Button x:Name="cmdContinue" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
         		Command="{Binding PageTour_ContinueCommand, Mode=OneTime}" TabIndex="0"
-        		HorizontalAlignment="Right" IsDefault="True"/>
+        		HorizontalAlignment="Right" IsDefault="True">
+                <AccessText Text="_Continue" />
+            </Button>
         </Grid>
     </Grid>
 </Page>

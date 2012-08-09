@@ -22,7 +22,7 @@ namespace CloudApiPrivate.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace CloudApiPrivate.Resources {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CloudApiPrivate.Resources.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace CloudApiPrivate.Resources {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace CloudApiPrivate.Resources {
         /// <summary>
         ///   Looks up a localized string similar to HTTP.
         /// </summary>
-        internal static string useProxyHTTP {
+        public static string useProxyHTTP {
             get {
                 return ResourceManager.GetString("useProxyHTTP", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace CloudApiPrivate.Resources {
         /// <summary>
         ///   Looks up a localized string similar to SOCKS4.
         /// </summary>
-        internal static string useProxySOCK4 {
+        public static string useProxySOCK4 {
             get {
                 return ResourceManager.GetString("useProxySOCK4", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace CloudApiPrivate.Resources {
         /// <summary>
         ///   Looks up a localized string similar to SOCKS5.
         /// </summary>
-        internal static string useProxySOCK5 {
+        public static string useProxySOCK5 {
             get {
                 return ResourceManager.GetString("useProxySOCK5", resourceCulture);
             }

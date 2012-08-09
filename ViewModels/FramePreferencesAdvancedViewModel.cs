@@ -32,6 +32,7 @@ using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
 using System.Windows.Input;
 using win_client.Views;
+using win_client.Resources;
 using System.Windows.Threading;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
@@ -55,7 +56,6 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
         private IModalWindow _dialog = null;        // for use with modal dialogs
 
         #endregion
@@ -77,7 +77,6 @@ namespace win_client.ViewModels
                     }
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm =  CLAppDelegate.Instance.ResourceManager;
 
             // Set the current Cloud folder location.
             FramePreferencesAdvanced_CloudFolder = Settings.Instance.CloudFolderPath;
@@ -211,13 +210,13 @@ namespace win_client.ViewModels
                                                     windowHeight: 250,
                                                     leftButtonWidth: 75,
                                                     rightButtonWidth: 75,
-                                                    title: _rm.GetString("FramePreferencesAdvanced_ChangeCloudFolderTitle"),
-                                                    headerText: _rm.GetString("FramePreferencesAdvanced_ChangeCloudFolderHeaderText"),
-                                                    bodyText: _rm.GetString("FramePreferencesAdvanced_ChangeCloudFolderBodyText"),
-                                                    leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                                                    title: Resources.Resources.FramePreferencesAdvanced_ChangeCloudFolderTitle,
+                                                    headerText: Resources.Resources.FramePreferencesAdvanced_ChangeCloudFolderHeaderText,
+                                                    bodyText: Resources.Resources.FramePreferencesAdvanced_ChangeCloudFolderBodyText,
+                                                    leftButtonContent: Resources.Resources.GeneralYesButtonContent,
                                                     leftButtonIsDefault: false,
                                                     leftButtonIsCancel: false,
-                                                    rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                                                    rightButtonContent: Resources.Resources.GeneralNoButtonContent,
                                                     rightButtonIsDefault: true,
                                                     rightButtonIsCancel: false,
                                                     container: ViewGridContainer,
@@ -307,8 +306,9 @@ namespace win_client.ViewModels
                                                     errorMessage: "You can't select folders right now.  It's not implemented yet..",
                                                     title: "Information",
                                                     headerText: "Not implemented!",
-                                                    rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                                    rightButtonContent: Resources.Resources.generalOkButtonContent,
                                                     rightButtonIsDefault: true,
+                                                    rightButtonIsCancel: true,
                                                     container: ViewGridContainer,
                                                     dialog: out _dialog,
                                                     actionOkButtonHandler:
@@ -359,12 +359,12 @@ namespace win_client.ViewModels
                 windowHeight: 250,
                 leftButtonWidth: 75,
                 rightButtonWidth: 75,
-                title: _rm.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title"),
-                headerText: _rm.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_HeaderText"),
+                title: Resources.Resources.FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title,
+                headerText: Resources.Resources.FramePreferencesAdvanced_NewCloudFolderSelectedAlert_HeaderText,
 
                 // The body text is formatted like this:
                 // "This will move your existing Cloud folder and all of the files inside it from the existing location:{0}{1}{2}{3}into the new folder:{4}{5}{6} "
-                bodyText: String.Format(_rm.GetString("FramePreferencesAdvanced_NewCloudFolderSelectedAlert_BodyText"), 
+                bodyText: String.Format(Resources.Resources.FramePreferencesAdvanced_NewCloudFolderSelectedAlert_BodyText, 
                             Environment.NewLine, 
                             "\t",
                             fromPath,
@@ -372,10 +372,10 @@ namespace win_client.ViewModels
                             Environment.NewLine,
                             "\t",
                             toPath),
-                leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                leftButtonContent: Resources.Resources.GeneralYesButtonContent,
                 leftButtonIsDefault: false,
                 leftButtonIsCancel: false,
-                rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                rightButtonContent: Resources.Resources.GeneralNoButtonContent,
                 rightButtonIsDefault: true,
                 rightButtonIsCancel: false,
                 container: ViewGridContainer,
@@ -408,11 +408,12 @@ namespace win_client.ViewModels
                                 dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
                                 {
                                     CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                        errorMessage: _rm.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText"),
-                                        title: _rm.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_Title"),
-                                        headerText: _rm.GetString("FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText"),
-                                        rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                        errorMessage: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText,
+                                        title: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_Title,
+                                        headerText: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText,
+                                        rightButtonContent: Resources.Resources.generalOkButtonContent,
                                         rightButtonIsDefault: true,
+                                        rightButtonIsCancel: true,
                                         container: ViewGridContainer,
                                         dialog: out _dialog,
                                         actionOkButtonHandler:

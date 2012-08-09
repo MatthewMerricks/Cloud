@@ -27,6 +27,7 @@ using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
 using System.ComponentModel;
 using System.Windows.Input;
 using CleanShutdown.Messaging;
@@ -52,7 +53,6 @@ namespace win_client.ViewModels
         private readonly IDataService _dataService;
 
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
         private IModalWindow _dialog = null;        // for use with modal dialogs
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
 
@@ -78,7 +78,6 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
 
-            _rm = CLAppDelegate.Instance.ResourceManager;
         }
 
         #endregion
@@ -379,10 +378,11 @@ namespace win_client.ViewModels
                 // There was an error registering this user.  Display the error and leave the user on the same page.
                 CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
                     errorMessage: error.errorDescription,
-                    title: _rm.GetString("generalErrorTitle"),
-                    headerText: _rm.GetString("loginErrorHeader"),
-                    rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                    title: Resources.Resources.generalErrorTitle,
+                    headerText: Resources.Resources.loginErrorHeader,
+                    rightButtonContent: Resources.Resources.generalOkButtonContent,
                     rightButtonIsDefault: true,
+                    rightButtonIsCancel: true,
                     container: ViewGridContainer,
                     dialog: out _dialog,
                     actionOkButtonHandler: 

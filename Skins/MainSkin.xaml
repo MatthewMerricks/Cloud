@@ -21,7 +21,6 @@
     <w:RadioButtonUnselectedVisibilityConverter x:Key="RadioButtonUnselectedVisibilityConverter" />
     <w:BoolIsVisible2VisibilityConverter x:Key="BoolIsVisible2VisibilityConverter" />
     <w:QuotaConverter x:Key="QuotaConverter" />
-    <w:DefaultButtonHub x:Key="defaultHub" />
     <w:EnumMatchToBooleanConverter x:Key="EnumMatchToBooleanConverter" />
     <friendly_enums:EnumToFriendlyNameConverter x:Key="EnumToFriendlyNameConverter" />
     

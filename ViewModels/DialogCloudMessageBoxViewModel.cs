@@ -25,14 +25,12 @@ namespace win_client.ViewModels
         #region Private Instance Variables
 
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
 
         #endregion
 
 
         public DialogCloudMessageBoxViewModel()
         {
-            _rm = CLAppDelegate.Instance.ResourceManager;
 
         }
 

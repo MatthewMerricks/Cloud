@@ -71,7 +71,7 @@
         	</Grid.ColumnDefinitions>
         	<Button x:Name="cmdOK" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
         		Command="{Binding PageCloudAlreadyRunningViewModel_OkCommand, Mode=OneTime}" TabIndex="0"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" >
+        		HorizontalAlignment="Right" >
                 <AccessText Text="{x:Static resx:Resources.generalOkButtonContent}"/>
             </Button>
         </Grid>

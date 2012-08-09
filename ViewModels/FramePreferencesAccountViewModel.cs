@@ -30,6 +30,7 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
 using System.Windows.Input;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
@@ -53,7 +54,6 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
         private IModalWindow _dialog = null;        // for use with modal dialogs
 
         #endregion
@@ -76,7 +76,6 @@ namespace win_client.ViewModels
                     }
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm =  CLAppDelegate.Instance.ResourceManager;
 
         }
 
@@ -134,13 +133,13 @@ namespace win_client.ViewModels
                                                     windowHeight: 250,
                                                     leftButtonWidth: 75,
                                                     rightButtonWidth: 75,
-                                                    title: _rm.GetString("FramePreferencesAccount_RemoveThisDevice"),
-                                                    headerText: _rm.GetString("FramePreferencesAccount_UnlinkThisDevice"),
-                                                    bodyText: _rm.GetString("FramePreferencesAccount_UnlinkThisDeviceBody"),
-                                                    leftButtonContent: _rm.GetString("GeneralYesButtonContent"),
+                                                    title: Resources.Resources.FramePreferencesAccount_RemoveThisDevice,
+                                                    headerText: Resources.Resources.FramePreferencesAccount_UnlinkThisDevice,
+                                                    bodyText: Resources.Resources.FramePreferencesAccount_UnlinkThisDeviceBody,
+                                                    leftButtonContent: Resources.Resources.GeneralYesButtonContent,
                                                     leftButtonIsDefault: false,
                                                     leftButtonIsCancel: false,
-                                                    rightButtonContent: _rm.GetString("GeneralNoButtonContent"),
+                                                    rightButtonContent: Resources.Resources.GeneralNoButtonContent,
                                                     rightButtonIsDefault: true,
                                                     rightButtonIsCancel: false,
                                                     container: ViewGridContainer,
@@ -189,8 +188,9 @@ namespace win_client.ViewModels
                                                     errorMessage: "You can't get more space right now.  It's not implemented yet..",
                                                     title: "Information",
                                                     headerText: "Not implemented!",
-                                                    rightButtonContent: _rm.GetString("generalOkButtonContent"),
+                                                    rightButtonContent: Resources.Resources.generalOkButtonContent,
                                                     rightButtonIsDefault: true,
+                                                    rightButtonIsCancel: true,
                                                     container: ViewGridContainer,
                                                     dialog: out _dialog,
                                                     actionOkButtonHandler:

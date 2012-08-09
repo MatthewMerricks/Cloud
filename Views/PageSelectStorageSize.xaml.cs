@@ -67,7 +67,7 @@ namespace win_client.Views
                {
                    this.NavigationService.Navigate(uri, UriKind.Relative);
                });
-            CLAppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
+            CLAppMessages.Message_PageSelectStorageSizeViewSetFocusToContinueButton.Register(this, OnMessage_PageSelectStorageSizeViewSetFocusToContinueButton);
 
             // Pass the view's grid to the view model for the dialogs to use.
             PageSelectStorageSizeViewModel vm = (PageSelectStorageSizeViewModel)DataContext;
@@ -88,20 +88,6 @@ namespace win_client.Views
 
             // Unregister for messages
             Messenger.Default.Unregister(this);
-        }
-
-        /// <summary>
-        /// REMOVE THIS.  Need credit card UI.
-        /// </summary>
-        //TODO: Remove this.  Implement the credit card UI.
-        private void SelectStorageSize_PresentMessageDialog(DialogMessage msg)
-        {
-            var result = MessageBox.Show(
-                msg.Content,
-                msg.Caption,
-                msg.Button);
-
-            msg.ProcessCallback(result);     // Send callback
         }
 
         /// <summary>
@@ -132,6 +118,14 @@ namespace win_client.Views
                 return ex;
             }
             return null;
+        }
+
+        /// <summary>
+        /// The ViewModel says give focus to the Continue button.
+        /// </summary>
+        private void OnMessage_PageSelectStorageSizeViewSetFocusToContinueButton(string obj)
+        {
+            cmdContinue.Focus();
         }
 
         /// <summary>

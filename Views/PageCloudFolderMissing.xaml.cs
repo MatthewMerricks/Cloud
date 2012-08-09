@@ -25,6 +25,7 @@ using win_client.ViewModels;
 using Ookii.Dialogs.WpfMinusTaskDialog;
 using win_client.AppDelegate;
 using win_client.Model;
+using win_client.Resources;
 using CloudApiPublic.Model;
 using CleanShutdown.Messaging;
 
@@ -53,7 +54,7 @@ namespace win_client.Views
         private void OnMessage_PageCloudFolderMissingShouldChooseCloudFolder(string obj)
         {
             VistaFolderBrowserDialog folderBrowser = new VistaFolderBrowserDialog();
-            folderBrowser.Description = CLAppDelegate.Instance.ResourceManager.GetString("pageCloudFolderMissingFolderBrowserDescription");
+            folderBrowser.Description = win_client.Resources.Resources.pageCloudFolderMissingFolderBrowserDescription;
             folderBrowser.RootFolder = Environment.SpecialFolder.MyDocuments;  // no way to get to the user's home directory.  RootFolder is a SpecialFolder.
             folderBrowser.ShowNewFolderButton = true;
             bool? wasOkButtonClicked = folderBrowser.ShowDialog(Window.GetWindow(this));

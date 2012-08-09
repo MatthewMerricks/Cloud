@@ -17,6 +17,7 @@ using CloudApiPublic.Static;
 using win_client.AppDelegate;
 using SQLIndexer;
 using win_client.Services.FileSystemMonitoring;
+using win_client.Resources;
 using CloudApiPublic.Support;
 
 namespace win_client.Common
@@ -92,7 +93,7 @@ namespace win_client.Common
             {
                 CLError err = new CLError();
                 err.errorDomain = CLError.ErrorDomain_Application;
-                err.errorDescription = CLAppDelegate.Instance.ResourceManager.GetString("appDelegateExceptionCreatingFolder");
+                err.errorDescription = Resources.Resources.appDelegateExceptionCreatingFolder;
                 err.errorCode = (int)CLError.ErrorCodes.Exception;
                 err.errorInfo.Add(CLError.ErrorInfo_Exception, e);
                 error = err;

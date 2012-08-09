@@ -36,6 +36,7 @@ namespace Dialog.Implementors.Wpf.MVVM.Services
             viewWindow.Owner = Window.GetWindow(gridContainer);
             viewWindow.ShowInTaskbar = false;
             viewWindow.Topmost = true;
+            viewWindow.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
             viewWindow.ResizeMode = ResizeMode.NoResize;
 
             // Show the dialog on the main thread and drive the action when done.

@@ -50,7 +50,6 @@ namespace win_client.ViewModels
         private const double _kNoProxyOpacity = 0.60;
         private const double _kProxyActiveOpacity = 1.00;
 
-        private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
 
         private ProxiesPreferencesSubset _proxiesPreferencesSubset;             // the current values
@@ -66,7 +65,6 @@ namespace win_client.ViewModels
 
         public DialogPreferencesNetworkProxiesViewModel()
         {
-            _rm = CLAppDelegate.Instance.ResourceManager;
         }
 
         #endregion

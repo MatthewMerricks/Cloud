@@ -47,7 +47,6 @@ namespace win_client.ViewModels
         private readonly IDataService _dataService;
         private RelayCommand _pageBadgeComInitializationErrorViewModel_OkCommand;
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
 
         #endregion
@@ -70,7 +69,6 @@ namespace win_client.ViewModels
 
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm = CLAppDelegate.Instance.ResourceManager;
         }
 
         #endregion

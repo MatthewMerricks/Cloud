@@ -70,29 +70,28 @@
             
             <!-- Download Rate -->
             <TextBlock TextWrapping="Wrap" Text="Download rate: " Foreground="Black" FontSize="16" Grid.Row="1" TextAlignment="Right" VerticalAlignment="Center" Height="21" />
-            <Grid Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" Margin="0,2,0,24">
+            <Grid Grid.Column="1" Grid.Row="1" Grid.RowSpan="3">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <RadioButton Content="Don't limit" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="0" Margin="10,0,0,0"
+                <RadioButton Content="_Don't limit" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="0" Margin="10,0,0,0"
                              IsChecked="{Binding RbDownloadBandwidthNoLimit, Mode=TwoWay}" 
                              ToolTip="Select to download files as fast as your network will allow."/>
-                <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Stretch" Margin="0,2,0,-2" >
-                    <RadioButton Content="Limit to:" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Margin="10,0,0,0"
+                <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Stretch" >
+                    <RadioButton Content="_Limit to:" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Margin="10,0,0,0"
                              IsChecked="{Binding RbDownloadBandwidthLimit, Mode=TwoWay}"
                              ToolTip="Select to limit the download rate to a specific maximum."/>
-                    <extToolkit:ButtonSpinner x:Name="spinnerDownloadRate" AllowSpin="True" ShowButtonSpinner="True" VerticalAlignment="Center" Margin="20,0,0,0" 
-                                              Spin="ButtonSpinner_DownloadRateSpin" IsEnabled="{Binding TbDownloadBandwidthLimitEnabled, Mode=OneWay}">
+                    <extToolkit:ButtonSpinner x:Name="spinnerDownloadRate"   AllowSpin="True" ShowButtonSpinner="True" VerticalAlignment="Center" Margin="20,0,0,0" 
+                                              Spin="ButtonSpinner_DownloadRateSpin" IsEnabled="{Binding TbDownloadBandwidthLimitEnabled, Mode=OneWay}" >
                         <TextBox x:Name="tbDownloadBandwidthLimitKBPerSecond" BorderThickness="0" HorizontalContentAlignment="Right" Foreground="Black" VerticalAlignment="Center"
                              Text="{Binding TbDownloadBandwidthLimitKBPerSecond, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" TabIndex="0" FontSize="16" Width="60"
-                             Validation.ErrorTemplate="{StaticResource errorTemplate}" commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
+                             Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              IsEnabled="{Binding TbDownloadBandwidthLimitEnabled, Mode=OneWay}" Opacity="{Binding DownloadRateNotLimitedOpacity, Mode=OneWay}"
                              ToolTip="Enter a positive integer representing the maximum download rate in Kilobytes per Second.">
                         </TextBox>
                     </extToolkit:ButtonSpinner>
-                    <TextBlock TextWrapping="Wrap" Text="KB/sec" Foreground="Black" FontSize="16" TextAlignment="Left" VerticalAlignment="Center" Height="21" Width="Auto" Margin="10,0,0,0"
-                               Opacity="{Binding DownloadRateNotLimitedOpacity, Mode=OneWay}"/>
+                    <Label Content="_KB/sec" HorizontalAlignment="Left" VerticalAlignment="Center" Width="Auto" FontSize="16" Padding="0" Height="Auto" Target="tbDownloadBandwidthLimitKBPerSecond" Opacity="{Binding DownloadRateNotLimitedOpacity, Mode=OneWay}" Margin="10,0,0,0" />
                 </StackPanel>
             </Grid>
             
@@ -104,27 +103,27 @@
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <RadioButton Content="Don't limit" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="0" Margin="10,0,0,0"
+                <RadioButton Content="Do_n't limit" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="0" Margin="10,0,0,0"
                              IsChecked="{Binding RbUploadBandwidthNoLimit, Mode=TwoWay}" 
                              ToolTip="Select to upload files as fast as your network will allow."/>
-                <RadioButton Content="Limit automatically" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="1" Margin="10,0,0,0"
+                <RadioButton Content="Limit _automatically" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Grid.Row="1" Margin="10,0,0,0"
                              IsChecked="{Binding RbUploadBandwidthLimitAutomatically, Mode=TwoWay}" 
                              ToolTip="Select to allow Cloud to determine the best upload bandwidth limiting."/>
-                <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Stretch" >
-                    <RadioButton Content="Limit to:" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Margin="10,0,0,0"
+                <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Center" >
+                    <RadioButton Content="Limit _to:" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="16" Width="Auto" Margin="10,0,0,0"
                              IsChecked="{Binding RbUploadBandwidthLimit, Mode=TwoWay}"
                              ToolTip="Select to limit the upload rate to a specific maximum."/>
                     <extToolkit:ButtonSpinner x:Name="spinnerUploadRate" AllowSpin="True" ShowButtonSpinner="True" VerticalAlignment="Center" Margin="20,0,0,0" 
-                                              Spin="ButtonSpinner_UploadRateSpin" IsEnabled="{Binding TbUploadBandwidthLimitEnabled, Mode=OneWay}">
+                                              Spin="ButtonSpinner_UploadRateSpin" IsEnabled="{Binding TbUploadBandwidthLimitEnabled, Mode=OneWay}" >
                         <TextBox x:Name="tbUploadBandwidthLimitKBPerSecond" BorderThickness="0" HorizontalContentAlignment="Right" Foreground="Black" VerticalAlignment="Center"
                              Text="{Binding TbUploadBandwidthLimitKBPerSecond, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" TabIndex="0" FontSize="16" Width="60"
-                             Validation.ErrorTemplate="{StaticResource errorTemplate}" commonClient:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}"
+                             Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              IsEnabled="{Binding TbUploadBandwidthLimitEnabled, Mode=OneWay}" Opacity="{Binding UploadRateNotLimitedOpacity, Mode=OneWay}"
                              ToolTip="Enter a positive integer representing the maximum upload rate in Kilobytes per Second.">
                         </TextBox>
                     </extToolkit:ButtonSpinner>
-                    <TextBlock TextWrapping="Wrap" Text="KB/sec" Foreground="Black" FontSize="16" TextAlignment="Left" VerticalAlignment="Center" Height="21" Width="Auto" Margin="10,0,0,0" 
-                               Opacity="{Binding UploadRateNotLimitedOpacity, Mode=OneWay}"/>
+                    <Label Content="K_B/sec" HorizontalAlignment="Left" VerticalAlignment="Center" Width="Auto" Padding="0" FontSize="16" Height="Auto" Target="tbUploadBandwidthLimitKBPerSecond" 
+                           Opacity="{Binding UploadRateNotLimitedOpacity, Mode=OneWay}" Margin="10,0,0,0" />
                 </StackPanel>
             </Grid>
         </Grid>
@@ -141,21 +140,24 @@
         		    Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click"
 			        Width="{Binding DialogPreferencesNetworkBandwidth_RightButtonWidth, Mode=OneWay}"
         		    Margin="{Binding DialogPreferencesNetworkBandwidth_RightButtonMargin, Mode=OneWay}" 
-          		    Content="{Binding DialogPreferencesNetworkBandwidth_RightButtonContent, Mode=OneWay}"   
 			        Visibility="{Binding DialogPreferencesNetworkBandwidth_RightButtonVisibility, Mode=OneWay}"
                     IsDefault ="{Binding DialogPreferencesNetworkBandwidth_RightButtonIsDefault, Mode=OneWay}"    
                     IsCancel ="{Binding DialogPreferencesNetworkBandwidth_RightButtonIsCancel, Mode=OneWay}"    
-			        ToolTip="Click to close this dialog and lose any changes you made here." />
+			        ToolTip="Click to close this dialog and lose any changes you made here." >
+                    <AccessText Text="{Binding DialogPreferencesNetworkBandwidth_RightButtonContent, Mode=OneWay}" />
+                </Button>
+                
                 <Button x:Name="btnOK" FontSize="16" Background="#FF49C3FB" 
         		    Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click" 
         		    Grid.Column="2" TabIndex="0"
 			        Width="{Binding DialogPreferencesNetworkBandwidth_LeftButtonWidth, Mode=OneWay}"
         		    Margin="{Binding DialogPreferencesNetworkBandwidth_LeftButtonMargin, Mode=OneWay}"
-        		    Content="{Binding DialogPreferencesNetworkBandwidth_LeftButtonContent, Mode=OneWay}" 
 			        Visibility="{Binding DialogPreferencesNetworkBandwidth_LeftButtonVisibility, Mode=OneWay}"
                     IsDefault ="{Binding DialogPreferencesNetworkBandwidth_LeftButtonIsDefault, Mode=OneWay}"    
                     IsCancel ="{Binding DialogPreferencesNetworkBandwidth_LeftButtonIsCancel, Mode=OneWay}"    
-			        ToolTip="Click to close this dialog and keep the changes you made here.  You must still click OK on the containing preferences dialog to save your changes." />
+			        ToolTip="Click to close this dialog and keep the changes you made here.  You must still click OK on the containing preferences dialog to save your changes." >
+                    <AccessText Text="{Binding DialogPreferencesNetworkBandwidth_LeftButtonContent, Mode=OneWay}" />
+                </Button>
             </StackPanel>
         </Grid>
     </Grid>

@@ -27,6 +27,10 @@
         </ResourceDictionary>
     </Page.Resources>
     
+    <Page.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </Page.InputBindings>
+    
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.056*"/>
@@ -46,10 +50,16 @@
                 <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
-        <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneTime}" TabIndex="4" Grid.Row="1" Height="50" Padding="1" Margin="67,0" />
-        <Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Background="#FF49C3FB" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" 
+        <Button x:Name="cmdBack" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
+                Command="{Binding PageSetupSelector_BackCommand, Mode=OneTime}" TabIndex="4" Grid.Row="1" Height="50" Padding="1" Margin="67,0">
+            <AccessText Text="_Back" />
+        </Button>
+            
+        <Button x:Name="cmdContinue" FontSize="13.333" Background="#FF49C3FB" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" 
                 Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneTime}" TabIndex="1" Height="50" Grid.Row="1"
-                Margin="67,0" IsDefault="True" />
+                Margin="67,0" IsDefault="True">
+            <AccessText Text="_Continue" />
+        </Button>
         <Grid Grid.Column="1" Margin="48,85,37,8" Grid.ColumnSpan="4">
     		<Grid.RowDefinitions>
     			<RowDefinition Height="0.495*"/>
@@ -64,7 +74,7 @@
                       Visibility="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionDefault, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
 			<StackPanel Margin="25,0,0,0" Width="Auto" Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
 				<Image Margin="0,0,-378,0" Source="/win-client;component/Artwork/cl_folder_icon.png" Height="50" HorizontalAlignment="Left"/>
-				<RadioButton Content="Default" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
+				<RadioButton Content="_Default" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
                              VerticalContentAlignment="Top" Padding="4,-3,0,0" TabIndex="2" 
                              IsChecked="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionDefault, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="grpSelections" />
 				<StackPanel Width="260" Margin="10,58,0,0">
@@ -79,7 +89,7 @@
                        Visibility="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionAdvanced, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
 			<StackPanel Margin="25,0,0,0" Width="Auto" Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
 				<Image Margin="0,0,-378,0" Source="/win-client;component/Artwork/cl_icon_cog.png" Height="50" HorizontalAlignment="Left"/>
-				<RadioButton VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" Content="Advanced" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
+				<RadioButton VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" Content="_Advanced" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
                              IsChecked="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionAdvanced, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" 
                              Padding="4,-3,0,0" TabIndex="3" GroupName="grpSelections" />
 				<StackPanel Width="260" Margin="10,58,0,3">

@@ -39,6 +39,19 @@ namespace win_client.Views
             // Register event handlers
             Loaded += DialogPreferencesNetworkProxies_Loaded;
             Unloaded += DialogPreferencesNetworkProxies_Unloaded;
+            Closing += DialogPreferencesNetworkProxies_Closing;
+        }
+
+        /// <summary>
+        /// The window is closing.  Should it close?
+        /// </summary>
+        private void DialogPreferencesNetworkProxies_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            DialogPreferencesNetworkProxiesViewModel vm = (DialogPreferencesNetworkProxiesViewModel)DataContext;
+            if (!vm.WindowCloseOk)
+            {
+                e.Cancel = true;
+            }
         }
 
         /// <summary>
