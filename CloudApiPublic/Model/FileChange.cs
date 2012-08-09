@@ -60,6 +60,10 @@ namespace CloudApiPublic.Model
             }
         }
         private SyncDirection _direction = SyncDirection.To;
+        // a global counter which is interlocked-incremented everytime a FileChange is created
+        private static long InMemoryIdCounter = 0;
+        // the current FileChange's incremented id
+        public long InMemoryId { get; private set; }
 
         /// <summary>
         /// Boolean set when already indexed events are requeued in the FileMonitor,
@@ -151,12 +155,25 @@ namespace CloudApiPublic.Model
         /// DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean
         /// </summary>
         /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
-        public FileChange(object DelayCompletedLocker) : base(DelayCompletedLocker) { }
+        public FileChange(object DelayCompletedLocker) : base(DelayCompletedLocker)
+        {
+            SetIncrementedId();
+        }
         /// <summary>
         /// Constructor for an object to store parameters,
         /// but not be delay-processable
         /// </summary>
-        public FileChange() : base() { }
+        public FileChange() : base()
+        {
+            SetIncrementedId();
+        }
+
+        // method which interlock-increments a static counter and sets the current object's in-memory id accordingly;
+        // must be called from the constructor
+        private void SetIncrementedId()
+        {
+            this.InMemoryId = Interlocked.Increment(ref InMemoryIdCounter);
+        }
 
         /// <summary>
         /// Overriding ToString so that QuickWatch will show KeyValue pairs of FilePaths, FileChanges as { [Path], [File or folder] [ChangeType] }

@@ -77,10 +77,17 @@ namespace win_client.Services.FileSystemMonitoring
                 global::Sync.Sync.Run,
                 IndexingAgent.MergeEventIntoDatabase,
                 (syncId, successfulEventIds, newRootPath) =>
+                {
+                    long newSyncCounter;
+                    return IndexingAgent.RecordCompletedSync(syncId, successfulEventIds, out newSyncCounter, newRootPath);
+                },
+                () =>
+                {
+                    lock (IndexingAgent)
                     {
-                        long newSyncCounter;
-                        return IndexingAgent.RecordCompletedSync(syncId, successfulEventIds, out newSyncCounter, newRootPath);
-                    });
+                        return IndexingAgent.LastSyncId;
+                    }
+                });
             if (monitorToSet != null)
                 this.MonitorAgent = monitorToSet;
 
