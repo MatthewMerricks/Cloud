@@ -56,6 +56,18 @@
   <PropertyGroup>
     <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>4739378C7B81B487FCFAD9235DF665584B8737F6</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>win-client_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
       <HintPath>3rdParty\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
@@ -443,6 +455,7 @@
     <None Include="Artwork\PublicFolderIcon.icns" />
     <None Include="Artwork\SidebarCloud.icns" />
     <AppDesigner Include="Properties\" />
+    <None Include="win-client_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\validationError.png" />
@@ -595,6 +608,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\cl_icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="InstallScripts\RegisterCom.vbs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
