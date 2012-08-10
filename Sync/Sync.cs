@@ -339,13 +339,50 @@ namespace Sync
 
                 syncStatus = "Sync Run initial operations completed synchronously or queued";
 
+                KeyValuePair<FileChange, FileStream>[] changesForCommunication = outputChanges.Except(preprocessedEvents).ToArray();
+                if (changesForCommunication.Length > CLDefinitions.SyncConstantsMaximumSyncToEvents)
+                {
+                    KeyValuePair<FileChange, FileStream>[] excessEvents = changesForCommunication.Skip(CLDefinitions.SyncConstantsMaximumSyncToEvents).ToArray();
+
+                    foreach (FileStream currentExcessStream in excessEvents.Select(currentExcess => currentExcess.Value))
+                    {
+                        if (currentExcessStream != null)
+                        {
+                            toReturn += currentExcessStream;
+                        }
+                    }
+
+                    GenericHolder<List<FileChange>> queueingErrors = new GenericHolder<List<FileChange>>();
+                    CLError addExcessEventsError = addChangesToProcessingQueue(excessEvents.Select(currentExcess => currentExcess.Key),
+                        /* add to top */ true,
+                        queueingErrors);
+
+                    if (queueingErrors.Value != null)
+                    {
+                        lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
+                        {
+                            foreach (FileChange currentQueueingError in queueingErrors.Value)
+                            {
+                                FailedChangesQueue.Enqueue(currentQueueingError);
+
+                                GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
+                            }
+                        }
+                    }
+                    if (addExcessEventsError != null)
+                    {
+                        toReturn += new AggregateException("Error adding excess events to processing queue before sync", addExcessEventsError.GrabExceptions());
+                    }
+
+                    errorsToQueue = new List<KeyValuePair<FileChange, FileStream>>(errorsToQueue.Except(excessEvents));
+                }
+
                 // Take events without dependencies that were not fired off in order to perform communication (or Sync From for no events left)
                 IEnumerable<KeyValuePair<bool, FileChange>> completedChanges;
                 IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>> incompleteChanges;
                 IEnumerable<KeyValuePair<bool, FileChange>> changesInError;
                 string newSyncId;
-                Exception communicationException = CommunicateWithServer(outputChanges.Except(
-                        preprocessedEvents),
+                Exception communicationException = CommunicateWithServer(changesForCommunication.Take(CLDefinitions.SyncConstantsMaximumSyncToEvents),
                     mergeToSql,
                     getLastSyncId,
                     respondingToPushNotification,
@@ -728,8 +765,7 @@ namespace Sync
 
                 // if there is at least one change to communicate or we have a push notification to communcate anyways,
                 // then process communication
-                if (communicationArray.Length > 0
-                    || respondingToPushNotification)
+                if (communicationArray.Length > 0)
                 {
                     // Run Sync To with the list toCommunicate;
                     // Anything immediately completed should be output as completedChanges;
@@ -752,7 +788,10 @@ namespace Sync
                     using (MemoryStream ms = new MemoryStream())
                     {
                         PushSerializer.WriteObject(ms,
-                            new JsonContracts.Push(getLastSyncId()));
+                            new JsonContracts.Push()
+                            {
+                                RelativeRootPath = getLastSyncId()
+                            });
                         requestBody = Encoding.Default.GetString(ms.ToArray());
                     }
 
@@ -761,11 +800,13 @@ namespace Sync
                     HttpWebRequest pushRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom);
                     pushRequest.Method = CLDefinitions.HeaderAppendMethod;
                     pushRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient;
+                    // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
+                    pushRequest.Headers[CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersionHeaderName] = CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersion;
                     pushRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(Settings.Instance.Akey);
                     pushRequest.SendChunked = false;
                     pushRequest.Timeout = HttpTimeoutMilliseconds;
                     pushRequest.ContentType = CLDefinitions.HeaderAppendContentType;
-                    pushRequest.TransferEncoding = CLDefinitions.HeaderAppendTransferEncoding;
+                    pushRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding;
                     pushRequest.ContentLength = requestBodyBytes.Length;
 
                     using (Stream pushRequestStream = pushRequest.GetRequestStream())
@@ -773,9 +814,39 @@ namespace Sync
                         pushRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
                     }
 
-                    WebResponse pushResponse = pushRequest.GetResponse();
+                    HttpWebResponse pushResponse = (HttpWebResponse)pushRequest.GetResponse();
 
-                    throw new NotImplementedException("Sync From not completed");
+                    if (pushResponse.StatusCode != HttpStatusCode.OK)
+                    {
+                        string pushResponseString = null;
+                        // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
+                        try
+                        {
+                            using (Stream pushResponseStream = pushResponse.GetResponseStream())
+                            {
+                                using (StreamReader pushResponseStreamReader = new StreamReader(pushResponseStream, Encoding.UTF8))
+                                {
+                                    pushResponseString = pushResponseStreamReader.ReadToEnd();
+                                }
+                            }
+                        }
+                        catch
+                        {
+                        }
+
+                        throw new Exception("Invalid HTTP response status code: " + ((int)pushResponse.StatusCode).ToString() +
+                            (pushResponseString == null ? string.Empty
+                                : Environment.NewLine + "Response:" + Environment.NewLine +
+                                pushResponseString));
+                    }
+
+                    JsonContracts.PushResponse deserializedResponse;
+                    using (Stream pushResponseStream = pushResponse.GetResponseStream())
+                    {
+                        deserializedResponse = (JsonContracts.PushResponse)PushResponseSerializer.ReadObject(pushResponseStream);
+                    }
+
+                    throw new NotImplementedException("Still need to read events json");
                 }
                 // else if there are no changes to communicate and we're not responding to a push notification,
                 // do not process any communication (instead set all outputs to empty arrays)
@@ -809,7 +880,20 @@ namespace Sync
             }
         }
         private static DataContractJsonSerializer _pushSerializer = null;
-        private static object PushSerializerLocker = new object();
+        private static readonly object PushSerializerLocker = new object();
+        private static DataContractJsonSerializer PushResponseSerializer
+        {
+            get
+            {
+                lock (PushResponseSerializerLocker)
+                {
+                    return _pushResponseSerializer
+                        ?? (_pushResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PushResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _pushResponseSerializer = null;
+        private static readonly object PushResponseSerializerLocker = new object();
 
         #endregion
     }

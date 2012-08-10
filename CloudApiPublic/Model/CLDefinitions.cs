@@ -73,11 +73,16 @@ namespace CloudApiPublic.Model
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
+        public const string HeaderKeyContentEncoding = "Content-Encoding";
+
+        // Sync constants
+        public const int SyncConstantsMaximumSyncToEvents = 1000;
+        public const int SyncConstantsResponseBufferSize = 4096;
 
         // HttpWebRequest Header Append
         public const string HeaderAppendToken = "Token=";
         public const string HeaderAppendContentType = "application/json";
-        public const string HeaderAppendTransferEncoding = "UTF-8";
+        public const string HeaderAppendContentEncoding = "UTF8";
         public const string HeaderAppendMethod = "POST";
         public const string HeaderAppendCloudClient = "Cloud Client";
 
@@ -187,6 +192,8 @@ namespace CloudApiPublic.Model
         public const string CLSyncEvents = "events";
         public const string CLSyncID = "sid";
         public const string CLSyncEventID = "eid";
+        public const string ResponsePendingCount = "pending_count";
+        public const string ResponsePartial = "partial_response";
 
         // Cloud Events Types
         public const string CLEventTypeAdd = "type_add";
