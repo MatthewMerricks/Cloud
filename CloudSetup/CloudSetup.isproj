@@ -1,0 +1,68 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+	<PropertyGroup>
+		<!-- Select a Product Configuration -->
+		<InstallShieldProductConfiguration>Express</InstallShieldProductConfiguration>
+		<!-- Select a Visual Studio Configuration / InstallShield Release -->
+		<Configuration>Debug</Configuration>
+		<InstallShieldRelease>$(Configuration)</InstallShieldRelease>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- The InstallShieldProject item selects the project to build -->
+		<InstallShieldProject Include="$(MSBuildProjectDirectory)\$(MSBuildProjectName).isl"/>
+		<!-- The InstallShieldReleaseFlags sets Release Flags -->
+		<!--<InstallShieldReleaseFlags Include=""/>-->
+		<!-- The InstallShieldMergeModulePath specifies what directories are
+		searched for Merge Modules -->
+		<!--<InstallShieldMergeModulePath Include=""/>-->
+	</ItemGroup>
+	<ItemGroup>
+		<!-- The ProjectReference items refer to any Visual Studio solutions you want to automatically probe for Project Output Groups.  -->
+	</ItemGroup>
+	<ItemGroup>
+		<!-- The TaggedOutputs items allow you to explicitly add extra files to output groups. Each item must include both Name and OutputGroup, as well as TargetPath metadata values. -->
+		<!--<TaggedOutputs Include="C:\My Test Exe.exe">
+			<Name>My Test Project</Name>
+			<OutputGroup>Primary output</OutputGroup>
+			<TargetPath>My Test Exe.exe</TargetPath>
+		</TaggedOutputs> -->
+	</ItemGroup>
+	<Import Project="$(MSBuildExtensionsPath32)\InstallShield\2012SpringLimited\InstallShield.targets"/>
+	<ItemGroup>
+		<ProjectReference Include="..\win-client\BadgeCOM\BadgeCOM.vcxproj">
+			<Name>BadgeCOM</Name>
+			<Project>{84373324-5261-45D7-AA92-5C4A88C07233}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\win-client\BadgeNET\BadgeNET.csproj">
+			<Name>BadgeNET</Name>
+			<Project>{77014147-1A34-4BF6-8FC4-3C85984F8E2E}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\win-client\CloudApiPrivate\CloudApiPrivate.csproj">
+			<Name>CloudApiPrivate</Name>
+			<Project>{02780AC8-0096-407A-B2D4-2AB98821EA47}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\win-client\CloudApiPublic\CloudSdkPublic.csproj">
+			<Name>CloudSdkPublic</Name>
+			<Project>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\win-client\Dialog.Implementors.Wpf\Dialog.Implementors.Wpf.csproj">
+			<Name>Dialog.Implementors.Wpf</Name>
+			<Project>{D873958B-87F4-46F6-A6E8-B72FFB08835F}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\win-client\FileMonitor\FileMonitor.csproj">
+			<Name>FileMonitor</Name>
+			<Project>{DFE16278-70B2-4B6C-84C0-1D41B04BEBDE}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\win-client\SQLIndexer\SQLIndexer.csproj">
+			<Name>SQLIndexer</Name>
+			<Project>{5EA44F8A-A8FF-48AB-B6F6-C523793E342E}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\win-client\Sync\Sync.csproj">
+			<Name>Sync</Name>
+			<Project>{45E4664C-C207-4605-AF85-54B587819107}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\win-client\win-client.csproj">
+			<Name>win-client</Name>
+			<Project>{D47ED1EB-2327-4D35-97D5-42FC6239B925}</Project>
+		</ProjectReference>
+	</ItemGroup>
+</Project>
