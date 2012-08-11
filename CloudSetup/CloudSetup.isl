@@ -349,7 +349,7 @@
 		<row><td>FileMonitor.Primary_output</td><td>{4C00C7F8-AFC1-40C8-910B-1E42AB5981D9}</td><td>INSTALLDIR</td><td>2</td><td/><td>filemonitor.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{2018F52F-B63E-4B20-8281-176FE782B368}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>NewComponent1</td><td>{09834F2F-B737-48F3-9B88-83588AF22F4D}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>RegisterCom.exe</td><td>{DDB0E4DA-AA40-4158-B38F-72C075564EEF}</td><td>INSTALLDIR</td><td>2</td><td/><td>registercom.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>RegisterCom.exe</td><td>{4D0EC4AC-A399-4407-B146-8DB8570BD0F2}</td><td>INSTALLDIR</td><td>2</td><td/><td>registercom.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SQLIndexer.Primary_output</td><td>{34BABC21-57FF-4923-A46D-A7F33AB4CE4F}</td><td>INSTALLDIR</td><td>2</td><td/><td>sqlindexer.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Sync.Primary_output</td><td>{47FFEA81-00B1-4F1F-A476-A0CA4DDE4016}</td><td>INSTALLDIR</td><td>2</td><td/><td>sync.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>win_client.Primary_output</td><td>{1DC26801-E3C1-4E10-97FF-18F6F0719D06}</td><td>INSTALLDIR</td><td>2</td><td/><td>win_client.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1080,7 +1080,7 @@
 		<row><td>ISSelfRegisterFinalize</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFinalize</td><td/><td/></row>
 		<row><td>ISUnSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISUnSelfRegisterFiles</td><td/><td/></row>
 		<row><td>LaunchProgramFileFromSetupCompleteSuccess</td><td>1</td><td>NewBinary19</td><td>LaunchProgram</td><td/><td/></row>
-		<row><td>NewCustomAction1</td><td>1042</td><td>registercom.exe</td><td/><td/><td/></row>
+		<row><td>NewCustomAction1</td><td>1042</td><td>registercom.exe</td><td>"[INSTALLDIR]\BadgeCOM.dll"</td><td/><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td>51</td><td>ARPINSTALLLOCATION</td><td>[INSTALLDIR]</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%SystemRoot]\Profiles\All Users</td><td/><td/></row>
 		<row><td>ShowMsiLog</td><td>226</td><td>SystemFolder</td><td>[SystemFolder]notepad.exe "[MsiLogFileLocation]"</td><td/><td>Shows Property-driven MSI Log</td></row>
@@ -1906,8 +1906,8 @@
 		<row><td>cloudsdkpublic.primary_outpu</td><td>CloudSdkPublic.Primary_output</td><td>CloudSdkPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSdkPublic&gt;|Built</td><td>3</td><td/></row>
 		<row><td>dialog.implementors.wpf.prim</td><td>Dialog.Implementors.Wpf.Primary_output</td><td>Dialog.Implementors.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Implementors.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>filemonitor.primary_output</td><td>FileMonitor.Primary_output</td><td>FileMonitor.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;FileMonitor&gt;|Built</td><td>3</td><td/></row>
-		<row><td>registercom.exe</td><td>RegisterCom.exe</td><td>REGIST~1.EXE|RegisterCom.exe</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Source\Projects\win-client\3rdParty\bin\Release\RegisterCom.exe</td><td>1</td><td/></row>
-		<row><td>registercom.vbs</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGIST~1.VBS|RegisterCom.vbs</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Source\Projects\win-client\InstallScripts\RegisterCom.vbs</td><td>1</td><td/></row>
+		<row><td>registercom.exe</td><td>RegisterCom.exe</td><td>REGIST~1.EXE|RegisterCom.exe</td><td>0</td><td/><td/><td/><td>1</td><td>C:\source\Projects\win-client\bin\Release\RegisterCom.exe</td><td>1</td><td/></row>
+		<row><td>registercom.exe.config</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGIST~1.CON|RegisterCom.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>C:\source\Projects\win-client\bin\Debug\RegisterCom.exe.config</td><td>1</td><td/></row>
 		<row><td>sqlindexer.primary_output</td><td>SQLIndexer.Primary_output</td><td>SQLIndexer.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;SQLIndexer&gt;|Built</td><td>3</td><td/></row>
 		<row><td>sync.primary_output</td><td>Sync.Primary_output</td><td>Sync.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Sync&gt;|Built</td><td>3</td><td/></row>
 		<row><td>win_client.primary_output</td><td>win_client.Primary_output</td><td>win-client.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;win-client&gt;|Built</td><td>3</td><td/></row>
@@ -2175,7 +2175,7 @@
 		<row><td>FileMonitor.Primary_output</td><td/><td/><td>_D12F2FB2_EF23_4993_A175_2815BAF9508A_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_ED4E17DE_CC0F_4408_A546_292FEC215FEC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>NewComponent1</td><td/><td/><td>_2FA478B8_1D0A_4BD3_B0DA_9100F4B449D0_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>RegisterCom.exe</td><td/><td/><td>_542E0EF8_6B0B_4866_86D3_CEA4F593881A_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>RegisterCom.exe</td><td/><td/><td>_67D98D99_7A4C_480E_A11B_B350FBA8E07E_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SQLIndexer.Primary_output</td><td/><td/><td>_3682A8A1_3E56_400E_BE49_AF6A532811F4_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Sync.Primary_output</td><td/><td/><td>_897BFD61_02CA_4227_A8BE_4216703C9C23_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>win_client.Primary_output</td><td/><td/><td>_0EB8F45F_9741_491F_9984_BD0467E0355D_FILTER</td><td/><td/><td/><td/></row>

@@ -66,7 +66,7 @@
     <ManifestCertificateThumbprint>4739378C7B81B487FCFAD9235DF665584B8737F6</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>win-client_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>WinClientCertificate.pfx</ManifestKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
@@ -456,6 +456,7 @@
     <None Include="Artwork\SidebarCloud.icns" />
     <AppDesigner Include="Properties\" />
     <None Include="win-client_TemporaryKey.pfx" />
+    <None Include="WinClientCertificate.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\validationError.png" />
