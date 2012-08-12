@@ -22,7 +22,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
@@ -47,7 +47,7 @@
 
         <Border x:Name="borderFullBackground" Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="5" Grid.RowSpan="3" RenderTransformOrigin="0.5,0.5">
             <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
 
@@ -62,7 +62,7 @@
             <Grid x:Name="gridTransparentBackgroundContainer" Grid.Row="2" >
             	<Border x:Name="borderTransparentImage" Width="Auto" CornerRadius="8" RenderTransformOrigin="0.5,0.5" Margin="0">
             		<Border.Background>
-            			<ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_region_transparent.png"/>
+            			<ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_region_transparent.png"/>
             		</Border.Background>
             	</Border>
             	<Grid x:Name="gridForegroundContainer" Margin="10">
@@ -73,7 +73,7 @@
             		<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="16" Text="Share your files and folders with friends, family, and co-workers no matter what type of computer they use. " Margin="6"/>
             		<Border x:Name="borderInnerImageContainer" Grid.Row="2" CornerRadius="8">
             		      <Border.Background>
-            			     <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_tour_4.png"/>
+            			     <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_tour_4.png"/>
             		      </Border.Background>
                     </Border>
             	

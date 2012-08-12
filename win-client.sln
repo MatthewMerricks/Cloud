@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "win-client", "win-client.csproj", "{D47ED1EB-2327-4D35-97D5-42FC6239B925}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7FECBFDC-00CC-46C9-94EE-948155ACEE9D} = {7FECBFDC-00CC-46C9-94EE-948155ACEE9D}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dialog.Abstractions.Wpf", "Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj", "{3697919F-7A1E-43BA-BFDB-3EEC2553DD44}"
 EndProject

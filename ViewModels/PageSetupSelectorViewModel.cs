@@ -123,6 +123,54 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="IsBusy" /> property's name.
+        /// </summary>
+        public const string IsBusyPropertyName = "IsBusy";
+        private bool _isBusy = false;
+        public bool IsBusy
+        {
+            get
+            {
+                return _isBusy;
+            }
+
+            set
+            {
+                if (_isBusy == value)
+                {
+                    return;
+                }
+
+                _isBusy = value;
+                RaisePropertyChanged(IsBusyPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="BusyContent" /> property's name.
+        /// </summary>
+        public const string BusyContentPropertyName = "BusyContent";
+        private string _busyContent = "Please wait...";
+        public string BusyContent
+        {
+            get
+            {
+                return _busyContent;
+            }
+
+            set
+            {
+                if (_busyContent == value)
+                {
+                    return;
+                }
+
+                _busyContent = value;
+                RaisePropertyChanged(BusyContentPropertyName);
+            }
+        }
+
+        /// <summary>
         /// The <see cref="PageSetupSelector_OptionSelected" /> property's name.
         /// </summary>
         public const string PageSetupSelector_OptionSelectedPropertyName = "PageSetupSelector_OptionSelected";
@@ -441,7 +489,9 @@ namespace win_client.ViewModels
 
                 // Finish the setup.
                 CLError err = null;
+                IsBusy = true;                      // show the busy indicator
                 CLAppDelegate.Instance.installCloudServices(out err);
+                IsBusy = false;                     // remove the busy indicator
                 if (err != null)
                 {
                     // An error occurred.  Show the user an Oh Snap! modal dialog.

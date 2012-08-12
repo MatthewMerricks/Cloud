@@ -32,15 +32,15 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
-                <ResourceDictionary Source="/win-client;component/Skins/ErrorTemplates.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/ErrorTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
     
     <Grid x:Name="LayoutRoot">
         <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_wlcm_ptrn.png"/>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_wlcm_ptrn.png"/>
         </Grid.Background>
             
         <Grid.RowDefinitions>
@@ -50,7 +50,7 @@
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         
-        <Image Source="/win-client;component/Artwork/cl_wlcm_div.png" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <Image Source="/Cloud;component/Artwork/cl_wlcm_div.png" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"/>
 
         <Grid Grid.Row="0">
         	<Grid.ColumnDefinitions>

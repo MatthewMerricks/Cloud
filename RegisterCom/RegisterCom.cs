@@ -1,72 +1,132 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Collections;
-using System.ComponentModel;
-using System.Configuration.Install;
-using System.Reflection;
 using System.IO;
-using RegisterCom;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace OffLine.Installer
+
+namespace RegisterCom
 {
-    [RunInstaller(true)]
-    public partial class RegisterCom : System.Configuration.Install.Installer
+    public class Registrar : IDisposable
     {
-        public RegisterCom()
-            : base()
-        {
-            // Attach the 'Committed' event.
-            this.Committed += new InstallEventHandler(RegisterCom_Committed);
-            // Attach the 'Committing' event.
-            this.Committing += new InstallEventHandler(RegisterCom_Committing);
+        private IntPtr hLib;
 
-        }
-        // Event handler for 'Committing' event.
-        private void RegisterCom_Committing(object sender, InstallEventArgs e)
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+        internal static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern IntPtr LoadLibrary(string lpFileName);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool FreeLibrary(IntPtr hModule);
+
+        internal delegate int PointerToMethodInvoker();
+
+        public Registrar(string filePath)
         {
-            //Console.WriteLine("");
-            //Console.WriteLine("Committing Event occured.");
-            //Console.WriteLine("");
-        }
-        // Event handler for 'Committed' event.
-        private void RegisterCom_Committed(object sender, InstallEventArgs e)
-        {
-            try
+            Trace.WriteLine(String.Format("Registrar: LoadLibrary at path <{0}>.", filePath));
+            hLib = LoadLibrary(filePath);
+            Trace.WriteLine("Registrar: After LoadLibrary.");
+            if (IntPtr.Zero == hLib)
             {
-                Trace.WriteLine("RegisterCom: Committed event. Entry.");
-                Directory.SetCurrentDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-                Trace.WriteLine("RegisterCom: Committed event. Start Cloud.exe.");
-                Process.Start(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\Cloud.exe");
-                Trace.WriteLine("RegisterCom: Committed event. After starting Cloud.exe.");
+                Trace.WriteLine("Registrar: Error from LoadLibrary.");
+                int errno = Marshal.GetLastWin32Error();
+                throw new Exception(String.Format("Registrar: Error from LoadLibrary: {0}.", errno));
             }
-            catch(Exception ex)
+            Trace.WriteLine("Registrar: LoadLibrary successful.");
+        }
+
+        public void RegisterComDLL()
+        {
+            CallPointerMethod("DllRegisterServer");
+        }
+
+        public void UnRegisterComDLL()
+        {
+            CallPointerMethod("DllUnregisterServer");
+        }
+
+        private void CallPointerMethod(string methodName)
+        {
+            Trace.WriteLine(String.Format("Registrar: Call GetProcAddress for method: <{0}>.", methodName));
+            IntPtr dllEntryPoint = GetProcAddress(hLib, methodName);
+            Trace.WriteLine("Registrar: Back from GetProcAddress.");
+            if (IntPtr.Zero == dllEntryPoint)
             {
-                Trace.WriteLine("RegisterCom: Committed event. ERROR.  Exception. Message: {0}.", ex.Message);
+                Trace.WriteLine("Registrar: Error from GetProcAddress.");
+                throw new Exception(String.Format("Registrar: Error from GetProcAddress for DLL. Error: {0}.", Marshal.GetLastWin32Error()));
             }
-
-            // Exit the application.
-            MainProgram.shouldTerminate = true;
+            Trace.WriteLine("Registrar: Get the DLL function pointer.");
+            PointerToMethodInvoker drs =
+                   (PointerToMethodInvoker)Marshal.GetDelegateForFunctionPointer(dllEntryPoint,
+                               typeof(PointerToMethodInvoker));
+            Trace.WriteLine("Registrar: Call the DLL method.");
+            drs();
+            Trace.WriteLine("Registrar: Back from the DLL method.");
         }
 
-        // Override the 'Install' method.
-        public override void Install(IDictionary savedState)
+        public void Dispose()
         {
-            Trace.WriteLine("RegisterCom: Committed event. Install method.  Entry.");
-            base.Install(savedState);
+            Trace.WriteLine("Registrar: Dispose Entry.");
+            if (IntPtr.Zero != hLib)
+            {
+                //UnRegisterComDLL();    // leave it registered
+                Trace.WriteLine("Registrar: Free the DLL.");
+                FreeLibrary(hLib);
+                hLib = IntPtr.Zero;
+            }
         }
-        // Override the 'Commit' method.
-        public override void Commit(IDictionary savedState)
-        {
-            Trace.WriteLine("RegisterCom: Committed event. Commit method.  Entry.");
-            base.Commit(savedState);
-        }
-        // Override the 'Rollback' method.
-        public override void Rollback(IDictionary savedState)
-        {
-            Trace.WriteLine("RegisterCom: Committed event. Rollback method.  Entry.");
-            base.Rollback(savedState);
-        }
-
     }
 
+    public static class MainProgram
+    {
+        public static bool shouldTerminate = false;
+
+        static int Main(string[] args)
+        {
+            Trace.WriteLine("RegisterCom: Main program starting.");
+            Trace.WriteLine(String.Format("RegisterCom: Arg count: {0}.", args.Length));
+            Trace.WriteLine(String.Format("RegisterCom: First Arg: <{0}>.", args[0]));
+
+            if (args.Length > 0 && args[0] != null)
+            {
+                Trace.WriteLine("RegisterCom: Call RegisterAssembly.");
+                RegisterAssembly(args[0]);
+                Trace.WriteLine("RegisterCom: Back from RegisterAssembly.");
+            }
+
+            Trace.WriteLine("RegisterCom: Main program terminating.");
+            return 0;
+        }
+
+        private static void RegisterAssembly(string dllPath)
+        {
+
+            if (File.Exists(dllPath))
+            {
+                try
+                {
+                    Trace.WriteLine(String.Format("RegisterCom: Use Registrar to register the DLL at <{0}>.", dllPath));
+                    using (Registrar registrar = new Registrar(dllPath))
+                    {
+                        Trace.WriteLine("RegisterCom: Call Registrar.");
+                        registrar.RegisterComDLL();
+                    }
+                    Trace.WriteLine("RegisterCom: Finished registering.");
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine(String.Format("RegisterCom: ERROR.  Exception.  Msg: <{0}>.", ex.Message));
+                }
+            }
+            else
+            {
+                Trace.WriteLine(String.Format("RegisterCom: ERROR.  Could not find file <{0}>.", dllPath));
+            }
+        }
+    }
 }
