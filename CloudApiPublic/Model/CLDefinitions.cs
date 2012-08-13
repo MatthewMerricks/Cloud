@@ -70,6 +70,7 @@ namespace CloudApiPublic.Model
 
         // Method Path
         public const string MethodPathSyncFrom = "/sync/from_cloud";
+        public const string MethodPathDownload = "/get_file";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
@@ -165,13 +166,13 @@ namespace CloudApiPublic.Model
         public const string CLEventTypeConflict = "conflict";
         public const string CLEventTypeNotFound = "not_found";
 
-        // Cloud Metadata Protocol 
+        // Cloud Metadata Protocol
         public const string CLMetadataCloudPath = "path";
         public const string CLMetadataFileHash = "file_hash";
         public const string CLMetadataFileRevision = "revision";
         public const string CLMetadataFileCreateDate = "created_date";
         public const string CLMetadataFileModifiedDate = "modified_date";
-        public const string CLMetadataFileIsDeleted = "isDeleted";
+        public const string CLMetadataFileIsDeleted = "isDeleted";// "is_deleted" according to latest SyncController docs on Jenkins?
         public const string CLMetadataFileIsDirectory = "is_folder";
         public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
@@ -184,6 +185,9 @@ namespace CloudApiPublic.Model
         public const string CLMetadataFileTarget = "target_path";
         public const string CLMetadataParentPath = "parent_path";
         public const string CLMetadataFileCAttributes = "custom_attributes";
+        public const string CLMetadataMimeType = "mime_type";
+        public const string CLMetadataIcon = "icon";
+        public const string CLMetadataVersion = "version";
 
         // Cloud Events
         public const string CLSyncEvent = "event";

@@ -108,7 +108,9 @@ namespace win_client.Services.ServicesManager
                 CLCFMonitoringService.Instance.BeginCloudFolderMonitoring();
                 if (CLNetworkMonitorService.Instance.CloudReach)
                 {
-                    CLSyncService.Instance.BeginSyncServices();
+                    // Outdated, Sync process replaced
+                    // -David
+                    //CLSyncService.Instance.BeginSyncServices();
                 }
                 if (CLNetworkMonitorService.Instance.CloudReach)
                 {
@@ -128,20 +130,25 @@ namespace win_client.Services.ServicesManager
                 CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                 CLFSMonitoringService.Instance.EndFileSystemMonitoring();
                 CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
-                CLSyncService.Instance.StopSyncServices();
+                // Outdated, Sync process replaced
+                // -David
+                //CLSyncService.Instance.StopSyncServices();
             }
         }
-
         public void StartSyncServices()
         {
             CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
-            CLSyncService.Instance.BeginSyncServices();
+            // Outdated, Sync process replaced
+            // -David
+            //CLSyncService.Instance.BeginSyncServices();
         }
 
         public void StopSyncServices()
         {
             CLFSMonitoringService.Instance.EndFileSystemMonitoring();
-            CLSyncService.Instance.StopSyncServices();
+            // Outdated, Sync process replaced
+            // -David
+            //CLSyncService.Instance.StopSyncServices();
         }
 
         /// <summary>

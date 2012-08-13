@@ -246,18 +246,19 @@ namespace CloudTests
                         IndexingAgent.CreateNewAndInitialize(out indexer);
                         MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath,
                             out folderMonitor,
-                            (Func<GrabProcessedChanges,
-                                Func<FileChange, FileChange, CLError>,
-                                Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>,
-                                bool,
-                                Func<string, IEnumerable<long>, string, CLError>,
-                                DependencyAssignments,
-                                CLError>)Sync.Sync.Run,
+                            Sync.Sync.Run,
                             indexer.MergeEventIntoDatabase,
                             (syncId, eventIds, newRootPath) =>
                                 {
                                     long newSyncCounter;
                                     return indexer.RecordCompletedSync(syncId, eventIds, out newSyncCounter, newRootPath);
+                                },
+                            () =>
+                                {
+                                    lock (indexer)
+                                    {
+                                        return indexer.LastSyncId;
+                                    }
                                 },
                             FileChange_OnQueueing,
                             true);

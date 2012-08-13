@@ -16,6 +16,7 @@ using FileMonitor;
 using Sync;
 using SQLIndexer;
 using CloudApiPublic.Static;
+using win_client.Common;
 
 
 namespace win_client.Services.FileSystemMonitoring
@@ -87,9 +88,14 @@ namespace win_client.Services.FileSystemMonitoring
                     {
                         return IndexingAgent.LastSyncId;
                     }
-                });
+                },
+                IndexingAgent.MarkEventAsCompletedOnPreviousSync);
             if (monitorToSet != null)
+            {
                 this.MonitorAgent = monitorToSet;
+
+                CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(monitorToSet, monitorToSet.PushNotification);
+            }
 
             // Todo: handle file monitor creation error
 

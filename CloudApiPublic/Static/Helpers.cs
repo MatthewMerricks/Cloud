@@ -25,19 +25,12 @@ namespace CloudApiPublic.Static
         /// <returns>Default value of provided type</returns>
         public static object DefaultForType(Type toDefault)
         {
-            Type findStruct = toDefault;
-            while (true)
+            if (!toDefault.IsValueType
+                || Nullable.GetUnderlyingType(toDefault) != null)
             {
-                if (findStruct == typeof(ValueType))
-                {
-                    return Activator.CreateInstance(toDefault);
-                }
-                else if (findStruct == typeof(object))
-                {
-                    return null;
-                }
-                findStruct = findStruct.BaseType;
+                return null;// nullable types
             }
+            return Activator.CreateInstance(toDefault);//non-nullable type
         }
 
         /// <summary>

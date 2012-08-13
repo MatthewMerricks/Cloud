@@ -245,7 +245,7 @@ namespace win_client.Services.Sync
             //}
             if (_wasOffline)
             {
-                CLFSMonitoringService.Instance.MonitorAgent.FireSimulatedPushNotification();
+                CLFSMonitoringService.Instance.MonitorAgent.PushNotification(null);
                 _wasOffline = false;
             }
         }

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Data.Objects.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -891,6 +892,7 @@ namespace SQLIndexer
         /// <param name="mergedEvent">Event with latest file or folder metadata, pass null to only delete the old event</param>
         /// <param name="eventToRemove">Previous event to set if an old event is being replaced in the process</param>
         /// <returns>Returns an error from merging the events, if any</returns>
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public CLError MergeEventIntoDatabase(FileChange mergedEvent, FileChange eventToRemove)
         {
             try
@@ -1031,6 +1033,7 @@ namespace SQLIndexer
         /// </summary>
         /// <param name="eventId">Primary key value of the event to process</param>
         /// <returns>Returns an error that occurred marking the event complete, if any</returns>
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public CLError MarkEventAsCompletedOnPreviousSync(long eventId)
         {
             try
