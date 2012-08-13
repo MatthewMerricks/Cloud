@@ -35,6 +35,7 @@ using System.Windows.Input;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
 using CleanShutdown.Helpers;
+using win_client.Views;
 
 namespace win_client.ViewModels
 {
@@ -183,22 +184,46 @@ namespace win_client.ViewModels
                                               // Record the time of the last update check
                                               Settings.Instance.DateWeLastCheckedForSoftwareUpdate = DateTime.Now;
 
-                                              //TODO: Actually check to see if there are any updates.
-                                              CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                                  errorMessage: "You are currently running the latest version of the Cloud application.",
-                                                  title: "Information",
-                                                  headerText: "Update check complete.",
-                                                  rightButtonContent: Resources.Resources.generalOkButtonContent,
-                                                  rightButtonIsDefault: true,
-                                                  rightButtonIsCancel: true,
-                                                  container: ViewGridContainer,
-                                                  dialog: out _dialog,
-                                                  actionOkButtonHandler: 
-                                                    returnedViewModelInstance =>
-                                                    {
-                                                        // Do nothing here when the user clicks the OK button.
-                                                    }
+                                              _dialog = new DialogCheckForUpdates();
+
+                                              IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
+                                              modalDialogService.ShowDialog(
+                                                          _dialog,
+                                                          new DialogCloudMessageBoxViewModel
+                                                          {
+                                                              CloudMessageBoxView_Title = "Check for Updates",
+                                                              CloudMessageBoxView_WindowWidth = 450,
+                                                              CloudMessageBoxView_WindowHeight = 200,
+                                                              CloudMessageBoxView_RightButtonWidth = 75,
+                                                              CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 30, 0),
+                                                              CloudMessageBoxView_RightButtonContent = "_OK",
+                                                              CloudMessageBoxView_RightButtonVisibility = Visibility.Visible,
+                                                              CloudMessageBoxView_RightButtonIsDefault = true,
+                                                              CloudMessageBoxView_RightButtonIsCancel = true,
+                                                          },
+                                                          ViewGridContainer,
+                                                          (viewModel) =>
+                                                          {
+                                                              // Do nothing here.
+                                                          }
                                               );
+
+                                              ////TODO: Actually check to see if there are any updates.
+                                              //CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                              //    errorMessage: "You are currently running the latest version of the Cloud application.",
+                                              //    title: "Information",
+                                              //    headerText: "Update check complete.",
+                                              //    rightButtonContent: Resources.Resources.generalOkButtonContent,
+                                              //    rightButtonIsDefault: true,
+                                              //    rightButtonIsCancel: true,
+                                              //    container: ViewGridContainer,
+                                              //    dialog: out _dialog,
+                                              //    actionOkButtonHandler: 
+                                              //      returnedViewModelInstance =>
+                                              //      {
+                                              //          // Do nothing here when the user clicks the OK button.
+                                              //      }
+                                              //);
                                           }));
             }
         }

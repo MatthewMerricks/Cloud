@@ -45,6 +45,7 @@ namespace win_client.Common
             Message_PageSetupSelectorViewSetFocusToContinueButton,
             Message_PageFolderSelection_ShouldChooseCloudFolder,
             Message_PageSetupSelector_ShouldChooseCloudFolder,
+            Message_DialogCheckForUpdates_ShouldCheckForUpdates,
                 
 
             // Navigation requests
@@ -351,6 +352,19 @@ namespace win_client.Common
             public static void Register(object recipient, Action<string> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.Message_PageSetupSelector_ShouldChooseCloudFolder, action);
+            }
+        }
+
+        public static class Message_DialogCheckForUpdates_ShouldCheckForUpdates
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_DialogCheckForUpdates_ShouldCheckForUpdates);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_DialogCheckForUpdates_ShouldCheckForUpdates, action);
             }
         }
 

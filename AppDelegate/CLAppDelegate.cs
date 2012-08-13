@@ -67,6 +67,7 @@ namespace win_client.AppDelegate
 
 
         public Window AppMainWindow { get; set; }
+        public Window CheckForUpdatesWindow { get; set; }
 
         private bool _isAlreadyRunning = false;
         public bool IsAlreadyRunning
@@ -187,6 +188,13 @@ namespace win_client.AppDelegate
                 StartupUrlRelative = Resources.Resources.startupUriAlreadyRunning;
                 return;
             }
+
+            // Start a single instance of the updater window.
+            CheckForUpdatesWindow = new DialogCheckForUpdates();
+            CheckForUpdatesWindow.Left = Int32.MaxValue;
+            CheckForUpdatesWindow.Top = Int32.MaxValue;
+            CheckForUpdatesWindow.ShowInTaskbar = false;
+            CheckForUpdatesWindow.Show();
 
             // Determine which window we will show on startup
             SetupCloudAppLaunchMode();

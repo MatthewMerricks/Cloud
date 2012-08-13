@@ -89,7 +89,7 @@
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
         	<Button x:Name="cmdBack" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Left">
+        		Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Left" >
                 <AccessText Text="_Back" />
             </Button>
             

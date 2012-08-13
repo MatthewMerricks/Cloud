@@ -256,6 +256,14 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 // Check for updates
+                                                Window win = CLAppDelegate.Instance.CheckForUpdatesWindow;
+                                                win.ShowInTaskbar = true;
+                                                win.SetPlacement(Settings.Instance.MainWindowPlacement);
+                                                win.Show();
+                                                win.Topmost = true;
+                                                win.Topmost = false;
+                                                win.Focus();
+                                                CLAppMessages.Message_DialogCheckForUpdates_ShouldCheckForUpdates.Send("");
                                             }));                                              
             }
         }

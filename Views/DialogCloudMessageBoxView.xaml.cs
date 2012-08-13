@@ -1,5 +1,5 @@
 ﻿//
-//  PageCreateNewAccount.xaml.cs
+//  DialogCloudMessageBoxView.xaml.cs
 //  Cloud Windows
 //
 //  Created by BobS.
