@@ -46,7 +46,10 @@
     <Compile Include="ExecutableException.cs" />
     <Compile Include="GlobalSyncEvents.cs" />
     <Compile Include="IExecutableException.cs" />
+    <Compile Include="JsonContracts\Download.cs" />
     <Compile Include="JsonContracts\Event.cs" />
+    <Compile Include="JsonContracts\Header.cs" />
+    <Compile Include="JsonContracts\Metadata.cs" />
     <Compile Include="JsonContracts\Push.cs" />
     <Compile Include="JsonContracts\PushResponse.cs" />
     <Compile Include="StreamFromJaggedByteArrays.cs" />

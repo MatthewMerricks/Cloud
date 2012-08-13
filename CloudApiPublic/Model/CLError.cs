@@ -346,83 +346,85 @@ namespace CloudApiPublic.Model
 
                     try
                     {
-                        // build FileInfo from path built from base log name and current date
-                        FileInfo currentLogFile = new FileInfo(logFile.FullName +
+                        // build FileStream with path built from base log name and current date
+                        using (FileStream logStream = new FileStream(logFile.FullName +
                                 currentDate.ToString("yyyyMMdd") + // formats to YYYYMMDD
-                                ".txt");
-                        // if a log file did not exist for the current date then create it
-                        if (!currentDateFound)
+                                ".txt",
+                            FileMode.OpenOrCreate,
+                            FileAccess.Write,
+                            FileShare.Read))
                         {
-                            currentLogFile.Create();
-                        }
-                        // grab a writer for appending to the log in a auto-disposing context
-                        using (StreamWriter logWriter = currentLogFile.AppendText())
-                        {
-                            // for each custom error key status,
-                            // if the key/value pair exists in errorInfo then write them first to the log
-                            #region custom error key statuses
-                            if (this.errorInfo.ContainsKey(CLError.ErrorInfo_Sync_Run_Status))
+                            // grab a writer for appending to the log in a auto-disposing context
+                            using (StreamWriter logWriter = new StreamWriter(logStream))
                             {
-                                logWriter.WriteLine(this.errorInfo[CLError.ErrorInfo_Sync_Run_Status]);
-                            }
-                            #endregion
-
-                            // write the message of this error to the log
-                            logWriter.WriteLine(this.errorDescription);
-
-                            // pull out the values from the errorInfo key/value pairs whose keys start with the exception name
-                            foreach (object currentException in this.errorInfo
-                                .Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception))
-                                .Select(currentPair => currentPair.Value))
-                            {
-                                // try cast the current value as an exception
-                                Exception castException = currentException as Exception;
-                                if (castException != null)
+                                // for each custom error key status,
+                                // if the key/value pair exists in errorInfo then write them first to the log
+                                #region custom error key statuses
+                                if (this.errorInfo.ContainsKey(CLError.ErrorInfo_Sync_Run_Status))
                                 {
-                                    // define a string for storing the StackTrace, defaulting to null
-                                    string stack = null;
-                                    // I don't know if it's dangerous to pull out the StackTrace, so I wrap it safely
-                                    try
-                                    {
-                                        stack = castException.StackTrace;
-                                    }
-                                    catch
-                                    {
-                                    }
+                                    logWriter.WriteLine(this.errorInfo[CLError.ErrorInfo_Sync_Run_Status]);
+                                }
+                                #endregion
 
-                                    // keep track of how many inner exceptions have recursed to increase tab amount
-                                    int tabCounter = 1;
-                                    // define function to build spaces by tab count
-                                    Func<int, string> makeTabs = tabCount =>
-                                        new string(Enumerable.Range(0, 4 * tabCount)// the "4 *" multiplier means each tab is 4 spaces
-                                            .Select(currentTabSpace => ' ')// components of the tab are spaces
-                                            .ToArray());
-                                    // recurse through inner exceptions, each time with an extra tab appended
-                                    while (castException != null)
-                                    {
-                                        // write the current exception message to the log after the tabCounter worth of tabs
-                                        logWriter.WriteLine(
-                                            makeTabs(tabCounter) +
-                                            castException.Message);
+                                // write the message of this error to the log
+                                logWriter.WriteLine(this.errorDescription);
 
-                                        // prepare for next inner exception recursion
-                                        castException = castException.InnerException;
-                                        tabCounter++;
-                                    }
-
-                                    // if a StackTrace was found,
-                                    // then write it to the log
-                                    if (!string.IsNullOrWhiteSpace(stack))
+                                // pull out the values from the errorInfo key/value pairs whose keys start with the exception name
+                                foreach (object currentException in this.errorInfo
+                                    .Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception))
+                                    .Select(currentPair => currentPair.Value))
+                                {
+                                    // try cast the current value as an exception
+                                    Exception castException = currentException as Exception;
+                                    if (castException != null)
                                     {
-                                        // write the StackTrace to the log with 1 tab
-                                        logWriter.WriteLine(
-                                            makeTabs(1) + "StackTrace:" + Environment.NewLine +
-                                            stack);
+                                        // define a string for storing the StackTrace, defaulting to null
+                                        string stack = null;
+                                        // I don't know if it's dangerous to pull out the StackTrace, so I wrap it safely
+                                        try
+                                        {
+                                            stack = castException.StackTrace;
+                                        }
+                                        catch
+                                        {
+                                        }
+
+                                        // keep track of how many inner exceptions have recursed to increase tab amount
+                                        int tabCounter = 1;
+                                        // define function to build spaces by tab count
+                                        Func<int, string> makeTabs = tabCount =>
+                                            new string(Enumerable.Range(0, 4 * tabCount)// the "4 *" multiplier means each tab is 4 spaces
+                                                .Select(currentTabSpace => ' ')// components of the tab are spaces
+                                                .ToArray());
+                                        // recurse through inner exceptions, each time with an extra tab appended
+                                        while (castException != null)
+                                        {
+                                            // write the current exception message to the log after the tabCounter worth of tabs
+                                            logWriter.WriteLine(
+                                                makeTabs(tabCounter) +
+                                                castException.Message);
+
+                                            // prepare for next inner exception recursion
+                                            castException = castException.InnerException;
+                                            tabCounter++;
+                                        }
+
+                                        // if a StackTrace was found,
+                                        // then write it to the log
+                                        if (!string.IsNullOrWhiteSpace(stack))
+                                        {
+                                            // write the StackTrace to the log with 1 tab
+                                            logWriter.WriteLine(
+                                                makeTabs(1) + "StackTrace:" + Environment.NewLine +
+                                                stack);
+                                        }
                                     }
                                 }
+                                // end log with one extra line to seperate from next error entries
+                                logWriter.WriteLine();
+                                logWriter.Flush();
+                                logStream.Flush();
                             }
-                            // end log with one extra line to seperate from next error entries
-                            logWriter.WriteLine();
                         }
                     }
                     catch

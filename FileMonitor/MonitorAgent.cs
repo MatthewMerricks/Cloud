@@ -131,7 +131,10 @@ namespace FileMonitor
             Func<string, IEnumerable<long>, string, CLError>,
             Func<string>,
             DependencyAssignments,
-            CLError> OnProcessEventGroupCallback;
+            Func<string>,
+            Func<FileChange, CLError>,
+            Func<long, CLError>,
+            CLError> SyncRun;
 
         // stores the callback used to add the processed event to the SQL index
         /// <summary>
@@ -147,6 +150,8 @@ namespace FileMonitor
 
         // Returns the last sync Id, should be tied to the SQLIndexer IndexingAgent's LastSyncId property under a locker
         private Func<string> GetLastSyncId;
+
+        private Func<long, CLError> CompleteSingleEvent;
 
         // store the optional logging boolean initialization parameter
         private bool LogProcessingFileChanges;
@@ -219,7 +224,7 @@ namespace FileMonitor
         /// </summary>
         /// <param name="folderPath">path of root folder to be monitored</param>
         /// <param name="newAgent">returned MonitorAgent</param>
-        /// <param name="onProcessEventGroupCallback">delegate to be executed when a group of events is to be processed</param>
+        /// <param name="syncRun">delegate to be executed when a group of events is to be processed</param>
         /// <param name="onQueueingCallback">(optional) action to be executed evertime a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns>Returns any error that occurred if there was one</returns>
@@ -232,10 +237,14 @@ namespace FileMonitor
                 Func<string, IEnumerable<long>, string, CLError>,
                 Func<string>,
                 DependencyAssignments,
-                CLError> onProcessEventGroupCallback,
+                Func<string>,
+                Func<FileChange, CLError>,
+                Func<long, CLError>,
+                CLError> syncRun,
             Func<FileChange, FileChange, CLError> onProcessMergeToSQL,
             Func<string, IEnumerable<long>, string, CLError> onProcessCompletedSync,
             Func<string> getLastSyncId,
+            Func<long, CLError> completeSingleEvent,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
@@ -259,7 +268,7 @@ namespace FileMonitor
                 {
                     throw new Exception("Folder not found at provided folder path");
                 }
-                if (onProcessEventGroupCallback == null)
+                if (syncRun == null)
                 {
                     throw new NullReferenceException("onProcessEventGroupCallback cannot be null");
                 }
@@ -291,11 +300,12 @@ namespace FileMonitor
 
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;
-                newAgent.OnProcessEventGroupCallback = onProcessEventGroupCallback;
+                newAgent.SyncRun = syncRun;
                 newAgent.ProcessMergeToSQL = onProcessMergeToSQL;
                 newAgent.ProcessCompletedSync = onProcessCompletedSync;
                 newAgent.GetLastSyncId = getLastSyncId;
                 newAgent.LogProcessingFileChanges = logProcessing;
+                newAgent.CompleteSingleEvent = completeSingleEvent;
 
                 // assign timer object that is used for processing the FileChange queues in batches
                 CLError queueTimerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(state =>
@@ -349,14 +359,144 @@ namespace FileMonitor
         /// Starts the queue timer to start sync processing,
         /// if it is not already started for other events
         /// </summary>
-        /// <returns>Returns an error that occurred while starting the timer, if any</returns>
-        public CLError FireSimulatedPushNotification()
+        public void PushNotification(string notification)
+        {
+            lock (QueuesTimer.TimerRunningLocker)
+            {
+                QueuesTimer.StartTimerIfNotRunning();
+            }
+        }
+
+        /// <summary>
+        /// Applies a Sync From FileChange to the local file system i.e. a folder creation would cause the local FileSystem to create a folder locally;
+        /// changes in-memory index first to prevent firing Sync To events
+        /// </summary>
+        /// <param name="toApply">FileChange to apply to the local file system</param>
+        /// <returns>Returns any error occurred applying the FileChange, if any</returns>
+        public CLError ApplySyncFromFileChange(FileChange toApply)
         {
             try
             {
-                lock (QueuesTimer.TimerRunningLocker)
+                if (toApply.Direction == SyncDirection.To)
                 {
-                    QueuesTimer.StartTimerIfNotRunning();
+                    throw new ArgumentException("Cannot apply a Sync To FileChange locally");
+                }
+                if (toApply.Metadata.HashableProperties.IsFolder
+                    && toApply.Type == FileChangeType.Modified)
+                {
+                    throw new ArgumentException("Cannot apply a modification to a folder");
+                }
+                if (!toApply.Metadata.HashableProperties.IsFolder
+                    && (toApply.Type == FileChangeType.Created
+                        || toApply.Type == FileChangeType.Modified))
+                {
+                    throw new ArgumentException("Cannot download a file in MonitorAgent, it needs to be downloaded through Sync");
+                }
+
+                FilePath rootPath = CurrentFolderPath;
+                if (!toApply.NewPath.Contains(rootPath))
+                {
+                    throw new ArgumentException("FileChange's NewPath does not fall within the root directory");
+                }
+
+                Action<FilePath, FilePath, object, Nullable<DateTime>, Nullable<DateTime>> recurseFolderCreationToRoot = (toCreate, root, currentAction, creationTime, lastTime) =>
+                    {
+                        if (!FilePathComparer.Instance.Equals(toCreate, root))
+                        {
+                            Action<FilePath, FilePath, object, Nullable<DateTime>, Nullable<DateTime>> castAction = currentAction as Action<FilePath, FilePath, object, Nullable<DateTime>, Nullable<DateTime>>;
+                            if (castAction == null)
+                            {
+                                throw new NullReferenceException("Unable to cast currentAction as the type of the current Action");
+                            }
+                            castAction(toCreate.Parent, root, castAction, null, null);
+
+                            if (!AllPaths.ContainsKey(toCreate))
+                            {
+                                DirectoryInfo createdDirectory = Directory.CreateDirectory(toCreate.ToString());
+
+                                if (creationTime != null)
+                                {
+                                    createdDirectory.CreationTimeUtc = (DateTime)creationTime;
+                                }
+                                if (lastTime != null)
+                                {
+                                    createdDirectory.LastAccessTimeUtc = (DateTime)lastTime;
+                                    createdDirectory.LastWriteTimeUtc = (DateTime)lastTime;
+                                }
+
+                                AllPaths[toCreate] = new FileMetadata()
+                                {
+                                    HashableProperties = new FileMetadataHashableProperties(true,
+                                        lastTime ?? createdDirectory.LastWriteTimeUtc,
+                                        creationTime ?? createdDirectory.CreationTimeUtc,
+                                        null)
+                                };
+                            }
+                        }
+                    };
+
+                lock (AllPaths)
+                {
+                    switch (toApply.Type)
+                    {
+                        case FileChangeType.Created:
+                            recurseFolderCreationToRoot(toApply.NewPath, rootPath, recurseFolderCreationToRoot, toApply.Metadata.HashableProperties.CreationTime, toApply.Metadata.HashableProperties.LastTime);
+                            break;
+                        case FileChangeType.Deleted:
+                            if (toApply.Metadata.HashableProperties.IsFolder)
+                            {
+                                Directory.Delete(toApply.NewPath.ToString());
+                            }
+                            else
+                            {
+                                File.Delete(toApply.NewPath.ToString());
+                            }
+
+                            AllPaths.Remove(toApply.NewPath);
+                            break;
+                        case FileChangeType.Renamed:
+                            recurseFolderCreationToRoot(toApply.NewPath.Parent, rootPath, recurseFolderCreationToRoot, null, null);
+
+                            if (toApply.Metadata.HashableProperties.IsFolder)
+                            {
+                                Directory.Move(toApply.OldPath.ToString(), toApply.NewPath.ToString());
+                            }
+                            else
+                            {
+                                string newPathString = toApply.NewPath.ToString();
+                                string oldPathString = toApply.OldPath.ToString();
+
+                                if (File.Exists(newPathString))
+                                {
+                                    try
+                                    {
+                                        File.Replace(oldPathString,
+                                            newPathString,
+                                            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) +
+                                                "\\Cloud\\DownloadTemp" +
+                                                Guid.NewGuid().ToString(),
+                                            ignoreMetadataErrors: true);
+                                    }
+                                    // File.Replace not supported on non-NTFS drives, must use traditional move
+                                    catch (PlatformNotSupportedException)
+                                    {
+                                        if (File.Exists(newPathString))
+                                        {
+                                            File.Delete(newPathString);
+                                        }
+                                        File.Move(oldPathString, newPathString);
+                                    }
+                                }
+                                else
+                                {
+                                    File.Move(oldPathString, newPathString);
+                                }
+                            }
+
+                            AllPaths.Remove(toApply.OldPath);
+                            AllPaths[toApply.NewPath] = toApply.Metadata;
+                            break;
+                    }
                 }
             }
             catch (Exception ex)
@@ -563,7 +703,7 @@ namespace FileMonitor
                         // then trigger it now as an initial sync with an empty dictionary
                         if (triggerSyncWithNoChanges)
                         {
-                            FireSimulatedPushNotification();
+                            PushNotification(null);
                         }
                     }
                 }
@@ -2750,7 +2890,10 @@ namespace FileMonitor
                     this.ProcessCompletedSync,
                     this.GetLastSyncId,
                     (DependencyAssignments)this.AssignDependencies,
-                    this.OnProcessEventGroupCallback
+                    (Func<string>)this.GetCurrentPath,
+                    (Func<FileChange, CLError>)this.ApplySyncFromFileChange,
+                    (Func<long, CLError>)this.CompleteSingleEvent,
+                    this.SyncRun
                 });
 
             // FileChanges are now sorted when Sync calls back to ProcessFileListForSyncProcessing in this class
@@ -2815,7 +2958,7 @@ namespace FileMonitor
             bool matchedParameters = false;
 
             if (castState != null
-                && castState.Length == 8)
+                && castState.Length == 11)
             {
                 GrabProcessedChanges argOne = castState[0] as GrabProcessedChanges;
                 Func<FileChange, FileChange, CLError> argTwo = castState[1] as Func<FileChange, FileChange, CLError>;
@@ -2824,6 +2967,9 @@ namespace FileMonitor
                 Func<string, IEnumerable<long>, string, CLError> argFive = castState[4] as Func<string, IEnumerable<long>, string, CLError>;
                 Func<string> argSix = castState[5] as Func<string>;
                 DependencyAssignments argSeven = castState[6] as DependencyAssignments;
+                Func<string> argEight = castState[7] as Func<string>;
+                Func<FileChange, CLError> argNine = castState[8] as Func<FileChange, CLError>;
+                Func<long, CLError> argTen = castState[9] as Func<long, CLError>;
 
                 Func<GrabProcessedChanges,
                     Func<FileChange, FileChange, CLError>,
@@ -2832,20 +2978,26 @@ namespace FileMonitor
                     Func<string, IEnumerable<long>, string, CLError>,
                     Func<string>,
                     DependencyAssignments,
-                    CLError> OnProcessEventGroupCallback = castState[7] as Func<GrabProcessedChanges, Func<FileChange, FileChange, CLError>, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>, bool, Func<string, IEnumerable<long>, string, CLError>, Func<string>, DependencyAssignments, CLError>;
+                    Func<string>,
+                    Func<FileChange, CLError>,
+                    Func<long, CLError>,
+                    CLError> RunSyncRun = castState[10] as Func<GrabProcessedChanges, Func<FileChange, FileChange, CLError>, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>, bool, Func<string, IEnumerable<long>, string, CLError>, Func<string>, DependencyAssignments, Func<string>, Func<FileChange, CLError>, Func<long, CLError>, CLError>;
 
                 if (argFourNullable != null
-                    && OnProcessEventGroupCallback != null)
+                    && RunSyncRun != null)
                 {
                     matchedParameters = true;
 
-                    OnProcessEventGroupCallback(argOne,
+                    RunSyncRun(argOne,
                         argTwo,
                         argThree,
                         (bool)argFourNullable,
                         argFive,
                         argSix,
-                        argSeven);
+                        argSeven,
+                        argEight,
+                        argNine,
+                        argTen);
                 }
             }
 
