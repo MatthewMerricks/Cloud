@@ -24,11 +24,14 @@ using win_client.ViewModels;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Xceed.Wpf.Toolkit;
 using CleanShutdown.Messaging;
+using System.Windows.Threading;
 
 namespace win_client.Views
 {
     public partial class DialogCheckForUpdates : Window, IModalWindow
     {
+        private DispatcherTimer _timer;
+
         public DialogCheckForUpdates()
         {
             InitializeComponent();
@@ -70,23 +73,83 @@ namespace win_client.Views
             this.ctlAutoUpdate.UpdateSuccessful += ctlAutoUpdate_UpdateSuccessful;
             this.ctlAutoUpdate.UpToDate += ctlAutoUpdate_UpToDate;
             this.ctlAutoUpdate.KeepHidden = true;
+            this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.OnlyCheck;
 
             // Disable install buttons
             this.btnInstallAtNextStart.Visibility = System.Windows.Visibility.Collapsed;
             this.btnInstallNow.Visibility = System.Windows.Visibility.Collapsed;
 
-            // Check for an update.
-            this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
+            // Start a timer to run every second
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(1.0);
+            _timer.Tick += _timer_Tick;
+            _timer.Start();
         }
 
+        /// <summary>
+        /// Timer tick callback handler.  This runs every second.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void _timer_Tick(object sender, EventArgs e)
+        {
+            // Enable or disable the install buttons
+            if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall ||
+                this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateAvailable ||
+                this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateDownloaded)
+            {
+                // Enable the install buttons
+                this.btnInstallAtNextStart.Visibility = System.Windows.Visibility.Visible;
+                this.btnInstallAtNextStart.IsEnabled = true;
+                this.btnInstallNow.Visibility = System.Windows.Visibility.Visible;
+                this.btnInstallNow.IsEnabled = true;
+            }
+            else
+            {
+                // Disable install buttons
+                this.btnInstallAtNextStart.IsEnabled = false;
+                this.btnInstallNow.IsEnabled = false;
+                this.btnInstallAtNextStart.Visibility = System.Windows.Visibility.Collapsed;
+                this.btnInstallNow.Visibility = System.Windows.Visibility.Collapsed;
+            }
+
+            // Display the current status
+            switch (this.ctlAutoUpdate.UpdateStepOn)
+            {
+                case wyDay.Controls.UpdateStepOn.UpdateReadyToInstall:
+                    this.tblkStatus.Text = String.Format("An update is ready to install.  The new update is version {0}.", this.ctlAutoUpdate.Version) +
+                                            "\n\rThe changes are:" +
+                                            String.Format("\n\r{0}", this.ctlAutoUpdate.Changes);
+                    break;
+                case wyDay.Controls.UpdateStepOn.UpdateDownloaded:
+                    this.tblkStatus.Text = "The available update has been downloaded.";
+                    break;
+                case wyDay.Controls.UpdateStepOn.UpdateAvailable:
+                    this.tblkStatus.Text = "An update is available.  It will be automatically downloaded.";
+                    break;
+                case wyDay.Controls.UpdateStepOn.Nothing:
+                    this.tblkStatus.Text = "";
+                    break;
+                case wyDay.Controls.UpdateStepOn.ExtractingUpdate:
+                    this.tblkStatus.Text = "The available update has been downloaded and is being prepared.";
+                    break;
+                case wyDay.Controls.UpdateStepOn.DownloadingUpdate:
+                    this.tblkStatus.Text = "The available update is being downloaded.";
+                    break;
+                case wyDay.Controls.UpdateStepOn.Checking:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// The user clicked a "Check for Updates" button on the systray icon or on the FramePreferencesGeneral page.
+        /// </summary>
+        /// <param name="obj"></param>
         private void OnMessage_DialogCheckForUpdates_ShouldCheckForUpdates(string obj)
         {
-            // Disable install buttons
-            this.btnInstallAtNextStart.Visibility = System.Windows.Visibility.Collapsed;
-            this.btnInstallNow.Visibility = System.Windows.Visibility.Collapsed;
-
             // Check for an update.
             this.tblkEvent.Text = "";
+            this.tblkStatus.Text = "";
             this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
         }
 
@@ -114,11 +177,6 @@ namespace win_client.Views
         void ctlAutoUpdate_UpdateAvailable(object sender, EventArgs e)
         {
             this.tblkEvent.Text = "Event: Update available";
-            this.btnInstallAtNextStart.Visibility = System.Windows.Visibility.Visible;
-            this.btnInstallNow.Visibility = System.Windows.Visibility.Visible;
-
-            // Set the status
-            this.tblkStatus.Text = "An update is available with the following changes:\n\r" + this.ctlAutoUpdate.Changes;
         }
 
         void ctlAutoUpdate_Loaded(object sender, RoutedEventArgs e)
@@ -165,6 +223,9 @@ namespace win_client.Views
         void ctlAutoUpdate_Cancelled(object sender, EventArgs e)
         {
             this.tblkEvent.Text = "Event: Cancelled";
+
+            // Set the status
+            this.tblkStatus.Text = "The check for update was cancelled.";
         }
 
         void ctlAutoUpdate_BeforeDownloading(object sender, wyDay.Controls.BeforeArgs e)
