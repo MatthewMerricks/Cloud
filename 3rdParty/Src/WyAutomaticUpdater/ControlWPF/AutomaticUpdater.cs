@@ -202,8 +202,10 @@ namespace wyDay.Controls
         [Description("The GUID (Globally Unique ID) of the automatic updater. It is recommended you set this value (especially if there is more than one exe for your product)."),
         Category("Updater"),
         DefaultValue(null),
-        EditorAttribute(typeof(GUIDEditor), typeof(UITypeEditor)),
-        EditorBrowsable(EditorBrowsableState.Never)]
+        //RKS CHANGED: The GUID was not showing up at design time in the AutomaticUpdater control.
+        //EditorAttribute(typeof(GUIDEditor), typeof(UITypeEditor)),
+        //EditorBrowsable(EditorBrowsableState.Never)]
+        EditorAttribute(typeof(GUIDEditor), typeof(UITypeEditor))]
         public string GUID
         {
             get { return auBackend.GUID; }

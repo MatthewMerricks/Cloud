@@ -25,12 +25,14 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using Xceed.Wpf.Toolkit;
 using CleanShutdown.Messaging;
 using System.Windows.Threading;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Views
 {
     public partial class DialogCheckForUpdates : Window, IModalWindow
     {
         private DispatcherTimer _timer;
+        private bool _isVisible = false;
 
         public DialogCheckForUpdates()
         {
@@ -38,6 +40,7 @@ namespace win_client.Views
 
             Loaded +=DialogCheckForUpdates_Loaded;
             Unloaded += DialogCheckForUpdates_Unloaded;
+            Closing += DialogCheckForUpdates_Closing;
 
         }
 
@@ -73,10 +76,10 @@ namespace win_client.Views
             this.ctlAutoUpdate.UpdateSuccessful += ctlAutoUpdate_UpdateSuccessful;
             this.ctlAutoUpdate.UpToDate += ctlAutoUpdate_UpToDate;
             this.ctlAutoUpdate.KeepHidden = true;
-            this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.OnlyCheck;
+            this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.Automatic;
 
-            // Disable install buttons
-            this.btnInstallAtNextStart.Visibility = System.Windows.Visibility.Collapsed;
+            // Check first.
+            this.btnCheckNow.Visibility = System.Windows.Visibility.Visible;
             this.btnInstallNow.Visibility = System.Windows.Visibility.Collapsed;
 
             // Start a timer to run every second
@@ -93,23 +96,17 @@ namespace win_client.Views
         /// <param name="e"></param>
         void _timer_Tick(object sender, EventArgs e)
         {
-            // Enable or disable the install buttons
-            if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall ||
-                this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateAvailable ||
-                this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateDownloaded)
+            // Enable or disable the install button
+            if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall)
             {
-                // Enable the install buttons
-                this.btnInstallAtNextStart.Visibility = System.Windows.Visibility.Visible;
-                this.btnInstallAtNextStart.IsEnabled = true;
+                // Enable the install button
+                this.btnCheckNow.Visibility = System.Windows.Visibility.Collapsed;
                 this.btnInstallNow.Visibility = System.Windows.Visibility.Visible;
-                this.btnInstallNow.IsEnabled = true;
             }
             else
             {
-                // Disable install buttons
-                this.btnInstallAtNextStart.IsEnabled = false;
-                this.btnInstallNow.IsEnabled = false;
-                this.btnInstallAtNextStart.Visibility = System.Windows.Visibility.Collapsed;
+                // Check only.
+                this.btnCheckNow.Visibility = System.Windows.Visibility.Visible;
                 this.btnInstallNow.Visibility = System.Windows.Visibility.Collapsed;
             }
 
@@ -118,17 +115,17 @@ namespace win_client.Views
             {
                 case wyDay.Controls.UpdateStepOn.UpdateReadyToInstall:
                     this.tblkStatus.Text = String.Format("An update is ready to install.  The new update is version {0}.", this.ctlAutoUpdate.Version) +
-                                            "\n\rThe changes are:" +
-                                            String.Format("\n\r{0}", this.ctlAutoUpdate.Changes);
+                                            "\nThe changes are:" +
+                                            String.Format("\n{0}", this.ctlAutoUpdate.Changes);
                     break;
                 case wyDay.Controls.UpdateStepOn.UpdateDownloaded:
                     this.tblkStatus.Text = "The available update has been downloaded.";
                     break;
                 case wyDay.Controls.UpdateStepOn.UpdateAvailable:
-                    this.tblkStatus.Text = "An update is available.  It will be automatically downloaded.";
+                    this.tblkStatus.Text = "An update is available.";
                     break;
                 case wyDay.Controls.UpdateStepOn.Nothing:
-                    this.tblkStatus.Text = "";
+                    //this.tblkStatus.Text = "No Status.";
                     break;
                 case wyDay.Controls.UpdateStepOn.ExtractingUpdate:
                     this.tblkStatus.Text = "The available update has been downloaded and is being prepared.";
@@ -147,95 +144,82 @@ namespace win_client.Views
         /// <param name="obj"></param>
         private void OnMessage_DialogCheckForUpdates_ShouldCheckForUpdates(string obj)
         {
+            _isVisible = true;
+
+            // Set the status to something known at first.  We will force a check which should update the status pretty quickly.
+            this.tblkStatus.Text = "Checking for updates...";
+
+            // Record the time of the last update check
+            Settings.Instance.DateWeLastCheckedForSoftwareUpdate = DateTime.Now;
+
             // Check for an update.
-            this.tblkEvent.Text = "";
-            this.tblkStatus.Text = "";
             this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
         }
 
         void ctlAutoUpdate_UpToDate(object sender, wyDay.Controls.SuccessArgs e)
         {
-            this.tblkEvent.Text = "Event: Up-to-date";
-
             // Set the status
-            this.tblkStatus.Text = "You are currently running the latest version.";
+            this.tblkStatus.Text = "You are currently running the latest version of Cloud.";
         }
 
         void ctlAutoUpdate_UpdateSuccessful(object sender, wyDay.Controls.SuccessArgs e)
         {
-            this.tblkEvent.Text = "Event: Update successful";
         }
 
         void ctlAutoUpdate_UpdateFailed(object sender, wyDay.Controls.FailArgs e)
         {
-            this.tblkEvent.Text = "Event: Update failed";
-
             // Set the status
-            this.tblkStatus.Text = "The update failed:\n\r" + e.ErrorTitle + "\n\r" + e.ErrorMessage;
+            this.tblkStatus.Text = "The update failed:\n" + e.ErrorTitle + "\n" + e.ErrorMessage;
         }
 
         void ctlAutoUpdate_UpdateAvailable(object sender, EventArgs e)
         {
-            this.tblkEvent.Text = "Event: Update available";
         }
 
         void ctlAutoUpdate_Loaded(object sender, RoutedEventArgs e)
         {
-            this.tblkEvent.Text = "Event: Loaded";
         }
 
         void ctlAutoUpdate_DownloadingOrExtractingFailed(object sender, wyDay.Controls.FailArgs e)
         {
-            this.tblkEvent.Text = "Event: DownloadingOrExtractingFailed";
-
             // Set the status
-            this.tblkStatus.Text = "The download or extraction failed:\n\r" + e.ErrorTitle + "\n\r" + e.ErrorMessage;
+            this.tblkStatus.Text = "The download or extraction failed:\n" + e.ErrorTitle + "\n" + e.ErrorMessage;
         }
 
         void ctlAutoUpdate_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            this.tblkEvent.Text = "Event: DataContextChanged";
         }
 
         void ctlAutoUpdate_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-            this.tblkEvent.Text = "Event: ContextMenuOpening";
         }
 
         void ctlAutoUpdate_ContextMenuClosing(object sender, ContextMenuEventArgs e)
         {
-            this.tblkEvent.Text = "Event: ContextMenuClosing";
         }
 
         void ctlAutoUpdate_ClosingAborted(object sender, EventArgs e)
         {
-            this.tblkEvent.Text = "Event: ClosingAborted";
         }
 
         void ctlAutoUpdate_CheckingFailed(object sender, wyDay.Controls.FailArgs e)
         {
-            this.tblkEvent.Text = "Event: CheckingFailed";
-
             // Set the status
-            this.tblkStatus.Text = "The check for update failed:\n\r" + e.ErrorTitle + "\n\r" + e.ErrorMessage;
+            this.tblkStatus.Text = "The check for update failed:\n" + e.ErrorTitle + "\n" + e.ErrorMessage;
         }
 
         void ctlAutoUpdate_Cancelled(object sender, EventArgs e)
         {
-            this.tblkEvent.Text = "Event: Cancelled";
-
             // Set the status
             this.tblkStatus.Text = "The check for update was cancelled.";
         }
 
         void ctlAutoUpdate_BeforeDownloading(object sender, wyDay.Controls.BeforeArgs e)
         {
-            this.tblkEvent.Text = "Event: Downloading";
         }
 
         void ctlAutoUpdate_BeforeChecking(object sender, wyDay.Controls.BeforeArgs e)
         {
-            this.tblkEvent.Text = "Event: BeforeChecking";
         }
 
         /// <summary>
@@ -255,47 +239,63 @@ namespace win_client.Views
         /// </summary>
         private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
         {
-            if (message.Notification == Notifications.ConfirmShutdown)
+            if (_isVisible)
             {
-                message.Execute(true);      // true == abort shutdown
-            }
+                if (message.Notification == Notifications.ConfirmShutdown)
+                {
+                    message.Execute(true);      // true == abort shutdown
+                }
 
-            if (message.Notification == Notifications.QueryModalDialogsActive)
-            {
-                message.Execute(true);      // a modal dialog is active
+                if (message.Notification == Notifications.QueryModalDialogsActive)
+                {
+                    message.Execute(true);      // a modal dialog is active
+                }
             }
         }
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
         {
-            this.tblkEvent.Text = "";
             this.tblkStatus.Text = "";
             this.Left = Int32.MaxValue;
             this.Top = Int32.MaxValue;
             this.ShowInTaskbar = false;
+            _isVisible = false;
         }
 
         private void ButtonCheckNow_Click(object sender, RoutedEventArgs e)
         {
-            this.tblkEvent.Text = "";
-            this.tblkStatus.Text = "";
+            // Set the status to something known at first.  We will force a check which should update the status pretty quickly.
+            this.tblkStatus.Text = "Checking for updates...";
+
+            // Record the time of the last update check
+            Settings.Instance.DateWeLastCheckedForSoftwareUpdate = DateTime.Now;
+
             this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
         }
 
+        //private void ButtonInstallAtNextStart_Click(object sender, RoutedEventArgs e)
+        //{
+        //    this.tblkStatus.Text = "";
+        //    this.Left = Int32.MaxValue;
+        //    this.Top = Int32.MaxValue;
+        //    this.ShowInTaskbar = false;
+        //}
+
         private void ButtonInstallNow_Click(object sender, RoutedEventArgs e)
         {
-            this.tblkEvent.Text = "";
-            this.tblkStatus.Text = "";
             this.ctlAutoUpdate.InstallNow();
         }
 
-        private void ButtonInstallAtNextStart_Click(object sender, RoutedEventArgs e)
+        private void DialogCheckForUpdates_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            this.tblkEvent.Text = "";
             this.tblkStatus.Text = "";
             this.Left = Int32.MaxValue;
             this.Top = Int32.MaxValue;
             this.ShowInTaskbar = false;
+            _isVisible = false;
+
+            e.Cancel = true;
         }
+
     }
 }

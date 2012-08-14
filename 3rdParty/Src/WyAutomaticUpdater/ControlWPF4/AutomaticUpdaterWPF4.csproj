@@ -24,8 +24,7 @@
     <DefineConstants>TRACE;DEBUG;WPF AUPDATE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile>..\..\..\..\bin\Debug\AutomaticUpdaterWPF.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -34,7 +33,8 @@
     <DefineConstants>TRACE;WPF AUPDATE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\AutomaticUpdaterWPF.XML</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>

@@ -257,6 +257,10 @@ namespace win_client.ViewModels
                                             {
                                                 // Check for updates
                                                 Window win = CLAppDelegate.Instance.CheckForUpdatesWindow;
+                                                win.MaxWidth = 640;
+                                                win.MaxHeight = 480;
+                                                win.MinWidth = 640;
+                                                win.MinHeight = 480;
                                                 win.ShowInTaskbar = true;
                                                 win.SetPlacement(Settings.Instance.MainWindowPlacement);
                                                 win.Show();

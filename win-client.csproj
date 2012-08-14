@@ -69,9 +69,8 @@
     <ManifestKeyFile>WinClientCertificate.pfx</ManifestKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AutomaticUpdaterWPF, Version=2.6.16.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\AutomaticUpdaterWPF.dll</HintPath>
+    <Reference Include="AutomaticUpdaterWPF">
+      <HintPath>bin\Release\AutomaticUpdaterWPF.dll</HintPath>
     </Reference>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
       <HintPath>bin\Release\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
