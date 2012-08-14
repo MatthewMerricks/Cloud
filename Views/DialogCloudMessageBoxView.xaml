@@ -31,7 +31,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
@@ -46,7 +46,7 @@
         
         <Border Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.RowSpan="4">
             <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_wlcm_ptrn.png"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_wlcm_ptrn.png"/>
             </Border.Background>
         </Border>
         <Grid Grid.Row="1">
@@ -55,7 +55,7 @@
         		<ColumnDefinition Width="100"/>
         		<ColumnDefinition Width="*"/>
         	</Grid.ColumnDefinitions>
-        	<Image Source="/win-client;component/Artwork/cl_wlcm_div.png" Grid.Column="1" VerticalAlignment="Bottom"/>
+        	<Image Source="/Cloud;component/Artwork/cl_wlcm_div.png" Grid.Column="1" VerticalAlignment="Bottom"/>
         </Grid>
         <Grid Grid.Row="2" Grid.RowSpan="1" >
         	<Grid.ColumnDefinitions>
@@ -99,7 +99,7 @@
         		<ColumnDefinition Width="110"/>
         		<ColumnDefinition/>
         	</Grid.ColumnDefinitions>
-        	<Image Source="/win-client;component/Artwork/cloud256.png" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" />
+        	<Image Source="/Cloud;component/Artwork/cloud256.png" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" />
             <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="0,0,5,0"> 
             	<Grid.RowDefinitions>
             		<RowDefinition Height="15"/>

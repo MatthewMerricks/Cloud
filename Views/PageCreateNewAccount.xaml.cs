@@ -36,11 +36,6 @@ namespace win_client.Views
         private bool _isLoaded = false;
         private PageCreateNewAccountViewModel _viewModel = null;
 
-        private bool savedRightButtonIsDefault = false;
-        private bool savedRightButtonIsCancel = false;
-        private bool savedLeftButtonIsDefault = false;
-        private bool savedLeftButtonIsCancel = false;
-
         #endregion
 
         #region "Life Cycle"

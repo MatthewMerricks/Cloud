@@ -18,6 +18,7 @@ using System.Windows.Shapes;
 using System.Windows.Data;
 using System.Globalization;
 using win_client.ViewModels;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Common
 {

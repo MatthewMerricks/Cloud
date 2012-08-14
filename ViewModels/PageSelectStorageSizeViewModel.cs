@@ -34,15 +34,6 @@ using System.Windows.Threading;
 
 namespace win_client.ViewModels
 {
-    #region "Definitions"
-    public enum StorageSizeSelections
-    {
-        Size5Gb = 5,
-        Size50Gb = 50,
-        Size500Gb = 500,
-    }
-    #endregion
-         
     /// <summary>
     /// Page to select the Cloud storage size desired by the user.
     /// </summary>
@@ -60,7 +51,7 @@ namespace win_client.ViewModels
 
         #region Life Cycle
         /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
+        /// Initializes a new instance of the PageSelectStorageSizeViewModel class.
         /// </summary>
         public PageSelectStorageSizeViewModel(IDataService dataService)
         {
@@ -85,14 +76,8 @@ namespace win_client.ViewModels
         /// The <see cref="PageSelectStorageSize_SizeSelected" /> property's name.
         /// </summary>
         public const string PageSelectStorageSize_SizeSelectedPropertyName = "PageSelectStorageSize_SizeSelected";
-
-        private StorageSizeSelections _pageSelectStorageSize_SizeSelected = (StorageSizeSelections)Settings.Instance.Quota;
-
-        /// <summary>
-        /// Sets and gets the PageSelectStorageSize_SizeSelected property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        public StorageSizeSelections PageSelectStorageSize_SizeSelected
+        private CloudApiPrivate.Model.Settings.StorageSizeSelections _pageSelectStorageSize_SizeSelected = (StorageSizeSelections)Settings.Instance.Quota;
+        public CloudApiPrivate.Model.Settings.StorageSizeSelections PageSelectStorageSize_SizeSelected
         {
             get
             {

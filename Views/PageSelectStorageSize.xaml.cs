@@ -27,6 +27,7 @@ using win_client.AppDelegate;
 using CloudApiPublic.Model;
 using win_client.Model;
 using CleanShutdown.Messaging;
+using Ookii.Dialogs.WpfMinusTaskDialog;
 
 namespace win_client.Views
 {
@@ -68,6 +69,7 @@ namespace win_client.Views
                    this.NavigationService.Navigate(uri, UriKind.Relative);
                });
             CLAppMessages.Message_PageSelectStorageSizeViewSetFocusToContinueButton.Register(this, OnMessage_PageSelectStorageSizeViewSetFocusToContinueButton);
+
 
             // Pass the view's grid to the view model for the dialogs to use.
             PageSelectStorageSizeViewModel vm = (PageSelectStorageSizeViewModel)DataContext;

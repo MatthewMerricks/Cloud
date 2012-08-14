@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>win_client</RootNamespace>
-    <AssemblyName>win-client</AssemblyName>
+    <AssemblyName>Cloud</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -56,7 +56,22 @@
   <PropertyGroup>
     <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>4739378C7B81B487FCFAD9235DF665584B8737F6</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>WinClientCertificate.pfx</ManifestKeyFile>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutomaticUpdaterWPF">
+      <HintPath>..\..\..\Program Files (x86)\wyBuild\AutomaticUpdater\Microsoft .NET 4.0\AutomaticUpdaterWPF.dll</HintPath>
+    </Reference>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
       <HintPath>3rdParty\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
     </Reference>
@@ -191,6 +206,8 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
+    <Compile Include="ViewModels\PageTourAdvancedEndViewModel.cs" />
+    <Compile Include="ViewModels\PageFolderSelectionViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesAboutViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesAdvancedViewModel.cs" />
     <Compile Include="ViewModels\DialogPreferencesNetworkBandwidthViewModel.cs" />
@@ -204,7 +221,6 @@
     <Compile Include="ViewModels\PageCloudAlreadyRunningViewModel.cs" />
     <Compile Include="ViewModels\PageBadgeComInitializationErrorViewModel.cs" />
     <Compile Include="ViewModels\PageInvisibleViewModel.cs" />
-    <Compile Include="ViewModels\DialogFolderSelectionSimpleViewModel.cs" />
     <Compile Include="ViewModels\NotifyPropertyChanged.cs" />
     <Compile Include="ViewModels\PageCreateNewAccountViewModel.cs" />
     <Compile Include="ViewModels\PageHomeViewModel.cs" />
@@ -213,6 +229,12 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\PageTourAdvancedEnd.xaml.cs">
+      <DependentUpon>PageTourAdvancedEnd.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageFolderSelection.xaml.cs">
+      <DependentUpon>PageFolderSelection.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\FramePreferencesAbout.xaml.cs">
       <DependentUpon>FramePreferencesAbout.xaml</DependentUpon>
     </Compile>
@@ -248,9 +270,6 @@
     </Compile>
     <Compile Include="Views\PageCloudAlreadyRunning.xaml.cs">
       <DependentUpon>PageCloudAlreadyRunning.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\DialogFolderSelectionSimpleView.xaml.cs">
-      <DependentUpon>DialogFolderSelectionSimpleView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PageCreateNewAccount.xaml.cs">
       <DependentUpon>PageCreateNewAccount.xaml</DependentUpon>
@@ -314,6 +333,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\PageTourAdvancedEnd.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageFolderSelection.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\FramePreferencesAbout.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -359,10 +386,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\PageCloudAlreadyRunning.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\DialogFolderSelectionSimpleView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -435,6 +458,8 @@
     <None Include="Artwork\PublicFolderIcon.icns" />
     <None Include="Artwork\SidebarCloud.icns" />
     <AppDesigner Include="Properties\" />
+    <None Include="win-client_TemporaryKey.pfx" />
+    <None Include="WinClientCertificate.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\validationError.png" />
@@ -587,6 +612,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\cl_icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="InstallScripts\RegisterCom.vbs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

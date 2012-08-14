@@ -23,7 +23,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
@@ -48,7 +48,7 @@
 
         <Border x:Name="borderFullBackground" Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="5" Grid.RowSpan="3" RenderTransformOrigin="0.5,0.5">
             <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
 

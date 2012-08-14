@@ -26,7 +26,9 @@ namespace win_client.Common
         public const string kPageInvisible = "/Views/PageInvisible.xaml";
         public const string kPageSelectStorageSize = "/Views/PageSelectStorageSize.xaml";
         public const string kPageSetupSelector = "/Views/PageSetupSelector.xaml";
+        public const string kPageFolderSelection = "/Views/PageFolderSelection.xaml";
         public const string kPageTour = "/Views/PageTour";            // base for /Views/PageTour1, 2, 3, etc.
+        public const string kPageTourAdvancedEnd = "/Views/PageTourAdvancedEnd.xaml";
         public const string kPagePreferences = "/Views/PagePreferences.xaml";
         public const string kFramePreferencesGeneral = "/Views/FramePreferencesGeneral.xaml";
         public const string kFramePreferencesAccount = "/Views/FramePreferencesAccount.xaml";

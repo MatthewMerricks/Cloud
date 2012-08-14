@@ -25,8 +25,8 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
-                <ResourceDictionary Source="/win-client;component/Skins/NotifyIconResources.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/NotifyIconResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>

@@ -26,6 +26,7 @@ using win_client.AppDelegate;
 using CloudApiPublic.Model;
 using win_client.Model;
 using CleanShutdown.Messaging;
+using Ookii.Dialogs.WpfMinusTaskDialog;
 
 namespace win_client.Views
 {
@@ -34,10 +35,6 @@ namespace win_client.Views
         #region "Instance Variables"
 
         private bool _isLoaded = false;
-        private bool savedRightButtonIsDefault = false;
-        private bool savedRightButtonIsCancel = false;
-        private bool savedLeftButtonIsDefault = false;
-        private bool savedLeftButtonIsCancel = false;
 
         #endregion
 
@@ -77,6 +74,8 @@ namespace win_client.Views
                     this.NavigationService.Navigate(uri, UriKind.Relative);
                 });
             CLAppMessages.Message_PageSetupSelectorViewSetFocusToContinueButton.Register(this, OnMessage_PageSetupSelectorViewSetFocusToContinueButton);
+            CLAppMessages.Message_PageSetupSelector_ShouldChooseCloudFolder.Register(this, OnMessage_PageSetupSelector_ShouldChooseCloudFolder);
+
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -93,6 +92,27 @@ namespace win_client.Views
 
             // Unregister for messages
             Messenger.Default.Unregister(this);
+        }
+
+        /// <summary>
+        /// Let the user choose a new Cloud folder location.
+        /// </summary>
+        private void OnMessage_PageSetupSelector_ShouldChooseCloudFolder(string obj)
+        {
+            VistaFolderBrowserDialog folderBrowser = new VistaFolderBrowserDialog();
+            folderBrowser.Description = win_client.Resources.Resources.PageFolderSelection_FolderBrowserDescription;
+            folderBrowser.RootFolder = Environment.SpecialFolder.MyDocuments;  // no way to get to the user's home directory.  RootFolder is a SpecialFolder.
+            folderBrowser.ShowNewFolderButton = true;
+            bool? wasOkButtonClicked = folderBrowser.ShowDialog(Window.GetWindow(this));
+            if (wasOkButtonClicked.HasValue && wasOkButtonClicked.Value)
+            {
+                // The user selected a folder.  Deliver the path to the ViewModel to process.
+                PageSetupSelectorViewModel vm = (PageSetupSelectorViewModel)DataContext;
+                if (vm.PageSetupSelectorViewModel_CreateCloudFolderCommand.CanExecute(folderBrowser.SelectedPath))
+                {
+                    vm.PageSetupSelectorViewModel_CreateCloudFolderCommand.Execute(folderBrowser.SelectedPath);
+                }
+            }
         }
 
         /// <summary>

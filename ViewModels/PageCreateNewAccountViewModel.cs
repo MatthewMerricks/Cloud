@@ -61,7 +61,7 @@ namespace win_client.ViewModels
 
         #region Life Cycle
         /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
+        /// Initializes a new instance of the PageCreateNewAccountViewModel class.
         /// </summary>
         public PageCreateNewAccountViewModel(IDataService dataService)
         {
@@ -335,13 +335,7 @@ namespace win_client.ViewModels
         /// The <see cref="IsBusy" /> property's name.
         /// </summary>
         public const string IsBusyPropertyName = "IsBusy";
-
         private bool _isBusy = false;
-
-        /// <summary>
-        /// Sets and gets the IsBusy property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public bool IsBusy
         {
             get
@@ -365,14 +359,8 @@ namespace win_client.ViewModels
         /// The <see cref="BusyContent" /> property's name.
         /// </summary>
         public const string BusyContentPropertyName = "BusyContent";
-
-        private bool _busyContent = false;
-
-        /// <summary>
-        /// Sets and gets the BusyContent property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-          /// </summary>
-        public bool BusyContent
+        private string _busyContent = "Creating account...";
+        public string BusyContent
         {
             get
             {

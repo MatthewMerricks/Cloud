@@ -29,11 +29,6 @@ namespace win_client.Views
 {
     public partial class DialogCloudMessageBoxView : Window, IModalWindow
     {
-        private bool savedRightButtonIsDefault = false;
-        private bool savedRightButtonIsCancel = false;
-        private bool savedLeftButtonIsDefault = false;
-        private bool savedLeftButtonIsCancel = false;
-
         public DialogCloudMessageBoxView()
         {
             InitializeComponent();

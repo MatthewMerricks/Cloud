@@ -66,7 +66,9 @@ namespace win_client
             // Show the window
             this.MainWindow = window;
             CLAppDelegate.Instance.AppMainWindow = window;
+            window.Topmost = true;
             window.Show();
+            window.Topmost = false;
         }
 
         private void Application_Exit(object sender, ExitEventArgs e) 

@@ -62,12 +62,13 @@ namespace win_client.ViewModels
         private CLTrace _trace = CLTrace.Instance;
         private IModalWindow _dialog = null;        // for use with modal dialogs
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
+        private bool _isResolvingCloudFolderConflict = false;  // true: The view was asked to have the user choose a new Cloud folder path for the purpose of resolving a folder merge conflict.
 
         #endregion
 
         #region Life Cycle
         /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
+        /// Initializes a new instance of the PageSetupSelectorViewModel class.
         /// </summary>
         public PageSetupSelectorViewModel(IDataService dataService)
         {
@@ -118,6 +119,54 @@ namespace win_client.ViewModels
 
                 _viewGridContainer = value;
                 RaisePropertyChanged(ViewGridContainerPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="IsBusy" /> property's name.
+        /// </summary>
+        public const string IsBusyPropertyName = "IsBusy";
+        private bool _isBusy = false;
+        public bool IsBusy
+        {
+            get
+            {
+                return _isBusy;
+            }
+
+            set
+            {
+                if (_isBusy == value)
+                {
+                    return;
+                }
+
+                _isBusy = value;
+                RaisePropertyChanged(IsBusyPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="BusyContent" /> property's name.
+        /// </summary>
+        public const string BusyContentPropertyName = "BusyContent";
+        private string _busyContent = "Please wait...";
+        public string BusyContent
+        {
+            get
+            {
+                return _busyContent;
+            }
+
+            set
+            {
+                if (_busyContent == value)
+                {
+                    return;
+                }
+
+                _busyContent = value;
+                RaisePropertyChanged(BusyContentPropertyName);
             }
         }
 
@@ -220,6 +269,29 @@ namespace win_client.ViewModels
                                                 // Load the current state from the persistent settings.
                                                 PageSetupSelector_OptionSelected = Settings.Instance.UseDefaultSetup ? 
                                                     SetupSelectorOptions.OptionDefault : SetupSelectorOptions.OptionAdvanced;
+                                            }));
+            }
+        }
+
+        /// <summary>
+        /// The user has selected a new cloud folder path.  Create the new cloud folder
+        /// </summary>
+        private RelayCommand<string> _pageSetupSelectorViewModel_CreateCloudFolderCommand;
+        public RelayCommand<string> PageSetupSelectorViewModel_CreateCloudFolderCommand
+        {
+            get
+            {
+                return _pageSetupSelectorViewModel_CreateCloudFolderCommand
+                    ?? (_pageSetupSelectorViewModel_CreateCloudFolderCommand = new RelayCommand<string>(
+                                            (path) =>
+                                            {
+                                                // The user selected a new folder location.
+                                                var notifyParms = new Dictionary<string, object>();
+                                                notifyParms.Add(CLConstants.kFolderLocation, path + "\\Cloud");
+                                                notifyParms.Add(CLConstants.kMergeFolders, false);
+                                                OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
+                                                var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
                                             }));
             }
         }
@@ -359,7 +431,7 @@ namespace win_client.ViewModels
                     string userMessageButtonMerge = Resources.Resources.folderExitTextFieldButtonMerge;
 
                     // Ask the user to 'Select new location' or 'Merge" the cloud folder.
-                    _trace.writeToLog(9, "goForward: Put up 'Select new location' or 'Merge' dialog.");
+                    _trace.writeToLog(9, "PageSetupSelectorViewModel: goForward: Put up 'Select new location' or 'Merge' dialog.");
                     CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
                         windowHeight: 250,
                         leftButtonWidth: 200,
@@ -379,7 +451,7 @@ namespace win_client.ViewModels
                             returnedViewModelInstance =>
                             {
                                 _trace.writeToLog(9, "goForward: returnedViewModelInstance: Entry.");
-                                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                if (_dialog.DialogResult.HasValue && !_dialog.DialogResult.Value)
                                 {
                                     // The user selected Merge.  The standard Cloud folder will be used, with the user's existing files in it.
                                     _trace.writeToLog(9, "goForward: User selected Merge.");
@@ -392,40 +464,24 @@ namespace win_client.ViewModels
                                 }
                                 else
                                 {
-                                    // The user will select a new Cloud folder location.  Put up a modal dialog for now.
-                                    // This dialog will allow the user to simply type in the location of the Cloud folder.
-                                    // It will have Back and Continue buttons.  The Continue button will cause validation
-                                    // and will save the selected Cloud folder location in the settings.
-                                    //
-                                    // TODO: We need the FolderBrowserDialog from WPF.  Either switch to WPF for the Windows
-                                    // desktop, or implement a WPF ActiveX DLL to perform that function.
-                                    var dialogFolderSelection = new DialogFolderSelectionSimpleView();
-                                    IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
-                                    modalDialogService.ShowDialog(dialogFolderSelection, new DialogFolderSelectionSimpleViewModel
+                                    // Display the Windows Forms folder selection
+                                    // dialog.  Tell the view to put up the dialog.  If the user clicks cancel, 
+                                    // the view will return and we will stay on this window.  If the user clicks
+                                    // OK, the view will send the PageSetupSelectorViewModel_CreateCloudFolderCommand
+                                    // back to us, and we will create the cloud folder in that command method.
+                                    // TODO: This is strange for WPF, since the FolderBrowser is a Windows Form thing.
+                                    // The processing is synchronous from the VM to the View, show the dialog, wait
+                                    // for the dialog, then return on cancel, or issue a RelayCommand back to us,
+                                    // process the RelayCommand, then back to the View, then back to here.
+                                    // Should we be more asynchronous?
+                                    var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
                                     {
-                                        FolderSelectionSimpleViewModel_FolderLocationText = cloudFolderRoot,
-                                        FolderSelectionSimpleViewModel_ButtonLeftText = Resources.Resources.folderSelectionSimpleButtonLeftText,
-                                        FolderSelectionSimpleViewModel_ButtonRightText = Resources.Resources.folderSelectionSimpleButtonRightText,
-                                    },
-                                    ViewGridContainer,
-                                    returnedFolderSelectionSimpleViewModelInstance =>
-                                    {
-                                        if (dialogFolderSelection.DialogResult.HasValue && dialogFolderSelection.DialogResult.Value)
-                                        {
-                                            // The user selected a new folder location.
-                                            var notifyParms = new Dictionary<string, object>();
-                                            notifyParms.Add(CLConstants.kFolderLocation, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
-                                            notifyParms.Add(CLConstants.kMergeFolders, false);
-                                            OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-                                            var dispatcher = CLAppDelegate.Instance.MainDispatcher;
-                                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
-                                        }
-                                        else
-                                        {
-                                            // @@@@@ Do Nothing.  Just leave the user on the underlying SetupSelector dialog.
-                                        }
+                                        _isResolvingCloudFolderConflict = false;
+                                        CLAppMessages.Message_PageSetupSelector_ShouldChooseCloudFolder.Send("");
                                     });
                                 }
+                                _dialog.Close();
                             });
 
                     return;
@@ -433,7 +489,9 @@ namespace win_client.ViewModels
 
                 // Finish the setup.
                 CLError err = null;
+                IsBusy = true;                      // show the busy indicator
                 CLAppDelegate.Instance.installCloudServices(out err);
+                IsBusy = false;                     // remove the busy indicator
                 if (err != null)
                 {
                     // An error occurred.  Show the user an Oh Snap! modal dialog.
@@ -471,27 +529,9 @@ namespace win_client.ViewModels
             }
             else
             {
-                // TODO: &&&&This is the advanced install
-                //remove ourselves from the notification subscription
-                //put up the advanced setup dialog in this window
-                //; CLFolderSelectionViewController
-#if TRASH           
-                                                    // remove oursevles from observing an event. (Oh I miss, viewWillAppear, viewWillDispear from UIKit). Sigh...
-                                                    [[NSNotificationCenter defaultCenter] removeObserver:self];
-
-                                                    // Move to advanced setup
-                                                    self.folderSelectionViewController = [[CLFolderSelectionViewController alloc] initWithNibName:(LFolderSelectionViewController" bundle:nil];
-                                                    [self.folderSelectionViewController setSetupSelectorViewController:self];
-            
-                                                    [[[NSApp mainWindow] contentView] addSubview:self.folderSelectionViewController.view];
-
-                                                    PushAnimation *animation = [[PushAnimation alloc] initWithDuration:0.25f animationCurve:NSAnimationLinear];
-                                                    [animation setNewDirection:RightDirection];
-                                                    [animation setStartingView:self.view];
-                                                    [animation setDestinationView:self.folderSelectionViewController.view];
-                                                    [animation setAnimationBlockingMode:NSAnimationNonblocking];
-                                                    [animation startAnimation];
-#endif  // end TRASH
+                // Put up the Advanced setup view..
+                Uri nextPage = new System.Uri(CLConstants.kPageFolderSelection, System.UriKind.Relative);
+                CLAppMessages.PageSetupSelector_NavigationRequest.Send(nextPage);
             }
         }
 

@@ -16,6 +16,7 @@
            xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
            xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"      
            xmlns:resx="clr-namespace:win_client.Resources"
+           xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
            mc:Ignorable="d"
            DataContext="{Binding PageHomeViewModel, Source={StaticResource Locator}}" 
            d:DesignWidth="624" d:DesignHeight="442"
@@ -24,7 +25,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
@@ -33,46 +34,48 @@
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
   
-    <Grid x:Name="LayoutRoot">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="35*"/>
-            <ColumnDefinition  Width="240*"/>
-            <ColumnDefinition Width="94*"/>
-            <ColumnDefinition  Width="229*"/>
-            <ColumnDefinition Width="26*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="256*"/>
-            <RowDefinition Height="34*"/>
-            <RowDefinition Height="33*"/>
-            <RowDefinition Height="14*"/>
-            <RowDefinition Height="62*"/>
-            <RowDefinition Height="43*"/>
-        </Grid.RowDefinitions>
+    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}">
+        <Grid x:Name="LayoutRoot">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="35*"/>
+                <ColumnDefinition  Width="240*"/>
+                <ColumnDefinition Width="94*"/>
+                <ColumnDefinition  Width="229*"/>
+                <ColumnDefinition Width="26*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="256*"/>
+                <RowDefinition Height="34*"/>
+                <RowDefinition Height="33*"/>
+                <RowDefinition Height="14*"/>
+                <RowDefinition Height="62*"/>
+                <RowDefinition Height="43*"/>
+            </Grid.RowDefinitions>
         
-        <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_wlcm_ptrn_logo.png"/>
-        </Grid.Background>
+            <Grid.Background>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_wlcm_ptrn_logo.png"/>
+            </Grid.Background>
         
-        <Label Content="{x:Static resx:Resources.ViewPageHomeLabelEMail}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Width="Auto" Target="tbEMail" FontSize="13.333" Margin="0,0,5,0" Height="Auto"  />
-        <TextBox x:Name="tbEMail" VerticalAlignment="Center" Grid.Column="3" Grid.Row="1" HorizontalAlignment="Stretch" TextAlignment="Left" Foreground="Black" 
-                    Text="{Binding EMail, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" Height="Auto" />
+            <Label Content="{x:Static resx:Resources.ViewPageHomeLabelEMail}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Width="Auto" Target="tbEMail" FontSize="13.333" Margin="0,0,5,0" Height="Auto"  />
+            <TextBox x:Name="tbEMail" VerticalAlignment="Center" Grid.Column="3" Grid.Row="1" HorizontalAlignment="Stretch" TextAlignment="Left" Foreground="Black" 
+                        Text="{Binding EMail, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" Height="Auto" />
         
-        <Label Content="{x:Static resx:Resources.ViewPageHomeLabelPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" Width="Auto" Target="tbPassword" FontSize="13.333" Margin="0,0,5,0" Height="Auto"/>
-        <commonClient:SecurePasswordBox x:Name="tbPassword" VerticalAlignment="Center" Grid.Column="3" Grid.Row="2" HorizontalAlignment="Stretch" Foreground="Black" 
-                     Text="{Binding Password, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" Height="Auto" />
+            <Label Content="{x:Static resx:Resources.ViewPageHomeLabelPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" Width="Auto" Target="tbPassword" FontSize="13.333" Margin="0,0,5,0" Height="Auto"/>
+            <commonClient:SecurePasswordBox x:Name="tbPassword" VerticalAlignment="Center" Grid.Column="3" Grid.Row="2" HorizontalAlignment="Stretch" Foreground="Black" 
+                         Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="Auto" />
 
-        <Button x:Name="cmdCreateAccount" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
-                         Grid.Row="4" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_CreateNewAccountCommand, Mode=OneTime}" >
-            <AccessText Text="{x:Static resx:Resources.ViewPageHomeCmdCreateAccount}"/>
-        </Button>
+            <Button x:Name="cmdCreateAccount" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
+                             Grid.Row="4" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_CreateNewAccountCommand, Mode=OneTime}" >
+                <AccessText Text="{x:Static resx:Resources.ViewPageHomeCmdCreateAccount}"/>
+            </Button>
         
-        <Button x:Name="cmdSignIn"  HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
-                         Grid.Row="4" Grid.Column="3" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_SignInCommand, Mode=OneTime}" IsDefault="True" >
-            <AccessText Text="{x:Static resx:Resources.ViewPageHomeCmdSignIn}"/>
-        </Button>
+            <Button x:Name="cmdSignIn"  HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
+                             Grid.Row="4" Grid.Column="3" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageHome_SignInCommand, Mode=OneTime}" IsDefault="True" >
+                <AccessText Text="{x:Static resx:Resources.ViewPageHomeCmdSignIn}"/>
+            </Button>
         
-        <TextBlock TextWrapping="Wrap" Text="{x:Static resx:Resources.ViewPageHomeTblkInstruction}" RenderTransformOrigin="0.5,0.5" 
-                            Foreground="#FF817E7E" FontSize="12" Grid.ColumnSpan="3" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Width="Auto"/>
-    </Grid>
+            <TextBlock TextWrapping="Wrap" Text="{x:Static resx:Resources.ViewPageHomeTblkInstruction}" RenderTransformOrigin="0.5,0.5" 
+                                Foreground="#FF817E7E" FontSize="12" Grid.ColumnSpan="3" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Width="Auto"/>
+        </Grid>
+    </extToolkit:BusyIndicator>
 </Page>

@@ -24,6 +24,13 @@ namespace CloudApiPrivate.Model.Settings
 {
     #region "Enums"
 
+    public enum StorageSizeSelections
+    {
+        Size5Gb = 5,
+        Size50Gb = 50,
+        Size500Gb = 500,
+    }
+
     public enum cloudAppLanguageType
     {
         cloudAppLanguageEN = 0,
@@ -177,7 +184,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kCloudFolderPath = "cloud_folder_path";
         public const string kEid = "eid";
         public const string kSid = "sid";
-        public const string kAddCloudFolderToDock = "add_dock_folder";
+        public const string kAddCloudFolderToQuickLaunch = "add_quick_launch_folder";
         public const string kAddCloudFolderToDesktop = "add_cloud_folder_to_desktop";
         public const string kRecentFileItems = "recent_file_items";
         public const string kUdid = "device_udid";
@@ -550,14 +557,14 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private Boolean _addCloudFolderToDock;
-        public Boolean AddCloudFolderToDock
+        private Boolean _addCloudFolderToQuickLaunch;
+        public Boolean AddCloudFolderToQuickLaunch
         {
-            get { return _addCloudFolderToDock; }
+            get { return _addCloudFolderToQuickLaunch; }
             set
             {
-                _addCloudFolderToDock = value;
-                SettingsBase.Write<Boolean>(kAddCloudFolderToDock, value);
+                _addCloudFolderToQuickLaunch = value;
+                SettingsBase.Write<Boolean>(kAddCloudFolderToQuickLaunch, value);
             }
         }
 
@@ -698,7 +705,7 @@ namespace CloudApiPrivate.Model.Settings
             _userName = "";
             _userFullName = "";
             _deviceName = "";
-            _quota = 0;
+            _quota = (int)StorageSizeSelections.Size5Gb;
             _completedSetup = false;
             _udidRegistered = false;
     
@@ -710,8 +717,8 @@ namespace CloudApiPrivate.Model.Settings
             _eid = Helpers.DefaultForType<long>();
     
             // Others
-            _addCloudFolderToDock = true;
-            _addCloudFolderToDesktop = false;
+            _addCloudFolderToQuickLaunch = true;
+            _addCloudFolderToDesktop = true;
             _sid = "0";
             _recentFileItems.Clear();
             _mainWindowPlacement = "";
@@ -929,11 +936,18 @@ namespace CloudApiPrivate.Model.Settings
             }
     
             // Others
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(kAddCloudFolderToDock, out tempBoolean);
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kAddCloudFolderToQuickLaunch, out tempBoolean);
             if (isPresent)
             {
-                _addCloudFolderToDock = tempBoolean;
+                _addCloudFolderToQuickLaunch = tempBoolean;
             }
+
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kAddCloudFolderToDesktop, out tempBoolean);
+            if (isPresent)
+            {
+                _addCloudFolderToDesktop = tempBoolean;
+            }
+
             isPresent = SettingsBase.ReadIfPresent<string>(kSid, out tempString);
             if (isPresent)
             {
