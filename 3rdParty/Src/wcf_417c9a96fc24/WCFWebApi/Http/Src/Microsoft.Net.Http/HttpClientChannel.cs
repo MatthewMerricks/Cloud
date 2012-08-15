@@ -645,7 +645,8 @@ namespace System.Net.Http
         }
 
         protected internal override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            object userstate = null)
         {
             if (request == null)
             {
@@ -655,7 +656,7 @@ namespace System.Net.Http
 
             SetOperationStarted();
 
-            TaskCompletionSource<HttpResponseMessage> tcs = new TaskCompletionSource<HttpResponseMessage>();
+            TaskCompletionSource<HttpResponseMessage> tcs = new TaskCompletionSource<HttpResponseMessage>(userstate);
             try
             {
                 // Cancellation: Note that there is no race here: If the token gets canceled before we register the

@@ -39,7 +39,12 @@ namespace CloudApiPublic.Support
             get { return _client; }
             set { _client = value; }
         }
-        
+
+        private string UDid = null;
+        private string UUid = null;
+        private Nullable<bool> TraceEnabled = null;
+        private Nullable<bool> TraceExcludeAuthorization = null;
+        private string TraceLocation = null;
 
         private string _syncID;
         public string SyncID
@@ -193,8 +198,8 @@ namespace CloudApiPublic.Support
 
         // - (id)initForStreamingUploadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
         // - (id)initForStreamingDownloadWithRequest:(NSMutableURLRequest *)request andFileSystemPath:(NSString *)fsPath
-        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request, string fsPath, string size, string hash, bool isUpload, FileStream uploadStream)
-            : this(client, request)
+        public CLHTTPConnectionOperation(string UDid, string UUid, Nullable<bool> TraceEnabled, Nullable<bool> TraceExcludeAuthorization, string TraceLocation, HttpClient client, HttpRequestMessage request, string fsPath, string size, string hash, bool isUpload, FileStream uploadStream)
+            : this(UDid, UUid, TraceEnabled, TraceExcludeAuthorization, TraceLocation, client, request)
         {
             //if(self = [self initWithRequest:request]) {
             //    _responseFilePath = fsPath;
@@ -206,6 +211,7 @@ namespace CloudApiPublic.Support
             _hash = hash;
             _isDownloadOperation = !isUpload;
             this.UploadStream = uploadStream;
+            this.TraceLocation = TraceLocation;
         }
 
         private class HttpClientTaskParameters
@@ -214,9 +220,24 @@ namespace CloudApiPublic.Support
             public HttpRequestMessage Message { get; set; }
             public object UserState { get; set; }
             public Action<HttpResponseMessage> SetResponse { get; set; }
+            public Nullable<bool> TraceEnabled { get; set; }
+            public string TraceLocation { get; set; }
+            public string UDid { get; set; }
+            public string UUid { get; set; }
+            public Nullable<bool> TraceExcludeAuthorization { get; set; }
         }
 
-        public CLHTTPConnectionOperation(HttpClient client, HttpRequestMessage request)
+        private class SendAsyncTraceParameters
+        {
+            public Nullable<bool> TraceEnabled { get; set; }
+            public string TraceLocation { get; set; }
+            public string UDid { get; set; }
+            public string UUid { get; set; }
+            public Nullable<bool> TraceExcludeAuthorization { get; set; }
+            public string DomainAndMethod { get; set; }
+        }
+
+        public CLHTTPConnectionOperation(string UDid, string UUid, Nullable<bool> TraceEnabled, Nullable<bool> TraceExcludeAuthorization, string TraceLocation, HttpClient client, HttpRequestMessage request)
         {
             //    _operationRequest = request;
             //    _executing = false;
@@ -224,6 +245,10 @@ namespace CloudApiPublic.Support
             _client = client;
             _operationRequest = request;
             _finished = false;
+            this.UDid = UDid;
+            this.UUid = UUid;
+            this.TraceEnabled = TraceEnabled;
+            this.TraceExcludeAuthorization = TraceExcludeAuthorization;
         }
 
         CLHTTPConnectionOperation()
@@ -296,7 +321,49 @@ namespace CloudApiPublic.Support
                         {
                             // Download operation
                             CreateStreamToTempFilePath();
-                            task = _client.SendAsync(_operationRequest).ContinueWith<HttpResponseMessage>((requestTask) =>
+
+                            string domainAndMethod = _client.BaseAddress.AbsolutePath + _operationRequest.Method.Method;
+
+                            if (this.TraceEnabled != null
+                                && ((bool)this.TraceEnabled))
+                            {
+                                if (this.TraceExcludeAuthorization == null)
+                                {
+                                    Trace.LogCommunication(this.TraceLocation,
+                                        this.UDid,
+                                        this.UUid,
+                                        CommunicationEntryDirection.Request,
+                                        domainAndMethod,
+                                        true,
+                                        _client.DefaultRequestHeaders,
+                                        _operationRequest.Headers,
+                                        _operationRequest.Content);
+                                }
+                                else
+                                {
+                                    Trace.LogCommunication(this.TraceLocation,
+                                        this.UDid,
+                                        this.UUid,
+                                        CommunicationEntryDirection.Request,
+                                        domainAndMethod,
+                                        true,
+                                        _client.DefaultRequestHeaders,
+                                        _operationRequest.Headers,
+                                        _operationRequest.Content,
+                                        (bool)this.TraceExcludeAuthorization);
+                                }
+                            }
+
+                            task = _client.SendAsync(_operationRequest,
+                                new SendAsyncTraceParameters()
+                                {
+                                    TraceEnabled = this.TraceEnabled,
+                                    TraceExcludeAuthorization = this.TraceExcludeAuthorization,
+                                    TraceLocation = this.TraceLocation,
+                                    UDid = this.UDid,
+                                    UUid = this.UUid,
+                                    DomainAndMethod = domainAndMethod
+                                }).ContinueWith<HttpResponseMessage>((requestTask) =>
                             {
                                 HttpResponseMessage response = null;
                                 try
@@ -304,6 +371,40 @@ namespace CloudApiPublic.Support
                                     // Get HTTP response from completed task. 
                                     response = requestTask.Result;
                                     this.Response = response;
+
+                                    SendAsyncTraceParameters taskState = requestTask.AsyncState as SendAsyncTraceParameters;
+                                    if (taskState != null)
+                                    {
+                                        if (taskState.TraceEnabled != null
+                                            && ((bool)taskState.TraceEnabled))
+                                        {
+                                            if (taskState.TraceExcludeAuthorization == null)
+                                            {
+                                                Trace.LogCommunication(taskState.TraceLocation,
+                                                    taskState.UDid,
+                                                    taskState.UUid,
+                                                    CommunicationEntryDirection.Response,
+                                                    taskState.DomainAndMethod,
+                                                    true,
+                                                    null,
+                                                    response.Headers,
+                                                    response.Content);
+                                            }
+                                            else
+                                            {
+                                                Trace.LogCommunication(taskState.TraceLocation,
+                                                    taskState.UDid,
+                                                    taskState.UUid,
+                                                    CommunicationEntryDirection.Response,
+                                                    taskState.DomainAndMethod,
+                                                    true,
+                                                    null,
+                                                    response.Headers,
+                                                    response.Content,
+                                                    (bool)taskState.TraceExcludeAuthorization);
+                                            }
+                                        }
+                                    }
 
                                     // Check that response was successful or throw exception 
                                     response.EnsureSuccessStatusCode();
@@ -346,7 +447,69 @@ namespace CloudApiPublic.Support
                                     {
                                         try
                                         {
-                                            response = castState.Client.SendAsync(castState.Message).Result;
+                                            string domainAndMethod = castState.Client.BaseAddress + castState.Message.Method.Method;
+
+                                            if (castState.TraceEnabled != null
+                                                && ((bool)castState.TraceEnabled))
+                                            {
+                                                if (castState.TraceExcludeAuthorization == null)
+                                                {
+                                                    Trace.LogCommunication(castState.TraceLocation,
+                                                        castState.UDid,
+                                                        castState.UUid,
+                                                        CommunicationEntryDirection.Request,
+                                                        domainAndMethod,
+                                                        true,
+                                                        castState.Client.DefaultRequestHeaders,
+                                                        castState.Message.Headers,
+                                                        castState.Message.Content);
+                                                }
+                                                else
+                                                {
+                                                    Trace.LogCommunication(castState.TraceLocation,
+                                                        castState.UDid,
+                                                        castState.UUid,
+                                                        CommunicationEntryDirection.Request,
+                                                        domainAndMethod,
+                                                        true,
+                                                        castState.Client.DefaultRequestHeaders,
+                                                        castState.Message.Headers,
+                                                        castState.Message.Content,
+                                                        (bool)castState.TraceExcludeAuthorization);
+                                                }
+                                            }
+
+                                            response = castState.Client.Send(castState.Message);
+
+                                            if (castState.TraceEnabled != null
+                                                && ((bool)castState.TraceEnabled))
+                                            {
+                                                if (castState.TraceExcludeAuthorization == null)
+                                                {
+                                                    Trace.LogCommunication(castState.TraceLocation,
+                                                        castState.UDid,
+                                                        castState.UUid,
+                                                        CommunicationEntryDirection.Response,
+                                                        domainAndMethod,
+                                                        true,
+                                                        null,
+                                                        response.Headers,
+                                                        response.Content);
+                                                }
+                                                else
+                                                {
+                                                    Trace.LogCommunication(castState.TraceLocation,
+                                                        castState.UDid,
+                                                        castState.UUid,
+                                                        CommunicationEntryDirection.Response,
+                                                        domainAndMethod,
+                                                        true,
+                                                        null,
+                                                        response.Headers,
+                                                        response.Content,
+                                                        (bool)castState.TraceExcludeAuthorization);
+                                                }
+                                            }
                                         }
                                         catch (Exception ex)
                                         {
@@ -395,7 +558,12 @@ namespace CloudApiPublic.Support
                                         Client = _client,
                                         Message = _operationRequest,
                                         UserState = this.UploadStream,
-                                        SetResponse = response => this.Response = response
+                                        SetResponse = response => this.Response = response,
+                                        TraceEnabled = this.TraceEnabled,
+                                        TraceLocation = this.TraceLocation,
+                                        UDid = this.UDid,
+                                        UUid = this.UUid,
+                                        TraceExcludeAuthorization = this.TraceExcludeAuthorization
                                     });
 
                             task.Start();

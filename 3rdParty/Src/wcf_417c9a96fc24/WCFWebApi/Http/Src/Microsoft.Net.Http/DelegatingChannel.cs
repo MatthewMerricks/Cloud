@@ -35,13 +35,13 @@ namespace System.Net.Http
             return innerChannel.Send(request, cancellationToken);
         }
 
-        protected internal override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected internal override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken, object userstate = null)
         {
             if (request == null)
             {
                 throw new ArgumentNullException("request", "A request message must be provided. It cannot be null.");
             }
-            return innerChannel.SendAsync(request, cancellationToken);
+            return innerChannel.SendAsync(request, cancellationToken, userstate);
         }
 
         protected override void Dispose(bool disposing)

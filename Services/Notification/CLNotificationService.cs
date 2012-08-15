@@ -27,6 +27,7 @@ using WebSocket4Net.Protocol;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using SuperSocket.ClientEngine;
+using CloudApiPublic.Static;
 
 namespace win_client.Services.Notification
 {
@@ -44,7 +45,7 @@ namespace win_client.Services.Notification
             get { return _serviceStarted; }
             set { _serviceStarted = value; }
         }
-        
+
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -118,14 +119,28 @@ namespace win_client.Services.Notification
             // [self.webSocket open];
             // self.serviceStarted = YES;
             //&&&&
-            
+
             // WebSocket4Net implementation.
             try
             {
                 string url = String.Format("{0}?channel=/channel_{1}&sender={2}", CLDefinitions.CLNotificationServerURL, Settings.Instance.Uuid, Settings.Instance.Udid);
                 _trace.writeToLog(1, "CLNotificationService: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>.", url);
 
-                _connection = new  WebSocket(url, null, WebSocketVersion.Rfc6455);
+                //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on Settings.Instance.TraceExcludeAuthorization !!
+                if (Settings.Instance.TraceEnabled)
+                {
+                    Trace.LogCommunication(Settings.Instance.TraceLocation,
+                        Settings.Instance.Udid,
+                        Settings.Instance.Uuid,
+                        CommunicationEntryDirection.Request,
+                        url,
+                        true,
+                        null,
+                        (string)null,
+                        Settings.Instance.TraceExcludeAuthorization);
+                }
+
+                _connection = new WebSocket(url, null, WebSocketVersion.Rfc6455);
                 _connection.Opened += OnConnectionOpened;
                 _connection.Error += OnConnectionError;
                 _connection.Closed += OnConnectionClosed;
@@ -147,6 +162,7 @@ namespace win_client.Services.Notification
         private void OnConnectionError(object sender, ErrorEventArgs e)
         {
             CLError error = e.Exception;
+            error.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
             _trace.writeToLog(1, "CLNotificationService: OnConnectionError: ERROR.  Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
         }
 
@@ -156,9 +172,23 @@ namespace win_client.Services.Notification
             ServiceStarted = false;
         }
 
-        void OnConnectionReceived(object sender, MessageReceivedEventArgs e)
+        private void OnConnectionReceived(object sender, MessageReceivedEventArgs e)
         {
             _trace.writeToLog(1, "CLNotificationService: OnConnectionReceived: Received msg: <{0}.", e.Message);
+
+            if (Settings.Instance.TraceEnabled)
+            {
+                Trace.LogCommunication(Settings.Instance.TraceLocation,
+                    Settings.Instance.Udid,
+                    Settings.Instance.Uuid,
+                    CommunicationEntryDirection.Response,
+                    "WebSocket response",
+                    true,
+                    null,
+                    e.Message,
+                    Settings.Instance.TraceExcludeAuthorization);
+            }
+
             CLAppMessages.Message_DidReceivePushNotificationFromServer.Send(e.Message);
         }
 
@@ -184,7 +214,6 @@ namespace win_client.Services.Notification
                 _connection.Close();
                 _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: Entry.");
             }
-            
         }
     }
 }

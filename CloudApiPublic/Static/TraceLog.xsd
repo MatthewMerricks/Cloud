@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="TraceLog"
+    targetNamespace="http://www.cloud.com/TraceLog.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.cloud.com/TraceLog.xsd"
+    xmlns:mstns="http://www.cloud.com/TraceLog.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:appinfo>Cloud.com Trace Log XML Schema</xs:appinfo>
+    <xs:documentation xml:lang="en-us">
+      TraceLog.xsd and resulting generated code
+      Cloud
+
+      Created by DavidBruck.
+
+      Copyright (c) Cloud.com. All rights reserved.
+
+      Manually copy this copyright declaration to the header of any generated code files created from this schema
+    </xs:documentation>
+  </xs:annotation>
+  <xs:complexType name="LogEntryType">
+    <xs:sequence>
+      <xs:element name="Type" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:int">
+            <xs:enumeration value="1">
+              <xs:annotation>
+                <xs:documentation>
+                  Communication packets
+                </xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <!-- Add more types of trace logs here, make them all bases of 2 unless they represent a combination of base 2 types -->
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Time" minOccurs="1" maxOccurs="1" type="xs:dateTime" />
+      <xs:element name="ProcessId" minOccurs="1" maxOccurs="1" type="xs:int" />
+      <xs:element name="ThreadId" minOccurs="1" maxOccurs="1" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CommunicationEntry">
+    <xs:annotation>
+      <xs:documentation>
+        Corresponds to Type "1"
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="LogEntryType">
+        <xs:sequence>
+          <xs:element name="Direction">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="Request" />
+                <xs:enumeration value="Response" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="Uri" type="xs:string" />
+          <xs:element name="Headers">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element minOccurs="1" maxOccurs="unbounded" name="Header">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element minOccurs="1" maxOccurs="1" name="Key" type="xs:string" />
+                      <xs:element minOccurs="1" maxOccurs="1" name="Value" type="xs:string" />
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Body" maxOccurs="1" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="Copyright">
+    <xs:sequence>
+      <xs:element name="FileName" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Copyright" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Implementation of TraceLog.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved." />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Creator" minOccurs="1" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Log">
+    <xs:complexType>
+      <xs:sequence minOccurs="1" maxOccurs="unbounded">
+        <xs:element name="Copyright" minOccurs="1" maxOccurs="1" type="Copyright" />
+        <xs:element name="Entry" type="LogEntryType" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -38,7 +38,8 @@ namespace System.Net.Http
         }
 
         protected internal sealed override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            object userstate = null)
         {
             if (request == null)
             {
