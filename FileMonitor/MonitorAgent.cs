@@ -470,12 +470,23 @@ namespace FileMonitor
                                 {
                                     try
                                     {
+                                        string backupLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) +
+                                                "\\Cloud\\DownloadTemp\\" +
+                                                Guid.NewGuid().ToString();
                                         File.Replace(oldPathString,
                                             newPathString,
-                                            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) +
-                                                "\\Cloud\\DownloadTemp" +
-                                                Guid.NewGuid().ToString(),
+                                            backupLocation,
                                             ignoreMetadataErrors: true);
+                                        try
+                                        {
+                                            if (File.Exists(backupLocation))
+                                            {
+                                                File.Delete(backupLocation);
+                                            }
+                                        }
+                                        catch
+                                        {
+                                        }
                                     }
                                     // File.Replace not supported on non-NTFS drives, must use traditional move
                                     catch (PlatformNotSupportedException)

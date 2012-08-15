@@ -284,7 +284,37 @@ namespace CloudApiPrivate
                     {
                         try
                         {
-                            castState.Response = castState.Client.SendAsync(castState.Message).Result;
+                            string domainAndMethod = castState.Client.BaseAddress + castState.Message.Method.Method;
+
+                            if (castState.TraceEnabled)
+                            {
+                                Trace.LogCommunication(castState.TraceLocation,
+                                    castState.UDid,
+                                    castState.UUid,
+                                    CommunicationEntryDirection.Request,
+                                    domainAndMethod,
+                                    true,
+                                    castState.Client.DefaultRequestHeaders,
+                                    castState.Message.Headers,
+                                    castState.Message.Content,
+                                    castState.TraceExcludeAuthorization);
+                            }
+
+                            castState.Response = castState.Client.Send(castState.Message);
+
+                            if (castState.TraceEnabled)
+                            {
+                                Trace.LogCommunication(castState.TraceLocation,
+                                    castState.UDid,
+                                    castState.UUid,
+                                    CommunicationEntryDirection.Response,
+                                    domainAndMethod,
+                                    true,
+                                    null,
+                                    castState.Response.Headers,
+                                    castState.Response.Content,
+                                    castState.TraceExcludeAuthorization);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -302,7 +332,12 @@ namespace CloudApiPrivate
                     CompletionHandler = completionHandler,
                     Queue = queue,
                     HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync,
-                    UserState = processedChanges
+                    UserState = processedChanges,
+                    TraceEnabled = Settings.Instance.TraceEnabled,
+                    TraceLocation = Settings.Instance.TraceLocation,
+                    UDid = Settings.Instance.Udid,
+                    UUid = Settings.Instance.Uuid,
+                    TraceExcludeAuthorization = Settings.Instance.TraceExcludeAuthorization
                 });
 
             // Second task to process the sync-to result.
@@ -537,7 +572,37 @@ namespace CloudApiPrivate
                     {
                         try
                         {
+                            string domainAndMethod = castState.Client.BaseAddress + castState.Message.Method.Method;
+
+                            if (castState.TraceEnabled)
+                            {
+                                Trace.LogCommunication(castState.TraceLocation,
+                                    castState.UDid,
+                                    castState.UUid,
+                                    CommunicationEntryDirection.Request,
+                                    domainAndMethod,
+                                    true,
+                                    castState.Client.DefaultRequestHeaders,
+                                    castState.Message.Headers,
+                                    castState.Message.Content,
+                                    castState.TraceExcludeAuthorization);
+                            }
+
                             castState.Response = castState.Client.SendAsync(castState.Message).Result;
+
+                            if (castState.TraceEnabled)
+                            {
+                                Trace.LogCommunication(castState.TraceLocation,
+                                    castState.UDid,
+                                    castState.UUid,
+                                    CommunicationEntryDirection.Response,
+                                    domainAndMethod,
+                                    true,
+                                    null,
+                                    castState.Response.Headers,
+                                    castState.Response.Content,
+                                    castState.TraceExcludeAuthorization);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -555,7 +620,12 @@ namespace CloudApiPrivate
                     Message = syncRequest,
                     CompletionHandler = completionHandler,
                     Queue = queue,
-                    HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync
+                    HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync,
+                    TraceEnabled = Settings.Instance.TraceEnabled,
+                    TraceLocation = Settings.Instance.TraceLocation,
+                    UDid = Settings.Instance.Udid,
+                    UUid = Settings.Instance.Uuid,
+                    TraceExcludeAuthorization = Settings.Instance.TraceExcludeAuthorization
                 });
                 
             // The second task.
@@ -583,6 +653,11 @@ namespace CloudApiPrivate
             public HttpResponseMessage Response { get; set; }
             public Exception CommunicationException { get; set; }
             public object UserState { get; set; }
+            public bool TraceEnabled { get; set; }
+            public string TraceLocation { get; set; }
+            public string UDid { get; set; }
+            public string UUid { get; set; }
+            public bool TraceExcludeAuthorization { get; set; }
         }
 
         /// <summary>
@@ -706,7 +781,7 @@ namespace CloudApiPrivate
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _trace.writeToLog(9, "CLPrivateRestClient: StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to upload file.  Path: {0}, Request: {1}.", path, request.Headers.ToString());
-            return new CLHTTPConnectionOperation(_client, request, path, size, hash, isUpload: true, uploadStream: uploadStream);
+            return new CLHTTPConnectionOperation(Settings.Instance.Udid, Settings.Instance.Uuid, Settings.Instance.TraceEnabled, Settings.Instance.TraceExcludeAuthorization, Settings.Instance.TraceLocation, _client, request, path, size, hash, isUpload: true, uploadStream: uploadStream);
         }
 
         /// <summary>
@@ -745,7 +820,7 @@ namespace CloudApiPrivate
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _trace.writeToLog(9, "CLPrivateRestClient: StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to download file.  Path: {0}, json: {1}, Request: {2}.", path, json, request.Headers.ToString());
-            return new CLHTTPConnectionOperation(_client, request, path, size, hash, isUpload: false, uploadStream: null);
+            return new CLHTTPConnectionOperation(Settings.Instance.Udid, Settings.Instance.Uuid, Settings.Instance.TraceEnabled, Settings.Instance.TraceExcludeAuthorization, Settings.Instance.TraceLocation, _client, request, path, size, hash, isUpload: false, uploadStream: null);
         }
     }
 }

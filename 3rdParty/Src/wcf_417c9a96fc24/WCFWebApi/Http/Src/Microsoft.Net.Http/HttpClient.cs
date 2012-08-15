@@ -205,24 +205,30 @@ namespace System.Net.Http
             }
         }
 
-        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            object userstate = null)
         {
-            return SendAsync(request, defaultCompletionOption, CancellationToken.None);
+            return SendAsync(request, defaultCompletionOption, CancellationToken.None, userstate);
         }
 
         public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            object userstate = null)
         {
-            return SendAsync(request, defaultCompletionOption, cancellationToken);
+            return SendAsync(request, defaultCompletionOption, cancellationToken, userstate);
         }
 
-        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, HttpCompletionOption completionOption)
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            HttpCompletionOption completionOption,
+            object userstate = null)
         {
-            return SendAsync(request, completionOption, CancellationToken.None);
+            return SendAsync(request, completionOption, CancellationToken.None, userstate);
         }
 
-        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, HttpCompletionOption completionOption,
-            CancellationToken cancellationToken)
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            HttpCompletionOption completionOption,
+            CancellationToken cancellationToken,
+            object userstate = null)
         {
             if (request == null)
             {
@@ -238,30 +244,33 @@ namespace System.Net.Http
                 pendingRequestsCts.Token);
             SetTimeout(linkedCts);
 
-            TaskCompletionSource<HttpResponseMessage> tcs = new TaskCompletionSource<HttpResponseMessage>();
-            ActualChannel.SendAsync(request, linkedCts.Token).ContinueWith(task =>
+            TaskCompletionSource<HttpResponseMessage> tcs = new TaskCompletionSource<HttpResponseMessage>(userstate);
+            ActualChannel.SendAsync(request, linkedCts.Token, tcs).ContinueWith(task =>
             {
                 try
                 {
+                    TaskCompletionSource<HttpResponseMessage> castCompletionSource = task.AsyncState as TaskCompletionSource<HttpResponseMessage>;
+                    Contract.Assert(castCompletionSource != null);
+
                     // The request is completed. Dispose the request content.
                     DisposeRequestContent(request);
 
                     if (task.IsFaulted)
                     {
-                        SetTaskFaulted(request, linkedCts, tcs, task.Exception.GetBaseException());
+                        SetTaskFaulted(request, linkedCts, castCompletionSource, task.Exception.GetBaseException());
                         return;
                     }
 
                     if (task.IsCanceled)
                     {
-                        SetTaskCanceled(request, linkedCts, tcs);
+                        SetTaskCanceled(request, linkedCts, castCompletionSource);
                         return;
                     }
 
                     HttpResponseMessage response = task.Result;
                     if (response == null)
                     {
-                        SetTaskFaulted(request, linkedCts, tcs,
+                        SetTaskFaulted(request, linkedCts, castCompletionSource,
                             new InvalidOperationException("Channel did not return a response message."));
                         return;
                     }
@@ -269,7 +278,7 @@ namespace System.Net.Http
                     // If we don't have a response content, just return the response message.
                     if ((response.Content == null) || (completionOption == HttpCompletionOption.ResponseHeadersRead))
                     {
-                        SetTaskCompleted(request, linkedCts, tcs, response);
+                        SetTaskCompleted(request, linkedCts, castCompletionSource, response);
                         return;
                     }
                     Contract.Assert(completionOption == HttpCompletionOption.ResponseContentRead,
@@ -277,7 +286,7 @@ namespace System.Net.Http
 
                     // We have an assigned content. Start loading it into a buffer and return response message once
                     // the whole content is buffered.
-                    StartContentBuffering(request, linkedCts, tcs, response);
+                    StartContentBuffering(request, linkedCts, castCompletionSource, response);
                 }
                 catch (Exception e)
                 {

@@ -1100,6 +1100,19 @@ namespace Sync
                         pushRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding;
                         pushRequest.ContentLength = requestBodyBytes.Length;
 
+                        if (Settings.Instance.TraceEnabled)
+                        {
+                            Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                Settings.Instance.Udid,
+                                Settings.Instance.Uuid,
+                                CommunicationEntryDirection.Request,
+                                CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom,
+                                true,
+                                pushRequest.Headers,
+                                requestBody,
+                                Settings.Instance.TraceExcludeAuthorization);
+                        }
+
                         using (Stream pushRequestStream = pushRequest.GetRequestStream())
                         {
                             pushRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
@@ -1107,34 +1120,69 @@ namespace Sync
 
                         HttpWebResponse pushResponse = (HttpWebResponse)pushRequest.GetResponse();
 
-                        if (pushResponse.StatusCode != HttpStatusCode.OK)
+                        JsonContracts.PushResponse deserializedResponse;
+                        bool responseTraced = false;
+                        try
                         {
-                            string pushResponseString = null;
-                            // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
-                            try
+                            using (Stream pushResponseStream = pushResponse.GetResponseStream())
                             {
-                                using (Stream pushResponseStream = pushResponse.GetResponseStream())
+                                if (Settings.Instance.TraceEnabled)
                                 {
-                                    using (StreamReader pushResponseStreamReader = new StreamReader(pushResponseStream, Encoding.UTF8))
+                                    Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                        Settings.Instance.Udid,
+                                        Settings.Instance.Uuid,
+                                        CommunicationEntryDirection.Response,
+                                        CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom,
+                                        true,
+                                        pushResponse.Headers,
+                                        pushResponseStream,
+                                        Settings.Instance.TraceExcludeAuthorization);
+                                }
+
+                                responseTraced = true;
+
+                                if (pushResponse.StatusCode != HttpStatusCode.OK)
+                                {
+                                    string pushResponseString = null;
+                                    // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
+                                    try
                                     {
-                                        pushResponseString = pushResponseStreamReader.ReadToEnd();
+                                        using (TextReader pushResponseStreamReader = new StreamReader(pushResponseStream, Encoding.UTF8))
+                                        {
+                                            pushResponseString = pushResponseStreamReader.ReadToEnd();
+                                        }
                                     }
+                                    catch
+                                    {
+                                    }
+
+                                    throw new Exception("Invalid HTTP response status code in Sync From: " + ((int)pushResponse.StatusCode).ToString() +
+                                        (pushResponseString == null ? string.Empty
+                                            : Environment.NewLine + "Response:" + Environment.NewLine +
+                                            pushResponseString));
+                                }
+
+                                deserializedResponse = (JsonContracts.PushResponse)PushResponseSerializer.ReadObject(pushResponseStream);
+                            }
+                        }
+                        catch
+                        {
+                            if (!responseTraced)
+                            {
+                                if (Settings.Instance.TraceEnabled)
+                                {
+                                    Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                        Settings.Instance.Udid,
+                                        Settings.Instance.Uuid,
+                                        CommunicationEntryDirection.Response,
+                                        CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom,
+                                        true,
+                                        pushResponse.Headers,
+                                        (string)null,
+                                        Settings.Instance.TraceExcludeAuthorization);
                                 }
                             }
-                            catch
-                            {
-                            }
-
-                            throw new Exception("Invalid HTTP response status code in Sync From: " + ((int)pushResponse.StatusCode).ToString() +
-                                (pushResponseString == null ? string.Empty
-                                    : Environment.NewLine + "Response:" + Environment.NewLine +
-                                    pushResponseString));
-                        }
-
-                        JsonContracts.PushResponse deserializedResponse;
-                        using (Stream pushResponseStream = pushResponse.GetResponseStream())
-                        {
-                            deserializedResponse = (JsonContracts.PushResponse)PushResponseSerializer.ReadObject(pushResponseStream);
+                            throw;
                         }
 
                         newSyncId = deserializedResponse.SyncId;

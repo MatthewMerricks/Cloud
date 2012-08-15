@@ -13,7 +13,7 @@ namespace System.Net.Http
         }
 
         protected internal abstract HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken);
-        protected internal abstract Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken);
+        protected internal abstract Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken, object userstate = null);
 
         #region IDisposable Members
 
