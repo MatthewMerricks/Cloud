@@ -1,7 +1,6 @@
 C:\Source\Projects\win-client\3rdParty\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.dll
 C:\Source\Projects\win-client\3rdParty\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.pdb
 C:\Source\Projects\win-client\3rdParty\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.XML
-C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Extras (NET4).csprojResolveAssemblyReference.cache
 C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Properties.Resources.resources
 C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Extras (NET4).csproj.GenerateResource.Cache
 C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Extras.WPF4.dll
@@ -13,3 +12,11 @@ C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\mvvmlight_a9071d84ec6
 C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Extras (NET4).csproj.GenerateResource.Cache
 C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Extras.WPF4.dll
 C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Extras.WPF4.pdb
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.XML
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.dll
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.pdb
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\Microsoft.Practices.ServiceLocation.dll
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\System.Windows.Interactivity.dll
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\Microsoft.Practices.ServiceLocation.pdb
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\Microsoft.Practices.ServiceLocation.xml
+C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\System.Windows.Interactivity.xml
