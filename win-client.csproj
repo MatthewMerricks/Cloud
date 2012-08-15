@@ -101,7 +101,7 @@
       <HintPath>3rdParty\bin\Release\SimpleJson.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Common">
-      <HintPath>bin\Release\SuperSocket.ClientEngine.Common.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Core">
       <HintPath>3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll</HintPath>
