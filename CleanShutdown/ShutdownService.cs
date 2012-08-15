@@ -64,7 +64,10 @@ namespace CleanShutdown.Helpers
 
                 CLAppDelegate.Instance.MainDispatcher.BeginInvoke((Action)delegate()
                 {
-                    Application.Current.Shutdown();
+                    if (Application.Current != null)
+                    {
+                        Application.Current.Shutdown();
+                    }
                 });
             }
 

@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B7BFA05A-15D3-48D9-AAD6-5A34E35314BD}"
 	ProjectSection(SolutionItems) = preProject
 		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wyUpdate", "wyUpdate.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wyUpdateTests", "wyUpdateTests\wyUpdateTests.csproj", "{3851C243-6C56-4EED-8565-6FA730A7D250}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wyUpdate.NET4", "wyUpdate.NET4.csproj", "{80D1D071-07F3-4968-A14D-1CA25059E4A6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wyUpdateNET4", "wyUpdate.NET4.csproj", "{80D1D071-07F3-4968-A14D-1CA25059E4A6}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution

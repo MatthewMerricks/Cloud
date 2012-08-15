@@ -27,6 +27,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sync", "Sync\Sync.csproj", "{45E4664C-C207-4605-AF85-54B587819107}"
 EndProject
 Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "CloudSetup", "CloudSetup\CloudSetup.isproj", "{83CA3DB8-0155-4F9E-8DDA-35AA9098E7A8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3697919F-7A1E-43BA-BFDB-3EEC2553DD44} = {3697919F-7A1E-43BA-BFDB-3EEC2553DD44}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegisterCom", "RegisterCom\RegisterCom.csproj", "{7FECBFDC-00CC-46C9-94EE-948155ACEE9D}"
 EndProject

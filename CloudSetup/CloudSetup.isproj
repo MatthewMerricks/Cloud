@@ -64,5 +64,9 @@
 			<Name>win-client</Name>
 			<Project>{D47ED1EB-2327-4D35-97D5-42FC6239B925}</Project>
 		</ProjectReference>
+		<ProjectReference Include="..\Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
+			<Name>Dialog.Abstractions.Wpf</Name>
+			<Project>{3697919F-7A1E-43BA-BFDB-3EEC2553DD44}</Project>
+		</ProjectReference>
 	</ItemGroup>
 </Project>
