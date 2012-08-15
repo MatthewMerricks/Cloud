@@ -19,7 +19,7 @@ namespace win_client.Services.Badging
     {
         private static CLBadgingService _instance = null;
         private static object _instanceLocker = new object();
-        private static CLTrace _trace;
+        private static CLTrace _trace = CLTrace.Instance;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -48,7 +48,6 @@ namespace win_client.Services.Badging
         private CLBadgingService()
         {
             // Initialize members, etc. here (at static initialization time).
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>

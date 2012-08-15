@@ -24,14 +24,20 @@ using win_client.Common;
 using System.Globalization;
 using win_client.ViewModels;
 using win_client.AppDelegate;
+using CloudApiPublic.Model;
+using win_client.Model;
+using CleanShutdown.Messaging;
+using Ookii.Dialogs.WpfMinusTaskDialog;
 
 namespace win_client.Views
 {
-    public partial class PageSelectStorageSize : Page
+    public partial class PageSelectStorageSize : Page, IOnNavigated
     {
         #region "Instance Variables"
 
         private bool _isLoaded = false;
+        private bool savedOkButtonIsDefault = false;
+        private bool savedOkButtonIsCancel = false;
 
         #endregion
 
@@ -45,15 +51,6 @@ namespace win_client.Views
             // Register event handlers
             Loaded += new RoutedEventHandler(PageSelectStorageSize_Loaded);
             Unloaded += new RoutedEventHandler(PageSelectStorageSize_Unloaded);
-
-            // Register messages
-            CLAppMessages.PageSelectStorageSize_NavigationRequest.Register(this,
-               (uri) => 
-                {
-                    this.NavigationService.Navigate(uri, UriKind.Relative); 
-                });
-            CLAppMessages.SelectStorageSize_PresentMessageDialog.Register(this, SelectStorageSize_PresentMessageDialog);
-            
         }
 
          #region "Event Handlers"
@@ -64,7 +61,19 @@ namespace win_client.Views
         void PageSelectStorageSize_Loaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            NavigationService.Navigated += new NavigatedEventHandler(OnNavigatedTo);
+
+            // Register messages
+            CLAppMessages.PageSelectStorageSize_NavigationRequest.Register(this,
+               (uri) =>
+               {
+                   this.NavigationService.Navigate(uri, UriKind.Relative);
+               });
+            CLAppMessages.Message_PageSelectStorageSizeViewSetFocusToContinueButton.Register(this, OnMessage_PageSelectStorageSizeViewSetFocusToContinueButton);
+
+
+            // Pass the view's grid to the view model for the dialogs to use.
+            PageSelectStorageSizeViewModel vm = (PageSelectStorageSizeViewModel)DataContext;
+            vm.ViewGridContainer = LayoutRoot;
 
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
@@ -79,45 +88,80 @@ namespace win_client.Views
         {
             _isLoaded = false;
 
-            if (NavigationService != null)
-            {
-                NavigationService.Navigated -= new NavigatedEventHandler(OnNavigatedTo); ;
-            }
+            // Unregister for messages
             Messenger.Default.Unregister(this);
-        }
-
-        /// <summary>
-        /// REMOVE THIS.  Need credit card UI.
-        /// </summary>
-        //TODO: Remove this.  Implement the credit card UI.
-        private void SelectStorageSize_PresentMessageDialog(DialogMessage msg)
-        {
-            var result = MessageBox.Show(
-                msg.Content,
-                msg.Caption,
-                msg.Button);
-
-            msg.ProcessCallback(result);     // Send callback
         }
 
         /// <summary>
         /// Navigated event handler.
         /// </summary>
-        protected void OnNavigatedTo(object sender, NavigationEventArgs e)
+        CLError IOnNavigated.HandleNavigated(object sender, NavigationEventArgs e)
         {
-            // Show the window.
-            CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
-
-            if (_isLoaded)
+            try
             {
-                cmdContinue.Focus();
-            }
+                // Register to receive the ConfirmShutdown message
+                Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                    this,
+                    message =>
+                    {
+                        OnConfirmShutdownMessage(message);
+                    });
 
-            var vm = DataContext as PageSelectStorageSizeViewModel;
-            vm.PageSelectStorageSize_NavigatedToCommand.Execute(null);
+                if (_isLoaded)
+                {
+                    cmdContinue.Focus();
+                }
+
+                var vm = DataContext as PageSelectStorageSizeViewModel;
+                vm.PageSelectStorageSize_NavigatedToCommand.Execute(null);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
- 
-        #endregion
+
+        /// <summary>
+        /// The ViewModel says give focus to the Continue button.
+        /// </summary>
+        private void OnMessage_PageSelectStorageSizeViewSetFocusToContinueButton(string obj)
+        {
+            cmdContinue.Focus();
+        }
+
+        /// <summary>
+        /// NavigationWindow sends this to all pages prior to driving the HandleNavigated event above.
+        /// Upon receipt, the page must unregister the WindowClosingMessage.
+        /// </summary>
+        private void OnMessage_PageMustUnregisterWindowClosingMessage(string obj)
+        {
+            Messenger.Default.Unregister<CleanShutdown.Messaging.NotificationMessageAction<bool>>(this, message => { });
+        }
+
+        /// <summary>
+        /// The user clicked the 'X' on the NavigationWindow.  That sent a ConfirmShutdown message.
+        /// If we will handle the shutdown ourselves, inform the ShutdownService that it should abort
+        /// the automatic Window.Close (set true to message.Execute.
+        /// </summary>
+        private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
+        {
+            if (message.Notification == Notifications.ConfirmShutdown)
+            {
+                // Ask the ViewModel if we should allow the window to close.
+                // This should not block.
+                PageSelectStorageSizeViewModel vm = (PageSelectStorageSizeViewModel)DataContext;
+                if (vm.WindowCloseRequested.CanExecute(null))
+                {
+                    vm.WindowCloseRequested.Execute(null);
+                }
+
+                // Get the answer and set the real event Cancel flag appropriately.
+                message.Execute(!vm.WindowCloseOk);      // true == abort shutdown
+            }
+        }
+
+         #endregion
 
 
     }

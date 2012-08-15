@@ -27,6 +27,12 @@ using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
+using win_client.Resources;
+using System.ComponentModel;
+using System.Windows.Input;
+using CleanShutdown.Messaging;
+using CleanShutdown.Helpers;
+using System.Windows.Threading;
 
 namespace win_client.ViewModels
 {  
@@ -42,13 +48,17 @@ namespace win_client.ViewModels
     /// </summary>
     public class PageHomeViewModel : ValidatingViewModelBase
     {
+        #region Private Instance Variables
+
         private readonly IDataService _dataService;
 
-        private RelayCommand _pageHome_CreateNewAccountCommand;
-        private RelayCommand _pageHome_SignInCommand;
-        private RelayCommand _pageHome_NavigatedToCommand;
         private CLTrace _trace = CLTrace.Instance;
-        private ResourceManager _rm;
+        private IModalWindow _dialog = null;        // for use with modal dialogs
+        private bool _isShuttingDown = false;       // true: allow the shutdown if asked
+
+        #endregion
+
+        #region Life Cycle
 
         /// <summary>
         /// Initializes a new instance of the PageHomeViewModel class.
@@ -68,21 +78,16 @@ namespace win_client.ViewModels
                     //&&&&               WelcomeTitle = item.Title;
                 });
 
-            _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
         }
+
+        #endregion
+        #region Bindable Properties
 
         /// <summary>
         /// The <see cref="EMail" /> property's name.
         /// </summary>
         public const string EMailPropertyName = "EMail";
-
-        private string _eMail = Settings.Instance.UserName;
-
-        /// <summary>
-        /// Sets and gets the EMail property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
+        private string _eMail = "";
         public string EMail
         {
             get
@@ -109,10 +114,6 @@ namespace win_client.ViewModels
         /// </summary>
         public const string Password2PropertyName = "Password2";
         private string _password2 = "";
-        /// <summary>
-        /// Sets the Password2 property.
-        /// This is the clear password. 
-        /// </summary>
         public string Password2
         {
             get
@@ -130,13 +131,7 @@ namespace win_client.ViewModels
         /// The <see cref="Password" /> property's name.
         /// </summary>
         public const string PasswordPropertyName = "Password";
-
         private string _password = "";
-
-        /// <summary>
-        /// Sets and gets the Password property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public string Password
         {
             get
@@ -170,11 +165,6 @@ namespace win_client.ViewModels
         /// </summary>
         public const string ViewGridContainerPropertyName = "ViewGridContainer";
         private Grid _viewGridContainer = null;
-
-        /// <summary>
-        /// Sets and gets the ViewGridContainer property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public Grid ViewGridContainer
         {
             get
@@ -198,13 +188,7 @@ namespace win_client.ViewModels
         /// The <see cref="IsBusy" /> property's name.
         /// </summary>
         public const string IsBusyPropertyName = "IsBusy";
-
         private bool _isBusy = false;
-
-        /// <summary>
-        /// Sets and gets the IsBusy property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public bool IsBusy
         {
             get
@@ -224,10 +208,62 @@ namespace win_client.ViewModels
             }
         }
 
-       
+        /// <summary>
+        /// The <see cref="BusyContent" /> property's name.
+        /// </summary>
+        public const string BusyContentPropertyName = "BusyContent";
+        private string _busyContent = "Signing in...";
+        public string BusyContent
+        {
+            get
+            {
+                return _busyContent;
+            }
+
+            set
+            {
+                if (_busyContent == value)
+                {
+                    return;
+                }
+
+                _busyContent = value;
+                RaisePropertyChanged(BusyContentPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="WindowCloseOk" /> property's name.
+        /// </summary>
+        public const string WindowCloseOkPropertyName = "WindowCloseOk";
+        private bool _windowCloseOk = false;
+        public bool WindowCloseOk
+        {
+            get
+            {
+                return _windowCloseOk;
+            }
+
+            set
+            {
+                if (_windowCloseOk == value)
+                {
+                    return;
+                }
+
+                _windowCloseOk = value;
+                RaisePropertyChanged(WindowCloseOkPropertyName);
+            }
+        }
+
+        #endregion
+
+        #region Relay Commands
+
         /// <summary>
         /// Create new account from the PageHome page.
         /// </summary>
+        private RelayCommand _pageHome_CreateNewAccountCommand;
         public RelayCommand PageHome_CreateNewAccountCommand
         {
             get
@@ -245,6 +281,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// Sign in to an existing account from the PageHome page.
         /// </summary>
+        private RelayCommand _pageHome_SignInCommand;
         public RelayCommand PageHome_SignInCommand
         {
             get
@@ -270,6 +307,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The page was navigated to.
         /// </summary>
+        private RelayCommand _pageHome_NavigatedToCommand;
         public RelayCommand PageHome_NavigatedToCommand
         {
             get
@@ -278,10 +316,50 @@ namespace win_client.ViewModels
                     ?? (_pageHome_NavigatedToCommand = new RelayCommand(
                                             () =>
                                             {
-                                                EMail = Settings.Instance.UserName;
+                                                EMail = String.Empty;
                                             }));
             }
         }
+
+
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
+                                          }));
+            }
+        }
+
+        /// <summary>
+        /// The window wants to close.  The user clicked the 'X'.
+        /// This will set the bindable property WindowCloseOk if we will not handle this event.
+        /// </summary>
+        private ICommand _windowCloseRequested;
+        public ICommand WindowCloseRequested
+        {
+            get
+            {
+                return _windowCloseRequested
+                    ?? (_windowCloseRequested = new RelayCommand(
+                                          () =>
+                                          {
+                                              // Handle the request and set the property.
+                                              WindowCloseOk = OnClosing();
+                                          }));
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Request login to the server with the email and password..
@@ -322,12 +400,21 @@ namespace win_client.ViewModels
             else
             {
                 // There was an error registering this user.  Display the error and leave the user on the same page.
-                CLModalErrorDialog.Instance.DisplayModalErrorMessage(error.errorDescription, _rm.GetString("generalErrorTitle"),
-                                    _rm.GetString("loginErrorHeader"), _rm.GetString("generalOkButtonContent"), 
-                                    ViewGridContainer, returnedViewModelInstance =>
-                                    {
-                                        // Do nothing here when the user clicks the OK button.
-                                    });
+                CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                    errorMessage: error.errorDescription,
+                    title: Resources.Resources.generalErrorTitle,
+                    headerText: Resources.Resources.loginErrorHeader,
+                    rightButtonContent: Resources.Resources.generalOkButtonContent,
+                    rightButtonIsDefault: true,
+                    rightButtonIsCancel: true,
+                    container: ViewGridContainer,
+                    dialog: out _dialog,
+                    actionOkButtonHandler: 
+                        returnedViewModelInstance =>
+                        {
+                            // Do nothing here when the user clicks the OK button.
+                        }
+                );
             }
         }
 
@@ -392,5 +479,52 @@ namespace win_client.ViewModels
 
         #endregion
 
+
+        #region Support Functions
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to allow the automatic Window.Close action.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+
+            // Just allow the shutdown if we have already decided to do it.
+            if (_isShuttingDown)
+            {
+                return true;
+            }
+
+            // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
+            CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
+                    {
+                        // Do nothing here when the user clicks the OK button.
+                        _trace.writeToLog(9, "PageHomeViewModel: Prompt exit application: Entry.");
+                        if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                        {
+                            // The user said yes.  Unlink this device.
+                            _trace.writeToLog(9, "PageHomeViewModel: Prompt exit application: User said yes.");
+
+                            // Shut down tha application
+                            _isShuttingDown = true;         // allow the shutdown if asked
+
+                            // It is tempting to call ShutdownService.RequestShutdown() here, but this dialog
+                            // is still active and would prevent the shutdown.  Allow the dialog to fully close
+                            // and then request the shutdown.
+                            Dispatcher dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => 
+                            {
+                                ShutdownService.RequestShutdown();
+                            });
+                        }
+                    });
+
+            return false;                // cancel the automatic Window close.
+        }
+
+        #endregion
     }
 }

@@ -30,6 +30,12 @@ using CloudApiPublic;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Static;
+using win_client.ViewModelHelpers;
+using win_client.Resources;
+using System.ComponentModel;
+using System.Windows.Input;
+using CleanShutdown.Messaging;
+using CleanShutdown.Helpers;
 
 namespace win_client.ViewModels
 {
@@ -53,19 +59,16 @@ namespace win_client.ViewModels
         #region Instance Variables
 
         private readonly IDataService _dataService;
-        private RelayCommand _pageSetupSelector_NavigatedToCommand;        
-        private RelayCommand _pageSetupSelector_BackCommand;
-        private RelayCommand _pageSetupSelector_ContinueCommand;
-        private RelayCommand _pageSetupSelector_DefaultAreaCommand;
-        private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
-        private ResourceManager _rm;
         private CLTrace _trace = CLTrace.Instance;
+        private IModalWindow _dialog = null;        // for use with modal dialogs
+        private bool _isShuttingDown = false;       // true: allow the shutdown if asked
+        private bool _isResolvingCloudFolderConflict = false;  // true: The view was asked to have the user choose a new Cloud folder path for the purpose of resolving a folder merge conflict.
 
         #endregion
 
         #region Life Cycle
         /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
+        /// Initializes a new instance of the PageSetupSelectorViewModel class.
         /// </summary>
         public PageSetupSelectorViewModel(IDataService dataService)
         {
@@ -81,8 +84,6 @@ namespace win_client.ViewModels
 
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm = CLAppDelegate.Instance.ResourceManager;
-            _trace = CLTrace.Instance;
         }
 
         /// <summary>
@@ -91,7 +92,6 @@ namespace win_client.ViewModels
         public override void Cleanup()
         {
             base.Cleanup();
-            _rm = null;
         }
 
         #endregion
@@ -102,13 +102,7 @@ namespace win_client.ViewModels
         /// The <see cref="ViewGridContainer" /> property's name.
         /// </summary>
         public const string ViewGridContainerPropertyName = "ViewGridContainer";
-
         private Grid _viewGridContainer = null;
-
-        /// <summary>
-        /// Sets and gets the ViewGridContainer property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public Grid ViewGridContainer
         {
             get
@@ -129,17 +123,59 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="IsBusy" /> property's name.
+        /// </summary>
+        public const string IsBusyPropertyName = "IsBusy";
+        private bool _isBusy = false;
+        public bool IsBusy
+        {
+            get
+            {
+                return _isBusy;
+            }
+
+            set
+            {
+                if (_isBusy == value)
+                {
+                    return;
+                }
+
+                _isBusy = value;
+                RaisePropertyChanged(IsBusyPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="BusyContent" /> property's name.
+        /// </summary>
+        public const string BusyContentPropertyName = "BusyContent";
+        private string _busyContent = "Please wait...";
+        public string BusyContent
+        {
+            get
+            {
+                return _busyContent;
+            }
+
+            set
+            {
+                if (_busyContent == value)
+                {
+                    return;
+                }
+
+                _busyContent = value;
+                RaisePropertyChanged(BusyContentPropertyName);
+            }
+        }
+
+        /// <summary>
         /// The <see cref="PageSetupSelector_OptionSelected" /> property's name.
         /// </summary>
         public const string PageSetupSelector_OptionSelectedPropertyName = "PageSetupSelector_OptionSelected";
-
         private SetupSelectorOptions _pageSetupSelector_OptionSelected = Settings.Instance.UseDefaultSetup ?
                                                     SetupSelectorOptions.OptionDefault : SetupSelectorOptions.OptionAdvanced;
-
-        /// <summary>
-        /// Sets and gets the PageSetupSelector_OptionSelected property.  This is the setup option
-        /// chosen by the user. Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public SetupSelectorOptions PageSetupSelector_OptionSelected
         {
             get
@@ -165,9 +201,7 @@ namespace win_client.ViewModels
         /// folder with the new Cloud folder.
         /// </summary>
         public const string IsMergingFolderPropertyName = "IsMergingFolder";
-
         private bool _isMergingFolder = false;
-
         /// <summary>
         /// Sets and gets the IsMergingFolder property.
         /// Changes to that property's value raise the PropertyChanged event. 
@@ -190,14 +224,40 @@ namespace win_client.ViewModels
                 RaisePropertyChanged(IsMergingFolderPropertyName);
             }
         }
+
+        /// <summary>
+        /// The <see cref="WindowCloseOk" /> property's name.
+        /// </summary>
+        public const string WindowCloseOkPropertyName = "WindowCloseOk";
+        private bool _windowCloseOk = false;
+        public bool WindowCloseOk
+        {
+            get
+            {
+                return _windowCloseOk;
+            }
+
+            set
+            {
+                if (_windowCloseOk == value)
+                {
+                    return;
+                }
+
+                _windowCloseOk = value;
+                RaisePropertyChanged(WindowCloseOkPropertyName);
+            }
+        }
+
         #endregion 
 
       
-        #region Commands
+        #region Relay Commands
 
         /// <summary>
         /// The page was navigated to.
         /// </summary>
+        private RelayCommand _pageSetupSelector_NavigatedToCommand;
         public RelayCommand PageSetupSelector_NavigatedToCommand
         {
             get
@@ -214,8 +274,32 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The user has selected a new cloud folder path.  Create the new cloud folder
+        /// </summary>
+        private RelayCommand<string> _pageSetupSelectorViewModel_CreateCloudFolderCommand;
+        public RelayCommand<string> PageSetupSelectorViewModel_CreateCloudFolderCommand
+        {
+            get
+            {
+                return _pageSetupSelectorViewModel_CreateCloudFolderCommand
+                    ?? (_pageSetupSelectorViewModel_CreateCloudFolderCommand = new RelayCommand<string>(
+                                            (path) =>
+                                            {
+                                                // The user selected a new folder location.
+                                                var notifyParms = new Dictionary<string, object>();
+                                                notifyParms.Add(CLConstants.kFolderLocation, path + "\\Cloud");
+                                                notifyParms.Add(CLConstants.kMergeFolders, false);
+                                                OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
+                                                var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
+                                            }));
+            }
+        }
+
+        /// <summary>
         /// The user clicked the back button.
         /// </summary>
+        private RelayCommand _pageSetupSelector_BackCommand;
         public RelayCommand PageSetupSelector_BackCommand
         {
             get
@@ -226,7 +310,7 @@ namespace win_client.ViewModels
                                             {
                                                 // Return to the storage size selector dialog
                                                 Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
-                                                SendNavigationRequestMessage(nextPage);
+                                                CLAppMessages.PageSetupSelector_NavigationRequest.Send(nextPage);
                                             }));
             }
         }
@@ -234,6 +318,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked has selected a choice and will continue.
         /// </summary>
+        private RelayCommand _pageSetupSelector_ContinueCommand;
         public RelayCommand PageSetupSelector_ContinueCommand
         {
             get
@@ -251,6 +336,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked the area over the Default radio button.
         /// </summary>
+        private RelayCommand _pageSetupSelector_DefaultAreaCommand;
         public RelayCommand PageSetupSelector_DefaultAreaCommand
         {
             get
@@ -260,6 +346,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 PageSetupSelector_OptionSelected = SetupSelectorOptions.OptionDefault;
+                                                CLAppMessages.Message_PageSetupSelectorViewSetFocusToContinueButton.Send("");
                                             }));
             }
         }
@@ -268,6 +355,7 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked the area over the Advanced radio button.
         /// </summary>
+        private RelayCommand _pageSetupSelector_AdvancedAreaCommand;
         public RelayCommand PageSetupSelector_AdvancedAreaCommand
         {
             get
@@ -277,9 +365,48 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 PageSetupSelector_OptionSelected = SetupSelectorOptions.OptionAdvanced;
+                                                CLAppMessages.Message_PageSetupSelectorViewSetFocusToContinueButton.Send("");
                                             }));
             }
         }
+
+        /// <summary>
+        /// The window wants to close.  The user clicked the 'X'.
+        /// This will set the bindable property WindowCloseOk if we will not handle this event.
+        /// </summary>
+        private ICommand _windowCloseRequested;
+        public ICommand WindowCloseRequested
+        {
+            get
+            {
+                return _windowCloseRequested
+                    ?? (_windowCloseRequested = new RelayCommand(
+                                          () =>
+                                          {
+                                              // Handle the request and set the property.
+                                              WindowCloseOk = OnClosing();
+                                          }));
+            }
+        }
+
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
+                                          }));
+            }
+        }
+
         #endregion
 
         #region "Installation"
@@ -296,156 +423,115 @@ namespace win_client.ViewModels
                 {
                     // Tell the user that there is already a Cloud folder at that location.  Allow him to choose 'Select new location' or 'Merge'.
                     string cloudFolderRoot = Path.GetDirectoryName(Settings.Instance.CloudFolderPath);  // e.g., "c:/Users/<username>/Documents", if CloudFolderPath is "c:/Users/<username>/Documents/Cloud"
-                    string userMessageBody = _rm.GetString("folderExitTextFieldBody");
+                    string userMessageBody = Resources.Resources.folderExitTextFieldBody;
                     userMessageBody = String.Format(userMessageBody, cloudFolderRoot);
-                    string userMessageTitle = _rm.GetString("folderExitTextFieldTitle");
-                    string userMessageHeader = _rm.GetString("folderExitTextFieldHeader");
-                    string userMessageButtonSelectNewLocation = _rm.GetString("folderExitTextFieldButtonSelectNewLocation");
-                    string userMessageButtonMerge = _rm.GetString("folderExitTextFieldButtonMerge");
+                    string userMessageTitle = Resources.Resources.folderExitTextFieldTitle;
+                    string userMessageHeader = Resources.Resources.folderExitTextFieldHeader;
+                    string userMessageButtonSelectNewLocation = Resources.Resources.folderExitTextFieldButtonSelectNewLocation;
+                    string userMessageButtonMerge = Resources.Resources.folderExitTextFieldButtonMerge;
 
-                    //Application.Current.MainWindow
-                    _trace.writeToLog(9, "goForward: Put up 'Select new location' or 'Merge' dialog.");
-                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
-                    IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
-                    IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
-                    modalDialogService.ShowDialog(dialog, new DialogCloudMessageBoxViewModel
-                    {
-                        CloudMessageBoxView_Title = userMessageTitle,
-                        CloudMessageBoxView_WindowWidth = 450,
-                        CloudMessageBoxView_WindowHeight = 250,
-                        CloudMessageBoxView_HeaderText = userMessageHeader,
-                        CloudMessageBoxView_BodyText = userMessageBody,
-                        CloudMessageBoxView_LeftButtonWidth = new GridLength(200),
-                        CloudMessageBoxView_LeftButtonMargin = new Thickness(30, 0, 0, 0),
-                        CloudMessageBoxView_LeftButtonContent = userMessageButtonSelectNewLocation,
-                        CloudMessageBoxView_RightButtonWidth = new GridLength(100),
-                        CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
-                        CloudMessageBoxView_RightButtonContent = userMessageButtonMerge,
-                    },
-                    ViewGridContainer,
-                    returnedViewModelInstance =>
-                    {
-                        _trace.writeToLog(9, "goForward: returnedViewModelInstance: Entry.");
-                        if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
-                        {
-                            // The user selected Merge.  The standard Cloud folder will be used, with the user's existing files in it.
-                            _trace.writeToLog(9, "goForward: User selected Merge.");
-                            var notifyParms = new Dictionary<string, object>();
-                            notifyParms.Add(CLConstants.kFolderLocation, "");
-                            notifyParms.Add(CLConstants.kMergeFolders, true);
-                            OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-                            var dispatcher = Dispatcher.CurrentDispatcher; 
-                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
-                        }
-                        else
-                        {
-                            // The user will select a new Cloud folder location.  Put up a modal dialog for now.
-                            // This dialog will allow the user to simply type in the location of the Cloud folder.
-                            // It will have Back and Continue buttons.  The Continue button will cause validation
-                            // and will save the selected Cloud folder location in the settings.
-                            //
-                            // TODO: We need the FolderBrowserDialog from WPF.  Either switch to WPF for the Windows
-                            // desktop, or implement a WPF ActiveX DLL to perform that function.
-                            var dialogFolderSelection = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_FolderSelectionSimpleView);
-                            modalDialogService.ShowDialog(dialogFolderSelection, new DialogFolderSelectionSimpleViewModel
+                    // Ask the user to 'Select new location' or 'Merge" the cloud folder.
+                    _trace.writeToLog(9, "PageSetupSelectorViewModel: goForward: Put up 'Select new location' or 'Merge' dialog.");
+                    CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
+                        windowHeight: 250,
+                        leftButtonWidth: 200,
+                        rightButtonWidth: 100,
+                        title: userMessageTitle,
+                        headerText: userMessageHeader,
+                        bodyText: userMessageBody,
+                        leftButtonContent: userMessageButtonSelectNewLocation,
+                        leftButtonIsDefault: false,
+                        leftButtonIsCancel: false,
+                        rightButtonContent: userMessageButtonMerge,
+                        rightButtonIsDefault: true,
+                        rightButtonIsCancel: false,
+                        container: ViewGridContainer,
+                        dialog: out _dialog,
+                        actionResultHandler:
+                            returnedViewModelInstance =>
                             {
-                                FolderSelectionSimpleViewModel_FolderLocationText = cloudFolderRoot,
-                                FolderSelectionSimpleViewModel_ButtonLeftText = _rm.GetString("folderSelectionSimpleButtonLeftText"),
-                                FolderSelectionSimpleViewModel_ButtonRightText = _rm.GetString("folderSelectionSimpleButtonRightText"),
-                            },
-                            ViewGridContainer,
-                            returnedFolderSelectionSimpleViewModelInstance =>
-                            {
-                                if (dialogFolderSelection.DialogResult.HasValue && dialogFolderSelection.DialogResult.Value)
+                                _trace.writeToLog(9, "goForward: returnedViewModelInstance: Entry.");
+                                if (_dialog.DialogResult.HasValue && !_dialog.DialogResult.Value)
                                 {
-                                    // The user selected a new folder location.
+                                    // The user selected Merge.  The standard Cloud folder will be used, with the user's existing files in it.
+                                    _trace.writeToLog(9, "goForward: User selected Merge.");
                                     var notifyParms = new Dictionary<string, object>();
-                                    notifyParms.Add(CLConstants.kFolderLocation, returnedFolderSelectionSimpleViewModelInstance.FolderSelectionSimpleViewModel_FolderLocationText);
-                                    notifyParms.Add(CLConstants.kMergeFolders, false);
+                                    notifyParms.Add(CLConstants.kFolderLocation, "");
+                                    notifyParms.Add(CLConstants.kMergeFolders, true);
                                     OnCloudSetupNotifyFolderLocationConflictResolvedDelegate del = OnCloudSetupNotifyFolderLocationConflictResolved;
-                                    var dispatcher = Dispatcher.CurrentDispatcher;
+                                    var dispatcher = CLAppDelegate.Instance.MainDispatcher; 
                                     dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, notifyParms);
                                 }
                                 else
                                 {
-                                    // @@@@@ Do Nothing.  Just leave the user on the underlying SetupSelector dialog.
+                                    // Display the Windows Forms folder selection
+                                    // dialog.  Tell the view to put up the dialog.  If the user clicks cancel, 
+                                    // the view will return and we will stay on this window.  If the user clicks
+                                    // OK, the view will send the PageSetupSelectorViewModel_CreateCloudFolderCommand
+                                    // back to us, and we will create the cloud folder in that command method.
+                                    // TODO: This is strange for WPF, since the FolderBrowser is a Windows Form thing.
+                                    // The processing is synchronous from the VM to the View, show the dialog, wait
+                                    // for the dialog, then return on cancel, or issue a RelayCommand back to us,
+                                    // process the RelayCommand, then back to the View, then back to here.
+                                    // Should we be more asynchronous?
+                                    var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                                    {
+                                        _isResolvingCloudFolderConflict = false;
+                                        CLAppMessages.Message_PageSetupSelector_ShouldChooseCloudFolder.Send("");
+                                    });
                                 }
+                                _dialog.Close();
                             });
-                        }
-                    });
 
                     return;
                 }
 
                 // Finish the setup.
                 CLError err = null;
+                IsBusy = true;                      // show the busy indicator
                 CLAppDelegate.Instance.installCloudServices(out err);
+                IsBusy = false;                     // remove the busy indicator
                 if (err != null)
                 {
                     // An error occurred.  Show the user an Oh Snap! modal dialog.
-                    var dialog = SimpleIoc.Default.GetInstance<IModalWindow>(CLConstants.kDialogBox_CloudMessageBoxView);
-                    IModalDialogService modalDialogService = SimpleIoc.Default.GetInstance<IModalDialogService>();
-                    IMessageBoxService messageBoxService = SimpleIoc.Default.GetInstance<IMessageBoxService>();
-                    modalDialogService.ShowDialog(dialog, new DialogCloudMessageBoxViewModel
-                    {
-                        CloudMessageBoxView_Title = _rm.GetString("appDelegateErrorInstallingTitle"),
-                        CloudMessageBoxView_WindowWidth = 450,
-                        CloudMessageBoxView_WindowHeight = 225,
-                        CloudMessageBoxView_HeaderText = _rm.GetString("appDelegateErrorInstallingHeader"),
-                        CloudMessageBoxView_BodyText = err.errorDescription,
-                        CloudMessageBoxView_LeftButtonWidth = new GridLength(200),
-                        CloudMessageBoxView_LeftButtonMargin = new Thickness(30, 0, 0, 0),
-                        CloudMessageBoxView_LeftButtonContent = _rm.GetString("appDelegateErrorInstallingButtonIgnore"),
-                        CloudMessageBoxView_RightButtonWidth = new GridLength(100),
-                        CloudMessageBoxView_RightButtonMargin = new Thickness(0, 0, 0, 0),
-                        CloudMessageBoxView_RightButtonContent = _rm.GetString("appDelegateErrorInstallingButtonTryAgain"),
-                    },
-                    ViewGridContainer,
-                    returnedViewModelInstance =>
-                    {
-                        if (dialog.DialogResult.HasValue && dialog.DialogResult.Value)
-                        {
-                            // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
-                            var dispatcher = Dispatcher.CurrentDispatcher;
-                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
-                        }
-                        else
-                        {
-                            // @@@@@@@@@ DO NOTHING @@@@@ The user selected Ignore.  We will just leave them on the SetupSelection page.
-                        }
-                    });
+                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                errorMessage:  err.errorDescription,
+                                title:  Resources.Resources.appDelegateErrorInstallingTitle,
+                                headerText: Resources.Resources.appDelegateErrorInstallingHeader,
+                                rightButtonContent: Resources.Resources.appDelegateErrorInstallingButtonTryAgain,
+                                rightButtonIsDefault: true,
+                                rightButtonIsCancel: true,
+                                container: ViewGridContainer,
+                                dialog: out _dialog,
+                                actionOkButtonHandler: 
+                                    returnedViewModelInstance =>
+                                    {
+                                        if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                        {
+                                            // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
+                                            var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
+                                        }
+                                        else
+                                        {
+                                            // @@@@@@@@@ DO NOTHING @@@@@ The user selected Ignore.  We will just leave them on the SetupSelection page.
+                                        }
+                                    });
                 }
                 else
                 {
                     // Start the tour
                     string nextPageName = string.Format("{0}{1}{2}", CLConstants.kPageTour, 1, CLConstants.kXamlSuffix);
                     Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
-                    SendNavigationRequestMessage(nextPage);
+                    CLAppMessages.PageSetupSelector_NavigationRequest.Send(nextPage);
                 }
             }
             else
             {
-                // TODO: &&&&This is the advanced install
-                //remove ourselves from the notification subscription
-                //put up the advanced setup dialog in this window
-                //; CLFolderSelectionViewController
-#if TRASH           
-                                                    // remove oursevles from observing an event. (Oh I miss, viewWillAppear, viewWillDispear from UIKit). Sigh...
-                                                    [[NSNotificationCenter defaultCenter] removeObserver:self];
-
-                                                    // Move to advanced setup
-                                                    self.folderSelectionViewController = [[CLFolderSelectionViewController alloc] initWithNibName:(LFolderSelectionViewController" bundle:nil];
-                                                    [self.folderSelectionViewController setSetupSelectorViewController:self];
-            
-                                                    [[[NSApp mainWindow] contentView] addSubview:self.folderSelectionViewController.view];
-
-                                                    PushAnimation *animation = [[PushAnimation alloc] initWithDuration:0.25f animationCurve:NSAnimationLinear];
-                                                    [animation setNewDirection:RightDirection];
-                                                    [animation setStartingView:self.view];
-                                                    [animation setDestinationView:self.folderSelectionViewController.view];
-                                                    [animation setAnimationBlockingMode:NSAnimationNonblocking];
-                                                    [animation startAnimation];
-#endif  // end TRASH
+                // Put up the Advanced setup view..
+                Uri nextPage = new System.Uri(CLConstants.kPageFolderSelection, System.UriKind.Relative);
+                CLAppMessages.PageSetupSelector_NavigationRequest.Send(nextPage);
             }
         }
 
@@ -468,14 +554,50 @@ namespace win_client.ViewModels
 
         #endregion
 
-        #region Supporting Functions
+
+        #region Support Functions
 
         /// <summary>
-        /// Send a navigation request.
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to allow the automatic Window.Close action.</returns>
         /// </summary>
-        protected void SendNavigationRequestMessage(Uri uri) 
+        private bool OnClosing()
         {
-            Messenger.Default.Send<Uri>(uri, "PageSetupSelector_NavigationRequest");
+            // Clean-up logic here.
+
+            // Just allow the shutdown if we have already decided to do it.
+            if (_isShuttingDown)
+            {
+                return true;
+            }
+
+            // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
+            CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
+            {
+                // Do nothing here when the user clicks the OK button.
+                _trace.writeToLog(9, "PageSetupSelectorViewModel: Prompt exit application: Entry.");
+                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                {
+                    // The user said yes.  Unlink this device.
+                    _trace.writeToLog(9, "PageSetupSelectorViewModel: Prompt exit application: User said yes.");
+
+                    // Shut down tha application
+                    _isShuttingDown = true;         // allow the shutdown if asked
+
+                    // It is tempting to call ShutdownService.RequestShutdown() here, but this dialog
+                    // is still active and would prevent the shutdown.  Allow the dialog to fully close
+                    // and then request the shutdown.
+                    Dispatcher dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                    {
+                        ShutdownService.RequestShutdown();
+                    });
+                }
+            });
+
+            return false;                // cancel the automatic Window close.
         }
 
         #endregion

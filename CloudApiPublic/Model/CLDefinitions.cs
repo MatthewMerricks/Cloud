@@ -65,6 +65,9 @@ namespace CloudApiPublic.Model
         // Error Domain
         public const string CLCloudAppRestAPIErrorDomain = @"com.cloudapp.networking.error";
 
+        // Twitter page
+        public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
+
         // Method Path
         public const string MethodPathSyncFrom = "/sync/from_cloud";
 

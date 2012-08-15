@@ -14,6 +14,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"            
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
+    xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageSetupSelectorViewModel, Source={StaticResource Locator}}" 
     Title="Select Setup Options"  >
@@ -21,77 +23,87 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
     
-    <Grid x:Name="LayoutRoot">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.056*"/>
-            <ColumnDefinition  Width="0.384*"/>
-            <ColumnDefinition Width="0.056*"/>
-            <ColumnDefinition Width="0.056*"/>
-            <ColumnDefinition  Width="0.383*"/>
-            <ColumnDefinition Width="0.064*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="0.8*"/>
-            <RowDefinition Height="0.2*"/>
-        </Grid.RowDefinitions>
+    <Page.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </Page.InputBindings>
+    
+    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}">
+        <Grid x:Name="LayoutRoot">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.056*"/>
+                <ColumnDefinition  Width="0.384*"/>
+                <ColumnDefinition Width="0.056*"/>
+                <ColumnDefinition Width="0.056*"/>
+                <ColumnDefinition  Width="0.383*"/>
+                <ColumnDefinition Width="0.064*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.8*"/>
+                <RowDefinition Height="0.2*"/>
+            </Grid.RowDefinitions>
 
-        <Border Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="6" Grid.RowSpan="2" RenderTransformOrigin="0.5,0.5">
-            <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
-            </Border.Background>
-        </Border>
-        <Button x:Name="cmdBack" Content="Back" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageSetupSelector_BackCommand, Mode=OneTime}" TabIndex="4" Grid.Row="1" Height="50" Padding="1" Margin="67,0" />
-        <Button x:Name="cmdContinue" Content="Continue" FontSize="13.333" Background="#FF49C3FB" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" 
-                Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneTime}" TabIndex="1" Height="50" Grid.Row="1"
-                common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" Margin="67,0" />
-        <Grid Grid.Column="1" Margin="48,85,37,8" Grid.ColumnSpan="4">
-    		<Grid.RowDefinitions>
-    			<RowDefinition Height="0.495*"/>
-    			<RowDefinition Height="0.505*"/>
-    		</Grid.RowDefinitions>
-    		<Grid.ColumnDefinitions>
-    			<ColumnDefinition/>
-    		</Grid.ColumnDefinitions>
-    		<Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.9" Margin="0" Grid.RowSpan="2"/>
-    		<Image Margin="0" Source="/win-client;component/Artwork/cl_select-frame_ON.png" Grid.Row="0" Grid.Column="0"/>
-            <Rectangle x:Name="rectShowUnselectedAreaDefault" Fill="#99FFFFFF" Margin="0" RadiusY="8" Grid.Row="0" RadiusX="8" Stroke="#34000000" Grid.Column="0" IsHitTestVisible="False"
-                      Visibility="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionDefault, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
-			<StackPanel Margin="25,0,0,0" Width="Auto" Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-				<Image Margin="0,0,-378,0" Source="/win-client;component/Artwork/cl_folder_icon.png" Height="50" HorizontalAlignment="Left"/>
-				<RadioButton Content="Default" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
-                             VerticalContentAlignment="Top" Padding="4,-3,0,0" TabIndex="2" 
-                             IsChecked="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionDefault, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="grpSelections"
-                             common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
-				<StackPanel Width="260" Margin="10,58,0,0">
-					<TextBlock TextWrapping="Wrap" Text="(we recommend this selection)" FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="20"/>
-					<TextBlock TextWrapping="Wrap" Text="Set up your Cloud with our recommended settings." FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-				</StackPanel>
-			</StackPanel>
-            <Button x:Name="btnCoveringDefaultRadioButtonArea" Margin="0" d:LayoutOverrides="Height" Grid.Row="0" Grid.Column="0" 
-                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSetupSelector_DefaultAreaCommand, Mode=OneTime}" IsTabStop="False" />
-			<Image Margin="0" Source="/win-client;component/Artwork/cl_select-frame_ON.png" Grid.Row="1" Grid.Column="0"/>
-            <Rectangle x:Name="rectShowUnselectedAreaAdvanced" Fill="#99FFFFFF" Margin="0" RadiusY="8" Grid.Row="1" RadiusX="8" Stroke="#34000000" Grid.Column="0" IsHitTestVisible="False"
-                       Visibility="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionAdvanced, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
-			<StackPanel Margin="25,0,0,0" Width="Auto" Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
-				<Image Margin="0,0,-378,0" Source="/win-client;component/Artwork/cl_icon_cog.png" Height="50" HorizontalAlignment="Left"/>
-				<RadioButton VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" Content="Advanced" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
-                             IsChecked="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionAdvanced, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" 
-                             Padding="4,-3,0,0" TabIndex="3" GroupName="grpSelections"
-                             common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" />
-				<StackPanel Width="260" Margin="10,58,0,3">
-					<TextBlock TextWrapping="Wrap" Text="You get to choose your Cloud folder location and further sync options." FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-				</StackPanel>
-			</StackPanel>
-            <Button x:Name="btnCoveringAdvancedRadioButtonArea" Margin="0" d:LayoutOverrides="Height" Grid.Row="1" Grid.Column="0" 
-                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSetupSelector_AdvancedAreaCommand, Mode=OneTime}" IsTabStop="False" />
-    	</Grid>
-        <TextBlock TextWrapping="Wrap" Text="Select the setup option that works for you." RenderTransformOrigin="0.5,0.5" 
-                            Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Top" Margin="48,44,94,0" d:LayoutOverrides="Width" Height="28"/>
+            <Border Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="6" Grid.RowSpan="2" RenderTransformOrigin="0.5,0.5">
+                <Border.Background>
+                    <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
+                </Border.Background>
+            </Border>
+            <Button x:Name="cmdBack" FontSize="13.333" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
+                    Command="{Binding PageSetupSelector_BackCommand, Mode=OneTime}" TabIndex="4" Grid.Row="1" Height="50" Padding="1" Margin="67,0">
+                <AccessText Text="_Back" />
+            </Button>
+            
+            <Button x:Name="cmdContinue" FontSize="13.333" Background="#FF49C3FB" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" 
+                    Command="{Binding PageSetupSelector_ContinueCommand, Mode=OneTime}" TabIndex="1" Height="50" Grid.Row="1"
+                    Margin="67,0" IsDefault="True">
+                <AccessText Text="_Continue" />
+            </Button>
+            <Grid Grid.Column="1" Margin="48,85,37,8" Grid.ColumnSpan="4">
+    		    <Grid.RowDefinitions>
+    			    <RowDefinition Height="0.495*"/>
+    			    <RowDefinition Height="0.505*"/>
+    		    </Grid.RowDefinitions>
+    		    <Grid.ColumnDefinitions>
+    			    <ColumnDefinition/>
+    		    </Grid.ColumnDefinitions>
+    		    <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.9" Margin="0" Grid.RowSpan="2"/>
+    		    <Image Margin="0" Source="/Cloud;component/Artwork/cl_select-frame_ON.png" Grid.Row="0" Grid.Column="0"/>
+                <Rectangle x:Name="rectShowUnselectedAreaDefault" Fill="#99FFFFFF" Margin="0" RadiusY="8" Grid.Row="0" RadiusX="8" Stroke="#34000000" Grid.Column="0" IsHitTestVisible="False"
+                          Visibility="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionDefault, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
+			    <StackPanel Margin="25,0,0,0" Width="Auto" Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+				    <Image Margin="0,0,-378,0" Source="/Cloud;component/Artwork/cl_folder_icon.png" Height="50" HorizontalAlignment="Left"/>
+				    <RadioButton Content="_Default" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
+                                 VerticalContentAlignment="Top" Padding="4,-3,0,0" TabIndex="2" 
+                                 IsChecked="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionDefault, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="grpSelections" />
+				    <StackPanel Width="260" Margin="10,58,0,0">
+					    <TextBlock TextWrapping="Wrap" Text="(we recommend this selection)" FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="20"/>
+					    <TextBlock TextWrapping="Wrap" Text="Set up your Cloud with our recommended settings." FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+				    </StackPanel>
+			    </StackPanel>
+                <Button x:Name="btnCoveringDefaultRadioButtonArea" Margin="0" d:LayoutOverrides="Height" Grid.Row="0" Grid.Column="0" 
+                        Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSetupSelector_DefaultAreaCommand, Mode=OneTime}" IsTabStop="False" />
+			    <Image Margin="0" Source="/Cloud;component/Artwork/cl_select-frame_ON.png" Grid.Row="1" Grid.Column="0"/>
+                <Rectangle x:Name="rectShowUnselectedAreaAdvanced" Fill="#99FFFFFF" Margin="0" RadiusY="8" Grid.Row="1" RadiusX="8" Stroke="#34000000" Grid.Column="0" IsHitTestVisible="False"
+                           Visibility="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionAdvanced, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
+			    <StackPanel Margin="25,0,0,0" Width="Auto" Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+				    <Image Margin="0,0,-378,0" Source="/Cloud;component/Artwork/cl_icon_cog.png" Height="50" HorizontalAlignment="Left"/>
+				    <RadioButton VerticalAlignment="Center" HorizontalAlignment="Left" Margin="75,0,0,0" Content="_Advanced" FontSize="16" FontWeight="Bold" Foreground="#FF565656" 
+                                 IsChecked="{Binding PageSetupSelector_OptionSelected, ConverterParameter=OptionAdvanced, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" 
+                                 Padding="4,-3,0,0" TabIndex="3" GroupName="grpSelections" />
+				    <StackPanel Width="260" Margin="10,58,0,3">
+					    <TextBlock TextWrapping="Wrap" Text="You get to choose your Cloud folder location and further sync options." FontSize="13.333" Foreground="#FF565656" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+				    </StackPanel>
+			    </StackPanel>
+                <Button x:Name="btnCoveringAdvancedRadioButtonArea" Margin="0" d:LayoutOverrides="Height" Grid.Row="1" Grid.Column="0" 
+                        Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSetupSelector_AdvancedAreaCommand, Mode=OneTime}" IsTabStop="False" />
+    	    </Grid>
+            <TextBlock TextWrapping="Wrap" Text="Select the setup option that works for you." RenderTransformOrigin="0.5,0.5" 
+                                Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Top" Margin="48,44,94,0" d:LayoutOverrides="Width" Height="28"/>
 
-    </Grid>
+        </Grid>
+    </extToolkit:BusyIndicator>
 </Page>

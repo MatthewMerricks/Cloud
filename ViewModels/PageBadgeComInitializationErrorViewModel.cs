@@ -27,6 +27,10 @@ using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
 using CloudApiPublic.Support;
+using System.Windows.Input;
+using System.ComponentModel;
+using CleanShutdown.Messaging;
+using win_client.ViewModelHelpers;
 
 
 namespace win_client.ViewModels
@@ -42,13 +46,14 @@ namespace win_client.ViewModels
 
         private readonly IDataService _dataService;
         private RelayCommand _pageBadgeComInitializationErrorViewModel_OkCommand;
-        private ResourceManager _rm;
+        private CLTrace _trace = CLTrace.Instance;
+        private bool _isShuttingDown = false;       // true: allow the shutdown if asked
 
         #endregion
 
         #region Life Cycle
         /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
+        /// Initializes a new instance of the PageBadgeComInitializationErrorViewModel class.
         /// </summary>
         public PageBadgeComInitializationErrorViewModel(IDataService dataService)
         {
@@ -64,21 +69,64 @@ namespace win_client.ViewModels
 
                     //&&&&               WelcomeTitle = item.Title;
                 });
-            _rm = CLAppDelegate.Instance.ResourceManager;
-        }
-
-        /// <summary>
-        /// Clean up all resources allocated, and save state as needed.
-        /// </summary>
-        public override void Cleanup()
-        {
-            base.Cleanup();
-            _rm = null;
         }
 
         #endregion
+
+        #region Bindable Properties
+
+        /// <summary>
+        /// The <see cref="ViewGridContainer" /> property's name.
+        /// </summary>
+        public const string ViewGridContainerPropertyName = "ViewGridContainer";
+        private Grid _viewGridContainer = null;
+        public Grid ViewGridContainer
+        {
+            get
+            {
+                return _viewGridContainer;
+            }
+
+            set
+            {
+                if (_viewGridContainer == value)
+                {
+                    return;
+                }
+
+                _viewGridContainer = value;
+                RaisePropertyChanged(ViewGridContainerPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="WindowCloseOk" /> property's name.
+        /// </summary>
+        public const string WindowCloseOkPropertyName = "WindowCloseOk";
+        private bool _windowCloseOk = false;
+        public bool WindowCloseOk
+        {
+            get
+            {
+                return _windowCloseOk;
+            }
+
+            set
+            {
+                if (_windowCloseOk == value)
+                {
+                    return;
+                }
+
+                _windowCloseOk = value;
+                RaisePropertyChanged(WindowCloseOkPropertyName);
+            }
+        }
+
+        #endregion
+
      
-        #region Commands
+        #region Relay Commands
 
         /// <summary>
         /// The user clicked the OK button.
@@ -95,6 +143,62 @@ namespace win_client.ViewModels
                                                 Application.Current.Shutdown();
                                             }));                                              
             }
+        }
+
+        /// <summary>
+        /// The window wants to close.  The user clicked the 'X'.
+        /// This will set the bindable property WindowCloseOk if we will not handle this event.
+        /// </summary>
+        private ICommand _windowCloseRequested;
+        public ICommand WindowCloseRequested
+        {
+            get
+            {
+                return _windowCloseRequested
+                    ?? (_windowCloseRequested = new RelayCommand(
+                                          () =>
+                                          {
+                                              // Handle the request and set the property.
+                                              WindowCloseOk = OnClosing();
+                                          }));
+            }
+        }
+
+        /// <summary>
+        /// The user pressed the ESC key.
+        /// </summary>
+        private ICommand _cancelCommand;
+        public ICommand CancelCommand
+        {
+            get
+            {
+                return _cancelCommand
+                    ?? (_cancelCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // The user pressed the Esc key.
+                                              OnClosing();
+                                          }));
+            }
+        }
+
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// Implement window closing logic.
+        /// <remarks>Note: This function will be called twice when the user clicks the Cancel button, and only once when the user
+        /// clicks the 'X'.  Be careful to check for the "already cleaned up" case.</remarks>
+        /// <<returns>true to allow the automatic Window.Close action.</returns>
+        /// </summary>
+        private bool OnClosing()
+        {
+            // Clean-up logic here.
+
+            // Always allow shutdown on this dialog.
+            _isShuttingDown = true;
+            return true;
         }
 
         #endregion

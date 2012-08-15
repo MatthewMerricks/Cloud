@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>win_client</RootNamespace>
-    <AssemblyName>win-client</AssemblyName>
+    <AssemblyName>Cloud</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -56,39 +56,58 @@
   <PropertyGroup>
     <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>4739378C7B81B487FCFAD9235DF665584B8737F6</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>WinClientCertificate.pfx</ManifestKeyFile>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutomaticUpdaterWPF">
+      <HintPath>3rdParty\bin\Release\AutomaticUpdaterWPF.dll</HintPath>
+    </Reference>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
-      <HintPath>3rdParty\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
     </Reference>
     <Reference Include="GalaSoft.MvvmLight.WPF4">
-      <HintPath>3rdParty\bin\Debug\GalaSoft.MvvmLight.WPF4.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\GalaSoft.MvvmLight.WPF4.dll</HintPath>
     </Reference>
     <Reference Include="Hardcodet.Wpf.TaskbarNotification">
       <HintPath>3rdParty\bin\Debug\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
     </Reference>
+    <Reference Include="Interop.IWshRuntimeLibrary">
+      <HintPath>3rdParty\bin\Release\Interop.IWshRuntimeLibrary.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Microsoft.Net.Http">
-      <HintPath>3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\Microsoft.Net.Http.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Practices.ServiceLocation">
-      <HintPath>3rdParty\bin\Debug\Microsoft.Practices.ServiceLocation.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>3rdParty\bin\Debug\Newtonsoft.Json.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Ookii.Dialogs.WpfMinusTaskDialog">
-      <HintPath>3rdParty\bin\Debug\Ookii.Dialogs.WpfMinusTaskDialog.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</HintPath>
     </Reference>
     <Reference Include="SimpleJson">
-      <HintPath>3rdParty\bin\Debug\SimpleJson.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\SimpleJson.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Common">
-      <HintPath>3rdParty\bin\Debug\SuperSocket.ClientEngine.Common.dll</HintPath>
+      <HintPath>bin\Release\SuperSocket.ClientEngine.Common.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Core">
-      <HintPath>3rdParty\bin\Debug\SuperSocket.ClientEngine.Core.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Protocol">
-      <HintPath>3rdParty\bin\Debug\SuperSocket.ClientEngine.Protocol.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
@@ -113,13 +132,13 @@
     </Reference>
     <Reference Include="UIAutomationProvider" />
     <Reference Include="WebSocket4Net">
-      <HintPath>3rdParty\bin\Debug\WebSocket4Net.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\WebSocket4Net.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WPFToolkit.Extended">
-      <HintPath>3rdParty\bin\Debug\WPFToolkit.Extended.dll</HintPath>
+      <HintPath>3rdParty\bin\Release\WPFToolkit.Extended.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -133,10 +152,13 @@
     <Compile Include="Common\CLConstants.cs" />
     <Compile Include="Common\CLConverters.cs" />
     <Compile Include="Common\CLCreateCloudFolder.cs" />
-    <Compile Include="Common\CLDefaultButtons.cs" />
+    <Compile Include="Common\CLRadioButtonExtended.cs" />
     <Compile Include="Common\CLRegexValidation.cs" />
     <Compile Include="Common\CLGrowlNotification.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
+    <Compile Include="CleanShutdown\ShutdownService.cs" />
+    <Compile Include="Common\CLWindowPlacement.cs" />
+    <Compile Include="Model\CLPreferences.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
     <Compile Include="Model\IDataService.cs" />
@@ -145,9 +167,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Model\IOnNavigated.cs" />
     <Compile Include="NavigationWindow.xaml.cs">
       <DependentUpon>NavigationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CleanShutdown\NotificationMessageAction.cs" />
+    <Compile Include="CleanShutdown\NotificationMessageFunc.cs" />
+    <Compile Include="CleanShutdown\NotificationMessageWithCallback.cs" />
+    <Compile Include="CleanShutdown\Notifications.cs" />
     <Compile Include="Resources\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -182,13 +209,23 @@
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
-    <Compile Include="ViewModelHelpers\CLModalErrorDialog.cs" />
+    <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
+    <Compile Include="ViewModels\DialogCheckForUpdatesViewModel.cs" />
+    <Compile Include="ViewModels\PageTourAdvancedEndViewModel.cs" />
+    <Compile Include="ViewModels\PageFolderSelectionViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesAboutViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesAdvancedViewModel.cs" />
+    <Compile Include="ViewModels\DialogPreferencesNetworkBandwidthViewModel.cs" />
+    <Compile Include="ViewModels\DialogPreferencesNetworkProxiesViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesNetworkViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesAccountViewModel.cs" />
+    <Compile Include="ViewModels\FramePreferencesGeneralViewModel.cs" />
+    <Compile Include="ViewModels\PagePreferencesViewModel.cs" />
     <Compile Include="ViewModels\DialogCloudMessageBoxViewModel.cs" />
     <Compile Include="ViewModels\PageCloudFolderMissingViewModel.cs" />
     <Compile Include="ViewModels\PageCloudAlreadyRunningViewModel.cs" />
     <Compile Include="ViewModels\PageBadgeComInitializationErrorViewModel.cs" />
     <Compile Include="ViewModels\PageInvisibleViewModel.cs" />
-    <Compile Include="ViewModels\DialogFolderSelectionSimpleViewModel.cs" />
     <Compile Include="ViewModels\NotifyPropertyChanged.cs" />
     <Compile Include="ViewModels\PageCreateNewAccountViewModel.cs" />
     <Compile Include="ViewModels\PageHomeViewModel.cs" />
@@ -197,6 +234,39 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\DialogCheckForUpdates.xaml.cs">
+      <DependentUpon>DialogCheckForUpdates.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageTourAdvancedEnd.xaml.cs">
+      <DependentUpon>PageTourAdvancedEnd.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PageFolderSelection.xaml.cs">
+      <DependentUpon>PageFolderSelection.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesAbout.xaml.cs">
+      <DependentUpon>FramePreferencesAbout.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesAdvanced.xaml.cs">
+      <DependentUpon>FramePreferencesAdvanced.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DialogPreferencesNetworkBandwidth.xaml.cs">
+      <DependentUpon>DialogPreferencesNetworkBandwidth.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DialogPreferencesNetworkProxies.xaml.cs">
+      <DependentUpon>DialogPreferencesNetworkProxies.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesNetwork.xaml.cs">
+      <DependentUpon>FramePreferencesNetwork.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesAccount.xaml.cs">
+      <DependentUpon>FramePreferencesAccount.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FramePreferencesGeneral.xaml.cs">
+      <DependentUpon>FramePreferencesGeneral.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PagePreferences.xaml.cs">
+      <DependentUpon>PagePreferences.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DialogCloudMessageBoxView.xaml.cs">
       <DependentUpon>DialogCloudMessageBoxView.xaml</DependentUpon>
     </Compile>
@@ -208,9 +278,6 @@
     </Compile>
     <Compile Include="Views\PageCloudAlreadyRunning.xaml.cs">
       <DependentUpon>PageCloudAlreadyRunning.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\DialogFolderSelectionSimpleView.xaml.cs">
-      <DependentUpon>DialogFolderSelectionSimpleView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PageCreateNewAccount.xaml.cs">
       <DependentUpon>PageCreateNewAccount.xaml</DependentUpon>
@@ -274,6 +341,50 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\DialogCheckForUpdates.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageTourAdvancedEnd.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PageFolderSelection.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesAbout.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesAdvanced.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DialogPreferencesNetworkBandwidth.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DialogPreferencesNetworkProxies.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesNetwork.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesAccount.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesGeneral.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PagePreferences.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\DialogCloudMessageBoxView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -287,10 +398,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\PageCloudAlreadyRunning.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\DialogFolderSelectionSimpleView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -363,6 +470,8 @@
     <None Include="Artwork\PublicFolderIcon.icns" />
     <None Include="Artwork\SidebarCloud.icns" />
     <AppDesigner Include="Properties\" />
+    <None Include="win-client_TemporaryKey.pfx" />
+    <None Include="WinClientCertificate.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\validationError.png" />
@@ -469,17 +578,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="IWshRuntimeLibrary">
-      <Guid>{F935DC20-1CF0-11D0-ADB9-00C04FD58A0B}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="BadgeNET\BadgeNET.csproj">
       <Project>{77014147-1a34-4bf6-8fc4-3c85984f8e2e}</Project>
       <Name>BadgeNET</Name>
@@ -512,6 +610,13 @@
       <Project>{45e4664c-c207-4605-af85-54b587819107}</Project>
       <Name>Sync</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\cl_icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\cl_macinstall_splash.tiff" />
+    <Content Include="InstallScripts\RegisterCom.vbs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

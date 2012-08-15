@@ -10,6 +10,7 @@ using System.IO;
 using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Navigation;
 using System.Collections.Generic;
+using win_client.Model;
 
 
 namespace win_client.Common
@@ -25,7 +26,6 @@ namespace win_client.Common
             CreateNewAccount_GetClearPasswordField,
             CreateNewAccount_GetClearConfirmPasswordField,
             Home_FocusToError,
-            SelectStorageSize_PresentMessageDialog,
             SetupSelector_PresentMessageDialog,
             Message_ReachabilityChangedNotification,
             Message_BalloonTooltipSystemTrayNotification,
@@ -33,17 +33,38 @@ namespace win_client.Common
             Home_GetClearPasswordField,
             Message_DidReceivePushNotificationFromServer,
             Message_PageCloudFolderMissingShouldChooseCloudFolder,
+            DialogPreferencesNetworkProxies_GetClearPasswordField,
+            DialogPreferencesNetworkProxies_SetClearPasswordField,
+            DialogPreferencesNetworkProxies_FocusToError_Message,
+            DialogPreferencesNetworkBandwidth_FocusToError_Message,
+            Message_FramePreferencesAdvanced_ShouldChooseCloudFolder,
+            Message_PageMustUnregisterWindowClosingMessage,
+            Message_DialogPreferencesNetworkBandwidthViewShouldClose,
+            Message_DialogPreferencesNetworkProxiesViewShouldClose,
+            Message_PageSelectStorageSizeViewSetFocusToContinueButton,
+            Message_PageSetupSelectorViewSetFocusToContinueButton,
+            Message_PageFolderSelection_ShouldChooseCloudFolder,
+            Message_PageSetupSelector_ShouldChooseCloudFolder,
+            Message_DialogCheckForUpdates_ShouldCheckForUpdates,
+                
 
             // Navigation requests
             PageCloudFolderMissing_NavigationRequest,
             PageCreateNewAccount_NavigationRequest,
             PageInvisible_NavigationRequest,
+            PageInvisible_TriggerOutOfSystemTrayAnimation,
             PageBadgeComInitializationError_NavigationRequest,
             PageTour_NavigationRequest,
             PageSelectStorageSize_NavigationRequest,
             PageHome_NavigationRequest,
             PageCloudAlreadyRunning_NavigationRequest,
             PageSetupSelector_NavigationRequest,
+            PagePreferences_NavigationRequest,
+            PagePreferences_FrameNavigationRequest,
+            PagePreferences_FrameNavigationRequest_WithPreferences,
+            PageFolderSelection_NavigationRequest,
+            PageTourAdvancedEnd_NavigationRequest,
+
         }
 
         public static class CreateNewAccount_GetClearPasswordField
@@ -111,19 +132,6 @@ namespace win_client.Common
             }
         }
 
-        public static class SelectStorageSize_PresentMessageDialog
-        {
-            public static void Send(DialogMessage message)
-            {
-                Messenger.Default.Send(message, MessageTypes.SelectStorageSize_PresentMessageDialog);
-            }
-
-            public static void Register(object recipient, Action<DialogMessage> action)
-            {
-                Messenger.Default.Register(recipient, MessageTypes.SelectStorageSize_PresentMessageDialog, action);
-            }
-        }
-
         public static class Message_ReachabilityChangedNotification
         {
             public static void Send(DialogMessage message)
@@ -188,6 +196,179 @@ namespace win_client.Common
                 Messenger.Default.Register(recipient, MessageTypes.Message_PageCloudFolderMissingShouldChooseCloudFolder, action);
             }
         }
+
+        public static class DialogPreferencesNetworkProxies_GetClearPasswordField
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.DialogPreferencesNetworkProxies_GetClearPasswordField);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.DialogPreferencesNetworkProxies_GetClearPasswordField, action);
+            }
+        }
+
+        public static class DialogPreferencesNetworkProxies_SetClearPasswordField
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.DialogPreferencesNetworkProxies_SetClearPasswordField);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.DialogPreferencesNetworkProxies_SetClearPasswordField, action);
+            }
+        }
+
+        public static class DialogPreferencesNetworkProxies_FocusToError_Message
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.DialogPreferencesNetworkProxies_FocusToError_Message);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.DialogPreferencesNetworkProxies_FocusToError_Message, action);
+            }
+        }
+
+        public static class DialogPreferencesNetworkBandwidth_FocusToError_Message
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.DialogPreferencesNetworkBandwidth_FocusToError_Message);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.DialogPreferencesNetworkBandwidth_FocusToError_Message, action);
+            }
+        }
+
+        public static class Message_FramePreferencesAdvanced_ShouldChooseCloudFolder
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_FramePreferencesAdvanced_ShouldChooseCloudFolder);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_FramePreferencesAdvanced_ShouldChooseCloudFolder, action);
+            }
+        }
+
+        public static class Message_PageMustUnregisterWindowClosingMessage
+
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageMustUnregisterWindowClosingMessage);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageMustUnregisterWindowClosingMessage, action);
+            }
+        }
+
+        public static class Message_DialogPreferencesNetworkBandwidthViewShouldClose
+
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_DialogPreferencesNetworkBandwidthViewShouldClose);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_DialogPreferencesNetworkBandwidthViewShouldClose, action);
+            }
+        }
+
+        public static class Message_DialogPreferencesNetworkProxiesViewShouldClose
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_DialogPreferencesNetworkProxiesViewShouldClose);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_DialogPreferencesNetworkProxiesViewShouldClose, action);
+            }
+        }
+
+        public static class Message_PageSelectStorageSizeViewSetFocusToContinueButton
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageSelectStorageSizeViewSetFocusToContinueButton);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageSelectStorageSizeViewSetFocusToContinueButton, action);
+            }
+        }
+
+        public static class Message_PageSetupSelectorViewSetFocusToContinueButton
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageSetupSelectorViewSetFocusToContinueButton);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageSetupSelectorViewSetFocusToContinueButton, action);
+            }
+        }
+
+        public static class Message_PageFolderSelection_ShouldChooseCloudFolder
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageFolderSelection_ShouldChooseCloudFolder);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageFolderSelection_ShouldChooseCloudFolder, action);
+            }
+        }
+
+        public static class Message_PageSetupSelector_ShouldChooseCloudFolder
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageSetupSelector_ShouldChooseCloudFolder);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageSetupSelector_ShouldChooseCloudFolder, action);
+            }
+        }
+
+        public static class Message_DialogCheckForUpdates_ShouldCheckForUpdates
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_DialogCheckForUpdates_ShouldCheckForUpdates);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_DialogCheckForUpdates_ShouldCheckForUpdates, action);
+            }
+        }
+
+        
 
         // Navigation requests
         public static class PageCloudFolderMissing_NavigationRequest
@@ -305,6 +486,84 @@ namespace win_client.Common
             {
                 Messenger.Default.Register(recipient, MessageTypes.PageSetupSelector_NavigationRequest, action);
             }
-        }       
+        }
+
+        public static class PagePreferences_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PagePreferences_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PagePreferences_NavigationRequest, action);
+            }
+        }
+
+        public static class PagePreferences_FrameNavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PagePreferences_FrameNavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PagePreferences_FrameNavigationRequest, action);
+            }
+        }
+
+        public static class PagePreferences_FrameNavigationRequest_WithPreferences
+        {
+            public static void Send(KeyValuePair<Uri, CLPreferences> targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PagePreferences_FrameNavigationRequest_WithPreferences);
+            }
+
+            public static void Register(object recipient, Action<KeyValuePair<Uri, CLPreferences>> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PagePreferences_FrameNavigationRequest_WithPreferences, action);
+            }
+        }
+
+        public static class PageFolderSelection_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageFolderSelection_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageFolderSelection_NavigationRequest, action);
+            }
+        }
+
+        public static class PageTourAdvancedEnd_NavigationRequest
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageTourAdvancedEnd_NavigationRequest);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageTourAdvancedEnd_NavigationRequest, action);
+            }
+        }
+        
+        public static class PageInvisible_TriggerOutOfSystemTrayAnimation
+        {
+            public static void Send(Uri targetPage)
+            {
+                Messenger.Default.Send(targetPage, MessageTypes.PageInvisible_TriggerOutOfSystemTrayAnimation);
+            }
+
+            public static void Register(object recipient, Action<Uri> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.PageInvisible_TriggerOutOfSystemTrayAnimation, action);
+            }
+        }
     }
 }

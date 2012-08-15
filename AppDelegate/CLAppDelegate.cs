@@ -29,12 +29,12 @@ using System.Windows.Media.Imaging;
 using win_client.SystemTray.TrayIcon;
 using win_client.ViewModels;
 using win_client.Views;
+using win_client.Resources;
 using win_client.Services.ServicesManager;
 using System.Data;
 using System.Data.OleDb;
 using CloudApiPublic.Static;
 using Microsoft.Win32;
-using Shell32;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -54,8 +54,8 @@ namespace win_client.AppDelegate
         /// </summary>
         private static CLAppDelegate _instance = null;
         private static object InstanceLocker = new object();
-        private static CLTrace _trace;
-        //&&&&private TrayIcon _trayIcon;
+        private static CLTrace _trace = CLTrace.Instance; 
+        private static bool _isWindowPlacedFirstTime = false;
         #endregion
         #region Public Properties
 
@@ -67,6 +67,7 @@ namespace win_client.AppDelegate
 
 
         public Window AppMainWindow { get; set; }
+        public Window CheckForUpdatesWindow { get; set; }
 
         private bool _isAlreadyRunning = false;
         public bool IsAlreadyRunning
@@ -86,12 +87,12 @@ namespace win_client.AppDelegate
             }
         }
 
-        private ResourceManager _resourceManager = null;
-        public ResourceManager ResourceManager
+        private Dispatcher _mainDispatcher = null;
+        public Dispatcher MainDispatcher
         {
             get
             {
-                return _resourceManager;
+                return _mainDispatcher;
             }
         }
 
@@ -133,9 +134,8 @@ namespace win_client.AppDelegate
         private CLAppDelegate()
         {
             // Initialize members, etc. here.
-            _trace = CLTrace.Instance;
             Assembly assembly = Assembly.GetExecutingAssembly();
-            _resourceManager = new ResourceManager(CLConstants.kResourcesName, assembly);
+            _mainDispatcher = Dispatcher.CurrentDispatcher;
         }
 
         private static bool IsVista()
@@ -180,14 +180,21 @@ namespace win_client.AppDelegate
             //[[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(handleURLFromEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 
             // we only allow one instance of our app.
-            StartupUrlRelative = _resourceManager.GetString("startupUriPageInvisible");     // assume we will simply start running with no UI displayed
+            StartupUrlRelative = Resources.Resources.startupUriPageInvisible;     // assume we will simply start running with no UI displayed
             if (isCloudAppAlreadyRunning())
             {
                 // Tell the app.xaml.cs instance logic that we are already running.
                 _isAlreadyRunning = true;
-                StartupUrlRelative = _resourceManager.GetString("startupUriAlreadyRunning");
+                StartupUrlRelative = Resources.Resources.startupUriAlreadyRunning;
                 return;
             }
+
+            // Start a single instance of the updater window.
+            CheckForUpdatesWindow = new DialogCheckForUpdates();
+            CheckForUpdatesWindow.Left = Int32.MaxValue;
+            CheckForUpdatesWindow.Top = Int32.MaxValue;
+            CheckForUpdatesWindow.ShowInTaskbar = false;
+            CheckForUpdatesWindow.Show();
 
             // Determine which window we will show on startup
             SetupCloudAppLaunchMode();
@@ -198,7 +205,6 @@ namespace win_client.AppDelegate
         /// </summary>
         public void cleanUpAppDelegate()
         {
-            _resourceManager = null;
         }
  
         #endregion
@@ -259,6 +265,7 @@ namespace win_client.AppDelegate
         //- (BOOL)unlinkFromCloudDotCom
         public bool UnlinkFromCloudDotCom(out CLError error)
         {
+            // Merged 7/26/12
             //BOOL rc = YES;
 
             //// todo: tell cloud service to untrust this device and wait for confirmation.
@@ -348,7 +355,7 @@ namespace win_client.AppDelegate
         }
 
         /// <summary>
-        /// Perform one-time installation (cloud folder, and any OS support)
+        /// Perform one-time installation (cloud folder, and any OS support)is th
         /// </summary>
         public void installCloudServices(out CLError error)
         {
@@ -367,11 +374,17 @@ namespace win_client.AppDelegate
 
                 // Set setup process completed
                 Settings.Instance.CloudFolderCreationTimeUtc = creationTime;
+                Settings.Instance.updateCloudFolderPath(Settings.Instance.CloudFolderPath, creationTime);
                 Settings.Instance.setCloudAppSetupCompleted(true);
 
                 // Start services, added a small delay to allow the OS to create folder.
-                var dispatcher = Dispatcher.CurrentDispatcher; 
-                dispatcher.DelayedInvoke(TimeSpan.FromSeconds(2), () => { startCloudAppServicesAndUI(); });
+                //TODO: We don't start the core services here because the user is still viewing the user
+                // interface, and the PageInvisible page that has the system tray icon support is not
+                // in place yet.  The user will view the tour (or skip it), and then PageInvisible
+                // will be shown, and that will install the system tray support.  Is this the proper
+                // design???
+                //var dispatcher = CLAppDelegate.Instance.MainDispatcher; 
+                //dispatcher.DelayedInvoke(TimeSpan.FromSeconds(2), () => { startCloudAppServicesAndUI(); });
             }
         }
 
@@ -563,18 +576,18 @@ namespace win_client.AppDelegate
                         if (isDeletedFolderFound)
                         {
                             // We will put up a window in App.xaml.cs to allow the user to recover the deleted cloud folder.
-                            StartupUrlRelative = _resourceManager.GetString("startupUriCloudFolderMissing");
+                            StartupUrlRelative = Resources.Resources.startupUriCloudFolderMissing;
                             FoundOriginalCloudFolderPath = foundOriginalPath;
                             FoundDeletedCloudFolderDeletionTimeLocal = foundDeletionTimeLocal;
                             FoundPathToDeletedCloudFolderRFile = foundPathToDeletedCloudFolderRFile;
                             FoundPathToDeletedCloudFolderIFile = foundPathToDeletedCloudFolderIFile;
-                            PageCloudFolderMissingOkButtonContent = _resourceManager.GetString("pageCloudFolderMissingOkButtonRestore");
+                            PageCloudFolderMissingOkButtonContent = Resources.Resources.pageCloudFolderMissingOkButtonRestore;
                         }
                         else
                         {
                             // We will put up a window in App.xaml.cs to allow the user to make a new cloud folder or unlink.
-                            StartupUrlRelative = _resourceManager.GetString("startupUriCloudFolderMissing");
-                            PageCloudFolderMissingOkButtonContent = _resourceManager.GetString("pageCloudFolderMissingOkButtonLocate");
+                            StartupUrlRelative = Resources.Resources.startupUriCloudFolderMissing;
+                            PageCloudFolderMissingOkButtonContent = Resources.Resources.pageCloudFolderMissingOkButtonLocate;
                         }
                     }
                 }
@@ -591,7 +604,7 @@ namespace win_client.AppDelegate
                 // self.welcomeController  = [[CLWelcomeWindowController alloc] initWithWindowNibName:@"CLWelcomeWindowController"];
                 // [self.welcomeController showWindow:self.welcomeController.window];
                 // [[self.welcomeController window] orderFrontRegardless];
-                StartupUrlRelative = _resourceManager.GetString("startupUriFirstTimeSetup");
+                StartupUrlRelative = Resources.Resources.startupUriFirstTimeSetup;
             }
 
             // if (shouldStartCoreServices == YES) {
@@ -802,15 +815,28 @@ namespace win_client.AppDelegate
         public static void ShowMainWindow(Window window)
         {
             // Set the containing window to be invisible
-            window.Width = 640;
-            window.Height = 480;
-            window.MinWidth = 640;
-            window.MinHeight = 480;
-            window.WindowStyle = WindowStyle.ThreeDBorderWindow;
-            window.Visibility = System.Windows.Visibility.Visible;
-            window.ShowInTaskbar = true;
-            window.ShowActivated = true;
-            window.Show();
+            if (window != null)
+            {
+                //window.Width = 640;
+                //window.Height = 480;
+                window.MinWidth = 640;
+                window.MinHeight = 480;
+                window.MaxWidth = 640;
+                window.MaxHeight = 480;
+                window.WindowStyle = WindowStyle.ThreeDBorderWindow;
+                //window.Visibility = System.Windows.Visibility.Visible;
+                window.ShowInTaskbar = true;
+                window.ShowActivated = true;
+
+                // Show the window, and set the placement if we should.
+                if (!_isWindowPlacedFirstTime || window.Visibility != Visibility.Visible)
+                {
+                    _isWindowPlacedFirstTime = true;
+                    window.SetPlacement(Settings.Instance.MainWindowPlacement);
+                }
+
+                window.Show();
+            }
         }
 
         /// <summary>
@@ -821,14 +847,26 @@ namespace win_client.AppDelegate
         public static void HideMainWindow(Window window)
         {
             // Set the containing window to be invisible
-            window.Width = 0;
-            window.Height = 0;
-            window.MinWidth = 0;
-            window.MinHeight = 0;
-            window.WindowStyle = WindowStyle.None;
-            window.Visibility = System.Windows.Visibility.Hidden;
-            window.ShowInTaskbar = false;
-            window.ShowActivated = false;
+            if (window != null)
+            {
+                // Save the current position of the window.
+                if (window.WindowStyle != WindowStyle.None && window.Visibility == Visibility.Visible)
+                {
+                    Settings.Instance.MainWindowPlacement = window.GetPlacement();
+                }
+
+                // Make sure the window is truely gone, way off screen...
+                window.Width = 0;
+                window.Height = 0;
+                window.MinWidth = 0;
+                window.MinHeight = 0;
+                window.Left = Int32.MaxValue;
+                window.Top = Int32.MaxValue;
+                window.ShowInTaskbar = false;
+                window.ShowActivated = false;
+                window.Visibility = System.Windows.Visibility.Hidden;
+                window.WindowStyle = WindowStyle.None;
+            }
         }
         #endregion  
     }

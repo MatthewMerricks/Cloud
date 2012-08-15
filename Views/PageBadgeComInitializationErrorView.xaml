@@ -14,6 +14,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
+    xmlns:resx="clr-namespace:win_client.Resources"
     mc:Ignorable="d"
     DataContext="{Binding PageBadgeComInitializationErrorViewModel, Source={StaticResource Locator}}" 
     Title="Error Initializing!" Height="442" Width="624" >
@@ -21,11 +23,15 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
     
+    <Page.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </Page.InputBindings>
+
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="48"/>
@@ -42,7 +48,7 @@
 
         <Border x:Name="borderFullBackground" Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="5" Grid.RowSpan="3" RenderTransformOrigin="0.5,0.5">
             <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_inside_ptrn_logo_side.png"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
             </Border.Background>
         </Border>
 
@@ -63,9 +69,11 @@
         		<ColumnDefinition Width="0.581*"/>
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
-        	<Button x:Name="cmdOK" Content="OK" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
+        	<Button x:Name="cmdOK" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
         		Command="{Binding PageBadgeComInitializationErrorViewModel_OkCommand, Mode=OneTime}" TabIndex="0"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" HorizontalAlignment="Right" />
+        		HorizontalAlignment="Right" IsDefault="True" >
+                <AccessText Text="{x:Static resx:Resources.generalOkButtonContent}"/>
+            </Button>
         </Grid>
     </Grid>
 </Page>

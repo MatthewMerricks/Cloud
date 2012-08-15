@@ -5,9 +5,13 @@
 //
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
--->
-
-<controls:ChildWindow x:Class="win_client.Views.DialogCloudMessageBoxView" 
+   IsModal="True"
+    Caption="{Binding CloudMessageBoxView_Title, Mode=TwoWay}" 
+    WindowStartupLocation="Center" 
+    WindowState="Open"
+ -->
+    
+<Window x:Class="win_client.Views.DialogCloudMessageBoxView" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -15,26 +19,23 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:controls="http://schemas.xceed.com/wpf/xaml/toolkit"
     xmlns:common="clr-namespace:win_client.Common"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
     mc:Ignorable="d"
-    DataContext="{Binding DialogCloudMessageBoxViewModel, Source={StaticResource Locator}}"
-    IsModal="True"
-    WindowStartupLocation="Center" 
-    WindowState="Open"
     Grid.RowSpan="2147483647"
     Grid.ColumnSpan="2147483647"
-    Caption="{Binding CloudMessageBoxView_Title, Mode=TwoWay}" 
+    Title="{Binding CloudMessageBoxView_Title, Mode=TwoWay}" 
     Height="{Binding CloudMessageBoxView_WindowHeight, Mode=TwoWay}"
     Width="{Binding CloudMessageBoxView_WindowWidth, Mode=TwoWay}"
     >
     
-    <controls:ChildWindow.Resources>
+    <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/win-client;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </controls:ChildWindow.Resources>
-    
+    </Window.Resources>
+
     <Grid x:Name="LayoutRoot" Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -45,7 +46,7 @@
         
         <Border Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.RowSpan="4">
             <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/win-client;component/Artwork/cl_wlcm_ptrn.png"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_wlcm_ptrn.png"/>
             </Border.Background>
         </Border>
         <Grid Grid.Row="1">
@@ -54,27 +55,36 @@
         		<ColumnDefinition Width="100"/>
         		<ColumnDefinition Width="*"/>
         	</Grid.ColumnDefinitions>
-        	<Image Source="/win-client;component/Artwork/cl_wlcm_div.png" Grid.Column="1" VerticalAlignment="Bottom"/>
+        	<Image Source="/Cloud;component/Artwork/cl_wlcm_div.png" Grid.Column="1" VerticalAlignment="Bottom"/>
         </Grid>
         <Grid Grid.Row="2" Grid.RowSpan="1" >
         	<Grid.ColumnDefinitions>
-        	   <ColumnDefinition Width="30"/>
-               <ColumnDefinition Width="{Binding CloudMessageBoxView_LeftButtonWidth, Mode=TwoWay}"/>
-               <ColumnDefinition Width="*"/>
-               <ColumnDefinition Width="{Binding CloudMessageBoxView_RightButtonWidth, Mode=TwoWay}" />
+        	    <ColumnDefinition Width="63"/>
+                <ColumnDefinition />
                <ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
-        	<Button FontSize="13.333" Background="#FF49C3FB" 
-        		Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click" TabIndex="1"
-        		Grid.Column="1"
-        		Margin="{Binding CloudMessageBoxView_LeftButtonMargin, Mode=TwoWay}"  
-        		Content="{Binding CloudMessageBoxView_LeftButtonContent, Mode=TwoWay}" 
-                Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=TwoWay}"/>
-        	<Button x:Name="btnOK" FontSize="13.333" Background="#FF49C3FB" Grid.Column="3"
-        		Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click"
-        		common:DefaultButtonHub.DefaultHub="{StaticResource defaultHub}" TabIndex="0"
-        		Margin="{Binding CloudMessageBoxView_RightButtonMargin, Mode=TwoWay}" 
-        		Content="{Binding CloudMessageBoxView_RightButtonContent, Mode=TwoWay}" />
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1">
+                <Button x:Name="btnRight" FontSize="16" Background="#FF49C3FB" 
+        		    Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click" TabIndex="1"
+                    Width="{Binding CloudMessageBoxView_RightButtonWidth, Mode=OneWay}"
+        		    Margin="{Binding CloudMessageBoxView_RightButtonMargin, Mode=OneWay}"  
+                    Visibility="{Binding CloudMessageBoxView_RightButtonVisibility, Mode=OneWay}"
+                    IsCancel="{Binding CloudMessageBoxView_RightButtonIsCancel, Mode=OneWay}"
+                    IsDefault="{Binding CloudMessageBoxView_RightButtonIsDefault, Mode=OneWay}">
+                    <AccessText Text="{Binding CloudMessageBoxView_RightButtonContent, Mode=OneWay}"/>
+                </Button>
+                
+                
+                <Button x:Name="btnLeft" FontSize="16" Background="#FF49C3FB" Grid.Column="1"
+        		    Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click" TabIndex="0"
+                    Width="{Binding CloudMessageBoxView_LeftButtonWidth, Mode=OneWay}" 
+        		    Margin="{Binding CloudMessageBoxView_LeftButtonMargin, Mode=OneWay}"  
+                    Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=OneWay}"
+                    IsCancel="{Binding CloudMessageBoxView_LeftButtonIsCancel, Mode=OneWay}"
+                    IsDefault="{Binding CloudMessageBoxView_LeftButtonIsDefault, Mode=OneWay}">
+                    <AccessText Text="{Binding CloudMessageBoxView_LeftButtonContent, Mode=OneWay}"/>
+                </Button>
+            </StackPanel>
         </Grid>
 
         <Grid Margin="0" Height="173" VerticalAlignment="Top" Grid.RowSpan="4">
@@ -89,7 +99,7 @@
         		<ColumnDefinition Width="110"/>
         		<ColumnDefinition/>
         	</Grid.ColumnDefinitions>
-        	<Image Source="/win-client;component/Artwork/cloud256.png" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" />
+        	<Image Source="/Cloud;component/Artwork/cloud256.png" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" />
             <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="0,0,5,0"> 
             	<Grid.RowDefinitions>
             		<RowDefinition Height="15"/>
@@ -105,4 +115,4 @@
 
     </Grid>
 
-</controls:ChildWindow>
+</Window>

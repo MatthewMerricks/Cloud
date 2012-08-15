@@ -55,9 +55,20 @@ namespace win_client
                 //    ((App)Application.Current).StartupUri = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
                 window.Source = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
             }
+
+            // If we are running PageInvisible as the first page in this NavigationWindow, set a flag
+            // to prevent the animation of the window into the system tray.
+            if (window.Source.OriginalString.Contains("PageInvisible"))
+            {
+                window.firstMinimize = true;
+            }
+
+            // Show the window
             this.MainWindow = window;
             CLAppDelegate.Instance.AppMainWindow = window;
+            window.Topmost = true;
             window.Show();
+            window.Topmost = false;
         }
 
         private void Application_Exit(object sender, ExitEventArgs e) 
