@@ -33,6 +33,11 @@ namespace win_client
 
         private void Application_Startup(object sender, StartupEventArgs e) 
         {
+
+            // Break into the assembler
+            System.Diagnostics.Debugger.Launch();
+            // throw (new System.Exception()); 
+
             // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
             // before the initial list is passed (via InitializeOrReplace)
             CLError error = IconOverlay.Initialize();
@@ -51,7 +56,7 @@ namespace win_client
             }
             else
             {
-                //    // Set the window to display, selected in CLAppDelegate.initAppDelegate.
+                //    // Set the window to display, selected in CLAppDelegate.initAppDelegate.  
                 //    ((App)Application.Current).StartupUri = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
                 window.Source = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
             }

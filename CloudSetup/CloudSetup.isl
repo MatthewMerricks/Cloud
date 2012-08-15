@@ -346,7 +346,7 @@
 		<row><td>BadgeNET.Primary_output</td><td>{F9A20767-A22D-4D83-A21A-B3FA86EDFA95}</td><td>INSTALLDIR</td><td>2</td><td/><td>badgenet.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td>{84489268-EDF1-4D66-9B57-F8AED3BEC035}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapiprivate.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSdkPublic.Primary_output</td><td>{967E051F-636C-4A43-BCCE-FE9EDD2DA5CE}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsdkpublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>CloudUpdater.exe</td><td>{30253C1E-CF6A-4394-87B4-60C1AA52777C}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudupdater.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>CloudUpdater.exe</td><td>{1E65DA1C-18C7-4BB7-AED6-473C7B9753CA}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudupdater.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td>{0D8DF327-F492-416E-9D7A-45516132482A}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.abstractions.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td>{45AB52EC-5E33-4DF5-9D14-F444FA8E02A4}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.implementors.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>FileMonitor.Primary_output</td><td>{4C00C7F8-AFC1-40C8-910B-1E42AB5981D9}</td><td>INSTALLDIR</td><td>2</td><td/><td>filemonitor.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -358,8 +358,8 @@
 		<row><td>ISX_DEFAULTCOMPONENT</td><td>{C2A1E278-5519-4936-9245-BF9A52EC31A8}</td><td>DATABASEDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{2018F52F-B63E-4B20-8281-176FE782B368}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Interop.IWshRuntimeLibrary.dll</td><td>{E1929E87-F6D8-4CE3-AD4C-FF9FA77E6D76}</td><td>INSTALLDIR</td><td>2</td><td/><td>interop.iwshruntimelibrary.d</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Interop.Shell32.dll</td><td>{091F7CDB-8260-43D2-BC97-8F0C32A1D683}</td><td>INSTALLDIR</td><td>2</td><td/><td>interop.shell32.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Microsoft.CSharp.dll</td><td>{FA215DE0-A363-4BC3-8DEA-6B99FF9E7729}</td><td>INSTALLDIR</td><td>2</td><td/><td>microsoft.csharp.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Interop.Shell32.dll</td><td>{CFA1B126-EFE6-491D-828D-A2583D3B9086}</td><td>INSTALLDIR</td><td>2</td><td/><td>interop.shell32.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Microsoft.CSharp.dll</td><td>{BD0CCE0F-5CBD-4C3B-ABA0-7DBA946EA27A}</td><td>INSTALLDIR</td><td>2</td><td/><td>microsoft.csharp.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Microsoft.Net.Http.dll</td><td>{517E484D-B2B3-478B-80E9-6067F0195803}</td><td>INSTALLDIR</td><td>2</td><td/><td>microsoft.net.http.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Microsoft.Practices.ServiceLocation.dll</td><td>{9A45F174-6AF9-4ED9-B42C-DABA74664EDA}</td><td>INSTALLDIR</td><td>2</td><td/><td>microsoft.practices.servicel</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>NewComponent1</td><td>{09834F2F-B737-48F3-9B88-83588AF22F4D}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -371,7 +371,6 @@
 		<row><td>SuperSocket.ClientEngine.Common.dll</td><td>{A5CCCE36-F96C-427F-8585-E2C6DCA13D4D}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.com</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SuperSocket.ClientEngine.Core.dll</td><td>{311737ED-A6CF-464D-AFA9-48DD3A332B36}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.cor</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SuperSocket.ClientEngine.Protocol.dll</td><td>{739A4D66-D9BF-4AF6-B172-1244BBF0CEFE}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.pro</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SuperSocket.ClientEngine.Proxy.dll</td><td>{38097BC9-1A22-4256-92BF-13531ED1B2A5}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.pro1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Sync.Primary_output</td><td>{47FFEA81-00B1-4F1F-A476-A0CA4DDE4016}</td><td>INSTALLDIR</td><td>2</td><td/><td>sync.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Windows.Interactivity.dll</td><td>{A183DAD8-B99C-4E2A-8A9C-A5A9184A1389}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.windows.interactivity</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>WPFToolkit.Extended.dll</td><td>{5459704B-7E50-496C-B92F-3623B0F4BAEC}</td><td>INSTALLDIR</td><td>2</td><td/><td>wpftoolkit.extended.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1931,7 +1930,6 @@
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Common.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Core.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Protocol.dll</td></row>
-		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Proxy.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Sync.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>System.Windows.Interactivity.dll</td></row>
 		<row><td>AlwaysInstall</td><td>WPFToolkit.Extended.dll</td></row>
@@ -1954,10 +1952,10 @@
 		<row><td>automaticupdaterwpf.dll</td><td>AutomaticUpdaterWPF.dll</td><td>AUTOMA~1.DLL|AutomaticUpdaterWPF.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\AutomaticUpdaterWPF.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.primary_output</td><td>BadgeCOM.Primary_Output</td><td>BadgeCOM.Primary Output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;BadgeCOM&gt;|Built</td><td>3</td><td/></row>
 		<row><td>badgenet.primary_output</td><td>BadgeNET.Primary_output</td><td>BadgeNET.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;BadgeNET&gt;|Built</td><td>3</td><td/></row>
-		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\client.wyc</td><td>1</td><td/></row>
+		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\WyUpdater\CurrentVersion\client.wyc</td><td>1</td><td/></row>
 		<row><td>cloudapiprivate.primary_outp</td><td>CloudApiPrivate.Primary_output</td><td>CloudApiPrivate.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPrivate&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudsdkpublic.primary_outpu</td><td>CloudSdkPublic.Primary_output</td><td>CloudSdkPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSdkPublic&gt;|Built</td><td>3</td><td/></row>
-		<row><td>cloudupdater.exe</td><td>CloudUpdater.exe</td><td>CLOUDU~1.EXE|CloudUpdater.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\CloudUpdater.exe</td><td>1</td><td/></row>
+		<row><td>cloudupdater.exe</td><td>CloudUpdater.exe</td><td>CLOUDU~1.EXE|CloudUpdater.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\CloudUpdater.exe</td><td>1</td><td/></row>
 		<row><td>dialog.abstractions.wpf.prim</td><td>Dialog.Abstractions.Wpf.Primary_output</td><td>Dialog.Abstractions.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Abstractions.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>dialog.implementors.wpf.prim</td><td>Dialog.Implementors.Wpf.Primary_output</td><td>Dialog.Implementors.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Implementors.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>filemonitor.primary_output</td><td>FileMonitor.Primary_output</td><td>FileMonitor.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;FileMonitor&gt;|Built</td><td>3</td><td/></row>
@@ -1967,13 +1965,13 @@
 		<row><td>indexdb.mdf</td><td>ISX_DEFAULTCOMPONENT1</td><td>IndexDB.mdf</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\IndexDB.mdf</td><td>1</td><td/></row>
 		<row><td>indexdb_log.ldf</td><td>ISX_DEFAULTCOMPONENT1</td><td>INDEXD~1.LDF|IndexDB_log.ldf</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\IndexDB_log.ldf</td><td>1</td><td/></row>
 		<row><td>interop.iwshruntimelibrary.d</td><td>Interop.IWshRuntimeLibrary.dll</td><td>INTERO~1.DLL|Interop.IWshRuntimeLibrary.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Interop.IWshRuntimeLibrary.dll</td><td>1</td><td/></row>
-		<row><td>interop.shell32.dll</td><td>Interop.Shell32.dll</td><td>INTERO~1.DLL|Interop.Shell32.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Interop.Shell32.dll</td><td>1</td><td/></row>
-		<row><td>microsoft.csharp.dll</td><td>Microsoft.CSharp.dll</td><td>MICROS~1.DLL|Microsoft.CSharp.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.CSharp.dll</td><td>1</td><td/></row>
+		<row><td>interop.shell32.dll</td><td>Interop.Shell32.dll</td><td>INTERO~1.DLL|Interop.Shell32.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Interop.Shell32.dll</td><td>1</td><td/></row>
+		<row><td>microsoft.csharp.dll</td><td>Microsoft.CSharp.dll</td><td>MICROS~1.DLL|Microsoft.CSharp.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Microsoft.CSharp.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.net.http.dll</td><td>Microsoft.Net.Http.dll</td><td>MICROS~1.DLL|Microsoft.Net.Http.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.Net.Http.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.practices.servicel</td><td>Microsoft.Practices.ServiceLocation.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.Practices.ServiceLocation.dll</td><td>1</td><td/></row>
 		<row><td>newtonsoft.json.dll</td><td>Newtonsoft.Json.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
 		<row><td>ookii.dialogs.wpfminustaskdi</td><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>OOKIID~1.DLL|Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>1</td><td/></row>
-		<row><td>regid.2000_12.com.cloud_clou</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
+		<row><td>regid.2000_12.com.cloud_clou</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
 		<row><td>registercom.exe</td><td>RegisterCom.exe</td><td>REGIST~1.EXE|RegisterCom.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe</td><td>1</td><td/></row>
 		<row><td>registercom.exe.config</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGIST~1.CON|RegisterCom.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe.config</td><td>1</td><td/></row>
 		<row><td>simplejson.dll</td><td>SimpleJson.dll</td><td>SIMPLE~1.DLL|SimpleJson.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SimpleJson.dll</td><td>1</td><td/></row>
@@ -1981,7 +1979,6 @@
 		<row><td>supersocket.clientengine.com</td><td>SuperSocket.ClientEngine.Common.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Common.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Common.dll</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.cor</td><td>SuperSocket.ClientEngine.Core.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.pro</td><td>SuperSocket.ClientEngine.Protocol.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Protocol.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Protocol.dll</td><td>1</td><td/></row>
-		<row><td>supersocket.clientengine.pro1</td><td>SuperSocket.ClientEngine.Proxy.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Proxy.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Proxy.dll</td><td>1</td><td/></row>
 		<row><td>sync.primary_output</td><td>Sync.Primary_output</td><td>Sync.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Sync&gt;|Built</td><td>3</td><td/></row>
 		<row><td>system.windows.interactivity</td><td>System.Windows.Interactivity.dll</td><td>SYSTEM~1.DLL|System.Windows.Interactivity.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\System.Windows.Interactivity.dll</td><td>1</td><td/></row>
 		<row><td>websocket4net.dll</td><td>WebSocket4Net.dll</td><td>WEBSOC~1.DLL|WebSocket4Net.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\WebSocket4Net.dll</td><td>1</td><td/></row>
@@ -2248,7 +2245,7 @@
 		<row><td>BadgeNET.Primary_output</td><td/><td/><td>_68A1F3C3_1D5C_4F81_B265_5C456D2987FE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td/><td/><td>_6027BBEB_0CBE_4E7D_B0B7_579A78009BD1_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSdkPublic.Primary_output</td><td/><td/><td>_2D07A2D1_ED2E_4198_8D5D_80C0A5671F51_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>CloudUpdater.exe</td><td/><td/><td>_BC0EB2FA_F4FB_4E9F_90BD_0AE7E8425C8C_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>CloudUpdater.exe</td><td/><td/><td>_9D933A0F_642B_465A_8E23_986B9BFB96A9_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td/><td/><td>_20049C24_C097_4693_B36E_AE931F83388C_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td/><td/><td>_03BAA0A3_E5E9_4BAE_A8DC_7916EB10CC2F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>FileMonitor.Primary_output</td><td/><td/><td>_D12F2FB2_EF23_4993_A175_2815BAF9508A_FILTER</td><td/><td/><td/><td/></row>
@@ -2260,8 +2257,8 @@
 		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_9F8B2DEF_B6B4_4180_B343_15492913F111_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_ED4E17DE_CC0F_4408_A546_292FEC215FEC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Interop.IWshRuntimeLibrary.dll</td><td/><td/><td>_B63C9837_D51E_4A6B_B89C_4346041C4ACE_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Interop.Shell32.dll</td><td/><td/><td>_5EBD9E96_5459_4899_BB00_939970CDC869_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Microsoft.CSharp.dll</td><td/><td/><td>_F86B2FEF_919B_47C0_8B66_F577CF864B0F_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Interop.Shell32.dll</td><td/><td/><td>_9A9EA054_398C_410E_BF64_6843AF4B1FDC_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Microsoft.CSharp.dll</td><td/><td/><td>_101EC1A4_7AC9_49C6_809B_6F4FCE7FEE16_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Microsoft.Net.Http.dll</td><td/><td/><td>_4B6ED559_3AF3_4921_A77F_610CE465E056_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Microsoft.Practices.ServiceLocation.dll</td><td/><td/><td>_16FE7332_1F00_4D1C_86AC_24EDC39538EC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>NewComponent1</td><td/><td/><td>_2FA478B8_1D0A_4BD3_B0DA_9100F4B449D0_FILTER</td><td/><td/><td/><td/></row>
@@ -2273,7 +2270,6 @@
 		<row><td>SuperSocket.ClientEngine.Common.dll</td><td/><td/><td>_FAB4D98D_8F27_4D87_A4C5_D74E20FE619E_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SuperSocket.ClientEngine.Core.dll</td><td/><td/><td>_06133FC7_4E52_473A_A01E_09B61A3D273F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SuperSocket.ClientEngine.Protocol.dll</td><td/><td/><td>_202AC53E_F8FD_4424_94A0_34E7ABF7FA00_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>SuperSocket.ClientEngine.Proxy.dll</td><td/><td/><td>_D5B91197_FE60_492D_A11A_03CAB4E71C08_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Sync.Primary_output</td><td/><td/><td>_897BFD61_02CA_4227_A8BE_4216703C9C23_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Windows.Interactivity.dll</td><td/><td/><td>_ED77A1E5_89F5_4D16_92E3_713C0CD15CB2_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>WPFToolkit.Extended.dll</td><td/><td/><td>_963BCA02_BF6A_4A38_8149_5400A0AE986F_FILTER</td><td/><td/><td/><td/></row>

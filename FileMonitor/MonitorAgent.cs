@@ -295,6 +295,7 @@ namespace FileMonitor
                 newAgent.ProcessMergeToSQL = onProcessMergeToSQL;
                 newAgent.ProcessCompletedSync = onProcessCompletedSync;
                 newAgent.LogProcessingFileChanges = logProcessing;
+                newAgent.GetLastSyncId = getLastSyncId;
 
                 // assign timer object that is used for processing the FileChange queues in batches
                 CLError queueTimerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(state =>
@@ -2814,7 +2815,7 @@ namespace FileMonitor
             bool matchedParameters = false;
 
             if (castState != null
-                && castState.Length == 7)
+                && castState.Length == 8)
             {
                 GrabProcessedChanges argOne = castState[0] as GrabProcessedChanges;
                 Func<FileChange, FileChange, CLError> argTwo = castState[1] as Func<FileChange, FileChange, CLError>;

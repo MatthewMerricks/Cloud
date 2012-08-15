@@ -317,6 +317,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 EMail = String.Empty;
+                                                Password = String.Empty;
                                             }));
             }
         }
@@ -471,9 +472,9 @@ namespace win_client.ViewModels
         private void ValidatePassword(string password)
         {
             RemoveAllErrorsForPropertyName("Password");
-            if(!CLRegexValidation.IsXOK(password))
+            if (String.IsNullOrEmpty(password))
             {
-                AddError("Password", "Please enter a password with at least 8 characters, including a least one number, one lower case character and one upper case character.");
+                AddError("Password", "The password must not be empty.");
             }
         }
 

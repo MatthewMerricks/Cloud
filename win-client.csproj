@@ -83,7 +83,7 @@
     </Reference>
     <Reference Include="Interop.IWshRuntimeLibrary">
       <HintPath>3rdParty\bin\Release\Interop.IWshRuntimeLibrary.dll</HintPath>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Net.Http">
       <HintPath>3rdParty\bin\Release\Microsoft.Net.Http.dll</HintPath>
@@ -100,9 +100,9 @@
     <Reference Include="SimpleJson">
       <HintPath>3rdParty\bin\Release\SimpleJson.dll</HintPath>
     </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Common, Version=0.2.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="SuperSocket.ClientEngine.Common">
       <HintPath>3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Core">
       <HintPath>3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll</HintPath>
