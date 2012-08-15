@@ -490,7 +490,8 @@ namespace win_client.Services.Sync
         {
             KeyValuePair<FileChange, FileStream>[] processedChanges;
             FileChange[] changesInError;
-            CLFSMonitoringService.Instance.MonitorAgent.ProcessFileListForSyncProcessing(out processedChanges, out changesInError);
+            CLError recordErrors = /* Does not exist anymore: */ /*CLFSMonitoringService.Instance.MonitorAgent.ProcessFileListForSyncProcessing(out processedChanges, out changesInError);*/
+                new InvalidOperationException("This is the old sync method, use Sync.Run in Sync project instead"); processedChanges = null; changesInError = null;
 
             // Update UI with activity.
             //TODO: Implement this UI.
