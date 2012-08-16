@@ -574,7 +574,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Click the &apos;Yes&apos; button to exit the Cloud application..
+        ///   Looks up a localized string similar to Are you sure you want to quit the Cloud.com application setup?.
         /// </summary>
         public static string PromptExitApplication_BodyText {
             get {
@@ -583,7 +583,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do you wish to exit Cloud?.
+        ///   Looks up a localized string similar to Do you wish to exit Cloud setup?.
         /// </summary>
         public static string PromptExitApplication_HeaderText {
             get {

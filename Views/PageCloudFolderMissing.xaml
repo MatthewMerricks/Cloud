@@ -16,6 +16,7 @@
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
     xmlns:resx="clr-namespace:win_client.Resources"
+    xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     mc:Ignorable="d"
     DataContext="{Binding PageCloudFolderMissingViewModel, Source={StaticResource Locator}}" 
     Title="Cloud.com" Height="442" Width="624" >

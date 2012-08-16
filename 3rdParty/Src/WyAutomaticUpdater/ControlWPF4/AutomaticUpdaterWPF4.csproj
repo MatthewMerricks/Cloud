@@ -42,6 +42,9 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>au.signkey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>cloud.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
@@ -160,6 +163,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\update-working.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="cloud.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

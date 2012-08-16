@@ -44,9 +44,9 @@
             <ColumnDefinition Width="9*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="93"/>
-            <RowDefinition Height="315*"/>
-            <RowDefinition Height="15"/>
+            <RowDefinition Height="88"/>
+            <RowDefinition/>
+            <RowDefinition Height="24"/>
             <RowDefinition Height="45"/>
             <RowDefinition Height="15"/>
         </Grid.RowDefinitions>
@@ -54,15 +54,9 @@
             <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_wlcm_ptrn.png"/>
         </Grid.Background>
         
-        <Grid Grid.Row="3" Grid.ColumnSpan="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Image Source="/Cloud;component/Artwork/cl_wlcm_div.png" Grid.Column="1" VerticalAlignment="Center"/>
-        </Grid>
-        <Controls:AutomaticUpdater x:Name="ctlAutoUpdate" HorizontalAlignment="Right" Height="100" VerticalAlignment="Center" Width="100" Grid.Row="1" Grid.Column="2" GUID="8CBDACFF-4ED9-4AF5-BCEC-4AA62F60DBB3" />
+        <Image Source="/Cloud;component/Artwork/cl_wlcm_div.png" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Height="14" />
+                
+        <Controls:AutomaticUpdater x:Name="ctlAutoUpdate" HorizontalAlignment="Right" Height="100" VerticalAlignment="Center" Width="100" Grid.Row="1" Grid.Column="2" GUID="8CBDACFF-4ED9-4AF5-BCEC-4AA62F60DBB3" Margin="0,130,0,124" />
         
         <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1"/>
         <TextBlock x:Name="tblkStatus" TextWrapping="Wrap" Foreground="Black" FontSize="16" TextAlignment="Left" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Grid.Row="1" Grid.Column="1" Margin="8" />
@@ -113,7 +107,7 @@
                 <ColumnDefinition Width="110"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Image Source="/Cloud;component/Artwork/cloud256.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5" />
+            <Image Source="/Cloud;component/Artwork/cloud.ico" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5" />
         </Grid>
     </Grid>
 </Window>

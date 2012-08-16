@@ -40,28 +40,25 @@
             <ColumnDefinition Width="22"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" MinHeight="300"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="20"/>
+            <RowDefinition MinHeight="300"/>
+            <RowDefinition Height="52"/>
+            <RowDefinition Height="12"/>
         </Grid.RowDefinitions>
-
-        <Border x:Name="borderFullBackground" Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="5" Grid.RowSpan="3" RenderTransformOrigin="0.5,0.5">
-            <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_install_Complete.png"/>
-            </Border.Background>
-        </Border>
+        <Grid.Background>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_macinstall_finish.tiff"/>
+        </Grid.Background>
 
         <Grid x:Name="gridNonButtonArea" Grid.Column="2" Width="Auto" >
         	<Grid.RowDefinitions>
-        		<RowDefinition Height="268"/>
-        		<RowDefinition Height="52"/>
+        		<RowDefinition Height="283"/>
+        		<RowDefinition Height="51"/>
         		<RowDefinition/>
-        		<RowDefinition Height="15"/>
+        		<RowDefinition Height="10"/>
         	</Grid.RowDefinitions>
         	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="16" Grid.Row="1"
                     Text="The installation is now complete, and your tour has come to an end. Thanks for spending time with us, enjoy your Cloud experience." />
         	<CheckBox Content="_Open Cloud Folder" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" 
-                      IsChecked="{Binding PageTour_OpenCloudFolderCommand, Mode=TwoWay}"/>
+                      IsChecked="{Binding PageTour_OpenCloudFolderCommand, Mode=TwoWay}" Height="22" Margin="0,4,0,8" Width="151"/>
         </Grid>
         <Grid x:Name="gridButtonArea" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3">
         	<Grid.ColumnDefinitions>
