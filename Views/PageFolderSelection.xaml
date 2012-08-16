@@ -17,7 +17,7 @@
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageFolderSelectionViewModel, Source={StaticResource Locator}}" 
-    Title="Select Setup Options"  >
+    Title="Cloud Folder Selection"  >
 
     <Page.Resources>
         <ResourceDictionary>

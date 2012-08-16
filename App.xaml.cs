@@ -35,7 +35,7 @@ namespace win_client
         {
 
             // Break into the assembler
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             // throw (new System.Exception()); 
 
             // Allows icon overlays to start receiving calls to SetOrRemoveBadge,

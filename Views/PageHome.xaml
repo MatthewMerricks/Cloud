@@ -20,7 +20,7 @@
            mc:Ignorable="d"
            DataContext="{Binding PageHomeViewModel, Source={StaticResource Locator}}" 
            d:DesignWidth="640" d:DesignHeight="480"
-           Title="Home Page">
+           Title="Cloud">
 
     <Page.Resources>
         <ResourceDictionary>
