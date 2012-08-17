@@ -13,6 +13,9 @@
 //// for debugging only:
 //#include <fstream>
 
+// Forward function definitions
+size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters);
+
 // CContextMenuExt
 
 // define the strings used to identify the command coming back on context menu click??
@@ -305,33 +308,16 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 					{
 
 						TCHAR programFilesDirectory[MAX_PATH];
-						SHGetSpecialFolderPathW(0, programFilesDirectory, CSIDL_PROGRAM_FILES, FALSE);
+						SHGetSpecialFolderPathW(0, programFilesDirectory, CSIDL_PROGRAM_FILESX86, FALSE);
 						std::wstring cloudExeLocation(L"\"");
 						cloudExeLocation.append(programFilesDirectory);
-						cloudExeLocation.append(L"\\Cloud\\Cloud.exe\"");
+						cloudExeLocation.append(L"\\Cloud.com\\Cloud\\Cloud.exe\"");
 						
-						HANDLE cloudProcessHandle;
-						CreateProcessAsUserW(cloudProcessHandle,
-							NULL,
-
-							//_tcsdup(cloudExeLocation.c_str()),
-
-							_tcsdup(TEXT("\"C:\\Windows\\Notepad.exe\"")),
-
-							NULL,
-							NULL,
-							NULL,
-							NULL,
-							NULL,
-							NULL,
-							NULL,
-							NULL);
-
-						_wsystem(cloudExeLocation.c_str());
-
-
-						//_wsystem(L"C:\\Windows\\Notepad.exe");
-						cloudProcessStarted = true;
+						size_t rc = ExecuteProcess(cloudExeLocation, L"");
+						if (rc == 0)
+						{
+							cloudProcessStarted = true;
+						}
 					}
 					else if (cloudStartTries > 99)
 					{
@@ -470,3 +456,87 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 
 	return S_OK;
 }
+
+// Start a new process.
+size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters) 
+{ 
+    size_t iMyCounter = 0, iReturnVal = 0, iPos = 0; 
+    DWORD dwExitCode = 0; 
+    std::wstring sTempStr = L""; 
+
+    // Check to see if the file exists
+	LPCWSTR fullPathToExe = FullPathToExe.c_str();
+	if(INVALID_FILE_ATTRIBUTES == GetFileAttributesW(fullPathToExe) && GetLastError()==ERROR_FILE_NOT_FOUND) 
+	{ 
+	    // File not found 
+        return -2; 
+	} 
+
+	// Add a space to the beginning of the Parameters
+    if (Parameters.size() != 0) 
+    { 
+        if (Parameters[0] != L' ') 
+        { 
+            Parameters.insert(0,L" "); 
+        } 
+    } 
+
+    // The first parameter needs to be the exe itself
+    sTempStr = FullPathToExe; 
+    iPos = sTempStr.find_last_of(L"\\");
+
+	// The last character might be a double quote if the path contains blanks.  Remove the final double quote.
+    sTempStr.erase(0, iPos +1); 
+	if (sTempStr.length() > 0 && sTempStr.at(sTempStr.length()-1) == L'"')
+	{
+	    sTempStr.erase(sTempStr.length() - 1, sTempStr.length() - 1); 
+	}
+
+    Parameters = sTempStr.append(Parameters); 
+
+    // CreateProcessW can modify Parameters thus we allocate needed memory
+    wchar_t * pwszParam = new wchar_t[Parameters.size() + 1]; 
+    if (pwszParam == 0) 
+    { 
+        return -1; 
+    } 
+    const wchar_t* pchrTemp = Parameters.c_str(); 
+    wcscpy_s(pwszParam, Parameters.size() + 1, pchrTemp); 
+
+    // CreateProcess API initialization
+    STARTUPINFOW siStartupInfo; 
+    PROCESS_INFORMATION piProcessInfo; 
+    memset(&siStartupInfo, 0, sizeof(siStartupInfo)); 
+    memset(&piProcessInfo, 0, sizeof(piProcessInfo)); 
+    siStartupInfo.cb = sizeof(siStartupInfo); 
+
+	sTempStr = FullPathToExe;
+
+    //if (CreateProcessW(const_cast<LPCWSTR>(FullPathToExe.c_str()), 
+    //                        pwszParam, 0, 0, false, 
+    //                        CREATE_DEFAULT_ERROR_MODE, 0, 0, 
+    //                        &siStartupInfo, &piProcessInfo) != false) 
+    if (CreateProcessW(NULL,
+                            &sTempStr[0], 0, 0, false, 
+                            CREATE_DEFAULT_ERROR_MODE, 0, 0, 
+                            &siStartupInfo, &piProcessInfo) != false) 
+    { 
+         // Watch the process.
+         //dwExitCode = WaitForSingleObject(piProcessInfo.hProcess, (SecondsToWait * 1000)); 
+    } 
+    else
+    { 
+        // CreateProcess failed
+         iReturnVal = GetLastError(); 
+    } 
+
+    // Free memory
+    delete[]pwszParam; 
+    pwszParam = 0; 
+
+    // Release handles
+    CloseHandle(piProcessInfo.hProcess); 
+    CloseHandle(piProcessInfo.hThread); 
+
+    return iReturnVal; 
+} 

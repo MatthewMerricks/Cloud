@@ -46,6 +46,15 @@
     <ClCompile Include="ContextMenuExt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="JsonSerialization\json_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonSerialization\json_value.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonSerialization\json_writer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -76,6 +85,33 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ContextMenuExt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\json_batchallocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\autolink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\features.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\forwards.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\json.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\value.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\writer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -118,6 +154,15 @@
     </None>
     <None Include="ContextMenuExt.rgs">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="JsonSerialization\json_internalarray.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="JsonSerialization\json_internalmap.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="JsonSerialization\json_valueiterator.inl">
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

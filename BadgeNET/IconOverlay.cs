@@ -850,6 +850,15 @@ namespace BadgeNET
         }
 
         /// <summary>
+        /// Used for initial context menu connection pipe thread as userstate
+        /// </summary>
+        private class pipeThreadParamsContextMenu
+        {
+            public NamedPipeServerStream serverStream { get; set; }
+            public pipeRunningHolder serverLocker { get; set; }
+        }
+
+        /// <summary>
         /// Object type of pipeLocker
         /// (Lockable object storing running state of the initial badging connection pipe)
         /// </summary>
@@ -899,6 +908,21 @@ namespace BadgeNET
                 // start a thread to process initial pipe connections, pass relevant userstate
                 (new Thread(() => RunServerPipe(threadParams))).Start();
             }
+
+            // Start the pipe to listen to shell extension context menu messages
+            NamedPipeServerStream serverStreamContextMenu = new NamedPipeServerStream(Environment.UserName + "/" + PipeName + "/ContextMenu",
+                PipeDirection.In,
+                1,
+                PipeTransmissionMode.Byte,
+                PipeOptions.None);
+            pipeThreadParamsContextMenu threadParamsContextMenu = new pipeThreadParamsContextMenu()
+            {
+                serverStream = serverStreamContextMenu,
+                serverLocker = pipeLocker,
+            };
+
+            // start a thread to process initial pipe connections, pass relevant userstate
+            (new Thread(() => RunServerPipeContextMenu(threadParamsContextMenu))).Start();
         }
 
         /// <summary>
@@ -978,6 +1002,51 @@ namespace BadgeNET
                                 // return result to badge COM object
                                 (new Thread(() => RunReturnPipe(threadState))).Start();
                             }
+                        }
+                        finally
+                        {
+                            // read operation complete, disconnect so next badge COM object can connect
+                            pipeParams.serverStream.Disconnect();
+                        }
+                    }
+                }
+                // running state was set to false causing listening loop to break, dispose of stream if it still exists
+                if (pipeParams.serverStream != null)
+                    pipeParams.serverStream.Close();
+            }
+            catch
+            {
+            }
+        }
+
+        /// <summary>
+        /// Processes a receiving server pipe to communicate with a BadgeCOM object for the context menu support
+        /// </summary>
+        /// <param name="pipeParams"></param>
+        private void RunServerPipeContextMenu(pipeThreadParamsContextMenu pipeParams)
+        {
+            // try/catch which silences errors and stops badging functionality (should never error here)
+            try
+            {
+                // define locked function for checking running state
+                Func<pipeRunningHolder, bool> getPipeRunning = (runningHolder) =>
+                {
+                    lock (runningHolder)
+                    {
+                        return runningHolder.pipeRunning;
+                    }
+                };
+                // check running state with locked function, repeat until running state is false
+                while (getPipeRunning(pipeParams.serverLocker))
+                {
+                    // running state was true so wait for next client connection
+                    pipeParams.serverStream.WaitForConnection();
+                    if (pipeParams.serverStream != null)
+                    {
+                        // try/catch which silences errors, disconnects and but allows while loop to continue
+                        try
+                        {
+                            //TODO: Replace this
                         }
                         finally
                         {
