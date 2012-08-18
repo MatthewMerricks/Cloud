@@ -15,6 +15,11 @@ using System.IO.Pipes;
 using System.Threading;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using System.IO;
 
 namespace BadgeNET
 {
@@ -1046,7 +1051,20 @@ namespace BadgeNET
                         // try/catch which silences errors, disconnects and but allows while loop to continue
                         try
                         {
-                            //TODO: Replace this
+                            // We got a connection.  Read the JSON from the pipe and deserialize it to a POCO.
+                            StreamReader reader = new StreamReader(pipeParams.serverStream);
+                            string gotData = reader.ReadLine();
+
+                            ContextMenuObject msg = JsonConvert.DeserializeObject<ContextMenuObject>(reader.ReadLine());
+                            int i = 0;
+                            i++;  // debug stop
+
+                        }
+                        catch (Exception ex)
+                        {
+                            string errMsg = ex.Message;
+                            int i = 0;
+                            i++;  // debug stop
                         }
                         finally
                         {

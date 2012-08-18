@@ -10,11 +10,18 @@
 #include "stdafx.h"
 #include "ContextMenuExt.h"
 #include <strsafe.h>
+#include "JsonSerialization\json.h"
+#include "lmcons.h"
+#include <stdexcept>
 //// for debugging only:
 //#include <fstream>
 
+using namespace std;
+
 // Forward function definitions
 size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters);
+std::wstring StringToWString(const std::string& s);
+std::string WStringToString(const std::wstring& s);
 
 // CContextMenuExt
 
@@ -264,23 +271,35 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 
 	else
 	{
-		wchar_t const* pipeGetCloudDirectory = L"\\\\.\\Pipe\\BadgeCOMGetCloudPath";
-
-		DWORD BytesRead;
+		DWORD bytesWritten;
 		BYTE pathPointerBytes[8];
 		
 		bool cloudProcessStarted = false;
 		int cloudStartTries = 0;
 
-		HANDLE pathHandle;
+		HANDLE pipeHandle;
 		bool pipeConnectionFailed = false;
+
+		wchar_t lpszUsername[UNLEN];
+		DWORD dUsername = sizeof(lpszUsername);
+ 
+		// Get the user name of the logged-in user.
+		if(!GetUserName(lpszUsername, &dUsername))
+		{
+			return E_FAIL;
+		}
+
+		// Build the pipe name.  This will be (no escapes): "\\.\Pipe\<UserName>/BadgeCOM/ContextMenu"
+		std::wstring pipeName = L"\\\\.\\Pipe\\";
+		pipeName.append(lpszUsername);
+		pipeName.append(L"/BadgeCOM/ContextMenu");
 
 		// Try to open the named pipe identified by the pipe name.
 		while (!pipeConnectionFailed)
 		{
-			pathHandle = CreateFile(
-				pipeGetCloudDirectory, // Pipe name
-				GENERIC_READ, // Write access
+			pipeHandle = CreateFile(
+				pipeName.c_str(), // Pipe name
+				GENERIC_WRITE, // Write access
 				0, // No sharing
 				NULL, // Default security attributes
 				OPEN_EXISTING, // Opens existing pipe
@@ -289,7 +308,7 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 				);
 			
 			// If the pipe handle is opened successfully then break out to continue
-			if (pathHandle != INVALID_HANDLE_VALUE)
+			if (pipeHandle != INVALID_HANDLE_VALUE)
 			{
 				break;
 			}
@@ -338,7 +357,7 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 				else if (ERROR_PIPE_BUSY == dwError)
 				{
 					// if waiting for a pipe does not complete in 2 seconds, exit  (by setting pipeConnectionFailed to true)
-					if (!WaitNamedPipe(pipeGetCloudDirectory, 2000))
+					if (!WaitNamedPipe(pipeName.c_str(), 2000))
 					{
 						dwError = GetLastError();
 
@@ -375,83 +394,79 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 			}
 		}
 
-		if (!pipeConnectionFailed)
-		{
-			// get the size of the cloud path
-			if (ReadFile(pathHandle,
-				pathPointerBytes,
-				8,
-				&BytesRead,
-				NULL))
-			{
-				if (BytesRead != 8)
-				{
-					std::wstring errorMessage(L"Cloud returned invalid data, operation cancelled: length=");
-					wchar_t *bytesReadChar = new wchar_t[10];
-					wsprintf(bytesReadChar, L"%d", BytesRead);
-					errorMessage.append(bytesReadChar);
-					free(bytesReadChar);
-					errorMessage.append(L" data=");
-					wchar_t *pathBytesChar = new wchar_t[5];
-					for (int hexIndex = 0; hexIndex < BytesRead; hexIndex++)
-					{
-						wsprintf(pathBytesChar, L"%02x ", (unsigned char)pathPointerBytes[hexIndex]);
-						errorMessage.append(pathBytesChar);
-					}
-					free(pathBytesChar);
-						
-					MessageBox(lpcmi->hwnd,
-						errorMessage.c_str(),
-						L"Cloud",
-						MB_OK|MB_ICONINFORMATION);
-				}
-				else
-				{
-					wchar_t *retrievedPath = (wchar_t *)&BytesRead;
-					
-					MessageBox(lpcmi->hwnd,
-						retrievedPath,
-						L"Cloud",
-						MB_OK|MB_ICONINFORMATION);
-				}
-			}
-			else
-			{
-				std::wstring errorMessage(L"Cloud communication failed to return data, operation cancelled: ");
-				wchar_t *dwErrorChar = new wchar_t[10];
-				wsprintf(dwErrorChar, L"%d", GetLastError());
-				errorMessage.append(dwErrorChar);
-				free(dwErrorChar);
+		// Get the coordinates of the current Explorer window
+		HWND hwnd = GetActiveWindow();
+		RECT rMyRect;
+		GetClientRect(hwnd, (LPRECT)&rMyRect);
+		ClientToScreen(hwnd, (LPPOINT)&rMyRect.left);
+		ClientToScreen(hwnd, (LPPOINT)&rMyRect.right);
 
-				MessageBox(lpcmi->hwnd,
-					errorMessage.c_str(),
-					L"Cloud",
-					MB_OK|MB_ICONINFORMATION);
-			}
-		}
+		// Put the information into a JSON object.  The formatted JSON will look like this:
+		// {
+		//		// Screen coordinates of the Explorer window.
+		//		"window_coordinates" : { "left" : 100, "top" : 200, "right" : 300, "bottom" : 400 },
+		//
+		//		"selected_paths" : [
+		//			"path 1",
+		//			"path 2",
+		//			"path 3"
+		//		]
+		// }
+		Json::Value root;
 
-		// this part pulls the strings of file paths out
-		// from the initialization array and appends them for a message box
+		// Add the screen coordinates of the Explorer window
+		root["rectExplorerWindowCoordinates"]["left"] = rMyRect.left;
+		root["rectExplorerWindowCoordinates"]["top"] = rMyRect.top;
+		root["rectExplorerWindowCoordinates"]["right"] = rMyRect.right;
+		root["rectExplorerWindowCoordinates"]["bottom"] = rMyRect.bottom;
 
-		std::wstring allFiles;
-		bool firstFile = true;
-
+		// Add the selected paths
+		unsigned int index = 0;
 		while (!m_szFile.empty())
 		{
 			std::wstring currentPop = m_szFile.back();
 			m_szFile.pop_back();
 
-			if (!firstFile)
-				allFiles.append(L"\r\n");
-			allFiles.append(currentPop);
-
-			firstFile = false;
+			 root["asSelectedPaths"][index++] = WStringToString(currentPop);
 		}
 
-		MessageBox(lpcmi->hwnd,
-			allFiles.c_str(),
-			L"File Name",
-			MB_OK|MB_ICONINFORMATION);
+		// Send the information to BadgeNet in Cloud.exe.
+		if (!pipeConnectionFailed)
+		{
+			try
+			{
+				// Format to a standard JSON string.
+				Json::StyledWriter writer;
+				std::string outputJson = writer.write( root );
+				outputJson.append("\n");			// add a newline to force end of line on the server side.
+
+				// Write it to Cloud.exe BadgeNet.
+				if (WriteFile(pipeHandle,
+							outputJson.c_str(),
+							outputJson.length(),
+							&bytesWritten,
+							NULL) != 0)
+				{
+					// Successful
+					int i = 0;
+					i++;
+				}
+				else
+				{
+					// Error writing to the pipe
+					DWORD err = GetLastError();
+					int i = 0;
+					i++;
+				}
+			}
+			catch (exception &ex)
+			{
+				// Exception
+				//cout << "Standard exception: " << ex.what() << endl;
+				int i = 0;
+				i++;
+			}
+		}
 	}
 
 	return S_OK;
@@ -539,4 +554,22 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters)
     CloseHandle(piProcessInfo.hThread); 
 
     return iReturnVal; 
+} 
+
+
+// Convert a std::string to a std::wstring
+std::wstring StringToWString(const std::string& s)   
+{   
+    std::wstring temp(s.length(),L' ');   
+    std::copy(s.begin(), s.end(), temp.begin());   
+    return temp;   
+}   
+ 
+ 
+// Convert a std::wstring to a std::string
+std::string WStringToString(const std::wstring& s)   
+{   
+    std::string temp(s.length(), ' ');   
+    std::copy(s.begin(), s.end(), temp.begin());   
+    return temp;   
 } 
