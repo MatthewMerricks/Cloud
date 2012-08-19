@@ -134,8 +134,7 @@ namespace win_client.AppDelegate
         private CLAppDelegate()
         {
             // Initialize members, etc. here.
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            _mainDispatcher = Dispatcher.CurrentDispatcher;
+            _mainDispatcher = Application.Current.Dispatcher;
         }
 
         private static bool IsVista()

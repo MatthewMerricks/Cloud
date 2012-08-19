@@ -13,7 +13,6 @@
 #include "BadgeCOM_i.h"
 #include "dllmain.h"
 
-
 // Used to determine whether the DLL can be unloaded by OLE.
 STDAPI DllCanUnloadNow(void)
 {

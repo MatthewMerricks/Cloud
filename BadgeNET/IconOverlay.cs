@@ -13,6 +13,8 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.IO.Pipes;
 using System.Threading;
+using System.Windows;
+using System.Windows.Threading;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using Newtonsoft.Json;
@@ -20,6 +22,9 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using CloudApiPublic.Support;
+using CloudApiPrivate.Model.Settings;
+using CloudApiPrivate.Common;
 
 namespace BadgeNET
 {
@@ -49,6 +54,7 @@ namespace BadgeNET
         }
         private static IconOverlay _instance = null;
         private static object InstanceLocker = new object();
+        private static CLTrace _trace = CLTrace.Instance;
 
         // Constructor for Singleton pattern is private
         private IconOverlay() { }
@@ -1053,18 +1059,16 @@ namespace BadgeNET
                         {
                             // We got a connection.  Read the JSON from the pipe and deserialize it to a POCO.
                             StreamReader reader = new StreamReader(pipeParams.serverStream);
-                            string gotData = reader.ReadLine();
-
                             ContextMenuObject msg = JsonConvert.DeserializeObject<ContextMenuObject>(reader.ReadLine());
-                            int i = 0;
-                            i++;  // debug stop
+
+                            // Copy the files to the Cloud root directory.
+                            ContextMenuCopyFiles(msg);
 
                         }
                         catch (Exception ex)
                         {
-                            string errMsg = ex.Message;
-                            int i = 0;
-                            i++;  // debug stop
+                            CLError err = ex;
+                            _trace.writeToLog(1, "IconOverlay: RunServerPipeContextMenu: ERROR: Exception. Msg: <{0}>, Code: {1}.", err.errorDescription, err.errorCode);
                         }
                         finally
                         {
@@ -1079,6 +1083,32 @@ namespace BadgeNET
             }
             catch
             {
+            }
+        }
+
+        /// <summary>
+        /// Copy the selected files to the Cloud root directory.
+        /// </summary>
+        /// <param name="returnParams"></param>
+        private void ContextMenuCopyFiles(ContextMenuObject msg)
+        {
+            foreach (string path in msg.asSelectedPaths)
+            {
+                // Remove any trailing backslash
+                string source = path.TrimEnd(new char[]{'\\', '/'});
+
+                // Get the filename.ext of the source path.
+                string filenameExt = Path.GetFileName(source);
+
+                // Build the target path
+                string target = Settings.Instance.CloudFolderPath + "X\\" + filenameExt;
+
+                // Copy it.
+                Dispatcher mainDispatcher = Application.Current.Dispatcher;
+                mainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    CLCopyFiles.CopyFileOrDirectoryWithUi(source, target);
+                }));
             }
         }
 

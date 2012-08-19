@@ -132,7 +132,7 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 			indexMenu,
 			MF_STRING | MF_BYPOSITION,
 			idCmdFirst + IDM_DISPLAY,
-			L"&Display File Name");
+			L"Share to &Cloud");
 
 		// TODO: Add error handling to verify HRESULT return values.
 
@@ -149,8 +149,8 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 		m_pwszVerbCopy[m_pwszVerbLen] = '\0';
 
 		// writes the verbs to come back when the command fires??
-		hr = StringCbCopyA(m_pszVerbCopy, sizeof(m_pszVerbCopy), "display");
-		hr = StringCbCopyW(m_pwszVerbCopy, sizeof(m_pwszVerbCopy), L"display");
+		hr = StringCbCopyA(m_pszVerbCopy, sizeof(m_pszVerbCopy), "ShareToCloud");
+		hr = StringCbCopyW(m_pwszVerbCopy, sizeof(m_pwszVerbCopy), L"ShareToCloud");
 
 		// free locally allocated memory
 		free(m_pszVerbCopy);
@@ -162,68 +162,59 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 	return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(0));
 }
 
-// Gets the name of the item that appears in the menu
-STDMETHODIMP CContextMenuExt::GetCommandString(
+//////////////////////////////////////////////////////////////////////////
+//
+// Function:    GetCommandString()
+//
+// Description:
+//  Sets the flyby help string for the Explorer status bar.
+//
+//////////////////////////////////////////////////////////////////////////
+
+STDMETHODIMP CContextMenuExt::GetCommandString (
 // Win32 and X64 platforms had different method signatures
 #ifdef X86;
-	UINT idCommand,
+	UINT uCmdID,
 #else
-	UINT_PTR idCommand,
+	UINT_PTR uCmdID,
 #endif
 	UINT uFlags,
-	LPUINT lpReserved,
-	LPSTR pszName,
-	UINT uMaxNameLen)
+	LPUINT puReserved,
+	LPSTR szName,
+	UINT cchMax)
 {
-	HRESULT hr = E_INVALIDARG;
+USES_CONVERSION;
+LPCTSTR szPrompt;
 
-	/*std::fstream logStream;
-	logStream.open("C:\\Users\\Public\\Documents\\logFile.txt", std::fstream::app | std::fstream::ate);
-	logStream<<"Entered GetCommandString"<<std::endl;
-	logStream.close();*/
+    if ( uFlags & GCS_HELPTEXT )
+    {
+        // Copy the help text into the supplied buffer.  If the shell wants
+        // a Unicode string, we need to case szName to an LPCWSTR.
+		szPrompt = _T("Copy to your Cloud folder");
+        if ( uFlags & GCS_UNICODE )
+		{
+            lstrcpynW ( (LPWSTR) szName, T2CW(szPrompt), cchMax );
+		}
+        else
+		{
+            lstrcpynA ( szName, T2CA(szPrompt), cchMax );
+		}
+    }
+    else if ( uFlags & GCS_VERB )
+    {
+		// Copy the verb name into the supplied buffer.  If the shell wants
+		// a Unicode string, we need to case szName to an LPCWSTR.
+        if ( uFlags & GCS_UNICODE )
+		{
+            lstrcpynW ( (LPWSTR) szName, m_pwszVerb, cchMax );
+		}
+        else
+		{
+            lstrcpynA ( szName, m_pszVerb, cchMax );
+		}
+    }
 
-	if(idCommand != IDM_DISPLAY)
-	{
-		return hr;
-	}
-
-	// some kind of switch based on the use of the context menu,
-	// the options link back the verb used when the menu item was defined and set the display text that appears
-	switch(uFlags)
-	{
-		case GCS_HELPTEXTA:
-			hr = StringCchCopyNA(pszName,
-				lstrlen(m_pwszVerb)/sizeof(wchar_t),
-				"Display File Name",
-				uMaxNameLen);
-			break;
-
-		case GCS_HELPTEXTW:
-			hr = StringCchCopyNW((LPWSTR)pszName,
-				lstrlen(m_pwszVerb)/sizeof(wchar_t),
-				L"Display File Name",
-				uMaxNameLen);
-			break;
-
-		case GCS_VERBA:
-			hr = StringCchCopyNA(pszName,
-				lstrlen(m_pwszVerb)/sizeof(wchar_t),
-				m_pszVerb,
-				uMaxNameLen);
-			break;
-
-		case GCS_VERBW:
-			hr = StringCchCopyNW((LPWSTR)pszName,
-				lstrlen(m_pwszVerb)/sizeof(wchar_t),
-				m_pwszVerb,
-				uMaxNameLen);
-			break;
-
-		default:
-			hr = S_OK;
-			break;
-	}
-	return hr;
+    return S_OK;
 }
 
 // Describes the action to perform when the custom context menu item is clicked
@@ -436,7 +427,7 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 			try
 			{
 				// Format to a standard JSON string.
-				Json::StyledWriter writer;
+				Json::FastWriter writer;
 				std::string outputJson = writer.write( root );
 				outputJson.append("\n");			// add a newline to force end of line on the server side.
 
@@ -470,6 +461,74 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	}
 
 	return S_OK;
+}
+
+/*
+********** ICON **********
+This method returns a filename/index pair to the shell, telling it where the
+icon is.  This is the easier way, but it requires you to keep track of the
+resource IDs of the icons *and* keep them in the right order!
+*/
+STDMETHODIMP CContextMenuExt::GetIconLocation (
+    UINT uFlags,  LPTSTR szIconFile, UINT cchMax,
+    int* piIndex, UINT* pwFlags )
+{
+	DWORD     dwFileSizeLo, dwFileSizeHi;
+	DWORDLONG qwSize;
+	HANDLE    hFile;
+
+    // First, open the file and get its length.
+    hFile = CreateFile ( m_szFilename, GENERIC_READ, FILE_SHARE_READ, NULL,
+                         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
+
+    if ( INVALID_HANDLE_VALUE == hFile )
+        return S_FALSE;                 // tell the shell to use a default icon
+
+    dwFileSizeLo = GetFileSize ( hFile, &dwFileSizeHi );
+
+    CloseHandle ( hFile );
+
+    // Check that GetFileSize() succeeded.
+    if ( (DWORD) -1 == dwFileSizeLo && GetLastError() != NO_ERROR )
+        return S_FALSE;                 // tell the shell to use a default icon
+
+    // The icons are all in this DLL, so get the full path to the DLL, which
+    // we'll return through the szIconFile parameter.
+	TCHAR szModulePath[MAX_PATH];
+
+    GetModuleFileName (ATL::_AtlBaseModule.GetResourceInstance(), szModulePath, MAX_PATH );
+    lstrcpyn ( szIconFile, szModulePath, cchMax );
+
+    // Decide which icon to use based on the file size.
+    qwSize = DWORDLONG(dwFileSizeHi)<<32 | dwFileSizeLo;
+
+    if ( 0 == qwSize )
+        *piIndex = 4;
+    else if ( qwSize < 4096 )
+        *piIndex = 5;
+    else if ( qwSize < 8192 )
+        *piIndex = 6;
+    else if ( qwSize < 32768 )
+        *piIndex = 7;
+    else 
+        *piIndex = 8;
+	//TODO: Fix this.
+	*piIndex = 0;
+
+    // pwFlags is set to zero to get the default behavior from Explorer.  You 
+    // can set it to GIL_SIMULATEDOC to have Explorer put the icon we return in
+    // a "dog-eared paper" icon, and use _that_ as the icon for the file.
+    //*pwFlags = GIL_SIMULATEDOC;
+    *pwFlags = 0;
+
+    return S_OK;
+}
+
+STDMETHODIMP CContextMenuExt::Extract (
+    LPCTSTR pszFile, UINT nIconIndex, HICON* phiconLarge, HICON* phiconSmall,
+    UINT nIconSize )
+{
+    return S_FALSE;                     // Tell the shell to do the extracting itself.
 }
 
 // Start a new process.

@@ -41,13 +41,19 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdParty\bin\Release\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows">
+      <HintPath>..\..\..\..\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BadgedObject.cs" />
@@ -57,6 +63,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CloudApiPrivate\CloudApiPrivate.csproj">
+      <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
+      <Name>CloudApiPrivate</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudSdkPublic</Name>

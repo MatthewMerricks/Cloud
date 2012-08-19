@@ -114,6 +114,9 @@
     <ClInclude Include="JsonSerialization\writer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BadgeCOM.rc">
@@ -169,5 +172,22 @@
     <Midl Include="BadgeCOM.idl">
       <Filter>Source Files</Filter>
     </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cloud16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="cloud32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="cloud48.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="cloud128.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="cloud512.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

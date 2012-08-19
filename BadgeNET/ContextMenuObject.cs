@@ -25,6 +25,6 @@ namespace BadgeNET
     public class ContextMenuObject
     {
         public RECT rectExplorerWindowCoordinates { get; set; }
-        public Array asSelectedPaths { get; set; }
+        public List<string> asSelectedPaths { get; set; }
     }
 }
