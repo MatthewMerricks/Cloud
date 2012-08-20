@@ -26,15 +26,11 @@ class ATL_NO_VTABLE CContextMenuExt :
 	// interface when the shell object is created (after a group of files is already selected)
 	public IShellExtInit,
 	// interface for the modifications to the context menu
-	public IContextMenu,
-	// Interfaces for the item's icon
-    public IPersistFile,
-    public IExtractIcon
+	public IContextMenu
 {
 public:
-	CContextMenuExt()
-	{
-	}
+    CContextMenuExt();
+    ~CContextMenuExt();
 
 // IShellExtInit
 
@@ -63,8 +59,6 @@ DECLARE_NOT_AGGREGATABLE(CContextMenuExt)
 BEGIN_COM_MAP(CContextMenuExt)
 	COM_INTERFACE_ENTRY(IShellExtInit)
 	COM_INTERFACE_ENTRY(IContextMenu)
-    COM_INTERFACE_ENTRY(IPersistFile)
-    COM_INTERFACE_ENTRY(IExtractIcon)
 END_COM_MAP()
 
 	DECLARE_PROTECT_FINAL_CONSTRUCT()
@@ -82,34 +76,14 @@ END_COM_MAP()
 	static const char *m_pszVerb;
 	static const wchar_t *m_pwszVerb;
 
-public:
-    // IPersistFile
-    STDMETHODIMP GetClassID( CLSID* ) { return E_NOTIMPL; }
-    STDMETHODIMP IsDirty() { return E_NOTIMPL; }
-    STDMETHODIMP Save( LPCOLESTR, BOOL ) { return E_NOTIMPL; }
-    STDMETHODIMP SaveCompleted( LPCOLESTR ) { return E_NOTIMPL; }
-    STDMETHODIMP GetCurFile( LPOLESTR* ) { return E_NOTIMPL; }
-
-    STDMETHODIMP Load( LPCOLESTR wszFile, DWORD )
-        { 
-        USES_CONVERSION;
-        lstrcpyn ( m_szFilename, W2CT(wszFile), MAX_PATH );
-        return S_OK;
-        }
-
-    // IExtractIcon
-    STDMETHODIMP GetIconLocation( UINT uFlags, LPTSTR szIconFile, UINT cchMax,
-                                  int* piIndex, UINT* pwFlags );
-    STDMETHODIMP Extract( LPCTSTR pszFile, UINT nIconIndex, HICON* phiconLarge,
-                          HICON* phiconSmall, UINT nIconSize );
-
 protected:
 	// holds the file names
 	std::vector<std::wstring> m_szFile;
 	// holds the number of file names
 	int m_szFileLength;
 
-    TCHAR     m_szFilename[MAX_PATH];   // Full path to the icon file in question.
+	// The icon bitmap
+	HBITMAP     m_hRegBmp;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(ContextMenuExt), CContextMenuExt)

@@ -13,6 +13,7 @@
 #include "JsonSerialization\json.h"
 #include "lmcons.h"
 #include <stdexcept>
+#include "resource.h"
 //// for debugging only:
 //#include <fstream>
 
@@ -28,6 +29,24 @@ std::string WStringToString(const std::wstring& s);
 // define the strings used to identify the command coming back on context menu click??
 const char *CContextMenuExt::m_pszVerb = "CloudCOMVerb";
 const wchar_t *CContextMenuExt::m_pwszVerb = L"CloudCOMVerb";
+
+/////////////////////////////////////////////////////////////////////////////
+// CContextMenuExt construction/destruction
+
+CContextMenuExt::CContextMenuExt()
+{
+    m_hRegBmp = LoadBitmap (_AtlBaseModule.GetModuleInstance(), MAKEINTRESOURCE(IDB_BITMAP1) );
+}
+
+CContextMenuExt::~CContextMenuExt()
+{
+    if ( NULL != m_hRegBmp )
+	{
+        DeleteObject ( m_hRegBmp );
+		m_hRegBmp = NULL;
+	}
+}
+
 
 // Called when before the context menu is created after a group of items were selected
 IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder,
@@ -133,6 +152,12 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 			MF_STRING | MF_BYPOSITION,
 			idCmdFirst + IDM_DISPLAY,
 			L"Share to &Cloud");
+
+		// Set the bitmap for the register item.
+		if ( NULL != m_hRegBmp )
+		{
+			SetMenuItemBitmaps(hMenu, indexMenu, MF_BYPOSITION, m_hRegBmp, NULL);
+		}
 
 		// TODO: Add error handling to verify HRESULT return values.
 
@@ -463,74 +488,6 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	return S_OK;
 }
 
-/*
-********** ICON **********
-This method returns a filename/index pair to the shell, telling it where the
-icon is.  This is the easier way, but it requires you to keep track of the
-resource IDs of the icons *and* keep them in the right order!
-*/
-STDMETHODIMP CContextMenuExt::GetIconLocation (
-    UINT uFlags,  LPTSTR szIconFile, UINT cchMax,
-    int* piIndex, UINT* pwFlags )
-{
-	DWORD     dwFileSizeLo, dwFileSizeHi;
-	DWORDLONG qwSize;
-	HANDLE    hFile;
-
-    // First, open the file and get its length.
-    hFile = CreateFile ( m_szFilename, GENERIC_READ, FILE_SHARE_READ, NULL,
-                         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
-
-    if ( INVALID_HANDLE_VALUE == hFile )
-        return S_FALSE;                 // tell the shell to use a default icon
-
-    dwFileSizeLo = GetFileSize ( hFile, &dwFileSizeHi );
-
-    CloseHandle ( hFile );
-
-    // Check that GetFileSize() succeeded.
-    if ( (DWORD) -1 == dwFileSizeLo && GetLastError() != NO_ERROR )
-        return S_FALSE;                 // tell the shell to use a default icon
-
-    // The icons are all in this DLL, so get the full path to the DLL, which
-    // we'll return through the szIconFile parameter.
-	TCHAR szModulePath[MAX_PATH];
-
-    GetModuleFileName (ATL::_AtlBaseModule.GetResourceInstance(), szModulePath, MAX_PATH );
-    lstrcpyn ( szIconFile, szModulePath, cchMax );
-
-    // Decide which icon to use based on the file size.
-    qwSize = DWORDLONG(dwFileSizeHi)<<32 | dwFileSizeLo;
-
-    if ( 0 == qwSize )
-        *piIndex = 4;
-    else if ( qwSize < 4096 )
-        *piIndex = 5;
-    else if ( qwSize < 8192 )
-        *piIndex = 6;
-    else if ( qwSize < 32768 )
-        *piIndex = 7;
-    else 
-        *piIndex = 8;
-	//TODO: Fix this.
-	*piIndex = 0;
-
-    // pwFlags is set to zero to get the default behavior from Explorer.  You 
-    // can set it to GIL_SIMULATEDOC to have Explorer put the icon we return in
-    // a "dog-eared paper" icon, and use _that_ as the icon for the file.
-    //*pwFlags = GIL_SIMULATEDOC;
-    *pwFlags = 0;
-
-    return S_OK;
-}
-
-STDMETHODIMP CContextMenuExt::Extract (
-    LPCTSTR pszFile, UINT nIconIndex, HICON* phiconLarge, HICON* phiconSmall,
-    UINT nIconSize )
-{
-    return S_FALSE;                     // Tell the shell to do the extracting itself.
-}
-
 // Start a new process.
 size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters) 
 { 
@@ -615,7 +572,6 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters)
     return iReturnVal; 
 } 
 
-
 // Convert a std::string to a std::wstring
 std::wstring StringToWString(const std::string& s)   
 {   
@@ -632,3 +588,4 @@ std::string WStringToString(const std::wstring& s)
     std::copy(s.begin(), s.end(), temp.begin());   
     return temp;   
 } 
+

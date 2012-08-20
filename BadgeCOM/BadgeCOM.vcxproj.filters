@@ -174,19 +174,7 @@
     </Midl>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="cloud16.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="cloud32.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="cloud48.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="cloud128.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="cloud512.ico">
+    <Image Include="cloud16.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -19,7 +19,6 @@ HKCR
 			{
 				{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}
 			}
-			NoRemove IconHandler = s '{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}'
 
 		}
 	}
@@ -31,7 +30,6 @@ HKCR
 			{
 				{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}
 			}
-			NoRemove IconHandler = s '{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}'
 		}
 	}
 	NoRemove Folder
@@ -42,7 +40,6 @@ HKCR
 			{
 				{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}
 			}
-			NoRemove IconHandler = s '{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}'
 		}
 	}
 }
