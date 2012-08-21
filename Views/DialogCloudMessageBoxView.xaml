@@ -99,7 +99,7 @@
         		<ColumnDefinition Width="110"/>
         		<ColumnDefinition/>
         	</Grid.ColumnDefinitions>
-        	<Image Source="/Cloud;component/Artwork/cloud256.png" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" />
+        	<Image Source="/Cloud;component/Artwork/cloud.ico" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" />
             <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="0,0,5,0"> 
             	<Grid.RowDefinitions>
             		<RowDefinition Height="15"/>

@@ -34,6 +34,7 @@
     <Reference Include="Microsoft.Net.Http">
       <HintPath>..\3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\3rdParty\bin\Debug\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -56,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CLPrivateRestClient.cs" />
+    <Compile Include="Common\CLCopyFiles.cs" />
     <Compile Include="Common\CLDeepCompare.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
     <Compile Include="Common\CLFileShortcuts.cs" />

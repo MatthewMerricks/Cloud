@@ -34,7 +34,7 @@
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
 
-    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" Margin="0,1,0,-1">
+    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" Margin="0,1,0,-1"> 
         <Grid x:Name="LayoutRoot">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="0.056*"/>
@@ -90,9 +90,9 @@
                 <commonClient:SecurePasswordBox x:Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="6" Grid.Column="1"
                          Text="{Binding ConfirmPassword, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="4" FontSize="13.333" 
                          Validation.ErrorTemplate="{StaticResource errorTemplate}" />
-                <TextBox Name="tbComputerName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="8" Grid.Column="1" 
+                <extToolkit:WatermarkTextBox Name="tbComputerName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="8" Grid.Column="1" 
                          Text="{Binding ComputerName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="5" FontSize="13.333" Style="{StaticResource controlHasErrorCheck}" 
-                         Validation.ErrorTemplate="{StaticResource errorTemplate}" />
+                         Validation.ErrorTemplate="{StaticResource errorTemplate}" Watermark="e.g.: Home Computer" />
                 
                 <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelEMail}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Width="Auto" Target="tbEMail" FontSize="16" Margin="0,0,5,0" Height="Auto"  />
                 <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelFullName}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Width="Auto" Target="tbFullName" FontSize="16" Margin="0,0,5,0" Height="Auto"  />
@@ -119,6 +119,6 @@
 
         </Grid>
         
-    </extToolkit:BusyIndicator>
+    </extToolkit:BusyIndicator> 
 
 </Page>

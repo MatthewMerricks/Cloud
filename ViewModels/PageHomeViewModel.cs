@@ -472,9 +472,9 @@ namespace win_client.ViewModels
         private void ValidatePassword(string password)
         {
             RemoveAllErrorsForPropertyName("Password");
-            if(string.IsNullOrEmpty(password)) //CLRegexValidation.IsXOK(password))
+            if (String.IsNullOrEmpty(password))
             {
-                AddError("Password", "Password cannot be empty.");
+                AddError("Password", "The password must not be empty.");
             }
         }
 

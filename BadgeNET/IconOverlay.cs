@@ -13,8 +13,18 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.IO.Pipes;
 using System.Threading;
+using System.Windows;
+using System.Windows.Threading;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using CloudApiPublic.Support;
+using CloudApiPrivate.Model.Settings;
+using CloudApiPrivate.Common;
 
 namespace BadgeNET
 {
@@ -44,6 +54,7 @@ namespace BadgeNET
         }
         private static IconOverlay _instance = null;
         private static object InstanceLocker = new object();
+        private static CLTrace _trace = CLTrace.Instance;
 
         // Constructor for Singleton pattern is private
         private IconOverlay() { }
@@ -850,6 +861,15 @@ namespace BadgeNET
         }
 
         /// <summary>
+        /// Used for initial context menu connection pipe thread as userstate
+        /// </summary>
+        private class pipeThreadParamsContextMenu
+        {
+            public NamedPipeServerStream serverStream { get; set; }
+            public pipeRunningHolder serverLocker { get; set; }
+        }
+
+        /// <summary>
         /// Object type of pipeLocker
         /// (Lockable object storing running state of the initial badging connection pipe)
         /// </summary>
@@ -899,6 +919,21 @@ namespace BadgeNET
                 // start a thread to process initial pipe connections, pass relevant userstate
                 (new Thread(() => RunServerPipe(threadParams))).Start();
             }
+
+            // Start the pipe to listen to shell extension context menu messages
+            NamedPipeServerStream serverStreamContextMenu = new NamedPipeServerStream(Environment.UserName + "/" + PipeName + "/ContextMenu",
+                PipeDirection.In,
+                1,
+                PipeTransmissionMode.Byte,
+                PipeOptions.None);
+            pipeThreadParamsContextMenu threadParamsContextMenu = new pipeThreadParamsContextMenu()
+            {
+                serverStream = serverStreamContextMenu,
+                serverLocker = pipeLocker,
+            };
+
+            // start a thread to process initial pipe connections, pass relevant userstate
+            (new Thread(() => RunServerPipeContextMenu(threadParamsContextMenu))).Start();
         }
 
         /// <summary>
@@ -992,6 +1027,88 @@ namespace BadgeNET
             }
             catch
             {
+            }
+        }
+
+        /// <summary>
+        /// Processes a receiving server pipe to communicate with a BadgeCOM object for the context menu support
+        /// </summary>
+        /// <param name="pipeParams"></param>
+        private void RunServerPipeContextMenu(pipeThreadParamsContextMenu pipeParams)
+        {
+            // try/catch which silences errors and stops badging functionality (should never error here)
+            try
+            {
+                // define locked function for checking running state
+                Func<pipeRunningHolder, bool> getPipeRunning = (runningHolder) =>
+                {
+                    lock (runningHolder)
+                    {
+                        return runningHolder.pipeRunning;
+                    }
+                };
+                // check running state with locked function, repeat until running state is false
+                while (getPipeRunning(pipeParams.serverLocker))
+                {
+                    // running state was true so wait for next client connection
+                    pipeParams.serverStream.WaitForConnection();
+                    if (pipeParams.serverStream != null)
+                    {
+                        // try/catch which silences errors, disconnects and but allows while loop to continue
+                        try
+                        {
+                            // We got a connection.  Read the JSON from the pipe and deserialize it to a POCO.
+                            StreamReader reader = new StreamReader(pipeParams.serverStream);
+                            ContextMenuObject msg = JsonConvert.DeserializeObject<ContextMenuObject>(reader.ReadLine());
+
+                            // Copy the files to the Cloud root directory.
+                            ContextMenuCopyFiles(msg);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            CLError err = ex;
+                            _trace.writeToLog(1, "IconOverlay: RunServerPipeContextMenu: ERROR: Exception. Msg: <{0}>, Code: {1}.", err.errorDescription, err.errorCode);
+                        }
+                        finally
+                        {
+                            // read operation complete, disconnect so next badge COM object can connect
+                            pipeParams.serverStream.Disconnect();
+                        }
+                    }
+                }
+                // running state was set to false causing listening loop to break, dispose of stream if it still exists
+                if (pipeParams.serverStream != null)
+                    pipeParams.serverStream.Close();
+            }
+            catch
+            {
+            }
+        }
+
+        /// <summary>
+        /// Copy the selected files to the Cloud root directory.
+        /// </summary>
+        /// <param name="returnParams"></param>
+        private void ContextMenuCopyFiles(ContextMenuObject msg)
+        {
+            foreach (string path in msg.asSelectedPaths)
+            {
+                // Remove any trailing backslash
+                string source = path.TrimEnd(new char[]{'\\', '/'});
+
+                // Get the filename.ext of the source path.
+                string filenameExt = Path.GetFileName(source);
+
+                // Build the target path
+                string target = Settings.Instance.CloudFolderPath + "X\\" + filenameExt;
+
+                // Copy it.
+                Dispatcher mainDispatcher = Application.Current.Dispatcher;
+                mainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    CLCopyFiles.CopyFileOrDirectoryWithUi(source, target);
+                }));
             }
         }
 

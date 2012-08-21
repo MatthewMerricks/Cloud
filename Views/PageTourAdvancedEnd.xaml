@@ -17,7 +17,7 @@
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageTourAdvancedEndViewModel, Source={StaticResource Locator}}" 
-    Title="Select Storage Size" >
+    Title="Setup Complete" >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -44,13 +44,10 @@
             <RowDefinition Height="50"/>
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
-
-        <Border x:Name="borderFullBackground" Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="5" Grid.RowSpan="3" RenderTransformOrigin="0.5,0.5">
-            <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_install_Complete.png"/>
-            </Border.Background>
-        </Border>
-
+        <Grid.Background>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_macinstall_finish.tiff"/>
+        </Grid.Background>
+        
         <Grid x:Name="gridNonButtonArea" Grid.Column="2" Width="Auto" >
         	<Grid.RowDefinitions>
         		<RowDefinition Height="268"/>

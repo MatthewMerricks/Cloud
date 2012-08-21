@@ -290,7 +290,7 @@
     <value>Move Cloud Folder?</value>
   </data>
   <data name="PromptExitApplication_BodyText" xml:space="preserve">
-    <value>Click the 'Yes' button to exit the Cloud application.</value>
+    <value>Are you sure you want to quit the Cloud.com application setup?</value>
   </data>
   <data name="PromptExitApplication_HeaderText" xml:space="preserve">
     <value>Do you wish to exit Cloud?</value>
