@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+// Push.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -15,16 +22,24 @@ namespace Sync.JsonContracts
         {
             get
             {
-                return CLDefinitions.SyncBodyRelativeRootPath;
+                if (!_relativeRootPathSet)
+                {
+                    _relativeRootPathSet = true;
+                    _relativeRootPath = CLDefinitions.SyncBodyRelativeRootPath;
+                }
+
+                return _relativeRootPath;
+            }
+            set
+            {
+                _relativeRootPathSet = true;
+                _relativeRootPath = value;
             }
         }
+        private string _relativeRootPath = null;
+        private bool _relativeRootPathSet = false;
 
         [DataMember(Name = CLDefinitions.CLSyncID, IsRequired = false)]
-        public string LastSyncId { get; private set; }
-
-        public Push(string lastSyncId)
-        {
-            this.LastSyncId = lastSyncId;
-        }
+        public string LastSyncId { get; set; }
     }
 }

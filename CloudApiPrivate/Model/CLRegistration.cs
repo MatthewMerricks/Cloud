@@ -22,6 +22,7 @@ using CloudApiPublic.Model;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Resources;
+using CloudApiPublic.Static;
 
 namespace CloudApiPrivate.Model
 {
@@ -83,7 +84,7 @@ namespace CloudApiPrivate.Model
                     {
                         bResult = task.Result;
                     }
-                    
+
                     if (ex != null)
                     {
                         err = new CLError();
@@ -93,7 +94,7 @@ namespace CloudApiPrivate.Model
                         err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
                         isSuccess = false;
                     }
-                    else if(!bResult)
+                    else if (!bResult)
                     {
                         err = errorFromAsync;
                         isSuccess = false;
@@ -112,7 +113,7 @@ namespace CloudApiPrivate.Model
                 }, ctMain);
 
             // Start timeout thread
-            Task.Factory.StartNew(() => 
+            Task.Factory.StartNew(() =>
             {
                 int ticksUntilTimeout = (int)(timeoutInSeconds / 0.100);
                 for (int i = 0; i < ticksUntilTimeout; ++i)
@@ -147,36 +148,79 @@ namespace CloudApiPrivate.Model
             bool isSuccess = false;
             error = null;
 
-            HttpClient client = new HttpClient(); 
+            HttpClient client = new HttpClient();
 
-            string body = String.Format(CLDefinitions.CLRegistrationCreateRequestBodyString,  
-                              account.FirstName, 
-                              account.LastName, 
-                              account.UserName, 
-                              account.Password,
-                              device.FriendlyName,
-                              device.Udid,
-                              device.OSType(),
-                              device.OSVersion(),
-                              "1.0",
-                              client_id,
-                              client_secret);
+            Func<bool, string> getBody = excludeAuthorization =>
+                {
+                    return String.Format(CLDefinitions.CLRegistrationCreateRequestBodyString,
+                        Helpers.JavaScriptStringEncode(account.FirstName, true),
+                        Helpers.JavaScriptStringEncode(account.LastName, true),
+                        (excludeAuthorization
+                            ? "---Username excluded---"
+                            : Helpers.JavaScriptStringEncode(account.UserName, true)),
+                        (excludeAuthorization
+                            ? "---Password excluded---"
+                            : Helpers.JavaScriptStringEncode(account.Password, true)),
+                        Helpers.JavaScriptStringEncode(device.FriendlyName, true),
+                        Helpers.JavaScriptStringEncode(device.Udid, true),
+                        Helpers.JavaScriptStringEncode(device.OSType(), true),
+                        Helpers.JavaScriptStringEncode(device.OSVersion(), true),
+                        Helpers.JavaScriptStringEncode(CLDefinitions.AppVersion.ToString(), false),
+                        Helpers.JavaScriptStringEncode(client_id, true),
+                        (excludeAuthorization
+                            ? "---Client secret excluded---"
+                            : Helpers.JavaScriptStringEncode(client_secret, true)));
+                };
+
+            string body = getBody(false);
+            string authorizationExcludedBody = null;
+            if (Settings.Settings.Instance.TraceEnabled
+                && Settings.Settings.Instance.TraceExcludeAuthorization)
+            {
+                authorizationExcludedBody = getBody(true);
+            }
 
             HttpContent content = new StringContent(body, Encoding.UTF8);
-            content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
+            content.Headers.ContentType.MediaType = "application/json";
+
+            if (Settings.Settings.Instance.TraceEnabled)
+            {
+                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                    Settings.Settings.Instance.Udid,
+                    Settings.Settings.Instance.Uuid,
+                    CommunicationEntryDirection.Request,
+                    CLDefinitions.CLRegistrationCreateRequestURLString,
+                    true,
+                    client.DefaultRequestHeaders,
+                    null,
+                    (Settings.Settings.Instance.TraceExcludeAuthorization ? (new StringContent(authorizationExcludedBody, Encoding.UTF8)) : content),
+                    Settings.Settings.Instance.TraceExcludeAuthorization);
+            }
 
             // Perform the Post and wait for the result synchronously.
-            var result = client.PostAsync(CLDefinitions.CLRegistrationCreateRequestURLString, content).Result;
+            var result = client.Post(CLDefinitions.CLRegistrationCreateRequestURLString, content);
+            if (Settings.Settings.Instance.TraceEnabled)
+            {
+                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                    Settings.Settings.Instance.Udid,
+                    Settings.Settings.Instance.Uuid,
+                    CommunicationEntryDirection.Response,
+                    CLDefinitions.CLRegistrationCreateRequestURLString,
+                    true,
+                    null,
+                    result.Headers,
+                    result.Content,
+                    Settings.Settings.Instance.TraceExcludeAuthorization);
+            }
             if (result.IsSuccessStatusCode)
             {
-            
                 string jsonResult = result.Content.ReadAsString();
 
                 _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
 
                 isSuccess = processCreateNewAccountServerResponse(outRegistration, jsonResult, out error);
-            } 
-            else 
+            }
+            else
             {
                 error = new CLError();
                 error.errorCode = (int)result.StatusCode;
@@ -198,7 +242,7 @@ namespace CloudApiPrivate.Model
         bool processCreateNewAccountServerResponse(CLRegistration outRegistration, string response, out CLError error)
         {
             bool retVal = true;
-    
+
             error = null;
             Dictionary<string, object> returnDictionary = CLSptJson.CLSptJsonDeserializeToDictionary(response);
 
@@ -211,7 +255,7 @@ namespace CloudApiPrivate.Model
                     error = new CLError();
                     error.errorCode = 1400;
                     error.errorDescription = String.Format((string)returnDictionary["message"], 1400) + ".";
-                    error.errorDomain = CLError.ErrorDomain_Application;            
+                    error.errorDomain = CLError.ErrorDomain_Application;
                 }
                 else
                 {
@@ -224,21 +268,21 @@ namespace CloudApiPrivate.Model
 
                     // device dictionary
                     Dictionary<string, object> deviceDictionary = new Dictionary<string, object>((Dictionary<string, object>)returnDictionary["device"]);
-            
-                    string apiKey = (string)returnDictionary["access_token"];
+
+                    string apiKey = (string)returnDictionary[CLDefinitions.CLRegistrationAccessTokenKey];
                     string devicename = (string)deviceDictionary["friendly_name"];
                     string uuid = userInfoDictionary["id"].ToString();
                     string username = (string)userInfoDictionary["email"];
                     string firstname = (string)userInfoDictionary["first_name"];
                     string lastname = (string)userInfoDictionary["last_name"];
-            
+
                     outRegistration.Uuid = uuid;
                     outRegistration.Token = apiKey;
                     outRegistration.LinkedDeviceName = devicename;
                     outRegistration.LinkedAccount = new CLAccount(username, firstname, lastname, null);
                 }
-                
-            } 
+
+            }
             else
             {
                 // JSON parse error
@@ -246,9 +290,9 @@ namespace CloudApiPrivate.Model
                 error = new CLError();
                 error.errorCode = 1400;
                 error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionCreatingUserRegistrationWithCode, 1400);
-                error.errorDomain = CLError.ErrorDomain_Application;            
+                error.errorDomain = CLError.ErrorDomain_Application;
             }
-    
+
             return retVal;
         }
 
@@ -336,28 +380,71 @@ namespace CloudApiPrivate.Model
 
             HttpClient client = new HttpClient();
 
-            string body = String.Format(CLDefinitions.CLRegistrationLinkRequestBodyString,
-                              userName,
-                              password,
-                              device.FriendlyName,
-                              device.Udid,
-                              device.OSType(),
-                              device.OSVersion(),
-                              "1.0",
-                              client_id,
-                              client_secret);
+            Func<bool, string> getBody = (excludeAuthorization) =>
+                {
+                    return String.Format(CLDefinitions.CLRegistrationLinkRequestBodyString,
+                        (excludeAuthorization
+                            ? "---Username excluded---"
+                            : Helpers.JavaScriptStringEncode(userName, true)),
+                        (excludeAuthorization
+                            ? "---Password excluded---"
+                            : Helpers.JavaScriptStringEncode(password, true)),
+                        Helpers.JavaScriptStringEncode(device.FriendlyName, true),
+                        Helpers.JavaScriptStringEncode(device.Udid, true),
+                        Helpers.JavaScriptStringEncode(device.OSType(), true),
+                        Helpers.JavaScriptStringEncode(device.OSVersion(), true),
+                        Helpers.JavaScriptStringEncode(CLDefinitions.AppVersion.ToString(), false),
+                        Helpers.JavaScriptStringEncode(client_id, true),
+                        (excludeAuthorization
+                            ? "---Client secret excluded---"
+                            : Helpers.JavaScriptStringEncode(client_secret, true)));
+                };
+
+            string body = getBody(false);
+            string authorizationExcludedBody = null;
+            if (Settings.Settings.Instance.TraceEnabled
+                && Settings.Settings.Instance.TraceExcludeAuthorization)
+            {
+                authorizationExcludedBody = getBody(true);
+            }
 
             this.Udid = device.Udid;
             _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: UDid: <{0}>.", this.Udid);
 
             HttpContent content = new StringContent(body, Encoding.UTF8);
-            content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
+            content.Headers.ContentType.MediaType = "application/json";
+
+            if (Settings.Settings.Instance.TraceEnabled)
+            {
+                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                    Settings.Settings.Instance.Udid,
+                    Settings.Settings.Instance.Uuid,
+                    CommunicationEntryDirection.Request,
+                    CLDefinitions.CLRegistrationLinkRequestURLString,
+                    true,
+                    client.DefaultRequestHeaders,
+                    null,
+                    (Settings.Settings.Instance.TraceExcludeAuthorization ? (new StringContent(authorizationExcludedBody, Encoding.UTF8)) : content),
+                    Settings.Settings.Instance.TraceExcludeAuthorization);
+            }
 
             // Perform the Post and wait for the result synchronously.
-            var result = client.PostAsync(CLDefinitions.CLRegistrationLinkRequestURLString, content).Result;
+            var result = client.Post(CLDefinitions.CLRegistrationLinkRequestURLString, content);
+            if (Settings.Settings.Instance.TraceEnabled)
+            {
+                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                    Settings.Settings.Instance.Udid,
+                    Settings.Settings.Instance.Uuid,
+                    CommunicationEntryDirection.Response,
+                    CLDefinitions.CLRegistrationLinkRequestURLString,
+                    true,
+                    null,
+                    result.Headers,
+                    result.Content,
+                    Settings.Settings.Instance.TraceExcludeAuthorization);
+            }
             if (result.IsSuccessStatusCode)
             {
-
                 string jsonResult = result.Content.ReadAsString();
 
                 _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
@@ -416,7 +503,9 @@ namespace CloudApiPrivate.Model
                     // device dictionary
                     Dictionary<string, object> deviceDictionary = new Dictionary<string, object>((Dictionary<string, object>)returnDictionary["device"]);
 
-                    string apiKey = (string)returnDictionary["access_token"];
+                    //¡¡ If the access token is ever not a root property of the server response with key CLDefinitions.CLRegistrationAccessTokenKey, !!
+                    //¡¡ then make sure to update CloudApiPublic.Static.Trace.LogCommunication private overload so that the property can be excluded when excludeAuthorization !!
+                    string apiKey = (string)returnDictionary[CLDefinitions.CLRegistrationAccessTokenKey];
                     string devicename = (string)deviceDictionary["friendly_name"];
                     string uuid = userInfoDictionary["id"].ToString();
                     string username = (string)userInfoDictionary["email"];
@@ -454,46 +543,46 @@ namespace CloudApiPrivate.Model
         {
             // Merged 7/20/12
             // BOOL success = YES;
-        
+
             // // create registration http request
             // AsyncHTTP *ahttp = [AsyncHTTP asyncHTTPWithRedirect:YES];
-    
+
             // NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:CLRegistrationUnlinkRequestURLString]];
             // [request setHTTPMethod:@"POST"];
-    
+
             // NSString *body = [NSString stringWithFormat:CLRegistrationUnlinkRequestBodyString, key];
-    
+
             // NSLog(@"%s - Link Request:\n\n%@\n\n", __FUNCTION__, body);
             // [request setHTTPBody:[body dataUsingEncoding:NSUTF8StringEncoding]];
-    
+
             // // send request to server 
             // dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{ 
             //    [ahttp issueRequest:request];
             // });
-    
+
             // if ([ahttp error] != nil) {
-        
+
             //     self.error_ = [ahttp error]; 
             //     success = NO;
-        
+
             // } else {
-        
+
             //     if ([ahttp statusCode] == HTTP_OK_200) {
-            
+
             //         NSLog(@"%s - Registration Response:\n\n%@\n\n", __FUNCTION__, [ahttp dataAsString]);
             //         success = [self processServerResponse:[ahttp dataAsString]];
-            
+
             //     } else {
-            
+
             //         NSMutableDictionary *errorDetail = [NSMutableDictionary dictionary];
             //         [errorDetail setValue:[NSString stringWithFormat:@"Ops. We're sorry, it seems like something went wrong. Error: %ld", [ahttp statusCode]]
             //                        forKey:NSLocalizedDescriptionKey];
-            
+
             //         self.error_ = [NSError errorWithDomain:@"com.cloud.error" code:[ahttp statusCode] userInfo:errorDetail];
             //         success = NO;
             //     }
             // }
-    
+
             // return success;
             //&&&&
 
@@ -511,8 +600,36 @@ namespace CloudApiPrivate.Model
             HttpContent content = new StringContent(body, Encoding.UTF8);
             content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
 
+            if (Settings.Settings.Instance.TraceEnabled)
+            {
+                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                    Settings.Settings.Instance.Udid,
+                    Settings.Settings.Instance.Uuid,
+                    CommunicationEntryDirection.Request,
+                    CLDefinitions.CLRegistrationUnlinkRequestURLString,
+                    true,
+                    client.DefaultRequestHeaders,
+                    null,
+                    content,
+                    Settings.Settings.Instance.TraceExcludeAuthorization);
+            }
+
             // Perform the Post and wait for the result synchronously.
             var result = client.PostAsync(CLDefinitions.CLRegistrationUnlinkRequestURLString, content).Result;
+
+            if (Settings.Settings.Instance.TraceEnabled)
+            {
+                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                    Settings.Settings.Instance.Udid,
+                    Settings.Settings.Instance.Uuid,
+                    CommunicationEntryDirection.Response,
+                    CLDefinitions.CLRegistrationUnlinkRequestURLString,
+                    true,
+                    null,
+                    result.Headers,
+                    result.Content,
+                    Settings.Settings.Instance.TraceExcludeAuthorization);
+            }
             if (!result.IsSuccessStatusCode)
             {
                 error = new CLError();

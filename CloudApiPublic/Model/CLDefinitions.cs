@@ -12,6 +12,9 @@ namespace CloudApiPublic.Model
 {
     public static class CLDefinitions
     {
+        public const string CLRegistrationAccessTokenKey = "access_token";
+
+        public const int AppVersion = 0;
 
 #if PRODUCTION_BACKEND
 
@@ -21,7 +24,7 @@ namespace CloudApiPublic.Model
 
         // Link/Unlink
         public const string CLRegistrationUnlinkRequestURLString  = @"https://auth.cloud.com/device/unlink.json";
-        public const string CLRegistrationUnlinkRequestBodyString = @"access_token=[0]";
+        public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + @"=[0]";
         public const string CLRegistrationLinkRequestURLString    = @"https://auth.cloud.com/device/link.json";
         public const string CLRegistrationLinkRequestBodyString   = @"email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&device[os_type]={4}&device[os_version]={5}&device[app_version]={6}";
 
@@ -38,18 +41,18 @@ namespace CloudApiPublic.Model
 
         // Registration
         public const string CLRegistrationCreateRequestURLString  = "https://auth-edge.cloudburrito.com/user/create.json";
-        public const string CLRegistrationCreateRequestBodyString = "user[first_name]={0}&user[last_name]={1}&user[email]={2}&user[password]={3}" +
-                                                                    "&device[friendly_name]={4}&device[device_uuid]={5}&device[os_type]={6}" +
-                                                                    "&device[os_version]={7}&device[app_version]={8}&client_id={9}&client_secret={10}";
+        public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
+                                                                    "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6}," +
+                                                                    "\"os_version\":{7},\"app_version\":{8}}},\"client_id\":{9},\"client_secret\":{10}}}";
 
         // Link/Unlink
         public const string CLRegistrationUnlinkRequestURLString  = "https://auth-edge.cloudburrito.com/device/unlink.json";
-        public const string CLRegistrationUnlinkRequestBodyString = "access_token={0}";
+        public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + "={0}";
 
         public const string CLRegistrationLinkRequestURLString    = "https://auth-edge.cloudburrito.com/device/link.json";
-        public const string CLRegistrationLinkRequestBodyString   = "email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&" +
-                                                                     "device[os_type]={4}&device[os_version]={5}&device[app_version]={6}&" +
-                                                                     "client_id={7}&client_secret={8}";
+        public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
+                                                                     "\"os_type\":{4},\"os_version\":{5},\"app_version\":{6}}}," +
+                                                                     "\"client_id\":{7},\"client_secret\":{8}}}";
 
         // Meta Data
         public const string CLMetaDataServerURL = @"https://mds-edge.cloudburrito.com";
@@ -70,14 +73,26 @@ namespace CloudApiPublic.Model
 
         // Method Path
         public const string MethodPathSyncFrom = "/sync/from_cloud";
+        public const string MethodPathDownload = "/get_file";
+        public const string MethodPathSyncTo = "/sync/to_cloud";
+
+        // Query string keys
+        public const string QueryStringUserId = "user_id";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
+        public const string HeaderKeyProxyAuthorization = "Proxy-Authorization";
+        public const string HeaderKeyProxyAuthenticate = "Proxy-Authenticate";
+        public const string HeaderKeyContentEncoding = "Content-Encoding";
+
+        // Sync constants
+        public const int SyncConstantsMaximumSyncToEvents = 1000;
+        public const int SyncConstantsResponseBufferSize = 4096;
 
         // HttpWebRequest Header Append
         public const string HeaderAppendToken = "Token=";
         public const string HeaderAppendContentType = "application/json";
-        public const string HeaderAppendTransferEncoding = "UTF-8";
+        public const string HeaderAppendContentEncoding = "UTF8";
         public const string HeaderAppendMethod = "POST";
         public const string HeaderAppendCloudClient = "Cloud Client";
 
@@ -153,6 +168,7 @@ namespace CloudApiPublic.Model
         };
 
         // Cloud Sync Status
+        public const string CLEventTypeAccepted = "ok";
         public const string CLEventTypeUpload = "upload";
         public const string CLEventTypeExists = "exists";
         public const string CLEventTypeDuplicate = "duplicate";
@@ -160,25 +176,27 @@ namespace CloudApiPublic.Model
         public const string CLEventTypeConflict = "conflict";
         public const string CLEventTypeNotFound = "not_found";
 
-        // Cloud Metadata Protocol 
+        // Cloud Metadata Protocol
         public const string CLMetadataCloudPath = "path";
         public const string CLMetadataFileHash = "file_hash";
         public const string CLMetadataFileRevision = "revision";
         public const string CLMetadataFileCreateDate = "created_date";
         public const string CLMetadataFileModifiedDate = "modified_date";
-        public const string CLMetadataFileIsDeleted = "isDeleted";
+        public const string CLMetadataFileIsDeleted = "isDeleted";// "is_deleted" according to latest SyncController docs on Jenkins?
         public const string CLMetadataFileIsDirectory = "is_folder";
         public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
         public const string CLMetadataIsPending = "is_pending";
         public const string CLMetadataFromPath = "from_path";
         public const string CLMetadataToPath = "to_path";
-        public const string CLMetadataItemStorageKey = "storage_key";
         public const string CLMetadataLastEventID = "last_event_id";
         public const string CLMetadataStorageKey = "storage_key";
         public const string CLMetadataFileTarget = "target_path";
         public const string CLMetadataParentPath = "parent_path";
         public const string CLMetadataFileCAttributes = "custom_attributes";
+        public const string CLMetadataMimeType = "mime_type";
+        public const string CLMetadataIcon = "icon";
+        public const string CLMetadataVersion = "version";
 
         // Cloud Events
         public const string CLSyncEvent = "event";
@@ -186,7 +204,10 @@ namespace CloudApiPublic.Model
         public const string CLSyncEventStatus = "status";
         public const string CLSyncEvents = "events";
         public const string CLSyncID = "sid";
+        public const string CLDefaultSyncID = "0";
         public const string CLSyncEventID = "eid";
+        public const string ResponsePendingCount = "pending_count";
+        public const string ResponsePartial = "partial_response";
 
         // Cloud Events Types
         public const string CLEventTypeAdd = "type_add";

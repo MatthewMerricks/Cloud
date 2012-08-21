@@ -439,7 +439,22 @@ namespace System.Net.Http
 
             if (isTransferEncodingSet && (headers.TransferEncoding.Count > 0))
             {
-                webRequest.TransferEncoding = GetValueString(headers.TransferEncoding);
+                try
+                {
+                    webRequest.SendChunked = false;
+                }
+                catch
+                {
+                }
+                try
+                {
+                    webRequest.TransferEncoding = GetValueString(headers.TransferEncoding);
+                }
+                catch
+                {
+                    webRequest.SendChunked = true;
+                    webRequest.TransferEncoding = GetValueString(headers.TransferEncoding);
+                }
             }
 
             if (isConnectionSet && (headers.Connection.Count > 0))
@@ -645,7 +660,8 @@ namespace System.Net.Http
         }
 
         protected internal override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            object userstate = null)
         {
             if (request == null)
             {
@@ -655,7 +671,7 @@ namespace System.Net.Http
 
             SetOperationStarted();
 
-            TaskCompletionSource<HttpResponseMessage> tcs = new TaskCompletionSource<HttpResponseMessage>();
+            TaskCompletionSource<HttpResponseMessage> tcs = new TaskCompletionSource<HttpResponseMessage>(userstate);
             try
             {
                 // Cancellation: Note that there is no race here: If the token gets canceled before we register the

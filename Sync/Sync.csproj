@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Net.Http, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -46,7 +50,14 @@
     <Compile Include="ExecutableException.cs" />
     <Compile Include="GlobalSyncEvents.cs" />
     <Compile Include="IExecutableException.cs" />
+    <Compile Include="JsonContracts\Download.cs" />
+    <Compile Include="JsonContracts\Event.cs" />
+    <Compile Include="JsonContracts\Header.cs" />
+    <Compile Include="JsonContracts\Metadata.cs" />
     <Compile Include="JsonContracts\Push.cs" />
+    <Compile Include="JsonContracts\PushResponse.cs" />
+    <Compile Include="JsonContracts\To.cs" />
+    <Compile Include="StreamFromJaggedByteArrays.cs" />
     <Compile Include="Sync.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HttpScheduler.cs" />

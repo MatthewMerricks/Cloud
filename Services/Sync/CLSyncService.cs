@@ -245,7 +245,7 @@ namespace win_client.Services.Sync
             //}
             if (_wasOffline)
             {
-                CLFSMonitoringService.Instance.MonitorAgent.FireSimulatedPushNotification();
+                CLFSMonitoringService.Instance.MonitorAgent.PushNotification(null);
                 _wasOffline = false;
             }
         }
@@ -714,16 +714,16 @@ namespace win_client.Services.Sync
 
                                     eventsReceived.Add(new KeyValuePair<CLEvent, FileStream>(
                                         CLEvent.EventFromMDSEvent(() =>
-                                        {
-                                            lock (CLFSMonitoringService.Instance.IndexingAgent)
                                             {
-                                                return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
-                                            }
-                                        },
-                                        () => Settings.Instance.CloudFolderPath,
-                                        mdsEventDictionary,
-                                        SyncDirection.To,
-                                        findLinkedEvent.Key),
+                                                lock (CLFSMonitoringService.Instance.IndexingAgent)
+                                                {
+                                                    return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                                                }
+                                            },
+                                            () => Settings.Instance.CloudFolderPath,
+                                            mdsEventDictionary,
+                                            SyncDirection.To,
+                                            findLinkedEvent.Key),
                                         findLinkedEvent.Value));
                                 }
                             }

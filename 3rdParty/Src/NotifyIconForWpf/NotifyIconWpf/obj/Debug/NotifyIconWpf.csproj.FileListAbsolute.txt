@@ -13,3 +13,10 @@ C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\Noti
 C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\NotifyIconWpf.csproj.GenerateResource.Cache
 C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.dll
 C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.pdb
+D:\CloudCom\windows-client.git\windows-client\3rdParty\Bin\Debug\Hardcodet.Wpf.TaskbarNotification.dll
+D:\CloudCom\windows-client.git\windows-client\3rdParty\Bin\Debug\Hardcodet.Wpf.TaskbarNotification.pdb
+D:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.g.resources
+D:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.Properties.Resources.resources
+D:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\NotifyIconWpf.csproj.GenerateResource.Cache
+D:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.dll
+D:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\NotifyIconWpf\obj\Debug\Hardcodet.Wpf.TaskbarNotification.pdb

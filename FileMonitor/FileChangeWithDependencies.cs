@@ -97,6 +97,7 @@ namespace FileMonitor
             base.Direction = baseChange.Direction;
             base.DoNotAddToSQLIndex = baseChange.DoNotAddToSQLIndex;
             base.EventId = baseChange.EventId;
+            base.FailureCounter = baseChange.FailureCounter;
             base.Metadata = baseChange.Metadata;
             base.NewPath = baseChange.NewPath;
             base.OldPath = baseChange.OldPath;
@@ -107,7 +108,7 @@ namespace FileMonitor
                 throw retrievePreviousMD5Bytes.GrabFirstException();
             }
             base.SetMD5(previousMD5Bytes);
-            base.FailureCounter = baseChange.FailureCounter;
+            base.Type = baseChange.Type;
 
             this._dependencies = new List<FileChange>(initialDependencies ?? new FileChange[0]);
         }
