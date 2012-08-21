@@ -35,7 +35,7 @@ namespace CloudApiPublic.Static
 
         private Copyright[] copyrightField;
 
-        private LogEntryType[] entryField;
+        private Entry[] entryField;
 
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute("Copyright")]
@@ -53,7 +53,7 @@ namespace CloudApiPublic.Static
 
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute("Entry")]
-        public LogEntryType[] Entry
+        public Entry[] Entry
         {
             get
             {
@@ -142,7 +142,7 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    public partial class LogEntryType
+    public partial class Entry
     {
 
         private int typeField;
@@ -212,7 +212,7 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    public partial class CommunicationEntry : LogEntryType
+    public partial class CommunicationEntry : Entry
     {
 
         private CommunicationEntryDirection directionField;

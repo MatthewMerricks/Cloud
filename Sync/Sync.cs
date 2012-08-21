@@ -444,7 +444,7 @@ namespace Sync
                 // Take events without dependencies that were not fired off in order to perform communication (or Sync From for no events left)
                 IEnumerable<KeyValuePair<bool, FileChange>> completedChanges;
                 IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>> incompleteChanges;
-                IEnumerable<KeyValuePair<bool, FileChange>> changesInError;
+                IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>> changesInError;
                 string newSyncId;
                 Exception communicationException = CommunicateWithServer(changesForCommunication.Take(CLDefinitions.SyncConstantsMaximumSyncToEvents),
                     mergeToSql,
@@ -479,11 +479,20 @@ namespace Sync
                     foreach (KeyValuePair<bool, FileChange> currentStoreUpdate in (completedChanges ?? Enumerable.Empty<KeyValuePair<bool, FileChange>>())
                         .Concat((incompleteChanges ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>())
                             .Select(currentIncompleteChange => new KeyValuePair<bool, FileChange>(currentIncompleteChange.Key, currentIncompleteChange.Value.Key)))
-                        .Concat(changesInError ?? Enumerable.Empty<KeyValuePair<bool, FileChange>>()))
+                        .Concat((changesInError ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>())
+                            .Select(currentChangeInError => new KeyValuePair<bool, FileChange>(currentChangeInError.Key, currentChangeInError.Value.Key))))
                     {
                         if (currentStoreUpdate.Key)
                         {
                             mergeToSql(currentStoreUpdate.Value, null);
+                        }
+                    }
+                    if (changesInError != null)
+                    {
+                        foreach (KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>> grabException in changesInError)
+                        {
+                            toReturn += grabException.Value.Value.Value;
+                            toReturn += grabException.Value.Value.Key;
                         }
                     }
 
@@ -515,8 +524,9 @@ namespace Sync
                             CLError postCommunicationDependencyError = dependencyAssignment((incompleteChanges ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>())
                                     .Select(currentIncompleteChange => currentIncompleteChange.Value)
                                     .Concat(uploadFilesWithoutStreams),
-                                dequeuedFailures.Concat((changesInError ?? Enumerable.Empty<KeyValuePair<bool, FileChange>>())
-                                    .Select(currentChangeInError => currentChangeInError.Value)),
+                                dequeuedFailures.Concat((changesInError ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>())
+                                    .Select(currentChangeInError => currentChangeInError.Value.Key)
+                                    .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
                                 out outputChanges,
                                 out topLevelErrors);
                             if (postCommunicationDependencyError != null)
@@ -864,6 +874,19 @@ namespace Sync
                                         downloadRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding;
                                         downloadRequest.ContentLength = requestBodyBytes.Length;
 
+                                        if (Settings.Instance.TraceEnabled)
+                                        {
+                                            Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                                Settings.Instance.Udid,
+                                                Settings.Instance.Uuid,
+                                                CommunicationEntryDirection.Request,
+                                                CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathDownload,
+                                                true,
+                                                downloadRequest.Headers,
+                                                requestBody,
+                                                Settings.Instance.TraceExcludeAuthorization);
+                                        }
+
                                         using (Stream downloadRequestStream = downloadRequest.GetRequestStream())
                                         {
                                             downloadRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
@@ -871,81 +894,102 @@ namespace Sync
 
                                         HttpWebResponse downloadResponse = (HttpWebResponse)downloadRequest.GetResponse();
 
-                                        if (downloadResponse.StatusCode != HttpStatusCode.OK)
+                                        string responseBody = null;
+                                        try
                                         {
-                                            string downloadResponseString = null;
-                                            try
-                                            {
-                                                using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
-                                                {
-                                                    using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
-                                                    {
-                                                        downloadResponseString = downloadResponseStreamReader.ReadToEnd();
-                                                    }
-                                                }
-                                            }
-                                            catch
-                                            {
-                                            }
-
-                                            throw new Exception("Invalid HTTP response status code in file download: " + ((int)downloadResponse.StatusCode).ToString() +
-                                                (downloadResponseString == null ? string.Empty
-                                                    : Environment.NewLine + "Response:" + Environment.NewLine +
-                                                    downloadResponseString));
-                                        }
-                                        else
-                                        {
-                                            Guid newTempFile = Guid.NewGuid();
-                                            castState.TempDownloads.Add(newTempFile);
-                                            string newTempFileString = castState.GetTempFolder() + "\\" + newTempFile.ToString("N");
-
-                                            long fileLength = 0;
-
-                                            using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
-                                            {
-                                                using (FileStream tempFileStream = new FileStream(newTempFileString, FileMode.Create, FileAccess.Write, FileShare.None))
-                                                {
-                                                    byte[] data = new byte[CLDefinitions.SyncConstantsResponseBufferSize];
-                                                    int read;
-                                                    while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
-                                                    {
-                                                        tempFileStream.Write(data, 0, read);
-
-                                                        fileLength += read;
-                                                    }
-                                                    tempFileStream.Flush();
-                                                }
-                                            }
-
-                                            File.SetCreationTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.CreationTime);
-                                            File.SetLastAccessTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
-                                            File.SetLastWriteTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
-
-                                            CLError applyError = applySyncFromChange(new FileChange()
-                                            {
-                                                Direction = SyncDirection.From,
-                                                DoNotAddToSQLIndex = true,
-                                                Metadata = toComplete.Key.Metadata,
-                                                NewPath = toComplete.Key.NewPath,
-                                                OldPath = newTempFileString,
-                                                Type = FileChangeType.Renamed
-                                            });
-                                            if (applyError != null)
+                                            if (downloadResponse.StatusCode != HttpStatusCode.OK)
                                             {
                                                 try
                                                 {
-                                                    File.Delete(newTempFileString);
+                                                    using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
+                                                    {
+                                                        using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
+                                                        {
+                                                            responseBody = downloadResponseStreamReader.ReadToEnd();
+                                                        }
+                                                    }
                                                 }
-                                                catch (Exception ex)
+                                                catch
                                                 {
-                                                    throw new AggregateException("applySyncFromChange returned error and failed to delete temp download file", new Exception[] { applyError.GrabFirstException(), ex });
                                                 }
-                                                throw applyError.GrabFirstException();
+
+                                                throw new Exception("Invalid HTTP response status code in file download: " + ((int)downloadResponse.StatusCode).ToString() +
+                                                    (responseBody == null ? string.Empty
+                                                        : Environment.NewLine + "Response:" + Environment.NewLine +
+                                                        responseBody));
                                             }
                                             else
                                             {
-                                                castState.TempDownloads.Remove(newTempFile);
-                                                return new KeyValuePair<long,Func<long,CLError>>(toComplete.Key.EventId, castState.CompleteSingleEvent);
+                                                responseBody = "---Incomplete file download---";
+
+                                                Guid newTempFile = Guid.NewGuid();
+                                                castState.TempDownloads.Add(newTempFile);
+                                                string newTempFileString = castState.GetTempFolder() + "\\" + newTempFile.ToString("N");
+
+                                                long fileLength = 0;
+
+                                                using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
+                                                {
+                                                    using (FileStream tempFileStream = new FileStream(newTempFileString, FileMode.Create, FileAccess.Write, FileShare.None))
+                                                    {
+                                                        byte[] data = new byte[CLDefinitions.SyncConstantsResponseBufferSize];
+                                                        int read;
+                                                        while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
+                                                        {
+                                                            tempFileStream.Write(data, 0, read);
+
+                                                            fileLength += read;
+                                                        }
+                                                        tempFileStream.Flush();
+                                                    }
+                                                }
+
+                                                File.SetCreationTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.CreationTime);
+                                                File.SetLastAccessTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
+                                                File.SetLastWriteTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
+
+                                                CLError applyError = applySyncFromChange(new FileChange()
+                                                {
+                                                    Direction = SyncDirection.From,
+                                                    DoNotAddToSQLIndex = true,
+                                                    Metadata = toComplete.Key.Metadata,
+                                                    NewPath = toComplete.Key.NewPath,
+                                                    OldPath = newTempFileString,
+                                                    Type = FileChangeType.Renamed
+                                                });
+                                                if (applyError != null)
+                                                {
+                                                    try
+                                                    {
+                                                        File.Delete(newTempFileString);
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        throw new AggregateException("applySyncFromChange returned error and failed to delete temp download file", new Exception[] { applyError.GrabFirstException(), ex });
+                                                    }
+                                                    throw applyError.GrabFirstException();
+                                                }
+                                                else
+                                                {
+                                                    castState.TempDownloads.Remove(newTempFile);
+                                                    responseBody = "---Completed file download---";
+                                                    return new KeyValuePair<long, Func<long, CLError>>(toComplete.Key.EventId, castState.CompleteSingleEvent);
+                                                }
+                                            }
+                                        }
+                                        finally
+                                        {
+                                            if (Settings.Instance.TraceEnabled)
+                                            {
+                                                Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                                    Settings.Instance.Udid,
+                                                    Settings.Instance.Uuid,
+                                                    CommunicationEntryDirection.Response,
+                                                    CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathDownload,
+                                                    true,
+                                                    downloadResponse.Headers,
+                                                    responseBody,
+                                                    Settings.Instance.TraceExcludeAuthorization);
                                             }
                                         }
                                     }
@@ -1045,7 +1089,7 @@ namespace Sync
             Func<string> getCloudRoot,
             out IEnumerable<KeyValuePair<bool, FileChange>> completedChanges,
             out IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>> incompleteChanges,
-            out IEnumerable<KeyValuePair<bool, FileChange>> changesInError,
+            out IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>> changesInError,
             out string newSyncId)
         {
             try
@@ -1063,7 +1107,513 @@ namespace Sync
                     // Mark any new FileChange or any FileChange with altered metadata with a true for return boolean
                     //     (notifies calling method to run MergeToSQL with the updates)
 
-                    throw new NotImplementedException("Sync To not implemented");
+                    Func<bool, FileChangeType, FilePath, string> getArgumentException = (isFolder, changeType, targetPath) =>
+                        {
+                            throw new ArgumentException("Invalid combination: " +
+                                (isFolder ? "Folder" : (targetPath == null ? "File" : "Shortcut")) +
+                                " " + changeType.ToString());
+                        };
+
+                    Func<long, long> ensureNonZeroEventId = toCheck =>
+                        {
+                            if (toCheck == 0)
+                            {
+                                throw new ArgumentException("Cannot communicate FileChange without EventId");
+                            }
+                            return toCheck;
+                        };
+
+                    long lastEventId = communicationArray.OrderByDescending(currentEvent => ensureNonZeroEventId(currentEvent.Key.EventId)).First().Key.EventId;
+
+                    JsonContracts.To syncTo = new JsonContracts.To()
+                    {
+                        SyncId = getLastSyncId() ?? CLDefinitions.CLDefaultSyncID,
+                        Events = communicationArray.Select(currentEvent => new JsonContracts.Event()
+                        {
+                            Action =
+                                // Folder events
+                                (currentEvent.Key.Metadata.HashableProperties.IsFolder
+                                ? (currentEvent.Key.Type == FileChangeType.Created
+                                    ? CLDefinitions.CLEventTypeAddFolder
+                                    : (currentEvent.Key.Type == FileChangeType.Deleted
+                                        ? CLDefinitions.CLEventTypeDeleteFolder
+                                        : (currentEvent.Key.Type == FileChangeType.Modified
+                                            ? getArgumentException(true, FileChangeType.Modified, null)
+                                            : (currentEvent.Key.Type == FileChangeType.Renamed
+                                                ? CLDefinitions.CLEventTypeRenameFolder
+                                                : getArgumentException(true, currentEvent.Key.Type, null)))))
+
+                                // File events
+                                : (currentEvent.Key.Metadata.LinkTargetPath == null
+                                    ? (currentEvent.Key.Type == FileChangeType.Created
+                                        ? CLDefinitions.CLEventTypeAddFile
+                                        : (currentEvent.Key.Type == FileChangeType.Deleted
+                                            ? CLDefinitions.CLEventTypeDeleteFile
+                                            : (currentEvent.Key.Type == FileChangeType.Modified
+                                                ? CLDefinitions.CLEventTypeModifyFile
+                                                : (currentEvent.Key.Type == FileChangeType.Renamed
+                                                    ? CLDefinitions.CLEventTypeRenameFile
+                                                    : getArgumentException(false, currentEvent.Key.Type, null)))))
+
+                                    // Shortcut events
+                                    : (currentEvent.Key.Type == FileChangeType.Created
+                                        ? CLDefinitions.CLEventTypeAddLink
+                                        : (currentEvent.Key.Type == FileChangeType.Deleted
+                                            ? CLDefinitions.CLEventTypeDeleteLink
+                                            : (currentEvent.Key.Type == FileChangeType.Modified
+                                                ? CLDefinitions.CLEventTypeModifyLink
+                                                : (currentEvent.Key.Type == FileChangeType.Renamed
+                                                    ? CLDefinitions.CLEventTypeRenameLink
+                                                    : getArgumentException(false, currentEvent.Key.Type, currentEvent.Key.Metadata.LinkTargetPath))))))),
+
+                            EventId = currentEvent.Key.EventId,
+                            Metadata = new JsonContracts.Metadata()
+                            {
+                                CreatedDate = currentEvent.Key.Metadata.HashableProperties.CreationTime,
+                                Deleted = currentEvent.Key.Type == FileChangeType.Deleted,
+                                Hash = ((Func<FileChange, string>)(innerEvent =>
+                                {
+                                    string currentEventMD5;
+                                    CLError currentEventMD5Error = innerEvent.GetMD5LowercaseString(out currentEventMD5);
+                                    if (currentEventMD5Error != null)
+                                    {
+                                        throw new AggregateException("Error retrieving currentEvent.GetMD5LowercaseString", currentEventMD5Error.GrabExceptions());
+                                    }
+                                    return currentEventMD5;
+                                }))(currentEvent.Key),
+                                IsFolder = currentEvent.Key.Metadata.HashableProperties.IsFolder,
+                                LastEventId = lastEventId,
+                                ModifiedDate = currentEvent.Key.Metadata.HashableProperties.LastTime,
+                                RelativeFromPath = (currentEvent.Key.OldPath == null
+                                    ? null
+                                    : currentEvent.Key.OldPath.GetRelativePath(getCloudRoot(), true)),
+                                RelativePath = currentEvent.Key.NewPath.GetRelativePath(getCloudRoot(), true),
+                                RelativeToPath = currentEvent.Key.NewPath.GetRelativePath(getCloudRoot(), true),
+                                Revision = currentEvent.Key.Metadata.Revision,
+                                Size = currentEvent.Key.Metadata.HashableProperties.Size,
+                                StorageKey = currentEvent.Key.Metadata.StorageKey,
+                                Version = "1.0"
+                            }
+                        }).ToArray()
+                    };
+
+                    string requestBody;
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        ToSerializer.WriteObject(ms, syncTo);
+                        requestBody = Encoding.Default.GetString(ms.ToArray());
+                    }
+
+                    byte[] requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
+
+                    HttpWebRequest toRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLMetaDataServerURL +
+                        CLDefinitions.MethodPathSyncTo +
+                        Helpers.QueryStringBuilder(new KeyValuePair<string, string>[]
+                            {
+                                new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, Settings.Instance.Uuid)
+                            }
+                        ));
+                    toRequest.Method = CLDefinitions.HeaderAppendMethod;
+                    toRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient;
+                    // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
+                    toRequest.Headers[CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersionHeaderName] = CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersion;
+                    toRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(Settings.Instance.Akey);
+                    toRequest.SendChunked = false;
+                    toRequest.Timeout = HttpTimeoutMilliseconds;
+                    toRequest.ContentType = CLDefinitions.HeaderAppendContentType;
+                    toRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding;
+                    toRequest.ContentLength = requestBodyBytes.Length;
+
+                    if (Settings.Instance.TraceEnabled)
+                    {
+                        Trace.LogCommunication(Settings.Instance.TraceLocation,
+                            Settings.Instance.Udid,
+                            Settings.Instance.Uuid,
+                            CommunicationEntryDirection.Request,
+                            CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom,
+                            true,
+                            toRequest.Headers,
+                            requestBody,
+                            Settings.Instance.TraceExcludeAuthorization);
+                    }
+
+                    using (Stream toRequestStream = toRequest.GetRequestStream())
+                    {
+                        toRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
+                    }
+
+                    HttpWebResponse toResponse = (HttpWebResponse)toRequest.GetResponse();
+
+                    JsonContracts.To deserializedResponse;
+                    using (Stream toHttpWebResponseStream = toResponse.GetResponseStream())
+                    {
+                        Stream toResponseStream = (Settings.Instance.TraceEnabled
+                            ? Helpers.CopyHttpWebResponseStreamAndClose(toHttpWebResponseStream)
+                            : toHttpWebResponseStream);
+
+                        try
+                        {
+                            if (Settings.Instance.TraceEnabled)
+                            {
+                                Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                    Settings.Instance.Udid,
+                                    Settings.Instance.Uuid,
+                                    CommunicationEntryDirection.Response,
+                                    CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncTo,
+                                    true,
+                                    toResponse.Headers,
+                                    toResponseStream,
+                                    Settings.Instance.TraceExcludeAuthorization);
+                            }
+
+                            if (toResponse.StatusCode != HttpStatusCode.OK)
+                            {
+                                string toResponseString = null;
+                                // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
+                                try
+                                {
+                                    using (TextReader toResponseStreamReader = new StreamReader(toResponseStream, Encoding.UTF8))
+                                    {
+                                        toResponseString = toResponseStreamReader.ReadToEnd();
+                                    }
+                                }
+                                catch
+                                {
+                                }
+
+                                throw new Exception("Invalid HTTP response status code in Sync To: " + ((int)toResponse.StatusCode).ToString() +
+                                    (toResponseString == null ? string.Empty
+                                        : Environment.NewLine + "Response:" + Environment.NewLine +
+                                        toResponseString));
+                            }
+
+                            deserializedResponse = (JsonContracts.To)ToSerializer.ReadObject(toResponseStream);
+                        }
+                        finally
+                        {
+                            if (Settings.Instance.TraceEnabled)
+                            {
+                                toResponseStream.Dispose();
+                            }
+                        }
+                    }
+
+                    if (deserializedResponse.Events == null)
+                    {
+                        throw new NullReferenceException("Invalid HTTP response body in Sync To, Events cannot be null");
+                    }
+                    if (deserializedResponse.SyncId == null)
+                    {
+                        throw new NullReferenceException("Invalid HTTP response body in Sync To, SyncId cannot be null");
+                    }
+                    newSyncId = deserializedResponse.SyncId;
+
+                    Dictionary<long, KeyValuePair<bool, FileChange>[]> completedChangesList = new Dictionary<long, KeyValuePair<bool, FileChange>[]>();
+                    Dictionary<long, List<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>> incompleteChangesList = new Dictionary<long, List<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                    Dictionary<long, KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]> changesInErrorList = new Dictionary<long,KeyValuePair<bool,KeyValuePair<FileChange,KeyValuePair<FileStream,Exception>>>[]>();
+                    HashSet<FileStream> completedStreams = new HashSet<FileStream>();
+                    foreach (JsonContracts.Event currentEvent in deserializedResponse.Events)
+                    {
+                        FileChangeWithDependencies currentChange = null;
+                        FileStream currentStream = null;
+                        try
+                        {
+                            currentChange = CreateFileChangeFromBaseChangePlusHash(new FileChange()
+                                {
+                                    Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To),
+                                    EventId = currentEvent.Header.EventId ?? 0,
+                                    Metadata = new FileMetadata()
+                                    {
+                                        HashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder ?? false,
+                                            currentEvent.Metadata.ModifiedDate,
+                                            currentEvent.Metadata.CreatedDate,
+                                            currentEvent.Metadata.Size),
+                                        LinkTargetPath = currentEvent.Metadata.TargetPath,
+                                        Revision = currentEvent.Metadata.Revision,
+                                        StorageKey = currentEvent.Metadata.StorageKey
+                                    },
+                                    NewPath = getCloudRoot() + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'),
+                                    OldPath = (currentEvent.Metadata.RelativeFromPath == null
+                                        ? null
+                                        : getCloudRoot() + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
+                                    Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action)
+                                },
+                                currentEvent.Metadata.Hash);
+
+                            Nullable<KeyValuePair<FileChange, FileStream>> matchedChange = (currentChange.EventId == 0
+                                ? (Nullable<KeyValuePair<FileChange, FileStream>>)null
+                                : toCommunicate.FirstOrDefault(currentToCommunicate => currentToCommunicate.Key.EventId == currentChange.EventId));
+                            if (matchedChange != null)
+                            {
+                                currentStream = ((KeyValuePair<FileChange, FileStream>)matchedChange).Value;
+                            }
+
+                            Func<FileChange, FileChange, bool> MD5sChanged = (firstChange, secondChange) =>
+                                {
+                                    byte[] firstMD5;
+                                    CLError firstChangeMD5Error = firstChange.GetMD5Bytes(out firstMD5);
+                                    if (firstChangeMD5Error != null)
+                                    {
+                                        throw new AggregateException("Error retrieving MD5 from firstChange", firstChangeMD5Error.GrabExceptions());
+                                    }
+                                    byte[] secondMD5;
+                                    CLError secondChangeMD5Error = secondChange.GetMD5Bytes(out secondMD5);
+                                    if (secondChangeMD5Error != null)
+                                    {
+                                        throw new AggregateException("Error retrieving MD5 from secondChange", secondChangeMD5Error.GrabExceptions());
+                                    }
+
+                                    return !((firstMD5 == null && secondMD5 == null)
+                                        || (firstMD5 != null && secondMD5 != null && firstMD5.Length == secondMD5.Length && MonitorAgent.memcmp(firstMD5, secondMD5, new UIntPtr((uint)firstMD5.Length)) == 0));
+                                };
+
+                            bool metadataIsDifferent = (matchedChange == null)
+                                || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Direction != currentChange.Direction
+                                || MD5sChanged(((KeyValuePair<FileChange, FileStream>)matchedChange).Key, currentChange)
+                                || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.CreationTime.CompareTo(currentChange.Metadata.HashableProperties.CreationTime) != 0
+                                || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.IsFolder != currentChange.Metadata.HashableProperties.IsFolder
+                                || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.LastTime.CompareTo(currentChange.Metadata.HashableProperties.LastTime) != 0
+                                || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.Size != currentChange.Metadata.HashableProperties.Size
+                                || !((((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.LinkTargetPath == null && currentChange.Metadata.LinkTargetPath == null)
+                                    || (((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.LinkTargetPath != null && currentChange.Metadata.LinkTargetPath != null && FilePathComparer.Instance.Equals(((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.LinkTargetPath, currentChange.Metadata.LinkTargetPath)))
+                                || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.Revision != currentChange.Metadata.Revision
+                                || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.StorageKey != currentChange.Metadata.StorageKey
+                                || !((((KeyValuePair<FileChange, FileStream>)matchedChange).Key.NewPath == null && currentChange.NewPath == null)
+                                    || (((KeyValuePair<FileChange, FileStream>)matchedChange).Key.NewPath != null && currentChange.NewPath != null && FilePathComparer.Instance.Equals(((KeyValuePair<FileChange, FileStream>)matchedChange).Key.NewPath, currentChange.NewPath)))
+                                || !((((KeyValuePair<FileChange, FileStream>)matchedChange).Key.OldPath == null && currentChange.OldPath == null)
+                                    || (((KeyValuePair<FileChange, FileStream>)matchedChange).Key.OldPath != null && currentChange.OldPath != null && FilePathComparer.Instance.Equals(((KeyValuePair<FileChange, FileStream>)matchedChange).Key.OldPath, currentChange.OldPath)))
+                                || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Type != currentChange.Type;
+                            
+                            FileChangeWithDependencies castMatchedChange;
+                            if (metadataIsDifferent)
+                            {
+                                if (matchedChange != null
+                                    && (castMatchedChange = ((KeyValuePair<FileChange, FileStream>)matchedChange).Key as FileChangeWithDependencies) != null)
+                                {
+                                    foreach (FileChange matchedDependency in castMatchedChange.Dependencies)
+                                    {
+                                        currentChange.AddDependency(matchedDependency);
+                                    }
+                                }
+                            }
+                            else if ((castMatchedChange = ((KeyValuePair<FileChange, FileStream>)matchedChange).Key as FileChangeWithDependencies) != null)
+                            {
+                                currentChange = castMatchedChange;
+                            }
+                            else
+                            {
+                                CLError convertMatchedChangeError = FileChangeWithDependencies.CreateAndInitialize(((KeyValuePair<FileChange, FileStream>)matchedChange).Key, null, out currentChange);
+                                if (convertMatchedChangeError != null)
+                                {
+                                    throw new AggregateException("Error converting matchedChange to FileChangeWithDependencies", convertMatchedChangeError.GrabExceptions());
+                                }
+                            }
+
+                            Action addToIncompleteChanges = () =>
+                                {
+                                    KeyValuePair<bool, KeyValuePair<FileChange, FileStream>> addChange = new KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>(metadataIsDifferent,
+                                            new KeyValuePair<FileChange, FileStream>(currentChange,
+                                                currentStream));
+                                    if (incompleteChangesList.ContainsKey(currentChange.EventId))
+                                    {
+                                        incompleteChangesList[currentChange.EventId].Add(addChange);
+                                    }
+                                    else
+                                    {
+                                        incompleteChangesList.Add(currentChange.EventId,
+                                            new List<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>(new KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>[]
+                                                {
+                                                    addChange
+                                                }));
+                                    }
+                                };
+
+                            switch (currentChange.Direction)
+                            {
+                                case SyncDirection.From:
+                                    addToIncompleteChanges();
+                                    break;
+                                case SyncDirection.To:
+                                    switch (currentEvent.Header.Status)
+                                    {
+                                        case CLDefinitions.CLEventTypeUpload:
+                                        case CLDefinitions.CLEventTypeUploading:
+                                            addToIncompleteChanges();
+                                            break;
+                                        case CLDefinitions.CLEventTypeAccepted:
+                                        case CLDefinitions.CLEventTypeExists:
+                                        case CLDefinitions.CLEventTypeDuplicate:
+                                            KeyValuePair<bool, FileChange> addCompletedChange = new KeyValuePair<bool, FileChange>(metadataIsDifferent,
+                                                currentChange);
+                                            if (currentStream != null)
+                                            {
+                                                completedStreams.Add(currentStream);
+                                                try
+                                                {
+                                                    currentStream.Dispose();
+                                                }
+                                                catch
+                                                {
+                                                }
+                                            }
+                                            if (completedChangesList.ContainsKey(currentChange.EventId))
+                                            {
+                                                KeyValuePair<bool, FileChange>[] previousCompleted = completedChangesList[currentChange.EventId];
+                                                KeyValuePair<bool, FileChange>[] newCompleted = new KeyValuePair<bool, FileChange>[previousCompleted.Length + 1];
+                                                previousCompleted.CopyTo(newCompleted, 0);
+                                                newCompleted[previousCompleted.Length] = addCompletedChange;
+                                                completedChangesList[currentChange.EventId] = newCompleted;
+                                            }
+                                            else
+                                            {
+                                                completedChangesList.Add(currentChange.EventId,
+                                                    new KeyValuePair<bool, FileChange>[]
+                                                    {
+                                                        addCompletedChange
+                                                    });
+                                            }
+                                            break;
+                                        case CLDefinitions.CLEventTypeConflict:
+                                            KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>> addErrorChange = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>(metadataIsDifferent,
+                                                new KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>(currentChange,
+                                                    new KeyValuePair<FileStream, Exception>(currentStream,
+                                                        new Exception(CLDefinitions.CLEventTypeConflict + " " +
+                                                            (currentEvent.Header.Action ?? currentEvent.Action) +
+                                                            " " + currentChange.EventId + " " + currentChange.NewPath.ToString()))));
+                                            if (changesInErrorList.ContainsKey(currentChange.EventId))
+                                            {
+                                                KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] previousErrors = changesInErrorList[currentChange.EventId];
+                                                KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] newErrors = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[previousErrors.Length + 1];
+                                                previousErrors.CopyTo(newErrors, 0);
+                                                newErrors[previousErrors.Length] = addErrorChange;
+                                                changesInErrorList[currentChange.EventId] = newErrors;
+                                            }
+                                            else
+                                            {
+                                                changesInErrorList.Add(currentChange.EventId,
+                                                    new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]
+                                                    {
+                                                        addErrorChange
+                                                    });
+                                            }
+                                            break;
+                                        default:
+                                            throw new ArgumentException("Uknown SyncHeader Status: " + currentEvent.Header.Status);
+                                    }
+                                    break;
+                                default:
+                                    throw new ArgumentException("Uknown SyncDirection in currentChange: " + currentChange.Direction.ToString());
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>> addErrorChange = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>(currentChange != null,
+                                new KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>(currentChange,
+                                    new KeyValuePair<FileStream, Exception>(currentStream, ex)));
+                            if (changesInErrorList.ContainsKey(currentChange == null ? 0 : currentChange.EventId))
+                            {
+                                KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] previousErrors = changesInErrorList[currentChange == null ? 0 : currentChange.EventId];
+                                KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] newErrors = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[previousErrors.Length + 1];
+                                previousErrors.CopyTo(newErrors, 0);
+                                newErrors[previousErrors.Length] = addErrorChange;
+                                changesInErrorList[currentChange.EventId] = newErrors;
+                            }
+                            else
+                            {
+                                changesInErrorList.Add(currentChange == null ? 0 : currentChange.EventId,
+                                    new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]
+                                        {
+                                            addErrorChange
+                                        });
+                            }
+                        }
+                    }
+
+                    foreach (KeyValuePair<FileChange, FileStream> currentOriginalChangeToFind in communicationArray)
+                    {
+                        bool foundEventId = false;
+                        bool foundMatchedStream = currentOriginalChangeToFind.Value == null;
+                        List<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>> tryGetIncompletes;
+                        if (incompleteChangesList.TryGetValue(currentOriginalChangeToFind.Key.EventId, out tryGetIncompletes))
+                        {
+                            foundEventId = true;
+                            if (!foundMatchedStream)
+                            {
+                                if (tryGetIncompletes.Any(currentIncomplete => currentIncomplete.Value.Value == currentOriginalChangeToFind.Value))
+                                {
+                                    foundMatchedStream = true;
+                                }
+                            }
+                        }
+                        KeyValuePair<bool, FileChange>[] tryGetCompletes;
+                        if ((!foundEventId && !foundMatchedStream)
+                            && completedChangesList.TryGetValue(currentOriginalChangeToFind.Key.EventId, out tryGetCompletes))
+                        {
+                            foundEventId = true;
+                            if (!foundMatchedStream)
+                            {
+                                if (completedStreams.Contains(currentOriginalChangeToFind.Value))
+                                {
+                                    foundMatchedStream = true;
+                                }
+                            }
+                        }
+                        KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] tryGetErrors;
+                        if ((!foundEventId && !foundMatchedStream)
+                            && changesInErrorList.TryGetValue(currentOriginalChangeToFind.Key.EventId, out tryGetErrors))
+                        {
+                            foundEventId = true;
+                            if (!foundMatchedStream)
+                            {
+                                if (tryGetErrors.Any(currentError => currentError.Value.Value.Key == currentOriginalChangeToFind.Value))
+                                {
+                                    foundMatchedStream = true;
+                                }
+                            }
+                        }
+
+                        Nullable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>> missingStream = null;
+                        if (!foundEventId)
+                        {
+                            missingStream = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>(false,
+                                    new KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>(currentOriginalChangeToFind.Key,
+                                        new KeyValuePair<FileStream, Exception>(currentOriginalChangeToFind.Value,
+                                            new Exception("Found unmatched FileChange in communicationArray in output lists"))));
+                        }
+                        else if (!foundMatchedStream)
+                        {
+                            missingStream = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>(false,
+                                    new KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>(null, // do not copy FileChange since it already exists in a list
+                                        new KeyValuePair<FileStream, Exception>(currentOriginalChangeToFind.Value,
+                                            new Exception("Found unmatched FileStream in communicationArray in output lists"))));
+                        }
+                        if (missingStream != null)
+                        {
+                            if (changesInErrorList.ContainsKey(currentOriginalChangeToFind.Key.EventId))
+                            {
+                                KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] previousErrors = changesInErrorList[currentOriginalChangeToFind.Key.EventId];
+                                KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] newErrors = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[previousErrors.Length + 1];
+                                previousErrors.CopyTo(newErrors, 0);
+                                newErrors[previousErrors.Length] = (KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>)missingStream;
+                                changesInErrorList[currentOriginalChangeToFind.Key.EventId] = newErrors;
+                            }
+                            else
+                            {
+                                changesInErrorList.Add(currentOriginalChangeToFind.Key.EventId,
+                                    new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]
+                                        {
+                                            (KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>)missingStream
+                                        });
+                            }
+                        }
+                    }
+
+                    completedChanges = completedChangesList.SelectMany(currentCompleted =>
+                        currentCompleted.Value);
+                    incompleteChanges = incompleteChangesList.SelectMany(currentIncomplete =>
+                        currentIncomplete.Value);
+                    changesInError = changesInErrorList.SelectMany(currentError =>
+                        currentError.Value);
                 }
                 else
                 {
@@ -1081,7 +1631,7 @@ namespace Sync
                             PushSerializer.WriteObject(ms,
                                 new JsonContracts.Push()
                                 {
-                                    RelativeRootPath = getLastSyncId()
+                                    LastSyncId = getLastSyncId() ?? CLDefinitions.CLDefaultSyncID
                                 });
                             requestBody = Encoding.Default.GetString(ms.ToArray());
                         }
@@ -1121,10 +1671,13 @@ namespace Sync
                         HttpWebResponse pushResponse = (HttpWebResponse)pushRequest.GetResponse();
 
                         JsonContracts.PushResponse deserializedResponse;
-                        bool responseTraced = false;
-                        try
+                        using (Stream pushHttpWebResponseStream = pushResponse.GetResponseStream())
                         {
-                            using (Stream pushResponseStream = pushResponse.GetResponseStream())
+                            Stream pushResponseStream = (Settings.Instance.TraceEnabled
+                                ? Helpers.CopyHttpWebResponseStreamAndClose(pushHttpWebResponseStream)
+                                : pushHttpWebResponseStream);
+
+                            try
                             {
                                 if (Settings.Instance.TraceEnabled)
                                 {
@@ -1138,8 +1691,6 @@ namespace Sync
                                         pushResponseStream,
                                         Settings.Instance.TraceExcludeAuthorization);
                                 }
-
-                                responseTraced = true;
 
                                 if (pushResponse.StatusCode != HttpStatusCode.OK)
                                 {
@@ -1164,102 +1715,28 @@ namespace Sync
 
                                 deserializedResponse = (JsonContracts.PushResponse)PushResponseSerializer.ReadObject(pushResponseStream);
                             }
-                        }
-                        catch
-                        {
-                            if (!responseTraced)
+                            finally
                             {
                                 if (Settings.Instance.TraceEnabled)
                                 {
-                                    Trace.LogCommunication(Settings.Instance.TraceLocation,
-                                        Settings.Instance.Udid,
-                                        Settings.Instance.Uuid,
-                                        CommunicationEntryDirection.Response,
-                                        CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom,
-                                        true,
-                                        pushResponse.Headers,
-                                        (string)null,
-                                        Settings.Instance.TraceExcludeAuthorization);
+                                    pushResponseStream.Dispose();
                                 }
                             }
-                            throw;
                         }
 
                         newSyncId = deserializedResponse.SyncId;
-                        Func<FileChange, string, FileChangeWithDependencies> createFileChange = (baseChange, hashString) =>
-                            {
-                                if (!string.IsNullOrWhiteSpace(hashString))
-                                {
-                                    char[] hexChars;
-                                    if (hashString.Length % 2 == 1)
-                                    {
-                                        hexChars = new char[hashString.Length + 1];
-                                        hexChars[0] = '0';
-                                        hashString.ToCharArray().CopyTo(hexChars, 1);
-                                    }
-                                    else
-                                    {
-                                        hexChars = hashString.ToCharArray();
-                                    }
-
-                                    int hexCharLength = hexChars.Length;
-                                    byte[] hexBuffer = new byte[hexCharLength / 2 + hexCharLength % 2];
-
-                                    int hexBufferIndex = 0;
-                                    for (int charIndex = 0; charIndex < hexCharLength - 1; charIndex += 2)
-                                    {
-                                        hexBuffer[hexBufferIndex] = byte.Parse(hexChars[charIndex].ToString(),
-                                            System.Globalization.NumberStyles.HexNumber,
-                                            System.Globalization.CultureInfo.InvariantCulture);
-                                        hexBuffer[hexBufferIndex] <<= 4;
-                                        hexBuffer[hexBufferIndex] += byte.Parse(hexChars[charIndex + 1].ToString(),
-                                            System.Globalization.NumberStyles.HexNumber,
-                                            System.Globalization.CultureInfo.InvariantCulture);
-                                        hexBufferIndex++;
-                                    }
-
-                                    baseChange.SetMD5(hexBuffer);
-                                }
-                                FileChangeWithDependencies returnedChange;
-                                CLError changeConversionError = FileChangeWithDependencies.CreateAndInitialize(baseChange, null, out returnedChange);
-                                if (changeConversionError != null)
-                                {
-                                    throw new AggregateException("Error converting baseChange to a FileChangeWithDependencies", changeConversionError.GrabExceptions());
-                                }
-                                return returnedChange;
-                            };
-                        Func<string, FileChangeType> parseEvent = eventString =>
-                            {
-                                if (CLDefinitions.SyncHeaderCreations.Contains(eventString))
-                                {
-                                    return FileChangeType.Created;
-                                }
-                                if (CLDefinitions.SyncHeaderDeletions.Contains(eventString))
-                                {
-                                    return FileChangeType.Deleted;
-                                }
-                                if (CLDefinitions.SyncHeaderModifications.Contains(eventString))
-                                {
-                                    return FileChangeType.Modified;
-                                }
-                                if (CLDefinitions.SyncHeaderRenames.Contains(eventString))
-                                {
-                                    return FileChangeType.Renamed;
-                                }
-                                throw new ArgumentException("eventString was not parsable to FileChangeType: " + eventString);
-                            };
-                        incompleteChanges = deserializedResponse.Events.Select(currentEvent => new KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>(/* needs to update SQL */ true, new KeyValuePair<FileChange, FileStream>(createFileChange(new FileChange()
+                        incompleteChanges = deserializedResponse.Events.Select(currentEvent => new KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>(/* needs to update SQL */ true, new KeyValuePair<FileChange, FileStream>(CreateFileChangeFromBaseChangePlusHash(new FileChange()
                         {
                             Direction = SyncDirection.From,
-                            NewPath = getCloudRoot() + "\\" + currentEvent.Metadata.RelativePath.Replace('/', '\\'),
+                            NewPath = getCloudRoot() + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'),
                             OldPath = (currentEvent.Metadata.RelativeFromPath == null
                                 ? null
                                 : getCloudRoot() + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
-                            Type = parseEvent(currentEvent.Action ?? currentEvent.Header.Event),
+                            Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action),
                             Metadata = new FileMetadata()
                             {
                                 //Need to find what key this is //LinkTargetPath
-                                HashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder,
+                                HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? false),
                                     currentEvent.Metadata.ModifiedDate,
                                     currentEvent.Metadata.CreatedDate,
                                     currentEvent.Metadata.Size),
@@ -1277,20 +1754,85 @@ namespace Sync
                         incompleteChanges = new KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>[0];
                         newSyncId = null;
                     }
-                    completedChanges = new KeyValuePair<bool, FileChange>[0];
-                    changesInError = new KeyValuePair<bool, FileChange>[0];
+                    completedChanges = Enumerable.Empty<KeyValuePair<bool, FileChange>>();
+                    changesInError = Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>();
                 }
             }
             catch (Exception ex)
             {
                 completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
                 incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
-                changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
                 newSyncId = Helpers.DefaultForType<string>();
                 return ex;
             }
             return null;
         }
+
+        private static FileChangeWithDependencies CreateFileChangeFromBaseChangePlusHash(FileChange baseChange, string hashString)
+        {
+            if (!string.IsNullOrWhiteSpace(hashString))
+            {
+                char[] hexChars;
+                if (hashString.Length % 2 == 1)
+                {
+                    hexChars = new char[hashString.Length + 1];
+                    hexChars[0] = '0';
+                    hashString.ToCharArray().CopyTo(hexChars, 1);
+                }
+                else
+                {
+                    hexChars = hashString.ToCharArray();
+                }
+
+                int hexCharLength = hexChars.Length;
+                byte[] hexBuffer = new byte[hexCharLength / 2 + hexCharLength % 2];
+
+                int hexBufferIndex = 0;
+                for (int charIndex = 0; charIndex < hexCharLength - 1; charIndex += 2)
+                {
+                    hexBuffer[hexBufferIndex] = byte.Parse(hexChars[charIndex].ToString(),
+                        System.Globalization.NumberStyles.HexNumber,
+                        System.Globalization.CultureInfo.InvariantCulture);
+                    hexBuffer[hexBufferIndex] <<= 4;
+                    hexBuffer[hexBufferIndex] += byte.Parse(hexChars[charIndex + 1].ToString(),
+                        System.Globalization.NumberStyles.HexNumber,
+                        System.Globalization.CultureInfo.InvariantCulture);
+                    hexBufferIndex++;
+                }
+
+                baseChange.SetMD5(hexBuffer);
+            }
+            FileChangeWithDependencies returnedChange;
+            CLError changeConversionError = FileChangeWithDependencies.CreateAndInitialize(baseChange, null, out returnedChange);
+            if (changeConversionError != null)
+            {
+                throw new AggregateException("Error converting baseChange to a FileChangeWithDependencies", changeConversionError.GrabExceptions());
+            }
+            return returnedChange;
+        }
+
+        private static FileChangeType ParseEventStringToType(string actionString)
+        {
+            if (CLDefinitions.SyncHeaderCreations.Contains(actionString))
+            {
+                return FileChangeType.Created;
+            }
+            if (CLDefinitions.SyncHeaderDeletions.Contains(actionString))
+            {
+                return FileChangeType.Deleted;
+            }
+            if (CLDefinitions.SyncHeaderModifications.Contains(actionString))
+            {
+                return FileChangeType.Modified;
+            }
+            if (CLDefinitions.SyncHeaderRenames.Contains(actionString))
+            {
+                return FileChangeType.Renamed;
+            }
+            throw new ArgumentException("eventString was not parsable to FileChangeType: " + actionString);
+        }
+
         private static DataContractJsonSerializer PushSerializer
         {
             get
@@ -1330,6 +1872,32 @@ namespace Sync
         }
         private static DataContractJsonSerializer _downloadSerializer = null;
         private static readonly object DownloadSerializerLocker = new object();
+        private static DataContractJsonSerializer ToSerializer
+        {
+            get
+            {
+                lock (ToSerializerLocker)
+                {
+                    return _toSerializer
+                        ?? (_toSerializer = new DataContractJsonSerializer(typeof(JsonContracts.To)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _toSerializer = null;
+        private static readonly object ToSerializerLocker = new object();
+        private static DataContractJsonSerializer EventSerializer
+        {
+            get
+            {
+                lock (EventSerializerLocker)
+                {
+                    return _eventSerializer
+                        ?? (_eventSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Event)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _eventSerializer = null;
+        private static readonly object EventSerializerLocker = new object();
 
         #endregion
     }

@@ -439,7 +439,22 @@ namespace System.Net.Http
 
             if (isTransferEncodingSet && (headers.TransferEncoding.Count > 0))
             {
-                webRequest.TransferEncoding = GetValueString(headers.TransferEncoding);
+                try
+                {
+                    webRequest.SendChunked = false;
+                }
+                catch
+                {
+                }
+                try
+                {
+                    webRequest.TransferEncoding = GetValueString(headers.TransferEncoding);
+                }
+                catch
+                {
+                    webRequest.SendChunked = true;
+                    webRequest.TransferEncoding = GetValueString(headers.TransferEncoding);
+                }
             }
 
             if (isConnectionSet && (headers.Connection.Count > 0))

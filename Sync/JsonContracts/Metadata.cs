@@ -86,7 +86,7 @@ namespace Sync.JsonContracts
         public string Icon { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataLastEventID, IsRequired = false)]
-        public int LastEventId { get; set; }
+        public Nullable<long> LastEventId { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataCloudPath, IsRequired = false)]
         public string RelativePath { get; set; }
@@ -98,7 +98,7 @@ namespace Sync.JsonContracts
         public string RelativeToPath { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataFileIsDirectory, IsRequired = false)]
-        public bool IsFolder { get; set; }
+        public Nullable<bool> IsFolder { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataFileRevision, IsRequired = false)]
         public string Revision { get; set; }
@@ -106,8 +106,11 @@ namespace Sync.JsonContracts
         [DataMember(Name = CLDefinitions.CLMetadataFileHash, IsRequired = false)]
         public string Hash { get; set; }
 
-        [DataMember(Name = CLDefinitions.CLMetadataItemStorageKey, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.CLMetadataStorageKey, IsRequired = false)]
         public string StorageKey { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataFileTarget, IsRequired = false)]
+        public string TargetPath { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataVersion, IsRequired = false)]
         public string Version { get; set; }

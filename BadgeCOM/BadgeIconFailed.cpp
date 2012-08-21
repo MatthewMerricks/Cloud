@@ -269,7 +269,7 @@ STDMETHODIMP CBadgeIconFailed::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 						// attempt to establish return connection on unique return pipename (widened to unicode)
 						if ((returnHandle = CreateFile(
 							returnPipeNameWide.c_str(), // Pipe name
-							GENERIC_READ, // Write access
+							GENERIC_READ, // Read access
 							0, // No sharing
 							NULL, // Default security attributes
 							OPEN_EXISTING, // Opens existing pipe

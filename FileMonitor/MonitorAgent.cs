@@ -1225,7 +1225,8 @@ namespace FileMonitor
                                 return converted;
                             };
 
-                        var AllFileChanges = (ProcessingChanges.Select(currentProcessingChange => new KeyValuePair<FileChangeSource, FileChange>(FileChangeSource.ProcessingChanges, currentProcessingChange))
+                        var AllFileChanges = (ProcessingChanges.DequeueAll()
+                            .Select(currentProcessingChange => new KeyValuePair<FileChangeSource, FileChange>(FileChangeSource.ProcessingChanges, currentProcessingChange))
                             .Concat(initialFailures.Select(currentInitialFailure => new KeyValuePair<FileChangeSource, FileChange>(FileChangeSource.FailureQueue, currentInitialFailure))))
                             .OrderBy(eventOrdering => eventOrdering.Value.EventId)
                             .Concat(QueuedChanges.Values
@@ -1350,8 +1351,8 @@ namespace FileMonitor
                                                         || newWriteTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.LastTime) != 0 // or last write time changed
                                                         || CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
                                                         || ((long)CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
-                                                        || (previousMD5Bytes == null && newMD5Bytes != null) // or previous md5 was not set
-                                                        || (newWriteTime != null && previousMD5Bytes.Length == newMD5Bytes.Length && memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0)) // or md5 changed
+                                                        || !((previousMD5Bytes == null && newMD5Bytes == null)
+                                                            || (previousMD5Bytes != null && newMD5Bytes != null && previousMD5Bytes.Length == newMD5Bytes.Length && MonitorAgent.memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0))) // or md5 changed
                                                     {
                                                         CLError setMD5Error = CurrentDependencyTree.DependencyFileChange.SetMD5(newMD5Bytes);
                                                         if (setMD5Error != null)
@@ -1421,7 +1422,7 @@ namespace FileMonitor
             return toReturn;
         }
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        static extern int memcmp(byte[] b1, byte[] b2, UIntPtr count);
+        public static extern int memcmp(byte[] b1, byte[] b2, UIntPtr count);
         private enum FileChangeSource : byte
         {
             QueuedChanges,

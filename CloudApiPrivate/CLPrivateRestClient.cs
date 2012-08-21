@@ -439,7 +439,7 @@ namespace CloudApiPrivate
                     metadata.Add(CLDefinitions.CLMetadataFileIsLink, isLink);
                     metadata.Add(CLDefinitions.CLMetadataFileRevision, changesForDictionaryArray[currentChangeIndex].Metadata.Revision);
                     metadata.Add(CLDefinitions.CLMetadataFileCAttributes, String.Empty);
-                    metadata.Add(CLDefinitions.CLMetadataItemStorageKey, changesForDictionaryArray[currentChangeIndex].Metadata.StorageKey);
+                    metadata.Add(CLDefinitions.CLMetadataStorageKey, changesForDictionaryArray[currentChangeIndex].Metadata.StorageKey);
                     //metadata.Add(CLDefinitions.CLMetadataLastEventID, changesForDictionaryArray[currentChangeIndex].EventId.ToString()); the client id is NOT the server's last_event_id; the client's EventId is passed below
 
                     metadata.Add(CLDefinitions.CLMetadataFileTarget, isLink ? changesForDictionaryArray[currentChangeIndex].Metadata.LinkTargetPath.ToString().Replace('\\', '/') : string.Empty);
@@ -590,6 +590,7 @@ namespace CloudApiPrivate
 
                             castState.Response = castState.Client.SendAsync(castState.Message).Result;
 
+                            // Known bug: shares Stream with the continue with task on this task
                             if (castState.TraceEnabled)
                             {
                                 Trace.LogCommunication(castState.TraceLocation,

@@ -56,6 +56,7 @@
     <Compile Include="JsonContracts\Metadata.cs" />
     <Compile Include="JsonContracts\Push.cs" />
     <Compile Include="JsonContracts\PushResponse.cs" />
+    <Compile Include="JsonContracts\To.cs" />
     <Compile Include="StreamFromJaggedByteArrays.cs" />
     <Compile Include="Sync.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

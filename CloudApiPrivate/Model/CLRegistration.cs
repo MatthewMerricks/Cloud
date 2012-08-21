@@ -150,38 +150,38 @@ namespace CloudApiPrivate.Model
 
             HttpClient client = new HttpClient();
 
-            string body = String.Format(CLDefinitions.CLRegistrationCreateRequestBodyString,
-                Helpers.JavaScriptStringEncode(account.FirstName, true),
-                Helpers.JavaScriptStringEncode(account.LastName, true),
-                Helpers.JavaScriptStringEncode(account.UserName, true),
-                Helpers.JavaScriptStringEncode(account.Password, true),
-                Helpers.JavaScriptStringEncode(device.FriendlyName, true),
-                Helpers.JavaScriptStringEncode(device.Udid, true),
-                Helpers.JavaScriptStringEncode(device.OSType(), true),
-                Helpers.JavaScriptStringEncode(device.OSVersion(), true),
-                "1.0",
-                Helpers.JavaScriptStringEncode(client_id, true),
-                Helpers.JavaScriptStringEncode(client_secret, true));
+            Func<bool, string> getBody = excludeAuthorization =>
+                {
+                    return String.Format(CLDefinitions.CLRegistrationCreateRequestBodyString,
+                        Helpers.JavaScriptStringEncode(account.FirstName, true),
+                        Helpers.JavaScriptStringEncode(account.LastName, true),
+                        (excludeAuthorization
+                            ? "---Username excluded---"
+                            : Helpers.JavaScriptStringEncode(account.UserName, true)),
+                        (excludeAuthorization
+                            ? "---Password excluded---"
+                            : Helpers.JavaScriptStringEncode(account.Password, true)),
+                        Helpers.JavaScriptStringEncode(device.FriendlyName, true),
+                        Helpers.JavaScriptStringEncode(device.Udid, true),
+                        Helpers.JavaScriptStringEncode(device.OSType(), true),
+                        Helpers.JavaScriptStringEncode(device.OSVersion(), true),
+                        Helpers.JavaScriptStringEncode(CLDefinitions.AppVersion.ToString(), false),
+                        Helpers.JavaScriptStringEncode(client_id, true),
+                        (excludeAuthorization
+                            ? "---Client secret excluded---"
+                            : Helpers.JavaScriptStringEncode(client_secret, true)));
+                };
+
+            string body = getBody(false);
             string authorizationExcludedBody = null;
             if (Settings.Settings.Instance.TraceEnabled
                 && Settings.Settings.Instance.TraceExcludeAuthorization)
             {
-                authorizationExcludedBody = String.Format(CLDefinitions.CLRegistrationCreateRequestBodyString,
-                    Helpers.JavaScriptStringEncode(account.FirstName, true),
-                    Helpers.JavaScriptStringEncode(account.LastName, true),
-                    "---Username excluded---",
-                    "---Password excluded---",
-                    Helpers.JavaScriptStringEncode(device.FriendlyName, true),
-                    Helpers.JavaScriptStringEncode(device.Udid, true),
-                    Helpers.JavaScriptStringEncode(device.OSType(), true),
-                    Helpers.JavaScriptStringEncode(device.OSVersion(), true),
-                    "1.0",
-                    Helpers.JavaScriptStringEncode(client_id, true),
-                    "---Client secret excluded---");
+                authorizationExcludedBody = getBody(true);
             }
 
             HttpContent content = new StringContent(body, Encoding.UTF8);
-            content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
+            content.Headers.ContentType.MediaType = "application/json";
 
             if (Settings.Settings.Instance.TraceEnabled)
             {
@@ -269,7 +269,7 @@ namespace CloudApiPrivate.Model
                     // device dictionary
                     Dictionary<string, object> deviceDictionary = new Dictionary<string, object>((Dictionary<string, object>)returnDictionary["device"]);
 
-                    string apiKey = (string)returnDictionary["access_token"];
+                    string apiKey = (string)returnDictionary[CLDefinitions.CLRegistrationAccessTokenKey];
                     string devicename = (string)deviceDictionary["friendly_name"];
                     string uuid = userInfoDictionary["id"].ToString();
                     string username = (string)userInfoDictionary["email"];
@@ -380,37 +380,39 @@ namespace CloudApiPrivate.Model
 
             HttpClient client = new HttpClient();
 
-            string body = String.Format(CLDefinitions.CLRegistrationLinkRequestBodyString,
-                Helpers.JavaScriptStringEncode(userName, true),
-                Helpers.JavaScriptStringEncode(password, true),
-                Helpers.JavaScriptStringEncode(device.FriendlyName, true),
-                Helpers.JavaScriptStringEncode(device.Udid, true),
-                Helpers.JavaScriptStringEncode(device.OSType(), true),
-                Helpers.JavaScriptStringEncode(device.OSVersion(), true),
-                "1.0",
-                Helpers.JavaScriptStringEncode(client_id, true),
-                Helpers.JavaScriptStringEncode(client_secret, true));
+            Func<bool, string> getBody = (excludeAuthorization) =>
+                {
+                    return String.Format(CLDefinitions.CLRegistrationLinkRequestBodyString,
+                        (excludeAuthorization
+                            ? "---Username excluded---"
+                            : Helpers.JavaScriptStringEncode(userName, true)),
+                        (excludeAuthorization
+                            ? "---Password excluded---"
+                            : Helpers.JavaScriptStringEncode(password, true)),
+                        Helpers.JavaScriptStringEncode(device.FriendlyName, true),
+                        Helpers.JavaScriptStringEncode(device.Udid, true),
+                        Helpers.JavaScriptStringEncode(device.OSType(), true),
+                        Helpers.JavaScriptStringEncode(device.OSVersion(), true),
+                        Helpers.JavaScriptStringEncode(CLDefinitions.AppVersion.ToString(), false),
+                        Helpers.JavaScriptStringEncode(client_id, true),
+                        (excludeAuthorization
+                            ? "---Client secret excluded---"
+                            : Helpers.JavaScriptStringEncode(client_secret, true)));
+                };
+
+            string body = getBody(false);
             string authorizationExcludedBody = null;
             if (Settings.Settings.Instance.TraceEnabled
                 && Settings.Settings.Instance.TraceExcludeAuthorization)
             {
-                authorizationExcludedBody = String.Format(CLDefinitions.CLRegistrationLinkRequestBodyString,
-                    "---Username excluded---",
-                    "---Password excluded---",
-                    Helpers.JavaScriptStringEncode(device.FriendlyName, true),
-                    Helpers.JavaScriptStringEncode(device.Udid, true),
-                    Helpers.JavaScriptStringEncode(device.OSType(), true),
-                    Helpers.JavaScriptStringEncode(device.OSVersion(), true),
-                    "1.0",
-                    Helpers.JavaScriptStringEncode(client_id, true),
-                    "---Client secret excluded---");
+                authorizationExcludedBody = getBody(true);
             }
 
             this.Udid = device.Udid;
             _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: UDid: <{0}>.", this.Udid);
 
             HttpContent content = new StringContent(body, Encoding.UTF8);
-            content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
+            content.Headers.ContentType.MediaType = "application/json";
 
             if (Settings.Settings.Instance.TraceEnabled)
             {
@@ -501,7 +503,9 @@ namespace CloudApiPrivate.Model
                     // device dictionary
                     Dictionary<string, object> deviceDictionary = new Dictionary<string, object>((Dictionary<string, object>)returnDictionary["device"]);
 
-                    string apiKey = (string)returnDictionary["access_token"];
+                    //¡¡ If the access token is ever not a root property of the server response with key CLDefinitions.CLRegistrationAccessTokenKey, !!
+                    //¡¡ then make sure to update CloudApiPublic.Static.Trace.LogCommunication private overload so that the property can be excluded when excludeAuthorization !!
+                    string apiKey = (string)returnDictionary[CLDefinitions.CLRegistrationAccessTokenKey];
                     string devicename = (string)deviceDictionary["friendly_name"];
                     string uuid = userInfoDictionary["id"].ToString();
                     string username = (string)userInfoDictionary["email"];

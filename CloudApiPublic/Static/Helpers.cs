@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -194,5 +195,74 @@ namespace CloudApiPublic.Static
             return sb.ToString();
         }
         #endregion
+
+        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            HashSet<TKey> seenKeys = new HashSet<TKey>();
+            foreach (TSource element in source)
+            {
+                if (seenKeys.Add(keySelector(element)))
+                {
+                    yield return element;
+                }
+            }
+        }
+
+        public static Stream CopyHttpWebResponseStreamAndClose(Stream inputStream)
+        {
+            byte[] buffer = new byte[FileConstants.BufferSize];
+            MemoryStream ms = new MemoryStream();
+
+            int count = inputStream.Read(buffer, 0, FileConstants.BufferSize);
+            while (count > 0)
+            {
+                ms.Write(buffer, 0, count);
+                count = inputStream.Read(buffer, 0, FileConstants.BufferSize);
+            }
+            ms.Position = 0;
+            inputStream.Close();
+            return ms;
+        }
+
+        public static IEnumerable<T> DequeueAll<T>(this LinkedList<T> toDequeue)
+        {
+            while (toDequeue.Count > 0)
+            {
+                T toReturn = toDequeue.First();
+                toDequeue.RemoveFirst();
+                yield return toReturn;
+            }
+        }
+
+        public static string QueryStringBuilder(IEnumerable<KeyValuePair<string, string>> queryStrings)
+        {
+            if (queryStrings == null)
+            {
+                return null;
+            }
+
+            StringBuilder toReturn = null;
+            IEnumerator<KeyValuePair<string, string>> queryEnumerator = queryStrings.GetEnumerator();
+            while (queryEnumerator.MoveNext())
+            {
+                if (toReturn == null)
+                {
+                    toReturn = new StringBuilder("?");
+                }
+                else
+                {
+                    toReturn.Append("&");
+                }
+
+                toReturn.Append(queryEnumerator.Current.Key + "=" + queryEnumerator.Current.Value);
+            }
+
+            if (toReturn == null)
+            {
+                return string.Empty;
+            }
+
+            return toReturn.ToString();
+        }
     }
 }

@@ -18,7 +18,7 @@
       Manually copy this copyright declaration to the header of any generated code files created from this schema
     </xs:documentation>
   </xs:annotation>
-  <xs:complexType name="LogEntryType">
+  <xs:complexType name="Entry">
     <xs:sequence>
       <xs:element name="Type" minOccurs="1" maxOccurs="1">
         <xs:simpleType>
@@ -46,7 +46,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>
-      <xs:extension base="LogEntryType">
+      <xs:extension base="Entry">
         <xs:sequence>
           <xs:element name="Direction">
             <xs:simpleType>
@@ -57,7 +57,7 @@
             </xs:simpleType>
           </xs:element>
           <xs:element name="Uri" type="xs:string" />
-          <xs:element name="Headers">
+          <xs:element name="Headers" minOccurs="0" maxOccurs="1">
             <xs:complexType>
               <xs:sequence>
                 <xs:element minOccurs="1" maxOccurs="unbounded" name="Header">
@@ -71,7 +71,7 @@
               </xs:sequence>
             </xs:complexType>
           </xs:element>
-          <xs:element name="Body" maxOccurs="1" type="xs:string" />
+          <xs:element name="Body" minOccurs="0" maxOccurs="1" type="xs:string" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -93,7 +93,7 @@
     <xs:complexType>
       <xs:sequence minOccurs="1" maxOccurs="unbounded">
         <xs:element name="Copyright" minOccurs="1" maxOccurs="1" type="Copyright" />
-        <xs:element name="Entry" type="LogEntryType" />
+        <xs:element name="Entry" type="Entry" minOccurs="0" maxOccurs="unbounded" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

@@ -47,7 +47,7 @@ namespace CloudApiPublic.Model
 
         string GenerateDeviceUDID()
         {
-            return Guid.NewGuid().ToString();
+            return Guid.NewGuid().ToString("D").ToUpperInvariant();
         }
     }
 }

@@ -714,16 +714,16 @@ namespace win_client.Services.Sync
 
                                     eventsReceived.Add(new KeyValuePair<CLEvent, FileStream>(
                                         CLEvent.EventFromMDSEvent(() =>
-                                        {
-                                            lock (CLFSMonitoringService.Instance.IndexingAgent)
                                             {
-                                                return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
-                                            }
-                                        },
-                                        () => Settings.Instance.CloudFolderPath,
-                                        mdsEventDictionary,
-                                        SyncDirection.To,
-                                        findLinkedEvent.Key),
+                                                lock (CLFSMonitoringService.Instance.IndexingAgent)
+                                                {
+                                                    return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                                                }
+                                            },
+                                            () => Settings.Instance.CloudFolderPath,
+                                            mdsEventDictionary,
+                                            SyncDirection.To,
+                                            findLinkedEvent.Key),
                                         findLinkedEvent.Value));
                                 }
                             }
