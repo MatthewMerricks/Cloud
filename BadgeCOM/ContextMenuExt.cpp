@@ -35,15 +35,27 @@ const wchar_t *CContextMenuExt::m_pwszVerb = L"CloudCOMVerb";
 
 CContextMenuExt::CContextMenuExt()
 {
-    m_hRegBmp = LoadBitmap (_AtlBaseModule.GetModuleInstance(), MAKEINTRESOURCE(IDB_BITMAP1) );
+	try
+	{
+	    m_hRegBmp = LoadBitmap (_AtlBaseModule.GetModuleInstance(), MAKEINTRESOURCE(IDB_BITMAP1) );
+	}
+	catch (...)
+	{
+	}
 }
 
 CContextMenuExt::~CContextMenuExt()
 {
-    if ( NULL != m_hRegBmp )
+	try
 	{
-        DeleteObject ( m_hRegBmp );
-		m_hRegBmp = NULL;
+		if ( NULL != m_hRegBmp )
+		{
+			DeleteObject ( m_hRegBmp );
+			m_hRegBmp = NULL;
+		}
+	}
+	catch (...)
+	{
 	}
 }
 
@@ -69,62 +81,76 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 	logStream<<"EnteredInitialize"<<std::endl;
 	logStream.close();*/
 
-	// Look for CF_HDROP data in the data object. If there
-	// is no such data, return an error back to Explorer.
-	if (FAILED(pDataObject->GetData(&fmt, &stg)))
-		return E_INVALIDARG;
-
-	// Get a pointer to the actual data.
-	hDrop = (HDROP)GlobalLock(stg.hGlobal);
-
-	// Make sure it worked.
-	if (NULL == hDrop)
-		return E_INVALIDARG;
-	
-	DROPFILES *hDropFiles = (DROPFILES *)hDrop;
-	
-	/*std::fstream logStream2;
-	logStream2.open("C:\\Users\\Public\\Documents\\logFile.txt", std::fstream::app | std::fstream::ate);
-	logStream2<<"hDropFiles->pFiles"<<hDropFiles->pFiles<<std::endl;
-	logStream2.close();*/
-	
-	if (!m_szFile.empty())
-		m_szFile.clear();
-
-	int hDropStartIndex = hDropFiles->pFiles;
-	wchar_t *hDropCurrentChar = (wchar_t *)malloc((MAX_PATH + 1) * sizeof(wchar_t));
-
-	while (true)
+	try
 	{
-		StrCpyW(hDropCurrentChar, (wchar_t *)hDropFiles + (hDropStartIndex / sizeof(wchar_t)));
-		std::wstring hDropCurrentString(hDropCurrentChar);
+		// Look for CF_HDROP data in the data object. If there
+		// is no such data, return an error back to Explorer.
+		if (FAILED(pDataObject->GetData(&fmt, &stg)))
+			return E_INVALIDARG;
 
-		if (hDropCurrentString.length() > 0)
+		// Get a pointer to the actual data.
+		hDrop = (HDROP)GlobalLock(stg.hGlobal);
+
+		// Make sure it worked.
+		if (NULL == hDrop)
 		{
-			hDropStartIndex += (hDropCurrentString.length() + 1) * sizeof(wchar_t);
-			m_szFile.push_back(hDropCurrentString);
+			return E_INVALIDARG;
 		}
-		else
-		{
-			break;
-		}
-	}
 	
-	// Sanity check – make sure there is at least one filename.
-	HRESULT hr = S_OK;
-	if (hDropStartIndex == hDropFiles->pFiles)
-	{
+		DROPFILES *hDropFiles = (DROPFILES *)hDrop;
+	
+		/*std::fstream logStream2;
+		logStream2.open("C:\\Users\\Public\\Documents\\logFile.txt", std::fstream::app | std::fstream::ate);
+		logStream2<<"hDropFiles->pFiles"<<hDropFiles->pFiles<<std::endl;
+		logStream2.close();*/
+	
+		if (!m_szFile.empty())
+			m_szFile.clear();
+
+		int hDropStartIndex = hDropFiles->pFiles;
+		wchar_t *hDropCurrentChar = (wchar_t *)malloc((MAX_PATH + 1) * sizeof(wchar_t));
+		if (hDropCurrentChar == NULL)
+		{
+			return E_INVALIDARG;
+		}
+
+		while (true)
+		{
+			StrCpyW(hDropCurrentChar, (wchar_t *)hDropFiles + (hDropStartIndex / sizeof(wchar_t)));
+			std::wstring hDropCurrentString(hDropCurrentChar);
+
+			if (hDropCurrentString.length() > 0)
+			{
+				hDropStartIndex += (hDropCurrentString.length() + 1) * sizeof(wchar_t);
+				m_szFile.push_back(hDropCurrentString);
+			}
+			else
+			{
+				break;
+			}
+		}
+	
+		// Sanity check – make sure there is at least one filename.
+		HRESULT hr = S_OK;
+		if (hDropStartIndex == hDropFiles->pFiles)
+		{
+			GlobalUnlock(stg.hGlobal);
+			ReleaseStgMedium(&stg);
+			return E_INVALIDARG;
+		}
+
+		// free locally allocated memory
+		free(hDropCurrentChar);
 		GlobalUnlock(stg.hGlobal);
 		ReleaseStgMedium(&stg);
-		return E_INVALIDARG;
+
+		return hr;
+	}
+	catch (...)
+	{
 	}
 
-	// free locally allocated memory
-	free(hDropCurrentChar);
-	GlobalUnlock(stg.hGlobal);
-	ReleaseStgMedium(&stg);
-
-	return hr;
+	return E_INVALIDARG;
 }
 
 // no idea??
@@ -144,46 +170,51 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 	logStream<<"Entered QueryContextMenu"<<std::endl;
 	logStream.close();*/
 
-	if(!(CMF_DEFAULTONLY & uFlags))
+	try
 	{
-		// Adds the custom menu item to the contex menu
-		InsertMenu(hMenu,
-			indexMenu,
-			MF_STRING | MF_BYPOSITION,
-			idCmdFirst + IDM_DISPLAY,
-			L"Share to &Cloud");
-
-		// Set the bitmap for the register item.
-		if ( NULL != m_hRegBmp )
+		if(!(CMF_DEFAULTONLY & uFlags))
 		{
-			SetMenuItemBitmaps(hMenu, indexMenu, MF_BYPOSITION, m_hRegBmp, NULL);
+			// Adds the custom menu item to the contex menu
+			InsertMenu(hMenu,
+				indexMenu,
+				MF_STRING | MF_BYPOSITION,
+				idCmdFirst + IDM_DISPLAY,
+				L"Share to &Cloud");
+
+			// Set the bitmap for the register item.
+			if ( NULL != m_hRegBmp )
+			{
+				SetMenuItemBitmaps(hMenu, indexMenu, MF_BYPOSITION, m_hRegBmp, NULL);
+			}
+
+			// TODO: Add error handling to verify HRESULT return values.
+
+			// need to make m_pszVerb non-constant
+			const size_t m_pszVerbLen = strlen(CContextMenuExt::m_pszVerb);
+			char * m_pszVerbCopy = new char[m_pszVerbLen + 1];
+			strncpy(m_pszVerbCopy, CContextMenuExt::m_pszVerb, m_pszVerbLen);
+			m_pszVerbCopy[m_pszVerbLen] = '\0';
+
+			// need to make m_pwszVerb non-constant
+			const size_t m_pwszVerbLen = lstrlen(CContextMenuExt::m_pwszVerb);
+			wchar_t * m_pwszVerbCopy = new wchar_t[m_pwszVerbLen + 1];
+			wcsncpy(m_pwszVerbCopy, CContextMenuExt::m_pwszVerb, m_pwszVerbLen);
+			m_pwszVerbCopy[m_pwszVerbLen] = '\0';
+
+			// writes the verbs to come back when the command fires??
+			hr = StringCbCopyA(m_pszVerbCopy, sizeof(m_pszVerbCopy), "ShareToCloud");
+			hr = StringCbCopyW(m_pwszVerbCopy, sizeof(m_pwszVerbCopy), L"ShareToCloud");
+
+			// free locally allocated memory
+			free(m_pszVerbCopy);
+			free(m_pwszVerbCopy);
+
+			return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(IDM_DISPLAY + 1));
 		}
-
-		// TODO: Add error handling to verify HRESULT return values.
-
-		// need to make m_pszVerb non-constant
-		const size_t m_pszVerbLen = strlen(CContextMenuExt::m_pszVerb);
-		char * m_pszVerbCopy = new char[m_pszVerbLen + 1];
-		strncpy(m_pszVerbCopy, CContextMenuExt::m_pszVerb, m_pszVerbLen);
-		m_pszVerbCopy[m_pszVerbLen] = '\0';
-
-		// need to make m_pwszVerb non-constant
-		const size_t m_pwszVerbLen = lstrlen(CContextMenuExt::m_pwszVerb);
-		wchar_t * m_pwszVerbCopy = new wchar_t[m_pwszVerbLen + 1];
-		wcsncpy(m_pwszVerbCopy, CContextMenuExt::m_pwszVerb, m_pwszVerbLen);
-		m_pwszVerbCopy[m_pwszVerbLen] = '\0';
-
-		// writes the verbs to come back when the command fires??
-		hr = StringCbCopyA(m_pszVerbCopy, sizeof(m_pszVerbCopy), "ShareToCloud");
-		hr = StringCbCopyW(m_pwszVerbCopy, sizeof(m_pwszVerbCopy), L"ShareToCloud");
-
-		// free locally allocated memory
-		free(m_pszVerbCopy);
-		free(m_pwszVerbCopy);
-
-		return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(IDM_DISPLAY + 1));
 	}
-
+	catch (...)
+	{
+	}
 	return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(0));
 }
 
@@ -208,37 +239,42 @@ STDMETHODIMP CContextMenuExt::GetCommandString (
 	LPSTR szName,
 	UINT cchMax)
 {
-USES_CONVERSION;
-LPCTSTR szPrompt;
+	USES_CONVERSION;
+	LPCTSTR szPrompt;
 
-    if ( uFlags & GCS_HELPTEXT )
-    {
-        // Copy the help text into the supplied buffer.  If the shell wants
-        // a Unicode string, we need to case szName to an LPCWSTR.
-		szPrompt = _T("Copy to your Cloud folder");
-        if ( uFlags & GCS_UNICODE )
+	try
+	{
+		if ( uFlags & GCS_HELPTEXT )
 		{
-            lstrcpynW ( (LPWSTR) szName, T2CW(szPrompt), cchMax );
+			// Copy the help text into the supplied buffer.  If the shell wants
+			// a Unicode string, we need to case szName to an LPCWSTR.
+			szPrompt = _T("Copy to your Cloud folder");
+			if ( uFlags & GCS_UNICODE )
+			{
+				lstrcpynW ( (LPWSTR) szName, T2CW(szPrompt), cchMax );
+			}
+			else
+			{
+				lstrcpynA ( szName, T2CA(szPrompt), cchMax );
+			}
 		}
-        else
+		else if ( uFlags & GCS_VERB )
 		{
-            lstrcpynA ( szName, T2CA(szPrompt), cchMax );
+			// Copy the verb name into the supplied buffer.  If the shell wants
+			// a Unicode string, we need to case szName to an LPCWSTR.
+			if ( uFlags & GCS_UNICODE )
+			{
+				lstrcpynW ( (LPWSTR) szName, m_pwszVerb, cchMax );
+			}
+			else
+			{
+				lstrcpynA ( szName, m_pszVerb, cchMax );
+			}
 		}
-    }
-    else if ( uFlags & GCS_VERB )
-    {
-		// Copy the verb name into the supplied buffer.  If the shell wants
-		// a Unicode string, we need to case szName to an LPCWSTR.
-        if ( uFlags & GCS_UNICODE )
-		{
-            lstrcpynW ( (LPWSTR) szName, m_pwszVerb, cchMax );
-		}
-        else
-		{
-            lstrcpynA ( szName, m_pszVerb, cchMax );
-		}
-    }
-
+	}
+	catch (...)
+	{
+	}
     return S_OK;
 }
 
@@ -255,134 +291,153 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	logStream<<"Entered InvokeCommand"<<std::endl;
 	logStream.close();*/
 
-	if(lpcmi->cbSize == sizeof(CMINVOKECOMMANDINFOEX))
+	try
 	{
-		fEx = TRUE;
-		if((lpcmi->fMask & CMIC_MASK_UNICODE))
+		if(lpcmi->cbSize == sizeof(CMINVOKECOMMANDINFOEX))
 		{
-			fUnicode = TRUE;
-		}
-	}
-
-	if(!fUnicode && HIWORD(lpcmi->lpVerb))
-	{
-		if(StrCmpIA(lpcmi->lpVerb, m_pszVerb))
-		{
-			return E_FAIL;
-		}
-	}
-
-	else if(fUnicode && HIWORD(((CMINVOKECOMMANDINFOEX *) lpcmi)->lpVerbW))
-	{
-		if(StrCmpIW(((CMINVOKECOMMANDINFOEX *)lpcmi)->lpVerbW, m_pwszVerb))
-		{
-			return E_FAIL;
-		}
-	}
-
-	else if(LOWORD(lpcmi->lpVerb) != IDM_DISPLAY)
-	{
-		return E_FAIL;
-	}
-
-	else
-	{
-		DWORD bytesWritten;
-		BYTE pathPointerBytes[8];
-		
-		bool cloudProcessStarted = false;
-		int cloudStartTries = 0;
-
-		HANDLE pipeHandle;
-		bool pipeConnectionFailed = false;
-
-		wchar_t lpszUsername[UNLEN];
-		DWORD dUsername = sizeof(lpszUsername);
- 
-		// Get the user name of the logged-in user.
-		if(!GetUserName(lpszUsername, &dUsername))
-		{
-			return E_FAIL;
-		}
-
-		// Build the pipe name.  This will be (no escapes): "\\.\Pipe\<UserName>/BadgeCOM/ContextMenu"
-		std::wstring pipeName = L"\\\\.\\Pipe\\";
-		pipeName.append(lpszUsername);
-		pipeName.append(L"/BadgeCOM/ContextMenu");
-
-		// Try to open the named pipe identified by the pipe name.
-		while (!pipeConnectionFailed)
-		{
-			pipeHandle = CreateFile(
-				pipeName.c_str(), // Pipe name
-				GENERIC_WRITE, // Write access
-				0, // No sharing
-				NULL, // Default security attributes
-				OPEN_EXISTING, // Opens existing pipe
-				0, // Default attributes
-				NULL // No template file
-				);
-			
-			// If the pipe handle is opened successfully then break out to continue
-			if (pipeHandle != INVALID_HANDLE_VALUE)
+			fEx = TRUE;
+			if((lpcmi->fMask & CMIC_MASK_UNICODE))
 			{
-				break;
+				fUnicode = TRUE;
 			}
-			// Pipe not successful, find out if it should try again
-			else
+		}
+
+		if(!fUnicode && HIWORD(lpcmi->lpVerb))
+		{
+			if(StrCmpIA(lpcmi->lpVerb, m_pszVerb))
 			{
-				// store not successful reason
-				DWORD dwError = GetLastError();
+				return E_FAIL;
+			}
+		}
 
-				// This is the normal path when the application is not running (dwError will equal ERROR_FILE_NOT_FOUND)
-				// Start the cloud process on the first attempt or increment a retry counter up to a certain point;
-				// after 10 seconds of retrying, display an error message and stop trying
-				if (ERROR_FILE_NOT_FOUND == dwError)
+		else if(fUnicode && HIWORD(((CMINVOKECOMMANDINFOEX *) lpcmi)->lpVerbW))
+		{
+			if(StrCmpIW(((CMINVOKECOMMANDINFOEX *)lpcmi)->lpVerbW, m_pwszVerb))
+			{
+				return E_FAIL;
+			}
+		}
+
+		else if(LOWORD(lpcmi->lpVerb) != IDM_DISPLAY)
+		{
+			return E_FAIL;
+		}
+
+		else
+		{
+			DWORD bytesWritten;
+			BYTE pathPointerBytes[8];
+		
+			bool cloudProcessStarted = false;
+			int cloudStartTries = 0;
+
+			HANDLE pipeHandle;
+			bool pipeConnectionFailed = false;
+
+			wchar_t lpszUsername[UNLEN];
+			DWORD dUsername = sizeof(lpszUsername);
+ 
+			// Get the user name of the logged-in user.
+			if(!GetUserName(lpszUsername, &dUsername))
+			{
+				return E_FAIL;
+			}
+
+			// Build the pipe name.  This will be (no escapes): "\\.\Pipe\<UserName>/BadgeCOM/ContextMenu"
+			std::wstring pipeName = L"\\\\.\\Pipe\\";
+			pipeName.append(lpszUsername);
+			pipeName.append(L"/BadgeCOM/ContextMenu");
+
+			// Try to open the named pipe identified by the pipe name.
+			while (!pipeConnectionFailed)
+			{
+				pipeHandle = CreateFile(
+					pipeName.c_str(), // Pipe name
+					GENERIC_WRITE, // Write access
+					0, // No sharing
+					NULL, // Default security attributes
+					OPEN_EXISTING, // Opens existing pipe
+					0, // Default attributes
+					NULL // No template file
+					);
+			
+				// If the pipe handle is opened successfully then break out to continue
+				if (pipeHandle != INVALID_HANDLE_VALUE)
 				{
-					if (!cloudProcessStarted)
-					{
+					break;
+				}
+				// Pipe not successful, find out if it should try again
+				else
+				{
+					// store not successful reason
+					DWORD dwError = GetLastError();
 
-						TCHAR programFilesDirectory[MAX_PATH];
-						SHGetSpecialFolderPathW(0, programFilesDirectory, CSIDL_PROGRAM_FILESX86, FALSE);
-						std::wstring cloudExeLocation(L"\"");
-						cloudExeLocation.append(programFilesDirectory);
-						cloudExeLocation.append(L"\\Cloud.com\\Cloud\\Cloud.exe\"");
-						
-						size_t rc = ExecuteProcess(cloudExeLocation, L"");
-						if (rc == 0)
+					// This is the normal path when the application is not running (dwError will equal ERROR_FILE_NOT_FOUND)
+					// Start the cloud process on the first attempt or increment a retry counter up to a certain point;
+					// after 10 seconds of retrying, display an error message and stop trying
+					if (ERROR_FILE_NOT_FOUND == dwError)
+					{
+						if (!cloudProcessStarted)
 						{
-							cloudProcessStarted = true;
+
+							TCHAR programFilesDirectory[MAX_PATH];
+							SHGetSpecialFolderPathW(0, programFilesDirectory, CSIDL_PROGRAM_FILESX86, FALSE);
+							std::wstring cloudExeLocation(L"\"");
+							cloudExeLocation.append(programFilesDirectory);
+							cloudExeLocation.append(L"\\Cloud.com\\Cloud\\Cloud.exe\"");
+						
+							size_t rc = ExecuteProcess(cloudExeLocation, L"");
+							if (rc == 0)
+							{
+								cloudProcessStarted = true;
+							}
+						}
+						else if (cloudStartTries > 99)
+						{
+							pipeConnectionFailed = true;
+
+							MessageBox(lpcmi->hwnd,
+								L"Cloud did not respond after ten seconds, operation cancelled",
+								L"Cloud",
+								MB_OK|MB_ICONINFORMATION);
+						}
+						else
+						{
+							cloudStartTries++;
+							Sleep(100);
 						}
 					}
-					else if (cloudStartTries > 99)
+					// pipe is busy
+					else if (ERROR_PIPE_BUSY == dwError)
 					{
-						pipeConnectionFailed = true;
+						// if waiting for a pipe does not complete in 2 seconds, exit  (by setting pipeConnectionFailed to true)
+						if (!WaitNamedPipe(pipeName.c_str(), 2000))
+						{
+							dwError = GetLastError();
 
-						MessageBox(lpcmi->hwnd,
-							L"Cloud did not respond after ten seconds, operation cancelled",
-							L"Cloud",
-							MB_OK|MB_ICONINFORMATION);
+							std::wstring errorMessage(L"Cloud is busy, operation cancelled: ");
+							wchar_t *dwErrorChar = new wchar_t[10];
+							wsprintf(dwErrorChar, L"%d", dwError);
+							errorMessage.append(dwErrorChar);
+							free(dwErrorChar);
+						
+							MessageBox(lpcmi->hwnd,
+								errorMessage.c_str(),
+								L"Cloud",
+								MB_OK|MB_ICONINFORMATION);
+
+							pipeConnectionFailed = true;
+						}
 					}
+					// unknown error
 					else
 					{
-						cloudStartTries++;
-						Sleep(100);
-					}
-				}
-				// pipe is busy
-				else if (ERROR_PIPE_BUSY == dwError)
-				{
-					// if waiting for a pipe does not complete in 2 seconds, exit  (by setting pipeConnectionFailed to true)
-					if (!WaitNamedPipe(pipeName.c_str(), 2000))
-					{
-						dwError = GetLastError();
-
-						std::wstring errorMessage(L"Cloud is busy, operation cancelled: ");
+						std::wstring errorMessage(L"An error occurred while communicating with Cloud, operation cancelled: ");
 						wchar_t *dwErrorChar = new wchar_t[10];
 						wsprintf(dwErrorChar, L"%d", dwError);
 						errorMessage.append(dwErrorChar);
 						free(dwErrorChar);
-						
+
 						MessageBox(lpcmi->hwnd,
 							errorMessage.c_str(),
 							L"Cloud",
@@ -391,65 +446,46 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 						pipeConnectionFailed = true;
 					}
 				}
-				// unknown error
-				else
-				{
-					std::wstring errorMessage(L"An error occurred while communicating with Cloud, operation cancelled: ");
-					wchar_t *dwErrorChar = new wchar_t[10];
-					wsprintf(dwErrorChar, L"%d", dwError);
-					errorMessage.append(dwErrorChar);
-					free(dwErrorChar);
-
-					MessageBox(lpcmi->hwnd,
-						errorMessage.c_str(),
-						L"Cloud",
-						MB_OK|MB_ICONINFORMATION);
-
-					pipeConnectionFailed = true;
-				}
 			}
-		}
 
-		// Get the coordinates of the current Explorer window
-		HWND hwnd = GetActiveWindow();
-		RECT rMyRect;
-		GetClientRect(hwnd, (LPRECT)&rMyRect);
-		ClientToScreen(hwnd, (LPPOINT)&rMyRect.left);
-		ClientToScreen(hwnd, (LPPOINT)&rMyRect.right);
+			// Get the coordinates of the current Explorer window
+			HWND hwnd = GetActiveWindow();
+			RECT rMyRect;
+			GetClientRect(hwnd, (LPRECT)&rMyRect);
+			ClientToScreen(hwnd, (LPPOINT)&rMyRect.left);
+			ClientToScreen(hwnd, (LPPOINT)&rMyRect.right);
 
-		// Put the information into a JSON object.  The formatted JSON will look like this:
-		// {
-		//		// Screen coordinates of the Explorer window.
-		//		"window_coordinates" : { "left" : 100, "top" : 200, "right" : 300, "bottom" : 400 },
-		//
-		//		"selected_paths" : [
-		//			"path 1",
-		//			"path 2",
-		//			"path 3"
-		//		]
-		// }
-		Json::Value root;
+			// Put the information into a JSON object.  The formatted JSON will look like this:
+			// {
+			//		// Screen coordinates of the Explorer window.
+			//		"window_coordinates" : { "left" : 100, "top" : 200, "right" : 300, "bottom" : 400 },
+			//
+			//		"selected_paths" : [
+			//			"path 1",
+			//			"path 2",
+			//			"path 3"
+			//		]
+			// }
+			Json::Value root;
 
-		// Add the screen coordinates of the Explorer window
-		root["rectExplorerWindowCoordinates"]["left"] = rMyRect.left;
-		root["rectExplorerWindowCoordinates"]["top"] = rMyRect.top;
-		root["rectExplorerWindowCoordinates"]["right"] = rMyRect.right;
-		root["rectExplorerWindowCoordinates"]["bottom"] = rMyRect.bottom;
+			// Add the screen coordinates of the Explorer window
+			root["rectExplorerWindowCoordinates"]["left"] = rMyRect.left;
+			root["rectExplorerWindowCoordinates"]["top"] = rMyRect.top;
+			root["rectExplorerWindowCoordinates"]["right"] = rMyRect.right;
+			root["rectExplorerWindowCoordinates"]["bottom"] = rMyRect.bottom;
 
-		// Add the selected paths
-		unsigned int index = 0;
-		while (!m_szFile.empty())
-		{
-			std::wstring currentPop = m_szFile.back();
-			m_szFile.pop_back();
+			// Add the selected paths
+			unsigned int index = 0;
+			while (!m_szFile.empty())
+			{
+				std::wstring currentPop = m_szFile.back();
+				m_szFile.pop_back();
 
-			 root["asSelectedPaths"][index++] = WStringToString(currentPop);
-		}
+				 root["asSelectedPaths"][index++] = WStringToString(currentPop);
+			}
 
-		// Send the information to BadgeNet in Cloud.exe.
-		if (!pipeConnectionFailed)
-		{
-			try
+			// Send the information to BadgeNet in Cloud.exe.
+			if (!pipeConnectionFailed)
 			{
 				// Format to a standard JSON string.
 				Json::FastWriter writer;
@@ -475,16 +511,12 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 					i++;
 				}
 			}
-			catch (exception &ex)
-			{
-				// Exception
-				//cout << "Standard exception: " << ex.what() << endl;
-				int i = 0;
-				i++;
-			}
 		}
-	}
 
+	}
+	catch (...)
+	{
+	}
 	return S_OK;
 }
 
@@ -495,81 +527,87 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters)
     DWORD dwExitCode = 0; 
     std::wstring sTempStr = L""; 
 
-    // Check to see if the file exists
-	LPCWSTR fullPathToExe = FullPathToExe.c_str();
-	if(INVALID_FILE_ATTRIBUTES == GetFileAttributesW(fullPathToExe) && GetLastError()==ERROR_FILE_NOT_FOUND) 
-	{ 
-	    // File not found 
-        return -2; 
-	} 
-
-	// Add a space to the beginning of the Parameters
-    if (Parameters.size() != 0) 
-    { 
-        if (Parameters[0] != L' ') 
-        { 
-            Parameters.insert(0,L" "); 
-        } 
-    } 
-
-    // The first parameter needs to be the exe itself
-    sTempStr = FullPathToExe; 
-    iPos = sTempStr.find_last_of(L"\\");
-
-	// The last character might be a double quote if the path contains blanks.  Remove the final double quote.
-    sTempStr.erase(0, iPos +1); 
-	if (sTempStr.length() > 0 && sTempStr.at(sTempStr.length()-1) == L'"')
+	try
 	{
-	    sTempStr.erase(sTempStr.length() - 1, sTempStr.length() - 1); 
+		// Check to see if the file exists
+		LPCWSTR fullPathToExe = FullPathToExe.c_str();
+		if(INVALID_FILE_ATTRIBUTES == GetFileAttributesW(fullPathToExe) && GetLastError()==ERROR_FILE_NOT_FOUND) 
+		{ 
+			// File not found 
+			return -2; 
+		} 
+
+		// Add a space to the beginning of the Parameters
+		if (Parameters.size() != 0) 
+		{ 
+			if (Parameters[0] != L' ') 
+			{ 
+				Parameters.insert(0,L" "); 
+			} 
+		} 
+
+		// The first parameter needs to be the exe itself
+		sTempStr = FullPathToExe; 
+		iPos = sTempStr.find_last_of(L"\\");
+
+		// The last character might be a double quote if the path contains blanks.  Remove the final double quote.
+		sTempStr.erase(0, iPos +1); 
+		if (sTempStr.length() > 0 && sTempStr.at(sTempStr.length()-1) == L'"')
+		{
+			sTempStr.erase(sTempStr.length() - 1, sTempStr.length() - 1); 
+		}
+
+		Parameters = sTempStr.append(Parameters); 
+
+		// CreateProcessW can modify Parameters thus we allocate needed memory
+		wchar_t * pwszParam = new wchar_t[Parameters.size() + 1]; 
+		if (pwszParam == 0) 
+		{ 
+			return -1; 
+		} 
+		const wchar_t* pchrTemp = Parameters.c_str(); 
+		wcscpy_s(pwszParam, Parameters.size() + 1, pchrTemp); 
+
+		// CreateProcess API initialization
+		STARTUPINFOW siStartupInfo; 
+		PROCESS_INFORMATION piProcessInfo; 
+		memset(&siStartupInfo, 0, sizeof(siStartupInfo)); 
+		memset(&piProcessInfo, 0, sizeof(piProcessInfo)); 
+		siStartupInfo.cb = sizeof(siStartupInfo); 
+
+		sTempStr = FullPathToExe;
+
+		//if (CreateProcessW(const_cast<LPCWSTR>(FullPathToExe.c_str()), 
+		//                        pwszParam, 0, 0, false, 
+		//                        CREATE_DEFAULT_ERROR_MODE, 0, 0, 
+		//                        &siStartupInfo, &piProcessInfo) != false) 
+		if (CreateProcessW(NULL,
+								&sTempStr[0], 0, 0, false, 
+								CREATE_DEFAULT_ERROR_MODE, 0, 0, 
+								&siStartupInfo, &piProcessInfo) != false) 
+		{ 
+			 // Watch the process.
+			 //dwExitCode = WaitForSingleObject(piProcessInfo.hProcess, (SecondsToWait * 1000)); 
+		} 
+		else
+		{ 
+			// CreateProcess failed
+			 iReturnVal = GetLastError(); 
+		} 
+
+		// Free memory
+		delete[]pwszParam; 
+		pwszParam = 0; 
+
+		// Release handles
+		CloseHandle(piProcessInfo.hProcess); 
+		CloseHandle(piProcessInfo.hThread); 
+	    return iReturnVal; 
 	}
-
-    Parameters = sTempStr.append(Parameters); 
-
-    // CreateProcessW can modify Parameters thus we allocate needed memory
-    wchar_t * pwszParam = new wchar_t[Parameters.size() + 1]; 
-    if (pwszParam == 0) 
-    { 
-        return -1; 
-    } 
-    const wchar_t* pchrTemp = Parameters.c_str(); 
-    wcscpy_s(pwszParam, Parameters.size() + 1, pchrTemp); 
-
-    // CreateProcess API initialization
-    STARTUPINFOW siStartupInfo; 
-    PROCESS_INFORMATION piProcessInfo; 
-    memset(&siStartupInfo, 0, sizeof(siStartupInfo)); 
-    memset(&piProcessInfo, 0, sizeof(piProcessInfo)); 
-    siStartupInfo.cb = sizeof(siStartupInfo); 
-
-	sTempStr = FullPathToExe;
-
-    //if (CreateProcessW(const_cast<LPCWSTR>(FullPathToExe.c_str()), 
-    //                        pwszParam, 0, 0, false, 
-    //                        CREATE_DEFAULT_ERROR_MODE, 0, 0, 
-    //                        &siStartupInfo, &piProcessInfo) != false) 
-    if (CreateProcessW(NULL,
-                            &sTempStr[0], 0, 0, false, 
-                            CREATE_DEFAULT_ERROR_MODE, 0, 0, 
-                            &siStartupInfo, &piProcessInfo) != false) 
-    { 
-         // Watch the process.
-         //dwExitCode = WaitForSingleObject(piProcessInfo.hProcess, (SecondsToWait * 1000)); 
-    } 
-    else
-    { 
-        // CreateProcess failed
-         iReturnVal = GetLastError(); 
-    } 
-
-    // Free memory
-    delete[]pwszParam; 
-    pwszParam = 0; 
-
-    // Release handles
-    CloseHandle(piProcessInfo.hProcess); 
-    CloseHandle(piProcessInfo.hThread); 
-
-    return iReturnVal; 
+	catch (...)
+	{
+	}
+	return -3;
 } 
 
 // Convert a std::string to a std::wstring
