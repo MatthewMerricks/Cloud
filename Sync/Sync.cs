@@ -261,7 +261,7 @@ namespace Sync
                 lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
                 {
                     IEnumerable<FileChange> initialErrors = new FileChange[FailedChangesQueue.Count];
-                    for (int initialErrorIndex = 0; initialErrorIndex < FailedChangesQueue.Count; initialErrorIndex++)
+                    for (int initialErrorIndex = 0; initialErrorIndex < ((FileChange[])initialErrors).Length; initialErrorIndex++)
                     {
                         ((FileChange[])initialErrors)[initialErrorIndex] = FailedChangesQueue.Dequeue();
                     }
