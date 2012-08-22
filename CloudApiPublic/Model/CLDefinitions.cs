@@ -74,6 +74,8 @@ namespace CloudApiPublic.Model
         // Method Path
         public const string MethodPathSyncFrom = "/sync/from_cloud";
         public const string MethodPathDownload = "/get_file";
+        public const string MethodPathUpload = "/put_file";
+
         public const string MethodPathSyncTo = "/sync/to_cloud";
 
         // Query string keys
@@ -91,10 +93,13 @@ namespace CloudApiPublic.Model
 
         // HttpWebRequest Header Append
         public const string HeaderAppendToken = "Token=";
-        public const string HeaderAppendContentType = "application/json";
+        public const string HeaderAppendContentTypeJson = "application/json";
+        public const string HeaderAppendContentTypeBinary = "application/octet-stream";
         public const string HeaderAppendContentEncoding = "UTF8";
         public const string HeaderAppendMethod = "POST";
         public const string HeaderAppendCloudClient = "Cloud Client";
+        public const string HeaderAppendStorageKey = "X-Ctx-Storage-Key";
+        public const string HeaderAppendContentMD5 = "Content-MD5";
 
         public static string WrapInDoubleQuotes(string toWrap)
         {
