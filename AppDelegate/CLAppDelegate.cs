@@ -262,7 +262,7 @@ namespace win_client.AppDelegate
 
 
         //- (BOOL)unlinkFromCloudDotCom
-        public bool UnlinkFromCloudDotCom(out CLError error)
+        public void UnlinkFromCloudDotCom(out CLError error)
         {
             // Merged 7/26/12
             //BOOL rc = YES;
@@ -295,8 +295,15 @@ namespace win_client.AppDelegate
             //// todo: tell cloud service to untrust this device and wait for confirmation.
             //CLRegistration *regstration = [[CLRegistration alloc] init];
             //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
-            CLRegistration registration = new CLRegistration();
-            bool rc = registration.UnlinkDeviceWithAccessKey(Settings.Instance.Akey, out error);
+            if (!String.IsNullOrEmpty(Settings.Instance.Akey))
+            {
+                CLRegistration registration = new CLRegistration();
+                registration.UnlinkDeviceWithAccessKey(Settings.Instance.Akey, out error);
+            }
+            else
+            {
+                error = null;
+            }
 
             //// stop services.
             //CLAppDelegate *delegate = [NSApp delegate];
@@ -320,7 +327,6 @@ namespace win_client.AppDelegate
             //TODO: Stop the badging service.
 
             //return rc;
-            return rc;
         }
 
         /// <summary>
@@ -336,10 +342,10 @@ namespace win_client.AppDelegate
                 {
                     // Iterate through all of the files in the directory.  Stop if we get anything other than the
                     // Public and/or Pictures directory.
-                    foreach (string file in Directory.EnumerateFiles(Settings.Instance.CloudFolderPath, "*.*", SearchOption.AllDirectories))
+                    foreach (string entry in Directory.EnumerateFileSystemEntries(Settings.Instance.CloudFolderPath, "*.*", SearchOption.AllDirectories))
                     {
-                        if (file.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPicturesFolder, StringComparison.InvariantCulture)
-                               || file.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPublicFolder, StringComparison.InvariantCulture))
+                        if (entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPicturesFolder, StringComparison.InvariantCulture)
+                               || entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPublicFolder, StringComparison.InvariantCulture))
                         {
                             continue;
                         }

@@ -23,6 +23,7 @@ using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Resources;
 using CloudApiPublic.Static;
+using System.IO;
 
 namespace CloudApiPrivate.Model
 {
@@ -87,11 +88,7 @@ namespace CloudApiPrivate.Model
 
                     if (ex != null)
                     {
-                        err = new CLError();
-                        err.errorDomain = CLError.ErrorDomain_Application;
-                        err.errorDescription = CloudApiPublic.Resources.Resources.ExceptionCreatingUserRegistration;
-                        err.errorCode = (int)CLError.ErrorCodes.Exception;
-                        err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
+                        err += ex;
                         isSuccess = false;
                     }
                     else if (!bResult)
@@ -197,36 +194,117 @@ namespace CloudApiPrivate.Model
                     Settings.Settings.Instance.TraceExcludeAuthorization);
             }
 
+            HttpResponseMessage result = null;
+
             // Perform the Post and wait for the result synchronously.
-            var result = client.Post(CLDefinitions.CLRegistrationCreateRequestURLString, content);
-            if (Settings.Settings.Instance.TraceEnabled)
+            try
             {
-                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                    Settings.Settings.Instance.Udid,
-                    Settings.Settings.Instance.Uuid,
-                    CommunicationEntryDirection.Response,
-                    CLDefinitions.CLRegistrationCreateRequestURLString,
-                    true,
-                    null,
-                    result.Headers,
-                    result.Content,
-                    Settings.Settings.Instance.TraceExcludeAuthorization);
+                result = client.Post(CLDefinitions.CLRegistrationCreateRequestURLString, content);
             }
-            if (result.IsSuccessStatusCode)
+            catch (AggregateException ex)
             {
-                string jsonResult = result.Content.ReadAsString();
+                System.Net.WebException foundWebEx = null;
 
-                _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
+                Func<object, Exception, bool> findWebEx = (findFunc, toCheck) =>
+                {
+                    Func<object, Exception, bool> castFunc = findFunc as Func<object, Exception, bool>;
+                    if (castFunc != null)
+                    {
+                        foundWebEx = toCheck as System.Net.WebException;
+                        if (foundWebEx != null)
+                        {
+                            return true;
+                        }
+                        if (toCheck.InnerException != null)
+                        {
+                            return castFunc(findFunc, toCheck.InnerException);
+                        }
+                    }
+                    return false;
+                };
 
-                isSuccess = processCreateNewAccountServerResponse(outRegistration, jsonResult, out error);
+                foreach (Exception currentInnerException in ex.Flatten().InnerExceptions)
+                {
+                    if (findWebEx(findWebEx, currentInnerException))
+                    {
+                        break;
+                    }
+                }
+
+                System.Net.HttpWebResponse exceptionResponse;
+                if (foundWebEx != null
+                    && (exceptionResponse = foundWebEx.Response as System.Net.HttpWebResponse) != null)
+                {
+                    string exceptionBody = null;
+                    try
+                    {
+                        using (Stream createNewAccountResponseStream = exceptionResponse.GetResponseStream())
+                        {
+                            using (StreamReader createNewAccountResponseStreamReader = new StreamReader(createNewAccountResponseStream, Encoding.UTF8))
+                            {
+                                exceptionBody = createNewAccountResponseStreamReader.ReadToEnd();
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+
+                    if (Settings.Settings.Instance.TraceEnabled)
+                    {
+                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            Settings.Settings.Instance.Udid,
+                            Settings.Settings.Instance.Uuid,
+                            CommunicationEntryDirection.Response,
+                            CLDefinitions.CLRegistrationCreateRequestURLString,
+                            true,
+                            exceptionResponse.Headers,
+                            exceptionBody,
+                            Settings.Settings.Instance.TraceExcludeAuthorization);
+                    }
+
+                    error += new AggregateException("Create account error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
+                        (string.IsNullOrEmpty(exceptionBody)
+                        ? string.Empty
+                        : Environment.NewLine + "Response: " + exceptionBody), ex);
+                }
+                else
+                {
+                    throw ex;
+                }
             }
-            else
+
+            if (result != null)
             {
-                error = new CLError();
-                error.errorCode = (int)result.StatusCode;
-                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionCreatingUserRegistrationWithCode, error.errorCode);
-                error.errorDomain = CLError.ErrorDomain_Application;
-                isSuccess = false;
+                if (Settings.Settings.Instance.TraceEnabled)
+                {
+                    Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                        Settings.Settings.Instance.Udid,
+                        Settings.Settings.Instance.Uuid,
+                        CommunicationEntryDirection.Response,
+                        CLDefinitions.CLRegistrationCreateRequestURLString,
+                        true,
+                        null,
+                        result.Headers,
+                        result.Content,
+                        Settings.Settings.Instance.TraceExcludeAuthorization);
+                }
+
+                if (result.IsSuccessStatusCode)
+                {
+                    string jsonResult = result.Content.ReadAsString();
+
+                    _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
+
+                    isSuccess = processCreateNewAccountServerResponse(outRegistration, jsonResult, out error);
+                }
+                else
+                {
+                    error += new Exception("Create account error: " + result.StatusCode.ToString() + "." +
+                        (result.Content == null
+                        ? string.Empty
+                        : Environment.NewLine + GetErrorOrMessageFromJsonServerResponse(result.Content.ReadAsString())) + ".");
+                }
             }
 
             return isSuccess;
@@ -320,11 +398,7 @@ namespace CloudApiPrivate.Model
 
                 if (ex != null)
                 {
-                    err = new CLError();
-                    err.errorDomain = CLError.ErrorDomain_Application;
-                    err.errorDescription = CloudApiPublic.Resources.Resources.ExceptionLoggingIn;
-                    err.errorCode = (int)CLError.ErrorCodes.Exception;
-                    err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
+                    err += ex;
                     isSuccess = false;
                 }
                 else if (!bResult)
@@ -428,43 +502,152 @@ namespace CloudApiPrivate.Model
                     Settings.Settings.Instance.TraceExcludeAuthorization);
             }
 
+            HttpResponseMessage result = null;
+
             // Perform the Post and wait for the result synchronously.
-            var result = client.Post(CLDefinitions.CLRegistrationLinkRequestURLString, content);
-            if (Settings.Settings.Instance.TraceEnabled)
+            try
             {
-                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                    Settings.Settings.Instance.Udid,
-                    Settings.Settings.Instance.Uuid,
-                    CommunicationEntryDirection.Response,
-                    CLDefinitions.CLRegistrationLinkRequestURLString,
-                    true,
-                    null,
-                    result.Headers,
-                    result.Content,
-                    Settings.Settings.Instance.TraceExcludeAuthorization);
+                result = client.Post(CLDefinitions.CLRegistrationLinkRequestURLString, content);
             }
-            if (result.IsSuccessStatusCode)
+            catch (AggregateException ex)
             {
-                string jsonResult = result.Content.ReadAsString();
+                System.Net.WebException foundWebEx = null;
 
-                _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
+                Func<object, Exception, bool> findWebEx = (findFunc, toCheck) =>
+                {
+                    Func<object, Exception, bool> castFunc = findFunc as Func<object, Exception, bool>;
+                    if (castFunc != null)
+                    {
+                        foundWebEx = toCheck as System.Net.WebException;
+                        if (foundWebEx != null)
+                        {
+                            return true;
+                        }
+                        if (toCheck.InnerException != null)
+                        {
+                            return castFunc(findFunc, toCheck.InnerException);
+                        }
+                    }
+                    return false;
+                };
 
-                isSuccess = ProcessServerResponse(outRegistration, jsonResult, out error);
+                foreach (Exception currentInnerException in ex.Flatten().InnerExceptions)
+                {
+                    if (findWebEx(findWebEx, currentInnerException))
+                    {
+                        break;
+                    }
+                }
 
-                // Set the new UDID after successfull link.. This id is used by the notification server.. 
-                CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
+                System.Net.HttpWebResponse exceptionResponse;
+                if (foundWebEx != null
+                    && (exceptionResponse = foundWebEx.Response as System.Net.HttpWebResponse) != null)
+                {
+                    string exceptionBody = null;
+                    try
+                    {
+                        using (Stream linkResponseStream = exceptionResponse.GetResponseStream())
+                        {
+                            using (StreamReader linkResponseStreamReader = new StreamReader(linkResponseStream, Encoding.UTF8))
+                            {
+                                exceptionBody = linkResponseStreamReader.ReadToEnd();
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+
+                    if (Settings.Settings.Instance.TraceEnabled)
+                    {
+                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            Settings.Settings.Instance.Udid,
+                            Settings.Settings.Instance.Uuid,
+                            CommunicationEntryDirection.Response,
+                            CLDefinitions.CLRegistrationLinkRequestURLString,
+                            true,
+                            exceptionResponse.Headers,
+                            exceptionBody,
+                            Settings.Settings.Instance.TraceExcludeAuthorization);
+                    }
+
+                    error += new AggregateException("Login error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
+                        (string.IsNullOrEmpty(exceptionBody)
+                        ? string.Empty
+                        : Environment.NewLine + "Response: " + exceptionBody), ex);
+                }
+                else
+                {
+                    throw ex;
+                }
             }
-            else
+
+            if (result != null)
             {
-                error = new CLError();
-                error.errorCode = (int)result.StatusCode;
-                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionLoggingInWithCode, error.errorCode);
-                error.errorDomain = CLError.ErrorDomain_Application;
-                isSuccess = false;
+                if (Settings.Settings.Instance.TraceEnabled)
+                {
+                    Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                        Settings.Settings.Instance.Udid,
+                        Settings.Settings.Instance.Uuid,
+                        CommunicationEntryDirection.Response,
+                        CLDefinitions.CLRegistrationLinkRequestURLString,
+                        true,
+                        null,
+                        result.Headers,
+                        result.Content,
+                        Settings.Settings.Instance.TraceExcludeAuthorization);
+                }
+
+                if (result.IsSuccessStatusCode)
+                {
+                    string jsonResult = result.Content.ReadAsString();
+
+                    _trace.writeToLog(1, "CLRegistration.cs: LoginInternal: Registration Response: {0}.", jsonResult);
+
+                    isSuccess = ProcessServerResponse(outRegistration, jsonResult, out error);
+
+                    // Set the new UDID after successfull link.. This id is used by the notification server.. 
+                    CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
+                }
+                else
+                {
+                    error += new Exception("Login error: " + result.StatusCode.ToString() + "." +
+                        (result.Content == null
+                        ? string.Empty
+                        : Environment.NewLine + GetErrorOrMessageFromJsonServerResponse(result.Content.ReadAsString())) + ".");
+                }
             }
 
             return isSuccess;
         }
+
+        /// <summary>
+        /// Retrieve a user-displayable string from a server response (JSON).  Pull out either the string
+        /// value of the "error" or "message" token.
+        /// </summary>
+        /// <param name="serverResponse">The server response to parse</param>
+        /// <returns>string: The user-displayable message.</returns>
+        string GetErrorOrMessageFromJsonServerResponse(string serverResponse)
+        {
+            try
+            {
+                Dictionary<string, object> returnDictionary = CLSptJson.CLSptJsonDeserializeToDictionary(serverResponse);
+                if (returnDictionary.ContainsKey("error"))
+                {
+                    return (string)returnDictionary["error"];
+                }
+                else if (returnDictionary.ContainsKey("message"))
+                {
+                    return (string)returnDictionary["message"];
+                }
+            }
+            catch
+            {
+            }
+            return serverResponse;
+        }
+
+
 
         /// <summary>
         /// Private method that processes the Login JSON result string from the server.
@@ -586,57 +769,149 @@ namespace CloudApiPrivate.Model
             // return success;
             //&&&&
 
-            bool isSuccess = true;
+            bool isSuccess = false;
             error = null;
 
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", "Token=" + CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
-
-            //string body = String.Format(CLDefinitions.CLRegistrationUnlinkRequestBodyString, CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
-            string body = String.Empty;
-
-            _trace.writeToLog(1, "CLRegistration.cs: Unlink. Udid: <{0}>.", CloudApiPrivate.Model.Settings.Settings.Instance.Udid);
-
-            HttpContent content = new StringContent(body, Encoding.UTF8);
-            content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
-
-            if (Settings.Settings.Instance.TraceEnabled)
+            try
             {
-                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                    Settings.Settings.Instance.Udid,
-                    Settings.Settings.Instance.Uuid,
-                    CommunicationEntryDirection.Request,
-                    CLDefinitions.CLRegistrationUnlinkRequestURLString,
-                    true,
-                    client.DefaultRequestHeaders,
-                    null,
-                    content,
-                    Settings.Settings.Instance.TraceExcludeAuthorization);
+                HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", "Token=" + CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
+
+                //string body = String.Format(CLDefinitions.CLRegistrationUnlinkRequestBodyString, CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
+                string body = String.Empty;
+
+                _trace.writeToLog(1, "CLRegistration.cs: Unlink. Udid: <{0}>.", CloudApiPrivate.Model.Settings.Settings.Instance.Udid);
+
+                HttpContent content = new StringContent(body, Encoding.UTF8);
+                content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
+
+                if (Settings.Settings.Instance.TraceEnabled)
+                {
+                    Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                        Settings.Settings.Instance.Udid,
+                        Settings.Settings.Instance.Uuid,
+                        CommunicationEntryDirection.Request,
+                        CLDefinitions.CLRegistrationUnlinkRequestURLString,
+                        true,
+                        client.DefaultRequestHeaders,
+                        null,
+                        content,
+                        Settings.Settings.Instance.TraceExcludeAuthorization);
+                }
+
+                HttpResponseMessage result = null;
+
+                // Perform the Post and wait for the result synchronously.
+                try
+                {
+                    result = client.Post(CLDefinitions.CLRegistrationUnlinkRequestURLString, content);
+                }
+                catch (AggregateException ex)
+                {
+                    System.Net.WebException foundWebEx = null;
+
+                    Func<object, Exception, bool> findWebEx = (findFunc, toCheck) =>
+                        {
+                            Func<object, Exception, bool> castFunc = findFunc as Func<object, Exception, bool>;
+                            if (castFunc != null)
+                            {
+                                foundWebEx = toCheck as System.Net.WebException;
+                                if (foundWebEx != null)
+                                {
+                                    return true;
+                                }
+                                if (toCheck.InnerException != null)
+                                {
+                                    return castFunc(findFunc, toCheck.InnerException);
+                                }
+                            }
+                            return false;
+                        };
+
+                    foreach (Exception currentInnerException in ex.Flatten().InnerExceptions)
+                    {
+                        if (findWebEx(findWebEx, currentInnerException))
+                        {
+                            break;
+                        }
+                    }
+
+                    System.Net.HttpWebResponse exceptionResponse;
+                    if (foundWebEx != null
+                        && (exceptionResponse = foundWebEx.Response as System.Net.HttpWebResponse) != null)
+                    {
+                        string exceptionBody = null;
+                        try
+                        {
+                            using (Stream unlinkResponseStream = exceptionResponse.GetResponseStream())
+                            {
+                                using (StreamReader unlinkResponseStreamReader = new StreamReader(unlinkResponseStream, Encoding.UTF8))
+                                {
+                                    exceptionBody = unlinkResponseStreamReader.ReadToEnd();
+                                }
+                            }
+                        }
+                        catch
+                        {
+                        }
+
+                        if (Settings.Settings.Instance.TraceEnabled)
+                        {
+                            Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                                Settings.Settings.Instance.Udid,
+                                Settings.Settings.Instance.Uuid,
+                                CommunicationEntryDirection.Response,
+                                CLDefinitions.CLRegistrationUnlinkRequestURLString,
+                                true,
+                                exceptionResponse.Headers,
+                                exceptionBody,
+                                Settings.Settings.Instance.TraceExcludeAuthorization);
+                        }
+
+                        error += new AggregateException("Unlink error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
+                            (string.IsNullOrEmpty(exceptionBody)
+                            ? string.Empty
+                            : Environment.NewLine + "Response: " + exceptionBody), ex);
+                    }
+                    else
+                    {
+                        throw ex;
+                    }
+                }
+
+                if (result != null)
+                {
+                    if (Settings.Settings.Instance.TraceEnabled)
+                    {
+                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            Settings.Settings.Instance.Udid,
+                            Settings.Settings.Instance.Uuid,
+                            CommunicationEntryDirection.Response,
+                            CLDefinitions.CLRegistrationUnlinkRequestURLString,
+                            true,
+                            null,
+                            result.Headers,
+                            result.Content,
+                            Settings.Settings.Instance.TraceExcludeAuthorization);
+                    }
+
+                    if (!result.IsSuccessStatusCode)
+                    {
+                        error += new Exception("Unlink error: " + result.StatusCode.ToString() + "." +
+                            (result.Content == null
+                            ? string.Empty
+                            : Environment.NewLine + GetErrorOrMessageFromJsonServerResponse(result.Content.ReadAsString())) + ".");
+                    }
+                    else
+                    {
+                        isSuccess = true;
+                    }
+                }
             }
-
-            // Perform the Post and wait for the result synchronously.
-            var result = client.PostAsync(CLDefinitions.CLRegistrationUnlinkRequestURLString, content).Result;
-
-            if (Settings.Settings.Instance.TraceEnabled)
+            catch (Exception ex)
             {
-                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                    Settings.Settings.Instance.Udid,
-                    Settings.Settings.Instance.Uuid,
-                    CommunicationEntryDirection.Response,
-                    CLDefinitions.CLRegistrationUnlinkRequestURLString,
-                    true,
-                    null,
-                    result.Headers,
-                    result.Content,
-                    Settings.Settings.Instance.TraceExcludeAuthorization);
-            }
-            if (!result.IsSuccessStatusCode)
-            {
-                error = new CLError();
-                error.errorCode = (int)result.StatusCode;
-                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionLoggingInWithCode, error.errorCode);
-                error.errorDomain = CLError.ErrorDomain_Application;
-                isSuccess = false;
+                error += ex;
+                _trace.writeToLog(1, "CLRegistration: UnlinkDeviceWithAccessKey: ERROR: Exception. Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
             }
 
             return isSuccess;

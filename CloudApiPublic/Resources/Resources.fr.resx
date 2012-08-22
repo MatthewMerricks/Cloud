@@ -128,14 +128,8 @@
   <data name="ErrorPuttingUploadOrDownloadToServer" xml:space="preserve">
     <value>Oops.  We're sorry, it seems that something when wrong while starting a server file upload or download.</value>
   </data>
-  <data name="ExceptionCreatingUserRegistration" xml:space="preserve">
-    <value>Oops. We're sorry, it seems like something went wrong while creating your account.</value>
-  </data>
   <data name="ExceptionCreatingUserRegistrationWithCode" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went wrong while creating your account.  The error code is {0}.</value>
-  </data>
-  <data name="ExceptionLoggingIn" xml:space="preserve">
-    <value>Oops. We're sorry, it seems like something went wrong while logging in.</value>
   </data>
   <data name="ExceptionLoggingInWithCode" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went wrong while logging into your account.  The error code is {0}.</value>
