@@ -346,13 +346,13 @@ namespace win_client.ViewModels
                                                             returnedViewModelInstance =>
                                                             {
                                                                 // Exit the app when the user clicks the OK button.
-                                                                Application.Current.Shutdown();
+                                                                CLAppDelegate.Instance.ExitApplication();
                                                             }
                                                     );
                                                 }
                                                 else
                                                 {
-                                                    Application.Current.Shutdown();
+                                                    CLAppDelegate.Instance.ExitApplication();
                                                 }
                                             }));                                              
             }
@@ -473,11 +473,10 @@ namespace win_client.ViewModels
             // The Register/Login window is closing.  Warn the user and allow him to cancel the close.
             CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
             {
-                // Do nothing here when the user clicks the OK button.
                 _trace.writeToLog(9, "PageCloudFolderMissingViewModel: Prompt exit application: Entry.");
                 if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
                 {
-                    // The user said yes.  Unlink this device.
+                    // The user said yes.
                     _trace.writeToLog(9, "PageCloudFolderMissingViewModel: Prompt exit application: User said yes.");
 
                     // Shut down tha application

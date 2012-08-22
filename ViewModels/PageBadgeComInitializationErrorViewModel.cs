@@ -140,7 +140,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 // Exit the application
-                                                Application.Current.Shutdown();
+                                                CLAppDelegate.Instance.ExitApplication();
                                             }));                                              
             }
         }

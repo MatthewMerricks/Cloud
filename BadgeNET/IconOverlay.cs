@@ -80,6 +80,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: Initialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
         }
@@ -134,6 +136,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
             return null;
@@ -152,6 +156,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: IsBadgingInitialized: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 isInitialized = Helpers.DefaultForType<bool>();
                 return ex;
             }
@@ -164,6 +170,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pIsBadgingInitialized: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 isInitialized = Helpers.DefaultForType<bool>();
                 return ex;
             }
@@ -196,6 +204,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: InitializeOrReplace: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
         }
@@ -246,6 +256,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pInitializeOrReplace: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
             return null;
@@ -264,6 +276,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pInitializeOrReplace: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
         }
@@ -335,6 +349,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pSetBadgeType: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
             return null;
@@ -353,6 +369,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: getBadgeTypeForFileAtPath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 badgeType = Helpers.DefaultForType<cloudAppIconBadgeType>();
                 return ex;
             }
@@ -372,6 +390,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pFindBadge: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 badgeType = Helpers.DefaultForType<cloudAppIconBadgeType>();
                 return ex;
             }
@@ -395,6 +415,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pShutdown: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
             return null;
@@ -903,37 +925,45 @@ namespace BadgeNET
         /// </summary>
         private void StartBadgeCOMPipes()
         {
-            // create the processing threads for each server stream (one for each badge type)
-            foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToProcess in pipeServerStreams)
+            try
             {
-                // important
-                // store a userstate for the thread that processes initial pipe connections with pipe server
-                // and a lockable object containing running state
-                pipeThreadParams threadParams = new pipeThreadParams()
+                // create the processing threads for each server stream (one for each badge type)
+                foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToProcess in pipeServerStreams)
                 {
-                    serverStream = currentStreamToProcess.Value,
+                    // important
+                    // store a userstate for the thread that processes initial pipe connections with pipe server
+                    // and a lockable object containing running state
+                    pipeThreadParams threadParams = new pipeThreadParams()
+                    {
+                        serverStream = currentStreamToProcess.Value,
+                        serverLocker = pipeLocker,
+                        currentBadgeType = currentStreamToProcess.Key
+                    };
+
+                    // start a thread to process initial pipe connections, pass relevant userstate
+                    (new Thread(() => RunServerPipe(threadParams))).Start();
+                }
+
+                // Start the pipe to listen to shell extension context menu messages
+                NamedPipeServerStream serverStreamContextMenu = new NamedPipeServerStream(Environment.UserName + "/" + PipeName + "/ContextMenu",
+                    PipeDirection.In,
+                    1,
+                    PipeTransmissionMode.Byte,
+                    PipeOptions.None);
+                pipeThreadParamsContextMenu threadParamsContextMenu = new pipeThreadParamsContextMenu()
+                {
+                    serverStream = serverStreamContextMenu,
                     serverLocker = pipeLocker,
-                    currentBadgeType = currentStreamToProcess.Key
                 };
 
                 // start a thread to process initial pipe connections, pass relevant userstate
-                (new Thread(() => RunServerPipe(threadParams))).Start();
+                (new Thread(() => RunServerPipeContextMenu(threadParamsContextMenu))).Start();
             }
-
-            // Start the pipe to listen to shell extension context menu messages
-            NamedPipeServerStream serverStreamContextMenu = new NamedPipeServerStream(Environment.UserName + "/" + PipeName + "/ContextMenu",
-                PipeDirection.In,
-                1,
-                PipeTransmissionMode.Byte,
-                PipeOptions.None);
-            pipeThreadParamsContextMenu threadParamsContextMenu = new pipeThreadParamsContextMenu()
+            catch (Exception ex)
             {
-                serverStream = serverStreamContextMenu,
-                serverLocker = pipeLocker,
-            };
-
-            // start a thread to process initial pipe connections, pass relevant userstate
-            (new Thread(() => RunServerPipeContextMenu(threadParamsContextMenu))).Start();
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: StartBadgeCOMPipes: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+            }
         }
 
         /// <summary>
@@ -1025,8 +1055,10 @@ namespace BadgeNET
                 if (pipeParams.serverStream != null)
                     pipeParams.serverStream.Close();
             }
-            catch
+            catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: RunServerPipe: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
 
@@ -1081,8 +1113,10 @@ namespace BadgeNET
                 if (pipeParams.serverStream != null)
                     pipeParams.serverStream.Close();
             }
-            catch
+            catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: RunServerPipeContextMenu: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
 
@@ -1163,8 +1197,10 @@ namespace BadgeNET
                     returnRunningHolder.returnStream.Dispose();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: RunReturnPipe: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
 
@@ -1193,8 +1229,10 @@ namespace BadgeNET
                             cleanParams.returnStream.Dispose();
                             cleanParams.returnStream = null;
                         }
-                        catch
+                        catch(Exception ex)
                         {
+                            CLError error = ex;
+                            _trace.writeToLog(1, "IconOverlay: CleanReturnPipe(1): ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                         }
 
                         //The following is not a fallacy in logic:
@@ -1210,8 +1248,10 @@ namespace BadgeNET
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: CleanReturnPipe(2): ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
         #endregion

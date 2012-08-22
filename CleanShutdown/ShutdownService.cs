@@ -66,7 +66,8 @@ namespace CleanShutdown.Helpers
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Shutdown();
+                        // Actually shut down the application.
+                        CLAppDelegate.Instance.ExitApplication();
                     }
                 });
             }

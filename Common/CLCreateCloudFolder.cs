@@ -41,8 +41,8 @@ namespace win_client.Common
                     // This directory does not exist.  Create a new cloud folder here.
                     _trace.writeToLog(9, "CreateCloudFolder: Creating a new cloud folder.");
                     Directory.CreateDirectory(cloudFolderPath);
-                    Directory.CreateDirectory(cloudFolderPath + @"\Public");
-                    Directory.CreateDirectory(cloudFolderPath + @"\Pictures");
+                    Directory.CreateDirectory(cloudFolderPath + "\\" + Resources.Resources.CloudFolderPublicFolder);
+                    Directory.CreateDirectory(cloudFolderPath + "\\" + Resources.Resources.CloudFolderPicturesFolder);
 
                     // Reset the index to a new clean sync point so it will scan this new folder.
                     CLFSMonitoringService.Instance.IndexingAgent.WipeIndex(cloudFolderPath);

@@ -303,6 +303,9 @@ namespace win_client.AppDelegate
             //[delegate stopCloudAppServicesAndUI];
             StopCloudAppServicesAndUI();
 
+            // Remove the Cloud folder if it contains only our Public and Pictures folder.
+            RemoveNullCloudFolder();
+
             //// clean our settings
             //[[CLSettings sharedSettings] resetSettings];
             Settings.Instance.resetSettings();
@@ -318,6 +321,47 @@ namespace win_client.AppDelegate
 
             //return rc;
             return rc;
+        }
+
+        /// <summary>
+        /// Remove the Cloud folder if it has only our Public and Pictures folders in it.
+        /// </summary>
+        private void RemoveNullCloudFolder()
+        {
+            try
+            {
+                // Only if the directory exists in the expected spot.
+                bool otherFileExists = false;
+                if (Directory.Exists(Settings.Instance.CloudFolderPath))
+                {
+                    // Iterate through all of the files in the directory.  Stop if we get anything other than the
+                    // Public and/or Pictures directory.
+                    foreach (string file in Directory.EnumerateFiles(Settings.Instance.CloudFolderPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        if (file.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPicturesFolder, StringComparison.InvariantCulture)
+                               || file.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPublicFolder, StringComparison.InvariantCulture))
+                        {
+                            continue;
+                        }
+
+                        // Some file exists in the CLoud folder
+                        otherFileExists = true;
+                        break;
+                    }
+
+                    // Delete the Cloud folder if it doesn't have any files
+                    if (!otherFileExists)
+                    {
+                        Directory.Delete(Settings.Instance.CloudFolderPath, recursive: true);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
+            }
         }
 
         /// <summary>
@@ -350,6 +394,27 @@ namespace win_client.AppDelegate
         /// </summary>
         public void ExitApplication()
         {
+            // If the user has exited setup in the middle, or there was a restart, we may be partially set up.  Unlink.
+            if (!Settings.Instance.CompletedSetup)
+            {
+                CLError error = null;
+                try
+                {
+                    // Unlink.  Remove all of the settings and unlink from the server if we can.
+                    this.UnlinkFromCloudDotCom(out error);
+                    if (error != null)
+                    {
+                        _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    error += ex;
+                    _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception(2): Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
+                }
+            }
+
+            // Actually shut down the application now.
             Application.Current.Shutdown();
         }
 
@@ -376,14 +441,7 @@ namespace win_client.AppDelegate
                 Settings.Instance.updateCloudFolderPath(Settings.Instance.CloudFolderPath, creationTime);
                 Settings.Instance.setCloudAppSetupCompleted(true);
 
-                // Start services, added a small delay to allow the OS to create folder.
-                //TODO: We don't start the core services here because the user is still viewing the user
-                // interface, and the PageInvisible page that has the system tray icon support is not
-                // in place yet.  The user will view the tour (or skip it), and then PageInvisible
-                // will be shown, and that will install the system tray support.  Is this the proper
-                // design???
-                //var dispatcher = CLAppDelegate.Instance.MainDispatcher; 
-                //dispatcher.DelayedInvoke(TimeSpan.FromSeconds(2), () => { startCloudAppServicesAndUI(); });
+                // NOTE: PageInvisible will be shown which will start the core servicees.
             }
         }
 
@@ -673,7 +731,10 @@ namespace win_client.AppDelegate
                 }
             }
 
-            resultingPaths.RemoveAll(x => { return (x.LastPathComponent().Equals("Pictures", StringComparison.InvariantCulture) || x.LastPathComponent().Equals("Public", StringComparison.InvariantCulture)); });
+            resultingPaths.RemoveAll(x => 
+                { return (x.LastPathComponent().Equals(Resources.Resources.CloudFolderPicturesFolder, StringComparison.InvariantCulture) 
+                        || x.LastPathComponent().Equals(Resources.Resources.CloudFolderPublicFolder, StringComparison.InvariantCulture)); 
+                });
             string foundPath = null;
             if (resultingPaths.Count > 0)
             {
