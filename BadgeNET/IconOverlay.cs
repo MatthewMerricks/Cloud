@@ -99,29 +99,29 @@ namespace BadgeNET
 
                 bool initialListContainsItem = false;
 
-                FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> newBadges;
-                // Allocate the badging dictionary.  This is a hierarchical dictionary.
-                CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
-                    rootPath: Settings.Instance.CloudFolderPath,
-                    pathDictionary: out newBadges,               
-                    recursiveDeleteCallback: null,          //TODO: Implement this?
-                    recursiveRenameCallback: null);         //TODO: Implement this?
-                if (error != null)
-                {
-                    throw new Exception(String.Format("IconOverlay: pInitialize: ERROR from CreateAndInitialize: <{0}>, Code: {1}", error.errorDescription, error.errorCode));
-                }
+                //FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> newBadges;
+                //// Allocate the badging dictionary.  This is a hierarchical dictionary.
+                //CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
+                //    rootPath: Settings.Instance.CloudFolderPath,
+                //    pathDictionary: out newBadges,               
+                //    recursiveDeleteCallback: null,          //TODO: Implement this?
+                //    recursiveRenameCallback: null);         //TODO: Implement this?
+                //if (error != null)
+                //{
+                //    throw new Exception(String.Format("IconOverlay: pInitialize: ERROR from CreateAndInitialize: <{0}>, Code: {1}", error.errorDescription, error.errorCode));
+                //}
 
-                if (newBadges == null)
-                {
-                    throw new Exception("IconOverlay error creating badging dictionary");
-                }
+                //if (newBadges == null)
+                //{
+                //    throw new Exception("IconOverlay error creating badging dictionary");
+                //}
 
-                //&&&& TODO: TEST ONLY:  Remove
-                newBadges.Add(Settings.Instance.CloudFolderPath + "\\A\\B\\C.txt", new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing));
-                newBadges.Rename(Settings.Instance.CloudFolderPath + "\\A\\B", Settings.Instance.CloudFolderPath + "\\A\\D");
+                ////&&&& TODO: TEST ONLY:  Remove
+                //newBadges.Add(Settings.Instance.CloudFolderPath + "\\A\\B\\C.txt", new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing));
+                //newBadges.Rename(Settings.Instance.CloudFolderPath + "\\A\\B", Settings.Instance.CloudFolderPath + "\\A\\D");
 
-                FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> childrenHierarchy;
-                error = newBadges.GrabHierarchyForPath(Settings.Instance.CloudFolderPath + "\\A", out childrenHierarchy);
+                //FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> childrenHierarchy;
+                //error = newBadges.GrabHierarchyForPath(Settings.Instance.CloudFolderPath + "\\A", out childrenHierarchy);
 
 
                 // I don't want to enumerate the initialList for both counting and copying, so I define an array for storage
