@@ -1012,7 +1012,7 @@ namespace CloudApiPublic.Model
                     pathsAtCurrentLevel.Remove(oldPath);
 
                     // Add new path with stored previous value
-                    globalRoot.Add(newPath, previousValue);
+                    overlappingRoot.Add(newPath, previousValue);
                 }
                 // else if overlapping root was set and pathsAtCurrentLevel did not contain the old item but inner folders does not exist,
                 // then old path not found
@@ -1145,6 +1145,7 @@ namespace CloudApiPublic.Model
                                 changeRootOld,
                                 changeRootNew);
                         }
+                        break;
                     }
                     innerFolderIsOverlappingRoot = false;
 

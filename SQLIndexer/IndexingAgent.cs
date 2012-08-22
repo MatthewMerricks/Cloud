@@ -1018,6 +1018,8 @@ namespace SQLIndexer
                 {
                     return AddEvent(mergedEvent);
                 }
+
+
             }
             catch (Exception ex)
             {
@@ -1348,6 +1350,8 @@ namespace SQLIndexer
                             DoNotAddToSQLIndex = true,
                             EventId = currentEvent.EventId
                         });
+
+                        // set badge to syncing here
                     }
                 }
 
@@ -1576,6 +1580,8 @@ namespace SQLIndexer
                             {
                                 RemoveEventCallback(currentUncoveredChange.Value.EventId);
                             }
+
+                            // set badge type to synced
                         }
 
                         // Move to the next FileChange in the linked list

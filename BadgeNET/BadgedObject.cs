@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using System.Linq.Expressions;
+using CloudApiPublic.Model;
 
 namespace BadgeNET
 {
@@ -20,7 +21,7 @@ namespace BadgeNET
         /// <summary>
         /// Does not notify on property changed
         /// </summary>
-        public string FilePath { get; private set; }
+        public FilePath FilePath { get; private set; }
 
         public cloudAppIconBadgeType Type
         {
@@ -54,9 +55,9 @@ namespace BadgeNET
         }
         #endregion
 
-        public BadgedObject(string filePath, cloudAppIconBadgeType initialType, PropertyChangedEventHandler changeHandler)
+        public BadgedObject(FilePath filePath, cloudAppIconBadgeType initialType, PropertyChangedEventHandler changeHandler)
         {
-            if (string.IsNullOrEmpty(filePath))
+            if (string.IsNullOrEmpty(filePath.Name))
                 throw new Exception("filePath cannot be null nor empty");
             if (changeHandler == null)
                 throw new Exception("changeHandler cannot be null");
