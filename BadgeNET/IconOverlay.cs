@@ -458,6 +458,7 @@ namespace BadgeNET
                                 // set runningstate to off
                                 pipeLocker.pipeRunning = false;
 
+                                // Dispose the badging streams
                                 foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToKill in pipeServerStreams)
                                 {
                                     try
@@ -476,7 +477,7 @@ namespace BadgeNET
                                         //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
                                         //so we try to connect to it just in case (will most likely give an unauthorized exception)
                                         using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
-                                            PipeName + currentStreamToKill.Key,
+                                            Environment.UserName + "/" + PipeName + currentStreamToKill.Key,
                                             PipeDirection.Out,
                                             PipeOptions.None))
                                         {
@@ -488,6 +489,34 @@ namespace BadgeNET
                                     }
                                 }
                                 pipeServerStreams.Clear();
+
+                                // Dispose the context menu stream
+                                try
+                                {
+                                    // cleanup initial pipe connection
+
+                                    try
+                                    {
+                                        pipeServerStreamContextMenu.Dispose();
+                                    }
+                                    catch
+                                    {
+                                    }
+
+                                    //The following is not a fallacy in logic:
+                                    //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
+                                    //so we try to connect to it just in case (will most likely give an unauthorized exception)
+                                    using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
+                                        Environment.UserName + "/" + PipeName + "/ContextMenu",
+                                        PipeDirection.Out,
+                                        PipeOptions.None))
+                                    {
+                                        connectionKillerStream.Connect(100);
+                                    }
+                                }
+                                catch
+                                {
+                                }
                             }
                         }
                     }
@@ -850,27 +879,36 @@ namespace BadgeNET
         /// </summary>
         private readonly Dictionary<cloudAppIconBadgeType, NamedPipeServerStream> pipeServerStreams = new Dictionary<cloudAppIconBadgeType, NamedPipeServerStream>()
         {
-            { cloudAppIconBadgeType.cloudAppBadgeSyncing, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncing,
+            { cloudAppIconBadgeType.cloudAppBadgeSyncing, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncing,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) },
-            { cloudAppIconBadgeType.cloudAppBadgeSynced, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeSynced,
+            { cloudAppIconBadgeType.cloudAppBadgeSynced, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeSynced,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) },
-            { cloudAppIconBadgeType.cloudAppBadgeSyncSelective, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncSelective,
+            { cloudAppIconBadgeType.cloudAppBadgeSyncSelective, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncSelective,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) },
-            { cloudAppIconBadgeType.cloudAppBadgeFailed, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeFailed,
+            { cloudAppIconBadgeType.cloudAppBadgeFailed, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeFailed,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) }
         };
+
+        /// <summary>
+        /// Creates the named pipe server stream for the shell extension context menu support.
+        /// </summary>
+        private readonly NamedPipeServerStream pipeServerStreamContextMenu = new NamedPipeServerStream(Environment.UserName + "/" + PipeName + "/ContextMenu",
+                    PipeDirection.In,
+                    1,
+                    PipeTransmissionMode.Byte,
+                    PipeOptions.None);
 
         /// <summary>
         /// Used for initial badging connection pipe thread as userstate
@@ -944,15 +982,10 @@ namespace BadgeNET
                     (new Thread(() => RunServerPipe(threadParams))).Start();
                 }
 
-                // Start the pipe to listen to shell extension context menu messages
-                NamedPipeServerStream serverStreamContextMenu = new NamedPipeServerStream(Environment.UserName + "/" + PipeName + "/ContextMenu",
-                    PipeDirection.In,
-                    1,
-                    PipeTransmissionMode.Byte,
-                    PipeOptions.None);
+                // Set up the thread params to start the pipe to listen to shell extension context menu messages
                 pipeThreadParamsContextMenu threadParamsContextMenu = new pipeThreadParamsContextMenu()
                 {
-                    serverStream = serverStreamContextMenu,
+                    serverStream = pipeServerStreamContextMenu,
                     serverLocker = pipeLocker,
                 };
 
