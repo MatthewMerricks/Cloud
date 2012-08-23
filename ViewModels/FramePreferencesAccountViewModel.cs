@@ -159,7 +159,7 @@ namespace win_client.ViewModels
 
                                                                 // Restart ourselves now
                                                                 System.Windows.Forms.Application.Restart();
-                                                                System.Windows.Application.Current.Shutdown();
+                                                                CLAppDelegate.Instance.ExitApplication();
                                                             }
                                                             else
                                                             {

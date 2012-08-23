@@ -1098,6 +1098,7 @@ namespace CloudApiPrivate.Model.Settings
         public void resetSettings()
         {  
             SettingsBase.Clear();
+            Settings.Instance.CompletedSetup = false;       // tested at ExitApplication()
         }
 
         /// <summary>

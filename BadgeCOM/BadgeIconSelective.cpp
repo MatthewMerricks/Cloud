@@ -12,6 +12,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <sstream>
+#include "lmcons.h"
 using namespace std;
 
 //// includes for debugging only
@@ -68,8 +69,7 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
 	//default return value is false (no icon overlay)
 	HRESULT r = S_FALSE;
-	// identify which COM object this is
-	wchar_t const* pipeForCurrentBadgeType = L"\\\\.\\Pipe\\BadgeCOMcloudAppBadgeSyncSelective";
+
 	//copy input path to local unicode char
 	wchar_t *s = _wcsdup(pwszPath);
 	try
@@ -98,12 +98,25 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 		BYTE returnBuffer[1];
 		bool pipeConnectionFailed = false;
 
+		// Get the user name of the logged-in user.
+		wchar_t lpszUsername[UNLEN];
+		DWORD dUsername = sizeof(lpszUsername);
+		if(!GetUserName(lpszUsername, &dUsername))
+		{
+			return r;
+		}
+
+		// Build the pipe name.  This will be (no escapes): "\\.\Pipe\<UserName>/BadgeCOMcloudAppBadgeSyncSelective"
+		std::wstring pipeForCurrentBadgeType = L"\\\\.\\Pipe\\";
+		pipeForCurrentBadgeType.append(lpszUsername);
+		pipeForCurrentBadgeType.append(L"/BadgeCOMcloudAppBadgeSyncSelective");
+
 		// Try to open the named pipe identified by the pipe name.
 		while (!pipeConnectionFailed)
 		{
 			// Opens the pipe for writing
 			PipeHandle = CreateFile(
-				pipeForCurrentBadgeType, // Pipe name
+				pipeForCurrentBadgeType.c_str(), // Pipe name
 				GENERIC_WRITE, // Write access
 				0, // No sharing
 				NULL, // Default security attributes
@@ -155,7 +168,7 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 				else
 				{
 					// if waiting for a pipe does not complete in 2 seconds, exit  (by setting pipeConnectionFailed to true)
-					if (!WaitNamedPipe(pipeForCurrentBadgeType, 2000))
+					if (!WaitNamedPipe(pipeForCurrentBadgeType.c_str(), 2000))
 					{
 						//////Commented out logging:
 						//myfile.open("C:\\Users\\Public\\Documents\\BadgeCOM.log", ofstream::app);

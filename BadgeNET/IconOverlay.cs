@@ -72,7 +72,7 @@ namespace BadgeNET
         /// ¡¡ Do not call this method a second time nor after InitializeOrReplace has been called !!
         /// </summary>
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
-        public static CLError Initialize(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList = null)
+        public static CLError Initialize(IEnumerable<KeyValuePair<FilePath, cloudAppIconBadgeType>> initialList = null)
         {
             try
             {
@@ -80,10 +80,12 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: Initialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
         }
-        private CLError pInitialize(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList = null)
+        private CLError pInitialize(IEnumerable<KeyValuePair<FilePath, cloudAppIconBadgeType>> initialList = null)
         {
             try
             {
@@ -97,8 +99,33 @@ namespace BadgeNET
 
                 bool initialListContainsItem = false;
 
+                //FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> newBadges;
+                //// Allocate the badging dictionary.  This is a hierarchical dictionary.
+                //CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
+                //    rootPath: Settings.Instance.CloudFolderPath,
+                //    pathDictionary: out newBadges,               
+                //    recursiveDeleteCallback: null,          //TODO: Implement this?
+                //    recursiveRenameCallback: null);         //TODO: Implement this?
+                //if (error != null)
+                //{
+                //    throw new Exception(String.Format("IconOverlay: pInitialize: ERROR from CreateAndInitialize: <{0}>, Code: {1}", error.errorDescription, error.errorCode));
+                //}
+
+                //if (newBadges == null)
+                //{
+                //    throw new Exception("IconOverlay error creating badging dictionary");
+                //}
+
+                ////&&&& TODO: TEST ONLY:  Remove
+                //newBadges.Add(Settings.Instance.CloudFolderPath + "\\A\\B\\C.txt", new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing));
+                //newBadges.Rename(Settings.Instance.CloudFolderPath + "\\A\\B", Settings.Instance.CloudFolderPath + "\\A\\D");
+
+                //FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> childrenHierarchy;
+                //error = newBadges.GrabHierarchyForPath(Settings.Instance.CloudFolderPath + "\\A", out childrenHierarchy);
+
+
                 // I don't want to enumerate the initialList for both counting and copying, so I define an array for storage
-                KeyValuePair<string, cloudAppIconBadgeType>[] initialListArray;
+                KeyValuePair<FilePath, cloudAppIconBadgeType>[] initialListArray;
                 // initial list contained values for badging; preload dictionary and notify system of global change
                 if (initialList != null
                     && (initialListArray = initialList.ToArray()).Length > 0)
@@ -134,6 +161,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
             return null;
@@ -152,6 +181,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: IsBadgingInitialized: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 isInitialized = Helpers.DefaultForType<bool>();
                 return ex;
             }
@@ -164,6 +195,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pIsBadgingInitialized: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 isInitialized = Helpers.DefaultForType<bool>();
                 return ex;
             }
@@ -188,7 +221,7 @@ namespace BadgeNET
         /// or replaces existing list with provided list. Can be run multiple times
         /// </summary>
         /// <param name="initialList">list to start with for badged objects, all filepaths in keys must not be null nor empty</param>
-        public static CLError InitializeOrReplace(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList)
+        public static CLError InitializeOrReplace(IEnumerable<KeyValuePair<FilePath, cloudAppIconBadgeType>> initialList)
         {
             try
             {
@@ -196,10 +229,12 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: InitializeOrReplace: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
         }
-        private CLError pInitializeOrReplace(IEnumerable<KeyValuePair<string, cloudAppIconBadgeType>> initialList)
+        private CLError pInitializeOrReplace(IEnumerable<KeyValuePair<FilePath, cloudAppIconBadgeType>> initialList)
         {
             try
             {
@@ -225,7 +260,7 @@ namespace BadgeNET
                     {
                         // empty list before adding in all replacement items
                         allBadges.Clear();
-                        foreach (KeyValuePair<string, cloudAppIconBadgeType> currentReplacedItem in initialList ?? new KeyValuePair<string, cloudAppIconBadgeType>[0])
+                        foreach (KeyValuePair<FilePath, cloudAppIconBadgeType> currentReplacedItem in initialList ?? new KeyValuePair<FilePath, cloudAppIconBadgeType>[0])
                         {
                             // only keep track of badges that are not "none"
                             if (currentReplacedItem.Value != cloudAppIconBadgeType.cloudAppBadgeNone)
@@ -246,6 +281,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pInitializeOrReplace: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
             return null;
@@ -264,6 +301,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pInitializeOrReplace: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
         }
@@ -335,6 +374,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pSetBadgeType: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
             return null;
@@ -353,6 +394,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: getBadgeTypeForFileAtPath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 badgeType = Helpers.DefaultForType<cloudAppIconBadgeType>();
                 return ex;
             }
@@ -372,11 +415,15 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pFindBadge: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 badgeType = Helpers.DefaultForType<cloudAppIconBadgeType>();
                 return ex;
             }
             return null;
         }
+
+        // Add public rename event here which takes path and badgeType; it will run rename on allPaths FilePathDictionary, if exception is caught add at new location
 
         // The functionality of clearAllBadges is implemented by shutting down the badge service (confirmed with Gus/Steve that badging only stops when service is killed)
         /// <summary>
@@ -395,6 +442,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: pShutdown: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
             return null;
@@ -436,6 +485,7 @@ namespace BadgeNET
                                 // set runningstate to off
                                 pipeLocker.pipeRunning = false;
 
+                                // Dispose the badging streams
                                 foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToKill in pipeServerStreams)
                                 {
                                     try
@@ -454,7 +504,7 @@ namespace BadgeNET
                                         //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
                                         //so we try to connect to it just in case (will most likely give an unauthorized exception)
                                         using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
-                                            PipeName + currentStreamToKill.Key,
+                                            Environment.UserName + "/" + PipeName + currentStreamToKill.Key,
                                             PipeDirection.Out,
                                             PipeOptions.None))
                                         {
@@ -466,6 +516,34 @@ namespace BadgeNET
                                     }
                                 }
                                 pipeServerStreams.Clear();
+
+                                // Dispose the context menu stream
+                                try
+                                {
+                                    // cleanup initial pipe connection
+
+                                    try
+                                    {
+                                        pipeServerStreamContextMenu.Dispose();
+                                    }
+                                    catch
+                                    {
+                                    }
+
+                                    //The following is not a fallacy in logic:
+                                    //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
+                                    //so we try to connect to it just in case (will most likely give an unauthorized exception)
+                                    using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
+                                        Environment.UserName + "/" + PipeName + "/ContextMenu",
+                                        PipeDirection.Out,
+                                        PipeOptions.None))
+                                    {
+                                        connectionKillerStream.Connect(100);
+                                    }
+                                }
+                                catch
+                                {
+                                }
                             }
                         }
                     }
@@ -474,12 +552,14 @@ namespace BadgeNET
                 // Dispose local unmanaged resources last
             }
         }
+
         private bool Disposed = false;
 
         /// <summary>
-        /// Storage of all badge types by file path
+        /// The hierarhical dictionary that holds all of the badges.  Nodes with null values are assumed to be synced.
         /// </summary>
-        private Dictionary<string, BadgedObject> allBadges = new Dictionary<string, BadgedObject>();
+        //FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> allBadges;
+        Dictionary<FilePath, BadgedObject> allBadges;
 
         /// <summary>
         /// EventHandler for BadgeObject PropertyChanged, to be passed on creation of each BadgedObject
@@ -491,7 +571,7 @@ namespace BadgeNET
             BadgedObject castSender = (BadgedObject)sender;
 
             // Immediately notify system that a badge needs to be updated
-            NotifySystemForBadgeUpdate(castSender.FilePath);
+            NotifySystemForBadgeUpdate(castSender.FilePath.Name);
         }
 
         #region notify system of change
@@ -828,27 +908,36 @@ namespace BadgeNET
         /// </summary>
         private readonly Dictionary<cloudAppIconBadgeType, NamedPipeServerStream> pipeServerStreams = new Dictionary<cloudAppIconBadgeType, NamedPipeServerStream>()
         {
-            { cloudAppIconBadgeType.cloudAppBadgeSyncing, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncing,
+            { cloudAppIconBadgeType.cloudAppBadgeSyncing, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncing,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) },
-            { cloudAppIconBadgeType.cloudAppBadgeSynced, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeSynced,
+            { cloudAppIconBadgeType.cloudAppBadgeSynced, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeSynced,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) },
-            { cloudAppIconBadgeType.cloudAppBadgeSyncSelective, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncSelective,
+            { cloudAppIconBadgeType.cloudAppBadgeSyncSelective, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncSelective,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) },
-            { cloudAppIconBadgeType.cloudAppBadgeFailed, new NamedPipeServerStream(PipeName + cloudAppIconBadgeType.cloudAppBadgeFailed,
+            { cloudAppIconBadgeType.cloudAppBadgeFailed, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeFailed,
                 PipeDirection.In,
                 1,
                 PipeTransmissionMode.Byte,
                 PipeOptions.None) }
         };
+
+        /// <summary>
+        /// Creates the named pipe server stream for the shell extension context menu support.
+        /// </summary>
+        private readonly NamedPipeServerStream pipeServerStreamContextMenu = new NamedPipeServerStream(Environment.UserName + "/" + PipeName + "/ContextMenu",
+                    PipeDirection.In,
+                    1,
+                    PipeTransmissionMode.Byte,
+                    PipeOptions.None);
 
         /// <summary>
         /// Used for initial badging connection pipe thread as userstate
@@ -903,37 +992,40 @@ namespace BadgeNET
         /// </summary>
         private void StartBadgeCOMPipes()
         {
-            // create the processing threads for each server stream (one for each badge type)
-            foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToProcess in pipeServerStreams)
+            try
             {
-                // important
-                // store a userstate for the thread that processes initial pipe connections with pipe server
-                // and a lockable object containing running state
-                pipeThreadParams threadParams = new pipeThreadParams()
+                // create the processing threads for each server stream (one for each badge type)
+                foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToProcess in pipeServerStreams)
                 {
-                    serverStream = currentStreamToProcess.Value,
+                    // important
+                    // store a userstate for the thread that processes initial pipe connections with pipe server
+                    // and a lockable object containing running state
+                    pipeThreadParams threadParams = new pipeThreadParams()
+                    {
+                        serverStream = currentStreamToProcess.Value,
+                        serverLocker = pipeLocker,
+                        currentBadgeType = currentStreamToProcess.Key
+                    };
+
+                    // start a thread to process initial pipe connections, pass relevant userstate
+                    (new Thread(() => RunServerPipe(threadParams))).Start();
+                }
+
+                // Set up the thread params to start the pipe to listen to shell extension context menu messages
+                pipeThreadParamsContextMenu threadParamsContextMenu = new pipeThreadParamsContextMenu()
+                {
+                    serverStream = pipeServerStreamContextMenu,
                     serverLocker = pipeLocker,
-                    currentBadgeType = currentStreamToProcess.Key
                 };
-
-                // start a thread to process initial pipe connections, pass relevant userstate
-                (new Thread(() => RunServerPipe(threadParams))).Start();
-            }
-
-            // Start the pipe to listen to shell extension context menu messages
-            NamedPipeServerStream serverStreamContextMenu = new NamedPipeServerStream(Environment.UserName + "/" + PipeName + "/ContextMenu",
-                PipeDirection.In,
-                1,
-                PipeTransmissionMode.Byte,
-                PipeOptions.None);
-            pipeThreadParamsContextMenu threadParamsContextMenu = new pipeThreadParamsContextMenu()
-            {
-                serverStream = serverStreamContextMenu,
-                serverLocker = pipeLocker,
-            };
 
             // start a thread to process initial pipe connections, pass relevant userstate
             (new Thread(new ParameterizedThreadStart(RunServerPipeContextMenu))).Start(threadParamsContextMenu);
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: StartBadgeCOMPipes: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+            }
         }
 
         /// <summary>
@@ -1025,8 +1117,10 @@ namespace BadgeNET
                 if (pipeParams.serverStream != null)
                     pipeParams.serverStream.Close();
             }
-            catch
+            catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: RunServerPipe: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
 
@@ -1087,8 +1181,10 @@ namespace BadgeNET
                 if (pipeParams.serverStream != null)
                     pipeParams.serverStream.Close();
             }
-            catch
+            catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: RunServerPipeContextMenu: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
 
@@ -1107,7 +1203,7 @@ namespace BadgeNET
                 string filenameExt = Path.GetFileName(source);
 
                 // Build the target path
-                string target = Settings.Instance.CloudFolderPath + "X\\" + filenameExt;
+                string target = Settings.Instance.CloudFolderPath + "\\" + filenameExt;
 
                 // Copy it.
                 Dispatcher mainDispatcher = Application.Current.Dispatcher;
@@ -1169,8 +1265,10 @@ namespace BadgeNET
                     returnRunningHolder.returnStream.Dispose();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: RunReturnPipe: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
 
@@ -1199,8 +1297,10 @@ namespace BadgeNET
                             cleanParams.returnStream.Dispose();
                             cleanParams.returnStream = null;
                         }
-                        catch
+                        catch(Exception ex)
                         {
+                            CLError error = ex;
+                            _trace.writeToLog(1, "IconOverlay: CleanReturnPipe(1): ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                         }
 
                         //The following is not a fallacy in logic:
@@ -1216,8 +1316,10 @@ namespace BadgeNET
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: CleanReturnPipe(2): ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
         #endregion
