@@ -933,7 +933,7 @@ namespace BadgeNET
             };
 
             // start a thread to process initial pipe connections, pass relevant userstate
-            (new Thread(() => RunServerPipeContextMenu(threadParamsContextMenu))).Start();
+            (new Thread(new ParameterizedThreadStart(RunServerPipeContextMenu))).Start(threadParamsContextMenu);
         }
 
         /// <summary>
@@ -1034,8 +1034,14 @@ namespace BadgeNET
         /// Processes a receiving server pipe to communicate with a BadgeCOM object for the context menu support
         /// </summary>
         /// <param name="pipeParams"></param>
-        private void RunServerPipeContextMenu(pipeThreadParamsContextMenu pipeParams)
+        private void RunServerPipeContextMenu(object state)
         {
+            pipeThreadParamsContextMenu pipeParams = state as pipeThreadParamsContextMenu;
+            if (pipeParams == null)
+            {
+                throw new NullReferenceException("pipeParams cannot be null");
+            }
+
             // try/catch which silences errors and stops badging functionality (should never error here)
             try
             {

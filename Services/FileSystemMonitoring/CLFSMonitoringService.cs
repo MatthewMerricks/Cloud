@@ -89,7 +89,8 @@ namespace win_client.Services.FileSystemMonitoring
                         return IndexingAgent.LastSyncId;
                     }
                 },
-                IndexingAgent.MarkEventAsCompletedOnPreviousSync);
+                IndexingAgent.MarkEventAsCompletedOnPreviousSync,
+                IndexingAgent.GetMetadataByPathAndRevision);
             if (monitorToSet != null)
             {
                 this.MonitorAgent = monitorToSet;

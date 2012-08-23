@@ -147,6 +147,7 @@ namespace CloudApiPublic.Model
                 };
             return this.errorInfo.Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)
                     && (tryCast = currentPair.Value as FileStream) != null)
+                .ToArray()
                 .Select(currentPair => removeAndReturnValue(currentPair, this.errorInfo.Remove));
         }
 
@@ -204,7 +205,7 @@ namespace CloudApiPublic.Model
         {
             if (err == null)
             {
-                return new Exception[0];
+                return Enumerable.Empty<Exception>();
             }
             return err.GrabExceptions();
         }
@@ -350,7 +351,7 @@ namespace CloudApiPublic.Model
                         using (FileStream logStream = new FileStream(logFile.FullName +
                                 currentDate.ToString("yyyyMMdd") + // formats to YYYYMMDD
                                 ".txt",
-                            FileMode.OpenOrCreate,
+                            FileMode.Append,
                             FileAccess.Write,
                             FileShare.Read))
                         {

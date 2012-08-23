@@ -198,6 +198,70 @@ namespace SQLIndexer
             return null;
         }
 
+        public CLError GetMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(path))
+                {
+                    throw new NullReferenceException("path cannot be null");
+                }
+                if (string.IsNullOrEmpty(revision))
+                {
+                    throw new NullReferenceException("revision cannot be null");
+                }
+
+                using (IndexDBEntities indexDB = new IndexDBEntities())
+                {
+                    // Grab the most recent sync from the database to pull sync states
+                    Sync lastSync = indexDB.Syncs
+                        .OrderByDescending(currentSync => currentSync.SyncCounter)
+                        .FirstOrDefault();
+
+                    if (lastSync == null)
+                    {
+                        metadata = null;
+                    }
+                    else
+                    {
+                        SyncState foundSync = indexDB.SyncStates
+                            .Include(parent => parent.FileSystemObject)
+                            // the following LINQ to Entities where clause compares the checksums of the sync state's NewPath
+                            .Where(parent => parent.SyncCounter == lastSync.SyncCounter
+                                && parent.FileSystemObject.PathChecksum == SqlFunctions.Checksum(path)
+                                && parent.FileSystemObject.Revision.Equals(revision, StringComparison.InvariantCultureIgnoreCase))
+                            .AsEnumerable() // transfers from LINQ to Entities IQueryable into LINQ to Objects IEnumerable (evaluates SQL)
+                            .Where(parent => parent.FileSystemObject.Path == path) // run in memory since Path field is not indexable
+                            .FirstOrDefault();
+
+                        if (foundSync != null)
+                        {
+                            metadata = new FileMetadata()
+                            {
+                                HashableProperties = new FileMetadataHashableProperties(foundSync.FileSystemObject.IsFolder,
+                                    foundSync.FileSystemObject.LastTime,
+                                    foundSync.FileSystemObject.CreationTime,
+                                    foundSync.FileSystemObject.Size),
+                                LinkTargetPath = foundSync.FileSystemObject.TargetPath,
+                                Revision = revision,
+                                StorageKey = foundSync.FileSystemObject.StorageKey
+                            };
+                        }
+                        else
+                        {
+                            metadata = null;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                metadata = Helpers.DefaultForType<FileMetadata>();
+                return ex;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Retrieves all unprocessed events that occurred since the last sync
         /// </summary>
@@ -1083,7 +1147,7 @@ namespace SQLIndexer
                             .Include(parent => parent.ServerLinkedFileSystemObject)
 
                             // the following LINQ to Entities where clause compares the checksums of the event's NewPath
-                            // (may have duplicate checksums even when paths differ
+                            // (may have duplicate checksums even when paths differ)
                             .Where(currentSyncState => currentSyncState.SyncCounter == firstLastSync.SyncCounter
                                 && (((currentSyncState.FileSystemObject.PathChecksum == null && SqlFunctions.Checksum(currentEvent.FileSystemObject.Path) == null)
                                     || currentSyncState.FileSystemObject.PathChecksum == SqlFunctions.Checksum(currentEvent.FileSystemObject.Path))))

@@ -5,10 +5,12 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -264,5 +266,63 @@ namespace CloudApiPublic.Static
 
             return toReturn.ToString();
         }
+
+        public static bool DateTimesWithinOneSecond(DateTime firstTime, DateTime secondTime)
+        {
+            if (firstTime == null && secondTime == null)
+            {
+                return true;
+            }
+            if (firstTime == null || secondTime == null)
+            {
+                return false;
+            }
+
+            int initialCompare = firstTime.CompareTo(secondTime);
+            if (initialCompare == 0)
+            {
+                return true;
+            }
+            else if (initialCompare < 0)
+            {
+                DateTime firstDateLater = firstTime.Add(TimeSpan.FromSeconds(1));
+                if (firstDateLater.CompareTo(secondTime) < 0)
+                {
+                    return false;
+                }
+                return true;
+            }
+            else
+            {
+                DateTime firstDateEarlier = firstTime.Subtract(TimeSpan.FromSeconds(1));
+                if (firstDateEarlier.CompareTo(secondTime) > 0)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        public static bool FileChangeMD5sDifferent(FileChange firstChange, FileChange secondChange)
+        {
+            byte[] firstMD5;
+            CLError firstChangeMD5Error = firstChange.GetMD5Bytes(out firstMD5);
+            if (firstChangeMD5Error != null)
+            {
+                throw new AggregateException("Error retrieving MD5 from firstChange", firstChangeMD5Error.GrabExceptions());
+            }
+            byte[] secondMD5;
+            CLError secondChangeMD5Error = secondChange.GetMD5Bytes(out secondMD5);
+            if (secondChangeMD5Error != null)
+            {
+                throw new AggregateException("Error retrieving MD5 from secondChange", secondChangeMD5Error.GrabExceptions());
+            }
+
+            return !((firstMD5 == null && secondMD5 == null)
+                || (firstMD5 != null && secondMD5 != null && firstMD5.Length == secondMD5.Length && memcmp(firstMD5, secondMD5, new UIntPtr((uint)firstMD5.Length)) == 0));
+        }
+
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int memcmp(byte[] b1, byte[] b2, UIntPtr count);
     }
 }

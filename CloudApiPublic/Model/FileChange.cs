@@ -188,5 +188,31 @@ namespace CloudApiPublic.Model
                         : "File ")) +
                 Type.ToString();
         }
+
+        public static void RunUnDownEvent(UpDownEventArgs callback)
+        {
+            lock (UpDownEventLocker)
+            {
+                if (UpDownEvent != null)
+                {
+                    UpDownEvent(null, callback);
+                }
+            }
+        }
+        public static event EventHandler<UpDownEventArgs> UpDownEvent;
+        public static readonly object UpDownEventLocker = new object();
+        public class UpDownEventArgs : EventArgs
+        {
+            public Action<FileChange> SendBackChange { get; private set; }
+
+            public UpDownEventArgs(Action<FileChange> SendBackChange)
+            {
+                this.SendBackChange = SendBackChange;
+            }
+        }
+        public void FileChange_UpDown(object sender, UpDownEventArgs e)
+        {
+            e.SendBackChange(this);
+        }
     }
 }

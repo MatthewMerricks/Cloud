@@ -96,7 +96,8 @@ namespace CloudApiPublic.Model
         public const string HeaderAppendContentTypeJson = "application/json";
         public const string HeaderAppendContentTypeBinary = "application/octet-stream";
         public const string HeaderAppendContentEncoding = "UTF8";
-        public const string HeaderAppendMethod = "POST";
+        public const string HeaderAppendMethodPost = "POST";
+        public const string HeaderAppendMethodPut = "PUT";
         public const string HeaderAppendCloudClient = "Cloud Client";
         public const string HeaderAppendStorageKey = "X-Ctx-Storage-Key";
         public const string HeaderAppendContentMD5 = "Content-MD5";
@@ -170,6 +171,14 @@ namespace CloudApiPublic.Model
             CLEventTypeRenameLink,
             CLEventTypeRenameFolder,
             CLEventTypeRenameRange
+        };
+
+        public static readonly string[] SyncHeaderIsFolders =
+        {
+            CLEventTypeDeleteFolder,
+            CLEventTypeAddFolder,
+            CLEventTypeRenameFolder
+            // Note: no modify folder, that is an invalid modification
         };
 
         // Cloud Sync Status

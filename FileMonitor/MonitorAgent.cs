@@ -40,6 +40,8 @@ namespace FileMonitor
         out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
         out IEnumerable<FileChange> outputFailures);
 
+    public delegate CLError MetadataByPathAndRevision(string path, string revision, out FileMetadata metadata);
+
     ///// <summary>
     ///// Delegate to match MonitorAgent's method SortFileChanges which sorts an input list of FileChanges
     ///// </summary>
@@ -134,6 +136,7 @@ namespace FileMonitor
             Func<string>,
             Func<FileChange, CLError>,
             Func<long, CLError>,
+            MetadataByPathAndRevision,
             CLError> SyncRun;
 
         // stores the callback used to add the processed event to the SQL index
@@ -150,6 +153,8 @@ namespace FileMonitor
 
         // Returns the last sync Id, should be tied to the SQLIndexer IndexingAgent's LastSyncId property under a locker
         private Func<string> GetLastSyncId;
+
+        private MetadataByPathAndRevision GetMetadataByPathAndRevision;
 
         private Func<long, CLError> CompleteSingleEvent;
 
@@ -240,11 +245,13 @@ namespace FileMonitor
                 Func<string>,
                 Func<FileChange, CLError>,
                 Func<long, CLError>,
+                MetadataByPathAndRevision,
                 CLError> syncRun,
             Func<FileChange, FileChange, CLError> onProcessMergeToSQL,
             Func<string, IEnumerable<long>, string, CLError> onProcessCompletedSync,
             Func<string> getLastSyncId,
             Func<long, CLError> completeSingleEvent,
+            MetadataByPathAndRevision getMetadataByPathAndRevision,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
@@ -306,6 +313,7 @@ namespace FileMonitor
                 newAgent.GetLastSyncId = getLastSyncId;
                 newAgent.LogProcessingFileChanges = logProcessing;
                 newAgent.CompleteSingleEvent = completeSingleEvent;
+                newAgent.GetMetadataByPathAndRevision = getMetadataByPathAndRevision;
 
                 // assign timer object that is used for processing the FileChange queues in batches
                 CLError queueTimerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(state =>
@@ -424,13 +432,13 @@ namespace FileMonitor
                                     createdDirectory.LastWriteTimeUtc = (DateTime)lastTime;
                                 }
 
-                                AllPaths[toCreate] = new FileMetadata()
+                                AllPaths.Add(toCreate, new FileMetadata()
                                 {
                                     HashableProperties = new FileMetadataHashableProperties(true,
                                         lastTime ?? createdDirectory.LastWriteTimeUtc,
                                         creationTime ?? createdDirectory.CreationTimeUtc,
                                         null)
-                                };
+                                });
                             }
                         }
                     };
@@ -505,7 +513,12 @@ namespace FileMonitor
                             }
 
                             AllPaths.Remove(toApply.OldPath);
-                            AllPaths[toApply.NewPath] = toApply.Metadata;
+                            AllPaths[toApply.NewPath] = new FileMetadata()
+                            {
+                                HashableProperties = toApply.Metadata.HashableProperties,
+                                LinkTargetPath = toApply.Metadata.LinkTargetPath,
+                                Revision = toApply.Metadata.Revision
+                            };
                             break;
                     }
                 }
@@ -1352,7 +1365,7 @@ namespace FileMonitor
                                                         || CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
                                                         || ((long)CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
                                                         || !((previousMD5Bytes == null && newMD5Bytes == null)
-                                                            || (previousMD5Bytes != null && newMD5Bytes != null && previousMD5Bytes.Length == newMD5Bytes.Length && MonitorAgent.memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0))) // or md5 changed
+                                                            || (previousMD5Bytes != null && newMD5Bytes != null && previousMD5Bytes.Length == newMD5Bytes.Length && Helpers.memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0))) // or md5 changed
                                                     {
                                                         CLError setMD5Error = CurrentDependencyTree.DependencyFileChange.SetMD5(newMD5Bytes);
                                                         if (setMD5Error != null)
@@ -1421,8 +1434,6 @@ namespace FileMonitor
             }
             return toReturn;
         }
-        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int memcmp(byte[] b1, byte[] b2, UIntPtr count);
         private enum FileChangeSource : byte
         {
             QueuedChanges,
@@ -1931,7 +1942,8 @@ namespace FileMonitor
                                                 isFolder,
                                                 lastTime,
                                                 creationTime,
-                                                fileLength);
+                                                fileLength,
+                                                null);
                                             // if new metadata came back after comparison, queue file change for modify
                                             if (newMetadata != null)
                                             {
@@ -2037,7 +2049,8 @@ namespace FileMonitor
                                                 isFolder,
                                                 lastTime,
                                                 creationTime,
-                                                fileLength);
+                                                fileLength,
+                                                null);
                                             // if new metadata came back after comparison, queue file change for modify
                                             if (newMetadata != null)
                                             {
@@ -2095,7 +2108,8 @@ namespace FileMonitor
                                         isFolder,
                                         lastTime,
                                         creationTime,
-                                        fileLength);
+                                        fileLength,
+                                        null);
                                     // remove index at the previous path
                                     AllPaths.Remove(oldPath);
                                     // add an index for the current path either from the changed metadata if it exists otherwise the previous metadata
@@ -2151,7 +2165,8 @@ namespace FileMonitor
                                             isFolder,
                                             lastTime,
                                             creationTime,
-                                            fileLength);
+                                            fileLength,
+                                            null);
                                         // if new metadata came back after comparison, queue file change for modify
                                         if (newMetadata != null)
                                         {
@@ -2300,7 +2315,8 @@ namespace FileMonitor
             bool isFolder,
             DateTime lastTime,
             DateTime creationTime,
-            Nullable<long> size)
+            Nullable<long> size,
+            FilePath targetPath)
         {
             // Segment out the properties that are used for comparison (before recalculating the MD5)
             FileMetadataHashableProperties forCompare = new FileMetadataHashableProperties(isFolder,
@@ -2310,12 +2326,17 @@ namespace FileMonitor
 
             // If metadata hashable properties differ at all, new metadata will be created and returned
             if (!FileMetadataHashableComparer.Default.Equals(previousMetadata.HashableProperties,
-                forCompare))
+                forCompare)
+                || (previousMetadata.LinkTargetPath == null && targetPath != null)
+                || (previousMetadata.LinkTargetPath != null && targetPath == null)
+                || (previousMetadata.LinkTargetPath != null && targetPath != null && !FilePathComparer.Instance.Equals(previousMetadata.LinkTargetPath, targetPath)))
             {
                 // metadata change detected
                 return new FileMetadata()
                 {
-                    HashableProperties = forCompare
+                    HashableProperties = forCompare,
+                    Revision = previousMetadata.Revision,
+                    LinkTargetPath = targetPath
                 };
             }
             return null;
@@ -2905,6 +2926,7 @@ namespace FileMonitor
                     (Func<string>)this.GetCurrentPath,
                     (Func<FileChange, CLError>)this.ApplySyncFromFileChange,
                     (Func<long, CLError>)this.CompleteSingleEvent,
+                    (MetadataByPathAndRevision)this.GetMetadataByPathAndRevision,
                     this.SyncRun
                 });
 
@@ -2970,7 +2992,7 @@ namespace FileMonitor
             bool matchedParameters = false;
 
             if (castState != null
-                && castState.Length == 11)
+                && castState.Length == 12)
             {
                 GrabProcessedChanges argOne = castState[0] as GrabProcessedChanges;
                 Func<FileChange, FileChange, CLError> argTwo = castState[1] as Func<FileChange, FileChange, CLError>;
@@ -2982,6 +3004,7 @@ namespace FileMonitor
                 Func<string> argEight = castState[7] as Func<string>;
                 Func<FileChange, CLError> argNine = castState[8] as Func<FileChange, CLError>;
                 Func<long, CLError> argTen = castState[9] as Func<long, CLError>;
+                MetadataByPathAndRevision argEleven = castState[10] as MetadataByPathAndRevision;
 
                 Func<GrabProcessedChanges,
                     Func<FileChange, FileChange, CLError>,
@@ -2993,7 +3016,8 @@ namespace FileMonitor
                     Func<string>,
                     Func<FileChange, CLError>,
                     Func<long, CLError>,
-                    CLError> RunSyncRun = castState[10] as Func<GrabProcessedChanges, Func<FileChange, FileChange, CLError>, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>, bool, Func<string, IEnumerable<long>, string, CLError>, Func<string>, DependencyAssignments, Func<string>, Func<FileChange, CLError>, Func<long, CLError>, CLError>;
+                    MetadataByPathAndRevision,
+                    CLError> RunSyncRun = castState[11] as Func<GrabProcessedChanges, Func<FileChange, FileChange, CLError>, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>, bool, Func<string, IEnumerable<long>, string, CLError>, Func<string>, DependencyAssignments, Func<string>, Func<FileChange, CLError>, Func<long, CLError>, MetadataByPathAndRevision, CLError>;
 
                 if (argFourNullable != null
                     && RunSyncRun != null)
@@ -3009,7 +3033,8 @@ namespace FileMonitor
                         argSeven,
                         argEight,
                         argNine,
-                        argTen);
+                        argTen,
+                        argEleven);
                 }
             }
 
