@@ -174,7 +174,6 @@ namespace CloudApiPublic.Model
         }
 
         /// <summary>
-        /// ¡¡Untested, not needed after we took out the children property of FileSystemItem translated from the Mac code!!
         /// Finds the paths starting at the given key value and builds a recursive structure including all children
         /// </summary>
         /// <param name="key">Key to search</param>

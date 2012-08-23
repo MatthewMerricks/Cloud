@@ -30,6 +30,7 @@ using CloudApiPublic.Static;
 using FileMonitor;
 using SQLIndexer;
 using Sync;
+using BadgeNET;
 
 namespace CloudTests
 {
@@ -86,8 +87,6 @@ namespace CloudTests
             // important
             this.Closed += MainWindow_Closed;
 
-            BadgeNET.IconOverlay.Initialize();
-
             InitializeComponent();
 
             this.Resources.Add("OpenFile", new Microsoft.Win32.OpenFileDialog());
@@ -105,7 +104,6 @@ namespace CloudTests
         /// <param name="e"></param>
         private void MainWindow_Closed(object sender, EventArgs e)
         {
-            BadgeNET.IconOverlay.Shutdown();
             HttpScheduler.DisposeBothSchedulers();
         }
 
@@ -124,25 +122,33 @@ namespace CloudTests
         {
             if (fileSelected)
             {
-                BadgeNET.cloudAppIconBadgeType findBadge;
-                BadgeNET.IconOverlay.getBadgeTypeForFileAtPath(OpenFile.FileName, out findBadge);// error ignored
-                if (findBadge == BadgeNET.cloudAppIconBadgeType.cloudAppBadgeNone)
+                if (folderSelected)
                 {
+                    // Get the current badge type at this path
+                    cloudAppIconBadgeType findBadge;
+                    FilePath filePath = OpenFile.FileName;
+                    GenericHolder<cloudAppIconBadgeType> badgeType;
+                    IconOverlay.getBadgeTypeForFileAtPath(filePath, out badgeType);// error ignored
+                    findBadge = badgeType.Value;
+                    MessageBox.Show(String.Format("Old badge was {0}.", findBadge.ToString()));
+
                     string selectedBadgeTypeString = (string)((ComboBoxItem)BadgeTypeDropDown.SelectedItem).Content;
-                    BadgeNET.IconOverlay.setBadgeType(selectedBadgeTypeString == "Syncing"
-                        ? BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSyncing
+
+                    findBadge = selectedBadgeTypeString == "Syncing"
+                        ? cloudAppIconBadgeType.cloudAppBadgeSyncing
                         : (selectedBadgeTypeString == "Synced"
-                            ? BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSynced
+                            ? cloudAppIconBadgeType.cloudAppBadgeSynced
                             : (selectedBadgeTypeString == "Selective"
-                                ? BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSyncSelective
-                                : BadgeNET.cloudAppIconBadgeType.cloudAppBadgeFailed)),
-                        OpenFile.FileName);
-                    MessageBox.Show("Selected file was badged");
+                                ? cloudAppIconBadgeType.cloudAppBadgeSyncSelective
+                                : cloudAppIconBadgeType.cloudAppBadgeFailed));
+
+                    // Set the badge to the desired type.
+                    IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(findBadge),  filePath);
+                    MessageBox.Show(String.Format("Selected file was badged to {0}.", findBadge.ToString()));
                 }
                 else
                 {
-                    BadgeNET.IconOverlay.setBadgeType(null, OpenFile.FileName);
-                    MessageBox.Show("Selected file was unbadged");
+                    MessageBox.Show("Please select a folder first");
                 }
             }
             else
@@ -168,39 +174,46 @@ namespace CloudTests
             currentRotationHolder,
             Timeout.Infinite,
             Timeout.Infinite);
-        private Nullable<BadgeNET.cloudAppIconBadgeType> lastRotatedBadgeType = null;
+        private cloudAppIconBadgeType lastRotatedBadgeType = cloudAppIconBadgeType.cloudAppBadgeNone;
 
         // for testing
         private void RotateBadgesOnCurrentFile_Click(object sender, RoutedEventArgs e)
         {
             if (fileSelected)
             {
-                if (rotatingBadgesOnCurrentFile)
+                if (folderSelected)
                 {
-                    rotationTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                    MessageBox.Show("Stopped rotating badging on current file");
+                    if (rotatingBadgesOnCurrentFile)
+                    {
+                        rotationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                        MessageBox.Show("Stopped rotating badging on current file");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Started rotating badging on current file");
+                        currentRotationHolder.processRotation = () =>
+                        {
+                            if (lastRotatedBadgeType == cloudAppIconBadgeType.cloudAppBadgeNone)
+                                lastRotatedBadgeType = cloudAppIconBadgeType.cloudAppBadgeSyncing;
+                            else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSyncing))
+                                lastRotatedBadgeType = cloudAppIconBadgeType.cloudAppBadgeSynced;
+                            else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSynced))
+                                lastRotatedBadgeType = cloudAppIconBadgeType.cloudAppBadgeSyncSelective;
+                            else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSyncSelective))
+                                lastRotatedBadgeType = cloudAppIconBadgeType.cloudAppBadgeFailed;
+                            else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeFailed))
+                                lastRotatedBadgeType = cloudAppIconBadgeType.cloudAppBadgeNone;
+
+                            IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(lastRotatedBadgeType), new FilePath(OpenFile.FileName));
+                        };
+                        rotationTimer.Change(0, 1000);
+                    }
+                    rotatingBadgesOnCurrentFile = !rotatingBadgesOnCurrentFile;
                 }
                 else
                 {
-                    MessageBox.Show("Started rotating badging on current file");
-                    currentRotationHolder.processRotation = () =>
-                    {
-                        if (lastRotatedBadgeType == null)
-                            lastRotatedBadgeType = BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSyncing;
-                        else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSyncing))
-                            lastRotatedBadgeType = BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSynced;
-                        else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSynced))
-                            lastRotatedBadgeType = BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSyncSelective;
-                        else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSyncSelective))
-                            lastRotatedBadgeType = BadgeNET.cloudAppIconBadgeType.cloudAppBadgeFailed;
-                        else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeFailed))
-                            lastRotatedBadgeType = null;
-
-                        BadgeNET.IconOverlay.setBadgeType(lastRotatedBadgeType, OpenFile.FileName);
-                    };
-                    rotationTimer.Change(0, 1000);
+                    MessageBox.Show("Please select a folder first");
                 }
-                rotatingBadgesOnCurrentFile = !rotatingBadgesOnCurrentFile;
             }
             else
             {
@@ -260,6 +273,7 @@ namespace CloudTests
                                         return indexer.LastSyncId;
                                     }
                                 },
+                                indexer.MarkEventAsCompletedOnPreviousSync,
                             FileChange_OnQueueing,
                             true);
                         MonitorStatus returnStatus;
@@ -1052,6 +1066,24 @@ namespace CloudTests
             //GC.WaitForPendingFinalizers();
             //GC.Collect();
             #endregion
+        }
+
+        private void BadgeInitialize_Click(object sender, RoutedEventArgs e)
+        {
+            if (folderSelected)
+            {
+                IconOverlay.Initialize((string)OpenFolderText.Content);
+            }
+            else
+            {
+                MessageBox.Show("Please select a folder first");
+            }
+
+        }
+
+        private void BadgeTerminate_Click(object sender, RoutedEventArgs e)
+        {
+            BadgeNET.IconOverlay.Shutdown();
         }
     }
 }
