@@ -43,7 +43,7 @@ namespace CloudApiPrivate
             _client = new HttpClient();
             _uri = new Uri(CLDefinitions.CLMetaDataServerURL);
             _client.BaseAddress = _uri;
-            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", "Token=\"" + Settings.Instance.Akey + "\"");
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(Settings.Instance.Akey));
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
             //&&&&HttpDavidTODO: Set the timeout.  The HttpClient source we have doesn't support this. _client.Timeout = TimeSpan.FromSeconds(_CLRestClientDefaultHTTPTimeOutInterval);
         }

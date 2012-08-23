@@ -33,6 +33,7 @@ using System.Windows.Input;
 using CleanShutdown.Messaging;
 using CleanShutdown.Helpers;
 using System.Windows.Threading;
+using CloudApiPublic.Static;
 
 namespace win_client.ViewModels
 {  
@@ -371,7 +372,7 @@ namespace win_client.ViewModels
             IsBusy = true;                      // show the busy indicator
 
             // Create cloud device obj
-            CLDevice clDevice = new CLDevice(System.Environment.MachineName);
+            CLDevice clDevice = new CLDevice(Helpers.GetComputerFriendlyName());
 
             CLRegistration registration = new CLRegistration();
             registration.LinkNewDeviceWithLoginAsync(_eMail, _password2, clDevice, LoginCompleteCallback, 30.0, registration);

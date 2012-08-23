@@ -420,23 +420,53 @@ namespace FileMonitor
 
                             if (!AllPaths.ContainsKey(toCreate))
                             {
-                                DirectoryInfo createdDirectory = Directory.CreateDirectory(toCreate.ToString());
+                                DirectoryInfo createdDirectory = null;
+                                Helpers.RunActionWithRetries(() => createdDirectory = Directory.CreateDirectory(toCreate.ToString()), true);
 
-                                if (creationTime != null)
+                                try
                                 {
-                                    createdDirectory.CreationTimeUtc = (DateTime)creationTime;
+                                    if (creationTime != null)
+                                    {
+                                        Helpers.RunActionWithRetries(() => createdDirectory.CreationTimeUtc = (DateTime)creationTime, true);
+                                    }
+                                    if (lastTime != null)
+                                    {
+                                        Helpers.RunActionWithRetries(() => createdDirectory.LastAccessTimeUtc = (DateTime)lastTime, true);
+                                        Helpers.RunActionWithRetries(() => createdDirectory.LastWriteTimeUtc = (DateTime)lastTime, true);
+                                    }
                                 }
-                                if (lastTime != null)
+                                catch
                                 {
-                                    createdDirectory.LastAccessTimeUtc = (DateTime)lastTime;
-                                    createdDirectory.LastWriteTimeUtc = (DateTime)lastTime;
+                                    Helpers.RunActionWithRetries(() => createdDirectory.Delete(), true);
+                                    throw;
+                                }
+
+                                DateTime createdLastWriteUtc;
+                                if (lastTime == null)
+                                {
+                                    createdLastWriteUtc = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
+                                    Helpers.RunActionWithRetries(() => createdLastWriteUtc = createdDirectory.LastWriteTimeUtc, false);
+                                }
+                                else
+                                {
+                                    createdLastWriteUtc = (DateTime)lastTime;
+                                }
+                                DateTime createdCreationUtc;
+                                if (creationTime == null)
+                                {
+                                    createdCreationUtc = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
+                                    Helpers.RunActionWithRetries(() => createdCreationUtc = createdDirectory.CreationTimeUtc, false);
+                                }
+                                else
+                                {
+                                    createdCreationUtc = (DateTime)creationTime;
                                 }
 
                                 AllPaths.Add(toCreate, new FileMetadata()
                                 {
                                     HashableProperties = new FileMetadataHashableProperties(true,
-                                        lastTime ?? createdDirectory.LastWriteTimeUtc,
-                                        creationTime ?? createdDirectory.CreationTimeUtc,
+                                        createdLastWriteUtc,
+                                        createdCreationUtc,
                                         null)
                                 });
                             }

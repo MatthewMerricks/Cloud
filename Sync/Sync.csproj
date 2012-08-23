@@ -54,6 +54,7 @@
     <Compile Include="JsonContracts\Event.cs" />
     <Compile Include="JsonContracts\Header.cs" />
     <Compile Include="JsonContracts\Metadata.cs" />
+    <Compile Include="JsonContracts\NotificationResponse.cs" />
     <Compile Include="JsonContracts\Push.cs" />
     <Compile Include="JsonContracts\PushResponse.cs" />
     <Compile Include="JsonContracts\To.cs" />

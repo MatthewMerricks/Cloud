@@ -28,6 +28,8 @@ using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using SuperSocket.ClientEngine;
 using CloudApiPublic.Static;
+using JsonNotificationResponse = global::Sync.JsonContracts.NotificationResponse;
+using StaticSync = global::Sync.Sync;
 
 namespace win_client.Services.Notification
 {
@@ -144,7 +146,7 @@ namespace win_client.Services.Notification
                 _connection.Opened += OnConnectionOpened;
                 _connection.Error += OnConnectionError;
                 _connection.Closed += OnConnectionClosed;
-                _connection.MessageReceived += OnConnectionReceived;
+                _connection.MessageReceived += (new MessageReceiver(url)).OnConnectionReceived;
                 _connection.Open();
             }
             catch (Exception ex)
@@ -172,24 +174,40 @@ namespace win_client.Services.Notification
             ServiceStarted = false;
         }
 
-        private void OnConnectionReceived(object sender, MessageReceivedEventArgs e)
+        private class MessageReceiver
         {
-            _trace.writeToLog(1, "CLNotificationService: OnConnectionReceived: Received msg: <{0}.", e.Message);
+            private string url;
 
-            if (Settings.Instance.TraceEnabled)
+            public MessageReceiver(string url)
             {
-                Trace.LogCommunication(Settings.Instance.TraceLocation,
-                    Settings.Instance.Udid,
-                    Settings.Instance.Uuid,
-                    CommunicationEntryDirection.Response,
-                    "WebSocket response",
-                    true,
-                    null,
-                    e.Message,
-                    Settings.Instance.TraceExcludeAuthorization);
+                this.url = url;
             }
 
-            CLAppMessages.Message_DidReceivePushNotificationFromServer.Send(e.Message);
+            public void OnConnectionReceived(object sender, MessageReceivedEventArgs e)
+            {
+                _trace.writeToLog(1, "CLNotificationService: OnConnectionReceived: Received msg: <{0}.", e.Message);
+
+                if (Settings.Instance.TraceEnabled)
+                {
+                    Trace.LogCommunication(Settings.Instance.TraceLocation,
+                        Settings.Instance.Udid,
+                        Settings.Instance.Uuid,
+                        CommunicationEntryDirection.Response,
+                        this.url,
+                        true,
+                        null,
+                        e.Message,
+                        Settings.Instance.TraceExcludeAuthorization);
+                }
+
+                JsonNotificationResponse parsedResponse = StaticSync.ParseNotificationResponse(e.Message);
+                if (parsedResponse == null
+                    || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
+                    || parsedResponse.Author != Helpers.GetComputerFriendlyName())
+                {
+                    CLAppMessages.Message_DidReceivePushNotificationFromServer.Send(e.Message);
+                }
+            }
         }
 
         //- (void)disconnectPushNotificationServer

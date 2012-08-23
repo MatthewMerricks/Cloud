@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CloudApiPublic.Static
@@ -324,5 +325,43 @@ namespace CloudApiPublic.Static
 
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int memcmp(byte[] b1, byte[] b2, UIntPtr count);
+
+        public static void RunActionWithRetries(Action toRun, bool throwExceptionOnFailure, int numRetries = 5, int millisecondsBetweenRetries = 50)
+        {
+            if (toRun == null)
+            {
+                if (throwExceptionOnFailure)
+                {
+                    throw new NullReferenceException("toRun cannot be null");
+                }
+                return;
+            }
+
+            try
+            {
+                toRun();
+            }
+            catch
+            {
+                if (numRetries > 0)
+                {
+                    if (millisecondsBetweenRetries > 0)
+                    {
+                        Thread.Sleep(millisecondsBetweenRetries);
+                    }
+                    RunActionWithRetries(toRun, throwExceptionOnFailure, numRetries - 1, millisecondsBetweenRetries);
+                }
+                else if (throwExceptionOnFailure)
+                {
+                    throw;
+                }
+            }
+        }
+
+        public static string GetComputerFriendlyName()
+        {
+            // Todo: should find an algorithm to generate a unique identifier for this device name
+            return Environment.MachineName;
+        }
     }
 }

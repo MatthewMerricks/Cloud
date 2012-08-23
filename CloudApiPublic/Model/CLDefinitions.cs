@@ -92,7 +92,7 @@ namespace CloudApiPublic.Model
         public const int SyncConstantsResponseBufferSize = 4096;
 
         // HttpWebRequest Header Append
-        public const string HeaderAppendToken = "Token=";
+        public const string HeaderAppendToken = "Token token=";
         public const string HeaderAppendContentTypeJson = "application/json";
         public const string HeaderAppendContentTypeBinary = "application/octet-stream";
         public const string HeaderAppendContentEncoding = "UTF8";
@@ -222,6 +222,10 @@ namespace CloudApiPublic.Model
         public const string CLSyncEventID = "eid";
         public const string ResponsePendingCount = "pending_count";
         public const string ResponsePartial = "partial_response";
+
+        // Notification keys
+        public const string NotificationMessageBody = "message_body";
+        public const string NotificationMessageAuthor = "message_author";
 
         // Cloud Events Types
         public const string CLEventTypeAdd = "type_add";
