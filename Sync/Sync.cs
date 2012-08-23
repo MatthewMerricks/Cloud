@@ -654,7 +654,7 @@ namespace Sync
 
                     syncStatus = "Sync Run synchronous post-communication operations complete";
 
-                    // Write new Sync point to database with succesful events
+                    // Write new Sync point to database with successful events
                     CLError recordSyncError = completeSyncSql(newSyncId, successfulEventIds, Settings.Instance.CloudFolderPath);
                     if (recordSyncError != null)
                     {
@@ -1795,14 +1795,15 @@ namespace Sync
                                     {
                                         throw new NullReferenceException("OldPath cannot be null if currentChange is of Type Renamed");
                                     }
-                                    if (string.IsNullOrEmpty(currentChange.Metadata.Revision))
-                                    {
-                                        throw new NullReferenceException("Revision cannot be null if currentChange is of Type Renamed");
-                                    }
 
                                     FileChange originalMetadata = null;
                                     if (matchedChange == null)
                                     {
+                                        if (string.IsNullOrEmpty(currentChange.Metadata.Revision))
+                                        {
+                                            throw new NullReferenceException("Revision cannot be null if currentChange is of Type Renamed and matchedChange is also null");
+                                        }
+
                                         FileChange foundOldPath;
                                         foreach (FileChange findMetadata in (getRunningUpDownChangesDict().TryGetValue(currentChange.OldPath, out foundOldPath)
                                                 ? new FileChange[] { foundOldPath }
@@ -2446,19 +2447,52 @@ namespace Sync
         }
         private static DataContractJsonSerializer _toSerializer = null;
         private static readonly object ToSerializerLocker = new object();
-        private static DataContractJsonSerializer EventSerializer
+        //private static DataContractJsonSerializer EventSerializer
+        //{
+        //    get
+        //    {
+        //        lock (EventSerializerLocker)
+        //        {
+        //            return _eventSerializer
+        //                ?? (_eventSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Event)));
+        //        }
+        //    }
+        //}
+        //private static DataContractJsonSerializer _eventSerializer = null;
+        //private static readonly object EventSerializerLocker = new object();
+        private static DataContractJsonSerializer NotificationResponseSerializer
         {
             get
             {
-                lock (EventSerializerLocker)
+                lock (NotificationResponseLocker)
                 {
-                    return _eventSerializer
-                        ?? (_eventSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Event)));
+                    return _notificationResponseSerializer
+                        ?? (_notificationResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.NotificationResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _eventSerializer = null;
-        private static readonly object EventSerializerLocker = new object();
+        private static DataContractJsonSerializer _notificationResponseSerializer = null;
+        private static readonly object NotificationResponseLocker = new object();
+        public static JsonContracts.NotificationResponse ParseNotificationResponse(string notificationResponse)
+        {
+            MemoryStream stringStream = null;
+            try
+            {
+                stringStream = new MemoryStream(Encoding.Unicode.GetBytes(notificationResponse));
+                return (JsonContracts.NotificationResponse)NotificationResponseSerializer.ReadObject(stringStream);
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                if (stringStream != null)
+                {
+                    stringStream.Dispose();
+                }
+            }
+        }
 
         #endregion
     }

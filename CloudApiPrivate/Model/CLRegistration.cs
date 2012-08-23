@@ -775,7 +775,7 @@ namespace CloudApiPrivate.Model
             try
             {
                 HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Authorization", "Token=" + CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", "token=\"" + CloudApiPrivate.Model.Settings.Settings.Instance.Akey + "\"");
 
                 //string body = String.Format(CLDefinitions.CLRegistrationUnlinkRequestBodyString, CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
                 string body = String.Empty;
@@ -783,7 +783,7 @@ namespace CloudApiPrivate.Model
                 _trace.writeToLog(1, "CLRegistration.cs: Unlink. Udid: <{0}>.", CloudApiPrivate.Model.Settings.Settings.Instance.Udid);
 
                 HttpContent content = new StringContent(body, Encoding.UTF8);
-                content.Headers.ContentType.MediaType = "application/x-www-form-urlencoded";
+                content.Headers.ContentType.MediaType = "application/json";
 
                 if (Settings.Settings.Instance.TraceEnabled)
                 {
