@@ -20,6 +20,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Label Content="Badging:" />
             <Grid Grid.Row="1">
@@ -35,8 +37,10 @@
                     <ComboBoxItem Content="Failed" />
                 </ComboBox>
             </Grid>
-            <Button Name="BadgeFileButton" Content="Badge/Unbadge File" Click="BadgeFileButton_Click" Grid.Row="2" />
-            <Button Name="RotateBadgesOnCurrentFile" Content="Rotate Badges on Current File" Click="RotateBadgesOnCurrentFile_Click" Grid.Row="3" />
+            <Button Name="BadgeInitialize" Content="Initialize BadgeNET" Click="BadgeInitialize_Click" Grid.Row="2" />
+            <Button Name="BadgeFileButton" Content="Badge/Unbadge File" Click="BadgeFileButton_Click" Grid.Row="3" />
+            <Button Name="RotateBadgesOnCurrentFile" Content="Rotate Badges on Current File" Click="RotateBadgesOnCurrentFile_Click" Grid.Row="4" />
+            <Button Name="BadgeTerminate" Content="Terminate BadgeNET" Click="BadgeTerminate_Click" Grid.Row="5" />
         </Grid>
         <Grid Grid.Row="2">
             <Grid.RowDefinitions>

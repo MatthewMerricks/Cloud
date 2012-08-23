@@ -23,7 +23,6 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using CloudApiPublic.Support;
-using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Common;
 
 namespace BadgeNET
@@ -58,6 +57,7 @@ namespace BadgeNET
 
         // Constructor for Singleton pattern is private
         private IconOverlay() { }
+
         // Standard IDisposable implementation based on MSDN System.IDisposable
         ~IconOverlay()
         {
@@ -72,11 +72,12 @@ namespace BadgeNET
         /// ¡¡ Do not call this method a second time nor after InitializeOrReplace has been called !!
         /// </summary>
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
-        public static CLError Initialize(IEnumerable<KeyValuePair<FilePath, cloudAppIconBadgeType>> initialList = null)
+        /// <param name="pathRootDirectory">The full path of the Cloud root directory.</param>
+        public static CLError Initialize(string pathRootDirectory, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
-                return Instance.pInitialize(initialList);
+                return Instance.pInitialize(pathRootDirectory, initialList);
             }
             catch (Exception ex)
             {
@@ -85,7 +86,7 @@ namespace BadgeNET
                 return ex;
             }
         }
-        private CLError pInitialize(IEnumerable<KeyValuePair<FilePath, cloudAppIconBadgeType>> initialList = null)
+        private CLError pInitialize(string pathRootDirectory, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
@@ -99,33 +100,27 @@ namespace BadgeNET
 
                 bool initialListContainsItem = false;
 
-                //FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> newBadges;
-                //// Allocate the badging dictionary.  This is a hierarchical dictionary.
-                //CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
-                //    rootPath: Settings.Instance.CloudFolderPath,
-                //    pathDictionary: out newBadges,               
-                //    recursiveDeleteCallback: null,          //TODO: Implement this?
-                //    recursiveRenameCallback: null);         //TODO: Implement this?
-                //if (error != null)
-                //{
-                //    throw new Exception(String.Format("IconOverlay: pInitialize: ERROR from CreateAndInitialize: <{0}>, Code: {1}", error.errorDescription, error.errorCode));
-                //}
+                // Capture the Cloud directory path for performance.
+                filePathCloudDirectory = pathRootDirectory;
 
-                //if (newBadges == null)
-                //{
-                //    throw new Exception("IconOverlay error creating badging dictionary");
-                //}
+                // Allocate the badging dictionary.  This is a hierarchical dictionary.
+                CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
+                    rootPath: filePathCloudDirectory,
+                    pathDictionary: out allBadges,
+                    recursiveDeleteCallback: null,          //TODO: Implement this?
+                    recursiveRenameCallback: null);         //TODO: Implement this?
+                if (error != null)
+                {
+                    throw new Exception(String.Format("IconOverlay: pInitialize: ERROR from CreateAndInitialize: <{0}>, Code: {1}", error.errorDescription, error.errorCode));
+                }
 
-                ////&&&& TODO: TEST ONLY:  Remove
-                //newBadges.Add(Settings.Instance.CloudFolderPath + "\\A\\B\\C.txt", new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing));
-                //newBadges.Rename(Settings.Instance.CloudFolderPath + "\\A\\B", Settings.Instance.CloudFolderPath + "\\A\\D");
-
-                //FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> childrenHierarchy;
-                //error = newBadges.GrabHierarchyForPath(Settings.Instance.CloudFolderPath + "\\A", out childrenHierarchy);
-
+                if (allBadges == null)
+                {
+                    throw new Exception("IconOverlay error creating badging dictionary");
+                }
 
                 // I don't want to enumerate the initialList for both counting and copying, so I define an array for storage
-                KeyValuePair<FilePath, cloudAppIconBadgeType>[] initialListArray;
+                KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>[] initialListArray;
                 // initial list contained values for badging; preload dictionary and notify system of global change
                 if (initialList != null
                     && (initialListArray = initialList.ToArray()).Length > 0)
@@ -136,16 +131,13 @@ namespace BadgeNET
                     // loop through initial list for badged objects to add to local dictionary
                     for (int initialListCounter = 0; initialListCounter < initialListArray.Length; initialListCounter++)
                     {
-                        // only keep track of badges that are not "none"
-                        if (initialListArray[initialListCounter].Value != cloudAppIconBadgeType.cloudAppBadgeNone)
+                        // only keep track of badges that are not "synced"
+                        if (initialListArray[initialListCounter].Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
                         {
                             // populate each initial badged object into local dictionary
                             // throws exception if file path (Key) is null or empty
                             // do not need to lock on allBadges since listening threads don't start until after this
-                            allBadges.Add(initialListArray[initialListCounter].Key,
-                                new BadgedObject(initialListArray[initialListCounter].Key,
-                                    initialListArray[initialListCounter].Value,
-                                    BadgedObject_PropertyChanged));
+                            allBadges.Add(initialListArray[initialListCounter].Key, initialListArray[initialListCounter].Value);
                         }
                     }
                 }
@@ -221,11 +213,12 @@ namespace BadgeNET
         /// or replaces existing list with provided list. Can be run multiple times
         /// </summary>
         /// <param name="initialList">list to start with for badged objects, all filepaths in keys must not be null nor empty</param>
-        public static CLError InitializeOrReplace(IEnumerable<KeyValuePair<FilePath, cloudAppIconBadgeType>> initialList)
+        /// <param name="pathRootDirectory">The full path to the Cloud root directory.</param>
+        public static CLError InitializeOrReplace(string pathRootDirectory, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList)
         {
             try
             {
-                return Instance.pInitializeOrReplace(initialList);
+                return Instance.pInitializeOrReplace(pathRootDirectory, initialList);
             }
             catch (Exception ex)
             {
@@ -234,7 +227,7 @@ namespace BadgeNET
                 return ex;
             }
         }
-        private CLError pInitializeOrReplace(IEnumerable<KeyValuePair<FilePath, cloudAppIconBadgeType>> initialList)
+        private CLError pInitializeOrReplace(string pathRootDirectory, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList)
         {
             try
             {
@@ -246,11 +239,14 @@ namespace BadgeNET
                     // run initialize instead if it has not been run
                     if (!isInitialized)
                     {
-                        Initialize(initialList);
+                        Initialize(pathRootDirectory, initialList);
                         // store that list was already processed by initialization
                         listProcessed = true;
                     }
                 }
+
+                // Capture the Cloud directory path for performance.
+                filePathCloudDirectory = pathRootDirectory;
 
                 // if list was not already processed by initialization
                 if (!listProcessed)
@@ -260,17 +256,14 @@ namespace BadgeNET
                     {
                         // empty list before adding in all replacement items
                         allBadges.Clear();
-                        foreach (KeyValuePair<FilePath, cloudAppIconBadgeType> currentReplacedItem in initialList ?? new KeyValuePair<FilePath, cloudAppIconBadgeType>[0])
+                        foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> currentReplacedItem in initialList ?? new KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>[0])
                         {
-                            // only keep track of badges that are not "none"
-                            if (currentReplacedItem.Value != cloudAppIconBadgeType.cloudAppBadgeNone)
+                            // only keep track of badges that are not "synced"
+                            if (currentReplacedItem.Value.Value != cloudAppIconBadgeType.cloudAppBadgeNone)
                             {
                                 // populate each replaced badged object into local dictionary
                                 // throws exception if file path (Key) is null or empty
-                                allBadges.Add(currentReplacedItem.Key,
-                                    new BadgedObject(currentReplacedItem.Key,
-                                        currentReplacedItem.Value,
-                                        BadgedObject_PropertyChanged));
+                                allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
                             }
                         }
                     }
@@ -293,11 +286,11 @@ namespace BadgeNET
         /// </summary>
         /// <param name="filePath">path of file to badge/unbadge, must not be null nor empty</param>
         /// <param name="newType">new badge type (use null to remove badge)</param>
-        public static CLError setBadgeType(Nullable<cloudAppIconBadgeType> type, string forFileAtPath)
+        public static CLError setBadgeType(GenericHolder<cloudAppIconBadgeType> type, FilePath forFileAtPath)
         {
             try
             {
-                return Instance.pSetBadgeType(forFileAtPath, type == cloudAppIconBadgeType.cloudAppBadgeNone ? null : type);
+                return Instance.pSetBadgeType(forFileAtPath, type);
             }
             catch (Exception ex)
             {
@@ -306,7 +299,7 @@ namespace BadgeNET
                 return ex;
             }
         }
-        private CLError pSetBadgeType(string filePath, Nullable<cloudAppIconBadgeType> newType)
+        private CLError pSetBadgeType(FilePath filePath, GenericHolder<cloudAppIconBadgeType> newType)
         {
             try
             {
@@ -317,59 +310,28 @@ namespace BadgeNET
                         throw new Exception("IconOverlay must be initialized before setting badges");
                 }
 
-                // store whether system needs to be notified
-                bool notifySystemOfFileUpdate = false;
-
                 // lock internal list during modification
                 lock (allBadges)
                 {
-                    // newType is null means remove badge
-                    if (newType == null)
-                    {
-                        // if internal list contains the badge to be removed, remove it
-                        if (allBadges.ContainsKey(filePath))
-                        {
-                            // remove badge
-                            allBadges.Remove(filePath);
-                            // system needs to be notified
-                            notifySystemOfFileUpdate = true;
-                        }
-                    }
-                    // newType is not null, set badge
-                    else
-                    {
-                        // badge already exists in internal list, needs to be updated
-                        if (allBadges.ContainsKey(filePath))
-                        {
-                            // grab badge object from internal list
-                            BadgedObject existingObject = allBadges[filePath];
-                            // check if badge type needs to be changed
-                            if (!existingObject.Type.Equals((cloudAppIconBadgeType)newType))
-                            {
-                                // badge type needs to be changed, this automatically will notify system for update
-                                existingObject.Type = (cloudAppIconBadgeType)newType;
-                            }
-                        }
-                        // badge is new, needs to be added to internal list
-                        else
-                        {
-                            // populate a new badged object into local dictionary
-                            // throws exception if file path (Key) is null or empty
-                            allBadges.Add(filePath,
-                                new BadgedObject(filePath,
-                                    (cloudAppIconBadgeType)newType,
-                                    BadgedObject_PropertyChanged));
-
-                            // system needs to be notified
-                            notifySystemOfFileUpdate = true;
-                        }
-                    }
+                    // newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
+                    allBadges[filePath] = newType;
                 }
 
-                // notify system as necessary for current badge
-                if (notifySystemOfFileUpdate)
+                // Notify this node, and all of the parents until the node is null, or equal to the Cloud path.
+                FilePath node = filePath;
+                while (node != null)
                 {
-                    NotifySystemForBadgeUpdate(filePath);
+                    // Notify the file system that this icon needs to be updated.
+                    NotifySystemForBadgeUpdate(node);
+
+                    // Quit if we notified the Cloud directory root
+                    if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
+                    {
+                        break;
+                    }
+
+                    // Chain up
+                    node = node.Parent;
                 }
             }
             catch (Exception ex)
@@ -386,7 +348,7 @@ namespace BadgeNET
         /// </summary>
         /// <param name="filePath">path of file to check</param>
         /// <returns></returns>
-        public static CLError getBadgeTypeForFileAtPath(string path, out cloudAppIconBadgeType badgeType)
+        public static CLError getBadgeTypeForFileAtPath(FilePath path, out GenericHolder<cloudAppIconBadgeType> badgeType)
         {
             try
             {
@@ -396,11 +358,11 @@ namespace BadgeNET
             {
                 CLError error = ex;
                 _trace.writeToLog(1, "IconOverlay: getBadgeTypeForFileAtPath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-                badgeType = Helpers.DefaultForType<cloudAppIconBadgeType>();
+                badgeType = new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced);
                 return ex;
             }
         }
-        private CLError pFindBadge(string filePath, out cloudAppIconBadgeType badgeType)
+        private CLError pFindBadge(FilePath filePath, out GenericHolder<cloudAppIconBadgeType> badgeType)
         {
             try
             {
@@ -408,16 +370,23 @@ namespace BadgeNET
                 lock (allBadges)
                 {
                     // return badgetype if it exists, otherwise null
-                    badgeType = allBadges.ContainsKey(filePath)
-                        ? allBadges[filePath].Type
-                        : cloudAppIconBadgeType.cloudAppBadgeNone;
+                    GenericHolder<cloudAppIconBadgeType> tempBadgeType;
+                    bool success = allBadges.TryGetValue(filePath, out tempBadgeType);
+                    if (success)
+                    {
+                        badgeType = tempBadgeType;
+                    }
+                    else
+                    {
+                        badgeType = new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 _trace.writeToLog(1, "IconOverlay: pFindBadge: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-                badgeType = Helpers.DefaultForType<cloudAppIconBadgeType>();
+                badgeType = new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced);
                 return ex;
             }
             return null;
@@ -556,23 +525,14 @@ namespace BadgeNET
         private bool Disposed = false;
 
         /// <summary>
-        /// The hierarhical dictionary that holds all of the badges.  Nodes with null values are assumed to be synced.
+        /// The Cloud directory path captured as a FilePath at initialization.
         /// </summary>
-        //FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> allBadges;
-        Dictionary<FilePath, BadgedObject> allBadges;
+        private FilePath filePathCloudDirectory { get; set; }
 
         /// <summary>
-        /// EventHandler for BadgeObject PropertyChanged, to be passed on creation of each BadgedObject
+        /// The hierarhical dictionary that holds all of the badges.  Nodes with null values are assumed to be synced.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BadgedObject_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            BadgedObject castSender = (BadgedObject)sender;
-
-            // Immediately notify system that a badge needs to be updated
-            NotifySystemForBadgeUpdate(castSender.FilePath.Name);
-        }
+        FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> allBadges;
 
         #region notify system of change
         // important (including everything inside)
@@ -581,9 +541,9 @@ namespace BadgeNET
         /// or a single icon (if filePath is specified)
         /// </summary>
         /// <param name="filePath">Filepath for refresing single icon (case-sensitive)</param>
-        private static void NotifySystemForBadgeUpdate(string filePath = null)
+        private static void NotifySystemForBadgeUpdate(FilePath filePath = null)
         {
-            if (string.IsNullOrEmpty(filePath))
+            if (string.IsNullOrEmpty(filePath.Name))
             {
                 //The following will refresh all icons, does not force OS to reload relevant COM objects
                 //    (for now I test after restarting explorer.exe)
@@ -601,7 +561,7 @@ namespace BadgeNET
                     //Set IntPtr to null-terminated ANSI string of full file path
                     //I tried StringToHGlobalUni but it did not work
                     //Also, StringtoHGlobalAuto does not work either
-                    filePtr = Marshal.StringToHGlobalAnsi(filePath);
+                    filePtr = Marshal.StringToHGlobalAnsi(filePath.Name);
 
                     //Notify that attributes have changed on the file at the path provided by the IntPtr (which updates its icon)
                     SHChangeNotify(HChangeNotifyEventID.SHCNE_ATTRIBUTES,
@@ -1087,12 +1047,7 @@ namespace BadgeNET
                                 bool setOverlay;
 
                                 // lock on internal list so it is not modified while being read
-                                lock (allBadges)
-                                {
-                                    // use overlay if filepath exists in internal list and it matches the current badgetype
-                                    setOverlay = allBadges.ContainsKey(filePath)
-                                        && allBadges[filePath].Type.Equals(pipeParams.currentBadgeType);
-                                }
+                                setOverlay = ShouldIconBeBadged(pipeParams.currentBadgeType, filePath);
 
                                 // create userstate object for the thread returning the result to the client
                                 // with the unique pipename to use and the data itself
@@ -1122,6 +1077,147 @@ namespace BadgeNET
                 CLError error = ex;
                 _trace.writeToLog(1, "IconOverlay: RunServerPipe: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
+        }
+
+        /// <summary>
+        /// Determine whether this icon should be badged by this badge handler.
+        /// </summary>
+        /// <param name="pipeParams"></param>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        private bool ShouldIconBeBadged(cloudAppIconBadgeType badgeType, string filePath)
+        {
+            bool setOverlay;
+
+            try
+            {
+                // Convert the badgetype and filepath to objects.
+                FilePath objFilePath = new FilePath(filePath);
+                GenericHolder<cloudAppIconBadgeType> objBadgeType = new GenericHolder<cloudAppIconBadgeType>(badgeType);
+
+                // Lock and query the in-memory database.
+                lock (allBadges)
+                {
+                    // There will be no badge if the path doesn't contain Cloud root
+                    if (objFilePath.Contains(filePathCloudDirectory))
+                    {
+                        // If the value at this path is set and it is our type, then badge.
+                        GenericHolder<cloudAppIconBadgeType> tempBadgeType;
+                        bool success = allBadges.TryGetValue(objFilePath, out tempBadgeType);
+                        if (success)
+                        {
+                            return (tempBadgeType.Value == objBadgeType.Value);
+                        }
+                        else
+                        {
+                            // If an item is marked selective, then none of its children (whole hierarchy of children) should be badged.
+                            if (FilePathComparer.Instance.Equals(objFilePath, filePathCloudDirectory))
+                            {
+                                // Recurse through parents of this node up to and including the CloudPath.
+                                FilePath node = objFilePath;
+                                while (node != null)
+                                {
+                                    // Return false if the value of this node is not null, and is marked SyncSelective
+                                    GenericHolder<cloudAppIconBadgeType> thisNodeBadgeType = allBadges[node];
+                                    if (thisNodeBadgeType != null && thisNodeBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSyncSelective)
+                                    {
+                                        return false;
+                                    }
+
+                                    // Quit if we notified the Cloud directory root
+                                    if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
+                                    {
+                                        break;
+                                    }
+
+                                    // Chain up
+                                    node = node.Parent;
+                                }
+                            }
+
+                            // Determine the badge type from the hierarchy at this path
+                            try
+                            {
+                                // Get the hierarchy of children of this node.
+                                FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
+                                CLError error = allBadges.GrabHierarchyForPath(objFilePath, out tree);
+                                if (error == null)
+                                {
+                                    // Chase the children hierarchy using recursive postorder traversal to determine the desired badge type.
+                                    cloudAppIconBadgeType desiredBadgeType = GetDesiredBadgeTypeViaRecursivePostorderTraversal(tree);
+                                    return (badgeType == desiredBadgeType);
+                                }
+                                else
+                                {
+                                    return (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
+                                }
+                            }
+                            catch
+                            {
+                                return (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
+                            }
+
+                            return (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
+                        }
+                    }
+                    else
+                    {
+                        // This path is not in the Cloud folder.  Don't badge.
+                        return false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            return setOverlay;
+        }
+
+        /// <summary>
+        /// Determine the desired badge type of a node based on the badging state of its children.
+        /// </summary>
+        /// <param name="node">The selected node.</param>
+        /// <returns>cloudAddIconBadgeType: The desired badge type.</returns>
+        private cloudAppIconBadgeType GetDesiredBadgeTypeViaRecursivePostorderTraversal(FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> node)
+        {
+            // If the node doesn't exist, that means synced
+            if (node == null)
+            {
+                return cloudAppIconBadgeType.cloudAppBadgeSynced;
+            }
+
+            // Loop through all of the node's children
+            foreach (FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> child in node.Children)
+            {
+                cloudAppIconBadgeType returnBadgeType = GetDesiredBadgeTypeViaRecursivePostorderTraversal(child);
+                if (returnBadgeType != cloudAppIconBadgeType.cloudAppBadgeSynced)
+                {
+                    return returnBadgeType;
+                }
+            }
+
+            // Process by whether the node has a value.  If not, it is synced.
+            if (node.HasValue)
+            {
+                switch (node.Value.Value.Value)
+                {
+                    case cloudAppIconBadgeType.cloudAppBadgeSynced:
+                        return cloudAppIconBadgeType.cloudAppBadgeSynced;
+                    case cloudAppIconBadgeType.cloudAppBadgeSyncing:
+                        return cloudAppIconBadgeType.cloudAppBadgeSyncing;
+                    case cloudAppIconBadgeType.cloudAppBadgeFailed:
+                        return cloudAppIconBadgeType.cloudAppBadgeSyncing;
+                    case cloudAppIconBadgeType.cloudAppBadgeSyncSelective:
+                        return cloudAppIconBadgeType.cloudAppBadgeSynced;
+                }
+            }
+            else
+            {
+                return cloudAppIconBadgeType.cloudAppBadgeSynced;
+            }
+
+            return cloudAppIconBadgeType.cloudAppBadgeSynced;
         }
 
         /// <summary>
@@ -1197,7 +1293,7 @@ namespace BadgeNET
                 string filenameExt = Path.GetFileName(source);
 
                 // Build the target path
-                string target = Settings.Instance.CloudFolderPath + "\\" + filenameExt;
+                string target = filePathCloudDirectory + "\\" + filenameExt;
 
                 // Copy it.
                 Dispatcher mainDispatcher = Application.Current.Dispatcher;

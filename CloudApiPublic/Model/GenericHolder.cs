@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System;
 
 namespace CloudApiPublic.Model
 {
@@ -43,6 +45,94 @@ namespace CloudApiPublic.Model
         public GenericHolder(T defaultValue)
         {
             this.Value = defaultValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            GenericHolder<T> castObj = obj as GenericHolder<T>;
+            if (((object)castObj) == null)
+            {
+                return false;
+            }
+
+            if (base.Equals(obj))
+            {
+                return true;
+            }
+
+            if (Value == null && castObj.Value == null)
+            {
+                return true;
+            }
+
+            if (Value == null || castObj.Value == null)
+            {
+                return false;
+            }
+
+            return Value.Equals(castObj.Value);
+        }
+        
+        private static ParameterExpression firstExpression = null;
+        private static ParameterExpression secondExpression = null;
+
+        private static BinaryExpression equalityExpression = null;
+        private static Func<T, T, bool> _runEquality = null;
+
+        private static Func<T, T, bool> RunEquality
+        {
+            get
+            {
+                lock (RunEqualityLocker)
+                {
+                    if (_runEquality == null)
+                    {
+                        firstExpression = Expression.Parameter(typeof(T), "first");
+                        secondExpression = Expression.Parameter(typeof(T), "second");
+
+                        equalityExpression = Expression.Equal(firstExpression, secondExpression);
+
+                        _runEquality = (Func<T, T, bool>)Expression.Lambda(equalityExpression,
+                            new ParameterExpression[]
+                            {
+                                firstExpression,
+                                secondExpression
+                            }).Compile();
+                    }
+                    return _runEquality;
+                }
+            }
+        }
+        private static object RunEqualityLocker = new object();
+
+        public static bool operator ==(GenericHolder<T> first, GenericHolder<T> second)
+        {
+            if (((object)first) == ((object)second))
+            {
+                return true;
+            }
+
+            if (((object)first) == null || ((object)second) == null)
+            {
+                return false;
+            }
+
+            return (bool)RunEquality.DynamicInvoke(first.Value, second.Value);
+        }
+
+        public static bool operator !=(GenericHolder<T> first, GenericHolder<T> second)
+        {
+            if (((object)first) == ((object)second))
+            {
+                return false;
+            }
+
+            if (((object)first) == null || ((object)second) == null)
+            {
+                return true;
+            }
+
+            return !((bool)RunEquality.DynamicInvoke(first.Value, second.Value));
         }
     }
 }
