@@ -12,6 +12,7 @@ using System.Text;
 using CloudApiPublic.Support;
 using BadgeNET;
 using CloudApiPublic.Model;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Services.Badging
 {
@@ -60,7 +61,7 @@ namespace win_client.Services.Badging
             // error not handled above
             if(!isBadgingInitialized)
             {
-                CLError initializeError = IconOverlay.Initialize();
+                CLError initializeError = IconOverlay.Initialize(Settings.Instance.CloudFolderPath);
                 // error not handled above
             }
         }

@@ -193,6 +193,10 @@ namespace CloudTests
                         MessageBox.Show("Started rotating badging on current file");
                         currentRotationHolder.processRotation = () =>
                         {
+                            // Stop the timer while badging
+                            rotationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+
+                            // Choose the badge
                             if (lastRotatedBadgeType == cloudAppIconBadgeType.cloudAppBadgeNone)
                                 lastRotatedBadgeType = cloudAppIconBadgeType.cloudAppBadgeSyncing;
                             else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeSyncing))
@@ -204,9 +208,15 @@ namespace CloudTests
                             else if (lastRotatedBadgeType.Equals(BadgeNET.cloudAppIconBadgeType.cloudAppBadgeFailed))
                                 lastRotatedBadgeType = cloudAppIconBadgeType.cloudAppBadgeNone;
 
-                            IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(lastRotatedBadgeType), new FilePath(OpenFile.FileName));
+                            FilePath filePathToBadge = OpenFile.FileName;
+                            IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(lastRotatedBadgeType), filePathToBadge);
+
+                            // Start the timer again
+                            rotationTimer.Change(0, 1000);
                         };
-                        rotationTimer.Change(0, 1000);
+
+                        // Perform the first badge operation.
+                        currentRotationHolder.processRotation();
                     }
                     rotatingBadgesOnCurrentFile = !rotatingBadgesOnCurrentFile;
                 }

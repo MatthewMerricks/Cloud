@@ -13,6 +13,7 @@ using win_client.AppDelegate;
 using win_client.Common;
 using BadgeNET;
 using CloudApiPublic.Model;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client
 {
@@ -40,7 +41,8 @@ namespace win_client
 
             // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
             // before the initial list is passed (via InitializeOrReplace)
-            CLError error = IconOverlay.Initialize();
+            //TODO: Is this necessary?  Or should it be initialized when CoreServices start?
+            CLError error = IconOverlay.Initialize(Settings.Instance.CloudFolderPath);
 
             CLAppDelegate app = CLAppDelegate.Instance;                 // fire up the singleton
 

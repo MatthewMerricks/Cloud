@@ -16,20 +16,15 @@ namespace CloudApiPublic.Support
 #region "Trace Singleton"
 
     /// <summary>
-    /// A Logging class implementing the Singleton pattern and an internal Queue to be flushed perdiodically
+    /// A Logging class implementing the Singleton pattern
     /// </summary>
     public class CLTrace
     {
         private static CLTrace _instance;
         private static object _instanceLocker = new object();
-        private static Queue<LogMessage> logQueue;
-        private static string logDir = @"c:\Trash\Trace";
-        private static string logFile = string.Format(@"\Trace-{0:yyyy-MM-dd_hh-mm-ss-tt}.txt", DateTime.Now);
-
-        private static int maxLogAge = 1;     // seconds to flush memory to disk
-        private static int maxPriority = 10;  // set this to the highest priority to log
-        private static int queueSize = 100;   // messages in memory
-        private static DateTime LastFlushed = DateTime.Now;
+        private static int _maxPriority = 10;  // set this to the highest priority to log
+        private static string _logDir = @"c:\Trash\Trace";
+        private static string _logFile = string.Format(@"\Trace-{0:yyyy-MM-dd}.txt", DateTime.Now);
 
         /// <summary>
         /// Private constructor to prevent instance creation
@@ -49,8 +44,7 @@ namespace CloudApiPublic.Support
                     if (_instance == null)
                     {
                         _instance = new CLTrace();
-                        logQueue = new Queue<LogMessage>();
-                        Directory.CreateDirectory(logDir);
+                        Directory.CreateDirectory(_logDir);
                     }
                 }
                 return _instance;
@@ -65,10 +59,10 @@ namespace CloudApiPublic.Support
         public void writeToLog(int priority, string format, params object[] args)
         {
             // Only write high priority messages
-            if (priority <= maxPriority)
+            if (priority <= _maxPriority)
             {
-                // Lock the queue while writing to prevent contention for the log file
-                lock (logQueue)
+                // Lock while writing to prevent contention for the log file
+                lock (_instance)
                 {
                     // Format the string
                     string message = string.Format(format, args);
@@ -79,57 +73,15 @@ namespace CloudApiPublic.Support
                     // Log to the VS output window, or to DbgView
                     Debug.WriteLine(string.Format("{0}\t{1}", logEntry.LogTime, logEntry.Message));
 
-                    // Enqueue the entry to a memory queue
-                    logQueue.Enqueue(logEntry);
+                    string logPath = _logDir + _logFile;
 
-                    // If we have reached the Queue Size then flush the Queue
-                    if (logQueue.Count >= queueSize || doPeriodicFlush())
+                    // This could be optimised to prevent opening and closing the file for each write
+                    using (FileStream fs = File.Open(logPath, FileMode.Append, FileAccess.Write, FileShare.Write))
                     {
-                        flushLog();
-                    }
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// Flush the queue to disk.
-        /// </summary>
-        public void flush()
-        {
-            flushLog();
-        }
-
-        private bool doPeriodicFlush()
-        {
-            TimeSpan logAge = DateTime.Now - LastFlushed;
-            if (logAge.TotalSeconds >= maxLogAge)
-            {
-                LastFlushed = DateTime.Now;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Flushes the Queue to the physical log file
-        /// </summary>
-        private void flushLog()
-        {
-            while (logQueue.Count > 0)
-            {
-                LogMessage entry = logQueue.Dequeue();
-                string logPath = logDir + logFile;
-
-                // This could be optimised to prevent opening and closing the file for each write
-                using (FileStream fs = File.Open(logPath, FileMode.Append, FileAccess.Write))
-                {
-                    using (StreamWriter log = new StreamWriter(fs))
-                    {
-                        log.WriteLine(string.Format("{0}\t{1}", entry.LogTime, entry.Message));
+                        using (StreamWriter log = new StreamWriter(fs))
+                        {
+                            log.WriteLine(string.Format("{0}\t{1}", logEntry.LogTime, logEntry.Message));
+                        }
                     }
                 }
             }

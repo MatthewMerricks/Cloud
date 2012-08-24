@@ -77,6 +77,7 @@ namespace BadgeNET
         {
             try
             {
+                _trace.writeToLog(9, "IconOverlay: Initialize: Entry.");
                 return Instance.pInitialize(pathRootDirectory, initialList);
             }
             catch (Exception ex)
@@ -94,7 +95,10 @@ namespace BadgeNET
                 lock (this)
                 {
                     if (isInitialized)
+                    {
+                        _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: THROW: Instance already initailized.");
                         throw new Exception("IconOverlay Instance already initialized");
+                    }
                     isInitialized = true;
                 }
 
@@ -111,11 +115,13 @@ namespace BadgeNET
                     recursiveRenameCallback: null);         //TODO: Implement this?
                 if (error != null)
                 {
+                    _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: THROW: Error from CreateAndInitialize.");
                     throw new Exception(String.Format("IconOverlay: pInitialize: ERROR from CreateAndInitialize: <{0}>, Code: {1}", error.errorDescription, error.errorCode));
                 }
 
                 if (allBadges == null)
                 {
+                    _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: THROW: Error creating badging dictionary.");
                     throw new Exception("IconOverlay error creating badging dictionary");
                 }
 
@@ -126,6 +132,7 @@ namespace BadgeNET
                     && (initialListArray = initialList.ToArray()).Length > 0)
                 {
                     // store that initial list contained an item so system can be notified later
+                    _trace.writeToLog(9, "IconOverlay: pInitialize: Got initial list.");
                     initialListContainsItem = true;
 
                     // loop through initial list for badged objects to add to local dictionary
@@ -137,17 +144,20 @@ namespace BadgeNET
                             // populate each initial badged object into local dictionary
                             // throws exception if file path (Key) is null or empty
                             // do not need to lock on allBadges since listening threads don't start until after this
+                            _trace.writeToLog(9, "IconOverlay: Add badge for path {0}, value {0}.", initialListArray[initialListCounter].Key, initialListArray[initialListCounter].Value);
                             allBadges.Add(initialListArray[initialListCounter].Key, initialListArray[initialListCounter].Value);
                         }
                     }
                 }
 
+                _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes.");
                 StartBadgeCOMPipes();
 
                 // initial list contained an item so notify the system to update
                 if (initialListContainsItem)
                 {
                     //Parameterless call to notify will force OS to update all icons
+                    _trace.writeToLog(9, "IconOverlay: Initial list contains items.  Notify Explorer to repaint all icons.");
                     NotifySystemForBadgeUpdate();
                 }
             }
@@ -157,6 +167,7 @@ namespace BadgeNET
                 _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
+            _trace.writeToLog(9, "IconOverlay: Return success.");
             return null;
         }
 
@@ -218,6 +229,7 @@ namespace BadgeNET
         {
             try
             {
+                _trace.writeToLog(9, "IconOverlay: InitializeOrReplace. Entry.");
                 return Instance.pInitializeOrReplace(pathRootDirectory, initialList);
             }
             catch (Exception ex)
@@ -234,11 +246,13 @@ namespace BadgeNET
                 bool listProcessed = false;
 
                 // ensure IconOverlay is only ever initialized once
+                _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Entry.");
                 lock (this)
                 {
                     // run initialize instead if it has not been run
                     if (!isInitialized)
                     {
+                        _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Not initialized yet.  Initialize.");
                         Initialize(pathRootDirectory, initialList);
                         // store that list was already processed by initialization
                         listProcessed = true;
@@ -252,23 +266,28 @@ namespace BadgeNET
                 if (!listProcessed)
                 {
                     // lock internal list during modification
+                    _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. List not processed.");
                     lock (allBadges)
                     {
                         // empty list before adding in all replacement items
+                        _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Clear all badges.");
                         allBadges.Clear();
                         foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> currentReplacedItem in initialList ?? new KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>[0])
                         {
                             // only keep track of badges that are not "synced"
-                            if (currentReplacedItem.Value.Value != cloudAppIconBadgeType.cloudAppBadgeNone)
+                            _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. currentReplaceItem. Path {0}, Type: {1}).", currentReplacedItem.Key.ToString(), currentReplacedItem.Value.ToString());
+                            if (currentReplacedItem.Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
                             {
                                 // populate each replaced badged object into local dictionary
                                 // throws exception if file path (Key) is null or empty
+                                _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Add this item to the dictionary.");
                                 allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
                             }
                         }
                     }
 
                     //Parameterless call to notify will force OS to update all icons
+                    _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Notify Explorer to refresh all icons.");
                     NotifySystemForBadgeUpdate();
                 }
             }
@@ -290,6 +309,7 @@ namespace BadgeNET
         {
             try
             {
+                _trace.writeToLog(9, "IconOverlay: setBadgeType. Path: {0}, Type: {1}.", forFileAtPath.ToString(), type.ToString());
                 return Instance.pSetBadgeType(forFileAtPath, type);
             }
             catch (Exception ex)
@@ -304,16 +324,21 @@ namespace BadgeNET
             try
             {
                 // ensure this is initialized
+                _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Path: {0}, Type: {1}.", filePath.ToString(), newType.ToString());
                 lock (this)
                 {
                     if (!isInitialized)
+                    {
+                        _trace.writeToLog(9, "IconOverlay: pSetBadgeType. ERROR: THROW: Must be initialized before setting badges.");
                         throw new Exception("IconOverlay must be initialized before setting badges");
+                    }
                 }
 
                 // lock internal list during modification
                 lock (allBadges)
                 {
                     // newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
+                    _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Add this type to the dictionary.");
                     allBadges[filePath] = newType;
                 }
 
@@ -322,17 +347,20 @@ namespace BadgeNET
                 while (node != null)
                 {
                     // Notify the file system that this icon needs to be updated.
+                    _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Notify Explorer for path {0}.", node.ToString());
                     NotifySystemForBadgeUpdate(node);
 
                     // Quit if we notified the Cloud directory root
                     if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
                     {
+                        _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Break.  At Cloud root.");
                         break;
                     }
 
                     // Chain up
                     node = node.Parent;
                 }
+                _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Exit.");
             }
             catch (Exception ex)
             {
@@ -401,6 +429,7 @@ namespace BadgeNET
         /// </summary>
         public static CLError Shutdown()
         {
+            _trace.writeToLog(9, "IconOverlay: Shutdown.  Entry.");
             return Instance.pShutdown();
         }
         public CLError pShutdown()
@@ -433,9 +462,11 @@ namespace BadgeNET
             if (!this.Disposed)
             {
                 // lock on current object for changing RunningStatus so it cannot be stopped/started simultaneously
+                _trace.writeToLog(9, "IconOverlay: Dispose.  Lock.");
                 lock (this)
                 {
                     // monitor is now set as disposed which will produce errors if startup is called later
+                    _trace.writeToLog(9, "IconOverlay: Dispose.  Set Disposed.");
                     Disposed = true;
                 }
 
@@ -443,15 +474,18 @@ namespace BadgeNET
                 if (disposing)
                 {
                     // locks on this in case initialization is occurring simultaneously
+                    _trace.writeToLog(9, "IconOverlay: Dispose. Disposing.");
                     lock (this)
                     {
                         // only need to shutdown if it was initialized
                         if (isInitialized)
                         {
                             // lock on object containing intial pipe connection running state
+                            _trace.writeToLog(9, "IconOverlay: Dispose. Initialized.");
                             lock (pipeLocker)
                             {
                                 // set runningstate to off
+                                _trace.writeToLog(9, "IconOverlay: Dispose. PipeLocker.");
                                 pipeLocker.pipeRunning = false;
 
                                 // Dispose the badging streams
@@ -463,10 +497,12 @@ namespace BadgeNET
 
                                         try
                                         {
+                                            _trace.writeToLog(9, "IconOverlay: Dispose. Dispose NamedPipeStream for badge type {0}.", currentStreamToKill.Key.ToString());
                                             currentStreamToKill.Value.Dispose();
                                         }
                                         catch
                                         {
+                                            _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception disposing NamedPipeStream for badge type {0}.", currentStreamToKill.Key.ToString());
                                         }
 
                                         //The following is not a fallacy in logic:
@@ -477,11 +513,13 @@ namespace BadgeNET
                                             PipeDirection.Out,
                                             PipeOptions.None))
                                         {
+                                            _trace.writeToLog(9, "IconOverlay: Dispose. Call connectionKillerStream.Connect.");
                                             connectionKillerStream.Connect(100);
                                         }
                                     }
                                     catch
                                     {
+                                        _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (2).");
                                     }
                                 }
                                 pipeServerStreams.Clear();
@@ -497,6 +535,7 @@ namespace BadgeNET
                                     }
                                     catch
                                     {
+                                        _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception disposing NamedPipeStream for context menu.");
                                     }
 
                                     //The following is not a fallacy in logic:
@@ -512,6 +551,7 @@ namespace BadgeNET
                                 }
                                 catch
                                 {
+                                    _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (2).");
                                 }
                             }
                         }
@@ -543,10 +583,11 @@ namespace BadgeNET
         /// <param name="filePath">Filepath for refresing single icon (case-sensitive)</param>
         private static void NotifySystemForBadgeUpdate(FilePath filePath = null)
         {
-            if (string.IsNullOrEmpty(filePath.Name))
+            if (string.IsNullOrEmpty(filePath.ToString()))
             {
                 //The following will refresh all icons, does not force OS to reload relevant COM objects
                 //    (for now I test after restarting explorer.exe)
+                _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Refresh all icons.");
                 SHChangeNotify(HChangeNotifyEventID.SHCNE_ASSOCCHANGED,
                     HChangeNotifyFlags.SHCNF_IDLIST,
                     IntPtr.Zero,
@@ -555,13 +596,14 @@ namespace BadgeNET
             else
             {
                 //Instantiate IntPtr outside of try so it can be cleaned up
+                _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Entry.  Path: {0}.", filePath.ToString());
                 IntPtr filePtr = IntPtr.Zero;
                 try
                 {
                     //Set IntPtr to null-terminated ANSI string of full file path
                     //I tried StringToHGlobalUni but it did not work
                     //Also, StringtoHGlobalAuto does not work either
-                    filePtr = Marshal.StringToHGlobalAnsi(filePath.Name);
+                    filePtr = Marshal.StringToHGlobalAnsi(filePath.ToString());
 
                     //Notify that attributes have changed on the file at the path provided by the IntPtr (which updates its icon)
                     SHChangeNotify(HChangeNotifyEventID.SHCNE_ATTRIBUTES,
@@ -573,7 +615,10 @@ namespace BadgeNET
                 {
                     //If IntPtr was not zero, free its memory
                     if (filePtr.ToInt64() != 0L)
+                    {
+                        _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Free global memory.");
                         Marshal.FreeHGlobal(filePtr);
+                    }
                 }
             }
         }
@@ -955,11 +1000,13 @@ namespace BadgeNET
             try
             {
                 // create the processing threads for each server stream (one for each badge type)
+                _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Entry.");
                 foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToProcess in pipeServerStreams)
                 {
                     // important
                     // store a userstate for the thread that processes initial pipe connections with pipe server
                     // and a lockable object containing running state
+                    _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Start new server pipe for badge type: {0}.", currentStreamToProcess.Key.ToString());
                     pipeThreadParams threadParams = new pipeThreadParams()
                     {
                         serverStream = currentStreamToProcess.Value,
@@ -972,6 +1019,7 @@ namespace BadgeNET
                 }
 
                 // Set up the thread params to start the pipe to listen to shell extension context menu messages
+                _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Start new server pipe for the context menu.");
                 pipeThreadParamsContextMenu threadParamsContextMenu = new pipeThreadParamsContextMenu()
                 {
                     serverStream = pipeServerStreamContextMenu,
@@ -998,10 +1046,12 @@ namespace BadgeNET
             try
             {
                 // define locked function for checking running state
+                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Entry.");
                 Func<pipeRunningHolder, bool> getPipeRunning = (runningHolder) =>
                 {
                     lock (runningHolder)
                     {
+                        _trace.writeToLog(9, "IconOverlay: RunServerPipe. Func<pipeRunningHolder returning {0}.", runningHolder.pipeRunning);
                         return runningHolder.pipeRunning;
                     }
                 };
@@ -1009,6 +1059,7 @@ namespace BadgeNET
                 while (getPipeRunning(pipeParams.serverLocker))
                 {
                     // running state was true so wait for next client connection
+                    _trace.writeToLog(9, "IconOverlay: RunServerPipe. In serverLocker.");
                     pipeParams.serverStream.WaitForConnection();
                     if (pipeParams.serverStream != null)
                     {
@@ -1016,6 +1067,7 @@ namespace BadgeNET
                         try
                         {
                             // expect exactly 20 bytes from client (packetId<10> + filepath byte length<10>)
+                            _trace.writeToLog(9, "IconOverlay: RunServerPipe. Data ready to read.");
                             byte[] pipeBuffer = new byte[20];
                             // read from client into buffer
                             pipeParams.serverStream.Read(pipeBuffer,
@@ -1047,36 +1099,50 @@ namespace BadgeNET
                                 bool setOverlay;
 
                                 // lock on internal list so it is not modified while being read
+                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Call ShouldIconBeBadged.");
                                 setOverlay = ShouldIconBeBadged(pipeParams.currentBadgeType, filePath);
+                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Process path: {0}, type: {1}, WillBadge: {3}.", filePath, pipeParams.currentBadgeType.ToString(), setOverlay);
 
                                 // create userstate object for the thread returning the result to the client
                                 // with the unique pipename to use and the data itself
+                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Build thread state.");
                                 returnPipeHolder threadState = new returnPipeHolder()
                                 {
-                                    fullPipeName = PipeName + pipeParams.currentBadgeType + badgeId,
+                                    fullPipeName = Environment.UserName + "/" + PipeName + pipeParams.currentBadgeType + badgeId,
                                     returnData = setOverlay ? (byte)1 : (byte)0
                                 };
 
                                 // return result to badge COM object
+                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Start the return pipe.");
                                 (new Thread(() => RunReturnPipe(threadState))).Start();
+                            }
+                            else
+                            {
+                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. ERROR: pathSize not parsed.");
                             }
                         }
                         finally
                         {
                             // read operation complete, disconnect so next badge COM object can connect
+                            _trace.writeToLog(9, "IconOverlay: RunServerPipe. Disconnect the serverStream.");
                             pipeParams.serverStream.Disconnect();
                         }
                     }
                 }
                 // running state was set to false causing listening loop to break, dispose of stream if it still exists
+                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Check serverStream for close.");
                 if (pipeParams.serverStream != null)
+                {
+                    _trace.writeToLog(9, "IconOverlay: RunServerPipe. Close the serverStream.");
                     pipeParams.serverStream.Close();
+                }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 _trace.writeToLog(1, "IconOverlay: RunServerPipe: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
+            _trace.writeToLog(9, "IconOverlay: RunServerPipe. Exit thread.");
         }
 
         /// <summary>
@@ -1087,50 +1153,61 @@ namespace BadgeNET
         /// <returns></returns>
         private bool ShouldIconBeBadged(cloudAppIconBadgeType badgeType, string filePath)
         {
-            bool setOverlay;
-
             try
             {
+                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Entry.");
                 // Convert the badgetype and filepath to objects.
-                FilePath objFilePath = new FilePath(filePath);
+                FilePath objFilePath = filePath;
                 GenericHolder<cloudAppIconBadgeType> objBadgeType = new GenericHolder<cloudAppIconBadgeType>(badgeType);
 
                 // Lock and query the in-memory database.
                 lock (allBadges)
                 {
                     // There will be no badge if the path doesn't contain Cloud root
+                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Entry.");
                     if (objFilePath.Contains(filePathCloudDirectory))
                     {
                         // If the value at this path is set and it is our type, then badge.
+                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Contains Cloud root.");
                         GenericHolder<cloudAppIconBadgeType> tempBadgeType;
                         bool success = allBadges.TryGetValue(objFilePath, out tempBadgeType);
                         if (success)
                         {
-                            return (tempBadgeType.Value == objBadgeType.Value);
+                            bool rc = (tempBadgeType.Value == objBadgeType.Value);
+                            _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return: {0}.", rc);
+                            return rc;
                         }
                         else
                         {
                             // If an item is marked selective, then none of its children (whole hierarchy of children) should be badged.
+                            _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. TryGetValue not successful.");
                             if (FilePathComparer.Instance.Equals(objFilePath, filePathCloudDirectory))
                             {
                                 // Recurse through parents of this node up to and including the CloudPath.
+                                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Recurse thru parents.");
                                 FilePath node = objFilePath;
                                 while (node != null)
                                 {
                                     // Return false if the value of this node is not null, and is marked SyncSelective
+                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the type for path: {0}.", node.ToString());
                                     GenericHolder<cloudAppIconBadgeType> thisNodeBadgeType = allBadges[node];
+                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Got type {0}.", thisNodeBadgeType.ToString());
                                     if (thisNodeBadgeType != null && thisNodeBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSyncSelective)
                                     {
+                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return false.");
                                         return false;
                                     }
 
                                     // Quit if we notified the Cloud directory root
+                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?");
                                     if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
                                     {
+                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Yes.  Break.");
                                         break;
                                     }
 
                                     // Chain up
+                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Chain up.");
                                     node = node.Parent;
                                 }
                             }
@@ -1139,39 +1216,47 @@ namespace BadgeNET
                             try
                             {
                                 // Get the hierarchy of children of this node.
+                                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the hierarchy for path: {0}.", objFilePath.ToString());
                                 FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
                                 CLError error = allBadges.GrabHierarchyForPath(objFilePath, out tree);
                                 if (error == null)
                                 {
+                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal.");
                                     // Chase the children hierarchy using recursive postorder traversal to determine the desired badge type.
                                     cloudAppIconBadgeType desiredBadgeType = GetDesiredBadgeTypeViaRecursivePostorderTraversal(tree);
-                                    return (badgeType == desiredBadgeType);
+                                    bool rc = (badgeType == desiredBadgeType);
+                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(2): {0}.", rc);
+                                    return rc;
                                 }
                                 else
                                 {
-                                    return (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
+                                    bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
+                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(3): {0}.", rc);
+                                    return rc;
                                 }
                             }
                             catch
                             {
-                                return (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
+                                bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
+                                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(4): {0}.", rc);
+                                return rc;
                             }
-
-                            return (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
                         }
                     }
                     else
                     {
                         // This path is not in the Cloud folder.  Don't badge.
+                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Not in the Cloud folder.  Don't badge.");
                         return false;
                     }
                 }
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Exception.  Normal? Msg: {0}, Code: (1).", error.errorDescription, error.errorCode);
                 return false;
             }
-            return setOverlay;
         }
 
         /// <summary>
@@ -1293,7 +1378,7 @@ namespace BadgeNET
                 string filenameExt = Path.GetFileName(source);
 
                 // Build the target path
-                string target = filePathCloudDirectory + "\\" + filenameExt;
+                string target = filePathCloudDirectory.ToString() + "\\" + filenameExt;
 
                 // Copy it.
                 Dispatcher mainDispatcher = Application.Current.Dispatcher;
@@ -1316,6 +1401,7 @@ namespace BadgeNET
                 // Clean up return pipe on a timer in case connection did not occur
                 // Requires defining a userstate to pass with whether the connection was achieved
                 // and the pipename to check
+                _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Entry: PipeName: {0}, BadgeIt?: {1}.", returnParams.fullPipeName, returnParams.returnData);
                 returnPipeRunningHolder returnRunningHolder = new returnPipeRunningHolder()
                 {
                     connectionAchieved = false,
@@ -1324,6 +1410,7 @@ namespace BadgeNET
 
                 // define the unique server pipe for the return communication (sends only one byte ever)
                 // it is located in the same object that was sent to the cleanup timer
+                _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Create the return pipe and start the thread to CleanReturnPipe.");
                 returnRunningHolder.returnStream = new NamedPipeServerStream(returnParams.fullPipeName,
                     PipeDirection.Out,
                     1,
@@ -1334,6 +1421,7 @@ namespace BadgeNET
                 (new Thread(() => CleanReturnPipe(returnRunningHolder))).Start();
 
                 // wait for client to connect
+                _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Wait for the client to connect.");
                 returnRunningHolder.returnStream.WaitForConnection();
 
                 // client successfully connected
@@ -1341,10 +1429,14 @@ namespace BadgeNET
                 // if the clearning thread did not already attempt to stop the connection,
                 //    write the data to be returned to the client
                 // mark connection achieved so cleanup thread won't cleanup
+                _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Client connected.");
                 lock (returnRunningHolder)
                 {
                     if (!returnRunningHolder.connectionAchieved)
+                    {
+                        _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Return the data.");
                         returnRunningHolder.returnStream.WriteByte(returnParams.returnData);
+                    }
                     returnRunningHolder.connectionAchieved = true;
                 }
 
@@ -1352,6 +1444,7 @@ namespace BadgeNET
                 // will not attempt a repeat dispose if already disposed (and set to null) by cleaning thread
                 if (returnRunningHolder.returnStream != null)
                 {
+                    _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Dispose the return stream.");
                     returnRunningHolder.returnStream.Dispose();
                 }
             }
@@ -1360,6 +1453,7 @@ namespace BadgeNET
                 CLError error = ex;
                 _trace.writeToLog(1, "IconOverlay: RunReturnPipe: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
+            _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Exit the thread.");
         }
 
         /// <summary>
@@ -1370,20 +1464,24 @@ namespace BadgeNET
         /// <param name="cleanParams"></param>
         private void CleanReturnPipe(returnPipeRunningHolder cleanParams)
         {
+            _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Entry.  Wait 5 seconds.");
             Thread.Sleep(5000);// wait 5 seconds before cleaning
 
             try
             {
                 lock (cleanParams)
                 {
+                    _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Start.");
                     if (!cleanParams.connectionAchieved)
                     {
                         // connection was 'not' already achieved, but this prevents the normal communication process
                         // from sending data over the pipe while its being disposed here
+                        _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Connection achieved.");
                         cleanParams.connectionAchieved = true;
 
                         try
                         {
+                            _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Dispose the return stream.");
                             cleanParams.returnStream.Dispose();
                             cleanParams.returnStream = null;
                         }
@@ -1401,6 +1499,7 @@ namespace BadgeNET
                             PipeDirection.Out,
                             PipeOptions.None))
                         {
+                            _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Attempt to connect using the killer stream.");
                             connectionKillerStream.Connect(100);
                         }
                     }
@@ -1411,6 +1510,7 @@ namespace BadgeNET
                 CLError error = ex;
                 _trace.writeToLog(1, "IconOverlay: CleanReturnPipe(2): ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
+            _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Exit the thread.");
         }
         #endregion
     }
