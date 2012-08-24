@@ -1119,7 +1119,12 @@ namespace BadgeNET
                                 };
 
                                 // return result to badge COM object
+<<<<<<< HEAD
+                                (new Thread(new ParameterizedThreadStart(RunReturnPipe))).Start(threadState);
+=======
                                 _trace.writeToLog(9, "IconOverlay: RunServerPipe. Start the return pipe.");
+                                (new Thread(() => RunReturnPipe(threadState))).Start();
+>>>>>>> 20120824A0PushedTestingBadging
                             }
                             else
                             {
