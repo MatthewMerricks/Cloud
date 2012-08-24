@@ -100,6 +100,9 @@ namespace win_client.Services.ServicesManager
             if (!_coreServicesStarted)
             {
                 _coreServicesStarted = true;
+
+                // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
+                // before the initial list is passed (via InitializeOrReplace)
                 CLBadgingService.Instance.BeginBadgingServices();
                 CLUIActivityService.Instance.BeginUIActivityService(); 
                 CLIndexingService.Instance.StartIndexingService();

@@ -60,7 +60,7 @@ namespace win_client.Services.Badging
             // error not handled above
             if(!isBadgingInitialized)
             {
-                CLError initializeError = IconOverlay.Initialize();
+                CLError initializeError = IconOverlay.Initialize(CloudApiPrivate.Model.Settings.Settings.Instance.CloudFolderPath);
                 // error not handled above
             }
         }

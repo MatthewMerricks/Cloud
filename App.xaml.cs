@@ -33,33 +33,18 @@ namespace win_client
 
         private void Application_Startup(object sender, StartupEventArgs e) 
         {
-
             // Break into the assembler
             //System.Diagnostics.Debugger.Launch();
             // throw (new System.Exception()); 
-
-            // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
-            // before the initial list is passed (via InitializeOrReplace)
-            CLError error = IconOverlay.Initialize();
 
             CLAppDelegate app = CLAppDelegate.Instance;                 // fire up the singleton
 
             MyNavigationWindow window = new MyNavigationWindow();
             window.ShowsNavigationUI = false;
 
-            // Show the user the error from IconOverlay, if any.
-            if (error != null)
-            {
-                //    //TODO: Incorporate the error description and code below into the BadgeComInitializationErrorView window above.
-                //    //MessageBox.Show(String.Format("Error initializing Cloud shell integration. Message: {0}, Code: {1}.", error.errorDescription, error.errorCode), "Error.");
-                window.Source = new Uri("/Views/PageBadgeComInitializationErrorView.xaml", UriKind.Relative);
-            }
-            else
-            {
-                //    // Set the window to display, selected in CLAppDelegate.initAppDelegate.  
-                //    ((App)Application.Current).StartupUri = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
-                window.Source = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
-            }
+            //    // Set the window to display, selected in CLAppDelegate.initAppDelegate.  
+            //    ((App)Application.Current).StartupUri = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
+            window.Source = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
 
             // If we are running PageInvisible as the first page in this NavigationWindow, set a flag
             // to prevent the animation of the window into the system tray.

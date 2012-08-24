@@ -968,7 +968,7 @@ namespace BadgeNET
                     };
 
                     // start a thread to process initial pipe connections, pass relevant userstate
-                    (new Thread(() => RunServerPipe(threadParams))).Start();
+                    (new Thread(new ParameterizedThreadStart(RunServerPipe))).Start(threadParams);
                 }
 
                 // Set up the thread params to start the pipe to listen to shell extension context menu messages
@@ -992,11 +992,17 @@ namespace BadgeNET
         /// Processes a receiving server pipe to communicate with a BadgeCOM object
         /// </summary>
         /// <param name="pipeParams"></param>
-        private void RunServerPipe(pipeThreadParams pipeParams)
+        private void RunServerPipe(object state)
         {
             // try/catch which silences errors and stops badging functionality (should never error here)
             try
             {
+                pipeThreadParams pipeParams = state as pipeThreadParams;
+                if (pipeParams == null)
+                {
+                    throw new NullReferenceException("state must be castable to pipeThreadParams");
+                }
+
                 // define locked function for checking running state
                 Func<pipeRunningHolder, bool> getPipeRunning = (runningHolder) =>
                 {
@@ -1058,7 +1064,7 @@ namespace BadgeNET
                                 };
 
                                 // return result to badge COM object
-                                (new Thread(() => RunReturnPipe(threadState))).Start();
+                                (new Thread(new ParameterizedThreadStart(RunReturnPipe))).Start(threadState);
                             }
                         }
                         finally
@@ -1259,7 +1265,6 @@ namespace BadgeNET
 
                             // Copy the files to the Cloud root directory.
                             ContextMenuCopyFiles(msg);
-
                         }
                         catch (Exception ex)
                         {
@@ -1314,11 +1319,17 @@ namespace BadgeNET
         /// Processes return pipe to send data back to the BadgeCOM object
         /// </summary>
         /// <param name="returnParams"></param>
-        private void RunReturnPipe(returnPipeHolder returnParams)
+        private void RunReturnPipe(object state)
         {
             // try/catch which silences errors
             try
             {
+                returnPipeHolder returnParams = state as returnPipeHolder;
+                if (returnParams == null)
+                {
+                    throw new NullReferenceException("state must be castable as returnPipeHolder");
+                }
+
                 // Clean up return pipe on a timer in case connection did not occur
                 // Requires defining a userstate to pass with whether the connection was achieved
                 // and the pipename to check
@@ -1337,7 +1348,7 @@ namespace BadgeNET
                     PipeOptions.None);
 
                 // start cleaning thread in case WaitForConnection locks and does not complete
-                (new Thread(() => CleanReturnPipe(returnRunningHolder))).Start();
+                (new Thread(new ParameterizedThreadStart(CleanReturnPipe))).Start(returnRunningHolder);
 
                 // wait for client to connect
                 returnRunningHolder.returnStream.WaitForConnection();
@@ -1374,12 +1385,18 @@ namespace BadgeNET
         ///    though this self-termination is not clean and you may see a handled first-chance exception)
         /// </summary>
         /// <param name="cleanParams"></param>
-        private void CleanReturnPipe(returnPipeRunningHolder cleanParams)
+        private void CleanReturnPipe(object state)
         {
             Thread.Sleep(5000);// wait 5 seconds before cleaning
 
             try
             {
+                returnPipeRunningHolder cleanParams = state as returnPipeRunningHolder;
+                if (cleanParams == null)
+                {
+                    throw new NullReferenceException("state must be castable returnPipeRunningHolder");
+                }
+
                 lock (cleanParams)
                 {
                     if (!cleanParams.connectionAchieved)
