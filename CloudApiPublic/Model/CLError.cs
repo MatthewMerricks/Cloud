@@ -258,91 +258,99 @@ namespace CloudApiPublic.Model
                 try
                 {
                     FileInfo logFile = new FileInfo(logLocation);
-
-                    // if the parent directory of the log file does not exist then create it
-                    if (!logFile.Directory.Exists)
-                    {
-                        logFile.Directory.Create();
-                    }
-
-                    // create a list for storing all the dates encoded into existing log file names
-                    List<DateTime> logDates = new List<DateTime>();
                     // store the current date (UTC)
                     DateTime currentDate = DateTime.UtcNow.Date;
-                    // define boolean for whether the existing list of logs contains the current date,
-                    // defaulting to it not being found
-                    bool currentDateFound = false;
 
-                    // loop through all files within the parent directory of the log files
-                    foreach (FileInfo currentFile in logFile.Directory.EnumerateFiles())
+                    if (LastDayLogCreated == null
+                        || currentDate.Year != ((DateTime)LastDayLogCreated).Year
+                        || currentDate.Month != ((DateTime)LastDayLogCreated).Month
+                        || currentDate.Day != ((DateTime)LastDayLogCreated).Day)
                     {
-                        // if the current file to check has the name of a log file
-                        // and if its length is consistent with adding a date and the file extension,
-                        // then process the current file as a log file
-                        if (currentFile.Name.StartsWith(logFile.Name)
-                            && currentFile.Name.Length == (logFile.Name.Length + 12))//12 is the sum of 4 and 8; 4 is the length of ".txt", the file extension; 8 is the length of the date time format YYYYMMDD
+                        // if the parent directory of the log file does not exist then create it
+                        if (!logFile.Directory.Exists)
                         {
-                            // pull out the portion of the file name of the date;
-                            // should be in the format YYYYMMDD
-                            string nameDatePortion = currentFile.Name.Substring(logFile.Name.Length, currentFile.Name.Length - logFile.Name.Length - 4); //4 is the length of ".txt", the file extension
+                            logFile.Directory.Create();
+                        }
 
-                            // run a series of int.TryParse on the date portions of the file name
-                            int nameDateYear;
-                            if (int.TryParse(nameDatePortion.Substring(0, 4), out nameDateYear))
+                        // create a list for storing all the dates encoded into existing log file names
+                        List<DateTime> logDates = new List<DateTime>();
+                        // define boolean for whether the existing list of logs contains the current date,
+                        // defaulting to it not being found
+                        bool currentDateFound = false;
+
+                        // loop through all files within the parent directory of the log files
+                        foreach (FileInfo currentFile in logFile.Directory.EnumerateFiles())
+                        {
+                            // if the current file to check has the name of a log file
+                            // and if its length is consistent with adding a date and the file extension,
+                            // then process the current file as a log file
+                            if (currentFile.Name.StartsWith(logFile.Name)
+                                && currentFile.Name.Length == (logFile.Name.Length + 12))//12 is the sum of 4 and 8; 4 is the length of ".txt", the file extension; 8 is the length of the date time format YYYYMMDD
                             {
-                                int nameDateMonth;
-                                if (int.TryParse(nameDatePortion.Substring(4, 2), out nameDateMonth))
-                                {
-                                    int nameDateDay;
-                                    if (int.TryParse(nameDatePortion.Substring(6), out nameDateDay))
-                                    {
-                                        // all date time part parsing was successful,
-                                        // but it is still possible one of the components is outside an acceptable range to construct a datetime
+                                // pull out the portion of the file name of the date;
+                                // should be in the format YYYYMMDD
+                                string nameDatePortion = currentFile.Name.Substring(logFile.Name.Length, currentFile.Name.Length - logFile.Name.Length - 4); //4 is the length of ".txt", the file extension
 
-                                        try
+                                // run a series of int.TryParse on the date portions of the file name
+                                int nameDateYear;
+                                if (int.TryParse(nameDatePortion.Substring(0, 4), out nameDateYear))
+                                {
+                                    int nameDateMonth;
+                                    if (int.TryParse(nameDatePortion.Substring(4, 2), out nameDateMonth))
+                                    {
+                                        int nameDateDay;
+                                        if (int.TryParse(nameDatePortion.Substring(6), out nameDateDay))
                                         {
-                                            // create the DateTime from parts
-                                            DateTime nameDate = new DateTime(nameDateYear, nameDateMonth, nameDateDay, currentDate.Hour, currentDate.Minute, currentDate.Second, DateTimeKind.Utc);
-                                            // if the date portion of the parsed DateTime each match the same portions of the current date,
-                                            // then mark the currentDateFound as true
-                                            if (nameDate.Year == currentDate.Year
-                                                && nameDate.Month == currentDate.Month
-                                                && nameDate.Day == currentDate.Day)
+                                            // all date time part parsing was successful,
+                                            // but it is still possible one of the components is outside an acceptable range to construct a datetime
+
+                                            try
                                             {
-                                                currentDateFound = true;
+                                                // create the DateTime from parts
+                                                DateTime nameDate = new DateTime(nameDateYear, nameDateMonth, nameDateDay, currentDate.Hour, currentDate.Minute, currentDate.Second, DateTimeKind.Utc);
+                                                // if the date portion of the parsed DateTime each match the same portions of the current date,
+                                                // then mark the currentDateFound as true
+                                                if (nameDate.Year == currentDate.Year
+                                                    && nameDate.Month == currentDate.Month
+                                                    && nameDate.Day == currentDate.Day)
+                                                {
+                                                    currentDateFound = true;
+                                                }
+                                                // add the parsed DateTime to the list of all log files found
+                                                logDates.Add(nameDate);
                                             }
-                                            // add the parsed DateTime to the list of all log files found
-                                            logDates.Add(nameDate);
-                                        }
-                                        catch
-                                        {
+                                            catch
+                                            {
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    // if there will be more than 10 log files after the current log is appended,
-                    // then loop through the oldest ones and delete them
-                    if (logDates.Count > (currentDateFound ? 10 : 9))
-                    {
-                        // loop through the log files older than the most recent 10
-                        foreach (DateTime logToRemove in logDates.OrderByDescending(orderDate => orderDate.Ticks).Skip(currentDateFound ? 10 : 9))
+                        // if there will be more than 10 log files after the current log is appended,
+                        // then loop through the oldest ones and delete them
+                        if (logDates.Count > (currentDateFound ? 10 : 9))
                         {
-                            // build the log file path based on the current date to delete
-                            string currentDeletePath = logFile.FullName +
-                                logToRemove.ToString("yyyyMMdd") + // formats to YYYYMMDD
-                                ".txt";
-                            // attempt to delete the current, old log file
-                            try
+                            // loop through the log files older than the most recent 10
+                            foreach (DateTime logToRemove in logDates.OrderByDescending(orderDate => orderDate.Ticks).Skip(currentDateFound ? 10 : 9))
                             {
-                                File.Delete(currentDeletePath);
-                            }
-                            catch
-                            {
+                                // build the log file path based on the current date to delete
+                                string currentDeletePath = logFile.FullName +
+                                    logToRemove.ToString("yyyyMMdd") + // formats to YYYYMMDD
+                                    ".txt";
+                                // attempt to delete the current, old log file
+                                try
+                                {
+                                    File.Delete(currentDeletePath);
+                                }
+                                catch
+                                {
+                                }
                             }
                         }
+
+                        LastDayLogCreated = currentDate;
                     }
 
                     try
@@ -437,5 +445,6 @@ namespace CloudApiPublic.Model
                 }
             }
         }
+        private Nullable<DateTime> LastDayLogCreated = null;
     }
 }

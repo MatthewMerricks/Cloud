@@ -75,7 +75,6 @@ namespace CloudApiPublic.Model
         public const string MethodPathSyncFrom = "/sync/from_cloud";
         public const string MethodPathDownload = "/get_file";
         public const string MethodPathUpload = "/put_file";
-
         public const string MethodPathSyncTo = "/sync/to_cloud";
 
         // Query string keys

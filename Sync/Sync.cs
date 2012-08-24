@@ -929,7 +929,11 @@ namespace Sync
                                                 true,
                                                 downloadRequest.Headers,
                                                 requestBody,
-                                                Settings.Instance.TraceExcludeAuthorization);
+                                                Settings.Instance.TraceExcludeAuthorization,
+                                                downloadRequest.Host,
+                                                downloadRequest.ContentLength.ToString(),
+                                                (downloadRequest.Expect == null ? "100-continue" : downloadRequest.Expect),
+                                                (downloadRequest.KeepAlive ? "Keep-Alive" : "Close"));
                                         }
 
                                         using (Stream downloadRequestStream = downloadRequest.GetRequestStream())
@@ -1232,7 +1236,11 @@ namespace Sync
                                         true,
                                         uploadRequest.Headers,
                                         "---File upload started---",
-                                        Settings.Instance.TraceExcludeAuthorization);
+                                        Settings.Instance.TraceExcludeAuthorization,
+                                        uploadRequest.Host,
+                                        uploadRequest.ContentLength.ToString(),
+                                        (uploadRequest.Expect == null ? "100-continue" : uploadRequest.Expect),
+                                        (uploadRequest.KeepAlive ? "Keep-Alive" : "Close"));
                                 }
 
                                 using (Stream uploadRequestStream = uploadRequest.GetRequestStream())
@@ -1255,7 +1263,7 @@ namespace Sync
                                 catch
                                 {
                                 }
-
+                                
                                 HttpWebResponse uploadResponse;
                                 try
                                 {
@@ -1270,7 +1278,8 @@ namespace Sync
                                 try
                                 {
                                     if (uploadResponse.StatusCode != HttpStatusCode.OK
-                                        && uploadResponse.StatusCode != HttpStatusCode.Created)
+                                        && uploadResponse.StatusCode != HttpStatusCode.Created
+                                        && uploadResponse.StatusCode != HttpStatusCode.NotModified)
                                     {
                                         try
                                         {
@@ -1490,6 +1499,7 @@ namespace Sync
                 // then process communication
                 if (communicationArray.Length > 0)
                 {
+                    #region Sync To
                     // Run Sync To with the list toCommunicate;
                     // Anything immediately completed should be output as completedChanges;
                     // Anything in conflict should be output as changesInError;
@@ -1596,13 +1606,15 @@ namespace Sync
 
                     byte[] requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
 
-                    HttpWebRequest toRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLMetaDataServerURL +
+                    string syncToHostAndMethod = CLDefinitions.CLMetaDataServerURL +
                         CLDefinitions.MethodPathSyncTo +
                         Helpers.QueryStringBuilder(new KeyValuePair<string, string>[]
                             {
                                 new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, Settings.Instance.Uuid)
                             }
-                        ));
+                        );
+
+                    HttpWebRequest toRequest = (HttpWebRequest)HttpWebRequest.Create(syncToHostAndMethod);
                     toRequest.Method = CLDefinitions.HeaderAppendMethodPost;
                     toRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient;
                     // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
@@ -1620,11 +1632,15 @@ namespace Sync
                             Settings.Instance.Udid,
                             Settings.Instance.Uuid,
                             CommunicationEntryDirection.Request,
-                            CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom,
+                            syncToHostAndMethod,
                             true,
                             toRequest.Headers,
                             requestBody,
-                            Settings.Instance.TraceExcludeAuthorization);
+                            Settings.Instance.TraceExcludeAuthorization,
+                            toRequest.Host,
+                            toRequest.ContentLength.ToString(),
+                            (toRequest.Expect == null ? "100-continue" : toRequest.Expect),
+                            (toRequest.KeepAlive ? "Keep-Alive" : "Close"));
                     }
 
                     using (Stream toRequestStream = toRequest.GetRequestStream())
@@ -1657,7 +1673,7 @@ namespace Sync
                                     Settings.Instance.Udid,
                                     Settings.Instance.Uuid,
                                     CommunicationEntryDirection.Response,
-                                    CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncTo,
+                                    syncToHostAndMethod,
                                     true,
                                     toResponse.Headers,
                                     toResponseStream,
@@ -1853,6 +1869,9 @@ namespace Sync
                                     currentChange.Metadata = originalMetadata.Metadata;
                                 }
 
+                                bool sameCreationTime = false;
+                                bool sameLastTime = false;
+
                                 bool metadataIsDifferent = (matchedChange == null)
                                     || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Type != currentChange.Type
                                     || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.IsFolder != currentChange.Metadata.HashableProperties.IsFolder
@@ -1867,8 +1886,8 @@ namespace Sync
                                             || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.StorageKey != currentChange.Metadata.StorageKey
                                             || !((((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.LinkTargetPath == null && currentChange.Metadata.LinkTargetPath == null)
                                                 || (((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.LinkTargetPath != null && currentChange.Metadata.LinkTargetPath != null && FilePathComparer.Instance.Equals(((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.LinkTargetPath, currentChange.Metadata.LinkTargetPath)))
-                                            || !Helpers.DateTimesWithinOneSecond(((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.CreationTime, currentChange.Metadata.HashableProperties.CreationTime)
-                                            || !Helpers.DateTimesWithinOneSecond(((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.LastTime, currentChange.Metadata.HashableProperties.LastTime)));
+                                            || !(sameCreationTime = Helpers.DateTimesWithinOneSecond(((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.CreationTime, currentChange.Metadata.HashableProperties.CreationTime))
+                                            || !(sameLastTime = Helpers.DateTimesWithinOneSecond(((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.LastTime, currentChange.Metadata.HashableProperties.LastTime))));
 
                                 FileChangeWithDependencies castMatchedChange;
                                 if (metadataIsDifferent)
@@ -1880,6 +1899,16 @@ namespace Sync
                                         {
                                             currentChange.AddDependency(matchedDependency);
                                         }
+                                    }
+
+                                    if (matchedChange != null
+                                        && (sameCreationTime
+                                            || sameLastTime))
+                                    {
+                                        currentChange.Metadata.HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder,
+                                            (sameLastTime ? ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.LastTime : currentChange.Metadata.HashableProperties.LastTime),
+                                            (sameCreationTime ? ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.CreationTime : currentChange.Metadata.HashableProperties.CreationTime),
+                                            currentChange.Metadata.HashableProperties.Size);
                                     }
                                 }
                                 else
@@ -2108,11 +2137,13 @@ namespace Sync
                         currentIncomplete.Value);
                     changesInError = changesInErrorList.SelectMany(currentError =>
                         currentError.Value);
+                    #endregion
                 }
                 else
                 {
                     if (respondingToPushNotification)
                     {
+                        #region Sync From
                         // Run Sync From
                         // Any events should be output as incompleteChanges, return all with the true boolean
                         //     (notifies calling method to run MergeToSQL with the updates)
@@ -2154,7 +2185,11 @@ namespace Sync
                                 true,
                                 pushRequest.Headers,
                                 requestBody,
-                                Settings.Instance.TraceExcludeAuthorization);
+                                Settings.Instance.TraceExcludeAuthorization,
+                                pushRequest.Host,
+                                pushRequest.ContentLength.ToString(),
+                                (pushRequest.Expect == null ? "100-continue" : pushRequest.Expect),
+                                (pushRequest.KeepAlive ? "Keep-Alive" : "Close"));
                         }
 
                         using (Stream pushRequestStream = pushRequest.GetRequestStream())
@@ -2257,10 +2292,6 @@ namespace Sync
                             {
                                 throw new NullReferenceException("OldPath cannot be null if currentChange is of Type Renamed");
                             }
-                            if (string.IsNullOrEmpty(currentChange.Metadata.Revision))
-                            {
-                                throw new NullReferenceException("Revision cannot be null if currentChange is of Type Renamed");
-                            }
 
                             FileChange originalMetadata = null;
                             FileChange foundOldPath;
@@ -2303,6 +2334,7 @@ namespace Sync
 
                             currentChange.Metadata = originalMetadata.Metadata;
                         }
+                        #endregion
                     }
                     // else if there are no changes to communicate and we're not responding to a push notification,
                     // do not process any communication (instead set all outputs to empty arrays)
