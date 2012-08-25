@@ -24,6 +24,8 @@ Trace* Trace::getInstance()
 		EnterCriticalSection(&Trace::cs);
 		single->traceDirectory = "C:\\Trash\\Trace";
 		single->maxPriorityToTrace = LONG_MAX;
+		int rc = SHCreateDirectoryExA(NULL, single->traceDirectory.c_str(), NULL);
+		single->traceEnabled = (rc == ERROR_SUCCESS || rc == ERROR_ALREADY_EXISTS);
 
 		// Get the current time
 		time_t rawtime;
@@ -54,6 +56,8 @@ Trace* Trace::getInstance()
 void Trace::setDirectory(std::string traceDirectoryParm)
 {
 	traceDirectory = traceDirectoryParm;
+	int rc = SHCreateDirectoryExA(NULL, single->traceDirectory.c_str(), NULL);
+	traceEnabled = (rc == ERROR_SUCCESS || rc == ERROR_ALREADY_EXISTS);
 }
 
 void Trace::setMaxPriorityToTrace(int priority)
@@ -69,7 +73,7 @@ void Trace::write(int priority, char *szFormat, ...)
 #ifndef _DEBUG
 	return;
 #endif
-	if (priority > maxPriorityToTrace)
+	if (!traceEnabled || priority > maxPriorityToTrace)
 	{
 		LeaveCriticalSection(&Trace::cs);
 		return;
@@ -84,23 +88,23 @@ void Trace::write(int priority, char *szFormat, ...)
 	traceStream = _fsopen(fullPathOfTraceFile.c_str(), "a", _SH_DENYNO);
 	if (traceStream == NULL)
 	{
+		traceEnabled = false;
 		va_end(vl);
 		LeaveCriticalSection(&Trace::cs);
 		return;
 	}
 
-	// Format the header of this line.
-	time_t rawtime;
-	struct tm *timeinfo;
-
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-
-	char time[200];
-	strftime(time, sizeof(time), "%Y-%m-%d_%H-%M-%S-", timeinfo);
+	// Get the thread ID and process ID
+	DWORD threadId = GetCurrentThreadId();
+	DWORD processId = GetCurrentProcessId();
+	
+	// Get the current local time
+    SYSTEMTIME st, lt;
+    GetSystemTime(&st);
+    GetLocalTime(&lt);
 
     // Trace the line prefix
-	fprintf(traceStream, "CPP_%s_", time);
+	fprintf(traceStream, "CPP_%04d-%02d-%02d_%02d:%02d:%02d-%03d_P%lx-T%lx_", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds, processId, threadId);
 
 	// Trace the message
 	vfprintf(traceStream, szFormat, vl);

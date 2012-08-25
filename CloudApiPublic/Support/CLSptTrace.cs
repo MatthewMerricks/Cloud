@@ -10,6 +10,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 
 namespace CloudApiPublic.Support
 {
@@ -22,7 +23,8 @@ namespace CloudApiPublic.Support
     {
         private static CLTrace _instance;
         private static object _instanceLocker = new object();
-        private static int _maxPriority = 10;  // set this to the highest priority to log
+        // Restore to trace: private static int _maxPriority = 10;  // set this to the highest priority to log
+        private static int _maxPriority = -1;  // set this to the highest priority to log
         private static string _logDir = @"c:\Trash\Trace";
         private static string _logFile = string.Format(@"\Trace-{0:yyyy-MM-dd}.txt", DateTime.Now);
 
@@ -71,7 +73,7 @@ namespace CloudApiPublic.Support
                     LogMessage logEntry = new LogMessage(priority, message);
 
                     // Log to the VS output window, or to DbgView
-                    Debug.WriteLine(string.Format("{0}\t{1}", logEntry.LogTime, logEntry.Message));
+                    Debug.WriteLine(string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message));
 
                     string logPath = _logDir + _logFile;
 
@@ -80,7 +82,7 @@ namespace CloudApiPublic.Support
                     {
                         using (StreamWriter log = new StreamWriter(fs))
                         {
-                            log.WriteLine(string.Format("{0}\t{1}", logEntry.LogTime, logEntry.Message));
+                            log.WriteLine(string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message));
                         }
                     }
                 }
@@ -96,14 +98,19 @@ namespace CloudApiPublic.Support
         public string Message { get; set; }
         public string LogTime { get; set; }
         public string LogDate { get; set; }
-        public int Priority {get; set; }
+        public int Priority { get; set; }
+        public int ProcessId { get; set; }
+        public int ThreadId { get; set; }
 
         public LogMessage(int priority, string message)
         {
             Message = message;
-            LogDate = DateTime.Now.ToString("yyyy-MM-dd");
-            LogTime = DateTime.Now.ToString("hh:mm:ss.fff tt");
+            DateTime currentTime = DateTime.Now;
+            LogDate = currentTime.ToString("yyyy-MM-dd");
+            LogTime = currentTime.ToString("hh:mm:ss.fff tt");
             Priority = priority;
+            ProcessId = Process.GetCurrentProcess().Id;
+            ThreadId = Thread.CurrentThread.ManagedThreadId;
         }
     }
 

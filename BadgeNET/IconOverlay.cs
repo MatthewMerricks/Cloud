@@ -144,7 +144,7 @@ namespace BadgeNET
                             // populate each initial badged object into local dictionary
                             // throws exception if file path (Key) is null or empty
                             // do not need to lock on allBadges since listening threads don't start until after this
-                            _trace.writeToLog(9, "IconOverlay: Add badge for path {0}, value {0}.", initialListArray[initialListCounter].Key, initialListArray[initialListCounter].Value);
+                            _trace.writeToLog(9, "IconOverlay: Add badge for path {0}, value {1}.", initialListArray[initialListCounter].Key.ToString(), initialListArray[initialListCounter].Value.Value.ToString());
                             allBadges.Add(initialListArray[initialListCounter].Key, initialListArray[initialListCounter].Value);
                         }
                     }
@@ -275,7 +275,7 @@ namespace BadgeNET
                         foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> currentReplacedItem in initialList ?? new KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>[0])
                         {
                             // only keep track of badges that are not "synced"
-                            _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. currentReplaceItem. Path {0}, Type: {1}).", currentReplacedItem.Key.ToString(), currentReplacedItem.Value.ToString());
+                            _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. currentReplaceItem. Path {0}, Type: {1}).", currentReplacedItem.Key.ToString(), currentReplacedItem.Value.Value.ToString());
                             if (currentReplacedItem.Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
                             {
                                 // populate each replaced badged object into local dictionary
@@ -309,7 +309,7 @@ namespace BadgeNET
         {
             try
             {
-                _trace.writeToLog(9, "IconOverlay: setBadgeType. Path: {0}, Type: {1}.", forFileAtPath.ToString(), type.ToString());
+                _trace.writeToLog(9, "IconOverlay: setBadgeType. Path: {0}, Type: {1}.", forFileAtPath.ToString(), type.Value.ToString());
                 return Instance.pSetBadgeType(forFileAtPath, type);
             }
             catch (Exception ex)
@@ -324,7 +324,7 @@ namespace BadgeNET
             try
             {
                 // ensure this is initialized
-                _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Path: {0}, Type: {1}.", filePath.ToString(), newType.ToString());
+                _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Path: {0}, Type: {1}.", filePath.ToString(), newType.Value.ToString());
                 lock (this)
                 {
                     if (!isInitialized)
@@ -551,7 +551,7 @@ namespace BadgeNET
                                 }
                                 catch
                                 {
-                                    _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (2).");
+                                    _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (3).");
                                 }
                             }
                         }
@@ -583,6 +583,7 @@ namespace BadgeNET
         /// <param name="filePath">Filepath for refresing single icon (case-sensitive)</param>
         private static void NotifySystemForBadgeUpdate(FilePath filePath = null)
         {
+            _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Entry.");
             if (string.IsNullOrEmpty(filePath.ToString()))
             {
                 //The following will refresh all icons, does not force OS to reload relevant COM objects
@@ -596,7 +597,7 @@ namespace BadgeNET
             else
             {
                 //Instantiate IntPtr outside of try so it can be cleaned up
-                _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Entry.  Path: {0}.", filePath.ToString());
+                _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Notify for path: {0}.", filePath.ToString());
                 IntPtr filePtr = IntPtr.Zero;
                 try
                 {
@@ -606,10 +607,15 @@ namespace BadgeNET
                     filePtr = Marshal.StringToHGlobalAnsi(filePath.ToString());
 
                     //Notify that attributes have changed on the file at the path provided by the IntPtr (which updates its icon)
-                    SHChangeNotify(HChangeNotifyEventID.SHCNE_ATTRIBUTES,
+                    _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Call SHChangeNotify.");
+                    SHChangeNotify(HChangeNotifyEventID.SHCNE_UPDATEITEM,
                         HChangeNotifyFlags.SHCNF_PATHA,
                         filePtr,
                         IntPtr.Zero);
+                    //SHChangeNotify(HChangeNotifyEventID.SHCNE_ATTRIBUTES,
+                    //    HChangeNotifyFlags.SHCNF_PATHA,
+                    //    filePtr,
+                    //    IntPtr.Zero);
                 }
                 finally
                 {
@@ -832,6 +838,8 @@ namespace BadgeNET
             /// <see cref="HChangeNotifyFlags.SHCNF_DWORD"/> must be specified in <i>uFlags</i>. 
             /// </summary>
             SHCNE_UPDATEIMAGE = 0x00008000,
+
+            SHCNE_UPDATEITEM = 0x00002000,
 
         }
         #endregion // enum HChangeNotifyEventID
@@ -1105,11 +1113,11 @@ namespace BadgeNET
                                 bool setOverlay;
 
                                 // lock on internal list so it is not modified while being read
-                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Call ShouldIconBeBadged.");
+                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Call ShouldIconBeBadged. Path: {0}, type: {1}.", filePath, pipeParams.currentBadgeType.ToString());
                                 setOverlay = ShouldIconBeBadged(pipeParams.currentBadgeType, filePath);
-                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Process path: {0}, type: {1}, WillBadge: {3}.", filePath, pipeParams.currentBadgeType.ToString(), setOverlay);
+                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Back from ShouldIconBeBadged. WillBadge: {0}.", setOverlay);
 
-                                // create userstate object for the thread returning the result to the client
+                                /// create userstate object for the thread returning the result to the client
                                 // with the unique pipename to use and the data itself
                                 _trace.writeToLog(9, "IconOverlay: RunServerPipe. Build thread state.");
                                 returnPipeHolder threadState = new returnPipeHolder()
@@ -1120,6 +1128,7 @@ namespace BadgeNET
 
                                 // return result to badge COM object
                                 _trace.writeToLog(9, "IconOverlay: RunServerPipe. Start the return pipe.");
+                                (new Thread(() => RunReturnPipe(threadState))).Start();
                             }
                             else
                             {
@@ -1132,6 +1141,10 @@ namespace BadgeNET
                             _trace.writeToLog(9, "IconOverlay: RunServerPipe. Disconnect the serverStream.");
                             pipeParams.serverStream.Disconnect();
                         }
+                    }
+                    else
+                    {
+                        _trace.writeToLog(9, "IconOverlay: RunServerPipe. ERROR: ServerStream null.");
                     }
                 }
                 // running state was set to false causing listening loop to break, dispose of stream if it still exists
@@ -1169,7 +1182,7 @@ namespace BadgeNET
                 lock (allBadges)
                 {
                     // There will be no badge if the path doesn't contain Cloud root
-                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Entry.");
+                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Locked.");
                     if (objFilePath.Contains(filePathCloudDirectory))
                     {
                         // If the value at this path is set and it is our type, then badge.
@@ -1196,7 +1209,7 @@ namespace BadgeNET
                                     // Return false if the value of this node is not null, and is marked SyncSelective
                                     _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the type for path: {0}.", node.ToString());
                                     GenericHolder<cloudAppIconBadgeType> thisNodeBadgeType = allBadges[node];
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Got type {0}.", thisNodeBadgeType.ToString());
+                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Got type {0}.", thisNodeBadgeType.Value.ToString());
                                     if (thisNodeBadgeType != null && thisNodeBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSyncSelective)
                                     {
                                         _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return false.");

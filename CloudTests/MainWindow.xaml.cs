@@ -212,7 +212,7 @@ namespace CloudTests
                             IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(lastRotatedBadgeType), filePathToBadge);
 
                             // Start the timer again
-                            rotationTimer.Change(0, 1000);
+                            rotationTimer.Change(1000, 1000);
                         };
 
                         // Perform the first badge operation.
@@ -284,9 +284,9 @@ namespace CloudTests
                                     }
                                 },
                                 indexer.MarkEventAsCompletedOnPreviousSync,
-                            FileChange_OnQueueing,
-                            true);
+                                indexer.GetMetadataByPathAndRevision);
                         MonitorStatus returnStatus;
+
                         folderMonitor.Start(out returnStatus);
 
                         indexer.StartInitialIndexing(folderMonitor.BeginProcessing,

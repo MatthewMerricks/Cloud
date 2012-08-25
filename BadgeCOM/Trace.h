@@ -22,6 +22,7 @@ private:
 	FILE *traceStream;
 	std::string traceFile;
 	int maxPriorityToTrace;
+	bool traceEnabled;
 
     Trace()
     {

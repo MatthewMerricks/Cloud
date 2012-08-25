@@ -21,7 +21,7 @@ using namespace std;
 //#include <fstream>
 
 // Debug trace
-#ifdef _DEBUG
+#ifndef _DEBUG
 	#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
 #else	
 	#define CLTRACE(intPriority, szFormat, ...)
@@ -206,12 +206,13 @@ STDMETHODIMP CBadgeIconSynced::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 			// calculate bytes required to send filepath
 			unsigned int pathLength = sizeof(wchar_t)*sLength;
 			// unique id for each connection attempt (used for unique return pipe)
-			static long pipeCounter = 0;
+			volatile static unsigned long pipeCounter = 0;
+			long localPipeCounter = InterlockedIncrement(&pipeCounter);
 
 			// store pipeCounter as string
 			stringstream packetIdStream;
-			packetIdStream << pipeCounter++;
-			CLTRACE(9, "CBadgeIconSynced: IsMemberOf: Pipe counter is %ld.", pipeCounter);
+			packetIdStream << localPipeCounter;
+			CLTRACE(9, "CBadgeIconSynced: IsMemberOf: Pipe counter is %lu.", localPipeCounter);
 
 			//need to zero-pad packetId to ensure constant length of 10 chars
 			string packetId;
@@ -229,7 +230,9 @@ STDMETHODIMP CBadgeIconSynced::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 			currentPathLength >> paddedLength;
 			startLength = paddedLength.length();
 			for (int currentPaddedChar = 0; currentPaddedChar < 10 - startLength; currentPaddedChar++)
+			{
 				paddedLength = "0" + paddedLength;
+			}
 		
 			//////Commented out logging:
 			//myfile.open("C:\\Users\\Public\\Documents\\BadgeCOM.log", ofstream::app);
@@ -281,7 +284,7 @@ STDMETHODIMP CBadgeIconSynced::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 
 					// add base pipe name before the packetId to complete the return pipe name
 					returnPipeNameWide = pipeForCurrentBadgeType + returnPipeNameWide;
-					CLTRACE(9, "CBadgeIconSynced: IsMemberOf: Read pipe name: %ls.", returnPipeNameWide);
+					CLTRACE(9, "CBadgeIconSynced: IsMemberOf: Read pipe name: %ws.", returnPipeNameWide);
 				
 					//////Commented out logging:
 					//myfile.open("C:\\Users\\Public\\Documents\\BadgeCOM.log", ofstream::app);
