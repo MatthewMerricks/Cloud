@@ -23,8 +23,7 @@ namespace CloudApiPublic.Support
     {
         private static CLTrace _instance;
         private static object _instanceLocker = new object();
-        // Restore to trace: private static int _maxPriority = 10;  // set this to the highest priority to log
-        private static int _maxPriority = -1;  // set this to the highest priority to log
+        private static int _maxPriority = 10;  // set this to the highest priority to log
         private static string _logDir = @"c:\Trash\Trace";
         private static string _logFile = string.Format(@"\Trace-{0:yyyy-MM-dd}.txt", DateTime.Now);
 

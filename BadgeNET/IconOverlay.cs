@@ -489,32 +489,19 @@ namespace BadgeNET
                                 pipeLocker.pipeRunning = false;
 
                                 // Dispose the badging streams
-                                foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToKill in pipeServerStreams)
+                                foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerBadge> currentStreamToKill in pipeBadgeServers)
                                 {
                                     try
                                     {
                                         // cleanup initial pipe connection
-
                                         try
                                         {
-                                            _trace.writeToLog(9, "IconOverlay: Dispose. Dispose NamedPipeStream for badge type {0}.", currentStreamToKill.Key.ToString());
-                                            currentStreamToKill.Value.Dispose();
+                                            _trace.writeToLog(9, "IconOverlay: Dispose. Stop NamedPipeBadge for badge type {0}.", currentStreamToKill.Key.ToString());
+                                            currentStreamToKill.Value.Stop();
                                         }
                                         catch
                                         {
-                                            _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception disposing NamedPipeStream for badge type {0}.", currentStreamToKill.Key.ToString());
-                                        }
-
-                                        //The following is not a fallacy in logic:
-                                        //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
-                                        //so we try to connect to it just in case (will most likely give an unauthorized exception)
-                                        using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
-                                            Environment.UserName + "/" + PipeName + currentStreamToKill.Key,
-                                            PipeDirection.Out,
-                                            PipeOptions.None))
-                                        {
-                                            _trace.writeToLog(9, "IconOverlay: Dispose. Call connectionKillerStream.Connect.");
-                                            connectionKillerStream.Connect(100);
+                                            _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception stopping NamedPipeBadge for badge type {0}.", currentStreamToKill.Key.ToString());
                                         }
                                     }
                                     catch
@@ -522,7 +509,7 @@ namespace BadgeNET
                                         _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (2).");
                                     }
                                 }
-                                pipeServerStreams.Clear();
+                                pipeBadgeServers.Clear();
 
                                 // Dispose the context menu stream
                                 try
@@ -531,22 +518,11 @@ namespace BadgeNET
 
                                     try
                                     {
-                                        pipeServerStreamContextMenu.Dispose();
+                                        pipeContextMenuServer.Stop();
                                     }
                                     catch
                                     {
-                                        _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception disposing NamedPipeStream for context menu.");
-                                    }
-
-                                    //The following is not a fallacy in logic:
-                                    //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
-                                    //so we try to connect to it just in case (will most likely give an unauthorized exception)
-                                    using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
-                                        Environment.UserName + "/" + PipeName + "/ContextMenu",
-                                        PipeDirection.Out,
-                                        PipeOptions.None))
-                                    {
-                                        connectionKillerStream.Connect(100);
+                                        _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception stopping NamedPipeServerContextMenu for context menu.");
                                     }
                                 }
                                 catch
@@ -919,57 +895,18 @@ namespace BadgeNET
         /// <summary>
         /// Creates the named pipe server streams to handle badge type communications from the COM object icon overlays
         /// </summary>
-        private readonly Dictionary<cloudAppIconBadgeType, NamedPipeServerStream> pipeServerStreams = new Dictionary<cloudAppIconBadgeType, NamedPipeServerStream>()
+        private Dictionary<cloudAppIconBadgeType, NamedPipeServerBadge> pipeBadgeServers = new Dictionary<cloudAppIconBadgeType, NamedPipeServerBadge>()
         {
-            { cloudAppIconBadgeType.cloudAppBadgeSyncing, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncing,
-                PipeDirection.In,
-                1,
-                PipeTransmissionMode.Byte,
-                PipeOptions.None) },
-            { cloudAppIconBadgeType.cloudAppBadgeSynced, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeSynced,
-                PipeDirection.In,
-                1,
-                PipeTransmissionMode.Byte,
-                PipeOptions.None) },
-            { cloudAppIconBadgeType.cloudAppBadgeSyncSelective, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeSyncSelective,
-                PipeDirection.In,
-                1,
-                PipeTransmissionMode.Byte,
-                PipeOptions.None) },
-            { cloudAppIconBadgeType.cloudAppBadgeFailed, new NamedPipeServerStream(Environment.UserName + "/" + PipeName + cloudAppIconBadgeType.cloudAppBadgeFailed,
-                PipeDirection.In,
-                1,
-                PipeTransmissionMode.Byte,
-                PipeOptions.None) }
+            { cloudAppIconBadgeType.cloudAppBadgeSyncing, null },
+            { cloudAppIconBadgeType.cloudAppBadgeSynced, null },
+            { cloudAppIconBadgeType.cloudAppBadgeSyncSelective, null },
+            { cloudAppIconBadgeType.cloudAppBadgeFailed, null }
         };
 
         /// <summary>
         /// Creates the named pipe server stream for the shell extension context menu support.
         /// </summary>
-        private readonly NamedPipeServerStream pipeServerStreamContextMenu = new NamedPipeServerStream(Environment.UserName + "/" + PipeName + "/ContextMenu",
-                    PipeDirection.In,
-                    1,
-                    PipeTransmissionMode.Byte,
-                    PipeOptions.None);
-
-        /// <summary>
-        /// Used for initial badging connection pipe thread as userstate
-        /// </summary>
-        private class pipeThreadParams
-        {
-            public NamedPipeServerStream serverStream { get; set; }
-            public pipeRunningHolder serverLocker { get; set; }
-            public cloudAppIconBadgeType currentBadgeType { get; set; }
-        }
-
-        /// <summary>
-        /// Used for initial context menu connection pipe thread as userstate
-        /// </summary>
-        private class pipeThreadParamsContextMenu
-        {
-            public NamedPipeServerStream serverStream { get; set; }
-            public pipeRunningHolder serverLocker { get; set; }
-        }
+        private NamedPipeServerContextMenu pipeContextMenuServer = null;
 
         /// <summary>
         /// Object type of pipeLocker
@@ -978,25 +915,6 @@ namespace BadgeNET
         private class pipeRunningHolder
         {
             public bool pipeRunning { get; set; }
-        }
-
-        /// <summary>
-        /// Used for unique return connection pipe threads as userstates
-        /// </summary>
-        private class returnPipeHolder
-        {
-            public string fullPipeName { get; set; }
-            public byte returnData { get; set; }
-        }
-
-        /// <summary>
-        /// Shared between the return connection pipe thread and its cleaning thread (as userstate)
-        /// </summary>
-        private class returnPipeRunningHolder
-        {
-            public bool connectionAchieved { get; set; }
-            public NamedPipeServerStream returnStream { get; set; }
-            public string fullPipeName { get; set; }
         }
         #endregion
 
@@ -1009,33 +927,24 @@ namespace BadgeNET
             {
                 // create the processing threads for each server stream (one for each badge type)
                 _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Entry.");
-                foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerStream> currentStreamToProcess in pipeServerStreams)
+                foreach (cloudAppIconBadgeType currentBadgeType in new List<cloudAppIconBadgeType>(pipeBadgeServers.Keys))
                 {
-                    // important
-                    // store a userstate for the thread that processes initial pipe connections with pipe server
-                    // and a lockable object containing running state
-                    _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Start new server pipe for badge type: {0}.", currentStreamToProcess.Key.ToString());
-                    pipeThreadParams threadParams = new pipeThreadParams()
-                    {
-                        serverStream = currentStreamToProcess.Value,
-                        serverLocker = pipeLocker,
-                        currentBadgeType = currentStreamToProcess.Key
-                    };
+                    // Create a thread to handle this badge type
+                    NamedPipeServerBadge serverBadge = new NamedPipeServerBadge();
+                    serverBadge.UserState = new NamedPipeServerBadge_UserState {BadgeType = currentBadgeType, AllBadges = allBadges, FilePathCloudDirectory = filePathCloudDirectory};
+                    serverBadge.PipeName = Environment.UserName + "/" + PipeName + currentBadgeType;
+                    serverBadge.Run();
 
-                    // start a thread to process initial pipe connections, pass relevant userstate
-                    (new Thread(new ParameterizedThreadStart(RunServerPipe))).Start(threadParams);
+                    // Remember this thread for Dispose.
+                    pipeBadgeServers[currentBadgeType] = serverBadge;
                 }
 
                 // Set up the thread params to start the pipe to listen to shell extension context menu messages
                 _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Start new server pipe for the context menu.");
-                pipeThreadParamsContextMenu threadParamsContextMenu = new pipeThreadParamsContextMenu()
-                {
-                    serverStream = pipeServerStreamContextMenu,
-                    serverLocker = pipeLocker,
-                };
-
-            // start a thread to process initial pipe connections, pass relevant userstate
-            (new Thread(new ParameterizedThreadStart(RunServerPipeContextMenu))).Start(threadParamsContextMenu);
+                NamedPipeServerContextMenu serverContextMenu = new NamedPipeServerContextMenu();
+                serverContextMenu.UserState = new NamedPipeServerContextMenu_UserState { FilePathCloudDirectory = filePathCloudDirectory };
+                serverContextMenu.PipeName = Environment.UserName + "/" + PipeName + "/ContextMenu";
+                serverContextMenu.Run();
             }
             catch (Exception ex)
             {
@@ -1044,509 +953,6 @@ namespace BadgeNET
             }
         }
 
-        /// <summary>
-        /// Processes a receiving server pipe to communicate with a BadgeCOM object
-        /// </summary>
-        /// <param name="pipeParams"></param>
-        private void RunServerPipe(object state)
-        {
-            // try/catch which silences errors and stops badging functionality (should never error here)
-            try
-            {
-                pipeThreadParams pipeParams = state as pipeThreadParams;
-                if (pipeParams == null)
-                {
-                    throw new NullReferenceException("state must be castable to pipeThreadParams");
-                }
-
-                // define locked function for checking running state
-                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Entry.");
-                Func<pipeRunningHolder, bool> getPipeRunning = (runningHolder) =>
-                {
-                    lock (runningHolder)
-                    {
-                        _trace.writeToLog(9, "IconOverlay: RunServerPipe. Func<pipeRunningHolder returning {0}.", runningHolder.pipeRunning);
-                        return runningHolder.pipeRunning;
-                    }
-                };
-                // check running state with locked function, repeat until running state is false
-                while (getPipeRunning(pipeParams.serverLocker))
-                {
-                    // running state was true so wait for next client connection
-                    _trace.writeToLog(9, "IconOverlay: RunServerPipe. In serverLocker.");
-                    pipeParams.serverStream.WaitForConnection();
-                    if (pipeParams.serverStream != null)
-                    {
-                        // try/catch which silences errors, disconnects and but allows while loop to continue
-                        try
-                        {
-                            // expect exactly 20 bytes from client (packetId<10> + filepath byte length<10>)
-                            _trace.writeToLog(9, "IconOverlay: RunServerPipe. Data ready to read.");
-                            byte[] pipeBuffer = new byte[20];
-                            // read from client into buffer
-                            pipeParams.serverStream.Read(pipeBuffer,
-                                0,
-                                20);
-
-                            // pull out badgeId from first ten bytes (each byte is an ASCII character)
-                            string badgeId = new string(pipeBuffer.Take(10).Select(currentCharByte => (char)currentCharByte).ToArray());
-                            // pull out filepath byte length from last ten bytes (each byte is an ASCII character)
-                            string pathSize = new string(pipeBuffer.Skip(10).Take(10).Select(currentCharByte => (char)currentCharByte).ToArray());
-
-                            // ensure data from client was readable by checking if the filepath byte length is parsable to int
-                            int pathSizeParsed;
-                            if (int.TryParse(pathSize, out pathSizeParsed))
-                            {
-                                // create buffer for second read from client with dynamic size equal to the filepath byte length
-                                pipeBuffer = new byte[int.Parse(pathSize)];
-                                // read filepath from client into buffer
-                                pipeParams.serverStream.Read(pipeBuffer,
-                                    0,
-                                    pipeBuffer.Length);
-
-                                // convert unicode bytes from buffer into string
-                                string filePath = Encoding.Unicode.GetString(pipeBuffer);
-
-                                // define bool to send back to client:
-                                // --true means use overlay
-                                // --false means don't use overlay
-                                bool setOverlay;
-
-                                // lock on internal list so it is not modified while being read
-                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Call ShouldIconBeBadged. Path: {0}, type: {1}.", filePath, pipeParams.currentBadgeType.ToString());
-                                setOverlay = ShouldIconBeBadged(pipeParams.currentBadgeType, filePath);
-                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Back from ShouldIconBeBadged. WillBadge: {0}.", setOverlay);
-
-                                /// create userstate object for the thread returning the result to the client
-                                // with the unique pipename to use and the data itself
-                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Build thread state.");
-                                returnPipeHolder threadState = new returnPipeHolder()
-                                {
-                                    fullPipeName = Environment.UserName + "/" + PipeName + pipeParams.currentBadgeType + badgeId,
-                                    returnData = setOverlay ? (byte)1 : (byte)0
-                                };
-
-                                // return result to badge COM object
-                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Start the return pipe.");
-                                (new Thread(() => RunReturnPipe(threadState))).Start();
-                            }
-                            else
-                            {
-                                _trace.writeToLog(9, "IconOverlay: RunServerPipe. ERROR: pathSize not parsed.");
-                            }
-                        }
-                        finally
-                        {
-                            // read operation complete, disconnect so next badge COM object can connect
-                            _trace.writeToLog(9, "IconOverlay: RunServerPipe. Disconnect the serverStream.");
-                            pipeParams.serverStream.Disconnect();
-                        }
-                    }
-                    else
-                    {
-                        _trace.writeToLog(9, "IconOverlay: RunServerPipe. ERROR: ServerStream null.");
-                    }
-                }
-                // running state was set to false causing listening loop to break, dispose of stream if it still exists
-                _trace.writeToLog(9, "IconOverlay: RunServerPipe. Check serverStream for close.");
-                if (pipeParams.serverStream != null)
-                {
-                    _trace.writeToLog(9, "IconOverlay: RunServerPipe. Close the serverStream.");
-                    pipeParams.serverStream.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                CLError error = ex;
-                _trace.writeToLog(1, "IconOverlay: RunServerPipe: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-            }
-            _trace.writeToLog(9, "IconOverlay: RunServerPipe. Exit thread.");
-        }
-
-        /// <summary>
-        /// Determine whether this icon should be badged by this badge handler.
-        /// </summary>
-        /// <param name="pipeParams"></param>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
-        private bool ShouldIconBeBadged(cloudAppIconBadgeType badgeType, string filePath)
-        {
-            try
-            {
-                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Entry.");
-                // Convert the badgetype and filepath to objects.
-                FilePath objFilePath = filePath;
-                GenericHolder<cloudAppIconBadgeType> objBadgeType = new GenericHolder<cloudAppIconBadgeType>(badgeType);
-
-                // Lock and query the in-memory database.
-                lock (allBadges)
-                {
-                    // There will be no badge if the path doesn't contain Cloud root
-                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Locked.");
-                    if (objFilePath.Contains(filePathCloudDirectory))
-                    {
-                        // If the value at this path is set and it is our type, then badge.
-                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Contains Cloud root.");
-                        GenericHolder<cloudAppIconBadgeType> tempBadgeType;
-                        bool success = allBadges.TryGetValue(objFilePath, out tempBadgeType);
-                        if (success)
-                        {
-                            bool rc = (tempBadgeType.Value == objBadgeType.Value);
-                            _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return: {0}.", rc);
-                            return rc;
-                        }
-                        else
-                        {
-                            // If an item is marked selective, then none of its children (whole hierarchy of children) should be badged.
-                            _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. TryGetValue not successful.");
-                            if (FilePathComparer.Instance.Equals(objFilePath, filePathCloudDirectory))
-                            {
-                                // Recurse through parents of this node up to and including the CloudPath.
-                                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Recurse thru parents.");
-                                FilePath node = objFilePath;
-                                while (node != null)
-                                {
-                                    // Return false if the value of this node is not null, and is marked SyncSelective
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the type for path: {0}.", node.ToString());
-                                    GenericHolder<cloudAppIconBadgeType> thisNodeBadgeType = allBadges[node];
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Got type {0}.", thisNodeBadgeType.Value.ToString());
-                                    if (thisNodeBadgeType != null && thisNodeBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSyncSelective)
-                                    {
-                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return false.");
-                                        return false;
-                                    }
-
-                                    // Quit if we notified the Cloud directory root
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?");
-                                    if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
-                                    {
-                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Yes.  Break.");
-                                        break;
-                                    }
-
-                                    // Chain up
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Chain up.");
-                                    node = node.Parent;
-                                }
-                            }
-
-                            // Determine the badge type from the hierarchy at this path
-                            try
-                            {
-                                // Get the hierarchy of children of this node.
-                                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the hierarchy for path: {0}.", objFilePath.ToString());
-                                FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
-                                CLError error = allBadges.GrabHierarchyForPath(objFilePath, out tree);
-                                if (error == null)
-                                {
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal.");
-                                    // Chase the children hierarchy using recursive postorder traversal to determine the desired badge type.
-                                    cloudAppIconBadgeType desiredBadgeType = GetDesiredBadgeTypeViaRecursivePostorderTraversal(tree);
-                                    bool rc = (badgeType == desiredBadgeType);
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(2): {0}.", rc);
-                                    return rc;
-                                }
-                                else
-                                {
-                                    bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(3): {0}.", rc);
-                                    return rc;
-                                }
-                            }
-                            catch
-                            {
-                                bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
-                                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(4): {0}.", rc);
-                                return rc;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // This path is not in the Cloud folder.  Don't badge.
-                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Not in the Cloud folder.  Don't badge.");
-                        return false;
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                CLError error = ex;
-                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Exception.  Normal? Msg: {0}, Code: (1).", error.errorDescription, error.errorCode);
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Determine the desired badge type of a node based on the badging state of its children.
-        /// </summary>
-        /// <param name="node">The selected node.</param>
-        /// <returns>cloudAddIconBadgeType: The desired badge type.</returns>
-        private cloudAppIconBadgeType GetDesiredBadgeTypeViaRecursivePostorderTraversal(FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> node)
-        {
-            // If the node doesn't exist, that means synced
-            if (node == null)
-            {
-                return cloudAppIconBadgeType.cloudAppBadgeSynced;
-            }
-
-            // Loop through all of the node's children
-            foreach (FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> child in node.Children)
-            {
-                cloudAppIconBadgeType returnBadgeType = GetDesiredBadgeTypeViaRecursivePostorderTraversal(child);
-                if (returnBadgeType != cloudAppIconBadgeType.cloudAppBadgeSynced)
-                {
-                    return returnBadgeType;
-                }
-            }
-
-            // Process by whether the node has a value.  If not, it is synced.
-            if (node.HasValue)
-            {
-                switch (node.Value.Value.Value)
-                {
-                    case cloudAppIconBadgeType.cloudAppBadgeSynced:
-                        return cloudAppIconBadgeType.cloudAppBadgeSynced;
-                    case cloudAppIconBadgeType.cloudAppBadgeSyncing:
-                        return cloudAppIconBadgeType.cloudAppBadgeSyncing;
-                    case cloudAppIconBadgeType.cloudAppBadgeFailed:
-                        return cloudAppIconBadgeType.cloudAppBadgeSyncing;
-                    case cloudAppIconBadgeType.cloudAppBadgeSyncSelective:
-                        return cloudAppIconBadgeType.cloudAppBadgeSynced;
-                }
-            }
-            else
-            {
-                return cloudAppIconBadgeType.cloudAppBadgeSynced;
-            }
-
-            return cloudAppIconBadgeType.cloudAppBadgeSynced;
-        }
-
-        /// <summary>
-        /// Processes a receiving server pipe to communicate with a BadgeCOM object for the context menu support
-        /// </summary>
-        /// <param name="pipeParams"></param>
-        private void RunServerPipeContextMenu(object state)
-        {
-            pipeThreadParamsContextMenu pipeParams = state as pipeThreadParamsContextMenu;
-            if (pipeParams == null)
-            {
-                throw new NullReferenceException("pipeParams cannot be null");
-            }
-
-            // try/catch which silences errors and stops badging functionality (should never error here)
-            try
-            {
-                // define locked function for checking running state
-                Func<pipeRunningHolder, bool> getPipeRunning = (runningHolder) =>
-                {
-                    lock (runningHolder)
-                    {
-                        return runningHolder.pipeRunning;
-                    }
-                };
-                // check running state with locked function, repeat until running state is false
-                while (getPipeRunning(pipeParams.serverLocker))
-                {
-                    // running state was true so wait for next client connection
-                    pipeParams.serverStream.WaitForConnection();
-                    if (pipeParams.serverStream != null)
-                    {
-                        // try/catch which silences errors, disconnects and but allows while loop to continue
-                        try
-                        {
-                            // We got a connection.  Read the JSON from the pipe and deserialize it to a POCO.
-                            StreamReader reader = new StreamReader(pipeParams.serverStream);
-                            ContextMenuObject msg = JsonConvert.DeserializeObject<ContextMenuObject>(reader.ReadLine());
-
-                            // Copy the files to the Cloud root directory.
-                            ContextMenuCopyFiles(msg);
-                        }
-                        catch (Exception ex)
-                        {
-                            CLError err = ex;
-                            _trace.writeToLog(1, "IconOverlay: RunServerPipeContextMenu: ERROR: Exception. Msg: <{0}>, Code: {1}.", err.errorDescription, err.errorCode);
-                        }
-                        finally
-                        {
-                            // read operation complete, disconnect so next badge COM object can connect
-                            pipeParams.serverStream.Disconnect();
-                        }
-                    }
-                }
-                // running state was set to false causing listening loop to break, dispose of stream if it still exists
-                if (pipeParams.serverStream != null)
-                    pipeParams.serverStream.Close();
-            }
-            catch (Exception ex)
-            {
-                CLError error = ex;
-                _trace.writeToLog(1, "IconOverlay: RunServerPipeContextMenu: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-            }
-        }
-
-        /// <summary>
-        /// Copy the selected files to the Cloud root directory.
-        /// </summary>
-        /// <param name="returnParams"></param>
-        private void ContextMenuCopyFiles(ContextMenuObject msg)
-        {
-            foreach (string path in msg.asSelectedPaths)
-            {
-                // Remove any trailing backslash
-                string source = path.TrimEnd(new char[]{'\\', '/'});
-
-                // Get the filename.ext of the source path.
-                string filenameExt = Path.GetFileName(source);
-
-                // Build the target path
-                string target = filePathCloudDirectory.ToString() + "\\" + filenameExt;
-
-                // Copy it.
-                Dispatcher mainDispatcher = Application.Current.Dispatcher;
-                mainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                {
-                    CLCopyFiles.CopyFileOrDirectoryWithUi(source, target);
-                }));
-            }
-        }
-
-        /// <summary>
-        /// Processes return pipe to send data back to the BadgeCOM object
-        /// </summary>
-        /// <param name="returnParams"></param>
-        private void RunReturnPipe(object state)
-        {
-            // try/catch which silences errors
-            try
-            {
-                returnPipeHolder returnParams = state as returnPipeHolder;
-                if (returnParams == null)
-                {
-                    throw new NullReferenceException("state must be castable as returnPipeHolder");
-                }
-
-                // Clean up return pipe on a timer in case connection did not occur
-                // Requires defining a userstate to pass with whether the connection was achieved
-                // and the pipename to check
-                _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Entry: PipeName: {0}, BadgeIt?: {1}.", returnParams.fullPipeName, returnParams.returnData);
-                returnPipeRunningHolder returnRunningHolder = new returnPipeRunningHolder()
-                {
-                    connectionAchieved = false,
-                    fullPipeName = returnParams.fullPipeName
-                };
-
-                // define the unique server pipe for the return communication (sends only one byte ever)
-                // it is located in the same object that was sent to the cleanup timer
-                _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Create the return pipe and start the thread to CleanReturnPipe.");
-                returnRunningHolder.returnStream = new NamedPipeServerStream(returnParams.fullPipeName,
-                    PipeDirection.Out,
-                    1,
-                    PipeTransmissionMode.Byte,
-                    PipeOptions.None);
-
-                // start cleaning thread in case WaitForConnection locks and does not complete
-                (new Thread(new ParameterizedThreadStart(CleanReturnPipe))).Start(returnRunningHolder);
-
-                // wait for client to connect
-                _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Wait for the client to connect.");
-                returnRunningHolder.returnStream.WaitForConnection();
-
-                // client successfully connected
-                // lock on the oject shared with the cleanup timer
-                // if the clearning thread did not already attempt to stop the connection,
-                //    write the data to be returned to the client
-                // mark connection achieved so cleanup thread won't cleanup
-                _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Client connected.");
-                lock (returnRunningHolder)
-                {
-                    if (!returnRunningHolder.connectionAchieved)
-                    {
-                        _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Return the data.");
-                        returnRunningHolder.returnStream.WriteByte(returnParams.returnData);
-                    }
-                    returnRunningHolder.connectionAchieved = true;
-                }
-
-                // normal cleanup of successful return of data
-                // will not attempt a repeat dispose if already disposed (and set to null) by cleaning thread
-                if (returnRunningHolder.returnStream != null)
-                {
-                    _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Dispose the return stream.");
-                    returnRunningHolder.returnStream.Dispose();
-                }
-            }
-            catch (Exception ex)
-            {
-                CLError error = ex;
-                _trace.writeToLog(1, "IconOverlay: RunReturnPipe: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-            }
-            _trace.writeToLog(9, "IconOverlay: RunReturnPipe. Exit the thread.");
-        }
-
-        /// <summary>
-        /// thread used to host the unique pipeserver for return response
-        /// (will self-terminate after 5 seconds if no connections were made,
-        ///    though this self-termination is not clean and you may see a handled first-chance exception)
-        /// </summary>
-        /// <param name="cleanParams"></param>
-        private void CleanReturnPipe(object state)
-        {
-            _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Entry.  Wait 5 seconds.");
-            Thread.Sleep(5000);// wait 5 seconds before cleaning
-
-            try
-            {
-                returnPipeRunningHolder cleanParams = state as returnPipeRunningHolder;
-                if (cleanParams == null)
-                {
-                    throw new NullReferenceException("state must be castable returnPipeRunningHolder");
-                }
-
-                lock (cleanParams)
-                {
-                    _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Start.");
-                    if (!cleanParams.connectionAchieved)
-                    {
-                        // connection was 'not' already achieved, but this prevents the normal communication process
-                        // from sending data over the pipe while its being disposed here
-                        _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Connection achieved.");
-                        cleanParams.connectionAchieved = true;
-
-                        try
-                        {
-                            _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Dispose the return stream.");
-                            cleanParams.returnStream.Dispose();
-                            cleanParams.returnStream = null;
-                        }
-                        catch(Exception ex)
-                        {
-                            CLError error = ex;
-                            _trace.writeToLog(1, "IconOverlay: CleanReturnPipe(1): ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-                        }
-
-                        //The following is not a fallacy in logic:
-                        //disposing a server stream is not guaranteed to stop a thread stuck on WaitForConnection
-                        //so we try to connect to it just in case (will most likely give an unauthorized exception)
-                        using (NamedPipeClientStream connectionKillerStream = new NamedPipeClientStream(".",
-                            cleanParams.fullPipeName,
-                            PipeDirection.Out,
-                            PipeOptions.None))
-                        {
-                            _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Attempt to connect using the killer stream.");
-                            connectionKillerStream.Connect(100);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                CLError error = ex;
-                _trace.writeToLog(1, "IconOverlay: CleanReturnPipe(2): ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-            }
-            _trace.writeToLog(9, "IconOverlay: CleanReturnPipe. Exit the thread.");
-        }
         #endregion
     }
 }

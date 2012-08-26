@@ -59,6 +59,9 @@
     <Compile Include="ContextMenuObject.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IconOverlay.cs" />
+    <Compile Include="NamedPipeServer.cs" />
+    <Compile Include="NamedPipeServerBadge.cs" />
+    <Compile Include="NamedPipeServerContextMenu.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
