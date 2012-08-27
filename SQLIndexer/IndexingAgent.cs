@@ -206,10 +206,6 @@ namespace SQLIndexer
                 {
                     throw new NullReferenceException("path cannot be null");
                 }
-                if (string.IsNullOrEmpty(revision))
-                {
-                    throw new NullReferenceException("revision cannot be null");
-                }
 
                 using (IndexDBEntities indexDB = new IndexDBEntities())
                 {
@@ -229,7 +225,8 @@ namespace SQLIndexer
                             // the following LINQ to Entities where clause compares the checksums of the sync state's NewPath
                             .Where(parent => parent.SyncCounter == lastSync.SyncCounter
                                 && parent.FileSystemObject.PathChecksum == SqlFunctions.Checksum(path)
-                                && parent.FileSystemObject.Revision.Equals(revision, StringComparison.InvariantCultureIgnoreCase))
+                                && ((parent.FileSystemObject.Revision == null && revision == null)
+                                    || parent.FileSystemObject.Revision.Equals(revision, StringComparison.InvariantCultureIgnoreCase)))
                             .AsEnumerable() // transfers from LINQ to Entities IQueryable into LINQ to Objects IEnumerable (evaluates SQL)
                             .Where(parent => parent.FileSystemObject.Path == path) // run in memory since Path field is not indexable
                             .FirstOrDefault();

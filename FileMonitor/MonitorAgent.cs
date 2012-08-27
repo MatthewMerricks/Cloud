@@ -42,17 +42,6 @@ namespace FileMonitor
 
     public delegate CLError MetadataByPathAndRevision(string path, string revision, out FileMetadata metadata);
 
-    ///// <summary>
-    ///// Delegate to match MonitorAgent's method SortFileChanges which sorts an input list of FileChanges
-    ///// </summary>
-    ///// <param name="inputChanges">FileChanges currently running through Sync process to sort</param>
-    ///// <param name="outputChanges">Output array of FileChanges to process</param>
-    ///// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
-    ///// <returns>Returns error(s) that occurred while pulling processed changes, if any</returns>
-    //public delegate CLError SortChanges(IEnumerable<KeyValuePair<FileChange, FileStream>> inputChanges,
-    //        out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
-    //        out FileChange[] outputChangesInError);
-
     /// <summary>
     /// Class to cover file monitoring; created with delegates to connect to the SQL indexer and to start Sync communication for new events
     /// </summary>
@@ -483,7 +472,7 @@ namespace FileMonitor
                         case FileChangeType.Deleted:
                             if (toApply.Metadata.HashableProperties.IsFolder)
                             {
-                                Directory.Delete(toApply.NewPath.ToString());
+                                Directory.Delete(toApply.NewPath.ToString(), true);
                             }
                             else
                             {
