@@ -111,8 +111,8 @@ namespace BadgeNET
                 CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
                     rootPath: filePathCloudDirectory,
                     pathDictionary: out allBadges,
-                    recursiveDeleteCallback: null,          //TODO: Implement this?
-                    recursiveRenameCallback: null);         //TODO: Implement this?
+                    recursiveDeleteCallback: OnAllBadgesRecursiveDelete,
+                    recursiveRenameCallback: OnAllBadgesRecursiveRename);
                 if (error != null)
                 {
                     _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: THROW: Error from CreateAndInitialize.");
@@ -301,6 +301,91 @@ namespace BadgeNET
         }
 
         /// <summary>
+        /// Callback driven when deletes occur in allBadges
+        /// <param name="recursivePathBeingDeleted">The recursive path being deleted as a result of the originalDeletedPath being deleted.</param>
+        /// <param name="forBadgeType">The recursive associated badge type.</param>
+        /// <param name="originalDeletedPath">The original path that was deleted, potentially causing a series of other node deletes.</param>
+        /// </summary>
+        private void OnAllBadgesRecursiveDelete(FilePath recursivePathBeingDeleted, GenericHolder<cloudAppIconBadgeType> forBadgeType, FilePath originalDeletedPath)
+        {
+            // This path node is deleted.  Set its badge type to synced, which is the default and the same as not being there.
+            setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), recursivePathBeingDeleted);
+        }
+
+        /// <summary>
+        /// Callback driven when renames occur in allBadges.
+        /// </summary>
+        /// <param name="recursiveOldPath">The recursive path being renamed (old path) as a result of the originalOldPath being renamed.</param>
+        /// <param name="recursiveRebuiltNewPath">The recursive renamed path (new path) as a result of the originalOldPath being renamed.</param>
+        /// <param name="recursiveOldPathBadgeType">The associated badge type of the recursive path being renamed.</param>
+        /// <param name="originalOldPath">The original old path being renamed that caused this recursive rename.</param>
+        /// <param name="originalNewPath">The original new path that caused this recursive rename.</param>
+        private void OnAllBadgesRecursiveRename(FilePath recursiveOldPath, FilePath recursiveRebuiltNewPath, GenericHolder<cloudAppIconBadgeType> recursiveOldPathBadgeType, FilePath originalOldPath, FilePath originalNewPath)
+        {
+            // Remove the badge at the old location.
+            setBadgeType(recursiveOldPathBadgeType, recursiveOldPath);
+
+            // Add the same badge at the new location.
+            setBadgeType(recursiveOldPathBadgeType, recursiveRebuiltNewPath);
+        }
+
+
+        /// <summary>
+        /// When a path is renamed, the badges must be adjusted to reflect the new path.
+        /// </summary>
+        /// <param name="oldPath">The old path.</param>
+        /// <param name="newPath">The new path.</param>
+        /// <returns></returns>
+        public static CLError RenameBadgePath(FilePath oldPath, FilePath newPath)
+        {
+            try
+            {
+                _trace.writeToLog(9, "IconOverlay: RenameBadgePath. Old path: {0}, New path: {1}.", oldPath.ToString(), newPath.ToString());
+                return Instance.pRenameBadgePath(oldPath, newPath);
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                _trace.writeToLog(1, "IconOverlay: RenameBadgePath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                return error;
+            }
+        }
+        private CLError pRenameBadgePath(FilePath oldPath, FilePath newPath)
+        {
+            CLError error = null;
+
+            try
+            {
+                // ensure this is initialized
+                _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. Old path: {0}, New path: {1}.", oldPath.ToString(), newPath.ToString());
+                lock (this)
+                {
+                    if (!isInitialized)
+                    {
+                        _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. ERROR: THROW: Must be initialized before renaming badge paths.");
+                        throw new Exception("IconOverlay must be initialized before renaming badge paths");
+                    }
+                }
+
+                // lock internal list during modification
+                lock (allBadges)
+                {
+                    // Simply pass this action on to the badge dictionary.  The dictionary will pass recursive renames back to us
+                    // as the rename is processes, and those recursive renames will cause the badges to be adjusted.
+                    _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. Pass this rename to the dictionary.");
+                    error = allBadges.Rename(oldPath, newPath);
+                    return error;
+                }
+            }
+            catch (Exception ex)
+            {
+                error += ex;
+                _trace.writeToLog(1, "IconOverlay: pRenameBadgePath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                return error;
+            }
+        }
+
+        /// <summary>
         /// Changes badge displayed on icon overlay to new type or removes badge. IconOverlay must be initialized first
         /// </summary>
         /// <param name="filePath">path of file to badge/unbadge, must not be null nor empty</param>
@@ -315,7 +400,7 @@ namespace BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                _trace.writeToLog(1, "IconOverlay: pInitializeOrReplace: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "IconOverlay: setBadgeType: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
         }

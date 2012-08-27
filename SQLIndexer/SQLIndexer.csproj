@@ -109,6 +109,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BadgeNET\BadgeNET.csproj">
+      <Project>{77014147-1a34-4bf6-8fc4-3c85984f8e2e}</Project>
+      <Name>BadgeNET</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudSdkPublic</Name>

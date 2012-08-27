@@ -18,6 +18,7 @@ using System.Transactions;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using FileMonitor;
+using BadgeNET;
 
 namespace SQLIndexer
 {
@@ -387,6 +388,19 @@ namespace SQLIndexer
 
                         // Store the new event id to the change and return it
                         newEvent.EventId = toAdd.EventId;
+
+                        // Adjust the badges for this newly added event.
+                        switch (newEvent.Type)
+                        {
+                            case FileChangeType.Created:
+                            case FileChangeType.Deleted:
+                            case FileChangeType.Modified:
+                                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing), newEvent.NewPath);
+                                break;
+                            case FileChangeType.Renamed:
+                                IconOverlay.RenameBadgePath(newEvent.OldPath, newEvent.NewPath);
+                                break;
+                        }
                     }
                 }
             }
@@ -1080,6 +1094,24 @@ namespace SQLIndexer
                     return AddEvent(mergedEvent);
                 }
 
+                // Update the badges for this merged event.
+                //TODO: Do we need to do anything with the eventToRemove?
+                if (mergedEvent != null)
+                {
+                    switch (mergedEvent.Type)
+                    {
+                        case FileChangeType.Created:
+                        case FileChangeType.Deleted:
+                        case FileChangeType.Modified:
+                            IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing), mergedEvent.NewPath);
+                            break;
+                        case FileChangeType.Renamed:
+                            IconOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
+                            break;
+                    }
+                    
+                }
+
 
             }
             catch (Exception ex)
@@ -1103,12 +1135,13 @@ namespace SQLIndexer
             {
                 // Runs the event completion operations within a transaction so
                 // it can be rolled back on failure
+                Event currentEvent = null;              // scope outside for badging reference
                 using (TransactionScope transaction = new TransactionScope())
                 {
                     using (IndexDBEntities indexDB = new IndexDBEntities())
                     {
                         // grab the event from the database by provided id
-                        Event currentEvent = indexDB.Events
+                        currentEvent = indexDB.Events
                             .Include(parent => parent.FileSystemObject)
                             .FirstOrDefault(dbEvent => dbEvent.EventId == eventId);
                         // ensure an event was found
@@ -1305,6 +1338,20 @@ namespace SQLIndexer
                         transaction.Complete();
                     }
                 }
+
+                // Adjust the badge for this completed event.
+                if (currentEvent != null)
+                {
+                    switch (changeEnums[currentEvent.FileChangeTypeEnumId])
+                    {
+                        case FileChangeType.Created:
+                        case FileChangeType.Deleted:
+                        case FileChangeType.Modified:
+                            IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), currentEvent.FileSystemObject.Path);
+                            break;
+                        // Rename processed only on new and modified events.
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1413,6 +1460,7 @@ namespace SQLIndexer
                         });
 
                         // set badge to syncing here
+                        IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing), currentEvent.FileSystemObject.Path);
                     }
                 }
 
@@ -1605,6 +1653,9 @@ namespace SQLIndexer
                     {
                         // mark that SQL can be updated again with the changes to the metadata
                         existingEvent.DoNotAddToSQLIndex = false;
+
+                        // This is an item that has changed from the index and will be processed.  Badge it as syncing.
+                        IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing), existingEvent.NewPath);
                     }
                 }
             }
@@ -1642,7 +1693,8 @@ namespace SQLIndexer
                                 RemoveEventCallback(currentUncoveredChange.Value.EventId);
                             }
 
-                            // set badge type to synced
+                            // Set badge type to synced
+                            IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), currentUncoveredChange.Value.ToString());
                         }
 
                         // Move to the next FileChange in the linked list
