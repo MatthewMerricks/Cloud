@@ -175,7 +175,7 @@ namespace SQLIndexer
                                     ServerLinkedPath = currentSyncState.ServerLinkedFileSystemObject == null
                                         ? null
                                         : currentSyncState.ServerLinkedFileSystemObject.Path,
-                                    Metadata = new FileMetadata()
+                                    Metadata = new FileMetadata(null)
                                     {
                                         HashableProperties = new FileMetadataHashableProperties(currentSyncState.FileSystemObject.IsFolder,
                                             currentSyncState.FileSystemObject.LastTime,
@@ -233,7 +233,7 @@ namespace SQLIndexer
 
                         if (foundSync != null)
                         {
-                            metadata = new FileMetadata()
+                            metadata = new FileMetadata(null)
                             {
                                 HashableProperties = new FileMetadataHashableProperties(foundSync.FileSystemObject.IsFolder,
                                     foundSync.FileSystemObject.LastTime,
@@ -297,7 +297,7 @@ namespace SQLIndexer
                                 NewPath = currentChange.FileSystemObject.Path,
                                 OldPath = currentChange.PreviousPath,
                                 Type = changeEnums[currentChange.FileChangeTypeEnumId],
-                                Metadata = new FileMetadata()
+                                Metadata = new FileMetadata(null)
                                 {
                                     HashableProperties = new FileMetadataHashableProperties(currentChange.FileSystemObject.IsFolder,
                                         currentChange.FileSystemObject.LastTime,
@@ -642,7 +642,7 @@ namespace SQLIndexer
 
                                 // Add the previous sync state to the dictionary as the baseline before changes
                                 newSyncStates.Add(localPath,
-                                    new FileMetadata()
+                                    new FileMetadata(null)
                                     {
                                         HashableProperties = new FileMetadataHashableProperties(currentState.FileSystemObject.IsFolder,
                                             currentState.FileSystemObject.LastTime,
@@ -726,7 +726,7 @@ namespace SQLIndexer
                                 {
                                     case FileChangeType.Created:
                                         newSyncStates.Add(newPath,
-                                            new FileMetadata()
+                                            new FileMetadata(null)
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                     previousEvent.FileSystemObject.LastTime,
@@ -755,7 +755,7 @@ namespace SQLIndexer
                                         else
                                         {
                                             newSyncStates.Add(newPath,
-                                                new FileMetadata()
+                                                new FileMetadata(null)
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                         previousEvent.FileSystemObject.LastTime,
@@ -799,7 +799,7 @@ namespace SQLIndexer
                                         else
                                         {
                                             newSyncStates.Add(newPath,
-                                                new FileMetadata()
+                                                new FileMetadata(null)
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                         previousEvent.FileSystemObject.LastTime,
@@ -1369,7 +1369,7 @@ namespace SQLIndexer
                     {
                         // Add the previous sync state to the initial index
                         indexPaths.Add(currentSyncState.FileSystemObject.Path,
-                            new FileMetadata()
+                            new FileMetadata(null)
                             {
                                 HashableProperties = new FileMetadataHashableProperties(currentSyncState.FileSystemObject.IsFolder,
                                     currentSyncState.FileSystemObject.LastTime,
@@ -1395,7 +1395,7 @@ namespace SQLIndexer
                         // Add database event to list of changes
                         changeList.Add(new FileChange()
                         {
-                            Metadata = new FileMetadata()
+                            Metadata = new FileMetadata(null)
                             {
                                 HashableProperties = new FileMetadataHashableProperties(currentEvent.FileSystemObject.IsFolder,
                                     currentEvent.FileSystemObject.LastTime,
@@ -1495,8 +1495,8 @@ namespace SQLIndexer
                 filePathsFound.Add(subDirectory.FullName);
                 // Create properties for the current subdirectory
                 FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(true,
-                    subDirectory.LastWriteTimeUtc,
-                    subDirectory.CreationTimeUtc,
+                    subDirectory.LastWriteTimeUtc.DropSubSeconds(),
+                    subDirectory.CreationTimeUtc.DropSubSeconds(),
                     null);
                 // Grab the last event that matches the current directory path, if any
                 FileChange existingEvent = changeList.LastOrDefault(currentChange => FilePathComparer.Instance.Equals(currentChange.NewPath, (FilePath)subDirectory));
@@ -1510,7 +1510,7 @@ namespace SQLIndexer
                         {
                             NewPath = subDirectory.FullName,
                             Type = FileChangeType.Created,
-                            Metadata = new FileMetadata()
+                            Metadata = new FileMetadata(null)
                             {
                                 HashableProperties = compareProperties
                             }
@@ -1554,8 +1554,8 @@ namespace SQLIndexer
                     filePathsFound.Add(currentFile.FullName);
                     // Find file properties
                     FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(false,
-                        currentFile.LastWriteTimeUtc,
-                        currentFile.CreationTimeUtc,
+                        currentFile.LastWriteTimeUtc.DropSubSeconds(),
+                        currentFile.CreationTimeUtc.DropSubSeconds(),
                         currentFileLength);
                     // Find the latest change at the current file path, if any exist
                     FileChange existingEvent = changeList.LastOrDefault(currentChange => FilePathComparer.Instance.Equals(currentChange.NewPath, (FilePath)currentFile));
@@ -1576,7 +1576,7 @@ namespace SQLIndexer
                                 {
                                     NewPath = currentFile,
                                     Type = FileChangeType.Modified,
-                                    Metadata = new FileMetadata()
+                                    Metadata = new FileMetadata(null)
                                     {
                                         HashableProperties = compareProperties,
                                         LinkTargetPath = existingIndexPath.LinkTargetPath,//Todo: needs to check again for new target path
@@ -1593,7 +1593,7 @@ namespace SQLIndexer
                             {
                                 NewPath = currentFile,
                                 Type = FileChangeType.Created,
-                                Metadata = new FileMetadata()
+                                Metadata = new FileMetadata(null)
                                 {
                                     HashableProperties = compareProperties
                                 }

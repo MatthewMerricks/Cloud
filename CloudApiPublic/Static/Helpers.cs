@@ -363,5 +363,16 @@ namespace CloudApiPublic.Static
             // Todo: should find an algorithm to generate a unique identifier for this device name
             return Environment.MachineName;
         }
+
+        public static DateTime DropSubSeconds(this DateTime toTruncate)
+        {
+            return new DateTime(toTruncate.Year,
+                toTruncate.Month,
+                toTruncate.Day,
+                toTruncate.Hour,
+                toTruncate.Minute,
+                toTruncate.Second,
+                toTruncate.Kind);
+        }
     }
 }

@@ -948,6 +948,10 @@ namespace Sync
                                         }
                                         catch (WebException ex)
                                         {
+                                            if (ex.Response == null)
+                                            {
+                                                throw new NullReferenceException("downloadRequest Response cannot be null", ex);
+                                            }
                                             downloadResponse = (HttpWebResponse)ex.Response;
                                         }
 
@@ -1271,6 +1275,10 @@ namespace Sync
                                 }
                                 catch (WebException ex)
                                 {
+                                    if (ex.Response == null)
+                                    {
+                                        throw new NullReferenceException("uploadRequest Response cannot be null", ex);
+                                    }
                                     uploadResponse = (HttpWebResponse)ex.Response;
                                 }
 
@@ -1495,6 +1503,128 @@ namespace Sync
                         return runningUpDownChangesDict;
                     };
 
+                string syncString;
+                if ((syncString = (getLastSyncId() ?? CLDefinitions.CLDefaultSyncID)) == CLDefinitions.CLDefaultSyncID)
+                {
+                    JsonContracts.PurgePending purge = new JsonContracts.PurgePending()
+                    {
+                        DeviceId = Settings.Instance.Udid,
+                        UserId = Settings.Instance.Uuid
+                    };
+
+                    string requestBody;
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        PurgePendingSerializer.WriteObject(ms, purge);
+                        requestBody = Encoding.Default.GetString(ms.ToArray());
+                    }
+
+                    byte[] requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
+
+                    HttpWebRequest purgeRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathPurgePending);
+                    purgeRequest.Method = CLDefinitions.HeaderAppendMethodPost;
+                    purgeRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient;
+                    // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
+                    purgeRequest.Headers[CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersionHeaderName] = CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersion;
+                    purgeRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(Settings.Instance.Akey);
+                    purgeRequest.SendChunked = false;
+                    purgeRequest.Timeout = HttpTimeoutMilliseconds;
+                    purgeRequest.ContentType = CLDefinitions.HeaderAppendContentTypeJson;
+                    purgeRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding;
+                    purgeRequest.ContentLength = requestBodyBytes.Length;
+
+                    if (Settings.Instance.TraceEnabled)
+                    {
+                        Trace.LogCommunication(Settings.Instance.TraceLocation,
+                            Settings.Instance.Udid,
+                            Settings.Instance.Uuid,
+                            CommunicationEntryDirection.Request,
+                            CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathPurgePending,
+                            true,
+                            purgeRequest.Headers,
+                            requestBody,
+                            Settings.Instance.TraceExcludeAuthorization,
+                            purgeRequest.Host,
+                            purgeRequest.ContentLength.ToString(),
+                            (purgeRequest.Expect == null ? "100-continue" : purgeRequest.Expect),
+                            (purgeRequest.KeepAlive ? "Keep-Alive" : "Close"));
+                    }
+
+                    using (Stream purgeRequestStream = purgeRequest.GetRequestStream())
+                    {
+                        purgeRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
+                    }
+
+                    HttpWebResponse purgeResponse;
+                    try
+                    {
+                        purgeResponse = (HttpWebResponse)purgeRequest.GetResponse();
+                    }
+                    catch (WebException ex)
+                    {
+                        if (ex.Response == null)
+                        {
+                            throw new NullReferenceException("purgeRequest Response cannot be null", ex);
+                        }
+                        purgeResponse = (HttpWebResponse)ex.Response;
+                    }
+
+                    JsonContracts.PurgePendingResponse deserializedResponse;
+                    using (Stream purgeHttpWebResponseStream = purgeResponse.GetResponseStream())
+                    {
+                        Stream purgeResponseStream = (Settings.Instance.TraceEnabled
+                            ? Helpers.CopyHttpWebResponseStreamAndClose(purgeHttpWebResponseStream)
+                            : purgeHttpWebResponseStream);
+
+                        try
+                        {
+                            if (Settings.Instance.TraceEnabled)
+                            {
+                                Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                    Settings.Instance.Udid,
+                                    Settings.Instance.Uuid,
+                                    CommunicationEntryDirection.Response,
+                                    CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathPurgePending,
+                                    true,
+                                    purgeResponse.Headers,
+                                    purgeResponseStream,
+                                    Settings.Instance.TraceExcludeAuthorization);
+                            }
+
+                            if (purgeResponse.StatusCode != HttpStatusCode.OK
+                                && purgeResponse.StatusCode != HttpStatusCode.Accepted)
+                            {
+                                string purgeResponseString = null;
+                                // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
+                                try
+                                {
+                                    using (TextReader purgeResponseStreamReader = new StreamReader(purgeResponseStream, Encoding.UTF8))
+                                    {
+                                        purgeResponseString = purgeResponseStreamReader.ReadToEnd();
+                                    }
+                                }
+                                catch
+                                {
+                                }
+
+                                throw new Exception("Invalid HTTP response status code in Purge Pending: " + ((int)purgeResponse.StatusCode).ToString() +
+                                    (purgeResponseString == null ? string.Empty
+                                        : Environment.NewLine + "Response:" + Environment.NewLine +
+                                        purgeResponseString));
+                            }
+
+                            deserializedResponse = (JsonContracts.PurgePendingResponse)PurgePendingResponseSerializer.ReadObject(purgeResponseStream);
+                        }
+                        finally
+                        {
+                            if (Settings.Instance.TraceEnabled)
+                            {
+                                purgeResponseStream.Dispose();
+                            }
+                        }
+                    }
+                }
+
                 // if there is at least one change to communicate or we have a push notification to communcate anyways,
                 // then process communication
                 if (communicationArray.Length > 0)
@@ -1527,7 +1657,7 @@ namespace Sync
 
                     JsonContracts.To syncTo = new JsonContracts.To()
                     {
-                        SyncId = getLastSyncId() ?? CLDefinitions.CLDefaultSyncID,
+                        SyncId = syncString,
                         Events = communicationArray.Select(currentEvent => new JsonContracts.Event()
                         {
                             Action =
@@ -1655,6 +1785,10 @@ namespace Sync
                     }
                     catch (WebException ex)
                     {
+                        if (ex.Response == null)
+                        {
+                            throw new NullReferenceException("toRequest Response cannot be null", ex);
+                        }
                         toResponse = (HttpWebResponse)ex.Response;
                     }
 
@@ -1779,16 +1913,6 @@ namespace Sync
                                     {
                                         Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To),
                                         EventId = currentEvent.Header.EventId ?? 0,
-                                        Metadata = new FileMetadata()
-                                        {
-                                            HashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action),
-                                                currentEvent.Metadata.ModifiedDate,
-                                                currentEvent.Metadata.CreatedDate,
-                                                currentEvent.Metadata.Size),
-                                            LinkTargetPath = currentEvent.Metadata.TargetPath,
-                                            Revision = currentEvent.Metadata.Revision,
-                                            StorageKey = currentEvent.Metadata.StorageKey
-                                        },
                                         NewPath = getCloudRoot() + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'),
                                         OldPath = (currentEvent.Metadata.RelativeFromPath == null
                                             ? null
@@ -1800,6 +1924,18 @@ namespace Sync
                                 Nullable<KeyValuePair<FileChange, FileStream>> matchedChange = (currentChange.EventId == 0
                                     ? (Nullable<KeyValuePair<FileChange, FileStream>>)null
                                     : toCommunicate.FirstOrDefault(currentToCommunicate => currentToCommunicate.Key.EventId == currentChange.EventId));
+
+                                currentChange.Metadata = new FileMetadata(matchedChange == null ? null : ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.RevisionChanger)
+                                    {
+                                        HashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action),
+                                            currentEvent.Metadata.ModifiedDate,
+                                            currentEvent.Metadata.CreatedDate,
+                                            currentEvent.Metadata.Size),
+                                        LinkTargetPath = currentEvent.Metadata.TargetPath,
+                                        Revision = currentEvent.Metadata.Revision,
+                                        StorageKey = currentEvent.Metadata.StorageKey
+                                    };
+
                                 if (matchedChange != null)
                                 {
                                     currentStream = ((KeyValuePair<FileChange, FileStream>)matchedChange).Value;
@@ -1871,7 +2007,7 @@ namespace Sync
 
                                 bool sameCreationTime = false;
                                 bool sameLastTime = false;
-
+                                
                                 bool metadataIsDifferent = (matchedChange == null)
                                     || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Type != currentChange.Type
                                     || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.IsFolder != currentChange.Metadata.HashableProperties.IsFolder
@@ -1892,6 +2028,8 @@ namespace Sync
                                 FileChangeWithDependencies castMatchedChange;
                                 if (metadataIsDifferent)
                                 {
+                                    currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
+
                                     if (matchedChange != null
                                         && (castMatchedChange = ((KeyValuePair<FileChange, FileStream>)matchedChange).Key as FileChangeWithDependencies) != null)
                                     {
@@ -2156,7 +2294,7 @@ namespace Sync
                             PushSerializer.WriteObject(ms,
                                 new JsonContracts.Push()
                                 {
-                                    LastSyncId = getLastSyncId() ?? CLDefinitions.CLDefaultSyncID
+                                    LastSyncId = syncString
                                 });
                             requestBody = Encoding.Default.GetString(ms.ToArray());
                         }
@@ -2204,6 +2342,10 @@ namespace Sync
                         }
                         catch (WebException ex)
                         {
+                            if (ex.Response == null)
+                            {
+                                throw new NullReferenceException("pushRequest Response cannot be null", ex);
+                            }
                             pushResponse = (HttpWebResponse)ex.Response;
                         }
 
@@ -2270,7 +2412,7 @@ namespace Sync
                                 ? null
                                 : getCloudRoot() + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
                             Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action),
-                            Metadata = new FileMetadata()
+                            Metadata = new FileMetadata(null)
                             {
                                 //Need to find what key this is //LinkTargetPath
                                 HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? false),
@@ -2496,7 +2638,7 @@ namespace Sync
         {
             get
             {
-                lock (NotificationResponseLocker)
+                lock (NotificationResponseSerializerLocker)
                 {
                     return _notificationResponseSerializer
                         ?? (_notificationResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.NotificationResponse)));
@@ -2504,7 +2646,7 @@ namespace Sync
             }
         }
         private static DataContractJsonSerializer _notificationResponseSerializer = null;
-        private static readonly object NotificationResponseLocker = new object();
+        private static readonly object NotificationResponseSerializerLocker = new object();
         public static JsonContracts.NotificationResponse ParseNotificationResponse(string notificationResponse)
         {
             MemoryStream stringStream = null;
@@ -2525,6 +2667,32 @@ namespace Sync
                 }
             }
         }
+        private static DataContractJsonSerializer PurgePendingSerializer
+        {
+            get
+            {
+                lock (PurgePendingSerializerLocker)
+                {
+                    return _purgePendingSerializer
+                        ?? (_purgePendingSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PurgePending)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _purgePendingSerializer = null;
+        private static readonly object PurgePendingSerializerLocker = new object();
+        private static DataContractJsonSerializer PurgePendingResponseSerializer
+        {
+            get
+            {
+                lock (PurgePendingResponseSerializerLocker)
+                {
+                    return _purgePendingResponseSerializer
+                        ?? (_purgePendingResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PurgePendingResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _purgePendingResponseSerializer = null;
+        private static readonly object PurgePendingResponseSerializerLocker = new object();
 
         #endregion
     }
