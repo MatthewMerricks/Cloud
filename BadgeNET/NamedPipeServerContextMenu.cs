@@ -31,7 +31,7 @@ namespace BadgeNET
 
         public override void ProcessClientCommunication(NamedPipeServerStream pipeStream, object userState)
         {
-            _trace.writeToLog(1, "NamedPipeServerContextMenu: ProcessClientCommunication: Entry.");
+            _trace.writeToLog(9, "NamedPipeServerContextMenu: ProcessClientCommunication: Entry.");
             NamedPipeServerContextMenu_UserState UserState = userState as NamedPipeServerContextMenu_UserState;
             if (UserState != null)
             {
@@ -39,20 +39,23 @@ namespace BadgeNET
                 try
                 {
                     // We got a connection.  Read the JSON from the pipe and deserialize it to a POCO.
+                    _trace.writeToLog(9, "NamedPipeServerContextMenu: ProcessClientCommunication: Read the info from the pipe.");
                     StreamReader reader = new StreamReader(pipeStream);
                     ContextMenuObject msg = JsonConvert.DeserializeObject<ContextMenuObject>(reader.ReadLine());
 
                     // Copy the files to the Cloud root directory.
+                    _trace.writeToLog(9, "NamedPipeServerContextMenu: ProcessClientCommunication: Got the info.  Copy the files.");
                     ContextMenuCopyFiles(msg, UserState.FilePathCloudDirectory);
                 }
                 catch (Exception ex)
                 {
                     CLError error = ex;
-                    _trace.writeToLog(1, "IconOverlay: RunServerPipeContextMenu: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                    _trace.writeToLog(9, "NamedPipeServerContextMenu: ProcessClientCommunication: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 }
             }
             else
             {
+                _trace.writeToLog(9, "NamedPipeServerContextMenu: ProcessClientCommunication: ERROR: Throw: userState must be castable to NamedPipeServerContextMenu_UserState");
                 throw new NullReferenceException("userState must be castable to NamedPipeServerContextMenu_UserState");
             }
         }
@@ -63,9 +66,11 @@ namespace BadgeNET
         /// <param name="returnParams"></param>
         private void ContextMenuCopyFiles(ContextMenuObject msg, FilePath filePathCloudDirectory)
         {
+            _trace.writeToLog(9, "NamedPipeServerContextMenu: ContextMenuCopyFiles: Entry.");
             foreach (string path in msg.asSelectedPaths)
             {
                 // Remove any trailing backslash
+                _trace.writeToLog(9, "NamedPipeServerContextMenu: ContextMenuCopyFiles: Process path <{0}>.", path);
                 string source = path.TrimEnd(new char[] { '\\', '/' });
 
                 // Get the filename.ext of the source path.
@@ -75,12 +80,15 @@ namespace BadgeNET
                 string target = filePathCloudDirectory.ToString() + "\\" + filenameExt;
 
                 // Copy it.
+                _trace.writeToLog(9, "NamedPipeServerContextMenu: ContextMenuCopyFiles: Schedule the copy.");
                 Dispatcher mainDispatcher = Application.Current.Dispatcher;
                 mainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
+                    _trace.writeToLog(9, "NamedPipeServerContextMenu: ContextMenuCopyFiles: Copy the file from <{0}> to <{1}>.", source, target);
                     CLCopyFiles.CopyFileOrDirectoryWithUi(source, target);
                 }));
             }
+            _trace.writeToLog(9, "NamedPipeServerContextMenu: ContextMenuCopyFiles: Return.");
         }
     }
 }

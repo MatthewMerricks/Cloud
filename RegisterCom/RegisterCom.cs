@@ -92,12 +92,26 @@ namespace RegisterCom
             Trace.WriteLine(String.Format("RegisterCom: Arg count: {0}.", args.Length));
             Trace.WriteLine(String.Format("RegisterCom: First Arg: <{0}>.", args[0]));
 
+            Trace.WriteLine("RegisterCom: Main: Stop Explorer");
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = "/C taskkill /F /IM explorer.exe";
+            process.StartInfo = startInfo;
+            process.Start();
+
             if (args.Length > 0 && args[0] != null)
             {
                 Trace.WriteLine("RegisterCom: Call RegisterAssembly.");
                 RegisterAssembly(args[0]);
                 Trace.WriteLine("RegisterCom: Back from RegisterAssembly.");
             }
+
+            Trace.WriteLine("RegisterCom: Main: Start Explorer");
+            // For some reason this won't work unless we wait here for a bit.
+            Thread.Sleep(200);
+            Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"));
 
             Trace.WriteLine("RegisterCom: Main program terminating.");
             return 0;

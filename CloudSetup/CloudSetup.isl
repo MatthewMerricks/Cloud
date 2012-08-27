@@ -4017,7 +4017,7 @@
 		<row><td>IDS__TargetReq_DESC_PROCESSOR</td><td>1033</td><td>The processor is not adequate for running [ProductName].</td><td>0</td><td/><td>1411410125</td></row>
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>1411410125</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>1411410125</td></row>
-		<row><td>ID_STRING1</td><td>1033</td><td>http://www.Cloud.com.com</td><td>0</td><td/><td>1948295243</td></row>
+		<row><td>ID_STRING1</td><td>1033</td><td>http://www.Cloud.com</td><td>0</td><td/><td>-601850870</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>1948295243</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>Product Support Department</td><td>0</td><td/><td>1411427021</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>www.Cloud.com</td><td>0</td><td/><td>1948295243</td></row>
@@ -4267,7 +4267,7 @@ QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{20E54A03-4F22-42B6-87DC-EEB7C567EF1A}</td></row>
 		<row><td>ISUSSignature</td><td>{3F1AC211-9421-4B39-A7CC-5C70E933461E}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewISToday,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewCE,viewShortcuts,viewRegistry,viewComponentServices,viewUI,viewBillboards,viewTextMessages,viewSystemSearch,viewInstallScriptStd,viewCustomActions,viewSupportFiles,viewRelease,viewDesignPatches</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewISToday,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewCE,viewShortcuts,viewRegistry,viewComponentServices,viewUI,viewBillboards,viewTextMessages,viewSystemSearch,viewInstallScriptStd,viewCustomActions,viewSupportFiles,viewRelease,viewDesignPatches,viewIniFiles,viewEnvironmentVariables,viewVRoots</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>
