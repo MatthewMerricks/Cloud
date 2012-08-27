@@ -17,7 +17,7 @@
 using namespace std;
 
 // Debug trace
-#ifdef _DEBUG
+#ifndef _DEBUG
 	#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
 #else	
 	#define CLTRACE(intPriority, szFormat, ...)
@@ -64,6 +64,8 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
 	//default return value is false (no icon overlay)
 	HRESULT r = S_FALSE;
+	HANDLE PipeHandle = INVALID_HANDLE_VALUE;
+	int createRetryCount = 3;
 
 	//copy input path to local unicode char
 	wchar_t *s = _wcsdup(pwszPath);
@@ -74,7 +76,6 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 		int sLength = wcslen(s);
 
 		//Declare some variables
-		HANDLE PipeHandle;
 		DWORD BytesWritten;
 		DWORD BytesRead;
 		bool pipeConnectionFailed = false;
@@ -93,6 +94,7 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 		pipeForCurrentBadgeType.append(lpszUsername);
 		pipeForCurrentBadgeType.append(L"/BadgeCOMcloudAppBadgeSyncSelective");
 
+		// Loop until we get a connection that can be used.
 		while (true)
 		{
 			CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Open the pipe for writing and reading.");
@@ -130,19 +132,33 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 				// pipe is busy
 				else
 				{
-					CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Error is pipe_busy. Wait for it for 2 seconds.");
-					// if waiting for a pipe does not complete in 2 seconds, exit  (by setting pipeConnectionFailed to true)
-					if (!WaitNamedPipe(pipeForCurrentBadgeType.c_str(), 2000))
-					{
-						dwError = GetLastError();
-						pipeConnectionFailed = true;
-						CLTRACE(9, "CBadgeIconSelective: IsMemberOf: ERROR: after wait.  Code: %lx.", dwError);
-						break;
-					}
+		    		CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Error is pipe_busy. Wait for it for 2 seconds.");
+		    		// if waiting for a pipe does not complete in 2 seconds, exit  (by setting pipeConnectionFailed to true)
+		    		if (!WaitNamedPipe(pipeForCurrentBadgeType.c_str(), 2000))
+		    		{
+		    			dwError = GetLastError();
+		    			CLTRACE(9, "CBadgeIconSelective: IsMemberOf: ERROR: after wait.  Code: %lx.  Maybe we should retry.", dwError);
+						if (createRetryCount-- > 0)
+						{
+							// We should retry
+							CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Loop to retry the CreateFile.");
+							CloseHandle(PipeHandle);
+							PipeHandle = INVALID_HANDLE_VALUE;
+						}
+						else
+						{
+							CLTRACE(9, "CBadgeIconSelective: IsMemberOf: ERROR: Out of retries.  CreateFile failed.");
+			    			pipeConnectionFailed = true;
+							break;
+						}
+
+		    		}
 					else
 					{
 						// The wait succeeded.  We should retry the CreateFile
-						CLTRACE(9, "CBadgeIconSelective: IsMemberOf: A named pipe instance is available now.  Loop to retry.");
+						CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Wait successful.  Loop to retry the CreateFile.");
+						CloseHandle(PipeHandle);
+						PipeHandle = INVALID_HANDLE_VALUE;
 					}
 				}
 			}
@@ -161,7 +177,7 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 
 			// store pipeCounter as string
 			stringstream packetIdStream;
-			packetIdStream << pipeCounter++;
+			packetIdStream << localPipeCounter;
 			CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Pipe counter is %lu.", localPipeCounter);
 
 			//need to zero-pad packetId to ensure constant length of 10 chars
@@ -224,10 +240,6 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 						DWORD dwError = GetLastError();
 						CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Error reading. Error: %ld.", dwError);
 					}
-
-					// Close the pipe
-					CloseHandle(PipeHandle);
-					PipeHandle = NULL;
 				}
 				else
 				{
@@ -245,6 +257,14 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 	catch (exception ex)
 	{
 		CLTRACE(1, "CBadgeIconSelective: IsMemberOf: ERROR: Exception.  Message: %s.", ex.what());
+	}
+
+	// Close the pipe handle
+    if (PipeHandle != INVALID_HANDLE_VALUE)
+	{
+		CLTRACE(1, "CBadgeIconFailed: IsMemberOf: Close the pipe handle.");
+		CloseHandle(PipeHandle);
+		PipeHandle = INVALID_HANDLE_VALUE;
 	}
 
 	// clear memory for copied path string
