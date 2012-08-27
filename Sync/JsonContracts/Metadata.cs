@@ -47,7 +47,7 @@ namespace Sync.JsonContracts
                     CreatedDate = ((tempCreatedDate.Ticks == FileConstants.InvalidUtcTimeTicks
                             || (tempCreatedDate = tempCreatedDate.ToUniversalTime()).Ticks == FileConstants.InvalidUtcTimeTicks)
                         ? (Nullable<DateTime>)null
-                        : tempCreatedDate);
+                        : tempCreatedDate.DropSubSeconds());
                 }
             }
         }
@@ -76,7 +76,7 @@ namespace Sync.JsonContracts
                     ModifiedDate = ((tempModifiedDate.Ticks == FileConstants.InvalidUtcTimeTicks
                             || (tempModifiedDate = tempModifiedDate.ToUniversalTime()).Ticks == FileConstants.InvalidUtcTimeTicks)
                         ? (Nullable<DateTime>)null
-                        : tempModifiedDate);
+                        : tempModifiedDate.DropSubSeconds());
                 }
             }
         }

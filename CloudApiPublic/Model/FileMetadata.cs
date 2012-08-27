@@ -34,6 +34,32 @@ namespace CloudApiPublic.Model
         /// Storage key to identify server location for MDS events
         /// </summary>
         public string StorageKey { get; set; }
+
+        public RevisionChanger RevisionChanger { get; private set; }
+
+        public FileMetadata(RevisionChanger revisionChanger)
+        {
+            if (revisionChanger == null)
+            {
+                this.RevisionChanger = new RevisionChanger();
+            }
+            else
+            {
+                this.RevisionChanger = revisionChanger;
+            }
+            lock (this.RevisionChanger.RevisionChangeLocker)
+            {
+                this.RevisionChanger.RevisionChanged += OnRevisionChanged;
+            }
+        }
+
+        private void OnRevisionChanged(object sender, ResolveEventArgs e)
+        {
+            if (this != sender)
+            {
+                Revision = e.Name;
+            }
+        }
     }
     /// <summary>
     /// Comparable properties used to determine uniqueness of a file change

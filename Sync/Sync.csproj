@@ -52,9 +52,12 @@
     <Compile Include="IExecutableException.cs" />
     <Compile Include="JsonContracts\Download.cs" />
     <Compile Include="JsonContracts\Event.cs" />
+    <Compile Include="JsonContracts\File.cs" />
     <Compile Include="JsonContracts\Header.cs" />
     <Compile Include="JsonContracts\Metadata.cs" />
     <Compile Include="JsonContracts\NotificationResponse.cs" />
+    <Compile Include="JsonContracts\PurgePending.cs" />
+    <Compile Include="JsonContracts\PurgePendingResponse.cs" />
     <Compile Include="JsonContracts\Push.cs" />
     <Compile Include="JsonContracts\PushResponse.cs" />
     <Compile Include="JsonContracts\To.cs" />

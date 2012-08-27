@@ -451,7 +451,7 @@ namespace FileMonitor
                                     createdCreationUtc = (DateTime)creationTime;
                                 }
 
-                                AllPaths.Add(toCreate, new FileMetadata()
+                                AllPaths.Add(toCreate, new FileMetadata(null)
                                 {
                                     HashableProperties = new FileMetadataHashableProperties(true,
                                         createdLastWriteUtc,
@@ -532,7 +532,7 @@ namespace FileMonitor
                             }
 
                             AllPaths.Remove(toApply.OldPath);
-                            AllPaths[toApply.NewPath] = new FileMetadata()
+                            AllPaths[toApply.NewPath] = new FileMetadata(toApply.Metadata.RevisionChanger)
                             {
                                 HashableProperties = toApply.Metadata.HashableProperties,
                                 LinkTargetPath = toApply.Metadata.LinkTargetPath,
@@ -1376,8 +1376,8 @@ namespace FileMonitor
 
                                                     string pathString = CurrentDependencyTree.DependencyFileChange.NewPath.ToString();
                                                     FileInfo uploadInfo = new FileInfo(pathString);
-                                                    DateTime newCreationTime = uploadInfo.CreationTimeUtc;
-                                                    DateTime newWriteTime = uploadInfo.LastWriteTimeUtc;
+                                                    DateTime newCreationTime = uploadInfo.CreationTimeUtc.DropSubSeconds();
+                                                    DateTime newWriteTime = uploadInfo.LastWriteTimeUtc.DropSubSeconds();
 
                                                     if (newCreationTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.CreationTime) != 0 // creation time changed
                                                         || newWriteTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.LastTime) != 0 // or last write time changed
@@ -1924,14 +1924,14 @@ namespace FileMonitor
                         // set last time and creation time from appropriate info based on whether change is on a folder or file
                         if (isFolder)
                         {
-                            lastTime = folder.LastWriteTimeUtc;
-                            creationTime = folder.CreationTimeUtc;
+                            lastTime = folder.LastWriteTimeUtc.DropSubSeconds();
+                            creationTime = folder.CreationTimeUtc.DropSubSeconds();
                         }
                         // change was not a folder, grab times based on file
                         else
                         {
-                            lastTime = file.LastWriteTimeUtc;
-                            creationTime = file.CreationTimeUtc;
+                            lastTime = file.LastWriteTimeUtc.DropSubSeconds();
+                            creationTime = file.CreationTimeUtc.DropSubSeconds();
                         }
 
                         // most paths modify the list of current indexes, so lock it from other reads/changes
@@ -1983,7 +1983,7 @@ namespace FileMonitor
                                     {
                                         // add new index
                                         AllPaths.Add(pathObject,
-                                            new FileMetadata()
+                                            new FileMetadata(null)
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(isFolder,
                                                     lastTime,
@@ -2147,7 +2147,7 @@ namespace FileMonitor
                                 {
                                     // add new index at new path
                                     AllPaths.Add(pathObject,
-                                        new FileMetadata()
+                                        new FileMetadata(null)
                                         {
                                             HashableProperties = new FileMetadataHashableProperties(isFolder,
                                                 lastTime,
@@ -2351,7 +2351,7 @@ namespace FileMonitor
                 || (previousMetadata.LinkTargetPath != null && targetPath != null && !FilePathComparer.Instance.Equals(previousMetadata.LinkTargetPath, targetPath)))
             {
                 // metadata change detected
-                return new FileMetadata()
+                return new FileMetadata(previousMetadata.RevisionChanger)
                 {
                     HashableProperties = forCompare,
                     Revision = previousMetadata.Revision,
@@ -2700,7 +2700,7 @@ namespace FileMonitor
                     (sender == null
                         ? string.Empty
                         : sender.Type.ToString() +
-                            ((sender.Metadata ?? new FileMetadata()).HashableProperties.IsFolder ? " folder " : " file")) +
+                            ((sender.Metadata ?? new FileMetadata(null)).HashableProperties.IsFolder ? " folder " : " file")) +
                     ": " + mergeError.errorDescription);
 
             }

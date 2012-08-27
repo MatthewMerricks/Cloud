@@ -322,7 +322,7 @@ namespace CloudApiPublic.Model
                 };
             Func<FileMetadata> buildMetadata = () =>
                 {
-                    return new FileMetadata()
+                    return new FileMetadata(null)
                     {
                         HashableProperties = buildMetadataProperties(),
                         LinkTargetPath = jsonTargetPath,

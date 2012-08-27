@@ -76,9 +76,11 @@ namespace CloudApiPublic.Model
         public const string MethodPathDownload = "/get_file";
         public const string MethodPathUpload = "/put_file";
         public const string MethodPathSyncTo = "/sync/to_cloud";
+        public const string MethodPathPurgePending = "/private/purge_pending";
 
         // Query string keys
         public const string QueryStringUserId = "user_id";
+        public const string QueryStringDeviceUUId = "device_uuid";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
@@ -210,6 +212,8 @@ namespace CloudApiPublic.Model
         public const string CLMetadataMimeType = "mime_type";
         public const string CLMetadataIcon = "icon";
         public const string CLMetadataVersion = "version";
+        public const string CLMetadataFiles = "files";
+        public const string CLMetadataFile = "file";
 
         // Cloud Events
         public const string CLSyncEvent = "event";
