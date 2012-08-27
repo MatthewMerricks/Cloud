@@ -17,7 +17,7 @@
 using namespace std;
 
 // Debug trace
-#ifdef _DEBUG
+#ifndef _DEBUG
 	#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
 #else	
 	#define CLTRACE(intPriority, szFormat, ...)
@@ -50,8 +50,8 @@ STDMETHODIMP CBadgeIconSyncing::GetOverlayInfo(
 // returns the priority of this overlay 0 being the highest.
 STDMETHODIMP CBadgeIconSyncing::GetPriority(int* pPriority)
 {
-	// change the following to set priority between multiple overlays
 	CLTRACE(9, "CBadgeIconSyncing: GetPriority: Entry");
+	// change the following to set priority between multiple overlays
 	*pPriority = 0;
 	return S_OK;
 }
@@ -64,6 +64,8 @@ STDMETHODIMP CBadgeIconSyncing::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
 	//default return value is false (no icon overlay)
 	HRESULT r = S_FALSE;
+	HANDLE PipeHandle = INVALID_HANDLE_VALUE;
+	int createRetryCount = 3;
 
 	//copy input path to local unicode char
 	wchar_t *s = _wcsdup(pwszPath);
@@ -74,7 +76,6 @@ STDMETHODIMP CBadgeIconSyncing::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 		int sLength = wcslen(s);
 
 		//Declare some variables
-		HANDLE PipeHandle;
 		DWORD BytesWritten;
 		DWORD BytesRead;
 		bool pipeConnectionFailed = false;
@@ -93,10 +94,10 @@ STDMETHODIMP CBadgeIconSyncing::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 		pipeForCurrentBadgeType.append(lpszUsername);
 		pipeForCurrentBadgeType.append(L"/BadgeCOMcloudAppBadgeSyncing");
 
+		// Loop until we get a connection that can be used.
 		while (true)
 		{
 		    CLTRACE(9, "CBadgeIconSyncing: IsMemberOf: Open the pipe for writing and reading.");
-		    // Opens the pipe for writing
 		    PipeHandle = CreateFile(
 		    	pipeForCurrentBadgeType.c_str(), // Pipe name
 		    	GENERIC_WRITE | GENERIC_READ, // bidirectional
@@ -136,14 +137,28 @@ STDMETHODIMP CBadgeIconSyncing::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 		    		if (!WaitNamedPipe(pipeForCurrentBadgeType.c_str(), 2000))
 		    		{
 		    			dwError = GetLastError();
-		    			pipeConnectionFailed = true;
-		    			CLTRACE(9, "CBadgeIconSyncing: IsMemberOf: ERROR: after wait.  Code: %lx.", dwError);
-						break;
+		    			CLTRACE(9, "CBadgeIconSyncing: IsMemberOf: ERROR: after wait.  Code: %lx.  Maybe we should retry.", dwError);
+						if (createRetryCount-- > 0)
+						{
+							// We should retry
+							CLTRACE(9, "CBadgeIconSyncing: IsMemberOf: Loop to retry the CreateFile.");
+							CloseHandle(PipeHandle);
+							PipeHandle = INVALID_HANDLE_VALUE;
+						}
+						else
+						{
+							CLTRACE(9, "CBadgeIconSyncing: IsMemberOf: ERROR: Out of retries.  CreateFile failed.");
+			    			pipeConnectionFailed = true;
+							break;
+						}
+
 		    		}
 					else
 					{
 						// The wait succeeded.  We should retry the CreateFile
-						CLTRACE(9, "CBadgeIconSyncing: IsMemberOf: A named pipe instance is available now.  Loop to retry.");
+						CLTRACE(9, "CBadgeIconSyncing: IsMemberOf: Wait successful.  Loop to retry the CreateFile.");
+						CloseHandle(PipeHandle);
+						PipeHandle = INVALID_HANDLE_VALUE;
 					}
 		    	}
 		    }
@@ -225,10 +240,6 @@ STDMETHODIMP CBadgeIconSyncing::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 						DWORD dwError = GetLastError();
 						CLTRACE(9, "CBadgeIconSyncing: IsMemberOf: Error reading. Error: %ld.", dwError);
 					}
-
-					// Close the pipe
-					CloseHandle(PipeHandle);
-					PipeHandle = NULL;
 				}
 				else
 				{
@@ -246,6 +257,14 @@ STDMETHODIMP CBadgeIconSyncing::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 	catch (exception ex)
 	{
 		CLTRACE(1, "CBadgeIconSyncing: IsMemberOf: ERROR: Exception.  Message: %s.", ex.what());
+	}
+
+	// Close the pipe handle
+    if (PipeHandle != INVALID_HANDLE_VALUE)
+	{
+		CLTRACE(1, "CBadgeIconFailed: IsMemberOf: Close the pipe handle.");
+		CloseHandle(PipeHandle);
+		PipeHandle = INVALID_HANDLE_VALUE;
 	}
 
 	// clear memory for copied path string

@@ -132,7 +132,7 @@ namespace BadgeNET
                         {
                             // If an item is marked selective, then none of its children (whole hierarchy of children) should be badged.
                             _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. TryGetValue not successful.");
-                            if (FilePathComparer.Instance.Equals(objFilePath, FilePathCloudDirectory))
+                            if (!FilePathComparer.Instance.Equals(objFilePath, FilePathCloudDirectory))
                             {
                                 // Recurse through parents of this node up to and including the CloudPath.
                                 _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Recurse thru parents.");
@@ -141,19 +141,23 @@ namespace BadgeNET
                                 {
                                     // Return false if the value of this node is not null, and is marked SyncSelective
                                     _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the type for path: {0}.", node.ToString());
-                                    GenericHolder<cloudAppIconBadgeType> thisNodeBadgeType = AllBadges[node];
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Got type {0}.", thisNodeBadgeType.Value.ToString());
-                                    if (thisNodeBadgeType != null && thisNodeBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSyncSelective)
+                                    success = AllBadges.TryGetValue(node, out tempBadgeType);
+                                    if (success && tempBadgeType != null)
                                     {
-                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return false.");
-                                        return false;
+                                        // Got the badge type at this level.
+                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Got type {0}.", tempBadgeType.Value.ToString());
+                                        if (tempBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSyncSelective)
+                                        {
+                                            _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return false.");
+                                            return false;
+                                        }
                                     }
 
                                     // Quit if we notified the Cloud directory root
                                     _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?");
                                     if (FilePathComparer.Instance.Equals(node, FilePathCloudDirectory))
                                     {
-                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Yes.  Break.");
+                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node.");
                                         break;
                                     }
 
@@ -164,34 +168,7 @@ namespace BadgeNET
                             }
 
                             // Determine the badge type from the hierarchy at this path
-                            try
-                            {
-                                // Get the hierarchy of children of this node.
-                                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the hierarchy for path: {0}.", objFilePath.ToString());
-                                FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
-                                CLError error = AllBadges.GrabHierarchyForPath(objFilePath, out tree);
-                                if (error == null)
-                                {
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal.");
-                                    // Chase the children hierarchy using recursive postorder traversal to determine the desired badge type.
-                                    cloudAppIconBadgeType desiredBadgeType = GetDesiredBadgeTypeViaRecursivePostorderTraversal(tree);
-                                    bool rc = (badgeType == desiredBadgeType);
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(2): {0}.", rc);
-                                    return rc;
-                                }
-                                else
-                                {
-                                    bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(3): {0}.", rc);
-                                    return rc;
-                                }
-                            }
-                            catch
-                            {
-                                bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
-                                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(4): {0}.", rc);
-                                return rc;
-                            }
+                            return DetermineBadgeStatusFromHierarchyOfChildrenOfThisNode(badgeType, AllBadges, objFilePath);
                         }
                     }
                     else
@@ -207,6 +184,45 @@ namespace BadgeNET
                 CLError error = ex;
                 _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Exception.  Normal? Msg: {0}, Code: (1).", error.errorDescription, error.errorCode);
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Determine whether we should badge with this badge type at this path.
+        /// </summary>
+        /// <param name="badgeType">The badge type.</param>
+        /// <param name="AllBadges">The current badge dictionary.</param>
+        /// <param name="objFilePath">The path to test.</param>
+        /// <returns></returns>
+        private bool DetermineBadgeStatusFromHierarchyOfChildrenOfThisNode(cloudAppIconBadgeType badgeType, FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> AllBadges, FilePath objFilePath)
+        {
+            try
+            {
+                // Get the hierarchy of children of this node.
+                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the hierarchy for path: {0}.", objFilePath.ToString());
+                FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
+                CLError error = AllBadges.GrabHierarchyForPath(objFilePath, out tree);
+                if (error == null)
+                {
+                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal.");
+                    // Chase the children hierarchy using recursive postorder traversal to determine the desired badge type.
+                    cloudAppIconBadgeType desiredBadgeType = GetDesiredBadgeTypeViaRecursivePostorderTraversal(tree);
+                    bool rc = (badgeType == desiredBadgeType);
+                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(2): {0}.", rc);
+                    return rc;
+                }
+                else
+                {
+                    bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
+                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(3): {0}.", rc);
+                    return rc;
+                }
+            }
+            catch
+            {
+                bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
+                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(4): {0}.", rc);
+                return rc;
             }
         }
 
