@@ -388,21 +388,10 @@ namespace SQLIndexer
 
                         // Store the new event id to the change and return it
                         newEvent.EventId = toAdd.EventId;
-
-                        // Adjust the badges for this newly added event.
-                        switch (newEvent.Type)
-                        {
-                            case FileChangeType.Created:
-                            case FileChangeType.Deleted:
-                            case FileChangeType.Modified:
-                                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing), newEvent.NewPath);
-                                break;
-                            case FileChangeType.Renamed:
-                                IconOverlay.RenameBadgePath(newEvent.OldPath, newEvent.NewPath);
-                                break;
-                        }
                     }
                 }
+
+                ProcessNewEventBadge(newEvent, null);
             }
             catch (Exception ex)
             {
@@ -677,6 +666,11 @@ namespace SQLIndexer
                             .OrderBy(currentEvent => currentEvent.EventId)
                             .ToArray();
 
+                        Action<cloudAppIconBadgeType, FilePath> setBadge = (badgeType, badgePath) =>
+                            {
+                                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(badgeType), badgePath);
+                            };
+
                         // Loop through existing events to process into the new sync states
                         foreach (Event previousEvent in existingEvents)
                         {
@@ -750,9 +744,28 @@ namespace SQLIndexer
                                                 Revision = previousEvent.FileSystemObject.Revision,
                                                 StorageKey = previousEvent.FileSystemObject.StorageKey
                                             });
+
+
+                                        if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
+                                            && existingEvent.FileSystemObject.Path == newPath.ToString()))
+                                        {
+                                            setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, newPath);
+                                        }
                                         break;
                                     case FileChangeType.Deleted:
                                         newSyncStates.Remove(newPath);
+
+                                        if (previousEvent.SyncFrom)
+                                        {
+                                            bool isDeleted;
+                                            IconOverlay.DeleteBadgePath(newPath, out isDeleted);
+                                        }
+
+                                        if (existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
+                                            && existingEvent.FileSystemObject.Path == newPath.ToString()))
+                                        {
+                                            setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, newPath);
+                                        }
                                         break;
                                     case FileChangeType.Modified:
                                         if (newSyncStates.ContainsKey(newPath))
@@ -779,6 +792,13 @@ namespace SQLIndexer
                                                     Revision = previousEvent.FileSystemObject.Revision,
                                                     StorageKey = previousEvent.FileSystemObject.StorageKey
                                                 });
+                                        }
+
+
+                                        if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
+                                            && existingEvent.FileSystemObject.Path == newPath.ToString()))
+                                        {
+                                            setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, newPath);
                                         }
                                         break;
                                     case FileChangeType.Renamed:
@@ -823,6 +843,17 @@ namespace SQLIndexer
                                                     Revision = previousEvent.FileSystemObject.Revision,
                                                     StorageKey = previousEvent.FileSystemObject.StorageKey
                                                 });
+                                        }
+
+                                        if (previousEvent.SyncFrom)
+                                        {
+                                            IconOverlay.RenameBadgePath(oldPath, newPath);
+                                        }
+
+                                        if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
+                                            && existingEvent.FileSystemObject.Path == newPath.ToString()))
+                                        {
+                                            setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, newPath);
                                         }
                                         break;
                                 }
@@ -975,6 +1006,7 @@ namespace SQLIndexer
                 // Return out if boolean set indicating not to add to SQL
                 if (mergedEvent.DoNotAddToSQLIndex)
                 {
+                    ProcessNewEventBadge(mergedEvent, eventToRemove);
                     return null;
                 }
 
@@ -1093,32 +1125,77 @@ namespace SQLIndexer
                 {
                     return AddEvent(mergedEvent);
                 }
-
-                // Update the badges for this merged event.
-                //TODO: Do we need to do anything with the eventToRemove?
-                if (mergedEvent != null)
+                else
                 {
-                    switch (mergedEvent.Type)
-                    {
-                        case FileChangeType.Created:
-                        case FileChangeType.Deleted:
-                        case FileChangeType.Modified:
-                            IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing), mergedEvent.NewPath);
-                            break;
-                        case FileChangeType.Renamed:
-                            IconOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
-                            break;
-                    }
-                    
+                    ProcessNewEventBadge(mergedEvent, eventToRemove);
                 }
-
-
             }
             catch (Exception ex)
             {
                 return ex;
             }
             return null;
+        }
+
+        private static void ProcessNewEventBadge(FileChange mergedEvent, FileChange eventToRemove)
+        {
+            Action<cloudAppIconBadgeType, FilePath> setBadge = (badgeType, badgePath) =>
+            {
+                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(badgeType), badgePath);
+            };
+
+            // Update the badges for this merged event.
+            //TODO: Do we need to do anything with the eventToRemove?
+            if (mergedEvent != null)
+            {
+                switch (mergedEvent.Type)
+                {
+                    case FileChangeType.Deleted:
+                        switch (mergedEvent.Direction)
+                        {
+                            case SyncDirection.From:
+                                setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
+                                break;
+                            case SyncDirection.To:
+                                bool isDeleted;
+                                IconOverlay.DeleteBadgePath(mergedEvent.NewPath, out isDeleted);
+                                break;
+                            default:
+                                throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());
+                        }
+                        break;
+                    case FileChangeType.Created:
+                    case FileChangeType.Modified:
+                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
+                        break;
+                    case FileChangeType.Renamed:
+                        switch (mergedEvent.Direction)
+                        {
+                            case SyncDirection.From:
+                                setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
+                                break;
+                            case SyncDirection.To:
+                                IconOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
+
+                                setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
+                                break;
+                            default:
+                                throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());
+                        }
+                        break;
+                    default:
+                        throw new NotSupportedException("Unknown mergedEvent.Type: " + mergedEvent.Type.ToString());
+                }
+
+                if (eventToRemove != null)
+                {
+                    throw new NotImplementedException("Have not handled badging when two events are merged together");
+                }
+            }
+            else
+            {
+                setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, eventToRemove.NewPath);
+            }
         }
 
         /// <summary>
@@ -1339,17 +1416,35 @@ namespace SQLIndexer
                     }
                 }
 
+                Action<FilePath> setBadgeSynced = syncedPath =>
+                    {
+                        IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), syncedPath);
+                    };
+
                 // Adjust the badge for this completed event.
                 if (currentEvent != null)
                 {
                     switch (changeEnums[currentEvent.FileChangeTypeEnumId])
                     {
                         case FileChangeType.Created:
-                        case FileChangeType.Deleted:
                         case FileChangeType.Modified:
-                            IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), currentEvent.FileSystemObject.Path);
+                            setBadgeSynced(currentEvent.FileSystemObject.Path);
                             break;
-                        // Rename processed only on new and modified events.
+                        case FileChangeType.Deleted:
+                            if (currentEvent.SyncFrom)
+                            {
+                                bool isDeleted;
+                                IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
+                            }
+                            break;
+                        case FileChangeType.Renamed:
+                            if (currentEvent.SyncFrom)
+                            {
+                                IconOverlay.RenameBadgePath(currentEvent.PreviousPath, currentEvent.FileSystemObject.Path);
+                            }
+
+                            setBadgeSynced(currentEvent.FileSystemObject.Path);
+                            break;
                     }
                 }
             }
@@ -1439,8 +1534,7 @@ namespace SQLIndexer
                                 || currentEvent.SyncCounter == lastSyncCounter)
                             .OrderBy(currentEvent => currentEvent.EventId))
                     {
-                        // Add database event to list of changes
-                        changeList.Add(new FileChange()
+                        FileChange currentChange = new FileChange()
                         {
                             Metadata = new FileMetadata(null)
                             {
@@ -1457,10 +1551,10 @@ namespace SQLIndexer
                             Type = changeEnums[currentEvent.FileChangeTypeEnumId],
                             DoNotAddToSQLIndex = true,
                             EventId = currentEvent.EventId
-                        });
+                        };
 
-                        // set badge to syncing here
-                        IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing), currentEvent.FileSystemObject.Path);
+                        // Add database event to list of changes
+                        changeList.Add(currentChange);
                     }
                 }
 
@@ -1653,9 +1747,6 @@ namespace SQLIndexer
                     {
                         // mark that SQL can be updated again with the changes to the metadata
                         existingEvent.DoNotAddToSQLIndex = false;
-
-                        // This is an item that has changed from the index and will be processed.  Badge it as syncing.
-                        IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing), existingEvent.NewPath);
                     }
                 }
             }
@@ -1692,9 +1783,6 @@ namespace SQLIndexer
                             {
                                 RemoveEventCallback(currentUncoveredChange.Value.EventId);
                             }
-
-                            // Set badge type to synced
-                            IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), currentUncoveredChange.Value.ToString());
                         }
 
                         // Move to the next FileChange in the linked list

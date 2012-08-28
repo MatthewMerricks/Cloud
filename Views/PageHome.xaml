@@ -53,7 +53,7 @@
             </Grid.RowDefinitions>
         
             <Grid.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_macinstall_splash.tiff"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Splash_Background.png"/>
             </Grid.Background>
         
             <Label Content="{x:Static resx:Resources.ViewPageHomeLabelEMail}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Width="Auto" Target="tbEMail" FontSize="13.333" Margin="0,0,5,0" Height="Auto"  />
