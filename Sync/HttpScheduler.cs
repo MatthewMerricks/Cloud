@@ -68,6 +68,20 @@ namespace Sync
                         if (_instanceFrom == null)
                         {
                             _instanceFrom = new HttpScheduler(SyncDirection.From);
+                            lock (GCOverrideLocker)
+                            {
+                                if (!GCOverrideInitialized)
+                                {
+                                    try
+                                    {
+                                        IsGCOverridden = OverrideGC();
+                                    }
+                                    finally
+                                    {
+                                        GCOverrideInitialized = true;
+                                    }
+                                }
+                            }
                             TaskScheduler.UnobservedTaskException += _instanceFrom.TaskScheduler_UnobservedTaskException;
                         }
                         // return download scheduler
@@ -81,6 +95,17 @@ namespace Sync
                         if (_instanceTo == null)
                         {
                             _instanceTo = new HttpScheduler(SyncDirection.To);
+                            lock (GCOverrideLocker)
+                            {
+                                try
+                                {
+                                    IsGCOverridden = OverrideGC();
+                                }
+                                finally
+                                {
+                                    GCOverrideInitialized = true;
+                                }
+                            }
                             TaskScheduler.UnobservedTaskException += _instanceTo.TaskScheduler_UnobservedTaskException;
                         }
                         // return upload scheduler
@@ -99,42 +124,74 @@ namespace Sync
 
         // garbage collection is given a forced minimum interval so that Tasks with exceptions will be handled on a regular basis
         #region garbage collector override
-        public static readonly bool IsGCOverridden = ((Func<bool>)(() =>
+        private static bool GCOverrideInitialized = false;
+        public static bool IsGCOverridden { get; private set; }
+        private static readonly object GCOverrideLocker = new object();
+        private static bool OverrideGC()
+        {
+            try
             {
-                try
+                (new Thread(() =>
                 {
-                    (new Thread(() =>
+                    // conditions for this while loop should cause the thread to keep running so long as both currently instantiated HttpSchedulers are not disposed;
+                    // in other words, if at least one has been instantiated and all that have been instantiated have been disposed
+                    Func<bool> continueGarbageCollecting = () =>
                     {
-                        // conditions for this while loop should cause the thread to keep running so long as both currently instantiated HttpSchedulers are not disposed;
-                        // in other words, if at least one has been instantiated and all that have been instantiated have been disposed
-                        Func<bool> continueGarbageCollecting = () =>
+                        lock (instanceFromLocker)
                         {
-                            lock (instanceFromLocker)
+                            lock (instanceToLocker)
                             {
-                                lock (instanceToLocker)
-                                {
-                                    return (!HttpScheduler.FromDisposed && !HttpScheduler.ToDisposed)
+                                return !(_instanceFrom == null && _instanceTo == null)
+                                    && ((!HttpScheduler.FromDisposed && !HttpScheduler.ToDisposed)
                                         || (HttpScheduler.FromDisposed && _instanceTo != null && !HttpScheduler.ToDisposed)
-                                        || (_instanceFrom != null && !HttpScheduler.FromDisposed && HttpScheduler.ToDisposed);
+                                        || (_instanceFrom != null && !HttpScheduler.FromDisposed && HttpScheduler.ToDisposed));
+                            }
+                        }
+                    };
+                    // if condition is met for continuing to override the minimum garbage collection interval
+                    while (continueGarbageCollecting())
+                    {
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+
+                        int garbageCollectionRoundedSeconds = Convert.ToInt32(Math.Floor(GarbageCollectionMinimumIntervalSeconds));
+                        double remainderSeconds = GarbageCollectionMinimumIntervalSeconds - (double)garbageCollectionRoundedSeconds;
+
+                        if (remainderSeconds > 0)
+                        {
+                            for (int sleepCounter = 0; sleepCounter < garbageCollectionRoundedSeconds; sleepCounter++)
+                            {
+                                Thread.Sleep(1000);// sleep for one second for this second iteration
+                                if (!continueGarbageCollecting())
+                                {
+                                    return;
                                 }
                             }
-                        };
-                        // if condition is met for continuing to override the minimum garbage collection interval
-                        while (continueGarbageCollecting())
-                        {
-                            GC.Collect();
-                            GC.WaitForPendingFinalizers();
-                            Thread.Sleep((int)(GarbageCollectionMinimumIntervalSeconds * 1000));
+                            Thread.Sleep((int)(remainderSeconds * 1000));
                         }
-                    })).Start();
-                }
-                catch (Exception ex)
-                {
-                    ((CLError)ex).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                    return false;
-                }
-                return true;
-            }))();
+                        else
+                        {
+                            for (int sleepCounter = 0; sleepCounter < garbageCollectionRoundedSeconds - 1; sleepCounter++)
+                            {
+                                Thread.Sleep(1000);// sleep for one second for this second iteration
+                                if (!continueGarbageCollecting())
+                                {
+                                    return;
+                                }
+                            }
+                            Thread.Sleep(1000);// sleep for one second for this second iteration
+                        }
+                    }
+                })).Start();
+            }
+            catch (Exception ex)
+            {
+                ((CLError)ex).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                return false;
+            }
+            return true;
+        }
+
         // Once HttpScheduler has been accessed at least once and hasn't been disposed,
         // the garbage collector will be forced at this minimum seconds interval:
         private const double GarbageCollectionMinimumIntervalSeconds = 10d;

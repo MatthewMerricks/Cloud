@@ -460,7 +460,6 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Artwork\.DS_Store" />
     <None Include="Artwork\CloudMenu_Default.pdf" />
     <None Include="Artwork\CloudMenu_Disabled.pdf" />
     <None Include="Artwork\CloudMenu_Highlight.pdf" />
@@ -633,6 +632,7 @@
     <Resource Include="Artwork\cl_macinstall_registration_bkg.tiff" />
     <Resource Include="Artwork\cl_macinstall_storage_bkg.tiff" />
     <Resource Include="Artwork\cl_macinstall_tour_greetingsFolder.png" />
+    <Resource Include="Artwork\WinClient_Splash_bg_650x485.png" />
     <Content Include="InstallScripts\RegisterCom.vbs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

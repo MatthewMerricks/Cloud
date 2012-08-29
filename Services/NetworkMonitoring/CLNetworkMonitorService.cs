@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CloudApiPublic.Support;
+using Sync;
 
 namespace win_client.Services.Badging
 {
@@ -73,7 +74,7 @@ namespace win_client.Services.Badging
         /// </summary>
         public void EndNetworkMonitoring()
         {
-
+            HttpScheduler.DisposeBothSchedulers();
         }
     }
 }

@@ -1064,6 +1064,9 @@ namespace BadgeNET
                 serverContextMenu.UserState = new NamedPipeServerContextMenu_UserState { FilePathCloudDirectory = filePathCloudDirectory };
                 serverContextMenu.PipeName = Environment.UserName + "/" + PipeName + "/ContextMenu";
                 serverContextMenu.Run();
+
+                // Remember this thread for Dispose
+                pipeContextMenuServer = serverContextMenu;
             }
             catch (Exception ex)
             {
