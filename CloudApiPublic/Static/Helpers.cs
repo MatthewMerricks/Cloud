@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -119,14 +120,14 @@ namespace CloudApiPublic.Static
         {
             return JavaScriptStringEncode(value, false);
         }
-        
+
         public static string JavaScriptStringEncode(string value, bool addDoubleQuotes)
         {
             if (String.IsNullOrEmpty(value))
             {
                 return addDoubleQuotes ? "\"\"" : String.Empty;
             }
-            
+
             int len = value.Length;
             bool needEncode = false;
             char c;
@@ -144,13 +145,13 @@ namespace CloudApiPublic.Static
             {
                 return addDoubleQuotes ? "\"" + value + "\"" : value;
             }
-            
+
             var sb = new StringBuilder();
             if (addDoubleQuotes)
             {
                 sb.Append('"');
             }
-            
+
             for (int i = 0; i < len; i++)
             {
                 c = value[i];
@@ -194,7 +195,7 @@ namespace CloudApiPublic.Static
             {
                 sb.Append('"');
             }
-            
+
             return sb.ToString();
         }
         #endregion
@@ -362,6 +363,52 @@ namespace CloudApiPublic.Static
         {
             // Todo: should find an algorithm to generate a unique identifier for this device name
             return Environment.MachineName;
+        }
+
+        // create and initialize a crypto algorithm 
+        private static SymmetricAlgorithm getAlgorithm(string password)
+        {
+            SymmetricAlgorithm algorithm = Rijndael.Create();
+            Rfc2898DeriveBytes rdb = new Rfc2898DeriveBytes(
+                password, new byte[] { 
+                    0x53,0x6f,0x64,0x69,0x75,0x6d,0x20,             // salty goodness 
+                    0x43,0x68,0x6c,0x6f,0x72,0x69,0x64,0x65 
+                }
+            );
+            algorithm.Padding = PaddingMode.ISO10126;
+            algorithm.Key = rdb.GetBytes(32);
+            algorithm.IV = rdb.GetBytes(16);
+            return algorithm;
+        }
+
+        /*  
+         * encryptString 
+         * provides simple encryption of a string, with a given password 
+         */
+        public static string EncryptString(string clearText, string password)
+        {
+            SymmetricAlgorithm algorithm = getAlgorithm(password);
+            byte[] clearBytes = System.Text.Encoding.Unicode.GetBytes(clearText);
+            MemoryStream ms = new MemoryStream();
+            CryptoStream cs = new CryptoStream(ms, algorithm.CreateEncryptor(), CryptoStreamMode.Write);
+            cs.Write(clearBytes, 0, clearBytes.Length);
+            cs.Close();
+            return Convert.ToBase64String(ms.ToArray());
+        }
+
+        /* 
+         * decryptString 
+         * provides simple decryption of a string, with a given password 
+         */
+        public static string DecryptString(string cipherText, string password)
+        {
+            SymmetricAlgorithm algorithm = getAlgorithm(password);
+            byte[] cipherBytes = Convert.FromBase64String(cipherText);
+            MemoryStream ms = new MemoryStream();
+            CryptoStream cs = new CryptoStream(ms, algorithm.CreateDecryptor(), CryptoStreamMode.Write);
+            cs.Write(cipherBytes, 0, cipherBytes.Length);
+            cs.Close();
+            return System.Text.Encoding.Unicode.GetString(ms.ToArray());
         }
     }
 }

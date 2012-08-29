@@ -46,12 +46,22 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdParty\bin\Release\EntityFramework.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Net.Http">
       <HintPath>..\3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdParty\bin\Release\System.Data.SqlServerCe.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Transactions" />
@@ -62,7 +72,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DbQueryExtensions.cs" />
+    <Compile Include="EnumCategory.cs">
+      <DependentUpon>IndexModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Event.cs">
+      <DependentUpon>IndexModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="FileSystemObject.cs">
+      <DependentUpon>IndexModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="IndexingAgent.cs" />
+    <Compile Include="IndexModel.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IndexModel.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="IndexModel.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IndexModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="IndexModel.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -70,16 +100,42 @@
     </Compile>
     <Compile Include="ObjectQueryExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SQLEnum.cs">
+      <DependentUpon>IndexModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="StringCRC.cs" />
+    <Compile Include="Sync.cs">
+      <DependentUpon>IndexModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="SyncedObject.cs" />
+    <Compile Include="SyncState.cs">
+      <DependentUpon>IndexModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Version.cs">
+      <DependentUpon>IndexModel.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="IndexDB.mdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IndexDB_log.ldf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <DependentUpon>IndexDB.mdf</DependentUpon>
-    </Content>
+    <EmbeddedResource Include="IndexDBScripts\10SyncStates_FileSystemObjectId.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\11SyncStates_ServerLinkedFileSystemObjectId.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\12SyncStates_SyncCounter.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\13Events.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\14Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\15Events_FileSystemObjectId.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\16Events_SyncCounter.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\17FileChangeTypesEnum1.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\18FileChangeTypesEnum2.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\19FileChangeTypesEnum3.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\20FileChangeTypesEnum4.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\21FileChangeTypesEnum5.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\22CompletedVersion.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\3EnumCategories.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\4Enums.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\5FileSystemObjects.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\6FileSystemObjects.PathChecksum.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\7Syncs.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\8Syncs_SyncId.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\9SyncStates.table.sql" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -104,8 +160,18 @@
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>IndexModel.Designer.cs</LastGenOutput>
     </EntityDeploy>
+    <None Include="IndexModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>IndexModel.edmx</DependentUpon>
+      <LastGenOutput>IndexModel.Context.cs</LastGenOutput>
+    </None>
     <None Include="IndexModel.edmx.diagram">
       <DependentUpon>IndexModel.edmx</DependentUpon>
+    </None>
+    <None Include="IndexModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>IndexModel.edmx</DependentUpon>
+      <LastGenOutput>IndexModel.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +183,14 @@
       <Project>{dfe16278-70b2-4b6c-84c0-1d41b04bebde}</Project>
       <Name>FileMonitor</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="IndexDBScripts\0Version.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\1IncompleteVersion.data.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

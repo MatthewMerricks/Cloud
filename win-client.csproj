@@ -72,6 +72,10 @@
     <Reference Include="AutomaticUpdaterWPF">
       <HintPath>3rdParty\bin\Release\AutomaticUpdaterWPF.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>3rdParty\bin\Release\EntityFramework.dll</HintPath>
+    </Reference>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
       <HintPath>3rdParty\bin\Release\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
     </Reference>
@@ -110,6 +114,12 @@
     <Reference Include="SuperSocket.ClientEngine.Protocol">
       <HintPath>3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll</HintPath>
     </Reference>
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>3rdParty\bin\Release\System.Data.SqlServerCe.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
@@ -124,7 +134,9 @@
       <HintPath>$(ProgramFiles)\Microsoft SDKs\Expression\Blend\.NETFramework\v4.0\Libraries\System.Windows.Interactivity.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.CSharp">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />

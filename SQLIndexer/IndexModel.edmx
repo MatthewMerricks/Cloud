@@ -1,24 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
-  <!--
-    IndexModel.edmx
-    Cloud Windows
-
-    Created By DavidBruck.
-    Copyright (c) Cloud.com. All rights reserved.
-  -->
   <!-- EF Runtime content -->
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+      <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlServerCe.4.0" ProviderManifestToken="4.0" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
         <EntityContainer Name="SQLIndexerStoreContainer">
-          <EntitySet Name="EnumCategories" EntityType="SQLIndexer.Store.EnumCategories" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
-          <EntitySet Name="Enums" EntityType="SQLIndexer.Store.Enums" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
-          <EntitySet Name="Events" EntityType="SQLIndexer.Store.Events" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
-          <EntitySet Name="FileSystemObjects" EntityType="SQLIndexer.Store.FileSystemObjects" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
-          <EntitySet Name="Syncs" EntityType="SQLIndexer.Store.Syncs" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
-          <EntitySet Name="SyncStates" EntityType="SQLIndexer.Store.SyncStates" store:Type="Tables" Schema="dbo" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" />
+          <EntitySet Name="EnumCategories" EntityType="SQLIndexer.Store.EnumCategories" store:Type="Tables" />
+          <EntitySet Name="Enums" EntityType="SQLIndexer.Store.Enums" store:Type="Tables" />
+          <EntitySet Name="Events" EntityType="SQLIndexer.Store.Events" store:Type="Tables" />
+          <EntitySet Name="FileSystemObjects" EntityType="SQLIndexer.Store.FileSystemObjects" store:Type="Tables" />
+          <EntitySet Name="Syncs" EntityType="SQLIndexer.Store.Syncs" store:Type="Tables" />
+          <EntitySet Name="SyncStates" EntityType="SQLIndexer.Store.SyncStates" store:Type="Tables" />
+          <EntitySet Name="Version" EntityType="SQLIndexer.Store.Version" store:Type="Tables" />
           <AssociationSet Name="FK_EnumCategoryId_EnumCategoryId" Association="SQLIndexer.Store.FK_EnumCategoryId_EnumCategoryId">
             <End Role="EnumCategories" EntitySet="EnumCategories" />
             <End Role="Enums" EntitySet="Enums" />
@@ -53,7 +47,7 @@
             <PropertyRef Name="EnumCategoryId" />
           </Key>
           <Property Name="EnumCategoryId" Type="int" Nullable="false" />
-          <Property Name="Name" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Name" Type="ntext" Nullable="false" />
         </EntityType>
         <EntityType Name="Enums">
           <Key>
@@ -62,7 +56,7 @@
           </Key>
           <Property Name="EnumId" Type="int" Nullable="false" />
           <Property Name="EnumCategoryId" Type="int" Nullable="false" />
-          <Property Name="Name" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Name" Type="ntext" Nullable="false" />
         </EntityType>
         <EntityType Name="Events">
           <Key>
@@ -72,7 +66,7 @@
           <Property Name="SyncCounter" Type="bigint" />
           <Property Name="FileChangeTypeCategoryId" Type="int" Nullable="false" />
           <Property Name="FileChangeTypeEnumId" Type="int" Nullable="false" />
-          <Property Name="PreviousPath" Type="nvarchar(max)" />
+          <Property Name="PreviousPath" Type="ntext" />
           <Property Name="FileSystemObjectId" Type="bigint" Nullable="false" />
           <Property Name="SyncFrom" Type="bit" Nullable="false" />
         </EntityType>
@@ -81,15 +75,15 @@
             <PropertyRef Name="FileSystemObjectId" />
           </Key>
           <Property Name="FileSystemObjectId" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
-          <Property Name="Path" Type="nvarchar(max)" Nullable="false" />
-          <Property Name="LastTime" Type="datetime2" />
-          <Property Name="CreationTime" Type="datetime2" />
+          <Property Name="Path" Type="ntext" Nullable="false" />
+          <Property Name="LastTime" Type="datetime" />
+          <Property Name="CreationTime" Type="datetime" />
           <Property Name="IsFolder" Type="bit" Nullable="false" />
           <Property Name="Size" Type="bigint" />
-          <Property Name="PathChecksum" Type="int" StoreGeneratedPattern="Computed" />
-          <Property Name="Revision" Type="nvarchar(max)" />
-          <Property Name="StorageKey" Type="nvarchar(max)" />
-          <Property Name="TargetPath" Type="nvarchar(max)" />
+          <Property Name="TargetPath" Type="ntext" />
+          <Property Name="PathChecksum" Type="int" Nullable="false" />
+          <Property Name="Revision" Type="ntext" />
+          <Property Name="StorageKey" Type="ntext" />
         </EntityType>
         <EntityType Name="Syncs">
           <Key>
@@ -97,7 +91,7 @@
           </Key>
           <Property Name="SyncId" Type="nvarchar" Nullable="false" MaxLength="450" />
           <Property Name="SyncCounter" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
-          <Property Name="RootPath" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="RootPath" Type="ntext" Nullable="false" />
         </EntityType>
         <EntityType Name="SyncStates">
           <Key>
@@ -107,6 +101,13 @@
           <Property Name="SyncCounter" Type="bigint" Nullable="false" />
           <Property Name="FileSystemObjectId" Type="bigint" Nullable="false" />
           <Property Name="ServerLinkedFileSystemObjectId" Type="bigint" />
+        </EntityType>
+        <EntityType Name="Version">
+          <Key>
+            <PropertyRef Name="TrueKey" />
+          </Key>
+          <Property Name="TrueKey" Type="bit" Nullable="false" />
+          <Property Name="Version" Type="int" Nullable="false" />
         </EntityType>
         <Association Name="FK_EnumCategoryId_EnumCategoryId">
           <End Role="EnumCategories" Type="SQLIndexer.Store.EnumCategories" Multiplicity="1" />
@@ -198,14 +199,15 @@
     </edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
-      <Schema Namespace="SQLIndexer" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns="http://schemas.microsoft.com/ado/2008/09/edm" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
-        <EntityContainer Name="IndexDBEntities" p1:LazyLoadingEnabled="true">
+      <Schema Namespace="SQLIndexer" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+        <EntityContainer Name="IndexDBEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="EnumCategories" EntityType="SQLIndexer.EnumCategory" />
           <EntitySet Name="SQLEnums" EntityType="SQLIndexer.SQLEnum" />
           <EntitySet Name="Events" EntityType="SQLIndexer.Event" />
           <EntitySet Name="FileSystemObjects" EntityType="SQLIndexer.FileSystemObject" />
           <EntitySet Name="Syncs" EntityType="SQLIndexer.Sync" />
           <EntitySet Name="SyncStates" EntityType="SQLIndexer.SyncState" />
+          <EntitySet Name="Versions" EntityType="SQLIndexer.Version" />
           <AssociationSet Name="FK_EnumCategoryId_EnumCategoryId" Association="SQLIndexer.FK_EnumCategoryId_EnumCategoryId">
             <End Role="EnumCategories" EntitySet="EnumCategories" />
             <End Role="Enums" EntitySet="SQLEnums" />
@@ -258,7 +260,7 @@
           <Key>
             <PropertyRef Name="EventId" />
           </Key>
-          <Property Name="EventId" Type="Int64" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="EventId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="SyncCounter" Type="Int64" />
           <Property Name="FileChangeTypeCategoryId" Type="Int32" Nullable="false" />
           <Property Name="FileChangeTypeEnumId" Type="Int32" Nullable="false" />
@@ -273,16 +275,16 @@
           <Key>
             <PropertyRef Name="FileSystemObjectId" />
           </Key>
-          <Property Name="FileSystemObjectId" Type="Int64" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="FileSystemObjectId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Path" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
-          <Property Name="LastTime" Type="DateTime" Precision="7" />
-          <Property Name="CreationTime" Type="DateTime" Precision="7" />
+          <Property Name="LastTime" Type="DateTime" Precision="3" />
+          <Property Name="CreationTime" Type="DateTime" Precision="3" />
           <Property Name="IsFolder" Type="Boolean" Nullable="false" />
           <Property Name="Size" Type="Int64" />
-          <Property Name="PathChecksum" Type="Int32" p1:StoreGeneratedPattern="Computed" />
+          <Property Name="TargetPath" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="PathChecksum" Type="Int32" Nullable="false" />
           <Property Name="Revision" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
           <Property Name="StorageKey" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
-          <Property Name="TargetPath" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="Events" Relationship="SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="Events" />
           <NavigationProperty Name="SyncStates" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
           <NavigationProperty Name="ServerLinkedSyncStates" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
@@ -292,7 +294,7 @@
             <PropertyRef Name="SyncCounter" />
           </Key>
           <Property Name="SyncId" Type="String" Nullable="false" MaxLength="450" Unicode="true" FixedLength="false" />
-          <Property Name="SyncCounter" Type="Int64" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="SyncCounter" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="RootPath" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="Events" Relationship="SQLIndexer.FK_SyncCounter_SyncCounter" FromRole="Syncs" ToRole="Events" />
           <NavigationProperty Name="SyncStates" Relationship="SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter" FromRole="Syncs" ToRole="SyncStates" />
@@ -301,13 +303,20 @@
           <Key>
             <PropertyRef Name="SyncStateId" />
           </Key>
-          <Property Name="SyncStateId" Type="Int64" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="SyncStateId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="SyncCounter" Type="Int64" Nullable="false" />
           <Property Name="FileSystemObjectId" Type="Int64" Nullable="false" />
           <Property Name="ServerLinkedFileSystemObjectId" Type="Int64" />
           <NavigationProperty Name="FileSystemObject" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
           <NavigationProperty Name="ServerLinkedFileSystemObject" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
           <NavigationProperty Name="Sync" Relationship="SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter" FromRole="SyncStates" ToRole="Syncs" />
+        </EntityType>
+        <EntityType Name="Version">
+          <Key>
+            <PropertyRef Name="TrueKey" />
+          </Key>
+          <Property Name="TrueKey" Type="Boolean" Nullable="false" />
+          <Property Name="Value" Type="Int32" Nullable="false" />
         </EntityType>
         <Association Name="FK_EnumCategoryId_EnumCategoryId">
           <End Role="EnumCategories" Type="SQLIndexer.EnumCategory" Multiplicity="1" />
@@ -440,10 +449,10 @@
                 <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
                 <ScalarProperty Name="IsFolder" ColumnName="IsFolder" />
                 <ScalarProperty Name="Size" ColumnName="Size" />
+                <ScalarProperty Name="TargetPath" ColumnName="TargetPath" />
                 <ScalarProperty Name="PathChecksum" ColumnName="PathChecksum" />
                 <ScalarProperty Name="Revision" ColumnName="Revision" />
                 <ScalarProperty Name="StorageKey" ColumnName="StorageKey" />
-                <ScalarProperty Name="TargetPath" ColumnName="TargetPath" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -466,6 +475,14 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="Versions">
+            <EntityTypeMapping TypeName="SQLIndexer.Version">
+              <MappingFragment StoreEntitySet="Version">
+                <ScalarProperty Name="TrueKey" ColumnName="TrueKey" />
+                <ScalarProperty Name="Value" ColumnName="Version" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
@@ -482,9 +499,10 @@
         <DesignerProperty Name="ValidateOnBuild" Value="true" />
         <DesignerProperty Name="EnablePluralization" Value="True" />
         <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
       </DesignerInfoPropertySet>
     </Options>
     <!-- Diagram content (shape and connector positions) -->
-    <Diagrams />
+    <Diagrams></Diagrams>
   </Designer>
 </edmx:Edmx>

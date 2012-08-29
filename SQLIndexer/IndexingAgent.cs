@@ -18,6 +18,8 @@ using System.Transactions;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using FileMonitor;
+using System.Data.SqlServerCe;
+using System.Globalization;
 
 namespace SQLIndexer
 {
@@ -26,6 +28,27 @@ namespace SQLIndexer
         #region private fields
         // store the path that represents the root of indexing
         private string indexedPath = null;
+
+        #region SQL CE
+        private string indexDBLocation;
+        private const string indexDBPassword = "Q29weXJpZ2h0Q2xvdWQuY29tQ3JlYXRlZEJ5RGF2aWRCcnVjaw=="; // <-- if you change this password, you will likely break all clients with older databases
+        private static string getDecodedIndexDBPassword()
+        {
+            byte[] decodeChars = Convert.FromBase64String(indexDBPassword);
+            return Encoding.ASCII.GetString(decodeChars);
+        }
+        private const string connectionStringFormatter = "data source={0};password={1};lcid=1033;case sensitive=TRUE"; // 1033 is Locale ID for English - United States
+        private const string entityStringFormatter = "metadata=res://SQLIndexer/IndexModel.csdl|res://SQLIndexer/IndexModel.ssdl|res://SQLIndexer/IndexModel.msl;provider=System.Data.SqlServerCe.4.0;provider connection string=\"{0}\"";
+        private static string buildConnectionString(string indexDBLocation)
+        {
+            return string.Format(connectionStringFormatter, indexDBLocation, getDecodedIndexDBPassword());
+        }
+        private static string buildEntityString(string indexDBLocation)
+        {
+            return string.Format(entityStringFormatter, buildConnectionString(indexDBLocation));
+        }
+        private const string indexScriptsResourceFolder = ".IndexDBScripts.";
+        #endregion
 
         // store dictionaries to convert between the FileChangetype enumeration and its integer value in the database,
         // will be filled in during startup
@@ -72,14 +95,100 @@ namespace SQLIndexer
                 {
                     if (changeEnums == null)
                     {
+                        if (!File.Exists(newAgent.indexDBLocation))
+                        {
+                            FileInfo indexDBInfo = new FileInfo(newAgent.indexDBLocation);
+                            if (!indexDBInfo.Directory.Exists)
+                            {
+                                indexDBInfo.Directory.Create();
+                            }
+                            
+                            System.Reflection.Assembly indexingAssembly = System.Reflection.Assembly.GetAssembly(typeof(IndexingAgent));
+
+                            List<KeyValuePair<int, string>> indexDBScripts = new List<KeyValuePair<int, string>>();
+
+                            string scriptDirectory = indexingAssembly.GetName().Name + indexScriptsResourceFolder;
+
+                            Encoding ansiEncoding = Encoding.GetEncoding(1252); //ANSI saved from NotePad on a US-EN Windows machine
+
+                            foreach (string currentScriptName in indexingAssembly.GetManifestResourceNames()
+                                .Where(resourceName => resourceName.StartsWith(scriptDirectory)))
+                            {
+                                if (!string.IsNullOrWhiteSpace(currentScriptName)
+                                    && currentScriptName.Length >= 5 // length of 1+-digit number plus ".sql" file extension
+                                    && currentScriptName.EndsWith(".sql", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    int numChars = 0;
+                                    for (int numberCharIndex = scriptDirectory.Length; numberCharIndex < currentScriptName.Length; numberCharIndex++)
+                                    {
+                                        if (!char.IsDigit(currentScriptName[numberCharIndex]))
+                                        {
+                                            numChars = numberCharIndex - scriptDirectory.Length;
+                                            break;
+                                        }
+                                    }
+                                    if (numChars > 0)
+                                    {
+                                        string nameNumberPortion = currentScriptName.Substring(scriptDirectory.Length, numChars);
+                                        int nameNumber;
+                                        if (int.TryParse(nameNumberPortion, out nameNumber))
+                                        {
+                                            using (Stream resourceStream = indexingAssembly.GetManifestResourceStream(currentScriptName))
+                                            {
+                                                using (StreamReader resourceReader = new StreamReader(resourceStream, ansiEncoding))
+                                                {
+                                                    indexDBScripts.Add(new KeyValuePair<int, string>(nameNumber, resourceReader.ReadToEnd()));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            using (SqlCeEngine ceEngine = new SqlCeEngine(buildConnectionString(newAgent.indexDBLocation)))
+                            {
+                                ceEngine.CreateDatabase();
+                            }
+
+                            SqlCeConnection creationConnection = null;
+
+                            try
+                            {
+                                creationConnection = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation));
+                                creationConnection.Open();
+
+                                foreach (string indexDBScript in indexDBScripts.OrderBy(scriptPair => scriptPair.Key).Select(scriptPair => scriptPair.Value))
+                                {
+                                    SqlCeCommand scriptCommand = creationConnection.CreateCommand();
+                                    scriptCommand.CommandText = Helpers.DecryptString(indexDBScript, getDecodedIndexDBPassword());
+                                    scriptCommand.ExecuteNonQuery();
+                                }
+                            }
+                            finally
+                            {
+                                if (creationConnection != null)
+                                {
+                                    creationConnection.Dispose();
+                                }
+                            }
+                        }
+
                         int changeEnumsCount = System.Enum.GetNames(typeof(FileChangeType)).Length;
                         changeEnums = new Dictionary<int, FileChangeType>(changeEnumsCount);
                         changeEnumsBackward = new Dictionary<FileChangeType, int>(changeEnumsCount);
-                        using (IndexDBEntities indexDB = new IndexDBEntities())
+                        using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(newAgent.indexDBLocation)))
                         {
+                            int storeCategoryId = -1;
+                            foreach (EnumCategory currentCategory in indexDB.EnumCategories)
+                            {
+                                if (currentCategory.Name == typeof(FileChangeType).Name)
+                                {
+                                    storeCategoryId = currentCategory.EnumCategoryId;
+                                }
+                            }
+
                             foreach (SQLEnum currentChangeEnum in indexDB.SQLEnums
-                                .Include(parent => parent.EnumCategory)
-                                .Where(currentEnum => currentEnum.EnumCategory.Name == typeof(FileChangeType).Name))
+                                .Where(currentEnum => currentEnum.EnumCategoryId == storeCategoryId))
                             {
                                 changeCategoryId = currentChangeEnum.EnumCategoryId;
                                 int forwardKey = currentChangeEnum.EnumId;
@@ -138,7 +247,7 @@ namespace SQLIndexer
         {
             try
             {
-                using (IndexDBEntities indexDB = new IndexDBEntities())
+                using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                 {
                     // Pull the last sync from the database
                     Sync lastSync = indexDB.Syncs
@@ -207,7 +316,7 @@ namespace SQLIndexer
                     throw new NullReferenceException("path cannot be null");
                 }
 
-                using (IndexDBEntities indexDB = new IndexDBEntities())
+                using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                 {
                     // Grab the most recent sync from the database to pull sync states
                     Sync lastSync = indexDB.Syncs
@@ -220,11 +329,13 @@ namespace SQLIndexer
                     }
                     else
                     {
+                        int pathCRC = StringCRC.Crc(path);
+
                         SyncState foundSync = indexDB.SyncStates
                             .Include(parent => parent.FileSystemObject)
                             // the following LINQ to Entities where clause compares the checksums of the sync state's NewPath
                             .Where(parent => parent.SyncCounter == lastSync.SyncCounter
-                                && parent.FileSystemObject.PathChecksum == SqlFunctions.Checksum(path)
+                                && parent.FileSystemObject.PathChecksum == pathCRC
                                 && ((parent.FileSystemObject.Revision == null && revision == null)
                                     || parent.FileSystemObject.Revision.Equals(revision, StringComparison.InvariantCultureIgnoreCase)))
                             .AsEnumerable() // transfers from LINQ to Entities IQueryable into LINQ to Objects IEnumerable (evaluates SQL)
@@ -268,7 +379,7 @@ namespace SQLIndexer
         {
             try
             {
-                using (IndexDBEntities indexDB = new IndexDBEntities())
+                using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                 {
                     // Pull the last sync from the database
                     Sync lastSync = indexDB.Syncs
@@ -344,7 +455,7 @@ namespace SQLIndexer
                 // then process database addition
                 if (!newEvent.DoNotAddToSQLIndex)
                 {
-                    using (IndexDBEntities indexDB = new IndexDBEntities())
+                    using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                     {
                         // Grab the last sync from the database
                         Sync lastSync = indexDB.Syncs
@@ -354,6 +465,8 @@ namespace SQLIndexer
                         Nullable<long> lastSyncCounter = (lastSync == null
                             ? (Nullable<long>)null
                             : lastSync.SyncCounter);
+
+                        string newPathString = newEvent.NewPath.ToString();
 
                         // Define the new event to add for the unprocessed change
                         Event toAdd = new Event()
@@ -370,11 +483,14 @@ namespace SQLIndexer
                                 LastTime = newEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                     ? (Nullable<DateTime>)null
                                     : newEvent.Metadata.HashableProperties.LastTime,
-                                Path = newEvent.NewPath.ToString(),
+                                Path = newPathString,
                                 Size = newEvent.Metadata.HashableProperties.Size,
                                 Revision = newEvent.Metadata.Revision,
                                 StorageKey = newEvent.Metadata.StorageKey,
-                                TargetPath = (newEvent.Metadata.LinkTargetPath == null ? null : newEvent.Metadata.LinkTargetPath.ToString())
+                                TargetPath = (newEvent.Metadata.LinkTargetPath == null ? null : newEvent.Metadata.LinkTargetPath.ToString()),
+                                
+                                // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
+                                PathChecksum = StringCRC.Crc(newPathString)
                             },
                             PreviousPath = (newEvent.OldPath == null
                                 ? null
@@ -382,7 +498,7 @@ namespace SQLIndexer
                         };
 
                         // Add the new event to the database
-                        indexDB.Events.AddObject(toAdd);
+                        indexDB.Events.Add(toAdd);
                         indexDB.SaveChanges();
 
                         // Store the new event id to the change and return it
@@ -406,7 +522,7 @@ namespace SQLIndexer
         {
             try
             {
-                using (IndexDBEntities indexDB = new IndexDBEntities())
+                using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                 {
                     // Find the existing event for the given id
                     Event toDelete = indexDB.Events
@@ -418,8 +534,8 @@ namespace SQLIndexer
                         throw new Exception("Event not found to delete");
                     }
                     // Remove the found event from the database
-                    indexDB.FileSystemObjects.DeleteObject(toDelete.FileSystemObject);
-                    indexDB.Events.DeleteObject(toDelete);
+                    indexDB.FileSystemObjects.Remove(toDelete.FileSystemObject);
+                    indexDB.Events.Remove(toDelete);
                     indexDB.SaveChanges();
                 }
             }
@@ -443,7 +559,7 @@ namespace SQLIndexer
                 long[] eventIdsArray = (eventIds == null
                     ? new long[0]
                     : eventIds.ToArray());
-                using (IndexDBEntities indexDB = new IndexDBEntities())
+                using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                 {
                     // Create list to copy event ids from database objects,
                     // used to ensure all event ids to be deleted were found
@@ -458,8 +574,8 @@ namespace SQLIndexer
                     Array.ForEach(deleteEvents, toDelete =>
                         {
                             orderedDBIds.Add(toDelete.EventId);
-                            indexDB.FileSystemObjects.DeleteObject(toDelete.FileSystemObject);
-                            indexDB.Events.DeleteObject(toDelete);
+                            indexDB.FileSystemObjects.Remove(toDelete.FileSystemObject);
+                            indexDB.Events.Remove(toDelete);
                         });
                     // Check all event ids intended for delete and make sure they were actually deleted,
                     // otherwise throw exception
@@ -506,11 +622,12 @@ namespace SQLIndexer
                     ? new long[0]
                     : syncedEventIds.OrderBy(currentEventId => currentEventId).ToArray());
 
-                // Run entire sync completion database operation set within a transaction to ensure
-                // automatic rollback on failure
-                using (TransactionScope completionSync = new TransactionScope())
-                {
-                    using (IndexDBEntities indexDB = new IndexDBEntities())
+                //// ¡¡ SQL CE does not support transactions !!
+                //// Run entire sync completion database operation set within a transaction to ensure
+                //// automatic rollback on failure
+                //using (TransactionScope completionSync = new TransactionScope())
+                //{
+                    using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                     {
                         // Retrieve last sync if it exists
                         Sync lastSync = indexDB.Syncs
@@ -556,7 +673,7 @@ namespace SQLIndexer
                         };
 
                         // Add the new sync to the database and store the new counter
-                        indexDB.Syncs.AddObject(newSync);
+                        indexDB.Syncs.Add(newSync);
                         indexDB.SaveChanges();
                         syncCounter = newSync.SyncCounter;
 
@@ -829,6 +946,8 @@ namespace SQLIndexer
                         // Loop through modified set of sync states (including new changes) and add the matching database objects
                         foreach (KeyValuePair<FilePath, FileMetadata> newSyncState in newSyncStates)
                         {
+                            string newPathString = newSyncState.Key.ToString();
+
                             // Add the file/folder object for the current sync state
                             FileSystemObject newSyncedObject = new FileSystemObject()
                             {
@@ -839,13 +958,16 @@ namespace SQLIndexer
                                 LastTime = (newSyncState.Value.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                     ? (Nullable<DateTime>)null
                                     : newSyncState.Value.HashableProperties.LastTime),
-                                Path = newSyncState.Key.ToString(),
+                                Path = newPathString,
                                 Size = newSyncState.Value.HashableProperties.Size,
                                 TargetPath = (newSyncState.Value.LinkTargetPath == null ? null : newSyncState.Value.LinkTargetPath.ToString()),
                                 Revision = newSyncState.Value.Revision,
-                                StorageKey = newSyncState.Value.StorageKey
+                                StorageKey = newSyncState.Value.StorageKey,
+
+                                // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
+                                PathChecksum = StringCRC.Crc(newPathString)
                             };
-                            indexDB.FileSystemObjects.AddObject(newSyncedObject);
+                            indexDB.FileSystemObjects.Add(newSyncedObject);
 
                             // If the file/folder path is remapped on the server, add the file/folder object for the server-mapped state
                             Nullable<long> serverRemappedObjectId = null;
@@ -864,16 +986,19 @@ namespace SQLIndexer
                                     Size = newSyncState.Value.HashableProperties.Size,
                                     TargetPath = (newSyncState.Value.LinkTargetPath == null ? null : newSyncState.Value.LinkTargetPath.ToString()),
                                     Revision = newSyncState.Value.Revision,
-                                    StorageKey = newSyncState.Value.StorageKey
+                                    StorageKey = newSyncState.Value.StorageKey,
+
+                                    // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
+                                    PathChecksum = StringCRC.Crc(serverRemappedPaths[newSyncedObject.Path])
                                 };
-                                indexDB.FileSystemObjects.AddObject(serverSyncedObject);
+                                indexDB.FileSystemObjects.Add(serverSyncedObject);
                                 indexDB.SaveChanges();
                                 serverRemappedObjectId = serverSyncedObject.FileSystemObjectId;
                             }
                             indexDB.SaveChanges();
 
                             // Add the sync state database object tied to its file/folder objects and the current sync
-                            indexDB.SyncStates.AddObject(new SyncState()
+                            indexDB.SyncStates.Add(new SyncState()
                             {
                                 FileSystemObjectId = newSyncedObject.FileSystemObjectId,
                                 ServerLinkedFileSystemObjectId = serverRemappedObjectId,
@@ -883,8 +1008,10 @@ namespace SQLIndexer
 
                         // Finish writing any unsaved changes to the database
                         indexDB.SaveChanges();
-                        // No errors occurred, so the transaction can be completed
-                        completionSync.Complete();
+                        
+                //// ¡¡ SQL CE does not support transactions !!
+                    //    // No errors occurred, so the transaction can be completed
+                    //    completionSync.Complete();
                     }
 
                     // update the exposed last sync id upon sync completion
@@ -892,7 +1019,9 @@ namespace SQLIndexer
                     {
                         this.LastSyncId = syncId;
                     }
-                }
+                
+                //// ¡¡ SQL CE does not support transactions !!
+                //}
             }
             catch (Exception ex)
             {
@@ -909,19 +1038,22 @@ namespace SQLIndexer
         {
             try
             {
-                using (TransactionScope scope = new TransactionScope())
-                {
-                    using (IndexDBEntities indexDB = new IndexDBEntities())
+                //// ¡¡ SQL CE does not support transactions !!
+                //using (TransactionScope scope = new TransactionScope())
+                //{
+                    using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                     {
                         Sync emptySync = new Sync()
                         {
                             SyncId = IdForEmptySync,
                             RootPath = newRootPath
                         };
-                        indexDB.Syncs.AddObject(emptySync);
+                        indexDB.Syncs.Add(emptySync);
                         indexDB.SaveChanges();
-                        scope.Complete();
-                    }
+                        
+                //// ¡¡ SQL CE does not support transactions !!
+                    //    scope.Complete();
+                    //}
                 }
             }
             catch (Exception ex)
@@ -982,7 +1114,7 @@ namespace SQLIndexer
                 // defaulting to none
                 Nullable<long> eventIdToUpdate = null;
 
-                using (IndexDBEntities indexDB = new IndexDBEntities())
+                using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                 {
                     // If the mergedEvent already has an id (exists in database),
                     // then the database event will be updated at the mergedEvent id;
@@ -1004,7 +1136,7 @@ namespace SQLIndexer
                                 throw new Exception("Event not found to delete");
                             }
                             // Remove the found event from the database
-                            indexDB.DeleteObject(toDelete);
+                            indexDB.Events.Remove(toDelete);
                         }
 
                         // If the mergedEvent it null and the oldEvent is set with a valid eventId,
@@ -1101,11 +1233,12 @@ namespace SQLIndexer
         {
             try
             {
-                // Runs the event completion operations within a transaction so
-                // it can be rolled back on failure
-                using (TransactionScope transaction = new TransactionScope())
-                {
-                    using (IndexDBEntities indexDB = new IndexDBEntities())
+                //// ¡¡ SQL CE does not support transactions !!
+                //// Runs the event completion operations within a transaction so
+                //// it can be rolled back on failure
+                //using (TransactionScope transaction = new TransactionScope())
+                //{
+                    using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                     {
                         // grab the event from the database by provided id
                         Event currentEvent = indexDB.Events
@@ -1139,6 +1272,8 @@ namespace SQLIndexer
                         string serverRemappedNewPath = null;
                         string serverRemappedOldPath = null;
 
+                        int crcInt = StringCRC.Crc(currentEvent.FileSystemObject.Path);
+
                         // pull the sync states for the new path of the current event
                         Sync firstLastSync = lastSyncs[0];
                         SyncState[] newPathStates = indexDB.SyncStates
@@ -1148,8 +1283,7 @@ namespace SQLIndexer
                             // the following LINQ to Entities where clause compares the checksums of the event's NewPath
                             // (may have duplicate checksums even when paths differ)
                             .Where(currentSyncState => currentSyncState.SyncCounter == firstLastSync.SyncCounter
-                                && (((currentSyncState.FileSystemObject.PathChecksum == null && SqlFunctions.Checksum(currentEvent.FileSystemObject.Path) == null)
-                                    || currentSyncState.FileSystemObject.PathChecksum == SqlFunctions.Checksum(currentEvent.FileSystemObject.Path))))
+                                && currentSyncState.FileSystemObject.PathChecksum == crcInt)
 
                             .AsEnumerable() // transfers from LINQ to Entities IQueryable into LINQ to Objects IEnumerable (evaluates SQL)
                             .Where(currentSyncState => currentSyncState.FileSystemObject.Path == currentEvent.FileSystemObject.Path) // run in memory since Path field is not indexable
@@ -1173,12 +1307,12 @@ namespace SQLIndexer
                                 latestNewPathSyncStateArrayIndex = newPathStateIndex;
                             }
                             // remove the current new path sync state (by first removing its associated FileSystemObjects)
-                            indexDB.FileSystemObjects.DeleteObject(newPathStates[newPathStateIndex].FileSystemObject);
+                            indexDB.FileSystemObjects.Remove(newPathStates[newPathStateIndex].FileSystemObject);
                             if (newPathStates[newPathStateIndex].ServerLinkedFileSystemObject != null)
                             {
-                                indexDB.FileSystemObjects.DeleteObject(newPathStates[newPathStateIndex].ServerLinkedFileSystemObject);
+                                indexDB.FileSystemObjects.Remove(newPathStates[newPathStateIndex].ServerLinkedFileSystemObject);
                             }
-                            indexDB.SyncStates.DeleteObject(newPathStates[newPathStateIndex]);
+                            indexDB.SyncStates.Remove(newPathStates[newPathStateIndex]);
                         }
                         // latestNewPathSyncStateId is now the highest of the new path sync state ids,
                         // and latestNewPathSyncStateArrayIndex represents the index of the same sync state in newPathStates;
@@ -1191,6 +1325,8 @@ namespace SQLIndexer
                         if (changeEnums[currentEvent.FileChangeTypeEnumId] == FileChangeType.Renamed
                             && currentEvent.PreviousPath != null)
                         {
+                            int crcIntPrevious = StringCRC.Crc(currentEvent.PreviousPath);
+
                             // fill in the old path sync states
                             oldPathStates = indexDB.SyncStates
                                 .Include(parent => parent.FileSystemObject)
@@ -1199,8 +1335,7 @@ namespace SQLIndexer
                                 // the following LINQ to Entities where clause compares the checksums of the event's NewPath
                                 // (may have duplicate checksums even when paths differ
                                 .Where(currentSyncState => currentSyncState.SyncCounter == lastSyncs[0].SyncCounter
-                                    && (((currentSyncState.FileSystemObject.PathChecksum == null && SqlFunctions.Checksum(currentEvent.PreviousPath) == null)
-                                        || currentSyncState.FileSystemObject.PathChecksum == SqlFunctions.Checksum(currentEvent.PreviousPath))))
+                                    && currentSyncState.FileSystemObject.PathChecksum == crcIntPrevious)
 
                                 .AsEnumerable() // transfers from LINQ to Entities IQueryable into LINQ to Objects IEnumerable (evaluates SQL)
                                 .Where(currentSyncState => currentSyncState.FileSystemObject.Path == currentEvent.PreviousPath) // run in memory since Path field is not indexable
@@ -1231,12 +1366,12 @@ namespace SQLIndexer
                                 latestOldPathSyncStateArrayIndex = oldPathStateIndex;
                             }
                             // remove the current old path sync state (by first removing its associated FileSystemObjects)
-                            indexDB.FileSystemObjects.DeleteObject(oldPathStates[oldPathStateIndex].FileSystemObject);
+                            indexDB.FileSystemObjects.Remove(oldPathStates[oldPathStateIndex].FileSystemObject);
                             if (oldPathStates[oldPathStateIndex].ServerLinkedFileSystemObject != null)
                             {
-                                indexDB.FileSystemObjects.DeleteObject(oldPathStates[oldPathStateIndex].ServerLinkedFileSystemObject);
+                                indexDB.FileSystemObjects.Remove(oldPathStates[oldPathStateIndex].ServerLinkedFileSystemObject);
                             }
-                            indexDB.SyncStates.DeleteObject(oldPathStates[oldPathStateIndex]);
+                            indexDB.SyncStates.Remove(oldPathStates[oldPathStateIndex]);
                         }
                         // latestOldPathSyncStateId is now the highest of the old path sync state ids,
                         // and latestOldPathSyncStateArrayIndex represents the index of the same sync state in oldPathStates;
@@ -1259,7 +1394,10 @@ namespace SQLIndexer
                                         Size = currentEvent.FileSystemObject.Size,
                                         TargetPath = currentEvent.FileSystemObject.TargetPath,
                                         Revision = currentEvent.FileSystemObject.Revision,
-                                        StorageKey = currentEvent.FileSystemObject.StorageKey
+                                        StorageKey = currentEvent.FileSystemObject.StorageKey,
+
+                                        // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
+                                        PathChecksum = StringCRC.Crc(fileSystemPath)
                                     };
                                 };
 
@@ -1271,10 +1409,10 @@ namespace SQLIndexer
                                 ? null
                                 : getNewFileSystemObject(serverRemappedNewPath));
                             // add the file system object(s) to the database
-                            indexDB.FileSystemObjects.AddObject(eventFileSystemObject);
+                            indexDB.FileSystemObjects.Add(eventFileSystemObject);
                             if (serverRemappedFileSystemObject != null)
                             {
-                                indexDB.FileSystemObjects.AddObject(serverRemappedFileSystemObject);
+                                indexDB.FileSystemObjects.Add(serverRemappedFileSystemObject);
                             }
                             // save changes now so the file system object(s) will have ids
                             indexDB.SaveChanges();
@@ -1290,7 +1428,7 @@ namespace SQLIndexer
                             };
 
                             // add new sync state to database
-                            indexDB.SyncStates.AddObject(eventSyncState);
+                            indexDB.SyncStates.Add(eventSyncState);
                         }
 
                         // move the current event back one sync
@@ -1301,9 +1439,10 @@ namespace SQLIndexer
 
                         // Finish writing any unsaved changes to the database
                         indexDB.SaveChanges();
-                        // No errors occurred, so the transaction can be completed
-                        transaction.Complete();
-                    }
+                //// ¡¡ SQL CE does not support transactions !!
+                    //    // No errors occurred, so the transaction can be completed
+                    //    transaction.Complete();
+                    //}
                 }
             }
             catch (Exception ex)
@@ -1318,7 +1457,11 @@ namespace SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
-        private IndexingAgent() { }
+        private IndexingAgent()
+        {
+            this.indexDBLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) +
+                "\\Cloud\\IndexDB.sdf";
+        }
 
         /// <summary>
         /// Action fired on a user worker thread which traverses the root path to build an initial index on application startup
@@ -1335,7 +1478,7 @@ namespace SQLIndexer
                 throw indexPathCreationError.GrabFirstException();
             }
 
-            using (IndexDBEntities indexDB = new IndexDBEntities())
+            using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
             {
                 // Grab the most recent sync from the database to pull sync states
                 Sync lastSync = indexDB.Syncs
