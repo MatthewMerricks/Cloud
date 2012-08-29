@@ -886,12 +886,10 @@ namespace win_client.AppDelegate
             // Set the containing window to be invisible
             if (window != null)
             {
-                //window.Width = 640;
-                //window.Height = 480;
-                window.MinWidth = 640;
-                window.MinHeight = 480;
-                window.MaxWidth = 640;
-                window.MaxHeight = 480;
+                window.MinWidth = 645;
+                window.MinHeight = 485;
+                window.MaxWidth = 650;
+                window.MaxHeight = 485;
                 window.WindowStyle = WindowStyle.ThreeDBorderWindow;
                 //window.Visibility = System.Windows.Visibility.Visible;
                 window.ShowInTaskbar = true;

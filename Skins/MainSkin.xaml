@@ -216,5 +216,389 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <!-- Sign-in Round button template -->
+    <Storyboard x:Key="OnMouseLeave1">
+        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="lightener">
+            <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+        </DoubleAnimationUsingKeyFrames>
+        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="outer_glow">
+            <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+        </DoubleAnimationUsingKeyFrames>
+    </Storyboard>
+    <Storyboard x:Key="OnMouseEnter1">
+        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="lightener">
+            <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0.2"/>
+        </DoubleAnimationUsingKeyFrames>
+        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="outer_glow">
+            <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="1"/>
+        </DoubleAnimationUsingKeyFrames>
+    </Storyboard>
+    <Style x:Key="ContentPresenter_Plus" TargetType="{x:Type ContentPresenter}"/>
+    <ControlTemplate x:Key="SignInShinyRoundButtonTemplate" TargetType="{x:Type Button}">
+        <ControlTemplate.Resources>
+            <Storyboard x:Key="OnMouseEnter1">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="lightener">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0.2"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="outer_glow">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="1"/>
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="OnMouseLeave1">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="lightener">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="outer_glow">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+        </ControlTemplate.Resources>
+        <Grid x:Name="main_grid">
+            <Ellipse x:Name="outer_glow" Fill="{TemplateBinding BorderBrush}" Opacity="0" d:IsLocked="True">
+                <Ellipse.Effect>
+                    <BlurEffect Radius="10"/>
+                </Ellipse.Effect>
+            </Ellipse>
+            <Ellipse x:Name="background" Fill="{TemplateBinding Background}"/>
+            <Ellipse x:Name="lightener" Fill="White" Opacity="0"/>
+            <Ellipse x:Name="darkener" Fill="Black" Opacity="0"/>
+            <Ellipse x:Name="inner_glow" Fill="{TemplateBinding BorderBrush}" Margin="1">
+                <Ellipse.OpacityMask>
+                    <RadialGradientBrush GradientOrigin="0.5,0.987" Center="0.5,0.987" RadiusY="0.606" RadiusX="0.648">
+                        <GradientStop Color="Black" Offset="0.213"/>
+                        <GradientStop Offset="0.95"/>
+                    </RadialGradientBrush>
+                </Ellipse.OpacityMask>
+            </Ellipse>
+            <Ellipse x:Name="lower_highlight" Stroke="{TemplateBinding BorderBrush}" Margin="1" StrokeThickness="1" d:IsHidden="True">
+                <Ellipse.OpacityMask>
+                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                        <GradientStop Color="#00000000" Offset="0.552"/>
+                        <GradientStop Color="White" Offset="1"/>
+                    </LinearGradientBrush>
+                </Ellipse.OpacityMask>
+            </Ellipse>
+            <Ellipse x:Name="upper_highlight" Margin="1" StrokeThickness="0.75">
+                <Ellipse.Stroke>
+                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                        <GradientStop Color="#97FFFFFF" Offset="0"/>
+                        <GradientStop Offset="0.453"/>
+                    </LinearGradientBrush>
+                </Ellipse.Stroke>
+            </Ellipse>
+            <Grid x:Name="shine_grid" Margin="2,1">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Path x:Name="shine" Data="M40,20 C40,31.045695 31.045695,20 20,20 8.954305,20 0,31.045695 0,20 0,8.954305 8.954305,0 20,0 31.045695,0 40,8.954305 40,20 z" Grid.RowSpan="1" Stretch="Fill">
+                    <Path.Fill>
+                        <RadialGradientBrush>
+                            <RadialGradientBrush.RelativeTransform>
+                                <TransformGroup>
+                                    <ScaleTransform CenterY="0.5" CenterX="0.5" ScaleY="2"/>
+                                    <SkewTransform CenterY="0.5" CenterX="0.5"/>
+                                    <RotateTransform CenterY="0.5" CenterX="0.5"/>
+                                    <TranslateTransform Y="0.5"/>
+                                </TransformGroup>
+                            </RadialGradientBrush.RelativeTransform>
+                            <GradientStop Color="#26FFFFFF" Offset="0"/>
+                            <GradientStop Color="#B3FFFFFF" Offset="1"/>
+                            <GradientStop Color="#3CFFFFFF" Offset="0.422"/>
+                        </RadialGradientBrush>
+                    </Path.Fill>
+                </Path>
+            </Grid>
+            <Canvas x:Name="SignIn_Icon" HorizontalAlignment="Stretch" Height="17" UseLayoutRounding="False" VerticalAlignment="Stretch" Width="17">
+                <Canvas x:Name="Layer_1" Height="14.625" Canvas.Left="0" Canvas.Top="1.187" Width="17">
+                    <Path Data="F1M17,8.4883C17,7.8923,16.735,7.3643,16.322,6.9983L16.325,6.9983L11.1,1.7723C10.318,0.9923,9.053,0.991300000000001,8.271,1.7723C7.49,2.5533,7.49,3.8203,8.271,4.6013L10.157,6.4883L2,6.4883C0.896000000000001,6.4883,0,7.3833,0,8.4883C0,9.5923,0.896000000000001,10.4883,2,10.4883L10.179,10.4883L8.271,12.3963C7.49,13.1773,7.49,14.4443,8.271,15.2253C9.053,16.0073,10.318,16.0063,11.1,15.2253L16.325,10.0003L16.296,10.0003C16.724,9.6333,17,9.0953,17,8.4883" Fill="White" Height="14.625" Canvas.Left="0" Stretch="Fill" Canvas.Top="0" Width="17"/>
+                </Canvas>
+            </Canvas>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <EventTrigger RoutedEvent="Mouse.MouseLeave">
+                <BeginStoryboard x:Name="OnMouseLeave1_BeginStoryboard" Storyboard="{StaticResource OnMouseLeave1}"/>
+            </EventTrigger>
+            <EventTrigger RoutedEvent="Mouse.MouseEnter">
+                <BeginStoryboard Storyboard="{StaticResource OnMouseEnter1}"/>
+            </EventTrigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" TargetName="main_grid" Value="0.5"/>
+                <Setter Property="Visibility" TargetName="inner_glow" Value="Hidden"/>
+                <Setter Property="Visibility" TargetName="upper_highlight" Value="Hidden"/>
+                <Setter Property="Stroke" TargetName="lower_highlight" Value="White"/>
+                <Setter Property="Stroke" TargetName="background" Value="#FF0F4F76"/>
+                <Setter Property="Fill" TargetName="darkener" Value="Black"/>
+                <Setter Property="Fill" TargetName="shine">
+                    <Setter.Value>
+                        <RadialGradientBrush>
+                            <RadialGradientBrush.RelativeTransform>
+                                <TransformGroup>
+                                    <ScaleTransform CenterY="0.5" CenterX="0.5" ScaleY="2"/>
+                                    <SkewTransform CenterY="0.5" CenterX="0.5"/>
+                                    <RotateTransform CenterY="0.5" CenterX="0.5"/>
+                                    <TranslateTransform Y="0.5"/>
+                                </TransformGroup>
+                            </RadialGradientBrush.RelativeTransform>
+                            <GradientStop Color="#26FFFFFF" Offset="0"/>
+                            <GradientStop Color="#7CFFFFFF" Offset="1"/>
+                            <GradientStop Color="#2DFFFFFF" Offset="0.422"/>
+                        </RadialGradientBrush>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Opacity" TargetName="darkener" Value="0"/>
+                <Setter Property="Opacity" TargetName="background" Value="0.5"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Visibility" TargetName="lower_highlight" Value="Hidden"/>
+                <Setter Property="Opacity" TargetName="shine_grid" Value="0.7"/>
+                <Setter Property="Opacity" TargetName="upper_highlight" Value="0.6"/>
+                <Setter Property="OpacityMask" TargetName="inner_glow">
+                    <Setter.Value>
+                        <RadialGradientBrush Center="0.5,0.987" GradientOrigin="0.5,0.987" RadiusY="0.606" RadiusX="0.5" Opacity="0.8">
+                            <GradientStop Color="Black" Offset="0.213"/>
+                            <GradientStop Offset="0.95"/>
+                        </RadialGradientBrush>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Opacity" TargetName="darkener" Value="0.27"/>
+                <Setter Property="Opacity" TargetName="background" Value="1"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Create New button template -->
+    <ControlTemplate x:Key="CreateNewShinyRoundButtonTemplate" TargetType="{x:Type Button}">
+        <ControlTemplate.Resources>
+            <Storyboard x:Key="OnMouseEnter1">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="lightener">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0.2"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="outer_glow">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="1"/>
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="OnMouseLeave1">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="lightener">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="outer_glow">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+        </ControlTemplate.Resources>
+        <Grid x:Name="main_grid">
+            <Ellipse x:Name="outer_glow" Fill="{TemplateBinding BorderBrush}" Opacity="0">
+                <Ellipse.Effect>
+                    <BlurEffect Radius="10"/>
+                </Ellipse.Effect>
+            </Ellipse>
+            <Ellipse x:Name="background" Fill="{TemplateBinding Background}"/>
+            <Ellipse x:Name="lightener" Fill="White" Opacity="0" d:IsLocked="True"/>
+            <Ellipse x:Name="darkener" Fill="Black" Opacity="0"/>
+            <Ellipse x:Name="inner_glow" Fill="{TemplateBinding BorderBrush}" Margin="1">
+                <Ellipse.OpacityMask>
+                    <RadialGradientBrush GradientOrigin="0.5,0.987" Center="0.5,0.987" RadiusY="0.606" RadiusX="0.648">
+                        <GradientStop Color="Black" Offset="0.213"/>
+                        <GradientStop Offset="0.95"/>
+                    </RadialGradientBrush>
+                </Ellipse.OpacityMask>
+            </Ellipse>
+            <Ellipse x:Name="lower_highlight" Stroke="{TemplateBinding BorderBrush}" Margin="1" StrokeThickness="1" d:IsHidden="True">
+                <Ellipse.OpacityMask>
+                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                        <GradientStop Color="#00000000" Offset="0.552"/>
+                        <GradientStop Color="White" Offset="1"/>
+                    </LinearGradientBrush>
+                </Ellipse.OpacityMask>
+            </Ellipse>
+            <Ellipse x:Name="upper_highlight" Margin="1" StrokeThickness="0.75">
+                <Ellipse.Stroke>
+                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                        <GradientStop Color="White" Offset="0"/>
+                        <GradientStop Offset="0.453"/>
+                    </LinearGradientBrush>
+                </Ellipse.Stroke>
+            </Ellipse>
+            <Grid x:Name="shine_grid" Margin="2,1">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Path x:Name="shine" Data="M40,20 C40,31.045695 31.045695,20 20,20 8.954305,20 0,31.045695 0,20 0,8.954305 8.954305,0 20,0 31.045695,0 40,8.954305 40,20 z" Grid.RowSpan="1" Stretch="Fill">
+                    <Path.Fill>
+                        <RadialGradientBrush>
+                            <RadialGradientBrush.RelativeTransform>
+                                <TransformGroup>
+                                    <ScaleTransform CenterY="0.5" CenterX="0.5" ScaleY="2"/>
+                                    <SkewTransform CenterY="0.5" CenterX="0.5"/>
+                                    <RotateTransform CenterY="0.5" CenterX="0.5"/>
+                                    <TranslateTransform Y="0.5"/>
+                                </TransformGroup>
+                            </RadialGradientBrush.RelativeTransform>
+                            <GradientStop Color="#27FFFFFF" Offset="0"/>
+                            <GradientStop Color="#7CFFFFFF" Offset="1"/>
+                            <GradientStop Color="#2DFFFFFF" Offset="0.422"/>
+                        </RadialGradientBrush>
+                    </Path.Fill>
+                </Path>
+            </Grid>
+            <Canvas x:Name="Plus_icon" HorizontalAlignment="Stretch" Height="17" UseLayoutRounding="False" VerticalAlignment="Stretch" Width="17">
+                <Canvas x:Name="Layer_1" Height="17" Canvas.Left="0" Canvas.Top="0" Width="17">
+                    <Path Data="F1M15,6.4995L10.5,6.4995L10.5,1.9995C10.5,0.894499999999999,9.605,-0.000500000000000611,8.5,-0.000500000000000611C7.396,-0.000500000000000611,6.5,0.894499999999999,6.5,1.9995L6.5,6.4995L1.768,6.4995L1.768,6.5225C0.773,6.6385,0,7.4745,0,8.4995C0,9.5255,0.773,10.3605,1.768,10.4755L1.768,10.4995L6.5,10.4995L6.5,15.2315L6.523,15.2315C6.639,16.2265,7.475,16.9995,8.5,16.9995C9.526,16.9995,10.361,16.2265,10.477,15.2315L10.5,15.2315L10.5,10.4995L15,10.4995C16.105,10.4995,17,9.6055,17,8.4995C17,7.3955,16.105,6.4995,15,6.4995" Fill="White" Height="17" Canvas.Left="0" Stretch="Fill" Canvas.Top="0" Width="17"/>
+                </Canvas>
+            </Canvas>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <EventTrigger RoutedEvent="Mouse.MouseLeave">
+                <BeginStoryboard x:Name="OnMouseLeave1_BeginStoryboard" Storyboard="{StaticResource OnMouseLeave1}"/>
+            </EventTrigger>
+            <EventTrigger RoutedEvent="Mouse.MouseEnter">
+                <BeginStoryboard Storyboard="{StaticResource OnMouseEnter1}"/>
+            </EventTrigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" TargetName="main_grid" Value="0.5"/>
+                <Setter Property="Visibility" TargetName="inner_glow" Value="Hidden"/>
+                <Setter Property="Visibility" TargetName="upper_highlight" Value="Hidden"/>
+                <Setter Property="Stroke" TargetName="lower_highlight" Value="White"/>
+                <Setter Property="Fill" TargetName="background" Value="#FF2874A3"/>
+                <Setter Property="Stroke" TargetName="background" Value="#FF0F4F76"/>
+                <Setter Property="Opacity" TargetName="outer_glow" Value="0"/>
+                <Setter Property="Opacity" TargetName="upper_highlight" Value="1"/>
+                <Setter Property="Opacity" TargetName="shine_grid" Value="0.5"/>
+                <Setter Property="Opacity" TargetName="background" Value="0.5"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Visibility" TargetName="lower_highlight" Value="Hidden"/>
+                <Setter Property="Opacity" TargetName="shine_grid" Value="0.7"/>
+                <Setter Property="Opacity" TargetName="upper_highlight" Value="0.6"/>
+                <Setter Property="OpacityMask" TargetName="inner_glow">
+                    <Setter.Value>
+                        <RadialGradientBrush Center="0.5,0.987" GradientOrigin="0.5,0.987" RadiusY="0.606" RadiusX="0.5" Opacity="0.8">
+                            <GradientStop Color="Black" Offset="0.213"/>
+                            <GradientStop Offset="0.95"/>
+                        </RadialGradientBrush>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Opacity" TargetName="darkener" Value="0.27"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Standard Windows Button -->
+    <ControlTemplate x:Key="WinBtnStandard" TargetType="{x:Type Button}">
+        <ControlTemplate.Resources>
+            <Storyboard x:Key="OnMouseEnter1">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="lighten">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0.445"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="outer_glow">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0.4"/>
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="OnMouseLeave1">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="lighten">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="outer_glow">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+        </ControlTemplate.Resources>
+        <Grid x:Name="main_grid">
+            <Rectangle x:Name="outer_glow" Fill="{TemplateBinding BorderBrush}" Opacity="0" RadiusX="1.25" RadiusY="1.25">
+                <Rectangle.Effect>
+                    <BlurEffect RenderingBias="Quality"/>
+                </Rectangle.Effect>
+            </Rectangle>
+            <Rectangle x:Name="background" Fill="{TemplateBinding Background}" Stroke="#FF74A6BF" RadiusX="1.75" RadiusY="1.75"/>
+            <Rectangle x:Name="lighten" Fill="White" Opacity="0" RadiusX="1.25" RadiusY="1.25"/>
+            <Rectangle x:Name="darken" Fill="#FF01476A" Opacity="0" RadiusX="1.25" RadiusY="1.25"/>
+            <Rectangle x:Name="inner_glow" Margin="1" Fill="#FFB8D9E4" RadiusX="1.25" RadiusY="1.25">
+                <Rectangle.OpacityMask>
+                    <RadialGradientBrush GradientOrigin="0.5,1" Center="0.5,1" RadiusX="0.8">
+                        <GradientStop Color="Black" Offset="0"/>
+                        <GradientStop Offset="1"/>
+                    </RadialGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle x:Name="InnerBorder" Stroke="White" Margin="1" Opacity="0.615" RadiusY="1.25" RadiusX="1.25"/>
+            <Rectangle x:Name="upper_highlight" Margin="1" StrokeThickness="0.5" RadiusY="1.25" RadiusX="1.25">
+                <Rectangle.Stroke>
+                    <LinearGradientBrush EndPoint="0.5,0.3" StartPoint="0.5,1">
+                        <GradientStop Color="#53FFFFFF" Offset="1"/>
+                        <GradientStop Offset="0.7"/>
+                    </LinearGradientBrush>
+                </Rectangle.Stroke>
+            </Rectangle>
+            <Rectangle x:Name="lower_highlight" StrokeThickness="0.5" Margin="1" RadiusY="1.25" RadiusX="1.25">
+                <Rectangle.Stroke>
+                    <LinearGradientBrush EndPoint="0.5,0.3" StartPoint="0.5,1">
+                        <GradientStop Offset="0.5"/>
+                        <GradientStop Color="#4C9FE1FF"/>
+                    </LinearGradientBrush>
+                </Rectangle.Stroke>
+            </Rectangle>
+            <Grid x:Name="Shine_grid">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Rectangle x:Name="shine" Grid.Column="0" Margin="1,1,1,0" d:LayoutOverrides="GridBox" StrokeThickness="0" Height="Auto" RadiusX="1.25" RadiusY="1.25">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                            <GradientStop Color="#3DFFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                    <Rectangle.Stroke>
+                        <LinearGradientBrush EndPoint="0.5,0.3" StartPoint="0.5,1">
+                            <GradientStop Color="#7EFFFFFF" Offset="1"/>
+                            <GradientStop Offset="0.502" Color="#19FFFFFF"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Stroke>
+                </Rectangle>
+            </Grid>
+            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" d:IsLocked="True"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded"/>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" TargetName="main_grid" Value="0.5"/>
+                <Setter Property="Visibility" TargetName="inner_glow" Value="Hidden"/>
+                <Setter Property="Visibility" TargetName="upper_highlight" Value="Hidden"/>
+                <Setter Property="Fill" TargetName="background">
+                    <Setter.Value>
+                        <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                            <GradientStop Color="Gainsboro" Offset="0"/>
+                            <GradientStop Color="Silver" Offset="0.5"/>
+                            <GradientStop Color="Silver" Offset="1"/>
+                            <GradientStop Color="Gainsboro" Offset="0.499"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Stroke" TargetName="background" Value="Gray"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Opacity" TargetName="upper_highlight" Value="0.6"/>
+                <Setter Property="OpacityMask" TargetName="inner_glow">
+                    <Setter.Value>
+                        <RadialGradientBrush Center="0.5,1" GradientOrigin="0.5,1" Opacity="0.6" RadiusX="0.8">
+                            <GradientStop Color="Black" Offset="0"/>
+                            <GradientStop Offset="1"/>
+                        </RadialGradientBrush>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Opacity" TargetName="darken" Value="0.3"/>
+            </Trigger>
+            <EventTrigger RoutedEvent="Mouse.MouseEnter">
+                <BeginStoryboard x:Name="OnMouseLeave1_BeginStoryboard" Storyboard="{StaticResource OnMouseEnter1}"/>
+            </EventTrigger>
+            <EventTrigger RoutedEvent="Mouse.MouseLeave">
+                <BeginStoryboard x:Name="OnMouseLeave1_BeginStoryboard1" Storyboard="{StaticResource OnMouseLeave1}"/>
+            </EventTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 
 </ResourceDictionary>

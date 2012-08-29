@@ -314,7 +314,7 @@
     <value>_Back</value>
   </data>
   <data name="ViewPageCreateNewAccountButtonContinue" xml:space="preserve">
-    <value>_Continue</value>
+    <value>Ne_xt</value>
   </data>
   <data name="ViewPageCreateNewAccountLabelComputerName" xml:space="preserve">
     <value>Computer _Name:</value>

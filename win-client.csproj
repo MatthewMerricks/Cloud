@@ -645,6 +645,8 @@
     <Resource Include="Artwork\cl_macinstall_storage_bkg.tiff" />
     <Resource Include="Artwork\cl_macinstall_tour_greetingsFolder.png" />
     <Resource Include="Artwork\WinClient_Splash_bg_650x485.png" />
+    <Resource Include="Artwork\WinClient_CloudSetup_bg_650x485.png" />
+    <Resource Include="Artwork\WinClient_CloudSetup_Text_Container_573x315.png" />
     <Content Include="InstallScripts\RegisterCom.vbs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
