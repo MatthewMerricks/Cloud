@@ -305,6 +305,9 @@ namespace win_client.AppDelegate
                 error = null;
             }
 
+            // Clear database (will start again at SID "0")
+            win_client.Services.FileSystemMonitoring.CLFSMonitoringService.Instance.IndexingAgent.WipeIndex(Settings.Instance.CloudFolderPath);
+
             //// stop services.
             //CLAppDelegate *delegate = [NSApp delegate];
             //[delegate stopCloudAppServicesAndUI];

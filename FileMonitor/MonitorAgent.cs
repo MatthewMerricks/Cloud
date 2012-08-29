@@ -782,8 +782,9 @@ namespace FileMonitor
             CLError toReturn = null;
             try
             {
-                using (TransactionScope PreprocessingScope = new TransactionScope())
-                {
+                //// ¡¡ SQL CE does not support transactions !!
+                //using (TransactionScope PreprocessingScope = new TransactionScope())
+                //{
                     PulledChanges = new HashSet<FileChangeWithDependencies>();
 
                     for (int outerChangeIndex = 0; outerChangeIndex < dependencyChanges.Length; outerChangeIndex++)
@@ -863,8 +864,9 @@ namespace FileMonitor
                             }
                         }
                     }
-                    PreprocessingScope.Complete();
-                }
+                //// ¡¡ SQL CE does not support transactions !!
+                    //PreprocessingScope.Complete();
+                //}
             }
             catch (Exception ex)
             {
