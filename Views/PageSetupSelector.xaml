@@ -32,7 +32,7 @@
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
     
-    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}">
+<!--    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}">-->
         <Grid x:Name="LayoutRoot">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="0.056*"/>
@@ -105,5 +105,5 @@
                                 Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Top" Margin="48,44,94,0" d:LayoutOverrides="Width" Height="28"/>
 
         </Grid>
-    </extToolkit:BusyIndicator>
+<!--    </extToolkit:BusyIndicator>-->
 </Page>

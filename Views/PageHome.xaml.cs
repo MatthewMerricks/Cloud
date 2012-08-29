@@ -76,7 +76,8 @@ namespace win_client.Views
 
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            tbEMail.Focus();
+            cmdSignIn.IsEnabled = false;
+            cmdCreateAccount.Focus();
         }
 
         /// <summary>
@@ -176,6 +177,65 @@ namespace win_client.Views
             }
         }
 
+
         #endregion
+
+        private void OnLostFocus(object sender, RoutedEventArgs e)
+        {
+            tblkPasswordWatermark.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        private void OnGotFocus(object sender, RoutedEventArgs e)
+        {
+            tblkPasswordWatermark.Visibility = System.Windows.Visibility.Collapsed;
+        }
+
+        private void OnEmailTextChanged(object sender, TextChangedEventArgs e)
+        {
+
+            SetSignInButtonEnabledState();
+        }
+
+        private void OnPasswordTextChanged(object sender, TextChangedEventArgs e)
+        {
+
+            SetSignInButtonEnabledState();
+        }
+
+        private void SetSignInButtonEnabledState()
+        {
+            int tbEMailLength = 0;
+            bool tbEMailValidationError = false;
+            if (tbEMail != null)
+            {
+                tbEMailLength = tbEMail.Text.Length;
+                tbEMailValidationError = Validation.GetHasError(tbEMail);
+            }
+
+            int tbPasswordLength = 0;
+            if (tbPassword != null)
+            {
+                tbPasswordLength = tbPassword.Text.Length;
+            }
+
+            if (tbEMailLength == 0 || tbPasswordLength == 0 || tbEMailValidationError)
+            {
+                // The sign-in button should be disabled.
+                cmdSignIn.IsEnabled = false;
+
+                // The create-account button should be the default.
+                cmdSignIn.IsDefault = false;
+                cmdCreateAccount.IsDefault = true;
+            }
+            else
+            {
+                // The sign-in button should be enabled.
+                cmdSignIn.IsEnabled = true;
+
+                // The sign-in button should be the default.
+                cmdSignIn.IsDefault = true;
+                cmdCreateAccount.IsDefault = false;
+            }
+        }
     }
 }

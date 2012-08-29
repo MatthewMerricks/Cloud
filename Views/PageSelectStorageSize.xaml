@@ -33,96 +33,139 @@
 
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.056*"/>
-            <ColumnDefinition  Width="0.385*"/>
-            <ColumnDefinition Width="0.061*"/>
-            <ColumnDefinition Width="0.052*"/>
-            <ColumnDefinition  Width="0.382*"/>
-            <ColumnDefinition Width="0.064*"/>
+            <ColumnDefinition Width="42*"/>
+            <ColumnDefinition  Width="233*"/>
+            <ColumnDefinition Width="38*"/>
+            <ColumnDefinition Width="32*"/>
+            <ColumnDefinition  Width="239*"/>
+            <ColumnDefinition Width="40*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.8*"/>
-            <RowDefinition Height="0.2*"/>
+            <RowDefinition Height="30*"/>
+            <RowDefinition Height="149*"/>
+            <RowDefinition Height="11*"/>
+            <RowDefinition Height="31*"/>
         </Grid.RowDefinitions>
 
-        <Border Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="6" Grid.RowSpan="2" RenderTransformOrigin="0.5,0.5">
-            <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
-            </Border.Background>
-            <TextBlock TextWrapping="Wrap" Text="Pricing terms" RenderTransformOrigin="0.5,0.5" 
-        		Foreground="#B2000000" VerticalAlignment="Top" Margin="0,404,10,0" Height="28" HorizontalAlignment="Right" Width="84"/>
-        </Border>
-        <Grid Grid.Column="1" Margin="48,93,37,-32" Grid.ColumnSpan="4">
+        <Grid.Background>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
+        </Grid.Background>
+
+        <TextBlock TextWrapping="Wrap" Text="How much storage would you like?" Foreground="Black" FontSize="17" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="22" Margin="0,19"/>
+
+        <TextBlock TextWrapping="Wrap" Text="Pricing terms"	Foreground="#FF2975A9" VerticalAlignment="Top" Height="Auto" HorizontalAlignment="Left" Width="Auto" Grid.Row="2" Grid.Column="1"/>
+
+        <Grid Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="1" Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="0.041*"/>
                 <RowDefinition Height="0.661*"/>
                 <RowDefinition Height="0.298*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.056*"/>
-                <ColumnDefinition Width="0.297*"/>
-                <ColumnDefinition Width="0.299*"/>
-                <ColumnDefinition Width="0.301*"/>
-                <ColumnDefinition Width="0.046*"/>
+                <ColumnDefinition Width="30*"/>
+                <ColumnDefinition Width="155*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="151*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="155*"/>
+                <ColumnDefinition Width="25*"/>
             </Grid.ColumnDefinitions>
-            <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="5" RadiusX="8" RadiusY="8" Opacity="0.9" Grid.RowSpan="3"/>
-            <Grid Grid.Column="1" Grid.Row="1">
+
+            <!-- <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="5" RadiusX="8" RadiusY="8" Opacity="0.9" Grid.RowSpan="3"/> -->
+            <Image Grid.ColumnSpan="7" Grid.RowSpan="3" Source="/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" />
+            <Grid Grid.Column="1" Grid.Row="1" Grid.RowSpan="2">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <Image Source="/Cloud;component/Artwork/cl_selectStorage_frame_ON.png" Grid.RowSpan="2"/>
-                <Image Grid.Row="1" Source="/Cloud;component/Artwork/cl_macinstall_Icon_storageFree.tiff" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                <Rectangle x:Name="rectShowUnselectedArea5Gb" Fill="#99FFFFFF" Margin="0" RadiusY="8" RadiusX="8" Stroke="#34000000" Grid.RowSpan="2" IsHitTestVisible="False"
-                       Visibility="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size5Gb, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
-                <TextBlock TextWrapping="Wrap" Text="Free" 
-                        Foreground="Blue" FontSize="16" Margin="45,59,38,0" Height="Auto" VerticalAlignment="Top" TextAlignment="Center"/>
-                <RadioButton d:LayoutOverrides="VerticalAlignment" RenderTransformOrigin="2.481,4.077" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="41,33,0,0"
+                <!--<Image Source="/Cloud;component/Artwork/cl_selectStorage_frame_ON.png" Grid.RowSpan="2"/>-->
+                <Image Grid.Row="1" Source="/Cloud;component/Artwork/cl_macinstall_Icon_storageFree.tiff" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="15,15,15,15"/>
+                <!--<Rectangle x:Name="rectShowUnselectedArea5Gb" Fill="#99FFFFFF" Margin="0" RadiusY="8" RadiusX="8" Stroke="#34000000" Grid.RowSpan="2" IsHitTestVisible="False"
+                       Visibility="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size5Gb, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/> -->
+                <Grid Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Label Content="_5 GB" Grid.Row="1" FontSize="16" Target="rb5Gb" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Blue"/>
+                    <TextBlock TextWrapping="Wrap" Text="Free" Foreground="Black" FontSize="16" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
+                    <RadioButton x:Name="rb5Gb" VerticalAlignment="Center" HorizontalAlignment="Center" 
                          IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size5Gb, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="Group1"
-                         TabIndex="2" Content="_5 GB" FontSize="16"/>
-                <Button x:Name="btnCovering5GbRadioButtonArea" Margin="0" d:LayoutOverrides="Height" Grid.RowSpan="2"
+                         TabIndex="2" FontSize="16" Grid.Row="3"/>
+                </Grid>
+                <Button x:Name="btnCovering5GbRadioButtonArea" Grid.RowSpan="2"
                     Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSelectStorageSize_5GbAreaCommand, Mode=OneTime}" IsTabStop="False" />
             </Grid>
-            <Grid Grid.Column="2" Grid.Row="1">
+            <Grid Grid.Column="3" Grid.Row="1"  Grid.RowSpan="2">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <Image Source="/Cloud;component/Artwork/cl_selectStorage_frame_ON.png" Grid.RowSpan="2"/>
-                <Image Grid.Row="1" Source="/Cloud;component/Artwork/cl_macinstall_Icon_storage50GB.tiff" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                <Rectangle x:Name="rectShowUnselectedArea50Gb" Fill="#99FFFFFF" Margin="0" RadiusY="8" RadiusX="8" Stroke="#34000000" Grid.RowSpan="2" IsHitTestVisible="False"
-                      Visibility="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size50Gb, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
-                <RadioButton RenderTransformOrigin="2.481,4.077" VerticalAlignment="Top" Grid.Column="2" HorizontalAlignment="Left" Margin="35,33,0,0" d:LayoutOverrides="VerticalAlignment" 
+                <!--<Image Source="/Cloud;component/Artwork/cl_selectStorage_frame_ON.png" Grid.RowSpan="2"/>-->
+                <Image Grid.Row="1" Source="/Cloud;component/Artwork/cl_macinstall_Icon_storage50GB.tiff" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10"/>
+                <!--<Rectangle x:Name="rectShowUnselectedArea50Gb" Fill="#99FFFFFF" Margin="0" RadiusY="8" RadiusX="8" Stroke="#34000000" Grid.RowSpan="2" IsHitTestVisible="False"
+                      Visibility="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size50Gb, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>-->
+                <Grid Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Label Content="5_0 GB" Grid.Row="1" FontSize="16" Target="rb50Gb" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Blue"/>
+                    <TextBlock TextWrapping="Wrap" Text="$9 / Month" Foreground="Black" FontSize="16" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
+                    <RadioButton x:Name="rb50Gb" VerticalAlignment="Center" HorizontalAlignment="Center" 
                          IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size50Gb, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="Group1"
-                         TabIndex="3" Content="5_0 GB" FontSize="16"/>
-                <Button x:Name="btnCovering50GbRadioButtonArea" Margin="0" Grid.RowSpan="2"
+                         TabIndex="3" FontSize="16" Grid.Row="3"/>
+                </Grid>
+                <Button x:Name="btnCovering50GbRadioButtonArea" Grid.RowSpan="2"
                     Style="{StaticResource ButtonTransparentCoveringRadioButton}" d:LayoutOverrides="Height" Command="{Binding PageSelectStorageSize_50GbAreaCommand, Mode=OneTime}" IsTabStop="False" />
             </Grid>
-            <Grid Grid.Column="3" Grid.Row="1">
+            <Grid Grid.Column="5" Grid.Row="1" Grid.RowSpan="2">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <Image Source="/Cloud;component/Artwork/cl_selectStorage_frame_ON.png" Grid.RowSpan="2"/>
-                <Image Grid.Row="1" Source="/Cloud;component/Artwork/cl_macinstall_Icon_storage100GB.tiff" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                <Rectangle x:Name="rectShowUnselectedArea500Gb" Fill="#99FFFFFF" RadiusY="8"  RadiusX="8" Stroke="#34000000" Grid.RowSpan="2" IsHitTestVisible="False"
-                       Visibility="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size500Gb, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>
-                <RadioButton RenderTransformOrigin="2.481,4.077" VerticalAlignment="Top" Grid.Column="3" HorizontalAlignment="Left" Margin="30,33,0,0" d:LayoutOverrides="VerticalAlignment" 
+                <!--<Image Source="/Cloud;component/Artwork/cl_selectStorage_frame_ON.png" Grid.RowSpan="2"/>-->
+                <Image Grid.Row="1" Source="/Cloud;component/Artwork/cl_macinstall_Icon_storage100GB.tiff" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="20,0,0,0"/>
+                <!--<Rectangle x:Name="rectShowUnselectedArea500Gb" Fill="#99FFFFFF" RadiusY="8"  RadiusX="8" Stroke="#34000000" Grid.RowSpan="2" IsHitTestVisible="False"
+                       Visibility="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size500Gb, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>-->
+                <Grid Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Label Content="500 _GB" Grid.Row="1" FontSize="16" Target="rb500Gb" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Blue"/>
+                    <TextBlock TextWrapping="Wrap" Text="$19 / Month" Foreground="Black" FontSize="16" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
+                    <RadioButton x:Name="rb500Gb" VerticalAlignment="Center" HorizontalAlignment="Center" 
                          IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size500Gb, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="Group1"
-                         TabIndex="4" Content="500 _GB" FontSize="16" />
-                <Button x:Name="btnCovering500GbRadioButtonArea" Margin="0" Grid.Row="1" Grid.Column="3" 
-                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" d:LayoutOverrides="Height" Command="{Binding PageSelectStorageSize_500GbAreaCommand, Mode=OneTime}" IsTabStop="False" />
+                         TabIndex="4" FontSize="16" Grid.Row="3"/>
+                </Grid>
+                <Button x:Name="btnCovering500GbRadioButtonArea" Margin="0" Grid.RowSpan="2"
+                    Style="{StaticResource ButtonTransparentCoveringRadioButton}" Command="{Binding PageSelectStorageSize_500GbAreaCommand, Mode=OneTime}" IsTabStop="False" />
             </Grid>
-            
-            <Button x:Name="cmdContinue" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13.333" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-                    Command="{Binding PageSelectStorageSize_ContinueCommand, Mode=OneWay}" TabIndex="1" Grid.Row="2" Margin="19,18,10,19" Height="50"
-                    IsDefault="True">
-                <AccessText Text="_Continue" />
-            </Button>
+
+            <!-- Line separators -->
+            <Line X1="0" Y1="0" X2="0" Y2="1" Stroke="Black" Stretch="Fill" Opacity="0.5" Grid.Row="1" Grid.Column="2" Grid.RowSpan="2" Margin="0, 20, 0, 20"/>
+            <Line X1="0" Y1="0" X2="0" Y2="1" Stroke="Black" Stretch="Fill" Opacity="0.5" Grid.Row="1" Grid.Column="4" Grid.RowSpan="2" Margin="0, 20, 0, 20"/>
+
         </Grid>
-        <TextBlock TextWrapping="Wrap" Text="How much room do you need?" RenderTransformOrigin="0.5,0.5" 
-                            Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Top" Margin="48,44,94,0" d:LayoutOverrides="Width" Height="28"/>
+        
+        <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="2" Grid.ColumnSpan="3" Grid.Row="4">
+            <Button x:Name="cmdContinue" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="4" Grid.Column="4"
+                        Command="{Binding PageSelectStorageSize_ContinueCommand, Mode=OneTime}" TabIndex="6" IsDefault="True" ToolTip="Click to continue.">
+                <AccessText Text="_Continue"/>
+            </Button>
 
+        </StackPanel>
+        
     </Grid>
-
 </Page>
