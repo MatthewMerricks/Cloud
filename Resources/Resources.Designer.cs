@@ -755,7 +755,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Continue.
+        ///   Looks up a localized string similar to Ne_xt.
         /// </summary>
         public static string ViewPageCreateNewAccountButtonContinue {
             get {

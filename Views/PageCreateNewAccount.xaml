@@ -34,7 +34,7 @@
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
 
-    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" Margin="0,1,0,-1"> 
+<!--    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" Margin="0,1,0,-1"> -->
         <Grid x:Name="LayoutRoot">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="0.056*"/>
@@ -48,77 +48,81 @@
                 <RowDefinition Height="59*"/>
                 <RowDefinition Height="228*"/>
                 <RowDefinition Height="22*"/>
-                <RowDefinition Height="44*"/>
-                <RowDefinition Height="89*"/>
+                <RowDefinition Height="71*"/>
+                <RowDefinition Height="62*"/>
             </Grid.RowDefinitions>
             
             <Grid.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
             </Grid.Background>
 
             <Grid Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="4">
     		    <Grid.RowDefinitions>
-    			    <RowDefinition Height="0.034*"/>
-    			    <RowDefinition Height="0.131*"/>
-    			    <RowDefinition Height="0.1*"/>
-    			    <RowDefinition Height="0.144*"/>
-    			    <RowDefinition Height="0.05*"/>
-    			    <RowDefinition Height="0.131*"/>
-    			    <RowDefinition Height="0.131*"/>
-    			    <RowDefinition Height="0.1*"/>
-    			    <RowDefinition Height="0.134*"/>
-    			    <RowDefinition Height="0.148*"/>
+    			    <RowDefinition Height="25*"/>
+    			    <RowDefinition Height="38*"/>
+    			    <RowDefinition Height="30*"/>
+    			    <RowDefinition Height="29*"/>
+    			    <RowDefinition Height="24*"/>
+    			    <RowDefinition Height="38*"/>
+    			    <RowDefinition Height="38*"/>
+    			    <RowDefinition Height="20*"/>
+    			    <RowDefinition Height="38*"/>
+    			    <RowDefinition Height="38*"/>
     		    </Grid.RowDefinitions>
     		    <Grid.ColumnDefinitions>
     			    <ColumnDefinition Width="0.347*"/>
     			    <ColumnDefinition Width="0.556*"/>
     			    <ColumnDefinition Width="0.096*"/>
     		    </Grid.ColumnDefinitions>
-    		    <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" Grid.ColumnSpan="3" Grid.RowSpan="10" RadiusX="8" RadiusY="8" Opacity="0.9"/>
-                <TextBox Name="tbEMail" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Column="1" Grid.Row="1"
+                
+                <Image Grid.ColumnSpan="3" Grid.RowSpan="10" Source="/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" /> 
+                
+                <TextBox Name="tbEMail" TextAlignment="Left" Foreground="Black" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"
                          Text="{Binding EMail, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="13.333"
-                         Validation.ErrorTemplate="{StaticResource errorTemplate}" >
+                         Validation.ErrorTemplate="{StaticResource errorTemplate}" Height="24" ToolTip="Enter your EMail address." >
                 </TextBox>
                 <TextBox Name="tbFullName" TextAlignment="Left" Foreground="Black" Grid.Row="3" Grid.Column="1" 
-                         Text="{Binding FullName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="2" VerticalAlignment="Top" Margin="0,5,0,0" Height="Auto" FontSize="13.333" 
-                         Validation.ErrorTemplate="{StaticResource errorTemplate}" />
+                         Text="{Binding FullName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="2" VerticalAlignment="Center" FontSize="13.333" 
+                         Validation.ErrorTemplate="{StaticResource errorTemplate}" Height="24" ToolTip="Enter your full name."/>
                     
-                <commonClient:SecurePasswordBox x:Name="tbPassword" Foreground="Black" Margin="0,5" Grid.Row="5" Grid.Column="1" 
+                <commonClient:SecurePasswordBox x:Name="tbPassword" Foreground="Black" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center"
                          Text="{Binding Password, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="3" FontSize="13.333" 
-                         Validation.ErrorTemplate="{StaticResource errorTemplate}" />
+                         Validation.ErrorTemplate="{StaticResource errorTemplate}" Height="24" ToolTip="Enter a password.  This must have upper/lower case letters, numbers and be at least 8 characters long." />
                 
-                <commonClient:SecurePasswordBox x:Name="tbConfirmPassword" Foreground="Black" Margin="0,5" Grid.Row="6" Grid.Column="1"
+                <commonClient:SecurePasswordBox x:Name="tbConfirmPassword" Foreground="Black" Grid.Row="6" Grid.Column="1" VerticalAlignment="Center"
                          Text="{Binding ConfirmPassword, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="4" FontSize="13.333" 
-                         Validation.ErrorTemplate="{StaticResource errorTemplate}" />
-                <extToolkit:WatermarkTextBox Name="tbComputerName" TextAlignment="Left" Foreground="Black" Margin="0,5" Grid.Row="8" Grid.Column="1" 
+                         Validation.ErrorTemplate="{StaticResource errorTemplate}" Grid.ColumnSpan="2" Height="24"  ToolTip="Enter your password again to confirm it." />
+                <extToolkit:WatermarkTextBox Name="tbComputerName" TextAlignment="Left" Foreground="Black" Grid.Row="8" Grid.Column="1" VerticalAlignment="Center" Height="24"
                          Text="{Binding ComputerName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="5" FontSize="13.333" Style="{StaticResource controlHasErrorCheck}" 
-                         Validation.ErrorTemplate="{StaticResource errorTemplate}" Watermark="e.g.: Home Computer" />
+                         Validation.ErrorTemplate="{StaticResource errorTemplate}" Watermark="e.g.: Home Computer" Grid.ColumnSpan="2" ToolTip="Enter a name to identify this computer." />
                 
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelEMail}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Width="Auto" Target="tbEMail" FontSize="16" Margin="0,0,5,0" Height="Auto"  />
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelFullName}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Width="Auto" Target="tbFullName" FontSize="16" Margin="0,0,5,0" Height="Auto"  />
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="5" Width="Auto" Target="tbFullName" FontSize="16" Margin="0,0,5,0" Height="Auto"  />
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelConfirmPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="6" Width="Auto" Target="tbFullName" FontSize="16" Margin="0,0,5,0" Height="Auto"  />
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelComputerName}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="8" Width="Auto" Target="tbFullName" FontSize="16" Margin="0,0,5,0" Height="Auto"  />
-                <TextBlock TextWrapping="Wrap" Text="{x:Static resx:Resources.ViewPageCreateNewAccountLabelThisWillBeYourUsername}" RenderTransformOrigin="0.5,0.5" 
-    			    Foreground="Black" FontSize="10.667" Grid.Row="2" TextAlignment="Center" VerticalAlignment="Top" Grid.Column="1"/>
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelEMail}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Width="52" Target="tbEMail" FontSize="12" Height="32"   />
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelFullName}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Width="85" Target="tbFullName" FontSize="12" Height="32"  />
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="5" Width="80" Target="tbFullName" FontSize="12" Height="32"  />
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelConfirmPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="6" Width="141" Target="tbFullName" FontSize="12" Height="32"  />
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelComputerName}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="8" Width="131" Target="tbFullName" FontSize="12" Height="30"  />
+                <TextBlock TextWrapping="Wrap" Text="{x:Static resx:Resources.ViewPageCreateNewAccountLabelThisWillBeYourUsername}" Opacity="0.7"
+    			    Foreground="Black" Grid.Row="2" TextAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Grid.ColumnSpan="2" Height="14" />
     	    </Grid>
             
-            <TextBlock TextWrapping="Wrap" Text="Let's create your Cloud account" RenderTransformOrigin="0.5,0.5" 
-                                Foreground="Black" FontSize="18.667" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="26" />
+            <TextBlock TextWrapping="Wrap" Text="Let's create your Cloud account" FontFamily="Segoe UI"
+                                Foreground="Black" FontSize="17" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="26" />
 
-            <Button x:Name="btnLeft" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
-    		            Grid.Row="4" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageCreateNewAccount_BackCommand, Mode=OneTime}" TabIndex="7" >
-                <AccessText Text="{x:Static resx:Resources.ViewPageCreateNewAccountButtonBack}"/>
-            </Button>
-            
-            <Button x:Name="btnRight" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="50" FontSize="13.333" Background="#FF49C3FB" 
-    		            Grid.Row="4" Grid.Column="4" Template="{StaticResource StyledButtonTemplate}" Command="{Binding PageCreateNewAccount_ContinueCommand, Mode=OneTime}" 
-                        TabIndex="6" IsDefault="True"  >
-                <AccessText Text="{x:Static resx:Resources.ViewPageCreateNewAccountButtonContinue}"/>
-            </Button>
-
-        </Grid>
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="2" Grid.ColumnSpan="3" Grid.Row="4">
+                <Button x:Name="btnRight" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="4" Grid.Column="4"
+                        Command="{Binding PageCreateNewAccount_ContinueCommand, Mode=OneTime}" TabIndex="6" IsDefault="True" ToolTip="Click to continue.">
+                    <AccessText Text="{x:Static resx:Resources.ViewPageCreateNewAccountButtonContinue}"/>
+                </Button>
+                
+                <Button x:Name="btnLeft" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="4" Grid.Column="1"
+                        Command="{Binding PageCreateNewAccount_BackCommand, Mode=OneTime}" TabIndex="7" Margin="15" ToolTip="Click to go back to the home page.">
+                        <AccessText Text="{x:Static resx:Resources.ViewPageCreateNewAccountButtonBack}"/>
+                </Button>
+            </StackPanel>
+    </Grid>
         
-    </extToolkit:BusyIndicator> 
+<!--    </extToolkit:BusyIndicator> -->
 
 </Page>
