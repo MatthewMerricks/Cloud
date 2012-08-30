@@ -1,4 +1,12 @@
-﻿using System;
+﻿//
+//  App.config
+//  Cloud Windows
+//
+//  Created by DavidBruck.
+//  Copyright (c) Cloud.com. All rights reserved.
+//using System;
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;

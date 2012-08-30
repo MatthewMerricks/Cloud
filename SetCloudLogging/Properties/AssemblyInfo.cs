@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("SetCloudLogging")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Citrix Systems")]
+[assembly: AssemblyCompany("Cloud.com")]
 [assembly: AssemblyProduct("SetCloudLogging")]
-[assembly: AssemblyCopyright("Copyright © Citrix Systems 2012")]
+[assembly: AssemblyCopyright("Copyright © Cloud.com. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
