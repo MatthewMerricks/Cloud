@@ -1,0 +1,1 @@
+SetCloudLogging.exe 2

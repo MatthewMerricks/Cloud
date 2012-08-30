@@ -27,6 +27,43 @@ namespace win_client
 
         }
 
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            if (e.Args != null && e.Args.Length == 2)
+            {
+                if (e.Args[0] == "SetCloudLogging")
+                {
+                    int loggingLevel;
+                    if (int.TryParse(e.Args[1], out loggingLevel))
+                    {
+                        switch (loggingLevel)
+                        {
+                            case 0:
+                                Settings.Instance.LogErrors = false;
+                                Settings.Instance.TraceEnabled = false;
+                                Settings.Instance.TraceExcludeAuthorization = true;
+                                this.Shutdown(0);
+                                break;
+                            case 1:
+                                Settings.Instance.LogErrors = true;
+                                Settings.Instance.TraceEnabled = true;
+                                Settings.Instance.TraceExcludeAuthorization = true;
+                                this.Shutdown(0);
+                                break;
+                            case 2:
+                                Settings.Instance.LogErrors = true;
+                                Settings.Instance.TraceEnabled = true;
+                                Settings.Instance.TraceExcludeAuthorization = false;
+                                this.Shutdown(0);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            base.OnStartup(e);
+        }
+
         public App()
         { }
 
