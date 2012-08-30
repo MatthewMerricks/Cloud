@@ -31,6 +31,7 @@ namespace SQLIndexer
         public int PathChecksum { get; set; }
         public string Revision { get; set; }
         public string StorageKey { get; set; }
+        public bool RevisionIsNull { get; set; }
     
         public virtual ICollection<Event> Events { get; set; }
         public virtual ICollection<SyncState> SyncStates { get; set; }

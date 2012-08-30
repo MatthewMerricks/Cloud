@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlServerCe.4.0" ProviderManifestToken="4.0" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+    <Schema Namespace="SQLIndexer.Store" Alias="Self" Provider="System.Data.SqlServerCe.4.0" ProviderManifestToken="4.0" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
         <EntityContainer Name="SQLIndexerStoreContainer">
           <EntitySet Name="EnumCategories" EntityType="SQLIndexer.Store.EnumCategories" store:Type="Tables" />
           <EntitySet Name="Enums" EntityType="SQLIndexer.Store.Enums" store:Type="Tables" />
@@ -82,7 +82,8 @@
           <Property Name="Size" Type="bigint" />
           <Property Name="TargetPath" Type="ntext" />
           <Property Name="PathChecksum" Type="int" Nullable="false" />
-          <Property Name="Revision" Type="ntext" />
+          <Property Name="Revision" Type="nvarchar" Nullable="false" MaxLength="128" />
+          <Property Name="RevisionIsNull" Type="bit" Nullable="false" />
           <Property Name="StorageKey" Type="ntext" />
         </EntityType>
         <EntityType Name="Syncs">
@@ -195,8 +196,7 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="SQLIndexer" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
@@ -261,10 +261,10 @@
             <PropertyRef Name="EventId" />
           </Key>
           <Property Name="EventId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="SyncCounter" Type="Int64" />
+          <Property Name="SyncCounter" Type="Int64" Nullable="true" />
           <Property Name="FileChangeTypeCategoryId" Type="Int32" Nullable="false" />
           <Property Name="FileChangeTypeEnumId" Type="Int32" Nullable="false" />
-          <Property Name="PreviousPath" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="PreviousPath" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" Nullable="true" />
           <Property Name="FileSystemObjectId" Type="Int64" Nullable="false" />
           <Property Name="SyncFrom" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="Enum" Relationship="SQLIndexer.FK_FileChangeTypeEnumId_FileChangeTypeCategoryId_EnumId_EnumCategoryId" FromRole="Events" ToRole="Enums" />
@@ -277,14 +277,15 @@
           </Key>
           <Property Name="FileSystemObjectId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Path" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
-          <Property Name="LastTime" Type="DateTime" Precision="3" />
-          <Property Name="CreationTime" Type="DateTime" Precision="3" />
+          <Property Name="LastTime" Type="DateTime" Precision="3" Nullable="true" />
+          <Property Name="CreationTime" Type="DateTime" Precision="3" Nullable="true" />
           <Property Name="IsFolder" Type="Boolean" Nullable="false" />
-          <Property Name="Size" Type="Int64" />
-          <Property Name="TargetPath" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="Size" Type="Int64" Nullable="true" />
+          <Property Name="TargetPath" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" Nullable="true" />
           <Property Name="PathChecksum" Type="Int32" Nullable="false" />
-          <Property Name="Revision" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
-          <Property Name="StorageKey" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="Revision" Type="String" MaxLength="128" Unicode="true" FixedLength="false" Nullable="false" />
+          <Property Type="Boolean" Name="RevisionIsNull" Nullable="false" />
+          <Property Name="StorageKey" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" Nullable="true" />
           <NavigationProperty Name="Events" Relationship="SQLIndexer.FK_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="Events" />
           <NavigationProperty Name="SyncStates" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
           <NavigationProperty Name="ServerLinkedSyncStates" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="FileSystemObjects" ToRole="SyncStates" />
@@ -306,7 +307,7 @@
           <Property Name="SyncStateId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="SyncCounter" Type="Int64" Nullable="false" />
           <Property Name="FileSystemObjectId" Type="Int64" Nullable="false" />
-          <Property Name="ServerLinkedFileSystemObjectId" Type="Int64" />
+          <Property Name="ServerLinkedFileSystemObjectId" Type="Int64" Nullable="true" />
           <NavigationProperty Name="FileSystemObject" Relationship="SQLIndexer.FK_SyncStates_FileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
           <NavigationProperty Name="ServerLinkedFileSystemObject" Relationship="SQLIndexer.FK_SyncStates_ServerLinkedFileSystemObjectId_FileSystemObjectId" FromRole="SyncStates" ToRole="FileSystemObjects" />
           <NavigationProperty Name="Sync" Relationship="SQLIndexer.FK_SyncStates_SyncCounter_SyncCounter" FromRole="SyncStates" ToRole="Syncs" />
@@ -443,6 +444,7 @@
           <EntitySetMapping Name="FileSystemObjects">
             <EntityTypeMapping TypeName="SQLIndexer.FileSystemObject">
               <MappingFragment StoreEntitySet="FileSystemObjects">
+                <ScalarProperty Name="RevisionIsNull" ColumnName="RevisionIsNull" />
                 <ScalarProperty Name="FileSystemObjectId" ColumnName="FileSystemObjectId" />
                 <ScalarProperty Name="Path" ColumnName="Path" />
                 <ScalarProperty Name="LastTime" ColumnName="LastTime" />

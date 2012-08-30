@@ -292,7 +292,7 @@ namespace SQLIndexer
                                             currentSyncState.FileSystemObject.CreationTime,
                                             currentSyncState.FileSystemObject.Size),
                                         LinkTargetPath = currentSyncState.FileSystemObject.TargetPath,
-                                        Revision = currentSyncState.FileSystemObject.Revision,
+                                        Revision = (currentSyncState.FileSystemObject.RevisionIsNull ? null : currentSyncState.FileSystemObject.Revision),
                                         StorageKey = currentSyncState.FileSystemObject.StorageKey
                                     }
                                 });
@@ -332,13 +332,25 @@ namespace SQLIndexer
                     {
                         int pathCRC = StringCRC.Crc(path);
 
-                        SyncState foundSync = indexDB.SyncStates
+                        //SyncState foundSync = 
+
+                        IQueryable<SyncState> queryBeforeRevision = indexDB.SyncStates
                             .Include(parent => parent.FileSystemObject)
                             // the following LINQ to Entities where clause compares the checksums of the sync state's NewPath
                             .Where(parent => parent.SyncCounter == lastSync.SyncCounter
-                                && parent.FileSystemObject.PathChecksum == pathCRC
-                                && ((parent.FileSystemObject.Revision == null && revision == null)
-                                    || parent.FileSystemObject.Revision.Equals(revision, StringComparison.InvariantCultureIgnoreCase)))
+                                && parent.FileSystemObject.PathChecksum == pathCRC);
+
+                        if (revision == null)
+                        {
+                            queryBeforeRevision = queryBeforeRevision.Where(parent => parent.FileSystemObject.RevisionIsNull);
+                        }
+                        else
+                        {
+                            queryBeforeRevision = queryBeforeRevision.Where(parent => !parent.FileSystemObject.RevisionIsNull
+                                && parent.FileSystemObject.Revision.Equals(revision, StringComparison.InvariantCultureIgnoreCase));
+                        }
+
+                        SyncState foundSync = queryBeforeRevision
                             .AsEnumerable() // transfers from LINQ to Entities IQueryable into LINQ to Objects IEnumerable (evaluates SQL)
                             .Where(parent => parent.FileSystemObject.Path == path) // run in memory since Path field is not indexable
                             .FirstOrDefault();
@@ -415,7 +427,7 @@ namespace SQLIndexer
                                         currentChange.FileSystemObject.LastTime,
                                         currentChange.FileSystemObject.CreationTime,
                                         currentChange.FileSystemObject.Size),
-                                    Revision = currentChange.FileSystemObject.Revision,
+                                    Revision = (currentChange.FileSystemObject.RevisionIsNull ? null : currentChange.FileSystemObject.Revision),
                                     StorageKey = currentChange.FileSystemObject.StorageKey,
                                     LinkTargetPath = currentChange.FileSystemObject.TargetPath
                                 },
@@ -486,7 +498,8 @@ namespace SQLIndexer
                                     : newEvent.Metadata.HashableProperties.LastTime,
                                 Path = newPathString,
                                 Size = newEvent.Metadata.HashableProperties.Size,
-                                Revision = newEvent.Metadata.Revision,
+                                Revision = newEvent.Metadata.Revision ?? string.Empty,
+                                RevisionIsNull = newEvent.Metadata.Revision == null,
                                 StorageKey = newEvent.Metadata.StorageKey,
                                 TargetPath = (newEvent.Metadata.LinkTargetPath == null ? null : newEvent.Metadata.LinkTargetPath.ToString()),
                                 
@@ -769,7 +782,7 @@ namespace SQLIndexer
                                             currentState.FileSystemObject.CreationTime,
                                             currentState.FileSystemObject.Size),
                                         LinkTargetPath = currentState.FileSystemObject.TargetPath,
-                                        Revision = currentState.FileSystemObject.Revision,
+                                        Revision = (currentState.FileSystemObject.RevisionIsNull ? null : currentState.FileSystemObject.Revision),
                                         StorageKey = currentState.FileSystemObject.StorageKey
                                     });
                             }
@@ -858,7 +871,7 @@ namespace SQLIndexer
                                                     previousEvent.FileSystemObject.CreationTime,
                                                     previousEvent.FileSystemObject.Size),
                                                 LinkTargetPath = previousEvent.FileSystemObject.TargetPath,
-                                                Revision = previousEvent.FileSystemObject.Revision,
+                                                Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision),
                                                 StorageKey = previousEvent.FileSystemObject.StorageKey
                                             });
 
@@ -893,7 +906,7 @@ namespace SQLIndexer
                                                     previousEvent.FileSystemObject.CreationTime,
                                                     previousEvent.FileSystemObject.Size);
                                             modifiedMetadata.LinkTargetPath = previousEvent.FileSystemObject.TargetPath;
-                                            modifiedMetadata.Revision = previousEvent.FileSystemObject.Revision;
+                                            modifiedMetadata.Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision);
                                             modifiedMetadata.StorageKey = previousEvent.FileSystemObject.StorageKey;
                                         }
                                         else
@@ -906,7 +919,7 @@ namespace SQLIndexer
                                                         previousEvent.FileSystemObject.CreationTime,
                                                         previousEvent.FileSystemObject.Size),
                                                     LinkTargetPath = previousEvent.FileSystemObject.TargetPath,
-                                                    Revision = previousEvent.FileSystemObject.Revision,
+                                                    Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision),
                                                     StorageKey = previousEvent.FileSystemObject.StorageKey
                                                 });
                                         }
@@ -931,7 +944,7 @@ namespace SQLIndexer
                                                     previousEvent.FileSystemObject.CreationTime,
                                                     previousEvent.FileSystemObject.Size);
                                             renameMetadata.LinkTargetPath = previousEvent.FileSystemObject.TargetPath;
-                                            renameMetadata.Revision = previousEvent.FileSystemObject.Revision;
+                                            renameMetadata.Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision);
                                             renameMetadata.StorageKey = previousEvent.FileSystemObject.StorageKey;
                                         }
                                         else if (newSyncStates.ContainsKey(oldPath))
@@ -944,7 +957,7 @@ namespace SQLIndexer
                                                     previousEvent.FileSystemObject.CreationTime,
                                                     previousEvent.FileSystemObject.Size);
                                             renameMetadata.LinkTargetPath = previousEvent.FileSystemObject.TargetPath;
-                                            renameMetadata.Revision = previousEvent.FileSystemObject.Revision;
+                                            renameMetadata.Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision);
                                             renameMetadata.StorageKey = previousEvent.FileSystemObject.StorageKey;
                                         }
                                         else
@@ -957,7 +970,7 @@ namespace SQLIndexer
                                                         previousEvent.FileSystemObject.CreationTime,
                                                         previousEvent.FileSystemObject.Size),
                                                     LinkTargetPath = previousEvent.FileSystemObject.TargetPath,
-                                                    Revision = previousEvent.FileSystemObject.Revision,
+                                                    Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision),
                                                     StorageKey = previousEvent.FileSystemObject.StorageKey
                                                 });
                                         }
@@ -1006,7 +1019,8 @@ namespace SQLIndexer
                                 Path = newPathString,
                                 Size = newSyncState.Value.HashableProperties.Size,
                                 TargetPath = (newSyncState.Value.LinkTargetPath == null ? null : newSyncState.Value.LinkTargetPath.ToString()),
-                                Revision = newSyncState.Value.Revision,
+                                Revision = newSyncState.Value.Revision ?? string.Empty,
+                                RevisionIsNull = newSyncState.Value.Revision == null,
                                 StorageKey = newSyncState.Value.StorageKey,
 
                                 // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
@@ -1030,7 +1044,8 @@ namespace SQLIndexer
                                     Path = serverRemappedPaths[newSyncedObject.Path],
                                     Size = newSyncState.Value.HashableProperties.Size,
                                     TargetPath = (newSyncState.Value.LinkTargetPath == null ? null : newSyncState.Value.LinkTargetPath.ToString()),
-                                    Revision = newSyncState.Value.Revision,
+                                    Revision = newSyncState.Value.Revision ?? string.Empty,
+                                    RevisionIsNull = newSyncState.Value.Revision == null,
                                     StorageKey = newSyncState.Value.StorageKey,
 
                                     // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
@@ -1241,7 +1256,8 @@ namespace SQLIndexer
                         toModify.FileSystemObject.Path = mergedEvent.NewPath.ToString();
                         toModify.FileSystemObject.Size = mergedEvent.Metadata.HashableProperties.Size;
                         toModify.FileSystemObject.TargetPath = (mergedEvent.Metadata.LinkTargetPath == null ? null : mergedEvent.Metadata.LinkTargetPath.ToString());
-                        toModify.FileSystemObject.Revision = mergedEvent.Metadata.Revision;
+                        toModify.FileSystemObject.Revision = mergedEvent.Metadata.Revision ?? string.Empty;
+                        toModify.FileSystemObject.RevisionIsNull = mergedEvent.Metadata.Revision == null;
                         toModify.FileSystemObject.StorageKey = mergedEvent.Metadata.StorageKey;
 
                         // Save event update (and possibly old event removal) to database
@@ -1503,7 +1519,7 @@ namespace SQLIndexer
                                         Path = fileSystemPath,
                                         Size = currentEvent.FileSystemObject.Size,
                                         TargetPath = currentEvent.FileSystemObject.TargetPath,
-                                        Revision = currentEvent.FileSystemObject.Revision,
+                                        Revision = (currentEvent.FileSystemObject.RevisionIsNull ? null : currentEvent.FileSystemObject.Revision),
                                         StorageKey = currentEvent.FileSystemObject.StorageKey,
 
                                         // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
@@ -1661,7 +1677,7 @@ namespace SQLIndexer
                                     currentSyncState.FileSystemObject.CreationTime,
                                     currentSyncState.FileSystemObject.Size),
                                 LinkTargetPath = currentSyncState.FileSystemObject.TargetPath,
-                                Revision = currentSyncState.FileSystemObject.Revision,
+                                Revision = (currentSyncState.FileSystemObject.RevisionIsNull ? null : currentSyncState.FileSystemObject.Revision),
                                 StorageKey = currentSyncState.FileSystemObject.StorageKey
                             });
                     }
@@ -1688,7 +1704,7 @@ namespace SQLIndexer
                                     currentEvent.FileSystemObject.CreationTime,
                                     currentEvent.FileSystemObject.Size),
                                 LinkTargetPath = currentEvent.FileSystemObject.TargetPath,
-                                Revision = currentEvent.FileSystemObject.Revision,
+                                Revision = (currentEvent.FileSystemObject.RevisionIsNull ? null : currentEvent.FileSystemObject.Revision),
                                 StorageKey = currentEvent.FileSystemObject.StorageKey
                             },
                             NewPath = currentEvent.FileSystemObject.Path,

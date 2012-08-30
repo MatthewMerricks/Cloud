@@ -128,7 +128,6 @@
     <EmbeddedResource Include="IndexDBScripts\19FileChangeTypesEnum3.data.sql" />
     <EmbeddedResource Include="IndexDBScripts\20FileChangeTypesEnum4.data.sql" />
     <EmbeddedResource Include="IndexDBScripts\21FileChangeTypesEnum5.data.sql" />
-    <EmbeddedResource Include="IndexDBScripts\22CompletedVersion.data.sql" />
     <EmbeddedResource Include="IndexDBScripts\3EnumCategories.table.sql" />
     <EmbeddedResource Include="IndexDBScripts\4Enums.table.sql" />
     <EmbeddedResource Include="IndexDBScripts\5FileSystemObjects.table.sql" />
@@ -191,7 +190,10 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="IndexDBScripts\22FileSystemObjects_Revision.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\23CompletedVersion.data.sql" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="IndexDBScripts\0Version.table.sql" />
     <EmbeddedResource Include="IndexDBScripts\1IncompleteVersion.data.sql" />
