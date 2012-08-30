@@ -497,7 +497,7 @@ namespace FileMonitor
                                 {
                                     try
                                     {
-                                        string backupLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) +
+                                        string backupLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
                                                 "\\Cloud\\DownloadTemp\\" +
                                                 Guid.NewGuid().ToString();
                                         File.Replace(oldPathString,

@@ -714,10 +714,10 @@ namespace CloudApiPrivate.Model.Settings
 
             // Logging
             _logErrors = 0;
-            _errorLogLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) +
+            _errorLogLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
                 "\\Cloud\\ErrorLog";
             _traceEnabled = 0;
-            _traceLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) +
+            _traceLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
                 "\\Cloud\\Trace";
             _traceExcludeAuthorization = 1;
 

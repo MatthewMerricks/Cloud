@@ -215,7 +215,7 @@ namespace Sync
                 {
                     if (!TempDownloadsCleaned)
                     {
-                        TempDownloadsFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) +
+                        TempDownloadsFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
                             "\\Cloud\\DownloadTemp";
 
                         if (!Directory.Exists(TempDownloadsFolder))

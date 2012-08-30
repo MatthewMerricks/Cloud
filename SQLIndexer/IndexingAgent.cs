@@ -1617,7 +1617,7 @@ namespace SQLIndexer
         /// </summary>
         private IndexingAgent()
         {
-            this.indexDBLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) +
+            this.indexDBLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
                 "\\Cloud\\IndexDB.sdf";
         }
 
