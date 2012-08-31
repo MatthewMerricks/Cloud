@@ -53,13 +53,10 @@
 
         <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="Black" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="3" Grid.Column="1" Width="Auto" />
 
-        <Button Name="cmdTwitter" Grid.Row="5" VerticalAlignment="Stretch" HorizontalAlignment="Center"
+        <Button Name="cmdTwitter" Content="Button" HorizontalAlignment="Center" Height="33" Grid.Row="5" Grid.Column="1" Style="{DynamicResource twitterButton}" 
+                VerticalAlignment="Center" Width="33" Cursor="Hand" Background="{x:Null}"
                 ToolTip="Follow us on twitter at http://twitter.com/clouddotcom."
-                Command="{Binding FramePreferencesAbout_FollowUsOnTwitter, Mode=OneWay}" Grid.Column="1" Width="50" >
-            <StackPanel >
-                <Image Source="/Artwork/Twitter.png" Height="30" Width="30" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
-                <AccessText Text="T_witter" HorizontalAlignment="Center"/>
-            </StackPanel>
+                Command="{Binding FramePreferencesAbout_FollowUsOnTwitter, Mode=OneWay}" >
         </Button>
     </Grid>
 </Page>

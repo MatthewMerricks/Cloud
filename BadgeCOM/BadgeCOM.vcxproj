@@ -462,6 +462,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\..\..\..\Users\robertste\Desktop</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Itanium'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
