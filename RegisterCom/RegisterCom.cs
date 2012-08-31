@@ -204,6 +204,10 @@ namespace RegisterCom
 
                 string pathSystem32BadgeCOM = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "CloudBadgeCOM.dll");
 
+                // Stop Explorer
+                Trace.WriteLine("RegisterCom: Main: Stop Explorer");
+                string explorerLocation = StopExplorer();
+
                 // Copy BadgeCom.dll to System32\CloudBadgeCom.dll for uninstall.
                 try
                 {
@@ -220,6 +224,10 @@ namespace RegisterCom
                 catch (Exception ex)
                 {
                     Trace.WriteLine(String.Format("RegisterCom: Main: ERROR: Exception.  Msg: {0}.", ex.Message));
+
+                    // Start Explorer
+                    Trace.WriteLine("RegisterCom: Main: Start Explorer");
+                    Process.Start(explorerLocation);
                     return 3;
                 }
 
@@ -241,6 +249,10 @@ namespace RegisterCom
                 catch (Exception ex)
                 {
                     Trace.WriteLine(String.Format("RegisterCom: Main: ERROR: Exception(2).  Msg: {0}.", ex.Message));
+
+                    // Start Explorer
+                    Trace.WriteLine("RegisterCom: Main: Start Explorer");
+                    Process.Start(explorerLocation);
                     return 3;
                 }
 
@@ -260,12 +272,16 @@ namespace RegisterCom
                     catch (Exception ex)
                     {
                         Trace.WriteLine(String.Format("RegisterCom: Main: ERROR: Exception(3).  Msg: {0}.", ex.Message));
+
+                        // Start Explorer
+                        Trace.WriteLine("RegisterCom: Main: Start Explorer");
+                        Process.Start(explorerLocation);
                         return 4;
                     }
 
                     // Copy msvcr100.dll
                     string pathSystem32Msvcr100 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "msvcr100.dll");
-                    string pathMsvcr100 = firstArg + "msvcr100.dll";
+                    string pathMsvcr100 = Path.Combine(firstArg, "msvcr100.dll");
                     try
                     {
                         if (!File.Exists(pathSystem32Msvcr100))
@@ -276,7 +292,11 @@ namespace RegisterCom
                     catch (Exception ex)
                     {
                         Trace.WriteLine(String.Format("RegisterCom: Main: ERROR: Exception(4).  Msg: {0}.", ex.Message));
-                        return 4;
+
+                        // Start Explorer
+                        Trace.WriteLine("RegisterCom: Main: Start Explorer");
+                        Process.Start(explorerLocation);
+                        return 5;
                     }
 
                     // Copy atl100.dll
@@ -292,13 +312,13 @@ namespace RegisterCom
                     catch (Exception ex)
                     {
                         Trace.WriteLine(String.Format("RegisterCom: Main: ERROR: Exception(5).  Msg: {0}.", ex.Message));
-                        return 4;
+
+                        // Start Explorer
+                        Trace.WriteLine("RegisterCom: Main: Start Explorer");
+                        Process.Start(explorerLocation);
+                        return 6;
                     }
                 }
-
-                // Stop Explorer
-                Trace.WriteLine("RegisterCom: Main: Stop Explorer");
-                string explorerLocation = StopExplorer();
 
                 // Register BadgeCOM.dll in the System32 directory.
                 Trace.WriteLine("RegisterCom: Call RegisterAssembly.");
@@ -385,7 +405,7 @@ namespace RegisterCom
             if (!File.Exists(pathSystem32BadgeCOM))
             {
                 Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: ERROR.  BadgeCOM.dll not found at path {0}.", pathSystem32BadgeCOM));
-                return 4;
+                return 104;
             }
 
             try
@@ -407,7 +427,7 @@ namespace RegisterCom
             catch (Exception ex)
             {
                 Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: ERROR.  Exception.  Msg: {0}.", ex.Message));
-                return 5;
+                return 105;
             }
 
             Trace.WriteLine("RegisterCom: UninstallCOM: Uninstallation successful.");
