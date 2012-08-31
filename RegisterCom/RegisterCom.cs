@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Management;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using System.Linq;
 
 namespace RegisterCom
 {
@@ -101,6 +102,19 @@ namespace RegisterCom
             process.StartInfo = startInfo;
             process.Start();
 
+            string explorerLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+
+            const int maxProcessWaits = 40; // corresponds to trying for 20 seconds (if each iteration waits 500 milliseconds)
+            for (int waitCounter = 0; waitCounter < maxProcessWaits; waitCounter++)
+            {
+                // For some reason this won't work unless we wait here for a bit.
+                Thread.Sleep(500);
+                if (!IsExplorerRunning(explorerLocation))
+                {
+                    break;
+                }
+            }
+
             if (args.Length > 0 && args[0] != null)
             {
                 Trace.WriteLine("RegisterCom: Call RegisterAssembly.");
@@ -109,12 +123,45 @@ namespace RegisterCom
             }
 
             Trace.WriteLine("RegisterCom: Main: Start Explorer");
-            // For some reason this won't work unless we wait here for a bit.
-            Thread.Sleep(200);
-            Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"));
+            Process.Start(explorerLocation);
 
             Trace.WriteLine("RegisterCom: Main program terminating.");
             return 0;
+        }
+
+        private static bool IsExplorerRunning(string explorerLocation)
+        {
+            string wmiQueryString = "SELECT ProcessId, ExecutablePath FROM Win32_Process";
+            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(wmiQueryString))
+            using (ManagementObjectCollection results = searcher.Get())
+            {
+                return Process.GetProcesses()
+                    .Where(parent => parent.ProcessName.Equals("explorer", StringComparison.InvariantCultureIgnoreCase))
+                    .Join(results.Cast<ManagementObject>(),
+                        parent => parent.Id,
+                        parent => (int)(uint)parent["ProcessId"],
+                        (outer, inner) => new ProcessWithPath(outer, (string)inner["ExecutablePath"]))
+                    .Any(parent => parent.Path.Equals(explorerLocation, StringComparison.InvariantCultureIgnoreCase));
+            }
+        }
+
+        private class ProcessWithPath
+        {
+            public Process Process { get; private set; }
+            public string Path { get; private set; }
+
+            public ProcessWithPath(Process process, string path)
+            {
+                this.Process = process;
+                this.Path = path;
+            }
+
+            public override string ToString()
+            {
+                return (this.Process == null
+                    ? "null"
+                    : this.Process.ProcessName);
+            }
         }
 
         private static void RegisterAssembly(string dllPath)

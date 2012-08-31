@@ -357,6 +357,10 @@
 		<row><td>ISO19770_SystemTag</td><td>{161179FF-94DF-48FC-AF1B-0ED81D19AFC6}</td><td>CommonAppDataFolder</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td>{C2A1E278-5519-4936-9245-BF9A52EC31A8}</td><td>DATABASEDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{2018F52F-B63E-4B20-8281-176FE782B368}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT2</td><td>{BCDD1A87-F703-4231-AF8B-C47F0F4710BD}</td><td>X86</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{96D9D1A0-9626-4299-AF92-804647A7B0FF}</td><td>AMD64</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{EF34C898-F150-44B6-9385-ED3F020E058A}</td><td>MICROSOFT.VC90.CRT</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT5</td><td>{ED8584D7-D1F2-4285-918D-F917B32A4AE6}</td><td>MICROSOFT.VC90.CRT1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Interop.IWshRuntimeLibrary.dll</td><td>{E1929E87-F6D8-4CE3-AD4C-FF9FA77E6D76}</td><td>INSTALLDIR</td><td>2</td><td/><td>interop.iwshruntimelibrary.d</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Interop.Shell32.dll</td><td>{CFA1B126-EFE6-491D-828D-A2583D3B9086}</td><td>INSTALLDIR</td><td>2</td><td/><td>interop.shell32.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Microsoft.CSharp.dll</td><td>{BD0CCE0F-5CBD-4C3B-ABA0-7DBA946EA27A}</td><td>INSTALLDIR</td><td>2</td><td/><td>microsoft.csharp.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -372,10 +376,23 @@
 		<row><td>SuperSocket.ClientEngine.Core.dll</td><td>{311737ED-A6CF-464D-AFA9-48DD3A332B36}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.cor</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SuperSocket.ClientEngine.Protocol.dll</td><td>{739A4D66-D9BF-4AF6-B172-1244BBF0CEFE}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.pro</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Sync.Primary_output</td><td>{47FFEA81-00B1-4F1F-A476-A0CA4DDE4016}</td><td>INSTALLDIR</td><td>2</td><td/><td>sync.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>System.Data.SqlServerCe.Entity.dll</td><td>{0247F38A-3ED3-4864-B671-52D6C847749B}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.data.sqlserverce.enti</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Data.SqlServerCe.dll</td><td>{1E6C9281-EE2C-4932-9898-BDEA646D56A3}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.data.sqlserverce.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Windows.Interactivity.dll</td><td>{A183DAD8-B99C-4E2A-8A9C-A5A9184A1389}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.windows.interactivity</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>WPFToolkit.Extended.dll</td><td>{5459704B-7E50-496C-B92F-3623B0F4BAEC}</td><td>INSTALLDIR</td><td>2</td><td/><td>wpftoolkit.extended.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>WebSocket4Net.dll</td><td>{4A24ACD6-31D2-416F-9AD6-76C8093D14D8}</td><td>INSTALLDIR</td><td>2</td><td/><td>websocket4net.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceca40.dll</td><td>{B6B913E0-DC6A-48CA-8C84-7638653FC16D}</td><td>AMD64</td><td>2</td><td/><td>sqlceca40.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceca40.dll1</td><td>{B9BAFE08-1C42-4B85-913A-071AB758FFB7}</td><td>X86</td><td>2</td><td/><td>sqlceca40.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlcecompact40.dll</td><td>{DF7B362A-1444-4721-8E8B-DFC68A5474C9}</td><td>AMD64</td><td>2</td><td/><td>sqlcecompact40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlcecompact40.dll1</td><td>{45956B6B-0372-4742-B877-D7AF8A56797F}</td><td>X86</td><td>2</td><td/><td>sqlcecompact40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceer40EN.dll</td><td>{2BCA674D-D743-48DB-9934-15C071F45405}</td><td>AMD64</td><td>2</td><td/><td>sqlceer40en.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceer40EN.dll1</td><td>{B4254CDB-3068-404E-95F0-C56FA49A5FCC}</td><td>X86</td><td>2</td><td/><td>sqlceer40en.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceme40.dll</td><td>{F2F73E5A-539E-4092-B020-816FB499018F}</td><td>AMD64</td><td>2</td><td/><td>sqlceme40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceme40.dll1</td><td>{BC48DB8B-0916-40BD-A76D-AA3A5246C079}</td><td>X86</td><td>2</td><td/><td>sqlceme40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceqp40.dll</td><td>{92593F03-741E-45FC-9FC8-1AE409F84F7C}</td><td>AMD64</td><td>2</td><td/><td>sqlceqp40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceqp40.dll1</td><td>{973E8424-8D4F-4934-967B-A86B89E668D5}</td><td>X86</td><td>2</td><td/><td>sqlceqp40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlcese40.dll</td><td>{C6AED280-4285-451B-A8AB-2B786AA255F4}</td><td>AMD64</td><td>2</td><td/><td>sqlcese40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlcese40.dll1</td><td>{BB1A9E02-6711-4A22-818C-E71178FA4EB2}</td><td>X86</td><td>2</td><td/><td>sqlcese40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>win_client.Primary_output</td><td>{1DC26801-E3C1-4E10-97FF-18F6F0719D06}</td><td>INSTALLDIR</td><td>2</td><td/><td>win_client.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
 
@@ -1086,9 +1103,11 @@
 	<table name="CreateFolder">
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
+		<row><td>AMD64</td><td>ISX_DEFAULTCOMPONENT3</td></row>
 		<row><td>CommonAppDataFolder</td><td>ISO19770_SystemTag</td></row>
 		<row><td>DATABASEDIR</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>INSTALLDIR</td><td>NewComponent1</td></row>
+		<row><td>X86</td><td>ISX_DEFAULTCOMPONENT2</td></row>
 	</table>
 
 	<table name="CustomAction">
@@ -1170,6 +1189,7 @@
 		<col def="I4">ISAttributes</col>
 		<col def="S255">ISFolderName</col>
 		<row><td>ALLUSERSPROFILE</td><td>TARGETDIR</td><td>.:ALLUSE~1|All Users</td><td/><td>0</td><td/></row>
+		<row><td>AMD64</td><td>INSTALLDIR</td><td>amd64</td><td/><td>0</td><td/></row>
 		<row><td>AdminToolsFolder</td><td>TARGETDIR</td><td>.:Admint~1|AdminTools</td><td/><td>0</td><td/></row>
 		<row><td>AppDataFolder</td><td>TARGETDIR</td><td>.:APPLIC~1|Application Data</td><td/><td>0</td><td/></row>
 		<row><td>CLOUD</td><td>CLOUD.COM</td><td>Cloud</td><td/><td>0</td><td/></row>
@@ -1187,6 +1207,8 @@
 		<row><td>ISMyProductDir</td><td>ISMyCompanyDir</td><td>MYPROD~1|My Product Name</td><td/><td>0</td><td/></row>
 		<row><td>ISYourDataBaseDir</td><td>INSTALLDIR</td><td>Database</td><td/><td>0</td><td/></row>
 		<row><td>LocalAppDataFolder</td><td>TARGETDIR</td><td>.:LocalA~1|LocalAppData</td><td/><td>0</td><td/></row>
+		<row><td>MICROSOFT.VC90.CRT</td><td>AMD64</td><td>MICROS~1|Microsoft.VC90.CRT</td><td/><td>0</td><td/></row>
+		<row><td>MICROSOFT.VC90.CRT1</td><td>X86</td><td>MICROS~1|Microsoft.VC90.CRT</td><td/><td>0</td><td/></row>
 		<row><td>MY_PRODUCT_NAME</td><td>CLOUD.COM</td><td>MYPROD~1|My Product Name</td><td/><td>0</td><td/></row>
 		<row><td>MyPicturesFolder</td><td>TARGETDIR</td><td>.:MyPict~1|MyPictures</td><td/><td>0</td><td/></row>
 		<row><td>NEW_DIRECTORY1</td><td>TARGETDIR</td><td>NEW_DIRECTORY1</td><td/><td>0</td><td/></row>
@@ -1208,6 +1230,7 @@
 		<row><td>USERPROFILE</td><td>TARGETDIR</td><td>.:USERPR~1|UserProfile</td><td/><td>0</td><td/></row>
 		<row><td>WindowsFolder</td><td>TARGETDIR</td><td>.:Windows</td><td/><td>0</td><td/></row>
 		<row><td>WindowsVolume</td><td>TARGETDIR</td><td>.:WinRoot</td><td/><td>0</td><td/></row>
+		<row><td>X86</td><td>INSTALLDIR</td><td>x86</td><td/><td>0</td><td/></row>
 		<row><td>cloud</td><td>cloud.com</td><td>Cloud</td><td/><td>1</td><td/></row>
 		<row><td>cloud.com</td><td>ProgramMenuFolder</td><td>Cloud.Com</td><td/><td>1</td><td/></row>
 	</table>
@@ -1917,6 +1940,10 @@
 		<row><td>AlwaysInstall</td><td>ISO19770_SystemTag</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT2</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT3</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT4</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT5</td></row>
 		<row><td>AlwaysInstall</td><td>Interop.IWshRuntimeLibrary.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Interop.Shell32.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Microsoft.CSharp.dll</td></row>
@@ -1932,10 +1959,23 @@
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Core.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Protocol.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Sync.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>System.Data.SqlServerCe.Entity.dll</td></row>
 		<row><td>AlwaysInstall</td><td>System.Data.SqlServerCe.dll</td></row>
 		<row><td>AlwaysInstall</td><td>System.Windows.Interactivity.dll</td></row>
 		<row><td>AlwaysInstall</td><td>WPFToolkit.Extended.dll</td></row>
 		<row><td>AlwaysInstall</td><td>WebSocket4Net.dll</td></row>
+		<row><td>AlwaysInstall</td><td>sqlceca40.dll</td></row>
+		<row><td>AlwaysInstall</td><td>sqlceca40.dll1</td></row>
+		<row><td>AlwaysInstall</td><td>sqlcecompact40.dll</td></row>
+		<row><td>AlwaysInstall</td><td>sqlcecompact40.dll1</td></row>
+		<row><td>AlwaysInstall</td><td>sqlceer40EN.dll</td></row>
+		<row><td>AlwaysInstall</td><td>sqlceer40EN.dll1</td></row>
+		<row><td>AlwaysInstall</td><td>sqlceme40.dll</td></row>
+		<row><td>AlwaysInstall</td><td>sqlceme40.dll1</td></row>
+		<row><td>AlwaysInstall</td><td>sqlceqp40.dll</td></row>
+		<row><td>AlwaysInstall</td><td>sqlceqp40.dll1</td></row>
+		<row><td>AlwaysInstall</td><td>sqlcese40.dll</td></row>
+		<row><td>AlwaysInstall</td><td>sqlcese40.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>win_client.Primary_output</td></row>
 	</table>
 
@@ -1954,7 +1994,7 @@
 		<row><td>automaticupdaterwpf.dll</td><td>AutomaticUpdaterWPF.dll</td><td>AUTOMA~1.DLL|AutomaticUpdaterWPF.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\AutomaticUpdaterWPF.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.primary_output</td><td>BadgeCOM.Primary_Output</td><td>BadgeCOM.Primary Output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;BadgeCOM&gt;|Built</td><td>3</td><td/></row>
 		<row><td>badgenet.primary_output</td><td>BadgeNET.Primary_output</td><td>BadgeNET.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;BadgeNET&gt;|Built</td><td>3</td><td/></row>
-		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\WyUpdater\CurrentVersion\client.wyc</td><td>1</td><td/></row>
+		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\WyUpdater\wyUpdate\client.wyc</td><td>1</td><td/></row>
 		<row><td>cloudapiprivate.primary_outp</td><td>CloudApiPrivate.Primary_output</td><td>CloudApiPrivate.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPrivate&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudsdkpublic.primary_outpu</td><td>CloudSdkPublic.Primary_output</td><td>CloudSdkPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSdkPublic&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudupdater.exe</td><td>CloudUpdater.exe</td><td>CLOUDU~1.EXE|CloudUpdater.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\CloudUpdater.exe</td><td>1</td><td/></row>
@@ -1970,18 +2010,35 @@
 		<row><td>microsoft.csharp.dll</td><td>Microsoft.CSharp.dll</td><td>MICROS~1.DLL|Microsoft.CSharp.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.CSharp.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.net.http.dll</td><td>Microsoft.Net.Http.dll</td><td>MICROS~1.DLL|Microsoft.Net.Http.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.Net.Http.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.practices.servicel</td><td>Microsoft.Practices.ServiceLocation.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.Practices.ServiceLocation.dll</td><td>1</td><td/></row>
+		<row><td>microsoft.vc90.crt.manifest</td><td>ISX_DEFAULTCOMPONENT4</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
+		<row><td>microsoft.vc90.crt.manifest1</td><td>ISX_DEFAULTCOMPONENT5</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>newtonsoft.json.dll</td><td>Newtonsoft.Json.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
 		<row><td>ookii.dialogs.wpfminustaskdi</td><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>OOKIID~1.DLL|Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>1</td><td/></row>
+		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
+		<row><td>readme_enu.txt1</td><td>ISX_DEFAULTCOMPONENT5</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>regid.2000_12.com.cloud_clou</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
 		<row><td>registercom.exe</td><td>RegisterCom.exe</td><td>REGIST~1.EXE|RegisterCom.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe</td><td>1</td><td/></row>
 		<row><td>registercom.exe.config</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGIST~1.CON|RegisterCom.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe.config</td><td>1</td><td/></row>
 		<row><td>simplejson.dll</td><td>SimpleJson.dll</td><td>SIMPLE~1.DLL|SimpleJson.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SimpleJson.dll</td><td>1</td><td/></row>
+		<row><td>sqlceca40.dll</td><td>sqlceca40.dll</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlceca40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceca40.dll1</td><td>sqlceca40.dll1</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlceca40.dll</td><td>1</td><td/></row>
+		<row><td>sqlcecompact40.dll</td><td>sqlcecompact40.dll</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlcecompact40.dll</td><td>1</td><td/></row>
+		<row><td>sqlcecompact40.dll1</td><td>sqlcecompact40.dll1</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlcecompact40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceer40en.dll</td><td>sqlceer40EN.dll</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlceer40EN.dll</td><td>1</td><td/></row>
+		<row><td>sqlceer40en.dll1</td><td>sqlceer40EN.dll1</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlceer40EN.dll</td><td>1</td><td/></row>
+		<row><td>sqlceme40.dll</td><td>sqlceme40.dll</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlceme40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceme40.dll1</td><td>sqlceme40.dll1</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlceme40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceqp40.dll</td><td>sqlceqp40.dll</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlceqp40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceqp40.dll1</td><td>sqlceqp40.dll1</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlceqp40.dll</td><td>1</td><td/></row>
+		<row><td>sqlcese40.dll</td><td>sqlcese40.dll</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlcese40.dll</td><td>1</td><td/></row>
+		<row><td>sqlcese40.dll1</td><td>sqlcese40.dll1</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlcese40.dll</td><td>1</td><td/></row>
 		<row><td>sqlindexer.primary_output</td><td>SQLIndexer.Primary_output</td><td>SQLIndexer.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;SQLIndexer&gt;|Built</td><td>3</td><td/></row>
 		<row><td>supersocket.clientengine.com</td><td>SuperSocket.ClientEngine.Common.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Common.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Common.dll</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.cor</td><td>SuperSocket.ClientEngine.Core.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.pro</td><td>SuperSocket.ClientEngine.Protocol.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Protocol.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Protocol.dll</td><td>1</td><td/></row>
 		<row><td>sync.primary_output</td><td>Sync.Primary_output</td><td>Sync.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Sync&gt;|Built</td><td>3</td><td/></row>
 		<row><td>system.data.sqlserverce.dll</td><td>System.Data.SqlServerCe.dll</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
+		<row><td>system.data.sqlserverce.enti</td><td>System.Data.SqlServerCe.Entity.dll</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.Entity.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\System.Data.SqlServerCe.Entity.dll</td><td>1</td><td/></row>
 		<row><td>system.windows.interactivity</td><td>System.Windows.Interactivity.dll</td><td>SYSTEM~1.DLL|System.Windows.Interactivity.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\System.Windows.Interactivity.dll</td><td>1</td><td/></row>
 		<row><td>websocket4net.dll</td><td>WebSocket4Net.dll</td><td>WEBSOC~1.DLL|WebSocket4Net.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\WebSocket4Net.dll</td><td>1</td><td/></row>
 		<row><td>win_client.primary_output</td><td>win_client.Primary_output</td><td>win-client.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;win-client&gt;|Built</td><td>3</td><td/></row>
@@ -2258,6 +2315,10 @@
 		<row><td>ISO19770_SystemTag</td><td/><td/><td>_47B1606D_7C1C_4611_9525_8F05D12B2598_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_9F8B2DEF_B6B4_4180_B343_15492913F111_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_ED4E17DE_CC0F_4408_A546_292FEC215FEC_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT2</td><td/><td/><td>_CDFE6512_7FB8_4A94_88AF_10DCE0F3E1CA_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_C2A624F7_7609_438D_B921_00AF1731B2B5_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_B07ECF9A_F7EB_42A5_80AA_CED0896510F6_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT5</td><td/><td/><td>_56D270EB_93D9_44AC_96E1_74039552F013_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Interop.IWshRuntimeLibrary.dll</td><td/><td/><td>_B63C9837_D51E_4A6B_B89C_4346041C4ACE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Interop.Shell32.dll</td><td/><td/><td>_9A9EA054_398C_410E_BF64_6843AF4B1FDC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Microsoft.CSharp.dll</td><td/><td/><td>_101EC1A4_7AC9_49C6_809B_6F4FCE7FEE16_FILTER</td><td/><td/><td/><td/></row>
@@ -2273,10 +2334,23 @@
 		<row><td>SuperSocket.ClientEngine.Core.dll</td><td/><td/><td>_06133FC7_4E52_473A_A01E_09B61A3D273F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SuperSocket.ClientEngine.Protocol.dll</td><td/><td/><td>_202AC53E_F8FD_4424_94A0_34E7ABF7FA00_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Sync.Primary_output</td><td/><td/><td>_897BFD61_02CA_4227_A8BE_4216703C9C23_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>System.Data.SqlServerCe.Entity.dll</td><td/><td/><td>_50BEC892_3180_435F_8736_6FEF304A0D38_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Data.SqlServerCe.dll</td><td/><td/><td>_2DA13F64_D786_4FBF_A9BF_A63B61E7C118_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Windows.Interactivity.dll</td><td/><td/><td>_ED77A1E5_89F5_4D16_92E3_713C0CD15CB2_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>WPFToolkit.Extended.dll</td><td/><td/><td>_963BCA02_BF6A_4A38_8149_5400A0AE986F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>WebSocket4Net.dll</td><td/><td/><td>_12DFD945_CA1A_4110_9D63_E160321DD1DD_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlceca40.dll</td><td/><td/><td>_AAFD70F4_2184_405B_814A_8AEC3E8C1996_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlceca40.dll1</td><td/><td/><td>_15B4040A_4EE1_48CB_978F_6C9DE854D437_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlcecompact40.dll</td><td/><td/><td>_4C8059BE_C8A2_4F65_B4F9_931EF0231377_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlcecompact40.dll1</td><td/><td/><td>_380F7A0B_D430_4212_B503_20FA28DA41E4_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlceer40EN.dll</td><td/><td/><td>_54958570_3D2E_4B9A_8B1B_EC6736335CA9_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlceer40EN.dll1</td><td/><td/><td>_6E84BFD4_D744_4A12_8D74_9B6B5F322453_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlceme40.dll</td><td/><td/><td>_521C7334_FFA0_4537_AA90_B2F44EDC0845_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlceme40.dll1</td><td/><td/><td>_41048AB3_C7DD_4D35_BCFD_A233F000100D_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlceqp40.dll</td><td/><td/><td>_78900AEA_097B_4A90_8042_51E03A2481A1_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlceqp40.dll1</td><td/><td/><td>_37629767_EE8D_42C9_A60C_A8B485FB4E28_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlcese40.dll</td><td/><td/><td>_F6FA354E_B08B_42EE_837B_95ACEBF931E3_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>sqlcese40.dll1</td><td/><td/><td>_3657B294_BC82_49D1_8748_84EABD49AEE1_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>win_client.Primary_output</td><td/><td/><td>_0EB8F45F_9741_491F_9984_BD0467E0355D_FILTER</td><td/><td/><td/><td/></row>
 	</table>
 
@@ -2379,6 +2453,7 @@
 		<col key="yes" def="s38">Feature_</col>
 		<col key="yes" def="s255">ISMergeModule_</col>
 		<col key="yes" def="i2">Language_</col>
+		<row><td>AlwaysInstall</td><td>Microsoft_VC90_CRT_x86.C8AE193F_7C6D_330A_93C7_EBBC23C30DBF</td><td>0</td></row>
 	</table>
 
 	<table name="ISFeatureSetupPrerequisites">
@@ -2501,6 +2576,7 @@
 		<col def="s255">Name</col>
 		<col def="S255">Destination</col>
 		<col def="I4">ISAttributes</col>
+		<row><td>Microsoft_VC90_CRT_x86.C8AE193F_7C6D_330A_93C7_EBBC23C30DBF</td><td>0</td><td>Visual C++ 9.0 CRT (x86) WinSXS MSM</td><td/><td/></row>
 	</table>
 
 	<table name="ISMergeModuleCfgValues">
@@ -2627,6 +2703,7 @@
 		<col key="yes" def="s72">ISProductConfiguration_</col>
 		<col key="yes" def="s72">Property</col>
 		<col def="L255">Value</col>
+		<row><td>Express</td><td>SetupFileName</td><td>CloudSetup</td></row>
 	</table>
 
 	<table name="ISRelease">
@@ -2876,14 +2953,14 @@
 		<col def="I2">Order</col>
 		<col def="I2">ISSetupLocation</col>
 		<col def="S255">ISReleaseFlags</col>
-		<row><td>_07D4F9FD_FAA1_4415_BCE9_0B49B0383AA9_</td><td>Windows Installer 4.5 for Windows XP SP2 and later (x86).prq</td><td/><td/><td/></row>
-		<row><td>_3764EFE1_7F0A_41EE_81BF_967338173235_</td><td>Windows Installer 4.5 for Windows Vista (x86).prq</td><td/><td/><td/></row>
-		<row><td>_4E9C4BB6_C189_4F15_8A72_44DFDD5469EA_</td><td>Microsoft .NET Framework 4.0 Client (Web Download).prq</td><td/><td/><td/></row>
-		<row><td>_5DC295EB_A61B_40B1_8185_F68111CABA8A_</td><td>Windows Installer 4.5 Update for Windows Server 2003 SP2 and later (x86).prq</td><td/><td/><td/></row>
-		<row><td>_6F3F81F6_EFC7_4D85_84CB_DC638475E70E_</td><td>Windows Installer 4.5 for Windows Server 2003 SP1 and later (x86).prq</td><td/><td/><td/></row>
-		<row><td>_A0ABFB6A_CF81_464D_9A94_82C16B0711A1_</td><td>Windows Installer 3.1 for Windows XP (x64).prq</td><td/><td/><td/></row>
-		<row><td>_BFBC4CE1_BCD1_470B_9738_F43DD4F7CF21_</td><td>Windows Installer 4.5 Update for Windows XP SP3 and later (x86).prq</td><td/><td/><td/></row>
-		<row><td>_BFE9F574_56AE_4D7A_BEE6_5DE9A5E0E641_</td><td>Windows Installer 4.5 for Windows Server 2008 (x86).prq</td><td/><td/><td/></row>
+		<row><td>_07D4F9FD_FAA1_4415_BCE9_0B49B0383AA9_</td><td>Windows Installer 4.5 for Windows XP SP2 and later (x86).prq</td><td>0</td><td/><td/></row>
+		<row><td>_3764EFE1_7F0A_41EE_81BF_967338173235_</td><td>Windows Installer 4.5 for Windows Vista (x86).prq</td><td>1</td><td/><td/></row>
+		<row><td>_4E9C4BB6_C189_4F15_8A72_44DFDD5469EA_</td><td>Microsoft .NET Framework 4.0 Client (Web Download).prq</td><td>2</td><td/><td/></row>
+		<row><td>_5DC295EB_A61B_40B1_8185_F68111CABA8A_</td><td>Windows Installer 4.5 Update for Windows Server 2003 SP2 and later (x86).prq</td><td>3</td><td/><td/></row>
+		<row><td>_6F3F81F6_EFC7_4D85_84CB_DC638475E70E_</td><td>Windows Installer 4.5 for Windows Server 2003 SP1 and later (x86).prq</td><td>4</td><td/><td/></row>
+		<row><td>_A0ABFB6A_CF81_464D_9A94_82C16B0711A1_</td><td>Windows Installer 3.1 for Windows XP (x64).prq</td><td>5</td><td/><td/></row>
+		<row><td>_BFBC4CE1_BCD1_470B_9738_F43DD4F7CF21_</td><td>Windows Installer 4.5 Update for Windows XP SP3 and later (x86).prq</td><td>6</td><td/><td/></row>
+		<row><td>_BFE9F574_56AE_4D7A_BEE6_5DE9A5E0E641_</td><td>Windows Installer 4.5 for Windows Server 2008 (x86).prq</td><td>7</td><td/><td/></row>
 	</table>
 
 	<table name="ISSetupType">
@@ -4251,8 +4328,8 @@
 		<col def="S0">Value</col>
 		<row><td>ActiveLanguage</td><td>1033</td></row>
 		<row><td>Comments</td><td/></row>
-		<row><td>CurrentMedia</td><td dt:dt="bin.base64" md5="6d78a46bf2c52ee27034bbcad20f7f95">
-QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
+		<row><td>CurrentMedia</td><td dt:dt="bin.base64" md5="de9f554a3bc05c12be9c31b998217995">
+UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 			</td></row>
 		<row><td>DefaultProductConfiguration</td><td>Express</td></row>
 		<row><td>EnableSwidtag</td><td>1</td></row>
@@ -4655,7 +4732,7 @@ QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
 		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[INSTALLDIR]win-client.Primary output</td><td/></row>
 		<row><td>ProductCode</td><td>{5BEB6668-C562-480D-ADAB-BDCCC7A9CD02}</td><td/></row>
 		<row><td>ProductName</td><td>Cloud</td><td/></row>
-		<row><td>ProductVersion</td><td>1.01.0000</td><td/></row>
+		<row><td>ProductVersion</td><td>1.1.1.0</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
