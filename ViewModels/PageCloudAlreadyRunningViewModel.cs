@@ -45,7 +45,6 @@ namespace win_client.ViewModels
         #region Instance Variables
 
         private readonly IDataService _dataService;
-        private RelayCommand _cloudAlreadyRunningViewModel_OkCommand;
         private CLTrace _trace = CLTrace.Instance;
         private bool _isShuttingDown = false;       // true: allow the shutdown if asked
 
@@ -130,12 +129,13 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user clicked the OK button.
         /// </summary>
-        public RelayCommand CloudAlreadyRunningViewModel_OkCommand
+        private RelayCommand _pageCloudAlreadyRunningViewModel_OkCommand;
+        public RelayCommand PageCloudAlreadyRunningViewModel_OkCommand
         {
             get
             {
-                return _cloudAlreadyRunningViewModel_OkCommand
-                    ?? (_cloudAlreadyRunningViewModel_OkCommand = new RelayCommand(
+                return _pageCloudAlreadyRunningViewModel_OkCommand
+                    ?? (_pageCloudAlreadyRunningViewModel_OkCommand = new RelayCommand(
                                             () =>
                                             {
                                                 // Exit the application

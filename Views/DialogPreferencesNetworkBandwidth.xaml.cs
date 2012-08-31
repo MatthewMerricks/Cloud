@@ -118,7 +118,7 @@ namespace win_client.Views
                     OnConfirmShutdownMessage(message);
                 });
 
-            this.btnOK.Focus();
+            this.btnOk.Focus();
 
             // Tell the ViewModel that the view has loaded.  This is necessary because setting the fields in the ViewModel
             // sometimes requires a message to be sent to the view, and if the fields are set in the ViewModel constructor,

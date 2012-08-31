@@ -46,7 +46,7 @@
         
         <Border Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.RowSpan="4">
             <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_wlcm_ptrn.png"/>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_Text_Container_458x246.png"/>
             </Border.Background>
         </Border>
         <Grid Grid.Row="1">
@@ -55,7 +55,6 @@
         		<ColumnDefinition Width="100"/>
         		<ColumnDefinition Width="*"/>
         	</Grid.ColumnDefinitions>
-        	<Image Source="/Cloud;component/Artwork/cl_wlcm_div.png" Grid.Column="1" VerticalAlignment="Bottom"/>
         </Grid>
         <Grid Grid.Row="2" Grid.RowSpan="1" >
         	<Grid.ColumnDefinitions>
@@ -64,24 +63,25 @@
                <ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1">
-                <Button x:Name="btnRight" FontSize="16" Background="#FF49C3FB" 
-        		    Template="{StaticResource StyledButtonTemplate}" Click="CancelButton_Click" TabIndex="1"
-                    Width="{Binding CloudMessageBoxView_RightButtonWidth, Mode=OneWay}"
-        		    Margin="{Binding CloudMessageBoxView_RightButtonMargin, Mode=OneWay}"  
-                    Visibility="{Binding CloudMessageBoxView_RightButtonVisibility, Mode=OneWay}"
-                    IsCancel="{Binding CloudMessageBoxView_RightButtonIsCancel, Mode=OneWay}"
-                    IsDefault="{Binding CloudMessageBoxView_RightButtonIsDefault, Mode=OneWay}">
+                <Button x:Name="btnRight" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
+                        Click="CancelButton_Click" TabIndex="1"
+                        Width="{Binding CloudMessageBoxView_RightButtonWidth, Mode=OneWay}"
+            		    Margin="{Binding CloudMessageBoxView_RightButtonMargin, Mode=OneWay}"  
+                        Visibility="{Binding CloudMessageBoxView_RightButtonVisibility, Mode=OneWay}"
+                        IsCancel="{Binding CloudMessageBoxView_RightButtonIsCancel, Mode=OneWay}"
+                        IsDefault="{Binding CloudMessageBoxView_RightButtonIsDefault, Mode=OneWay}">
                     <AccessText Text="{Binding CloudMessageBoxView_RightButtonContent, Mode=OneWay}"/>
                 </Button>
-                
-                
-                <Button x:Name="btnLeft" FontSize="16" Background="#FF49C3FB" Grid.Column="1"
-        		    Template="{StaticResource StyledButtonTemplate}" Click="OKButton_Click" TabIndex="0"
-                    Width="{Binding CloudMessageBoxView_LeftButtonWidth, Mode=OneWay}" 
-        		    Margin="{Binding CloudMessageBoxView_LeftButtonMargin, Mode=OneWay}"  
-                    Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=OneWay}"
-                    IsCancel="{Binding CloudMessageBoxView_LeftButtonIsCancel, Mode=OneWay}"
-                    IsDefault="{Binding CloudMessageBoxView_LeftButtonIsDefault, Mode=OneWay}">
+
+                <Button x:Name="btnLeft" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
+                        Click="OKButton_Click" TabIndex="0"
+                        Width="{Binding CloudMessageBoxView_LeftButtonWidth, Mode=OneWay}" 
+        		        Margin="{Binding CloudMessageBoxView_LeftButtonMargin, Mode=OneWay}"  
+                        Visibility="{Binding CloudMessageBoxView_LeftButtonVisibility, Mode=OneWay}"
+                        IsCancel="{Binding CloudMessageBoxView_LeftButtonIsCancel, Mode=OneWay}"
+                        IsDefault="{Binding CloudMessageBoxView_LeftButtonIsDefault, Mode=OneWay}">
                     <AccessText Text="{Binding CloudMessageBoxView_LeftButtonContent, Mode=OneWay}"/>
                 </Button>
             </StackPanel>
@@ -100,7 +100,7 @@
         		<ColumnDefinition/>
         	</Grid.ColumnDefinitions>
         	<Image Source="/Cloud;component/Artwork/cloud.ico" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" />
-            <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="0,0,5,0"> 
+            <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="0,0,15,0"> 
             	<Grid.RowDefinitions>
             		<RowDefinition Height="15"/>
                     <RowDefinition Height="25"/>
@@ -108,7 +108,7 @@
             	</Grid.RowDefinitions>
                 <TextBlock x:Name="Header" Foreground="Black" FontSize="16" Grid.Row="1" 
                             Text="{Binding CloudMessageBoxView_HeaderText, Mode=TwoWay}" FontWeight="Bold"/>
-                <TextBlock TextWrapping="Wrap" x:Name="Body" Foreground="Black" FontSize="13.333" Grid.Row="2"
+                <TextBlock TextWrapping="Wrap" x:Name="Body" Foreground="Black" FontSize="12" Grid.Row="2"
                             Text="{Binding CloudMessageBoxView_BodyText, Mode=TwoWay}" />
             </Grid> 
         </Grid>

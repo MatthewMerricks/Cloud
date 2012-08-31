@@ -99,11 +99,17 @@ namespace win_client.AppDelegate
         #endregion
 
         private string _pageCloudFolderMissingOkButtonContent;
-
         public string PageCloudFolderMissingOkButtonContent
         {
             get { return _pageCloudFolderMissingOkButtonContent; }
             set { _pageCloudFolderMissingOkButtonContent = value; }
+        }
+
+        private string _pageCloudFolderMissingOkButtonTooltipContent;
+        public string PageCloudFolderMissingOkButtonTooltipContent
+        {
+            get { return _pageCloudFolderMissingOkButtonTooltipContent; }
+            set { _pageCloudFolderMissingOkButtonTooltipContent = value; }
         }
         
 
@@ -648,12 +654,14 @@ namespace win_client.AppDelegate
                             FoundPathToDeletedCloudFolderRFile = foundPathToDeletedCloudFolderRFile;
                             FoundPathToDeletedCloudFolderIFile = foundPathToDeletedCloudFolderIFile;
                             PageCloudFolderMissingOkButtonContent = Resources.Resources.pageCloudFolderMissingOkButtonRestore;
+                            PageCloudFolderMissingOkButtonTooltipContent = Resources.Resources.pageCloudFolderMissingOkButtonRestoreTooltip;
                         }
                         else
                         {
                             // We will put up a window in App.xaml.cs to allow the user to make a new cloud folder or unlink.
                             StartupUrlRelative = Resources.Resources.startupUriCloudFolderMissing;
                             PageCloudFolderMissingOkButtonContent = Resources.Resources.pageCloudFolderMissingOkButtonLocate;
+                            PageCloudFolderMissingOkButtonTooltipContent = Resources.Resources.pageCloudFolderMissingOkButtonLocateTooltip;
                         }
                     }
                 }

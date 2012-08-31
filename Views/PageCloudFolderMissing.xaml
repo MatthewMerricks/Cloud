@@ -19,7 +19,7 @@
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     mc:Ignorable="d"
     DataContext="{Binding PageCloudFolderMissingViewModel, Source={StaticResource Locator}}" 
-    Title="Cloud.com" Height="442" Width="624" >
+    WindowTitle="Cloud.com" Height="442" Width="624" >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -47,11 +47,9 @@
             <RowDefinition Height="17"/>
         </Grid.RowDefinitions>
 
-        <Border x:Name="borderFullBackground" Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="5" Grid.RowSpan="3" RenderTransformOrigin="0.5,0.5">
-            <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
-            </Border.Background>
-        </Border>
+        <Grid.Background>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Cloud_Folder_Missing.png"/>
+        </Grid.Background>
 
         <Grid x:Name="gridNonButtonArea" Grid.Column="2" Width="Auto" Margin="0,0,0,0" >
         	<Grid.RowDefinitions>
@@ -60,27 +58,23 @@
         		<RowDefinition/>
         		<RowDefinition Height="15"/>
         	</Grid.RowDefinitions>
-        	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="21.333" Grid.Row="1"
+        	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="17" Grid.Row="1"
                     Text="Your Cloud folder is missing!" />
             <TextBlock x:Name="textBlockMessage2" TextWrapping="Wrap" FontSize="18" Grid.Row="2"
                     Text="{Binding BodyMessage, Mode=OneWay}" Foreground="#CE000000" Margin="0,0,-10,0" />
         </Grid>
-        <Grid x:Name="gridButtonArea" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3">
-        	<Grid.ColumnDefinitions>
-        		<ColumnDefinition Width="146"/>
-        		<ColumnDefinition Width="0.419*"/>
-        		<ColumnDefinition Width="0.581*"/>
-        		<ColumnDefinition Width="22"/>
-        	</Grid.ColumnDefinitions>
-            <Button x:Name="btnRight" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageCloudFolderMissingViewModel_OkCommand, Mode=OneTime}" TabIndex="0" HorizontalAlignment="Right" IsDefault="True" >
+        <StackPanel x:Name="stackpanelButtonArea" Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="1">
+            <Button x:Name="btnRight" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" 
+                        Command="{Binding PageCloudFolderMissingViewModel_OkCommand, Mode=OneTime}" TabIndex="0" IsDefault="True" ToolTip="{Binding RightButtonTooltip, Mode=OneTime}">
                 <AccessText Text="{Binding OkButtonContent, Mode=OneWay}"/>
             </Button>
-            
-            <Button x:Name="btnLeft" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageCloudFolderMissingViewModel_UnlinkCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Right">
+
+            <Button x:Name="btnLeft" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="4" Grid.Column="1"
+                        Command="{Binding PageCloudFolderMissingViewModel_UnlinkCommand, Mode=OneTime}" TabIndex="1" Margin="15,0,0,0" ToolTip="Click to remove this computer from your Cloud account.">
                 <AccessText Text="{x:Static resx:Resources.ViewPageCloudFolderMissingButtonRemove}"/>
             </Button>
-        </Grid>
+        </StackPanel>
     </Grid>
 </Page>

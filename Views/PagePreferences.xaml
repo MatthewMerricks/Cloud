@@ -16,9 +16,9 @@
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     xmlns:resx="clr-namespace:win_client.Resources"
-    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="485"
     DataContext="{Binding PagePreferencesViewModel, Source={StaticResource Locator}}" 
-    Title="Cloud Preferences"  >
+    WindowTitle="Cloud Preferences"  >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -34,7 +34,9 @@
 
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="109"/>
+            <ColumnDefinition Width="36"/>
+            <ColumnDefinition Width="108"/>
+            <ColumnDefinition Width="59*"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -44,75 +46,54 @@
         </Grid.RowDefinitions>
         
         <Grid.Background>
-            <SolidColorBrush Color="#FFE8E8E8"/>
+            <ImageBrush Stretch="UniformToFill" ImageSource="{Binding PagePreferences_BackgroundImageSource, Mode=OneWay}" />
+            <!--<ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_bg_650x421.png"/>-->
+            <!--<ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_about_bg_650x421.png/>-->
         </Grid.Background>
         
-        <Image Grid.Column="0" Margin="8" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="/Cloud;component/Artwork/Cl_icon.png"/>
-        <TextBlock Text="{Binding Title, Mode=OneWay}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,0,0" FontSize="36" Opacity="0.5"/>
+        <TextBlock Text="{Binding Title, Mode=OneWay}" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="17" Foreground="#0f0f0f"
+                   Opacity="0.5" Height="Auto" />
 
-        <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" BorderThickness="0" Margin="8" Grid.Column="1" Grid.Row="1" IsTabStop="False" >
-            <Frame.Background>
-                <ImageBrush ImageSource="/Cloud;component/Artwork/cl_inside_region_transparent.png" Stretch="Fill" />
-            </Frame.Background>
+        <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" BorderThickness="0" Margin="10,10,6,6" Grid.Column="2" Grid.Row="1" IsTabStop="False" Grid.ColumnSpan="2" >
         </Frame>
 
-        <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Vertical">
-            <StackPanel.Background>
-                <ImageBrush ImageSource="/Cloud;component/Artwork/cl_wlcm_ptrn.png" Stretch="Fill"/>
-            </StackPanel.Background>
-            
-            <Button x:Name="cmdGeneral" Margin="8,15,8,5" Command="{Binding PagePreferences_GeneralCommand, Mode=OneTime}" >
-                <StackPanel Orientation="Vertical">
-                    <Image Margin="30,0,30,0" Source="/Artwork/continue.png"/>
-                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonGeneral}" HorizontalAlignment="Center"/>
-                </StackPanel>
+        <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Vertical" >
+            <Button x:Name="cmdGeneral" Margin="8,15,8,5" Command="{Binding PagePreferences_GeneralCommand, Mode=OneTime}" BorderBrush="{x:Null}" Background="{x:Null}" BorderThickness="0"  HorizontalAlignment="Left" Foreground="#FF136296">
+                <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonGeneral}"/>
             </Button>
-            
-            <Button x:Name="cmdAccount" Margin="8,5,8,5" Command="{Binding PagePreferences_AccountCommand, Mode=OneTime}" >
-                <StackPanel Orientation="Vertical">
-                    <Image Margin="30,0,30,0" Source="/Cloud;component/Artwork/cancel.png"/>
-                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAccount}" HorizontalAlignment="Center"/>
-                </StackPanel>
+
+            <Button x:Name="cmdAccount" Margin="8,5,8,5" Command="{Binding PagePreferences_AccountCommand, Mode=OneTime}" BorderBrush="{x:Null}" Background="{x:Null}" BorderThickness="0"  HorizontalAlignment="Left" Foreground="#FF136296">
+                <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAccount}" HorizontalAlignment="Center"/>
             </Button>
-            <Button x:Name="cmdNetwork" Margin="8,5,8,5" Command="{Binding PagePreferences_NetworkCommand, Mode=OneTime}" >
-                <StackPanel Orientation="Vertical">
-                    <Image Margin="30,0,30,0" Source="/Cloud;component/Artwork/add.png"/>
-                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonNetwork}" HorizontalAlignment="Center"/>
-                </StackPanel>
+            <Button x:Name="cmdNetwork" Margin="8,5,8,5" Command="{Binding PagePreferences_NetworkCommand, Mode=OneTime}" BorderBrush="{x:Null}" Background="{x:Null}" BorderThickness="0" HorizontalAlignment="Left" Foreground="#FF136296">
+                <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonNetwork}" HorizontalAlignment="Center"/>
             </Button>
-            <Button x:Name="cmdAdvanced" Margin="8,5,8,5" Command="{Binding PagePreferences_AdvancedCommand, Mode=OneTime}" >
-                <StackPanel Orientation="Vertical">
-                    <Image Margin="30,0,30,0" Source="/Cloud;component/Artwork/cl_skip_up.png"/>
-                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAdvanced}" HorizontalAlignment="Center"/>
-                </StackPanel>
+            <Button x:Name="cmdAdvanced" Margin="8,5,8,5" Command="{Binding PagePreferences_AdvancedCommand, Mode=OneTime}" BorderBrush="{x:Null}" Background="{x:Null}" BorderThickness="0" HorizontalAlignment="Left" Foreground="#FF136296">
+                <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAdvanced}" HorizontalAlignment="Center"/>
             </Button>
-            <Button x:Name="cmdAbout" Margin="8,5,8,5" Command="{Binding PagePreferences_AboutCommand, Mode=OneTime}" >
-                <StackPanel Orientation="Vertical">
-                    <Image Margin="30,0,30,0" Source="/Cloud;component/Artwork/cl_skipicon.png"/>
-                    <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAbout}" HorizontalAlignment="Center"/>
-                </StackPanel>
+            <Button x:Name="cmdAbout" Margin="8,5,8,5" Command="{Binding PagePreferences_AboutCommand, Mode=OneTime}" BorderBrush="{x:Null}" Background="{x:Null}" BorderThickness="0" HorizontalAlignment="Left" Foreground="#FF136296">
+                <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAbout}" HorizontalAlignment="Center"/>
             </Button>
         </StackPanel>
                 
-        <Grid Grid.Column="1" Grid.Row="2" Margin="0,0,0,0">
+        <Grid Grid.Column="2" Grid.Row="2" >
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="228*"/>
-                <ColumnDefinition Width="149*"/>
-                <ColumnDefinition Width="138"/>
+                <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="cmdOk" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PagePreferences_OkCommand, Mode=OneTime}" TabIndex="0" Height="40" Grid.Column="1" 
-        		Width="100" MinWidth="100"  IsDefault="True">
-                <AccessText Text="{x:Static resx:Resources.generalOkButtonContent}"/>
 
-            </Button>
-            
-            <Button x:Name="cmdCancel" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Background="#FF49C3FB" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PagePreferences_CancelCommand, Mode=OneTime}" TabIndex="1" Height="40" Grid.Column="2" 
-        		Width="100" MinWidth="100" IsCancel="True">
-                <AccessText Text="{x:Static resx:Resources.generalCancelButtonContent}"/>
-            </Button>
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" >
+                <Button x:Name="cmdOk" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}"
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" 
+                        Command="{Binding PagePreferences_OkCommand, Mode=OneTime}" TabIndex="0" IsDefault="True" ToolTip="Click to save your changes.">
+                    <AccessText Text="{x:Static resx:Resources.generalOkButtonContent}"/>
+                </Button>
+
+                <Button x:Name="cmdCancel" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" IsCancel="True" 
+                        Command="{Binding PagePreferences_CancelCommand, Mode=OneTime}" TabIndex="1" Margin="15,0,0,0" ToolTip="Click to discard your changes.">
+                    <AccessText Text="{x:Static resx:Resources.generalCancelButtonContent}" />
+                </Button>
+            </StackPanel>
         </Grid>
-
     </Grid>
 </Page>

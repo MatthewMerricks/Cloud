@@ -76,7 +76,7 @@ namespace win_client.Views
 
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            cmdSignIn.IsEnabled = false;
+            SetSignInButtonEnabledState();
             cmdCreateAccount.Focus();
         }
 
@@ -182,7 +182,10 @@ namespace win_client.Views
 
         private void OnLostFocus(object sender, RoutedEventArgs e)
         {
-            tblkPasswordWatermark.Visibility = System.Windows.Visibility.Visible;
+            if (tbPassword.Text.Length == 0)
+            {
+                tblkPasswordWatermark.Visibility = System.Windows.Visibility.Visible;
+            }
         }
 
         private void OnGotFocus(object sender, RoutedEventArgs e)
@@ -221,20 +224,27 @@ namespace win_client.Views
             if (tbEMailLength == 0 || tbPasswordLength == 0 || tbEMailValidationError)
             {
                 // The sign-in button should be disabled.
-                cmdSignIn.IsEnabled = false;
+                if (cmdSignIn != null  && cmdCreateAccount != null)
+                {
+                    cmdSignIn.IsEnabled = false;
 
-                // The create-account button should be the default.
-                cmdSignIn.IsDefault = false;
-                cmdCreateAccount.IsDefault = true;
+                    // The create-account button should be the default.
+                    cmdSignIn.IsDefault = false;
+                    cmdCreateAccount.IsDefault = true;
+                }
+
             }
             else
             {
                 // The sign-in button should be enabled.
-                cmdSignIn.IsEnabled = true;
+                if (cmdSignIn != null && cmdCreateAccount != null)
+                {
+                    cmdSignIn.IsEnabled = true;
 
-                // The sign-in button should be the default.
-                cmdSignIn.IsDefault = true;
-                cmdCreateAccount.IsDefault = false;
+                    // The sign-in button should be the default.
+                    cmdSignIn.IsDefault = true;
+                    cmdCreateAccount.IsDefault = false;
+                }
             }
         }
     }

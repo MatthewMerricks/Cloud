@@ -18,7 +18,7 @@
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
-    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    mc:Ignorable="d" d:DesignWidth="573" d:DesignHeight="315"
     DataContext="{Binding FramePreferencesNetworkViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Cloud Network Preferences"
     Name="FramePreferencesNetworkRoot">
@@ -39,45 +39,45 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="37"/>
-            <RowDefinition Height="14*"/>
-            <RowDefinition Height="13*"/>
+            <RowDefinition Height="0*"/>
+            <RowDefinition/>
+            <RowDefinition Height="0*"/>
         </Grid.RowDefinitions>
             
-        <Grid.Background>              
-            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
+        <Grid.Background>
+            <ImageBrush ImageSource="/Cloud;component/Artwork/WinClient_Preferences_Text_Container_458x246.png" Stretch="Fill" />
         </Grid.Background>
         
-        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Column="1" Grid.Row="1" />
 
         <Grid Grid.Row="1" Grid.Column="1" >
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="26*"/>
-                <ColumnDefinition Width="41*"/>
+                <ColumnDefinition Width="115*"/>
+                <ColumnDefinition Width="267*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="10"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="10"/>
+                <RowDefinition Height="112*"/>
+                <RowDefinition Height="61*"/>
+                <RowDefinition Height="50*"/>
+                <RowDefinition Height="82"/>
             </Grid.RowDefinitions>
-            
-            <Label Content="S_ync:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Width="Auto" FontSize="16" Height="Auto" Target="chkEnableLanSync"  />
-            <CheckBox x:Name="chkEnableLanSync"  Content="Enable LAN Sync" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Grid.Column="1" FontSize="16" Width="Auto" Margin="10,0,0,0"
+
+            <Label Content="S_ync:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Width="Auto" FontSize="12" Height="Auto" Target="chkEnableLanSync"  />
+            <CheckBox x:Name="chkEnableLanSync"  Content="Enable LAN Sync" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Grid.Column="1" FontSize="12" Width="Auto" 
                       IsChecked="{Binding ElementName=FramePreferencesNetworkRoot, Path=Preferences.ShouldEnableLanSync, Mode=TwoWay}" Height="Auto" ToolTip="Check to enable synchronization at LAN speeds." />
-                
-            <TextBlock TextWrapping="Wrap" Text="Bandwidth: " Foreground="Black" FontSize="16" Grid.Row="2" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <Button x:Name="cmdChangeBandwidthSettings" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="1 " Grid.Row="2" Height="Auto" Width="Auto" Margin="10,0,0,0"
-                    Command="{Binding FramePreferencesNetwork_ChangeBandwidthSettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to change the Cloud bandwidth settings on this computer.">
-                <AccessText Text="Change _settings..." />
+
+            <TextBlock TextWrapping="Wrap" Text="Bandwidth: " Foreground="Black" FontSize="12" Grid.Row="2" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
+            <Button x:Name="cmdChangeBandwidthSettings" HorizontalAlignment="Left" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Column="1" Grid.Row="2" Width="Auto" 
+                        Command="{Binding FramePreferencesNetwork_ChangeBandwidthSettings, Mode=OneTime}" ToolTip="Click to change the Cloud bandwidth settings on this computer." >
+                <AccessText Text="Change _settings..." Margin="10,0,10,0"/>
             </Button>
-                
-                
-            <TextBlock TextWrapping="Wrap" Text="Proxies: " Foreground="Black" FontSize="16" Grid.Row="3" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <Button x:Name="cmdChangeProxySettings" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Grid.Column="1" Grid.Row="3" Height="Auto" Width="Auto" Margin="10,0,0,0"
-                	Command="{Binding FramePreferencesNetwork_ChangeProxySettings, Mode=OneTime}" MinWidth="150" ToolTip="Click to change the network proxy settings on this computer." >
-                <AccessText Text="Chang_e settings..." />
+
+            <TextBlock TextWrapping="Wrap" Text="Proxies: " Foreground="Black" FontSize="12" Grid.Row="3" Grid.Column="0"  TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
+            <Button x:Name="cmdChangeProxySettings" HorizontalAlignment="Left" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Column="1" Grid.Row="3" Width="Auto" 
+                        Command="{Binding FramePreferencesNetwork_ChangeProxySettings, Mode=OneTime}" ToolTip="Click to change the network proxy settings on this computer." Grid.RowSpan="2" >
+                <AccessText Text="Chang_e settings..." Margin="10,0,10,0"/>
             </Button>
         </Grid>
     </Grid>

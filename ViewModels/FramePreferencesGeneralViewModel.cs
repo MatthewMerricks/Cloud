@@ -100,6 +100,7 @@ namespace win_client.ViewModels
                 new SupportedLanguage() {Name = "Portugal", Type = cloudAppLanguageType.cloudAppLanguagePT},
             };
             _cbSelectYourLanguage_ItemsSource = supportedLanguages;
+
         }
 
         #endregion
@@ -112,10 +113,6 @@ namespace win_client.ViewModels
         /// </summary>
         public const string CbSelectYourLanguage_ItemsSourcePropertyName = "CbSelectYourLanguage_ItemsSource";
         private List<SupportedLanguage> _cbSelectYourLanguage_ItemsSource = null;
-        /// <summary>
-        /// Sets and gets the CbSelectYourLanguage_ItemsSource property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public List<SupportedLanguage> CbSelectYourLanguage_ItemsSource
         {
             get
@@ -141,11 +138,6 @@ namespace win_client.ViewModels
         /// </summary>
         public const string ViewGridContainerPropertyName = "ViewGridContainer";
         private Grid _viewGridContainer = null;
-
-        /// <summary>
-        /// Sets and gets the ViewGridContainer property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
         public Grid ViewGridContainer
         {
             get

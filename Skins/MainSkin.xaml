@@ -17,7 +17,8 @@
     mc:Ignorable="d">
     
     <!-- Converters -->
-    <w:RadioButtonConverter x:Key="RadioButtonConverter" />
+    <w:RadioButtonStorageSizeSelectionsConverter x:Key="RadioButtonStorageSizeSelectionsConverter" />
+    <w:RadioButtonSetupSelectorOptionsConverter x:Key="RadioButtonSetupSelectorOptionsConverter" />
     <w:RadioButtonUnselectedVisibilityConverter x:Key="RadioButtonUnselectedVisibilityConverter" />
     <w:BoolIsVisible2VisibilityConverter x:Key="BoolIsVisible2VisibilityConverter" />
     <w:QuotaConverter x:Key="QuotaConverter" />
@@ -600,5 +601,112 @@
             </EventTrigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
+    
+    <!-- Twitter Button -->
+    <ControlTemplate x:Key="TwitterButton" TargetType="{x:Type Button}">
+        <Grid/>
+    </ControlTemplate>
+    <Style x:Key="twitterButton" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <ControlTemplate.Resources>
+                        <Storyboard x:Key="Storyboard1">
+                            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)" Storyboard.TargetName="Twitter">
+                                <EasingColorKeyFrame KeyTime="0:0:0.2" Value="#FF1499EF"/>
+                            </ColorAnimationUsingKeyFrames>
+                        </Storyboard>
+                        <Storyboard x:Key="OnMouseLeave1">
+                            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)" Storyboard.TargetName="Twitter">
+                                <EasingColorKeyFrame KeyTime="0:0:0.2" Value="#FF1976B3"/>
+                            </ColorAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </ControlTemplate.Resources>
+                    <Grid>
+                        <Canvas x:Name="TwitterIcon" ClipToBounds="True" Height="Auto" UseLayoutRounding="False" VerticalAlignment="Stretch" Width="Auto" OpacityMask="{x:Null}" Margin="0">
+                            <Path x:Name="Twitter" Data="F1M14.735,8.772C13.909,5.45 16.17,2.892 18.083,2.263 19.996,1.635 22.43,2.129 23.865,3.745 23.865,3.745 25.995,3.206 27.299,2.398 27.299,2.398 26.56,4.552 24.865,5.405 24.865,5.405 26.212,5.36 27.995,4.552 27.995,4.552 26.951,6.168 25.256,7.47 25.256,21.967 11.171,27.802 1.998,21.429 1.998,21.429 6.345,22.012 9.823,19.14 9.823,19.14 5.954,19.14 4.78,15.325 4.78,15.325 6.389,15.594 7.258,15.19 7.258,15.19 3.172,14.292 2.954,9.714 2.954,9.714 3.65,10.522 5.432,10.432 5.432,10.432 1.52,7.964 3.737,2.937 3.737,2.937 8.021,9.16 14.735,8.772z" Fill="#FF1976B3" Height="30" Canvas.Left="2" Canvas.Top="3" Width="30"/>
+                        </Canvas>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Fill" TargetName="Twitter" Value="#FF094F7E"/>
+                        </Trigger>
+                        <EventTrigger RoutedEvent="Mouse.MouseLeave">
+                            <BeginStoryboard x:Name="OnMouseLeave1_BeginStoryboard" Storyboard="{StaticResource OnMouseLeave1}"/>
+                        </EventTrigger>
+                        <EventTrigger RoutedEvent="Mouse.MouseEnter">
+                            <BeginStoryboard Storyboard="{StaticResource Storyboard1}"/>
+                        </EventTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Hyperlink Button -->
+    <ControlTemplate x:Key="HyperLinkButtonStyle" TargetType="{x:Type Button}">
+        <ControlTemplate.Resources>
+            <Storyboard x:Key="OnMouseEnter1">
+                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="textBlock">
+                    <EasingColorKeyFrame KeyTime="0:0:0.1" Value="#FF0082D8"/>
+                </ColorAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="OnMouseLeave1">
+                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="textBlock">
+                    <EasingColorKeyFrame KeyTime="0:0:0.1" Value="#FF136296"/>
+                </ColorAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="OnGotFocus1">
+                <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.FontFamily)" Storyboard.TargetName="textBlock">
+                    <DiscreteObjectKeyFrame KeyTime="0:0:0.1">
+                        <DiscreteObjectKeyFrame.Value>
+                            <FontFamily>Segoe UI Semibold</FontFamily>
+                        </DiscreteObjectKeyFrame.Value>
+                    </DiscreteObjectKeyFrame>
+                </ObjectAnimationUsingKeyFrames>
+                <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.FontWeight)" Storyboard.TargetName="textBlock">
+                    <DiscreteObjectKeyFrame KeyTime="0:0:0.1">
+                        <DiscreteObjectKeyFrame.Value>
+                            <FontWeight>Normal</FontWeight>
+                        </DiscreteObjectKeyFrame.Value>
+                    </DiscreteObjectKeyFrame>
+                </ObjectAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="OnLostFocus1">
+                <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.FontFamily)" Storyboard.TargetName="textBlock">
+                    <DiscreteObjectKeyFrame KeyTime="0:0:0.1">
+                        <DiscreteObjectKeyFrame.Value>
+                            <FontFamily>Segoe UI</FontFamily>
+                        </DiscreteObjectKeyFrame.Value>
+                    </DiscreteObjectKeyFrame>
+                </ObjectAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="OnClick1">
+                <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.FontFamily)" Storyboard.TargetName="textBlock">
+                    <DiscreteObjectKeyFrame KeyTime="0:0:0.1">
+                        <DiscreteObjectKeyFrame.Value>
+                            <FontFamily>Segoe UI Semibold</FontFamily>
+                        </DiscreteObjectKeyFrame.Value>
+                    </DiscreteObjectKeyFrame>
+                </ObjectAnimationUsingKeyFrames>
+            </Storyboard>
+        </ControlTemplate.Resources>
+        <Grid>
+            <Rectangle Fill="{x:Null}" Stroke="{x:Null}"/>
+            <TextBlock x:Name="textBlock" Margin="5,0,0,0" TextWrapping="Wrap" Text="Stuff" d:LayoutOverrides="Height"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <EventTrigger RoutedEvent="Mouse.MouseLeave">
+                <BeginStoryboard x:Name="OnMouseLeave1_BeginStoryboard" Storyboard="{StaticResource OnMouseLeave1}"/>
+            </EventTrigger>
+            <EventTrigger RoutedEvent="Mouse.MouseEnter">
+                <BeginStoryboard Storyboard="{StaticResource OnMouseEnter1}"/>
+            </EventTrigger>
+            <EventTrigger RoutedEvent="ButtonBase.Click">
+                <BeginStoryboard x:Name="OnClick1_BeginStoryboard" Storyboard="{StaticResource OnClick1}"/>
+            </EventTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
 
 </ResourceDictionary>

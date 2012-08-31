@@ -37,6 +37,10 @@ namespace win_client.Common
         public const string kFramePreferencesAdvanced = "/Views/FramePreferencesAdvanced.xaml";
         public const string kFramePreferencesAbout = "/Views/FramePreferencesAbout.xaml";
 
+        // Artwork
+        public const string kPagePreferencesBackgroundGeneral = "/Cloud;component/Artwork/WinClient_Preferences_bg_650x421.png";
+        public const string kPagePreferencesBackgroundAbout = "/Cloud;component/Artwork/WinClient_Preferences_about_bg_650x421.png";
+
         // Validation template
         public const string kValidationErrorTemplate = "/Skins/ErrorTemplates.xaml";
 

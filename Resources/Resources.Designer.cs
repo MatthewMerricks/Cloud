@@ -448,11 +448,29 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Click to select the existing Cloud folder to use..
+        /// </summary>
+        public static string pageCloudFolderMissingOkButtonLocateTooltip {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingOkButtonLocateTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Restore.
         /// </summary>
         public static string pageCloudFolderMissingOkButtonRestore {
             get {
                 return ResourceManager.GetString("pageCloudFolderMissingOkButtonRestore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Click to restore your moved or deleted Cloud folder..
+        /// </summary>
+        public static string pageCloudFolderMissingOkButtonRestoreTooltip {
+            get {
+                return ResourceManager.GetString("pageCloudFolderMissingOkButtonRestoreTooltip", resourceCulture);
             }
         }
         

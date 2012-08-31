@@ -34,7 +34,7 @@
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
   
-<!--    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}"  > -->
+    <!--<extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" >-->
         <Grid x:Name="LayoutRoot">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="115*"/>
@@ -49,8 +49,8 @@
                 <RowDefinition Height="37*"/>
                 <RowDefinition Height="19*"/>
                 <RowDefinition Height="54*"/>
-                <RowDefinition Height="19*"/>
-            <RowDefinition Height="38*"/>
+                <RowDefinition Height="25*"/>
+            <RowDefinition Height="32*"/>
         </Grid.RowDefinitions>
         
             <Grid.Background>
@@ -58,15 +58,15 @@
             </Grid.Background>
 
             <extToolkit:WatermarkTextBox x:Name="tbEMail" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Stretch" TextAlignment="Left" Foreground="Black" 
-                        Text="{Binding EMail, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" FontSize="13.333" Watermark="EMail" 
-                        ToolTip="Enter your existing Cloud account email user ID." TextChanged="OnEmailTextChanged" />
+                        Text="{Binding EMail, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Watermark="EMail" 
+                        ToolTip="Enter your existing Cloud account email user ID." TextChanged="OnEmailTextChanged"/>
         
             <commonClient:SecurePasswordBox x:Name="tbPassword" VerticalAlignment="Center" Grid.Column="3" Grid.Row="2" HorizontalAlignment="Stretch" Foreground="Black" 
-                         Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="Auto" GotFocus="OnGotFocus" LostFocus="OnLostFocus" TextChanged="OnPasswordTextChanged"
+                         Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="22" GotFocus="OnGotFocus" LostFocus="OnLostFocus" TextChanged="OnPasswordTextChanged"
                          ToolTip="Enter your existing Cloud account password." />
 
-            <TextBlock x:Name="tblkPasswordWatermark" Text="Password" TextAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="13.333" 
-                       Foreground="Black" Opacity="0.5" Grid.Column="3" Grid.Row="2" Height="Auto" Width="Auto" Margin="5,0,0,0"/>
+            <TextBlock x:Name="tblkPasswordWatermark" Text="Password" TextAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" 
+                       Foreground="Black" Opacity="0.5" Grid.Column="3" Grid.Row="2" Height="18" Width="56" Margin="5,0,0,0"/>
 
 
             <Button Name="cmdCreateAccount" HorizontalAlignment="Right" VerticalAlignment="Center" Width="30" Height="30" FontFamily="Webdings" FontSize="29.333" Background="#FF011862" BorderBrush="#FF89DCFF" 
@@ -82,13 +82,13 @@
             </Button>
 
             <TextBlock TextWrapping="Wrap" Text="{x:Static resx:Resources.ViewPageHomeTblkInstruction}" 
-                                Foreground="#FF817E7E" FontSize="12" Grid.ColumnSpan="3" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Width="Auto"/>
+                                Foreground="#FF505050" FontSize="12" Grid.ColumnSpan="3" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Width="Auto" />
             <TextBlock TextWrapping="Wrap" Text="Forgot password" Opacity="0.6"
-                                Foreground="#FF2975A9" FontSize="12" Grid.Column="3" Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Height="Auto" Width="Auto"/>
-            <TextBlock TextWrapping="Wrap" Text="Create new"
-                                Foreground="#FF817E7E" FontSize="12" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Center" Height="Auto" Width="Auto"/>
-            <TextBlock TextWrapping="Wrap" Text="Sign in"
-                                Foreground="#FF817E7E" FontSize="12" Grid.Column="3" Grid.Row="5" HorizontalAlignment="Left" VerticalAlignment="Center" Height="Auto" Width="Auto"/>
-    </Grid>
-<!--    </extToolkit:BusyIndicator> -->
+                                Foreground="#FF2975A9" FontSize="12" Grid.Column="3" Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Height="Auto" Width="Auto" />
+            <Label Content="_Create new" Foreground="#FF505050" FontSize="12" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Center" Height="Auto" Width="Auto" 
+                   Padding="3,3,3,3" Target="cmdCreateAccount"/>
+            <Label Content="_Sign in" Foreground="#FF505050" FontSize="12" Grid.Column="3" Grid.Row="5" HorizontalAlignment="Left" VerticalAlignment="Center" Height="Auto" Width="Auto"  
+                   Padding="3,3,3,3" Target="cmdSignIn"/>
+        </Grid>
+  <!--  </extToolkit:BusyIndicator>-->
 </Page>

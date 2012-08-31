@@ -18,7 +18,7 @@
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
-    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    mc:Ignorable="d" d:DesignWidth="573" d:DesignHeight="315"
     DataContext="{Binding FramePreferencesAccountViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Cloud Account Preferences"
     Name="FramePreferencesAccountRoot">
@@ -34,25 +34,23 @@
 
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="45*"/>
-            <ColumnDefinition  Width="551*"/>
+            <ColumnDefinition Width="29*"/>
+            <ColumnDefinition  Width="567*"/>
             <ColumnDefinition Width="28*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="37"/>
-            <RowDefinition Height="194*"/>
-            <RowDefinition Height="19*"/>
-            <RowDefinition Height="157*"/>
-            <RowDefinition Height="33*"/>
+            <RowDefinition Height="0*"/>
+            <RowDefinition Height="166*"/>
+            <RowDefinition Height="14*"/>
+            <RowDefinition Height="135*"/>
+            <RowDefinition Height="0*"/>
         </Grid.RowDefinitions>
             
-        <Grid.Background>              
-            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
+        <Grid.Background>
+            <ImageBrush ImageSource="/Cloud;component/Artwork/WinClient_Preferences_Text_Container_458x246.png" Stretch="Fill" />
         </Grid.Background>
-        
-        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Column="1" Grid.Row="1" />
 
-        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Column="1" Grid.Row="3" />
+        <Line X1="0" Y1="0" X2="1" Y2="0" Stroke="Black" Stretch="Fill" Opacity="0.3" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,6,5,6" Height="2" Width="512"/>
 
         <Grid Grid.Column="1" Grid.Row="1" >
     		<Grid.RowDefinitions>
@@ -68,36 +66,39 @@
                 <ColumnDefinition Width="302*"/>
                 <ColumnDefinition/>
     		</Grid.ColumnDefinitions>
-            <TextBlock TextWrapping="Wrap" Text="Storage: " Foreground="Black" FontSize="16" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="1" />
-            <TextBlock x:Name="tbStorageUsed" TextWrapping="Wrap" Foreground="Black" FontSize="16" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="1"
+            <TextBlock TextWrapping="Wrap" Text="Storage: " Foreground="Black" FontSize="12" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="1" />
+            <TextBlock x:Name="tbStorageUsed" TextWrapping="Wrap" Foreground="Black" FontSize="12" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="1"
                        Text="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.Quota, Mode=OneWay, Converter={StaticResource QuotaConverter}}"
                        ToolTip="This is the total amount of storage space provided to your account."/>
 
-            <TextBlock TextWrapping="Wrap" Text="Account: " Foreground="Black" FontSize="16" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="2"  />
-            <TextBlock x:Name="tbAccountName" TextWrapping="Wrap" Foreground="Black" FontSize="16" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="2" 
+            <TextBlock TextWrapping="Wrap" Text="Account: " Foreground="Black" FontSize="12" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="2"  />
+            <TextBlock x:Name="tbAccountName" TextWrapping="Wrap" Foreground="Black" FontSize="12" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="2" 
                        Text="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.UserName, Mode=OneWay, Converter={StaticResource DebugConverter}}"
                        ToolTip="This is your account user name."/>
             
-            <TextBlock TextWrapping="Wrap" Text="Computer name: " Foreground="Black" FontSize="16" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="3"  />
-            <TextBlock x:Name="tbComputerName" TextWrapping="Wrap" Foreground="Black" FontSize="16" TextAlignment="Left" VerticalAlignment="Stretch" Height="Auto" Grid.Column="2" Grid.Row="3" 
+            <TextBlock TextWrapping="Wrap" Text="Computer name: " Foreground="Black" FontSize="12" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="3"  />
+            <TextBlock x:Name="tbComputerName" TextWrapping="Wrap" Foreground="Black" FontSize="12" TextAlignment="Left" VerticalAlignment="Stretch" Height="Auto" Grid.Column="2" Grid.Row="3" 
                        Text="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.DeviceName, Mode=OneWay, Converter={StaticResource DebugConverter}}" 
                        ToolTip="This is the device name representing this computer in your account."/>
         </Grid>
         <Grid Grid.Row="3" Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="10"/>
+                <RowDefinition Height="20"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="10"/>
+                <RowDefinition Height="40"/>
             </Grid.RowDefinitions>
-            <Button x:Name="cmdGetMoreSpace" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="0 " Grid.Row="2" Height="Auto" Width="Auto" 
-                    Command="{Binding FramePreferencesAccount_GetMoreSpaceCommand, Mode=OneTime}" MinWidth="200" ToolTip="Click to get more storage space in your Cloud account." >
-                <AccessText Text="Get more s_pace..."/>
+
+            <Button x:Name="cmdUnlinkThisComputer" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="1" Width="Auto"
+                        Command="{Binding FramePreferencesAccount_UnlinkThisComputerCommand, Mode=OneTime}" ToolTip="Click to remove this computer from your Cloud account." >
+                <AccessText Text="_Unlink this computer..." Margin="10,0,10,0"/>
             </Button>
-            
-            <Button x:Name="cmdUnlinkThisComputer" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Grid.Column="1" Grid.Row="1" Height="Auto" Width="Auto" 
-                	Command="{Binding FramePreferencesAccount_UnlinkThisComputerCommand, Mode=OneTime}" MinWidth="200" ToolTip="Click to remove this computer from your Cloud account.">
-                <AccessText Text="_Unlink this computer..."/>
+
+            <Button x:Name="cmdGetMoreSpace" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Column="0" Grid.Row="2" Width="Auto"
+                        Command="{Binding FramePreferencesAccount_GetMoreSpaceCommand, Mode=OneTime}" ToolTip="Click to get more storage space in your Cloud account." >
+                <AccessText Text="Get more s_pace..." Margin="10,0,10,0"/>
             </Button>
         </Grid>
     </Grid>

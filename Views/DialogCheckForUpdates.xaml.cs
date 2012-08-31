@@ -57,7 +57,7 @@ namespace win_client.Views
 
             // Give focus to the right button.
             //TODO: The caller's should establish the focus position in a parameter.
-            this.btnOk.Focus();
+            this.cmdOk.Focus();
 
             // Check for updates now.
             this.ctlAutoUpdate.Visibility = System.Windows.Visibility.Hidden;
@@ -79,8 +79,8 @@ namespace win_client.Views
             this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.Automatic;
 
             // Check first.
-            this.btnCheckNow.Visibility = System.Windows.Visibility.Visible;
-            this.btnInstallNow.Visibility = System.Windows.Visibility.Collapsed;
+            this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
+            this.cmdInstallNow.Visibility = System.Windows.Visibility.Collapsed;
 
             // Start a timer to run every second
             _timer = new DispatcherTimer();
@@ -100,14 +100,14 @@ namespace win_client.Views
             if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall)
             {
                 // Enable the install button
-                this.btnCheckNow.Visibility = System.Windows.Visibility.Collapsed;
-                this.btnInstallNow.Visibility = System.Windows.Visibility.Visible;
+                this.cmdCheckNow.Visibility = System.Windows.Visibility.Collapsed;
+                this.cmdInstallNow.Visibility = System.Windows.Visibility.Visible;
             }
             else
             {
                 // Check only.
-                this.btnCheckNow.Visibility = System.Windows.Visibility.Visible;
-                this.btnInstallNow.Visibility = System.Windows.Visibility.Collapsed;
+                this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
+                this.cmdInstallNow.Visibility = System.Windows.Visibility.Collapsed;
             }
 
             // Display the current status

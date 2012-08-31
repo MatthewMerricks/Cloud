@@ -400,4 +400,10 @@
   <data name="CloudFolderPublicFolder" xml:space="preserve">
     <value>Public</value>
   </data>
+  <data name="pageCloudFolderMissingOkButtonLocateTooltip" xml:space="preserve">
+    <value>Click to select the existing Cloud folder to use.</value>
+  </data>
+  <data name="pageCloudFolderMissingOkButtonRestoreTooltip" xml:space="preserve">
+    <value>Click to restore your moved or deleted Cloud folder.</value>
+  </data>
 </root>

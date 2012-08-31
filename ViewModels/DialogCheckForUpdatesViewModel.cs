@@ -86,7 +86,7 @@ namespace win_client.ViewModels
         /// The <see cref="DialogCheckForUpdates_Title" /> property's name.
         /// </summary>
         public const string DialogCheckForUpdates_TitlePropertyName = "DialogCheckForUpdates_Title";
-        private string _DialogCheckForUpdates_Title = "Title";
+        private string _DialogCheckForUpdates_Title = "Check for Updates";
         public string DialogCheckForUpdates_Title
         {
             get

@@ -17,7 +17,7 @@
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageTourAdvancedEndViewModel, Source={StaticResource Locator}}" 
-    Title="Setup Complete" >
+    WindowTitle="Setup Complete" >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -45,7 +45,7 @@
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
         <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_macinstall_finish.tiff"/>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Your_All_Set_bg_650x485.png"/>
         </Grid.Background>
         
         <Grid x:Name="gridNonButtonArea" Grid.Column="2" Width="Auto" >
@@ -55,21 +55,18 @@
         		<RowDefinition/>
         		<RowDefinition Height="15"/>
         	</Grid.RowDefinitions>
-        	<CheckBox Content="_Open Cloud Folder" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" 
+        	<CheckBox Content="_Open Cloud Folder" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" Foreground="#0f0f0f"
                       IsChecked="{Binding PageTourAdvancedEnd_OpenCloudFolderCommand, Mode=TwoWay}"/>
         </Grid>
-        <Grid x:Name="gridButtonArea" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3">
+        <Grid x:Name="gridButtonArea" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3">
         	<Grid.ColumnDefinitions>
-        		<ColumnDefinition Width="146"/>
-        		<ColumnDefinition Width="0.419*"/>
-        		<ColumnDefinition Width="0.581*"/>
-        		<ColumnDefinition Width="22"/>
+        		<ColumnDefinition />
         	</Grid.ColumnDefinitions>
-            
-        	<Button x:Name="cmdContinue" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageTourAdvancedEnd_ContinueCommand, Mode=OneTime}" TabIndex="0"
-        		HorizontalAlignment="Right" IsDefault="True">
-                <AccessText Text="_Continue" />
+
+            <Button x:Name="cmdContinue" HorizontalAlignment="Right" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" 
+                        Command="{Binding PageTourAdvancedEnd_ContinueCommand, Mode=OneTime}" TabIndex="0" ToolTip="Click to start using Cloud." IsDefault="True">
+                <AccessText Text="_Next"/>
             </Button>
         </Grid>
     </Grid>

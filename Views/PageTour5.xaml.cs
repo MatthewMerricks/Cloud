@@ -72,7 +72,7 @@ namespace win_client.Views
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            cmdContinue.Focus();
+            cmdNext.Focus();
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace win_client.Views
 
                 if (_isLoaded)
                 {
-                    cmdContinue.Focus();
+                    cmdNext.Focus();
                 }
             }
             catch (Exception ex)

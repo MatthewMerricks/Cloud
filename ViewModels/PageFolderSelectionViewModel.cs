@@ -419,6 +419,39 @@ namespace win_client.ViewModels
             }
         }
 
+
+        /// <summary>
+        /// Gets the PageFolderSelection_ChangeSelectiveSyncSettings.
+        /// </summary>
+        private ICommand _pageFolderSelection_ChangeSelectiveSyncSettings;
+        public ICommand PageFolderSelection_ChangeSelectiveSyncSettings
+        {
+            get
+            {
+                return _pageFolderSelection_ChangeSelectiveSyncSettings
+                    ?? (_pageFolderSelection_ChangeSelectiveSyncSettings = new RelayCommand(
+                                          () =>
+                                          {
+                                              //TODO: Actually handle a request for more space.
+                                              CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                                                  errorMessage: "You can't get more space right now.  It's not implemented yet..",
+                                                  title: "Information",
+                                                  headerText: "Not implemented!",
+                                                  rightButtonContent: Resources.Resources.generalOkButtonContent,
+                                                  rightButtonIsDefault: true,
+                                                  rightButtonIsCancel: true,
+                                                  container: ViewGridContainer,
+                                                  dialog: out _dialog,
+                                                  actionOkButtonHandler:
+                                                    returnedViewModelInstance =>
+                                                    {
+                                                        // Do nothing here when the user clicks the OK button.
+                                                    }
+                                              );
+                                          }));
+            }
+        }
+
         /// <summary>
         /// The user clicked the back button.
         /// </summary>
