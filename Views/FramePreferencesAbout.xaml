@@ -35,26 +35,28 @@
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0*"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="392*"/>
+            <ColumnDefinition Width="181*"/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="0*"/>
             <RowDefinition/>
-            <RowDefinition Height="26"/>
-            <RowDefinition Height="28"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="10"/>
             <RowDefinition Height="53"/>
             <RowDefinition Height="10"/>
             <RowDefinition Height="0*"/>
         </Grid.RowDefinitions>
             
-        <TextBlock Text="Version 1.1.1" Foreground="Black" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="2" Grid.Column="1" Width="Auto" />
+        <TextBlock Text="Version 1.1.1" Foreground="Black" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Grid.Row="2" Grid.Column="1" />
 
-        <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="Black" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="3" Grid.Column="1" Width="Auto" />
+        <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="Black" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                   Grid.Row="3" Grid.Column="1"  />
 
         <Button Name="cmdTwitter" Content="Button" HorizontalAlignment="Center" Height="33" Grid.Row="5" Grid.Column="1" Style="{DynamicResource twitterButton}" 
-                VerticalAlignment="Center" Width="33" Cursor="Hand" Background="{x:Null}"
+                VerticalAlignment="Center" Width="32" Cursor="Hand" Background="{x:Null}"
                 ToolTip="Follow us on twitter at http://twitter.com/clouddotcom."
                 Command="{Binding FramePreferencesAbout_FollowUsOnTwitter, Mode=OneWay}" >
         </Button>
