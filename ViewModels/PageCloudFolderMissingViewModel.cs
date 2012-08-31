@@ -79,6 +79,7 @@ namespace win_client.ViewModels
 
             BodyMessage = Resources.Resources.pageCloudFolderMissingBodyMesssage;
             OkButtonContent = CLAppDelegate.Instance.PageCloudFolderMissingOkButtonContent;
+            RightButtonTooltip = CLAppDelegate.Instance.PageCloudFolderMissingOkButtonTooltipContent;
         }
 
         /// <summary>
@@ -149,6 +150,36 @@ namespace win_client.ViewModels
 
                 _okButtonContent = value;
                 RaisePropertyChanged(OkButtonContentPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="RightButtonTooltip" /> property's name.
+        /// </summary>
+        public const string RightButtonTooltipPropertyName = "RightButtonTooltip";
+
+        private string _rightButtonTooltip = "";
+
+        /// <summary>
+        /// Sets and gets the RightButtonTooltip property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public string RightButtonTooltip
+        {
+            get
+            {
+                return _rightButtonTooltip;
+            }
+
+            set
+            {
+                if (_rightButtonTooltip == value)
+                {
+                    return;
+                }
+
+                _rightButtonTooltip = value;
+                RaisePropertyChanged(RightButtonTooltipPropertyName);
             }
         }
 
@@ -287,6 +318,7 @@ namespace win_client.ViewModels
                                                                             // but change the OK button to Locate... since we had trouble
                                                                             // restoring the folder from the recycle bin.
                                                                             this.OkButtonContent = Resources.Resources.pageCloudFolderMissingOkButtonLocate;
+                                                                            this.RightButtonTooltip = Resources.Resources.pageCloudFolderMissingOkButtonLocateTooltip;
                                                                         }
                                                                     }
                                                         );

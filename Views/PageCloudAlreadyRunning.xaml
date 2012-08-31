@@ -18,7 +18,7 @@
     xmlns:resx="clr-namespace:win_client.Resources"
     mc:Ignorable="d"
     DataContext="{Binding PageCloudAlreadyRunningViewModel, Source={StaticResource Locator}}" 
-    Title="Already Running!" Height="442" Width="624" >
+    WindowTitle="Already Running!" Height="442" Width="624" >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -45,21 +45,19 @@
             <RowDefinition Height="51"/>
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
-
-        <Border x:Name="borderFullBackground" Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="5" Grid.RowSpan="3" RenderTransformOrigin="0.5,0.5">
-            <Border.Background>
-                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
-            </Border.Background>
-        </Border>
+        
+        <Grid.Background>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Cloud_Folder_Missing.png"/>
+        </Grid.Background>
 
         <Grid x:Name="gridNonButtonArea" Grid.Column="2" Width="Auto" >
         	<Grid.RowDefinitions>
-        		<RowDefinition Height="108"/>
-        		<RowDefinition Height="79"/>
+        		<RowDefinition Height="69"/>
+        		<RowDefinition Height="118"/>
         		<RowDefinition/>
         		<RowDefinition Height="15"/>
         	</Grid.RowDefinitions>
-        	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="21.333" Grid.Row="1"
+        	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="17" Grid.Row="1"
                     Text="Sorry, your Cloud program is already running." />
         </Grid>
         <Grid x:Name="gridButtonArea" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3">
@@ -69,10 +67,10 @@
         		<ColumnDefinition Width="0.581*"/>
         		<ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
-        	<Button x:Name="cmdOK" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageCloudAlreadyRunningViewModel_OkCommand, Mode=OneTime}" TabIndex="0"
-        		HorizontalAlignment="Right" >
-                <AccessText Text="{x:Static resx:Resources.generalOkButtonContent}"/>
+            <Button x:Name="cmdOk" HorizontalAlignment="Right" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Column="2"
+                        Command="{Binding PageCloudAlreadyRunningViewModel_OkCommand, Mode=OneTime}" TabIndex="0" IsDefault="True" ToolTip="Click to continue.">
+                <AccessText Text="_Ok"/>
             </Button>
         </Grid>
     </Grid>

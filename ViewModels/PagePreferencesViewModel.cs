@@ -162,6 +162,30 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="PagePreferences_BackgroundImageSource" /> property's name.
+        /// </summary>
+        public const string PagePreferences_BackgroundImageSourcePropertyName = "PagePreferences_BackgroundImageSource";
+        private string _pagePreferences_BackgroundImageSource = CLConstants.kPagePreferencesBackgroundGeneral;
+        public string PagePreferences_BackgroundImageSource
+        {
+            get
+            {
+                return _pagePreferences_BackgroundImageSource;
+            }
+
+            set
+            {
+                if (_pagePreferences_BackgroundImageSource == value)
+                {
+                    return;
+                }
+
+                _pagePreferences_BackgroundImageSource = value;
+                RaisePropertyChanged(PagePreferences_BackgroundImageSourcePropertyName);
+            }
+        }
+
+        /// <summary>
         /// The <see cref="WindowCloseOk" /> property's name.
         /// </summary>
         public const string WindowCloseOkPropertyName = "WindowCloseOk";
@@ -237,11 +261,15 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_GeneralCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesGeneral, System.UriKind.Relative);
-                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+                                                // Set the general background
+                                                PagePreferences_BackgroundImageSource = CLConstants.kPagePreferencesBackgroundGeneral;
 
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = Resources.Resources.PagePreferencesGeneralTitle;
+                                                // Navigate to the next page
+                                                Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesGeneral, System.UriKind.Relative);
+                                                KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+
+                                                CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
+                                                Title = Resources.Resources.PagePreferencesGeneralTitle;
                                           }));
             }
         }
@@ -258,10 +286,14 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_AccountCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAccount, System.UriKind.Relative);
-                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = Resources.Resources.PagePreferencesAccountTitle;
+                                                // Set the general background
+                                                PagePreferences_BackgroundImageSource = CLConstants.kPagePreferencesBackgroundGeneral;
+
+                                                // Navigate to the next page
+                                                Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAccount, System.UriKind.Relative);
+                                                KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+                                                CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
+                                                Title = Resources.Resources.PagePreferencesAccountTitle;
                                           }));
             }
         }
@@ -276,13 +308,17 @@ namespace win_client.ViewModels
             {
                 return _pagePreferences_NetworkCommand
                     ?? (_pagePreferences_NetworkCommand = new RelayCommand(
-                                          () =>
-                                          {
-                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesNetwork, System.UriKind.Relative);
-                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = Resources.Resources.PagePreferencesNetworkTitle;
-                                          }));
+                                            () =>
+                                            {
+                                                // Set the general background
+                                                PagePreferences_BackgroundImageSource = CLConstants.kPagePreferencesBackgroundGeneral;
+
+                                                // Navigate to the next page
+                                                Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesNetwork, System.UriKind.Relative);
+                                                KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+                                                CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
+                                                Title = Resources.Resources.PagePreferencesNetworkTitle;
+                                            }));
             }
         }
 
@@ -298,10 +334,14 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_AdvancedCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAdvanced, System.UriKind.Relative);
-                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = Resources.Resources.PagePreferencesAdvancedTitle;
+                                                // Set the general background
+                                                PagePreferences_BackgroundImageSource = CLConstants.kPagePreferencesBackgroundGeneral;
+
+                                                // Navigate to the next page
+                                                Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAdvanced, System.UriKind.Relative);
+                                                KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+                                                CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
+                                                Title = Resources.Resources.PagePreferencesAdvancedTitle;
                                           }));
             }
         }
@@ -318,10 +358,14 @@ namespace win_client.ViewModels
                     ?? (_pagePreferences_AboutCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAbout, System.UriKind.Relative);
-                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
-                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
-                                              Title = Resources.Resources.PagePreferencesAboutTitle;
+                                                // Set the "about" background
+                                              PagePreferences_BackgroundImageSource = CLConstants.kPagePreferencesBackgroundAbout;
+
+                                                // Navigate to the next page
+                                                Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesAbout, System.UriKind.Relative);
+                                                KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+                                                CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
+                                                Title = Resources.Resources.PagePreferencesAboutTitle;
                                           }));
             }
         }

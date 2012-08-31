@@ -18,7 +18,7 @@
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
-    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    mc:Ignorable="d" d:DesignWidth="573" d:DesignHeight="315"
     DataContext="{Binding FramePreferencesAboutViewModel, Source={StaticResource Locator}}" 
     WindowTitle="About Cloud"
     x:Name="FramePreferencesAboutRoot">
@@ -34,38 +34,30 @@
     
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="105*"/>
-            <ColumnDefinition Width="403*"/>
-            <ColumnDefinition Width="105*"/>
+            <ColumnDefinition Width="0*"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="0*"/>
             <RowDefinition/>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="9"/>
-            <RowDefinition Height="34"/>
-            <RowDefinition Height="22"/>
-            <RowDefinition Height="74"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="19"/>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="28"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="53"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="0*"/>
         </Grid.RowDefinitions>
             
-        <Grid.Background>              
-            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/cl_inside_ptrn_logo_side.png"/>
-        </Grid.Background>
-        
-        <Rectangle Fill="#CCF4F4F5" Stroke="#34000000" RadiusX="8" RadiusY="8" Opacity="0.7" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1" Grid.RowSpan="6"/>
+        <TextBlock Text="Version 1.1.1" Foreground="Black" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="2" Grid.Column="1" Width="Auto" />
 
-        <Image Source="/Artwork/Cl_icon.png" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" />
-    
-        <TextBlock Text="Version 1.0, Build 42" Foreground="Black" FontSize="16" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="1" Grid.Column="1" Width="Auto" />
-
-        <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="Black" FontSize="16" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="3" Grid.Column="1" Width="Auto"  />
+        <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="Black" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Grid.Row="3" Grid.Column="1" Width="Auto" />
 
         <Button Name="cmdTwitter" Grid.Row="5" VerticalAlignment="Stretch" HorizontalAlignment="Center"
                 ToolTip="Follow us on twitter at http://twitter.com/clouddotcom."
-                Command="{Binding FramePreferencesAbout_FollowUsOnTwitter, Mode=OneWay}" Grid.Column="1" Width="90" >
+                Command="{Binding FramePreferencesAbout_FollowUsOnTwitter, Mode=OneWay}" Grid.Column="1" Width="50" >
             <StackPanel >
-                <Image Source="/Artwork/Twitter.png" Height="50" Width="50" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+                <Image Source="/Artwork/Twitter.png" Height="30" Width="30" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
                 <AccessText Text="T_witter" HorizontalAlignment="Center"/>
             </StackPanel>
         </Button>

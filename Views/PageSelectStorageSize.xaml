@@ -17,7 +17,7 @@
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageSelectStorageSizeViewModel, Source={StaticResource Locator}}" 
-    Title="Select Storage Size" >
+    WindowTitle="Select Storage Size" >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -93,7 +93,7 @@
                     <Label Content="_5 GB" Grid.Row="1" FontSize="16" Target="rb5Gb" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Blue"/>
                     <TextBlock TextWrapping="Wrap" Text="Free" Foreground="Black" FontSize="16" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
                     <RadioButton x:Name="rb5Gb" VerticalAlignment="Center" HorizontalAlignment="Center" 
-                         IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size5Gb, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="Group1"
+                         IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size5Gb, Converter={StaticResource RadioButtonStorageSizeSelectionsConverter}, Mode=TwoWay}" GroupName="Group1"
                          TabIndex="2" FontSize="16" Grid.Row="3"/>
                 </Grid>
                 <Button x:Name="btnCovering5GbRadioButtonArea" Grid.RowSpan="2"
@@ -105,7 +105,7 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <!--<Image Source="/Cloud;component/Artwork/cl_selectStorage_frame_ON.png" Grid.RowSpan="2"/>-->
-                <Image Grid.Row="1" Source="/Cloud;component/Artwork/cl_macinstall_Icon_storage50GB.tiff" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10"/>
+                <Image Grid.Row="1" Source="/Cloud;component/Artwork/cl_macinstall_Icon_storage50GB.tiff" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5,5,5,5"/>
                 <!--<Rectangle x:Name="rectShowUnselectedArea50Gb" Fill="#99FFFFFF" Margin="0" RadiusY="8" RadiusX="8" Stroke="#34000000" Grid.RowSpan="2" IsHitTestVisible="False"
                       Visibility="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size50Gb, Converter={StaticResource RadioButtonUnselectedVisibilityConverter}, Mode=TwoWay}"/>-->
                 <Grid Row="0">
@@ -119,7 +119,7 @@
                     <Label Content="5_0 GB" Grid.Row="1" FontSize="16" Target="rb50Gb" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Blue"/>
                     <TextBlock TextWrapping="Wrap" Text="$9 / Month" Foreground="Black" FontSize="16" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
                     <RadioButton x:Name="rb50Gb" VerticalAlignment="Center" HorizontalAlignment="Center" 
-                         IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size50Gb, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="Group1"
+                         IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size50Gb, Converter={StaticResource RadioButtonStorageSizeSelectionsConverter}, Mode=TwoWay}" GroupName="Group1"
                          TabIndex="3" FontSize="16" Grid.Row="3"/>
                 </Grid>
                 <Button x:Name="btnCovering50GbRadioButtonArea" Grid.RowSpan="2"
@@ -145,7 +145,7 @@
                     <Label Content="500 _GB" Grid.Row="1" FontSize="16" Target="rb500Gb" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Blue"/>
                     <TextBlock TextWrapping="Wrap" Text="$19 / Month" Foreground="Black" FontSize="16" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
                     <RadioButton x:Name="rb500Gb" VerticalAlignment="Center" HorizontalAlignment="Center" 
-                         IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size500Gb, Converter={StaticResource RadioButtonConverter}, Mode=TwoWay}" GroupName="Group1"
+                         IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size500Gb, Converter={StaticResource RadioButtonStorageSizeSelectionsConverter}, Mode=TwoWay}" GroupName="Group1"
                          TabIndex="4" FontSize="16" Grid.Row="3"/>
                 </Grid>
                 <Button x:Name="btnCovering500GbRadioButtonArea" Margin="0" Grid.RowSpan="2"

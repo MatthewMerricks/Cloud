@@ -1,6 +1,6 @@
 ﻿<!--
 //
-//  PageSelectStorageSize.xaml
+//  PageTour5.xaml
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -14,10 +14,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
+    xmlns:resx="clr-namespace:win_client.Resources"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     DataContext="{Binding PageTourViewModel, Source={StaticResource Locator}}" 
-    Title="Setup Complete" >
+    WindowTitle="Setup Complete" >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -55,28 +56,29 @@
         		<RowDefinition/>
         		<RowDefinition Height="10"/>
         	</Grid.RowDefinitions>
-        	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="16" Grid.Row="1"
+        	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="12" Grid.Row="1" Foreground="#0f0f0f"
                     Text="The installation is now complete, and your tour has come to an end. Thanks for spending time with us, enjoy your Cloud experience." />
-        	<CheckBox Content="_Open Cloud Folder" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" 
+        	<CheckBox Content="_Open Cloud Folder" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Foreground="#0f0f0f"
                       IsChecked="{Binding PageTour_OpenCloudFolderCommand, Mode=TwoWay}" Height="22" Margin="0,4,0,8" Width="151"/>
         </Grid>
-        <Grid x:Name="gridButtonArea" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3">
+        <Grid x:Name="gridButtonArea" Grid.Column="2" Grid.Row="1">
         	<Grid.ColumnDefinitions>
-        		<ColumnDefinition Width="146"/>
-        		<ColumnDefinition Width="0.419*"/>
-        		<ColumnDefinition Width="0.581*"/>
-        		<ColumnDefinition Width="22"/>
+        		<ColumnDefinition />
         	</Grid.ColumnDefinitions>
-        	<Button x:Name="cmdBack" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="1" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" HorizontalAlignment="Left">
-                <AccessText Text="_Back" />
-            </Button>
-            
-        	<Button x:Name="cmdContinue" FontSize="13.333" Width="100" Background="#FF49C3FB" Grid.Column="2" Template="{StaticResource StyledButtonTemplate}" 
-        		Command="{Binding PageTour_ContinueCommand, Mode=OneTime}" TabIndex="0"
-        		HorizontalAlignment="Right" IsDefault="True">
-                <AccessText Text="_Continue" />
-            </Button>
+
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" >
+                <Button x:Name="cmdNext" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
+                        Command="{Binding PageTour_ContinueCommand, Mode=OneTime}" TabIndex="2" IsDefault="True" ToolTip="Click to continue.">
+                    <AccessText Text="_Next"/>
+                </Button>
+
+                <Button x:Name="cmdBack" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
+                        Command="{Binding PageTour_BackCommand, Mode=OneTime}" TabIndex="1" Margin="15,0,0,0" ToolTip="Click to go to the previous tour page.">
+                    <AccessText Text="_Back"/>
+                </Button>
+            </StackPanel>
         </Grid>
     </Grid>
 </Page>

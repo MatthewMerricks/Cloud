@@ -185,7 +185,7 @@ namespace win_client.ViewModels
                                             {
                                                 //TODO: Actually handle a request for more space.
                                                 CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                                    errorMessage: "You can't get more space right now.  It's not implemented yet..",
+                                                    errorMessage: "You can't select your synced folders right now.  It's not implemented yet..",
                                                     title: "Information",
                                                     headerText: "Not implemented!",
                                                     rightButtonContent: Resources.Resources.generalOkButtonContent,

@@ -681,6 +681,13 @@
     <Resource Include="Artwork\WinClient_Splash_bg_650x485.png" />
     <Resource Include="Artwork\WinClient_CloudSetup_bg_650x485.png" />
     <Resource Include="Artwork\WinClient_CloudSetup_Text_Container_573x315.png" />
+    <Resource Include="Artwork\cl_win_icon_configure_48x48_.png" />
+    <Resource Include="Artwork\cl_win_icon_monitor_48x48_.png" />
+    <Resource Include="Artwork\WinClient_Preferences_bg_650x421.png" />
+    <Resource Include="Artwork\WinClient_Your_All_Set_bg_650x485.png" />
+    <Resource Include="Artwork\WinClient_Cloud_Folder_Missing.png" />
+    <Resource Include="Artwork\WinClient_Preferences_Text_Container_458x246.png" />
+    <Resource Include="Artwork\WinClient_Preferences_about_bg_650x421.png" />
     <Content Include="amd64\Microsoft.VC90.CRT\msvcr90.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

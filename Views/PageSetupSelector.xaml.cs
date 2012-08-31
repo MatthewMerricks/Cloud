@@ -80,7 +80,7 @@ namespace win_client.Views
             // Show the window.
             CLAppDelegate.ShowMainWindow(Window.GetWindow(this));
 
-            cmdContinue.Focus();
+            cmdNext.Focus();
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace win_client.Views
 
                 if (_isLoaded)
                 {
-                    cmdContinue.Focus();
+                    cmdNext.Focus();
                 }
 
                 var vm = DataContext as PageSetupSelectorViewModel;
@@ -150,7 +150,7 @@ namespace win_client.Views
         /// </summary>
         private void OnMessage_PageSetupSelectorViewSetFocusToContinueButton(string obj)
         {
-            cmdContinue.Focus();
+            cmdNext.Focus();
         }
 
         /// <summary>
