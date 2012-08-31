@@ -342,7 +342,8 @@
 		<col def="S0">ISDotNetInstallerArgsUninstall</col>
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
 		<row><td>AutomaticUpdaterWPF.dll</td><td>{FE1F7E2A-260D-45C0-9F93-57BFEC15505B}</td><td>INSTALLDIR</td><td>2</td><td/><td>automaticupdaterwpf.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>BadgeCOM.Primary_Output</td><td>{2B10A09F-BADB-429D-8288-6F7104C66C7A}</td><td>INSTALLDIR</td><td>2</td><td/><td>badgecom.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOM.dll</td><td>{893D7843-DB77-4282-B4EB-3C2A6DCBC332}</td><td>X86</td><td>2</td><td/><td>badgecom.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOM.dll1</td><td>{09F994D0-24E1-456A-AE45-7A72BC97519A}</td><td>AMD64</td><td>2</td><td/><td>badgecom.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeNET.Primary_output</td><td>{F9A20767-A22D-4D83-A21A-B3FA86EDFA95}</td><td>INSTALLDIR</td><td>2</td><td/><td>badgenet.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td>{84489268-EDF1-4D66-9B57-F8AED3BEC035}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapiprivate.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSdkPublic.Primary_output</td><td>{967E051F-636C-4A43-BCCE-FE9EDD2DA5CE}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsdkpublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -381,6 +382,9 @@
 		<row><td>System.Windows.Interactivity.dll</td><td>{A183DAD8-B99C-4E2A-8A9C-A5A9184A1389}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.windows.interactivity</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>WPFToolkit.Extended.dll</td><td>{5459704B-7E50-496C-B92F-3623B0F4BAEC}</td><td>INSTALLDIR</td><td>2</td><td/><td>wpftoolkit.extended.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>WebSocket4Net.dll</td><td>{4A24ACD6-31D2-416F-9AD6-76C8093D14D8}</td><td>INSTALLDIR</td><td>2</td><td/><td>websocket4net.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>atl100.dll</td><td>{1094F249-49C3-4E9A-A63D-7BF73D5EB304}</td><td>INSTALLDIR</td><td>2</td><td/><td>atl100.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcp100.dll</td><td>{B38A8478-F946-4AF7-A2C9-E059FD243018}</td><td>INSTALLDIR</td><td>2</td><td/><td>msvcp100.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcr100.dll</td><td>{01BC8504-99E8-4A48-A903-80873F034551}</td><td>INSTALLDIR</td><td>2</td><td/><td>msvcr100.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceca40.dll</td><td>{B6B913E0-DC6A-48CA-8C84-7638653FC16D}</td><td>AMD64</td><td>2</td><td/><td>sqlceca40.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceca40.dll1</td><td>{B9BAFE08-1C42-4B85-913A-071AB758FFB7}</td><td>X86</td><td>2</td><td/><td>sqlceca40.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlcecompact40.dll</td><td>{DF7B362A-1444-4721-8E8B-DFC68A5474C9}</td><td>AMD64</td><td>2</td><td/><td>sqlcecompact40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1125,7 +1129,7 @@
 		<row><td>ISSelfRegisterFinalize</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFinalize</td><td/><td/></row>
 		<row><td>ISUnSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISUnSelfRegisterFiles</td><td/><td/></row>
 		<row><td>LaunchProgramFileFromSetupCompleteSuccess</td><td>1</td><td>NewBinary19</td><td>LaunchProgram</td><td/><td/></row>
-		<row><td>RegisterComObjects</td><td>1042</td><td>registercom.exe</td><td>"[INSTALLDIR]BadgeCOM.dll"</td><td/><td/></row>
+		<row><td>RegisterComObjects</td><td>1042</td><td>registercom.exe</td><td>"[INSTALLDIR]"</td><td/><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td>51</td><td>ARPINSTALLLOCATION</td><td>[INSTALLDIR]</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%SystemRoot]\Profiles\All Users</td><td/><td/></row>
 		<row><td>ShowMsiLog</td><td>226</td><td>SystemFolder</td><td>[SystemFolder]notepad.exe "[MsiLogFileLocation]"</td><td/><td>Shows Property-driven MSI Log</td></row>
@@ -1925,7 +1929,8 @@
 		<col key="yes" def="s38">Feature_</col>
 		<col key="yes" def="s72">Component_</col>
 		<row><td>AlwaysInstall</td><td>AutomaticUpdaterWPF.dll</td></row>
-		<row><td>AlwaysInstall</td><td>BadgeCOM.Primary_Output</td></row>
+		<row><td>AlwaysInstall</td><td>BadgeCOM.dll</td></row>
+		<row><td>AlwaysInstall</td><td>BadgeCOM.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>BadgeNET.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudApiPrivate.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudSdkPublic.Primary_output</td></row>
@@ -1964,6 +1969,9 @@
 		<row><td>AlwaysInstall</td><td>System.Windows.Interactivity.dll</td></row>
 		<row><td>AlwaysInstall</td><td>WPFToolkit.Extended.dll</td></row>
 		<row><td>AlwaysInstall</td><td>WebSocket4Net.dll</td></row>
+		<row><td>AlwaysInstall</td><td>atl100.dll</td></row>
+		<row><td>AlwaysInstall</td><td>msvcp100.dll</td></row>
+		<row><td>AlwaysInstall</td><td>msvcr100.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceca40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceca40.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>sqlcecompact40.dll</td></row>
@@ -1991,8 +1999,10 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
+		<row><td>atl100.dll</td><td>atl100.dll</td><td>atl100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\atl100.dll</td><td>1</td><td/></row>
 		<row><td>automaticupdaterwpf.dll</td><td>AutomaticUpdaterWPF.dll</td><td>AUTOMA~1.DLL|AutomaticUpdaterWPF.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\AutomaticUpdaterWPF.dll</td><td>1</td><td/></row>
-		<row><td>badgecom.primary_output</td><td>BadgeCOM.Primary_Output</td><td>BadgeCOM.Primary Output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;BadgeCOM&gt;|Built</td><td>3</td><td/></row>
+		<row><td>badgecom.dll</td><td>BadgeCOM.dll</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\Release\BadgeCOM.dll</td><td>1</td><td/></row>
+		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x64\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgenet.primary_output</td><td>BadgeNET.Primary_output</td><td>BadgeNET.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;BadgeNET&gt;|Built</td><td>3</td><td/></row>
 		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\WyUpdater\wyUpdate\client.wyc</td><td>1</td><td/></row>
 		<row><td>cloudapiprivate.primary_outp</td><td>CloudApiPrivate.Primary_output</td><td>CloudApiPrivate.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPrivate&gt;|Built</td><td>3</td><td/></row>
@@ -2012,6 +2022,8 @@
 		<row><td>microsoft.practices.servicel</td><td>Microsoft.Practices.ServiceLocation.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.Practices.ServiceLocation.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest</td><td>ISX_DEFAULTCOMPONENT4</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest1</td><td>ISX_DEFAULTCOMPONENT5</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
+		<row><td>msvcp100.dll</td><td>msvcp100.dll</td><td>msvcp100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcp100.dll</td><td>1</td><td/></row>
+		<row><td>msvcr100.dll</td><td>msvcr100.dll</td><td>msvcr100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcr100.dll</td><td>1</td><td/></row>
 		<row><td>newtonsoft.json.dll</td><td>Newtonsoft.Json.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
 		<row><td>ookii.dialogs.wpfminustaskdi</td><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>OOKIID~1.DLL|Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
@@ -2300,7 +2312,8 @@
 		<col def="S0">HTTPLocation</col>
 		<col def="S0">Miscellaneous</col>
 		<row><td>AutomaticUpdaterWPF.dll</td><td/><td/><td>_ED74303C_9035_4C54_858D_A85315CD21D3_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>BadgeCOM.Primary_Output</td><td/><td/><td>_D6563B90_36FA_4426_BD05_ABFCE63C3A4D_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>BadgeCOM.dll</td><td/><td/><td>_C5B2510B_5A22_45FF_8B64_1D81F76BB2B6_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>BadgeCOM.dll1</td><td/><td/><td>_D14DBBFE_947B_4CAC_A12B_EA302A56D440_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>BadgeNET.Primary_output</td><td/><td/><td>_68A1F3C3_1D5C_4F81_B265_5C456D2987FE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td/><td/><td>_6027BBEB_0CBE_4E7D_B0B7_579A78009BD1_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSdkPublic.Primary_output</td><td/><td/><td>_2D07A2D1_ED2E_4198_8D5D_80C0A5671F51_FILTER</td><td/><td/><td/><td/></row>
@@ -2339,6 +2352,9 @@
 		<row><td>System.Windows.Interactivity.dll</td><td/><td/><td>_ED77A1E5_89F5_4D16_92E3_713C0CD15CB2_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>WPFToolkit.Extended.dll</td><td/><td/><td>_963BCA02_BF6A_4A38_8149_5400A0AE986F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>WebSocket4Net.dll</td><td/><td/><td>_12DFD945_CA1A_4110_9D63_E160321DD1DD_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>atl100.dll</td><td/><td/><td>_0DCC8B9B_0B13_4F59_A5E0_D78298D58768_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>msvcp100.dll</td><td/><td/><td>_E164DC66_44FA_40CE_8BB2_7FE418DC4B96_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>msvcr100.dll</td><td/><td/><td>_F8C395B4_5D80_4448_8027_37168A9F3E4C_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceca40.dll</td><td/><td/><td>_AAFD70F4_2184_405B_814A_8AEC3E8C1996_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceca40.dll1</td><td/><td/><td>_15B4040A_4EE1_48CB_978F_6C9DE854D437_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlcecompact40.dll</td><td/><td/><td>_4C8059BE_C8A2_4F65_B4F9_931EF0231377_FILTER</td><td/><td/><td/><td/></row>
