@@ -224,9 +224,14 @@ namespace win_client.Services.Indexing
             {
                 item = new CLMetadata(() =>
                     {
-                        lock (CLFSMonitoringService.Instance.IndexingAgent)
+                        CLFSMonitoringService.Instance.IndexingAgent.LastSyncLocker.EnterReadLock();
+                        try
                         {
                             return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                        }
+                        finally
+                        {
+                            CLFSMonitoringService.Instance.IndexingAgent.LastSyncLocker.ExitReadLock();
                         }
                     },
                     CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath,

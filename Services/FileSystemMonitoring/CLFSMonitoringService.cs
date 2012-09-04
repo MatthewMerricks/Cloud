@@ -84,13 +84,20 @@ namespace win_client.Services.FileSystemMonitoring
                 },
                 () =>
                 {
-                    lock (IndexingAgent)
+                    IndexingAgent.LastSyncLocker.EnterReadLock();
+                    try
                     {
                         return IndexingAgent.LastSyncId;
                     }
+                    finally
+                    {
+                        IndexingAgent.LastSyncLocker.ExitReadLock();
+                    }
                 },
                 IndexingAgent.MarkEventAsCompletedOnPreviousSync,
-                IndexingAgent.GetMetadataByPathAndRevision);
+                IndexingAgent.GetMetadataByPathAndRevision,
+                () => Settings.Instance.DeviceName,
+                () => IndexingAgent.CELocker);
             if (monitorToSet != null)
             {
                 this.MonitorAgent = monitorToSet;

@@ -715,9 +715,14 @@ namespace win_client.Services.Sync
                                     eventsReceived.Add(new KeyValuePair<CLEvent, FileStream>(
                                         CLEvent.EventFromMDSEvent(() =>
                                             {
-                                                lock (CLFSMonitoringService.Instance.IndexingAgent)
+                                                CLFSMonitoringService.Instance.IndexingAgent.LastSyncLocker.EnterReadLock();
+                                                try
                                                 {
                                                     return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                                                }
+                                                finally
+                                                {
+                                                    CLFSMonitoringService.Instance.IndexingAgent.LastSyncLocker.ExitReadLock();
                                                 }
                                             },
                                             () => Settings.Instance.CloudFolderPath,
@@ -993,9 +998,14 @@ namespace win_client.Services.Sync
                     CLMetadata fileMetadata =
                         new CLMetadata(() =>
                             {
-                                lock (CLFSMonitoringService.Instance.IndexingAgent)
+                                CLFSMonitoringService.Instance.IndexingAgent.LastSyncLocker.EnterReadLock();
+                                try
                                 {
                                     return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                                }
+                                finally
+                                {
+                                    CLFSMonitoringService.Instance.IndexingAgent.LastSyncLocker.ExitReadLock();
                                 }
                             },
                             CLFSMonitoringService.Instance.MonitorAgent.GetCurrentPath);
@@ -1416,9 +1426,14 @@ namespace win_client.Services.Sync
                                     new KeyValuePair<CLEvent, FileStream>(
                                         CLEvent.EventFromMDSEvent(() =>
                                         {
-                                            lock (CLFSMonitoringService.Instance.IndexingAgent)
+                                            CLFSMonitoringService.Instance.IndexingAgent.LastSyncLocker.EnterReadLock();
+                                            try
                                             {
                                                 return CLFSMonitoringService.Instance.IndexingAgent.LastSyncId;
+                                            }
+                                            finally
+                                            {
+                                                CLFSMonitoringService.Instance.IndexingAgent.LastSyncLocker.ExitReadLock();
                                             }
                                         },
                                         () => Settings.Instance.CloudFolderPath,

@@ -162,7 +162,7 @@
 //                    Position += offset;
 //                    break;
 //                default:
-//                    throw new ArgumentException("Uknown value for origin: " + origin.ToString());
+//                    throw new ArgumentException("Unknown value for origin: " + origin.ToString());
 //            }
 //            return streamLength;
 //        }

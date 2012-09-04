@@ -116,7 +116,7 @@ namespace FileMonitor
 
         // stores the callback used to process a group of events.  Passed via an intialization parameter
         private Func<GrabProcessedChanges,
-            Func<FileChange, FileChange, CLError>,
+            Func<FileChange, FileChange, bool, CLError>,
             Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>,
             bool,
             Func<string, IEnumerable<long>, string, CLError>,
@@ -126,13 +126,20 @@ namespace FileMonitor
             Func<FileChange, CLError>,
             Func<long, CLError>,
             MetadataByPathAndRevision,
+            Func<string>,
             CLError> SyncRun;
+        private GenericHolder<bool> SyncRunLocker = new GenericHolder<bool>(false);
+        private GenericHolder<bool> NextSyncQueued = new GenericHolder<bool>(false);
+
+        private Func<string> GetDeviceName;
+
+        private Func<ReaderWriterLockSlim> GetCELocker;
 
         // stores the callback used to add the processed event to the SQL index
         /// <summary>
         /// First parameter is merged event, second parameter is event to remove
         /// </summary>
-        private Func<FileChange, FileChange, CLError> ProcessMergeToSQL;
+        private Func<FileChange, FileChange, bool, CLError> ProcessMergeToSQL;
 
         // stores the callback used to complete a sync with a list of completed events
         /// <summary>
@@ -225,7 +232,7 @@ namespace FileMonitor
         public static CLError CreateNewAndInitialize(string folderPath,
             out MonitorAgent newAgent,
             Func<GrabProcessedChanges,
-                Func<FileChange, FileChange, CLError>,
+                Func<FileChange, FileChange, bool, CLError>,
                 Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>,
                 bool,
                 Func<string, IEnumerable<long>, string, CLError>,
@@ -235,12 +242,15 @@ namespace FileMonitor
                 Func<FileChange, CLError>,
                 Func<long, CLError>,
                 MetadataByPathAndRevision,
+                Func<string>,
                 CLError> syncRun,
-            Func<FileChange, FileChange, CLError> onProcessMergeToSQL,
+            Func<FileChange, FileChange, bool, CLError> onProcessMergeToSQL,
             Func<string, IEnumerable<long>, string, CLError> onProcessCompletedSync,
             Func<string> getLastSyncId,
             Func<long, CLError> completeSingleEvent,
             MetadataByPathAndRevision getMetadataByPathAndRevision,
+            Func<string> getDeviceName,
+            Func<ReaderWriterLockSlim> getCELocker,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
@@ -303,6 +313,8 @@ namespace FileMonitor
                 newAgent.LogProcessingFileChanges = logProcessing;
                 newAgent.CompleteSingleEvent = completeSingleEvent;
                 newAgent.GetMetadataByPathAndRevision = getMetadataByPathAndRevision;
+                newAgent.GetDeviceName = getDeviceName;
+                newAgent.GetCELocker = getCELocker;
 
                 // assign timer object that is used for processing the FileChange queues in batches
                 CLError queueTimerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(state =>
@@ -472,11 +484,23 @@ namespace FileMonitor
                         case FileChangeType.Deleted:
                             if (toApply.Metadata.HashableProperties.IsFolder)
                             {
-                                Directory.Delete(toApply.NewPath.ToString(), true);
+                                try
+                                {
+                                    Directory.Delete(toApply.NewPath.ToString(), true);
+                                }
+                                catch (DirectoryNotFoundException)
+                                {
+                                }
                             }
                             else
                             {
-                                File.Delete(toApply.NewPath.ToString());
+                                try
+                                {
+                                    File.Delete(toApply.NewPath.ToString());
+                                }
+                                catch (FileNotFoundException)
+                                {
+                                }
                             }
 
                             AllPaths.Remove(toApply.NewPath);
@@ -785,6 +809,9 @@ namespace FileMonitor
                 //// ¡¡ SQL CE does not support transactions !!
                 //using (TransactionScope PreprocessingScope = new TransactionScope())
                 //{
+                GetCELocker().EnterWriteLock();
+                try
+                {
                     PulledChanges = new HashSet<FileChangeWithDependencies>();
 
                     for (int outerChangeIndex = 0; outerChangeIndex < dependencyChanges.Length; outerChangeIndex++)
@@ -848,7 +875,7 @@ namespace FileMonitor
                                                     RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key);
                                                 }
                                             }
-                                            CLError updateSQLError = ProcessMergeToSQL(null, CurrentDisposal);
+                                            CLError updateSQLError = ProcessMergeToSQL(null, CurrentDisposal, true);
                                             if (updateSQLError != null)
                                             {
                                                 toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
@@ -864,9 +891,15 @@ namespace FileMonitor
                             }
                         }
                     }
+                }
+                finally
+                {
+                    GetCELocker().ExitWriteLock();
+                }
                 //// ¡¡ SQL CE does not support transactions !!
                     //PreprocessingScope.Complete();
                 //}
+
             }
             catch (Exception ex)
             {
@@ -954,7 +987,7 @@ namespace FileMonitor
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
-                                    CLError updateSqlError = ProcessMergeToSQL(CurrentEarlierChange, null);
+                                    CLError updateSqlError = ProcessMergeToSQL(CurrentEarlierChange, null, false);
                                     if (updateSqlError != null)
                                     {
                                         toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.GrabExceptions());
@@ -999,7 +1032,7 @@ namespace FileMonitor
                                         if (FilePathComparer.Instance.Equals(renamedOverlap, LaterChange.OldPath))
                                         {
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
-                                            CLError replacePathPortionError = ProcessMergeToSQL(CurrentEarlierChange, null);
+                                            CLError replacePathPortionError = ProcessMergeToSQL(CurrentEarlierChange, null, false);
                                             if (replacePathPortionError != null)
                                             {
                                                 toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
@@ -1110,7 +1143,7 @@ namespace FileMonitor
                             if (FilePathComparer.Instance.Equals(renamedOverlap, CurrentEarlierChange.NewPath))
                             {
                                 renamedOverlapChild.Parent = CurrentEarlierChange.OldPath;
-                                CLError replacePathPortionError = ProcessMergeToSQL(LaterChange, null);
+                                CLError replacePathPortionError = ProcessMergeToSQL(LaterChange, null, false);
                                 if (replacePathPortionError != null)
                                 {
                                     toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
@@ -1399,7 +1432,7 @@ namespace FileMonitor
                                                             newCreationTime,
                                                             countFileSize);
 
-                                                        CLError writeNewMetadataError = ProcessMergeToSQL(CurrentDependencyTree.DependencyFileChange, null);
+                                                        CLError writeNewMetadataError = ProcessMergeToSQL(CurrentDependencyTree.DependencyFileChange, null, false);
                                                         if (writeNewMetadataError != null)
                                                         {
                                                             throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.GrabExceptions());
@@ -2678,7 +2711,7 @@ namespace FileMonitor
         {
             RemoveFileChangeFromQueuedChanges(sender);
 
-            CLError mergeError = ProcessMergeToSQL(sender, null);
+            CLError mergeError = ProcessMergeToSQL(sender, null, false);
             if (mergeError == null)
             {
                 lock (QueuesTimer.TimerRunningLocker)
@@ -2933,23 +2966,38 @@ namespace FileMonitor
 
         private void ProcessQueuesAfterTimer(bool emptyProcessingQueue)
         {
-            // run Sync
-            (new Thread(new ParameterizedThreadStart(RunOnProcessEventGroupCallback)))
-                .Start(new object[]
+            lock (SyncRunLocker)
+            {
+                if (SyncRunLocker.Value)
                 {
-                    (GrabProcessedChanges)this.GrabPreprocessedChanges,
-                    this.ProcessMergeToSQL,
-                    (Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>)this.AddFileChangesToProcessingQueue,
-                    emptyProcessingQueue,
-                    this.ProcessCompletedSync,
-                    this.GetLastSyncId,
-                    (DependencyAssignments)this.AssignDependencies,
-                    (Func<string>)this.GetCurrentPath,
-                    (Func<FileChange, CLError>)this.ApplySyncFromFileChange,
-                    (Func<long, CLError>)this.CompleteSingleEvent,
-                    (MetadataByPathAndRevision)this.GetMetadataByPathAndRevision,
-                    this.SyncRun
-                });
+                    NextSyncQueued.Value = true;
+                }
+                else
+                {
+                    SyncRunLocker.Value = true;
+
+                    // run Sync
+                    (new Thread(new ParameterizedThreadStart(RunOnProcessEventGroupCallback)))
+                        .Start(new object[]
+                        {
+                            (GrabProcessedChanges)this.GrabPreprocessedChanges,
+                            this.ProcessMergeToSQL,
+                            (Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>)this.AddFileChangesToProcessingQueue,
+                            emptyProcessingQueue,
+                            this.ProcessCompletedSync,
+                            this.GetLastSyncId,
+                            (DependencyAssignments)this.AssignDependencies,
+                            (Func<string>)this.GetCurrentPath,
+                            (Func<FileChange, CLError>)this.ApplySyncFromFileChange,
+                            (Func<long, CLError>)this.CompleteSingleEvent,
+                            (MetadataByPathAndRevision)this.GetMetadataByPathAndRevision,
+                            this.GetDeviceName,
+                            this.SyncRun,
+                            SyncRunLocker,
+                            NextSyncQueued
+                        });
+                }
+            }
 
             // FileChanges are now sorted when Sync calls back to ProcessFileListForSyncProcessing in this class
 
@@ -3004,7 +3052,7 @@ namespace FileMonitor
             //{
             //    batchedChanges[batchedChangeIndex] = currentOtherFile;
             //    batchedChangeIndex++;
-            //}\
+            //}
         }
 
         private static void RunOnProcessEventGroupCallback(object state)
@@ -3013,10 +3061,10 @@ namespace FileMonitor
             bool matchedParameters = false;
 
             if (castState != null
-                && castState.Length == 12)
+                && castState.Length == 15)
             {
                 GrabProcessedChanges argOne = castState[0] as GrabProcessedChanges;
-                Func<FileChange, FileChange, CLError> argTwo = castState[1] as Func<FileChange, FileChange, CLError>;
+                Func<FileChange, FileChange, bool, CLError> argTwo = castState[1] as Func<FileChange, FileChange, bool, CLError>;
                 Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> argThree = castState[2] as Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>;
                 Nullable<bool> argFourNullable = castState[3] as Nullable<bool>;
                 Func<string, IEnumerable<long>, string, CLError> argFive = castState[4] as Func<string, IEnumerable<long>, string, CLError>;
@@ -3026,9 +3074,10 @@ namespace FileMonitor
                 Func<FileChange, CLError> argNine = castState[8] as Func<FileChange, CLError>;
                 Func<long, CLError> argTen = castState[9] as Func<long, CLError>;
                 MetadataByPathAndRevision argEleven = castState[10] as MetadataByPathAndRevision;
+                Func<string> argTwelve = castState[11] as Func<string>;
 
                 Func<GrabProcessedChanges,
-                    Func<FileChange, FileChange, CLError>,
+                    Func<FileChange, FileChange, bool, CLError>,
                     Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>,
                     bool,
                     Func<string, IEnumerable<long>, string, CLError>,
@@ -3038,24 +3087,51 @@ namespace FileMonitor
                     Func<FileChange, CLError>,
                     Func<long, CLError>,
                     MetadataByPathAndRevision,
-                    CLError> RunSyncRun = castState[11] as Func<GrabProcessedChanges, Func<FileChange, FileChange, CLError>, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>, bool, Func<string, IEnumerable<long>, string, CLError>, Func<string>, DependencyAssignments, Func<string>, Func<FileChange, CLError>, Func<long, CLError>, MetadataByPathAndRevision, CLError>;
+                    Func<string>,
+                    CLError> RunSyncRun = castState[12] as Func<GrabProcessedChanges, Func<FileChange, FileChange, bool, CLError>, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>, bool, Func<string, IEnumerable<long>, string, CLError>, Func<string>, DependencyAssignments, Func<string>, Func<FileChange, CLError>, Func<long, CLError>, MetadataByPathAndRevision, Func<string>, CLError>;
+
+                GenericHolder<bool> RunLocker = castState[13] as GenericHolder<bool>;
+                GenericHolder<bool> NextRunQueued = castState[14] as GenericHolder<bool>;
 
                 if (argFourNullable != null
-                    && RunSyncRun != null)
+                    && RunSyncRun != null
+                    && RunLocker != null
+                    && NextRunQueued != null)
                 {
                     matchedParameters = true;
 
-                    RunSyncRun(argOne,
-                        argTwo,
-                        argThree,
-                        (bool)argFourNullable,
-                        argFive,
-                        argSix,
-                        argSeven,
-                        argEight,
-                        argNine,
-                        argTen,
-                        argEleven);
+                    Func<GenericHolder<bool>, GenericHolder<bool>, bool> runAgain = (runLock, nextQueue) =>
+                        {
+                            lock (runLock)
+                            {
+                                if (nextQueue.Value)
+                                {
+                                    nextQueue.Value = false;
+                                    return true;
+                                }
+                                else
+                                {
+                                    runLock.Value = false;
+                                    return false;
+                                }
+                            }
+                        };
+
+                    do
+                    {
+                        RunSyncRun(argOne,
+                            argTwo,
+                            argThree,
+                            (bool)argFourNullable,
+                            argFive,
+                            argSix,
+                            argSeven,
+                            argEight,
+                            argNine,
+                            argTen,
+                            argEleven,
+                            argTwelve);
+                    } while (runAgain(RunLocker, NextRunQueued));
                 }
             }
 

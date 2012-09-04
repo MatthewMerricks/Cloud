@@ -38,7 +38,7 @@ namespace SQLIndexer
             byte[] decodeChars = Convert.FromBase64String(indexDBPassword);
             return Encoding.ASCII.GetString(decodeChars);
         }
-        private const string connectionStringFormatter = "data source={0};password={1};lcid=1033;case sensitive=TRUE"; // 1033 is Locale ID for English - United States
+        private const string connectionStringFormatter = "data source={0};password={1};lcid=1033;case sensitive=TRUE;default lock timeout=300000"; // 1033 is Locale ID for English - United States
         private const string entityStringFormatter = "metadata=res://SQLIndexer/IndexModel.csdl|res://SQLIndexer/IndexModel.ssdl|res://SQLIndexer/IndexModel.msl;provider=System.Data.SqlServerCe.4.0;provider connection string=\"{0}\"";
         private static string buildConnectionString(string indexDBLocation)
         {
@@ -49,6 +49,8 @@ namespace SQLIndexer
             return string.Format(entityStringFormatter, buildConnectionString(indexDBLocation));
         }
         private const string indexScriptsResourceFolder = ".IndexDBScripts.";
+
+        public readonly ReaderWriterLockSlim CELocker = new ReaderWriterLockSlim();
         #endregion
 
         // store dictionaries to convert between the FileChangetype enumeration and its integer value in the database,
@@ -67,6 +69,7 @@ namespace SQLIndexer
         /// Store the last Sync Id, starts null before indexing; lock on the IndexingAgent instance for all reads/writes
         /// </summary>
         public string LastSyncId { get; private set; }
+        public readonly ReaderWriterLockSlim LastSyncLocker = new ReaderWriterLockSlim();
         #endregion
 
         /// <summary>
@@ -246,6 +249,7 @@ namespace SQLIndexer
         /// <returns>Returns an error that occurred retrieving the file system state, if any</returns>
         public CLError GetLastSyncStates(out FilePathDictionary<SyncedObject> syncStates)
         {
+            CELocker.EnterReadLock();
             try
             {
                 using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
@@ -305,11 +309,16 @@ namespace SQLIndexer
                 syncStates = null;
                 return ex;
             }
+            finally
+            {
+                CELocker.ExitReadLock();
+            }
             return null;
         }
 
         public CLError GetMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata)
         {
+            CELocker.EnterReadLock();
             try
             {
                 if (string.IsNullOrEmpty(path))
@@ -380,6 +389,10 @@ namespace SQLIndexer
                 metadata = Helpers.DefaultForType<FileMetadata>();
                 return ex;
             }
+            finally
+            {
+                CELocker.ExitReadLock();
+            }
             return null;
         }
 
@@ -390,6 +403,7 @@ namespace SQLIndexer
         /// <returns>Returns an error that occurred filling the unprocessed events, if any</returns>
         public CLError GetEventsSinceLastSync(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
         {
+            CELocker.EnterReadLock();
             try
             {
                 using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
@@ -404,7 +418,7 @@ namespace SQLIndexer
                         : lastSync.SyncCounter);
 
                     // Create the output list
-                    changeEvents = new List<KeyValuePair<FilePath,FileChange>>();
+                    changeEvents = new List<KeyValuePair<FilePath, FileChange>>();
 
                     // Loop through all the events in the database after the last sync (if any)
                     foreach (Event currentChange in
@@ -415,7 +429,7 @@ namespace SQLIndexer
                             .OrderBy(currentChange => currentChange.SyncCounter))
                     {
                         // For each event since the last sync (if any), add to the output dictionary
-                        changeEvents.Add(new KeyValuePair<FilePath,FileChange>(currentChange.FileSystemObject.Path,
+                        changeEvents.Add(new KeyValuePair<FilePath, FileChange>(currentChange.FileSystemObject.Path,
                             new FileChange()
                             {
                                 NewPath = currentChange.FileSystemObject.Path,
@@ -441,6 +455,10 @@ namespace SQLIndexer
                 changeEvents = Helpers.DefaultForType<List<KeyValuePair<FilePath, FileChange>>>();
                 return ex;
             }
+            finally
+            {
+                CELocker.ExitReadLock();
+            }
             return null;
         }
 
@@ -452,6 +470,7 @@ namespace SQLIndexer
         /// <returns>Returns error that occurred when adding the event to database, if any</returns>
         public CLError AddEvent(FileChange newEvent)
         {
+            CELocker.EnterReadLock();
             try
             {
                 // Ensure input parameter is set
@@ -502,7 +521,7 @@ namespace SQLIndexer
                                 RevisionIsNull = newEvent.Metadata.Revision == null,
                                 StorageKey = newEvent.Metadata.StorageKey,
                                 TargetPath = (newEvent.Metadata.LinkTargetPath == null ? null : newEvent.Metadata.LinkTargetPath.ToString()),
-                                
+
                                 // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
                                 PathChecksum = StringCRC.Crc(newPathString)
                             },
@@ -526,6 +545,10 @@ namespace SQLIndexer
             {
                 return ex;
             }
+            finally
+            {
+                CELocker.ExitReadLock();
+            }
             return null;
         }
 
@@ -536,6 +559,7 @@ namespace SQLIndexer
         /// <returns>Returns an error in removing the event, if any</returns>
         public CLError RemoveEventById(long eventId)
         {
+            CELocker.EnterReadLock();
             try
             {
                 using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
@@ -559,6 +583,10 @@ namespace SQLIndexer
             {
                 return ex;
             }
+            finally
+            {
+                CELocker.ExitReadLock();
+            }
             return null;
         }
 
@@ -569,6 +597,7 @@ namespace SQLIndexer
         /// <returns>Returns an error in removing events, if any</returns>
         public CLError RemoveEventsByIds(IEnumerable<long> eventIds)
         {
+            CELocker.EnterReadLock();
             try
             {
                 // copy event id collection to array, defaulting to an empty array
@@ -615,6 +644,10 @@ namespace SQLIndexer
             {
                 return ex;
             }
+            finally
+            {
+                CELocker.ExitReadLock();
+            }
             return null;
         }
 
@@ -643,6 +676,9 @@ namespace SQLIndexer
                 //// automatic rollback on failure
                 //using (TransactionScope completionSync = new TransactionScope())
                 //{
+                CELocker.EnterWriteLock();
+                try
+                {
                     using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                     {
                         // Retrieve last sync if it exists
@@ -1068,17 +1104,27 @@ namespace SQLIndexer
 
                         // Finish writing any unsaved changes to the database
                         indexDB.SaveChanges();
-                        
-                //// ¡¡ SQL CE does not support transactions !!
-                    //    // No errors occurred, so the transaction can be completed
-                    //    completionSync.Complete();
+
+                        //// ¡¡ SQL CE does not support transactions !!
+                        //    // No errors occurred, so the transaction can be completed
+                        //    completionSync.Complete();
                     }
 
                     // update the exposed last sync id upon sync completion
-                    lock (this)
+                    LastSyncLocker.EnterWriteLock();
+                    try
                     {
                         this.LastSyncId = syncId;
                     }
+                    finally
+                    {
+                        LastSyncLocker.ExitWriteLock();
+                    }
+                }
+                finally
+                {
+                    CELocker.ExitWriteLock();
+                }
                 
                 //// ¡¡ SQL CE does not support transactions !!
                 //}
@@ -1101,6 +1147,9 @@ namespace SQLIndexer
                 //// ¡¡ SQL CE does not support transactions !!
                 //using (TransactionScope scope = new TransactionScope())
                 //{
+                CELocker.EnterWriteLock();
+                try
+                {
                     using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                     {
                         Sync emptySync = new Sync()
@@ -1110,11 +1159,16 @@ namespace SQLIndexer
                         };
                         indexDB.Syncs.Add(emptySync);
                         indexDB.SaveChanges();
-                        
+                    }
+                }
+                finally
+                {
+                    CELocker.ExitWriteLock();
+                }
                 //// ¡¡ SQL CE does not support transactions !!
                     //    scope.Complete();
                     //}
-                }
+                //}
             }
             catch (Exception ex)
             {
@@ -1146,7 +1200,7 @@ namespace SQLIndexer
         /// <param name="eventToRemove">Previous event to set if an old event is being replaced in the process</param>
         /// <returns>Returns an error from merging the events, if any</returns>
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public CLError MergeEventIntoDatabase(FileChange mergedEvent, FileChange eventToRemove)
+        public CLError MergeEventIntoDatabase(FileChange mergedEvent, FileChange eventToRemove, bool alreadyObtainedLock = false)
         {
             try
             {
@@ -1175,93 +1229,107 @@ namespace SQLIndexer
                 // defaulting to none
                 Nullable<long> eventIdToUpdate = null;
 
-                using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
+                if (!alreadyObtainedLock)
                 {
-                    // If the mergedEvent already has an id (exists in database),
-                    // then the database event will be updated at the mergedEvent id;
-                    // also, if the oldEvent exists in the database, it needs to be removed
-                    if (mergedEvent == null
-                        || mergedEvent.EventId > 0)
+                    CELocker.EnterReadLock();
+                }
+                try
+                {
+                    using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                     {
-                        if (eventToRemove != null
-                            && eventToRemove.EventId > 0
-                            // added the following condition in case both events to merge together share a single database event
-                            // which should not be removed
-                            && (mergedEvent == null || mergedEvent.EventId != eventToRemove.EventId))
+                        // If the mergedEvent already has an id (exists in database),
+                        // then the database event will be updated at the mergedEvent id;
+                        // also, if the oldEvent exists in the database, it needs to be removed
+                        if (mergedEvent == null
+                            || mergedEvent.EventId > 0)
+                        {
+                            if (eventToRemove != null
+                                && eventToRemove.EventId > 0
+                                // added the following condition in case both events to merge together share a single database event
+                                // which should not be removed
+                                && (mergedEvent == null || mergedEvent.EventId != eventToRemove.EventId))
+                            {
+                                // Find the existing event for the given id
+                                Event toDelete = indexDB.Events.FirstOrDefault(currentEvent => currentEvent.EventId == eventToRemove.EventId);
+                                // Throw exception if an existing event does not exist
+                                if (toDelete == null)
+                                {
+                                    throw new Exception("Event not found to delete");
+                                }
+                                // Remove the found event from the database
+                                indexDB.Events.Remove(toDelete);
+                            }
+
+                            // If the mergedEvent it null and the oldEvent is set with a valid eventId,
+                            // then save only the deletion of the oldEvent and return
+                            if (mergedEvent == null)
+                            {
+                                indexDB.SaveChanges();
+                                return null;
+                            }
+
+                            eventIdToUpdate = mergedEvent.EventId;
+                        }
+                        // Else if the mergedEvent does not have an id in the database
+                        // and the oldEvent exists and has an id in the database,
+                        // then the database event will be updated at the oldEvent id
+                        // and the event id should be moved to the mergedEvent
+                        else if (eventToRemove != null
+                            && eventToRemove.EventId > 0)
+                        {
+                            mergedEvent.EventId = eventToRemove.EventId;
+
+                            eventIdToUpdate = eventToRemove.EventId;
+                        }
+
+                        // If an id for the database event already exists,
+                        // then update the object in the database with the latest properties from mergedEvent
+                        if (eventIdToUpdate != null)
                         {
                             // Find the existing event for the given id
-                            Event toDelete = indexDB.Events.FirstOrDefault(currentEvent => currentEvent.EventId == eventToRemove.EventId);
+                            Event toModify = indexDB.Events
+                                .Include(parent => parent.FileSystemObject)
+                                .FirstOrDefault(currentEvent => currentEvent.EventId == mergedEvent.EventId);
                             // Throw exception if an existing event does not exist
-                            if (toDelete == null)
+                            if (toModify == null)
                             {
                                 throw new Exception("Event not found to delete");
                             }
-                            // Remove the found event from the database
-                            indexDB.Events.Remove(toDelete);
-                        }
+                            // Throw exception if existing event does not have a FileSystemObject to modify
+                            if (toModify.FileSystemObject == null)
+                            {
+                                throw new Exception("Event does not have required FileSystemObject");
+                            }
 
-                        // If the mergedEvent it null and the oldEvent is set with a valid eventId,
-                        // then save only the deletion of the oldEvent and return
-                        if (mergedEvent == null)
-                        {
+                            // Update database object with latest event properties
+                            toModify.FileChangeTypeEnumId = changeEnumsBackward[mergedEvent.Type];
+                            toModify.PreviousPath = (mergedEvent.OldPath == null
+                                ? null
+                                : mergedEvent.OldPath.ToString());
+                            toModify.FileSystemObject.CreationTime = (mergedEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                ? (Nullable<DateTime>)null
+                                : mergedEvent.Metadata.HashableProperties.CreationTime);
+                            toModify.FileSystemObject.IsFolder = mergedEvent.Metadata.HashableProperties.IsFolder;
+                            toModify.FileSystemObject.LastTime = (mergedEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                ? (Nullable<DateTime>)null
+                                : mergedEvent.Metadata.HashableProperties.LastTime);
+                            toModify.FileSystemObject.Path = mergedEvent.NewPath.ToString();
+                            toModify.FileSystemObject.Size = mergedEvent.Metadata.HashableProperties.Size;
+                            toModify.FileSystemObject.TargetPath = (mergedEvent.Metadata.LinkTargetPath == null ? null : mergedEvent.Metadata.LinkTargetPath.ToString());
+                            toModify.FileSystemObject.Revision = mergedEvent.Metadata.Revision ?? string.Empty;
+                            toModify.FileSystemObject.RevisionIsNull = mergedEvent.Metadata.Revision == null;
+                            toModify.FileSystemObject.StorageKey = mergedEvent.Metadata.StorageKey;
+
+                            // Save event update (and possibly old event removal) to database
                             indexDB.SaveChanges();
-                            return null;
                         }
-
-                        eventIdToUpdate = mergedEvent.EventId;
                     }
-                    // Else if the mergedEvent does not have an id in the database
-                    // and the oldEvent exists and has an id in the database,
-                    // then the database event will be updated at the oldEvent id
-                    // and the event id should be moved to the mergedEvent
-                    else if (eventToRemove != null
-                        && eventToRemove.EventId > 0)
+                }
+                finally
+                {
+                    if (!alreadyObtainedLock)
                     {
-                        mergedEvent.EventId = eventToRemove.EventId;
-
-                        eventIdToUpdate = eventToRemove.EventId;
-                    }
-
-                    // If an id for the database event already exists,
-                    // then update the object in the database with the latest properties from mergedEvent
-                    if (eventIdToUpdate != null)
-                    {
-                        // Find the existing event for the given id
-                        Event toModify = indexDB.Events
-                            .Include(parent => parent.FileSystemObject)
-                            .FirstOrDefault(currentEvent => currentEvent.EventId == mergedEvent.EventId);
-                        // Throw exception if an existing event does not exist
-                        if (toModify == null)
-                        {
-                            throw new Exception("Event not found to delete");
-                        }
-                        // Throw exception if existing event does not have a FileSystemObject to modify
-                        if (toModify.FileSystemObject == null)
-                        {
-                            throw new Exception("Event does not have required FileSystemObject");
-                        }
-
-                        // Update database object with latest event properties
-                        toModify.FileChangeTypeEnumId = changeEnumsBackward[mergedEvent.Type];
-                        toModify.PreviousPath = (mergedEvent.OldPath == null
-                            ? null
-                            : mergedEvent.OldPath.ToString());
-                        toModify.FileSystemObject.CreationTime = (mergedEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                            ? (Nullable<DateTime>)null
-                            : mergedEvent.Metadata.HashableProperties.CreationTime);
-                        toModify.FileSystemObject.IsFolder = mergedEvent.Metadata.HashableProperties.IsFolder;
-                        toModify.FileSystemObject.LastTime = (mergedEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                            ? (Nullable<DateTime>)null
-                            : mergedEvent.Metadata.HashableProperties.LastTime);
-                        toModify.FileSystemObject.Path = mergedEvent.NewPath.ToString();
-                        toModify.FileSystemObject.Size = mergedEvent.Metadata.HashableProperties.Size;
-                        toModify.FileSystemObject.TargetPath = (mergedEvent.Metadata.LinkTargetPath == null ? null : mergedEvent.Metadata.LinkTargetPath.ToString());
-                        toModify.FileSystemObject.Revision = mergedEvent.Metadata.Revision ?? string.Empty;
-                        toModify.FileSystemObject.RevisionIsNull = mergedEvent.Metadata.Revision == null;
-                        toModify.FileSystemObject.StorageKey = mergedEvent.Metadata.StorageKey;
-
-                        // Save event update (and possibly old event removal) to database
-                        indexDB.SaveChanges();
+                        CELocker.ExitReadLock();
                     }
                 }
 
@@ -1364,6 +1432,9 @@ namespace SQLIndexer
                 Event currentEvent = null;              // scope outside for badging reference
                 //using (TransactionScope transaction = new TransactionScope())
                 //{
+                CELocker.EnterWriteLock();
+                try
+                {
                     using (IndexDBEntities indexDB = new IndexDBEntities(buildEntityString(this.indexDBLocation)))
                     {
                         // grab the event from the database by provided id
@@ -1565,11 +1636,18 @@ namespace SQLIndexer
 
                         // Finish writing any unsaved changes to the database
                         indexDB.SaveChanges();
+                    }
+                }
+                finally
+                {
+                    CELocker.ExitWriteLock();
+                }
+
                 //// ¡¡ SQL CE does not support transactions !!
                     //    // No errors occurred, so the transaction can be completed
                     //    transaction.Complete();
                     //}
-                }
+                //}
 
                 Action<FilePath> setBadgeSynced = syncedPath =>
                     {
@@ -1648,11 +1726,16 @@ namespace SQLIndexer
                     : lastSync.SyncCounter);
 
                 // Update the exposed last sync id string under a lock
-                lock (this)
+                LastSyncLocker.EnterWriteLock();
+                try
                 {
                     this.LastSyncId = (lastSync == null
                         ? null
                         : lastSync.SyncId);
+                }
+                finally
+                {
+                    LastSyncLocker.ExitWriteLock();
                 }
 
                 // Create a list for changes that need to be processed after the last sync

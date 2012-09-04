@@ -4749,7 +4749,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[INSTALLDIR]win-client.Primary output</td><td/></row>
 		<row><td>ProductCode</td><td>{5BEB6668-C562-480D-ADAB-BDCCC7A9CD02}</td><td/></row>
 		<row><td>ProductName</td><td>Cloud</td><td/></row>
-		<row><td>ProductVersion</td><td>1.1.1.0</td><td/></row>
+		<row><td>ProductVersion</td><td>1.1.2.0</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
