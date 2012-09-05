@@ -621,7 +621,17 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 				{
 					// Error writing to the pipe
 					DWORD err = GetLastError();
-					CLTRACE(9, "ContextMenuExt: InvokeCommand: ERROR: Writing to pipe.  Code: %ld.", err);
+					CLTRACE(9, "ContextMenuExt: InvokeCommand: ERROR: Writing to pipe.  Code: %ld. Tell the user.", err);
+					std::wstring errorMessage(L"An error occurred while communicating with Cloud (2), operation cancelled: ");
+					wchar_t *dwErrorChar = new wchar_t[10];
+					wsprintf(dwErrorChar, L"%d", err);
+					errorMessage.append(dwErrorChar);
+					free(dwErrorChar);
+
+					MessageBox(lpcmi->hwnd,
+						errorMessage.c_str(),
+						L"Cloud",
+						MB_OK|MB_ICONINFORMATION);
 				}
 			}
 		}
