@@ -16,8 +16,6 @@
 #include "resource.h"
 #include "Trace.h"
 #include "psapi.h"
-//// for debugging only:
-//#include <fstream>
 
 using namespace std;
 
@@ -87,7 +85,9 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 		TYMED_HGLOBAL
 	};
 	STGMEDIUM stg = { TYMED_HGLOBAL };
-	HDROP hDrop;
+	HDROP hDrop = NULL;
+	bool allocatedStgMedium = false;
+	wchar_t *hDropCurrentChar = NULL;
 
 	try
 	{
@@ -99,6 +99,7 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 			CLTRACE(9, "ContextMenuExt: Initialize: Return E_INVALIDARG.");
 			return E_INVALIDARG;
 		}
+		allocatedStgMedium = true;
 
 		// Get a pointer to the actual data.
 		hDrop = (HDROP)GlobalLock(stg.hGlobal);
@@ -107,6 +108,8 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 		if (NULL == hDrop)
 		{
 			CLTRACE(9, "ContextMenuExt: Initialize: Return E_INVALIDARG (2).");
+			ReleaseStgMedium(&stg);
+			allocatedStgMedium = false;
 			return E_INVALIDARG;
 		}
 	
@@ -119,10 +122,14 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 		}
 
 		int hDropStartIndex = hDropFiles->pFiles;
-		wchar_t *hDropCurrentChar = (wchar_t *)malloc((MAX_PATH + 1) * sizeof(wchar_t));
+		hDropCurrentChar = (wchar_t *)malloc((MAX_PATH + 1) * sizeof(wchar_t));
 		if (hDropCurrentChar == NULL)
 		{
 			CLTRACE(9, "ContextMenuExt: Initialize: Return E_INVALIDARG (3).");
+			GlobalUnlock(stg.hGlobal);
+			hDrop = NULL;
+			ReleaseStgMedium(&stg);
+			allocatedStgMedium = false;
 			return E_INVALIDARG;
 		}
 
@@ -148,16 +155,23 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 		if (hDropStartIndex == hDropFiles->pFiles)
 		{
 			CLTRACE(9, "ContextMenuExt: Initialize: ERROR: No files selected.");
+			free(hDropCurrentChar);
+			hDropCurrentChar = NULL;
 			GlobalUnlock(stg.hGlobal);
+			hDrop = NULL;
 			ReleaseStgMedium(&stg);
+			allocatedStgMedium = false;
 			return E_INVALIDARG;
 		}
 
 		// free locally allocated memory
 		CLTRACE(9, "ContextMenuExt: Initialize: Clean up.");
 		free(hDropCurrentChar);
+		hDropCurrentChar = NULL;
 		GlobalUnlock(stg.hGlobal);
+		hDrop = NULL;
 		ReleaseStgMedium(&stg);
+		allocatedStgMedium = false;
 
 		CLTRACE(9, "ContextMenuExt: Initialize: Return %d.", hr);
 		return hr;
@@ -166,6 +180,26 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 	{
 		CLTRACE(9, "ContextMenuExt: Initialize: ERROR: Exception: %s.", ex.what());
 	}
+
+	// Free resources
+	CLTRACE(9, "ContextMenuExt: Initialize: Free resources.");
+	if (hDropCurrentChar != NULL)
+	{
+		free(hDropCurrentChar);
+		hDropCurrentChar = NULL;
+	}
+	if (hDrop != NULL)
+	{
+		GlobalUnlock(stg.hGlobal);
+		hDrop = NULL;
+	}
+
+	if (allocatedStgMedium)
+	{
+		ReleaseStgMedium(&stg);
+		allocatedStgMedium = false;
+	}
+
 
 	CLTRACE(9, "ContextMenuExt: Initialize: Return E_INVALIDARG (4).");
 	return E_INVALIDARG;
@@ -185,7 +219,7 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 
 	try
 	{
-	CLTRACE(9, "ContextMenuExt: QueryContextMenu: Entry.");
+		CLTRACE(9, "ContextMenuExt: QueryContextMenu: Entry.");
 		if(!(CMF_DEFAULTONLY & uFlags))
 		{
 			// Check to see if the Cloud.exe program is there.  Don't add the menu item if we can't start Cloud.
@@ -194,6 +228,7 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 				CLTRACE(9, "ContextMenuExt: QueryContextMenu: Cloud.exe is not present.  Return.");
 				return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(0));
 			}
+
 			// Adds the custom menu item to the contex menu
 			CLTRACE(9, "ContextMenuExt: QueryContextMenu: Insert our context menu entry.");
 			InsertMenu(hMenu,
@@ -415,7 +450,7 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 					CLTRACE(9, "ContextMenuExt: InvokeCommand: Opened successfully.");
 					break;
 				}
-				// Pipe not successful, find out if it should try again
+				// Pipe open not successful, find out if it should try again
 				else
 				{
 					// store not successful reason
@@ -733,8 +768,16 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters)
 		pwszParam = 0; 
 
 		// Release handles
-		CloseHandle(piProcessInfo.hProcess); 
-		CloseHandle(piProcessInfo.hThread); 
+		if (piProcessInfo.hProcess != NULL)
+		{
+			CloseHandle(piProcessInfo.hProcess); 
+		}
+
+		if (piProcessInfo.hThread != NULL)
+		{
+			CloseHandle(piProcessInfo.hThread); 
+		}
+
 	    return iReturnVal; 
 	}
 	catch (exception ex)
