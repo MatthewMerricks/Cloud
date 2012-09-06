@@ -12,6 +12,10 @@ bool Trace::instanceFlag = false;
 Trace* Trace::single = NULL;
 CRITICAL_SECTION Trace::cs;
 
+//@@@@@@@@@@@@@@@Remove this for release
+#define _DEBUG 1
+
+
 Trace* Trace::getInstance()
 {
     if(! instanceFlag)
