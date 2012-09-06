@@ -942,124 +942,137 @@ namespace Sync
                                             downloadResponse = (HttpWebResponse)ex.Response;
                                         }
 
-                                        string responseBody = null;
                                         try
                                         {
-                                            if (downloadResponse.StatusCode != HttpStatusCode.OK)
+                                            string responseBody = null;
+                                            try
                                             {
-                                                try
-                                                {
-                                                    using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
-                                                    {
-                                                        using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
-                                                        {
-                                                            responseBody = downloadResponseStreamReader.ReadToEnd();
-                                                        }
-                                                    }
-                                                }
-                                                catch
-                                                {
-                                                }
-
-                                                throw new Exception("Invalid HTTP response status code in file download: " + ((int)downloadResponse.StatusCode).ToString() +
-                                                    (responseBody == null ? string.Empty
-                                                        : Environment.NewLine + "Response:" + Environment.NewLine +
-                                                        responseBody));
-                                            }
-                                            else
-                                            {
-                                                responseBody = "---Incomplete file download---";
-
-                                                Guid newTempFile = Guid.NewGuid();
-                                                castState.TempDownloads.Add(newTempFile);
-                                                string newTempFileString = castState.GetTempFolder() + "\\" + newTempFile.ToString("N");
-
-                                                using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
-                                                {
-                                                    using (FileStream tempFileStream = new FileStream(newTempFileString, FileMode.Create, FileAccess.Write, FileShare.None))
-                                                    {
-                                                        byte[] data = new byte[CLDefinitions.SyncConstantsResponseBufferSize];
-                                                        int read;
-                                                        while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
-                                                        {
-                                                            tempFileStream.Write(data, 0, read);
-                                                        }
-                                                        tempFileStream.Flush();
-                                                    }
-                                                }
-
-                                                File.SetCreationTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.CreationTime);
-                                                File.SetLastAccessTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
-                                                File.SetLastWriteTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
-
-                                                CLError applyError;
-                                                lock (FileChange.UpDownEventLocker)
-                                                {
-                                                    applyError = applySyncFromChange(new FileChange()
-                                                    {
-                                                        Direction = SyncDirection.From,
-                                                        DoNotAddToSQLIndex = true,
-                                                        Metadata = toComplete.Key.Metadata,
-                                                        NewPath = toComplete.Key.NewPath,
-                                                        OldPath = newTempFileString,
-                                                        Type = FileChangeType.Renamed
-                                                    });
-                                                }
-                                                if (applyError != null)
+                                                if (downloadResponse.StatusCode != HttpStatusCode.OK)
                                                 {
                                                     try
                                                     {
-                                                        File.Delete(newTempFileString);
+                                                        using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
+                                                        {
+                                                            using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
+                                                            {
+                                                                responseBody = downloadResponseStreamReader.ReadToEnd();
+                                                            }
+                                                        }
                                                     }
-                                                    catch (Exception ex)
+                                                    catch
                                                     {
-                                                        throw new AggregateException("applySyncFromChange returned error and failed to delete temp download file", new Exception[] { applyError.GrabFirstException(), ex });
                                                     }
-                                                    throw applyError.GrabFirstException();
+
+                                                    throw new Exception("Invalid HTTP response status code in file download: " + ((int)downloadResponse.StatusCode).ToString() +
+                                                        (responseBody == null ? string.Empty
+                                                            : Environment.NewLine + "Response:" + Environment.NewLine +
+                                                            responseBody));
                                                 }
                                                 else
                                                 {
-                                                    castState.TempDownloads.Remove(newTempFile);
-                                                    responseBody = "---Completed file download---";
+                                                    responseBody = "---Incomplete file download---";
 
-                                                    FileChangeWithDependencies toCompleteWithDependencies = toComplete.Key as FileChangeWithDependencies;
-                                                    if (toCompleteWithDependencies != null
-                                                        && toCompleteWithDependencies.DependenciesCount > 0)
+                                                    Guid newTempFile = Guid.NewGuid();
+                                                    castState.TempDownloads.Add(newTempFile);
+                                                    string newTempFileString = castState.GetTempFolder() + "\\" + newTempFile.ToString("N");
+
+                                                    using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
                                                     {
-                                                        GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
-                                                        CLError err = castState.AddChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, true, errList);
-                                                        if (errList.Value != null)
+                                                        using (FileStream tempFileStream = new FileStream(newTempFileString, FileMode.Create, FileAccess.Write, FileShare.None))
                                                         {
-                                                            foreach (FileChange currentError in errList.Value)
+                                                            byte[] data = new byte[CLDefinitions.SyncConstantsResponseBufferSize];
+                                                            int read;
+                                                            while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
                                                             {
-                                                                FailedChangesQueue.Enqueue(currentError);
-
-                                                                castState.FailureTimer.StartTimerIfNotRunning();
+                                                                tempFileStream.Write(data, 0, read);
                                                             }
-                                                        }
-                                                        if (err != null)
-                                                        {
-                                                            err.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                                                            tempFileStream.Flush();
                                                         }
                                                     }
 
-                                                    return new KeyValuePair<long, Func<long, CLError>>(toComplete.Key.EventId, castState.CompleteSingleEvent);
+                                                    File.SetCreationTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.CreationTime);
+                                                    File.SetLastAccessTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
+                                                    File.SetLastWriteTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
+
+                                                    CLError applyError;
+                                                    lock (FileChange.UpDownEventLocker)
+                                                    {
+                                                        applyError = applySyncFromChange(new FileChange()
+                                                        {
+                                                            Direction = SyncDirection.From,
+                                                            DoNotAddToSQLIndex = true,
+                                                            Metadata = toComplete.Key.Metadata,
+                                                            NewPath = toComplete.Key.NewPath,
+                                                            OldPath = newTempFileString,
+                                                            Type = FileChangeType.Renamed
+                                                        });
+                                                    }
+                                                    if (applyError != null)
+                                                    {
+                                                        try
+                                                        {
+                                                            File.Delete(newTempFileString);
+                                                        }
+                                                        catch (Exception ex)
+                                                        {
+                                                            throw new AggregateException("applySyncFromChange returned error and failed to delete temp download file", new Exception[] { applyError.GrabFirstException(), ex });
+                                                        }
+                                                        throw applyError.GrabFirstException();
+                                                    }
+                                                    else
+                                                    {
+                                                        castState.TempDownloads.Remove(newTempFile);
+                                                        responseBody = "---Completed file download---";
+
+                                                        FileChangeWithDependencies toCompleteWithDependencies = toComplete.Key as FileChangeWithDependencies;
+                                                        if (toCompleteWithDependencies != null
+                                                            && toCompleteWithDependencies.DependenciesCount > 0)
+                                                        {
+                                                            GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
+                                                            CLError err = castState.AddChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, true, errList);
+                                                            if (errList.Value != null)
+                                                            {
+                                                                foreach (FileChange currentError in errList.Value)
+                                                                {
+                                                                    FailedChangesQueue.Enqueue(currentError);
+
+                                                                    castState.FailureTimer.StartTimerIfNotRunning();
+                                                                }
+                                                            }
+                                                            if (err != null)
+                                                            {
+                                                                err.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                                                            }
+                                                        }
+
+                                                        return new KeyValuePair<long, Func<long, CLError>>(toComplete.Key.EventId, castState.CompleteSingleEvent);
+                                                    }
+                                                }
+                                            }
+                                            finally
+                                            {
+                                                if (Settings.Instance.TraceEnabled)
+                                                {
+                                                    Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                                        Settings.Instance.Udid,
+                                                        Settings.Instance.Uuid,
+                                                        CommunicationEntryDirection.Response,
+                                                        CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathDownload,
+                                                        true,
+                                                        downloadResponse.Headers,
+                                                        responseBody,
+                                                        Settings.Instance.TraceExcludeAuthorization);
                                                 }
                                             }
                                         }
                                         finally
                                         {
-                                            if (Settings.Instance.TraceEnabled)
+                                            try
                                             {
-                                                Trace.LogCommunication(Settings.Instance.TraceLocation,
-                                                    Settings.Instance.Udid,
-                                                    Settings.Instance.Uuid,
-                                                    CommunicationEntryDirection.Response,
-                                                    CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathDownload,
-                                                    true,
-                                                    downloadResponse.Headers,
-                                                    responseBody,
-                                                    Settings.Instance.TraceExcludeAuthorization);
+                                                downloadResponse.Close();
+                                            }
+                                            catch
+                                            {
                                             }
                                         }
                                     }
@@ -1269,73 +1282,86 @@ namespace Sync
                                     uploadResponse = (HttpWebResponse)ex.Response;
                                 }
 
-                                string responseBody = "---File upload incomplete---";
                                 try
                                 {
-                                    if (uploadResponse.StatusCode != HttpStatusCode.OK
-                                        && uploadResponse.StatusCode != HttpStatusCode.Created
-                                        && uploadResponse.StatusCode != HttpStatusCode.NotModified)
+                                    string responseBody = "---File upload incomplete---";
+                                    try
                                     {
-                                        try
+                                        if (uploadResponse.StatusCode != HttpStatusCode.OK
+                                            && uploadResponse.StatusCode != HttpStatusCode.Created
+                                            && uploadResponse.StatusCode != HttpStatusCode.NotModified)
                                         {
-                                            using (Stream downloadResponseStream = uploadResponse.GetResponseStream())
+                                            try
                                             {
-                                                using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
+                                                using (Stream downloadResponseStream = uploadResponse.GetResponseStream())
                                                 {
-                                                    responseBody = downloadResponseStreamReader.ReadToEnd();
+                                                    using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
+                                                    {
+                                                        responseBody = downloadResponseStreamReader.ReadToEnd();
+                                                    }
                                                 }
                                             }
-                                        }
-                                        catch
-                                        {
-                                        }
+                                            catch
+                                            {
+                                            }
 
-                                        throw new Exception("Invalid HTTP response status code in file upload: " + ((int)uploadResponse.StatusCode).ToString() +
-                                            (responseBody == null ? string.Empty
-                                                : Environment.NewLine + "Response:" + Environment.NewLine +
-                                                responseBody));
+                                            throw new Exception("Invalid HTTP response status code in file upload: " + ((int)uploadResponse.StatusCode).ToString() +
+                                                (responseBody == null ? string.Empty
+                                                    : Environment.NewLine + "Response:" + Environment.NewLine +
+                                                    responseBody));
+                                        }
+                                        else
+                                        {
+                                            responseBody = "---File upload complete---";
+
+                                            FileChangeWithDependencies toCompleteWithDependencies = toComplete.Key as FileChangeWithDependencies;
+                                            if (toCompleteWithDependencies != null
+                                                && toCompleteWithDependencies.DependenciesCount > 0)
+                                            {
+                                                GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
+                                                CLError err = castState.AddChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, true, errList);
+                                                if (errList.Value != null)
+                                                {
+                                                    foreach (FileChange currentError in errList.Value)
+                                                    {
+                                                        FailedChangesQueue.Enqueue(currentError);
+
+                                                        castState.FailureTimer.StartTimerIfNotRunning();
+                                                    }
+                                                }
+                                                if (err != null)
+                                                {
+                                                    err.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                                                }
+                                            }
+
+                                            return new KeyValuePair<long, Func<long, CLError>>(toComplete.Key.EventId, castState.CompleteSingleEvent);
+                                        }
                                     }
-                                    else
+                                    finally
                                     {
-                                        responseBody = "---File upload complete---";
-
-                                        FileChangeWithDependencies toCompleteWithDependencies = toComplete.Key as FileChangeWithDependencies;
-                                        if (toCompleteWithDependencies != null
-                                            && toCompleteWithDependencies.DependenciesCount > 0)
+                                        if (Settings.Instance.TraceEnabled)
                                         {
-                                            GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
-                                            CLError err = castState.AddChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, true, errList);
-                                            if (errList.Value != null)
-                                            {
-                                                foreach (FileChange currentError in errList.Value)
-                                                {
-                                                    FailedChangesQueue.Enqueue(currentError);
-
-                                                    castState.FailureTimer.StartTimerIfNotRunning();
-                                                }
-                                            }
-                                            if (err != null)
-                                            {
-                                                err.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                                            }
+                                            Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                                Settings.Instance.Udid,
+                                                Settings.Instance.Uuid,
+                                                CommunicationEntryDirection.Response,
+                                                CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload,
+                                                true,
+                                                uploadResponse.Headers,
+                                                responseBody,
+                                                Settings.Instance.TraceExcludeAuthorization);
                                         }
-
-                                        return new KeyValuePair<long, Func<long, CLError>>(toComplete.Key.EventId, castState.CompleteSingleEvent);
                                     }
                                 }
                                 finally
                                 {
-                                    if (Settings.Instance.TraceEnabled)
+                                    try
                                     {
-                                        Trace.LogCommunication(Settings.Instance.TraceLocation,
-                                            Settings.Instance.Udid,
-                                            Settings.Instance.Uuid,
-                                            CommunicationEntryDirection.Response,
-                                            CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload,
-                                            true,
-                                            uploadResponse.Headers,
-                                            responseBody,
-                                            Settings.Instance.TraceExcludeAuthorization);
+                                        uploadResponse.Close();
+                                    }
+                                    catch
+                                    {
                                     }
                                 }
                             }
@@ -1558,57 +1584,70 @@ namespace Sync
                     }
 
                     JsonContracts.PurgePendingResponse deserializedResponse;
-                    using (Stream purgeHttpWebResponseStream = purgeResponse.GetResponseStream())
+                    try
                     {
-                        Stream purgeResponseStream = (Settings.Instance.TraceEnabled
-                            ? Helpers.CopyHttpWebResponseStreamAndClose(purgeHttpWebResponseStream)
-                            : purgeHttpWebResponseStream);
+                        using (Stream purgeHttpWebResponseStream = purgeResponse.GetResponseStream())
+                        {
+                            Stream purgeResponseStream = (Settings.Instance.TraceEnabled
+                                ? Helpers.CopyHttpWebResponseStreamAndClose(purgeHttpWebResponseStream)
+                                : purgeHttpWebResponseStream);
 
+                            try
+                            {
+                                if (Settings.Instance.TraceEnabled)
+                                {
+                                    Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                        Settings.Instance.Udid,
+                                        Settings.Instance.Uuid,
+                                        CommunicationEntryDirection.Response,
+                                        CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathPurgePending,
+                                        true,
+                                        purgeResponse.Headers,
+                                        purgeResponseStream,
+                                        Settings.Instance.TraceExcludeAuthorization);
+                                }
+
+                                if (purgeResponse.StatusCode != HttpStatusCode.OK
+                                    && purgeResponse.StatusCode != HttpStatusCode.Accepted)
+                                {
+                                    string purgeResponseString = null;
+                                    // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
+                                    try
+                                    {
+                                        using (TextReader purgeResponseStreamReader = new StreamReader(purgeResponseStream, Encoding.UTF8))
+                                        {
+                                            purgeResponseString = purgeResponseStreamReader.ReadToEnd();
+                                        }
+                                    }
+                                    catch
+                                    {
+                                    }
+
+                                    throw new Exception("Invalid HTTP response status code in Purge Pending: " + ((int)purgeResponse.StatusCode).ToString() +
+                                        (purgeResponseString == null ? string.Empty
+                                            : Environment.NewLine + "Response:" + Environment.NewLine +
+                                            purgeResponseString));
+                                }
+
+                                deserializedResponse = (JsonContracts.PurgePendingResponse)PurgePendingResponseSerializer.ReadObject(purgeResponseStream);
+                            }
+                            finally
+                            {
+                                if (Settings.Instance.TraceEnabled)
+                                {
+                                    purgeResponseStream.Dispose();
+                                }
+                            }
+                        }
+                    }
+                    finally
+                    {
                         try
                         {
-                            if (Settings.Instance.TraceEnabled)
-                            {
-                                Trace.LogCommunication(Settings.Instance.TraceLocation,
-                                    Settings.Instance.Udid,
-                                    Settings.Instance.Uuid,
-                                    CommunicationEntryDirection.Response,
-                                    CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathPurgePending,
-                                    true,
-                                    purgeResponse.Headers,
-                                    purgeResponseStream,
-                                    Settings.Instance.TraceExcludeAuthorization);
-                            }
-
-                            if (purgeResponse.StatusCode != HttpStatusCode.OK
-                                && purgeResponse.StatusCode != HttpStatusCode.Accepted)
-                            {
-                                string purgeResponseString = null;
-                                // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
-                                try
-                                {
-                                    using (TextReader purgeResponseStreamReader = new StreamReader(purgeResponseStream, Encoding.UTF8))
-                                    {
-                                        purgeResponseString = purgeResponseStreamReader.ReadToEnd();
-                                    }
-                                }
-                                catch
-                                {
-                                }
-
-                                throw new Exception("Invalid HTTP response status code in Purge Pending: " + ((int)purgeResponse.StatusCode).ToString() +
-                                    (purgeResponseString == null ? string.Empty
-                                        : Environment.NewLine + "Response:" + Environment.NewLine +
-                                        purgeResponseString));
-                            }
-
-                            deserializedResponse = (JsonContracts.PurgePendingResponse)PurgePendingResponseSerializer.ReadObject(purgeResponseStream);
+                            purgeResponse.Close();
                         }
-                        finally
+                        catch
                         {
-                            if (Settings.Instance.TraceEnabled)
-                            {
-                                purgeResponseStream.Dispose();
-                            }
                         }
                     }
                 }
@@ -1795,57 +1834,69 @@ namespace Sync
                         }
 
                         JsonContracts.To currentBatchResponse;
-
-                        using (Stream toHttpWebResponseStream = toResponse.GetResponseStream())
+                        try
                         {
-                            Stream toResponseStream = (Settings.Instance.TraceEnabled
-                                ? Helpers.CopyHttpWebResponseStreamAndClose(toHttpWebResponseStream)
-                                : toHttpWebResponseStream);
+                            using (Stream toHttpWebResponseStream = toResponse.GetResponseStream())
+                            {
+                                Stream toResponseStream = (Settings.Instance.TraceEnabled
+                                    ? Helpers.CopyHttpWebResponseStreamAndClose(toHttpWebResponseStream)
+                                    : toHttpWebResponseStream);
 
+                                try
+                                {
+                                    if (Settings.Instance.TraceEnabled)
+                                    {
+                                        Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                            Settings.Instance.Udid,
+                                            Settings.Instance.Uuid,
+                                            CommunicationEntryDirection.Response,
+                                            syncToHostAndMethod,
+                                            true,
+                                            toResponse.Headers,
+                                            toResponseStream,
+                                            Settings.Instance.TraceExcludeAuthorization);
+                                    }
+
+                                    if (toResponse.StatusCode != HttpStatusCode.OK)
+                                    {
+                                        string toResponseString = null;
+                                        // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
+                                        try
+                                        {
+                                            using (TextReader toResponseStreamReader = new StreamReader(toResponseStream, Encoding.UTF8))
+                                            {
+                                                toResponseString = toResponseStreamReader.ReadToEnd();
+                                            }
+                                        }
+                                        catch
+                                        {
+                                        }
+
+                                        throw new Exception("Invalid HTTP response status code in Sync To: " + ((int)toResponse.StatusCode).ToString() +
+                                            (toResponseString == null ? string.Empty
+                                                : Environment.NewLine + "Response:" + Environment.NewLine +
+                                                toResponseString));
+                                    }
+
+                                    currentBatchResponse = (JsonContracts.To)ToSerializer.ReadObject(toResponseStream);
+                                }
+                                finally
+                                {
+                                    if (Settings.Instance.TraceEnabled)
+                                    {
+                                        toResponseStream.Dispose();
+                                    }
+                                }
+                            }
+                        }
+                        finally
+                        {
                             try
                             {
-                                if (Settings.Instance.TraceEnabled)
-                                {
-                                    Trace.LogCommunication(Settings.Instance.TraceLocation,
-                                        Settings.Instance.Udid,
-                                        Settings.Instance.Uuid,
-                                        CommunicationEntryDirection.Response,
-                                        syncToHostAndMethod,
-                                        true,
-                                        toResponse.Headers,
-                                        toResponseStream,
-                                        Settings.Instance.TraceExcludeAuthorization);
-                                }
-
-                                if (toResponse.StatusCode != HttpStatusCode.OK)
-                                {
-                                    string toResponseString = null;
-                                    // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
-                                    try
-                                    {
-                                        using (TextReader toResponseStreamReader = new StreamReader(toResponseStream, Encoding.UTF8))
-                                        {
-                                            toResponseString = toResponseStreamReader.ReadToEnd();
-                                        }
-                                    }
-                                    catch
-                                    {
-                                    }
-
-                                    throw new Exception("Invalid HTTP response status code in Sync To: " + ((int)toResponse.StatusCode).ToString() +
-                                        (toResponseString == null ? string.Empty
-                                            : Environment.NewLine + "Response:" + Environment.NewLine +
-                                            toResponseString));
-                                }
-
-                                currentBatchResponse = (JsonContracts.To)ToSerializer.ReadObject(toResponseStream);
+                                toResponse.Close();
                             }
-                            finally
+                            catch
                             {
-                                if (Settings.Instance.TraceEnabled)
-                                {
-                                    toResponseStream.Dispose();
-                                }
                             }
                         }
 
@@ -2135,34 +2186,72 @@ namespace Sync
                                             case CLDefinitions.CLEventTypeAccepted:
                                             case CLDefinitions.CLEventTypeExists:
                                             case CLDefinitions.CLEventTypeDuplicate:
-                                                KeyValuePair<bool, FileChange> addCompletedChange = new KeyValuePair<bool, FileChange>(metadataIsDifferent,
-                                                    currentChange);
-                                                if (currentStream != null)
+                                            case CLDefinitions.CLEventTypeNotFound:
+                                            case CLDefinitions.CLEventTypeDownload:
+                                                if (currentEvent.Header.Status == CLDefinitions.CLEventTypeNotFound
+                                                    && currentChange.Type != FileChangeType.Deleted)
                                                 {
-                                                    completedStreams.Add(currentStream);
-                                                    try
+                                                    currentChange.Type = FileChangeType.Created;
+                                                    currentChange.OldPath = null;
+                                                    currentChange.Metadata.Revision = null;
+                                                    currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
+                                                    currentChange.Metadata.StorageKey = null;
+
+                                                    KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>> notFoundChange = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>(true,
+                                                        new KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>(currentChange,
+                                                            new KeyValuePair<FileStream, Exception>(currentStream,
+                                                                new Exception(CLDefinitions.CLEventTypeNotFound + " " +
+                                                                        (currentEvent.Header.Action ?? currentEvent.Action) +
+                                                                        " " + currentChange.EventId + " " + currentChange.NewPath.ToString()))));
+
+                                                    if (changesInErrorList.ContainsKey(currentChange.EventId))
                                                     {
-                                                        currentStream.Dispose();
+                                                        KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] previousErrors = changesInErrorList[currentChange.EventId];
+                                                        KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] newErrors = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[previousErrors.Length + 1];
+                                                        previousErrors.CopyTo(newErrors, 0);
+                                                        newErrors[previousErrors.Length] = notFoundChange;
+                                                        changesInErrorList[currentChange.EventId] = newErrors;
                                                     }
-                                                    catch
+                                                    else
                                                     {
+                                                        changesInErrorList.Add(currentChange.EventId,
+                                                            new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]
+                                                            {
+                                                                notFoundChange
+                                                            });
                                                     }
-                                                }
-                                                if (completedChangesList.ContainsKey(currentChange.EventId))
-                                                {
-                                                    KeyValuePair<bool, FileChange>[] previousCompleted = completedChangesList[currentChange.EventId];
-                                                    KeyValuePair<bool, FileChange>[] newCompleted = new KeyValuePair<bool, FileChange>[previousCompleted.Length + 1];
-                                                    previousCompleted.CopyTo(newCompleted, 0);
-                                                    newCompleted[previousCompleted.Length] = addCompletedChange;
-                                                    completedChangesList[currentChange.EventId] = newCompleted;
                                                 }
                                                 else
                                                 {
-                                                    completedChangesList.Add(currentChange.EventId,
-                                                        new KeyValuePair<bool, FileChange>[]
+                                                    KeyValuePair<bool, FileChange> addCompletedChange = new KeyValuePair<bool, FileChange>(metadataIsDifferent,
+                                                        currentChange);
+                                                    if (currentStream != null)
+                                                    {
+                                                        completedStreams.Add(currentStream);
+                                                        try
+                                                        {
+                                                            currentStream.Dispose();
+                                                        }
+                                                        catch
+                                                        {
+                                                        }
+                                                    }
+                                                    if (completedChangesList.ContainsKey(currentChange.EventId))
+                                                    {
+                                                        KeyValuePair<bool, FileChange>[] previousCompleted = completedChangesList[currentChange.EventId];
+                                                        KeyValuePair<bool, FileChange>[] newCompleted = new KeyValuePair<bool, FileChange>[previousCompleted.Length + 1];
+                                                        previousCompleted.CopyTo(newCompleted, 0);
+                                                        newCompleted[previousCompleted.Length] = addCompletedChange;
+                                                        completedChangesList[currentChange.EventId] = newCompleted;
+                                                    }
+                                                    else
+                                                    {
+                                                        completedChangesList.Add(currentChange.EventId,
+                                                            new KeyValuePair<bool, FileChange>[]
                                                     {
                                                         addCompletedChange
                                                     });
+                                                    }
                                                 }
                                                 break;
                                             case CLDefinitions.CLEventTypeConflict:
@@ -2338,37 +2427,6 @@ namespace Sync
                                                         new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]
                                                     {
                                                         addErrorChange
-                                                    });
-                                                }
-                                                break;
-                                            case CLDefinitions.CLEventTypeNotFound:
-                                                currentChange.Type = FileChangeType.Created;
-                                                currentChange.OldPath = null;
-                                                currentChange.Metadata.Revision = null;
-                                                currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-                                                currentChange.Metadata.StorageKey = null;
-                                                
-                                                KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>> notFoundChange = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>(true,
-                                                    new KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>(currentChange,
-                                                        new KeyValuePair<FileStream, Exception>(currentStream,
-                                                            new Exception(CLDefinitions.CLEventTypeNotFound + " " +
-                                                                    (currentEvent.Header.Action ?? currentEvent.Action) +
-                                                                    " " + currentChange.EventId + " " + currentChange.NewPath.ToString()))));
-
-                                                if (changesInErrorList.ContainsKey(currentChange.EventId))
-                                                {
-                                                    KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] previousErrors = changesInErrorList[currentChange.EventId];
-                                                    KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[] newErrors = new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[previousErrors.Length + 1];
-                                                    previousErrors.CopyTo(newErrors, 0);
-                                                    newErrors[previousErrors.Length] = notFoundChange;
-                                                    changesInErrorList[currentChange.EventId] = newErrors;
-                                                }
-                                                else
-                                                {
-                                                    changesInErrorList.Add(currentChange.EventId,
-                                                        new KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]
-                                                    {
-                                                        notFoundChange
                                                     });
                                                 }
                                                 break;
@@ -2569,56 +2627,69 @@ namespace Sync
                         }
 
                         JsonContracts.PushResponse deserializedResponse;
-                        using (Stream pushHttpWebResponseStream = pushResponse.GetResponseStream())
+                        try
                         {
-                            Stream pushResponseStream = (Settings.Instance.TraceEnabled
-                                ? Helpers.CopyHttpWebResponseStreamAndClose(pushHttpWebResponseStream)
-                                : pushHttpWebResponseStream);
+                            using (Stream pushHttpWebResponseStream = pushResponse.GetResponseStream())
+                            {
+                                Stream pushResponseStream = (Settings.Instance.TraceEnabled
+                                    ? Helpers.CopyHttpWebResponseStreamAndClose(pushHttpWebResponseStream)
+                                    : pushHttpWebResponseStream);
 
+                                try
+                                {
+                                    if (Settings.Instance.TraceEnabled)
+                                    {
+                                        Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                            Settings.Instance.Udid,
+                                            Settings.Instance.Uuid,
+                                            CommunicationEntryDirection.Response,
+                                            CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom,
+                                            true,
+                                            pushResponse.Headers,
+                                            pushResponseStream,
+                                            Settings.Instance.TraceExcludeAuthorization);
+                                    }
+
+                                    if (pushResponse.StatusCode != HttpStatusCode.OK)
+                                    {
+                                        string pushResponseString = null;
+                                        // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
+                                        try
+                                        {
+                                            using (TextReader pushResponseStreamReader = new StreamReader(pushResponseStream, Encoding.UTF8))
+                                            {
+                                                pushResponseString = pushResponseStreamReader.ReadToEnd();
+                                            }
+                                        }
+                                        catch
+                                        {
+                                        }
+
+                                        throw new Exception("Invalid HTTP response status code in Sync From: " + ((int)pushResponse.StatusCode).ToString() +
+                                            (pushResponseString == null ? string.Empty
+                                                : Environment.NewLine + "Response:" + Environment.NewLine +
+                                                pushResponseString));
+                                    }
+
+                                    deserializedResponse = (JsonContracts.PushResponse)PushResponseSerializer.ReadObject(pushResponseStream);
+                                }
+                                finally
+                                {
+                                    if (Settings.Instance.TraceEnabled)
+                                    {
+                                        pushResponseStream.Dispose();
+                                    }
+                                }
+                            }
+                        }
+                        finally
+                        {
                             try
                             {
-                                if (Settings.Instance.TraceEnabled)
-                                {
-                                    Trace.LogCommunication(Settings.Instance.TraceLocation,
-                                        Settings.Instance.Udid,
-                                        Settings.Instance.Uuid,
-                                        CommunicationEntryDirection.Response,
-                                        CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom,
-                                        true,
-                                        pushResponse.Headers,
-                                        pushResponseStream,
-                                        Settings.Instance.TraceExcludeAuthorization);
-                                }
-
-                                if (pushResponse.StatusCode != HttpStatusCode.OK)
-                                {
-                                    string pushResponseString = null;
-                                    // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
-                                    try
-                                    {
-                                        using (TextReader pushResponseStreamReader = new StreamReader(pushResponseStream, Encoding.UTF8))
-                                        {
-                                            pushResponseString = pushResponseStreamReader.ReadToEnd();
-                                        }
-                                    }
-                                    catch
-                                    {
-                                    }
-
-                                    throw new Exception("Invalid HTTP response status code in Sync From: " + ((int)pushResponse.StatusCode).ToString() +
-                                        (pushResponseString == null ? string.Empty
-                                            : Environment.NewLine + "Response:" + Environment.NewLine +
-                                            pushResponseString));
-                                }
-
-                                deserializedResponse = (JsonContracts.PushResponse)PushResponseSerializer.ReadObject(pushResponseStream);
+                                pushResponse.Close();
                             }
-                            finally
+                            catch
                             {
-                                if (Settings.Instance.TraceEnabled)
-                                {
-                                    pushResponseStream.Dispose();
-                                }
                             }
                         }
 
@@ -2631,7 +2702,7 @@ namespace Sync
                                 ? null
                                 : getCloudRoot() + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
                             Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action),
-                            Metadata = new FileMetadata(null)
+                            Metadata = new FileMetadata()
                             {
                                 //Need to find what key this is //LinkTargetPath
                                 HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? false),

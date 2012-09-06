@@ -24,7 +24,7 @@ using System.Globalization;
 
 namespace SQLIndexer
 {
-    public class IndexingAgent
+    public sealed class IndexingAgent : IDisposable
     {
         #region private fields
         // store the path that represents the root of indexing
@@ -289,7 +289,7 @@ namespace SQLIndexer
                                     ServerLinkedPath = currentSyncState.ServerLinkedFileSystemObject == null
                                         ? null
                                         : currentSyncState.ServerLinkedFileSystemObject.Path,
-                                    Metadata = new FileMetadata(null)
+                                    Metadata = new FileMetadata()
                                     {
                                         HashableProperties = new FileMetadataHashableProperties(currentSyncState.FileSystemObject.IsFolder,
                                             currentSyncState.FileSystemObject.LastTime,
@@ -366,7 +366,7 @@ namespace SQLIndexer
 
                         if (foundSync != null)
                         {
-                            metadata = new FileMetadata(null)
+                            metadata = new FileMetadata()
                             {
                                 HashableProperties = new FileMetadataHashableProperties(foundSync.FileSystemObject.IsFolder,
                                     foundSync.FileSystemObject.LastTime,
@@ -435,7 +435,7 @@ namespace SQLIndexer
                                 NewPath = currentChange.FileSystemObject.Path,
                                 OldPath = currentChange.PreviousPath,
                                 Type = changeEnums[currentChange.FileChangeTypeEnumId],
-                                Metadata = new FileMetadata(null)
+                                Metadata = new FileMetadata()
                                 {
                                     HashableProperties = new FileMetadataHashableProperties(currentChange.FileSystemObject.IsFolder,
                                         currentChange.FileSystemObject.LastTime,
@@ -573,6 +573,7 @@ namespace SQLIndexer
                     {
                         throw new Exception("Event not found to delete");
                     }
+
                     // Remove the found event from the database
                     indexDB.FileSystemObjects.Remove(toDelete.FileSystemObject);
                     indexDB.Events.Remove(toDelete);
@@ -636,6 +637,7 @@ namespace SQLIndexer
                     {
                         return notFoundErrors;
                     }
+
                     // Save to database
                     indexDB.SaveChanges();
                 }
@@ -811,7 +813,7 @@ namespace SQLIndexer
 
                                 // Add the previous sync state to the dictionary as the baseline before changes
                                 newSyncStates.Add(localPath,
-                                    new FileMetadata(null)
+                                    new FileMetadata()
                                     {
                                         HashableProperties = new FileMetadataHashableProperties(currentState.FileSystemObject.IsFolder,
                                             currentState.FileSystemObject.LastTime,
@@ -900,7 +902,7 @@ namespace SQLIndexer
                                 {
                                     case FileChangeType.Created:
                                         newSyncStates.Add(newPath,
-                                            new FileMetadata(null)
+                                            new FileMetadata()
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                     previousEvent.FileSystemObject.LastTime,
@@ -948,7 +950,7 @@ namespace SQLIndexer
                                         else
                                         {
                                             newSyncStates.Add(newPath,
-                                                new FileMetadata(null)
+                                                new FileMetadata()
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                         previousEvent.FileSystemObject.LastTime,
@@ -999,7 +1001,7 @@ namespace SQLIndexer
                                         else
                                         {
                                             newSyncStates.Add(newPath,
-                                                new FileMetadata(null)
+                                                new FileMetadata()
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                         previousEvent.FileSystemObject.LastTime,
@@ -1087,8 +1089,10 @@ namespace SQLIndexer
                                     // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
                                     PathChecksum = StringCRC.Crc(serverRemappedPaths[newSyncedObject.Path])
                                 };
+
                                 indexDB.FileSystemObjects.Add(serverSyncedObject);
                                 indexDB.SaveChanges();
+
                                 serverRemappedObjectId = serverSyncedObject.FileSystemObjectId;
                             }
                             indexDB.SaveChanges();
@@ -1157,6 +1161,7 @@ namespace SQLIndexer
                             SyncId = IdForEmptySync,
                             RootPath = newRootPath
                         };
+
                         indexDB.Syncs.Add(emptySync);
                         indexDB.SaveChanges();
                     }
@@ -1265,6 +1270,7 @@ namespace SQLIndexer
                             if (mergedEvent == null)
                             {
                                 indexDB.SaveChanges();
+
                                 return null;
                             }
 
@@ -1611,6 +1617,7 @@ namespace SQLIndexer
                             {
                                 indexDB.FileSystemObjects.Add(serverRemappedFileSystemObject);
                             }
+
                             // save changes now so the file system object(s) will have ids
                             indexDB.SaveChanges();
 
@@ -1753,7 +1760,7 @@ namespace SQLIndexer
                     {
                         // Add the previous sync state to the initial index
                         indexPaths.Add(currentSyncState.FileSystemObject.Path,
-                            new FileMetadata(null)
+                            new FileMetadata()
                             {
                                 HashableProperties = new FileMetadataHashableProperties(currentSyncState.FileSystemObject.IsFolder,
                                     currentSyncState.FileSystemObject.LastTime,
@@ -1780,7 +1787,7 @@ namespace SQLIndexer
                         // Add database event to list of changes
 						changeList.Add(new FileChange()
                         {
-                            Metadata = new FileMetadata(null)
+                            Metadata = new FileMetadata()
                             {
                                 HashableProperties = new FileMetadataHashableProperties(currentEvent.FileSystemObject.IsFolder,
                                     currentEvent.FileSystemObject.LastTime,
@@ -1893,7 +1900,7 @@ namespace SQLIndexer
                         {
                             NewPath = subDirectory.FullName,
                             Type = FileChangeType.Created,
-                            Metadata = new FileMetadata(null)
+                            Metadata = new FileMetadata()
                             {
                                 HashableProperties = compareProperties
                             }
@@ -1959,7 +1966,7 @@ namespace SQLIndexer
                                 {
                                     NewPath = currentFile,
                                     Type = FileChangeType.Modified,
-                                    Metadata = new FileMetadata(null)
+                                    Metadata = new FileMetadata()
                                     {
                                         HashableProperties = compareProperties,
                                         LinkTargetPath = existingIndexPath.LinkTargetPath,//Todo: needs to check again for new target path
@@ -1976,7 +1983,7 @@ namespace SQLIndexer
                             {
                                 NewPath = currentFile,
                                 Type = FileChangeType.Created,
-                                Metadata = new FileMetadata(null)
+                                Metadata = new FileMetadata()
                                 {
                                     HashableProperties = compareProperties
                                 }
@@ -2036,5 +2043,35 @@ namespace SQLIndexer
             return filePathsFound;
         }
         #endregion private methods
+
+        #region dispose
+        
+        #region IDisposable members
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        ~IndexingAgent()
+        {
+            Dispose(false);
+        }
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+        
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        private void Dispose(bool disposing)
+        {
+            lock (this)
+            {
+                // Run dispose on inner managed objects based on disposing condition
+                if (disposing)
+                {
+                    CELocker.Dispose();
+                }
+            }
+        }
+        #endregion
     }
 }

@@ -1,5 +1,5 @@
 ﻿//
-// BadgeType.cs
+// Enums.cs
 // Cloud Windows
 //
 // Created By DavidBruck.

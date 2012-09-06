@@ -63,7 +63,6 @@
     <Compile Include="Common\CLFileShortcuts.cs" />
     <Compile Include="Common\CLSecureString.cs" />
     <Compile Include="Model\CLPrivateDefinitions.cs" />
-    <Compile Include="Common\CombinedCollection.cs" />
     <Compile Include="Model\CLRegistration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Model\Settings\CLSettings.cs" />

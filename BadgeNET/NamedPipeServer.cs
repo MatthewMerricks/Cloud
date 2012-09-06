@@ -78,7 +78,7 @@ namespace BadgeNET
     {
         private bool _running;
         private readonly object _runningLocker = new object();
-        private EventWaitHandle _terminateHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+        private readonly EventWaitHandle _terminateHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
         private ManualResetEvent _resetEvent = null;
 
         public string PipeName { get; set; }
@@ -144,6 +144,7 @@ namespace BadgeNET
                 {
                     CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Signal the WaitForConnection to exit.");
                     _resetEvent.Set();                                          // let the WaitForConnection exit so the thread can stop
+                    _resetEvent.Dispose();
                 }
             }
 

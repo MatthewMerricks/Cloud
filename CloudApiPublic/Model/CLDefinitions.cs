@@ -190,6 +190,7 @@ namespace CloudApiPublic.Model
         public const string CLEventTypeUploading = "uploading";
         public const string CLEventTypeConflict = "conflict";
         public const string CLEventTypeNotFound = "not_found";
+        public const string CLEventTypeDownload = "download";
 
         // Cloud Metadata Protocol
         public const string CLMetadataCloudPath = "path";

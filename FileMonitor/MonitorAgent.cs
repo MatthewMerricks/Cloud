@@ -87,27 +87,27 @@ namespace FileMonitor
         {
             return CurrentFolderPath;
         }
-        /// <summary>
-        /// Retrieves locker for the initial indexing
-        /// (before file monitor changes process)
-        /// </summary>
-        /// <param name="initialIndexLocker">Returned index locker</param>
-        /// <returns>Error while returning locker, if any</returns>
-        public CLError GetInitialIndexLocker(out ReaderWriterLockSlim initialIndexLocker)
-        {
-            try
-            {
-                initialIndexLocker = InitialIndexLocker;
-            }
-            catch (Exception ex)
-            {
-                initialIndexLocker = Helpers.DefaultForType<ReaderWriterLockSlim>();
-                return ex;
-            }
-            return null;
-        }
+        ///// <summary>
+        ///// Retrieves locker for the initial indexing
+        ///// (before file monitor changes process)
+        ///// </summary>
+        ///// <param name="initialIndexLocker">Returned index locker</param>
+        ///// <returns>Error while returning locker, if any</returns>
+        //public CLError GetInitialIndexLocker(out ReaderWriterLockSlim initialIndexLocker)
+        //{
+        //    try
+        //    {
+        //        initialIndexLocker = InitialIndexLocker;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        initialIndexLocker = Helpers.DefaultForType<ReaderWriterLockSlim>();
+        //        return ex;
+        //    }
+        //    return null;
+        //}
 
-        private ReaderWriterLockSlim InitialIndexLocker = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim InitialIndexLocker = new ReaderWriterLockSlim();
         #endregion
 
         #region private fields and property
@@ -463,7 +463,7 @@ namespace FileMonitor
                                     createdCreationUtc = (DateTime)creationTime;
                                 }
 
-                                AllPaths.Add(toCreate, new FileMetadata(null)
+                                AllPaths.Add(toCreate, new FileMetadata()
                                 {
                                     HashableProperties = new FileMetadataHashableProperties(true,
                                         createdLastWriteUtc,
@@ -1752,6 +1752,8 @@ namespace FileMonitor
                 {
                     // cleanup FileSystemWatchers
                     StopWatchers();
+
+                    InitialIndexLocker.Dispose();
                 }
                 
                 // Dispose local unmanaged resources last
@@ -2018,7 +2020,7 @@ namespace FileMonitor
                                     {
                                         // add new index
                                         AllPaths.Add(pathObject,
-                                            new FileMetadata(null)
+                                            new FileMetadata()
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(isFolder,
                                                     lastTime,
@@ -2182,7 +2184,7 @@ namespace FileMonitor
                                 {
                                     // add new index at new path
                                     AllPaths.Add(pathObject,
-                                        new FileMetadata(null)
+                                        new FileMetadata()
                                         {
                                             HashableProperties = new FileMetadataHashableProperties(isFolder,
                                                 lastTime,
@@ -2425,7 +2427,8 @@ namespace FileMonitor
                     }
 
                     // start delayed processing of file change
-                    toDelay.ProcessAfterDelay(ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
+                    toDelay.ProcessAfterDelay(
+                        ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
                         null,// Userstate if needed on callback (unused)
                         ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
                         ProcessingDelayMaxResets);// number of processing delay resets before it will process the file anyways
@@ -2707,7 +2710,8 @@ namespace FileMonitor
         /// </summary>
         /// <param name="sender">The file change itself</param>
         /// <param name="state">Userstate, if provided before the delayed processing</param>
-        private void ProcessFileChange(FileChange sender, object state)
+        /// <param name="remainingOperations">Number of operations remaining across all FileChange (via DelayProcessable)</param>
+        private void ProcessFileChange(FileChange sender, object state, int remainingOperations)
         {
             RemoveFileChangeFromQueuedChanges(sender);
 
@@ -2717,13 +2721,17 @@ namespace FileMonitor
                 lock (QueuesTimer.TimerRunningLocker)
                 {
                     ProcessingChanges.AddLast(sender);
-                    if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
+
+                    if (remainingOperations == 0) // flush remaining operations before starting processing timer
                     {
-                        QueuesTimer.TriggerTimerCompletionImmediately();
-                    }
-                    else
-                    {
-                        QueuesTimer.StartTimerIfNotRunning();
+                        if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
+                        {
+                            QueuesTimer.TriggerTimerCompletionImmediately();
+                        }
+                        else
+                        {
+                            QueuesTimer.StartTimerIfNotRunning();
+                        }
                     }
                 }
             }
@@ -2735,7 +2743,7 @@ namespace FileMonitor
                     (sender == null
                         ? string.Empty
                         : sender.Type.ToString() +
-                            ((sender.Metadata ?? new FileMetadata(null)).HashableProperties.IsFolder ? " folder " : " file")) +
+                            ((sender.Metadata ?? new FileMetadata()).HashableProperties.IsFolder ? " folder " : " file")) +
                     ": " + mergeError.errorDescription);
 
             }

@@ -72,6 +72,11 @@ namespace CloudApiPublic.Model
 
             return Value.Equals(castObj.Value);
         }
+
+        public override int GetHashCode()
+        {
+            return (((object)Value) == null ? 0 : Value.GetHashCode());
+        }
         
         private static ParameterExpression firstExpression = null;
         private static ParameterExpression secondExpression = null;

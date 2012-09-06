@@ -378,13 +378,14 @@ namespace CloudApiPublic.Model
                                 // write the message of this error to the log
                                 logWriter.WriteLine(this.errorDescription);
 
+
+
                                 // pull out the values from the errorInfo key/value pairs whose keys start with the exception name
-                                foreach (object currentException in this.errorInfo
-                                    .Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception))
-                                    .Select(currentPair => currentPair.Value))
+                                foreach (KeyValuePair<string, object> currentException in this.errorInfo
+                                    .Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)))
                                 {
                                     // try cast the current value as an exception
-                                    Exception castException = currentException as Exception;
+                                    Exception castException = currentException.Value as Exception;
                                     if (castException != null)
                                     {
                                         // define a string for storing the StackTrace, defaulting to null
@@ -405,17 +406,30 @@ namespace CloudApiPublic.Model
                                             new string(Enumerable.Range(0, 4 * tabCount)// the "4 *" multiplier means each tab is 4 spaces
                                                 .Select(currentTabSpace => ' ')// components of the tab are spaces
                                                 .ToArray());
+
+                                        // determines if this exception message was already written by writing errorDescription
+                                        bool foundSameMessage = currentException.Key == CLError.ErrorInfo_Exception
+                                            && castException.Message == this.errorDescription;
+
                                         // recurse through inner exceptions, each time with an extra tab appended
                                         while (castException != null)
                                         {
-                                            // write the current exception message to the log after the tabCounter worth of tabs
-                                            logWriter.WriteLine(
-                                                makeTabs(tabCounter) +
-                                                castException.Message);
+                                            if (foundSameMessage)
+                                            {
+                                                foundSameMessage = false;
+                                            }
+                                            else
+                                            {
+                                                // write the current exception message to the log after the tabCounter worth of tabs
+                                                logWriter.WriteLine(
+                                                    makeTabs(tabCounter) +
+                                                    castException.Message);
+
+                                                tabCounter++;
+                                            }
 
                                             // prepare for next inner exception recursion
                                             castException = castException.InnerException;
-                                            tabCounter++;
                                         }
 
                                         // if a StackTrace was found,

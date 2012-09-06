@@ -5,11 +5,13 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Windows;
 
 namespace CloudApiPublic.Support
 {
@@ -35,7 +37,7 @@ namespace CloudApiPublic.Support
         // boolean to ensure delay has been started before a call to reset the delay fires
         private bool startedDelay = false;
         // resetable timer, default to lock on first wait (not set)
-        private AutoResetEvent delayEvent = new AutoResetEvent(false);
+        private readonly AutoResetEvent delayEvent = new AutoResetEvent(false);
         // boolean to store whether call to reset delay has begun waiting for a pulse-back from processing thread
         private bool waitingForReset = false;
         // field where the synchronization locker is stored (locked when DelayCompleted boolean is read or written to)
@@ -43,7 +45,12 @@ namespace CloudApiPublic.Support
         // stores whether to throw errors when running the process-related methods
         // (set if the constructor is passed a locker parameter)
         private bool IsProcessable = false;
-        private Queue<Action<T>> SynchronizedPreprocessingActions = null;
+
+        private Queue<KeyValuePair<Action<T>, Action<CLError, T>>> SynchronizedPreprocessingActions = null;
+        private static bool IsProcessThreadRunning = false;
+        private static readonly Queue<KeyValuePair<KeyValuePair<Action<T, object, int>, Action<CLError, T, object, int>>, KeyValuePair<T, object>>> ProcessingQueue = new Queue<KeyValuePair<KeyValuePair<Action<T, object, int>, Action<CLError, T, object, int>>, KeyValuePair<T, object>>>();
+        private static readonly ReaderWriterLockSlim ProcessTerminationLocker = new ReaderWriterLockSlim();
+        private static bool ProcessingTerminated = false;
         #endregion
 
         /// <summary>
@@ -64,6 +71,22 @@ namespace CloudApiPublic.Support
 
         #region public methods
         /// <summary>
+        /// ¡¡ Must restart application after running this before processing can run again !!
+        /// </summary>
+        public static void TerminateAllProcessing()
+        {
+            ProcessTerminationLocker.EnterWriteLock();
+            try
+            {
+                ProcessingTerminated = true;
+            }
+            finally
+            {
+                ProcessTerminationLocker.ExitWriteLock();
+            }
+        }
+
+        /// <summary>
         /// Allows an action to be delayed taking this current instance and an optional userstate,
         /// delay is set in milliseconds and has a parameter for maximum number of allowed delays before it will process anyways,
         /// DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean
@@ -72,12 +95,25 @@ namespace CloudApiPublic.Support
         /// <param name="userstate">Optional userstate passed upon processing the action</param>
         /// <param name="millisecondWait">Wait time in milliseconds before action is processed</param>
         /// <param name="maxDelays">Maximum times processing can be delayed before it processes anyways</param>
-        public void ProcessAfterDelay(Action<T, object> toProcess, object userstate, int millisecondWait, int maxDelays)
+        public void ProcessAfterDelay(Action<T, object, int> toProcess, object userstate, int millisecondWait, int maxDelays, Action<CLError, T, object, int> errorHandler = null)
         {
             // Throw error when object is not processable
             if (!IsProcessable)
             {
                 throw new NullReferenceException("DelayCompletedLocker cannot be null");
+            }
+
+            ProcessTerminationLocker.EnterReadLock();
+            try
+            {
+                if (ProcessingTerminated)
+                {
+                    throw new ObjectDisposedException("ProcessingTerminated");
+                }
+            }
+            finally
+            {
+                ProcessTerminationLocker.ExitReadLock();
             }
 
             // lock on this to prevent reset from firing and checking the boolean simultaneously
@@ -93,82 +129,136 @@ namespace CloudApiPublic.Support
                 startedDelay = true;
             }
 
-            // Instantiate and start the thread responsible for delaying the processing the action
-            (new Thread(() =>
+            ProcessAfterDelayParams delayParams = new ProcessAfterDelayParams()
             {
-                // Loop waiting until ResetEvent is allowed to timeout to millisecondWait parameter
-                // or maxDelays is reached
-                while (true)
+                toProcess = toProcess,
+                userstate = userstate,
+                millisecondWait = millisecondWait,
+                maxDelays = maxDelays,
+                errorHandler = errorHandler
+            };
+
+            // Instantiate and start the thread responsible for delaying the processing the action
+            (new Thread(new ParameterizedThreadStart((state) =>
+            {
+                Nullable<KeyValuePair<DelayProcessable<T>, ProcessAfterDelayParams>> castState = state as Nullable<KeyValuePair<DelayProcessable<T>, ProcessAfterDelayParams>>;
+
+                if (castState == null)
                 {
-                    // Wait on timer reset or timeout
-                    if (delayEvent.WaitOne(millisecondWait)
-                        && (maxDelays < 0
-                            || delayCounter < maxDelays))
+                    MessageBox.Show("DelayProcessable delaying thread requires state to be castable as the appropriate type");
+                }
+                else
+                {
+                    KeyValuePair<DelayProcessable<T>, ProcessAfterDelayParams> nonNullState = (KeyValuePair<DelayProcessable<T>, ProcessAfterDelayParams>)castState;
+
+                    // Loop waiting until ResetEvent is allowed to timeout to millisecondWait parameter
+                    // or maxDelays is reached
+                    while (true)
                     {
-                        // break out of loop if delay already completed (such as on dispose)
-                        if (DelayCompleted)
+                        // Wait on timer reset or timeout
+                        if (nonNullState.Key.delayEvent.WaitOne(nonNullState.Value.millisecondWait)
+                            && (nonNullState.Value.maxDelays < 0
+                                || nonNullState.Key.delayCounter < nonNullState.Value.maxDelays))
                         {
+                            // break out of loop if delay already completed (such as on dispose)
+                            if (nonNullState.Key.DelayCompleted)
+                            {
+                                break;
+                            }
+
+                            // If timer was reset on another thread and the delay counter is less than the amount allowed,
+                            // Prepare timer for another waiting round
+
+                            // Ensure the timer reset thread is waiting for synchronization by continually waiting and checking
+                            while (nonNullState.Key.waitingForReset)
+                            {
+                                // Arbitrary time to wait for reset thread to synchronize, it may never even hit this sleep
+                                Thread.Sleep(50);
+                            }
+                            // Lock on AutoResetEvent to synchronize with reset thread
+                            lock (nonNullState.Key.delayEvent)
+                            {
+                                // Record new timer reset
+                                nonNullState.Key.delayCounter++;
+                                // Reset timer for waiting again on next loop
+                                nonNullState.Key.delayEvent.Reset();
+                                // Pulse reset thread to continue
+                                Monitor.Pulse(nonNullState.Key.delayEvent);
+                            }
+                        }
+                        // Timer completed (timed out), stop reset loop to continue onto processing
+                        else
+                        {
+                            // stop reset loop to continue to processing
                             break;
                         }
+                    }
+                    // Lock on external object (passed as parameter) to synchronize with containing collection operations
+                    lock (nonNullState.Key.DelayCompletedLocker)
+                    {
+                        // Store if delay was already completed
+                        bool storeDelayAlreadyCompleted = nonNullState.Key.DelayCompleted;
+                        // Mark that delay completed for external synchronization
+                        nonNullState.Key.DelayCompleted = true;
 
-                        // If timer was reset on another thread and the delay counter is less than the amount allowed,
-                        // Prepare timer for another waiting round
-
-                        // Ensure the timer reset thread is waiting for synchronization by continually waiting and checking
-                        while (waitingForReset)
-                        {
-                            // Arbitrary time to wait for reset thread to synchronize, it may never even hit this sleep
-                            Thread.Sleep(50);
-                        }
                         // Lock on AutoResetEvent to synchronize with reset thread
-                        lock (delayEvent)
+                        lock (nonNullState.Key.delayEvent)
                         {
-                            // Record new timer reset
-                            delayCounter++;
-                            // Reset timer for waiting again on next loop
-                            delayEvent.Reset();
-                            // Pulse reset thread to continue
-                            Monitor.Pulse(delayEvent);
+                            // Pulse remaining reset threads so they all continue
+                            Monitor.PulseAll(nonNullState.Key.delayEvent);
                         }
-                    }
-                    // Timer completed (timed out), stop reset loop to continue onto processing
-                    else
-                    {
-                        // stop reset loop to continue to processing
-                        break;
-                    }
-                }
-                // Lock on external object (passed as parameter) to synchronize with containing collection operations
-                lock (DelayCompletedLocker)
-                {
-                    // Store if delay was already completed
-                    bool storeDelayAlreadyCompleted = DelayCompleted;
-                    // Mark that delay completed for external synchronization
-                    DelayCompleted = true;
-                    // Run any preprocessing actions queued in the synchronized context
-                    if (SynchronizedPreprocessingActions != null)
-                    {
-                        while (SynchronizedPreprocessingActions.Count > 0)
-                        {
-                            SynchronizedPreprocessingActions.Dequeue()((T)this);
-                        }
-                    }
 
-                    // Only process the action if the delay had not previously been completed
-                    if (!storeDelayAlreadyCompleted)
-                    {
-                        // Process action
-                        toProcess((T)this, userstate);
+                        // Run any preprocessing actions queued in the synchronized context
+                        if (nonNullState.Key.SynchronizedPreprocessingActions != null)
+                        {
+                            while (nonNullState.Key.SynchronizedPreprocessingActions.Count > 0)
+                            {
+                                KeyValuePair<Action<T>, Action<CLError, T>> dequeuedPreprocess = nonNullState.Key.SynchronizedPreprocessingActions.Dequeue();
+                                try
+                                {
+                                    dequeuedPreprocess.Key((T)nonNullState.Key);
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (dequeuedPreprocess.Value != null)
+                                    {
+                                        dequeuedPreprocess.Value(ex, (T)nonNullState.Key);
+                                    }
+                                }
+                            }
+                        }
+
+                        // Only process the action if the delay had not previously been completed
+                        if (!storeDelayAlreadyCompleted)
+                        {
+                            lock (ProcessingQueue)
+                            {
+                                ProcessingQueue.Enqueue(new KeyValuePair<KeyValuePair<Action<T, object, int>, Action<CLError, T, object, int>>, KeyValuePair<T, object>>(
+                                    new KeyValuePair<Action<T, object, int>, Action<CLError, T, object, int>>(nonNullState.Value.toProcess, nonNullState.Value.errorHandler),
+                                    new KeyValuePair<T, object>((T)nonNullState.Key, nonNullState.Value.userstate)));
+
+                                if (!IsProcessThreadRunning)
+                                {
+                                    IsProcessThreadRunning = true;
+
+                                    ThreadPool.UnsafeQueueUserWorkItem(PostDelayProcessor, null);
+                                }
+                            }
+                        }
                     }
                 }
-                // Lock on AutoResetEvent to synchronize with reset thread
-                lock (delayEvent)
-                {
-                    // Pulse remaining reset threads so they all continue
-                    Monitor.PulseAll(delayEvent);
-                }
-            })).Start();// starts the new thread after it was defined
+            }))).Start(new KeyValuePair<DelayProcessable<T>, ProcessAfterDelayParams>((T)this, delayParams));// starts the new thread after it was defined
         }
+
+        private class ProcessAfterDelayParams
+        {
+            public Action<T, object, int> toProcess { get; set; }
+            public object userstate { get; set; }
+            public int millisecondWait { get; set; }
+            public int maxDelays { get; set; }
+            public Action<CLError, T, object, int> errorHandler { get; set; }
+        }
+
         /// <summary>
         /// Resets the delay on an action that was previous timer-delayed to fire,
         /// must be called after the action has been set for processing
@@ -213,7 +303,7 @@ namespace CloudApiPublic.Support
         /// </summary>
         /// <param name="toEnqueue">Action to run on preprocessing</param>
         /// <returns>Returns true if action is accepted for preprocessing, otherwise false means action will not be run</returns>
-        public bool EnqueuePreprocessingAction(Action<T> toEnqueue)
+        public bool EnqueuePreprocessingAction(Action<T> toEnqueue, Action<CLError, T> errorHandler = null)
         {
             // Throw error when object is not processable
             if (!IsProcessable)
@@ -229,13 +319,20 @@ namespace CloudApiPublic.Support
                 {
                     return false;
                 }
+
+                if (toEnqueue == null)
+                {
+                    return true;
+                }
+
                 // create the queue if necessary
                 if (SynchronizedPreprocessingActions == null)
                 {
-                    SynchronizedPreprocessingActions = new Queue<Action<T>>();
+                    SynchronizedPreprocessingActions = new Queue<KeyValuePair<Action<T>, Action<CLError, T>>>();
                 }
                 // enqueue the action to run before normal processing
-                SynchronizedPreprocessingActions.Enqueue(toEnqueue);
+                SynchronizedPreprocessingActions.Enqueue(new KeyValuePair<Action<T>, Action<CLError, T>>(toEnqueue,
+                    errorHandler));
             }
             return true;
         }
@@ -275,9 +372,56 @@ namespace CloudApiPublic.Support
                     {
                         // trigger processing thread to break out
                         delayEvent.Set();
+
+                        delayEvent.Dispose();
                     }
 
                     // Dispose local unmanaged resources last
+                }
+            }
+        }
+
+        private static void PostDelayProcessor(object state)
+        {
+            Func<bool> checkDisposed = () =>
+                {
+                    ProcessTerminationLocker.EnterReadLock();
+                    try
+                    {
+                        return ProcessingTerminated;
+                    }
+                    finally
+                    {
+                        ProcessTerminationLocker.ExitReadLock();
+                    }
+                };
+
+            while (!checkDisposed())
+            {
+                KeyValuePair<KeyValuePair<Action<T, object, int>, Action<CLError, T, object, int>>, KeyValuePair<T, object>> toRun;
+                int remainingCount;
+                lock (ProcessingQueue)
+                {
+                    if (ProcessingQueue.Count == 0)
+                    {
+                        IsProcessThreadRunning = false;
+                        break;
+                    }
+                    
+                    toRun = ProcessingQueue.Dequeue();
+                    remainingCount = ProcessingQueue.Count;
+                }
+
+                try
+                {
+                    toRun.Key.Key(toRun.Value.Key, toRun.Value.Value, remainingCount);
+                }
+                catch (Exception ex)
+                {
+                    if (toRun.Key.Value != null)
+                    {
+                        toRun.Key.Value(ex, toRun.Value.Key, toRun.Value.Value, remainingCount);
+                    }
                 }
             }
         }

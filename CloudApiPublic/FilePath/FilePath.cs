@@ -130,6 +130,7 @@ namespace CloudApiPublic.Model
             {
                 return null;
             }
+
             // Must use DirectoryInfo implicit converter instead of FileInfo because
             // "C:\\" produces a FileInfo without a name
             return new DirectoryInfo(fullPath);

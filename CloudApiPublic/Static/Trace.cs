@@ -98,6 +98,7 @@ namespace CloudApiPublic.Static
                         : UserDeviceId);
 
                     #region pullIgnoredHeaders
+#pragma warning disable 665
                     Func<HttpHeaders, IEnumerable<KeyValuePair<string, string>>> pullIgnoredHeaders = originalHeaders =>
                         {
                             if (originalHeaders == null)
@@ -850,6 +851,7 @@ namespace CloudApiPublic.Static
 
                             return ignoredHeadersList;
                         };
+#pragma warning restore 665
                     #endregion
 
                     LogCommunication(traceLocation,

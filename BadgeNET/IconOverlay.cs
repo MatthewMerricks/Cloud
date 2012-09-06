@@ -30,7 +30,7 @@ namespace BadgeNET
     /// <summary>
     /// IconOverlay is responsible for keeping a list of badges and synchronizing them with BadgeCOM (the Windows shell extensions for icon overlays)
     /// </summary>
-    public class IconOverlay : IDisposable
+    public sealed class IconOverlay : IDisposable
     {
         #region Singleton pattern
         /// <summary>
@@ -654,6 +654,7 @@ namespace BadgeNET
                 }
 
                 // Dispose local unmanaged resources last
+                NotifySystemForBadgeUpdate();
             }
         }
 
