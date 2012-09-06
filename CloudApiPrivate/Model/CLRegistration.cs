@@ -235,38 +235,51 @@ namespace CloudApiPrivate.Model
                 if (foundWebEx != null
                     && (exceptionResponse = foundWebEx.Response as System.Net.HttpWebResponse) != null)
                 {
-                    string exceptionBody = null;
                     try
                     {
-                        using (Stream createNewAccountResponseStream = exceptionResponse.GetResponseStream())
+                        string exceptionBody = null;
+                        try
                         {
-                            using (StreamReader createNewAccountResponseStreamReader = new StreamReader(createNewAccountResponseStream, Encoding.UTF8))
+                            using (Stream createNewAccountResponseStream = exceptionResponse.GetResponseStream())
                             {
-                                exceptionBody = createNewAccountResponseStreamReader.ReadToEnd();
+                                using (StreamReader createNewAccountResponseStreamReader = new StreamReader(createNewAccountResponseStream, Encoding.UTF8))
+                                {
+                                    exceptionBody = createNewAccountResponseStreamReader.ReadToEnd();
+                                }
                             }
                         }
-                    }
-                    catch
-                    {
-                    }
+                        catch
+                        {
+                        }
 
-                    if (Settings.Settings.Instance.TraceEnabled)
-                    {
-                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                            Settings.Settings.Instance.Udid,
-                            Settings.Settings.Instance.Uuid,
-                            CommunicationEntryDirection.Response,
-                            CLDefinitions.CLRegistrationCreateRequestURLString,
-                            true,
-                            exceptionResponse.Headers,
-                            exceptionBody,
-                            Settings.Settings.Instance.TraceExcludeAuthorization);
-                    }
+                        if (Settings.Settings.Instance.TraceEnabled)
+                        {
+                            Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                                Settings.Settings.Instance.Udid,
+                                Settings.Settings.Instance.Uuid,
+                                CommunicationEntryDirection.Response,
+                                CLDefinitions.CLRegistrationCreateRequestURLString,
+                                true,
+                                exceptionResponse.Headers,
+                                exceptionBody,
+                                Settings.Settings.Instance.TraceExcludeAuthorization);
+                        }
 
-                    error += new AggregateException("Create account error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
-                        (string.IsNullOrEmpty(exceptionBody)
-                        ? string.Empty
-                        : Environment.NewLine + "Response: " + exceptionBody), ex);
+                        error += new AggregateException("Create account error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
+                            (string.IsNullOrEmpty(exceptionBody)
+                            ? string.Empty
+                            : Environment.NewLine + "Response: " + exceptionBody), ex);
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            exceptionResponse.Close();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
                 else
                 {
@@ -276,34 +289,47 @@ namespace CloudApiPrivate.Model
 
             if (result != null)
             {
-                if (Settings.Settings.Instance.TraceEnabled)
+                try
                 {
-                    Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                        Settings.Settings.Instance.Udid,
-                        Settings.Settings.Instance.Uuid,
-                        CommunicationEntryDirection.Response,
-                        CLDefinitions.CLRegistrationCreateRequestURLString,
-                        true,
-                        null,
-                        result.Headers,
-                        result.Content,
-                        Settings.Settings.Instance.TraceExcludeAuthorization);
+                    if (Settings.Settings.Instance.TraceEnabled)
+                    {
+                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            Settings.Settings.Instance.Udid,
+                            Settings.Settings.Instance.Uuid,
+                            CommunicationEntryDirection.Response,
+                            CLDefinitions.CLRegistrationCreateRequestURLString,
+                            true,
+                            null,
+                            result.Headers,
+                            result.Content,
+                            Settings.Settings.Instance.TraceExcludeAuthorization);
+                    }
+
+                    if (result.IsSuccessStatusCode)
+                    {
+                        string jsonResult = result.Content.ReadAsString();
+
+                        _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
+
+                        isSuccess = processCreateNewAccountServerResponse(outRegistration, jsonResult, out error);
+                    }
+                    else
+                    {
+                        error += new Exception("Create account error: " + result.StatusCode.ToString() + "." +
+                            (result.Content == null
+                            ? string.Empty
+                            : Environment.NewLine + GetErrorOrMessageFromJsonServerResponse(result.Content.ReadAsString())) + ".");
+                    }
                 }
-
-                if (result.IsSuccessStatusCode)
+                finally
                 {
-                    string jsonResult = result.Content.ReadAsString();
-
-                    _trace.writeToLog(1, "CLRegistration.cs: CreateNewAccount: Registration Response: {0}.", jsonResult);
-
-                    isSuccess = processCreateNewAccountServerResponse(outRegistration, jsonResult, out error);
-                }
-                else
-                {
-                    error += new Exception("Create account error: " + result.StatusCode.ToString() + "." +
-                        (result.Content == null
-                        ? string.Empty
-                        : Environment.NewLine + GetErrorOrMessageFromJsonServerResponse(result.Content.ReadAsString())) + ".");
+                    try
+                    {
+                        result.Dispose();
+                    }
+                    catch
+                    {
+                    }
                 }
             }
 
@@ -543,38 +569,51 @@ namespace CloudApiPrivate.Model
                 if (foundWebEx != null
                     && (exceptionResponse = foundWebEx.Response as System.Net.HttpWebResponse) != null)
                 {
-                    string exceptionBody = null;
                     try
                     {
-                        using (Stream linkResponseStream = exceptionResponse.GetResponseStream())
+                        string exceptionBody = null;
+                        try
                         {
-                            using (StreamReader linkResponseStreamReader = new StreamReader(linkResponseStream, Encoding.UTF8))
+                            using (Stream linkResponseStream = exceptionResponse.GetResponseStream())
                             {
-                                exceptionBody = linkResponseStreamReader.ReadToEnd();
+                                using (StreamReader linkResponseStreamReader = new StreamReader(linkResponseStream, Encoding.UTF8))
+                                {
+                                    exceptionBody = linkResponseStreamReader.ReadToEnd();
+                                }
                             }
                         }
-                    }
-                    catch
-                    {
-                    }
+                        catch
+                        {
+                        }
 
-                    if (Settings.Settings.Instance.TraceEnabled)
-                    {
-                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                            Settings.Settings.Instance.Udid,
-                            Settings.Settings.Instance.Uuid,
-                            CommunicationEntryDirection.Response,
-                            CLDefinitions.CLRegistrationLinkRequestURLString,
-                            true,
-                            exceptionResponse.Headers,
-                            exceptionBody,
-                            Settings.Settings.Instance.TraceExcludeAuthorization);
-                    }
+                        if (Settings.Settings.Instance.TraceEnabled)
+                        {
+                            Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                                Settings.Settings.Instance.Udid,
+                                Settings.Settings.Instance.Uuid,
+                                CommunicationEntryDirection.Response,
+                                CLDefinitions.CLRegistrationLinkRequestURLString,
+                                true,
+                                exceptionResponse.Headers,
+                                exceptionBody,
+                                Settings.Settings.Instance.TraceExcludeAuthorization);
+                        }
 
-                    error += new AggregateException("Login error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
-                        (string.IsNullOrEmpty(exceptionBody)
-                        ? string.Empty
-                        : Environment.NewLine + "Response: " + exceptionBody), ex);
+                        error += new AggregateException("Login error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
+                            (string.IsNullOrEmpty(exceptionBody)
+                            ? string.Empty
+                            : Environment.NewLine + "Response: " + exceptionBody), ex);
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            exceptionResponse.Close();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
                 else
                 {
@@ -584,37 +623,50 @@ namespace CloudApiPrivate.Model
 
             if (result != null)
             {
-                if (Settings.Settings.Instance.TraceEnabled)
+                try
                 {
-                    Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                        Settings.Settings.Instance.Udid,
-                        Settings.Settings.Instance.Uuid,
-                        CommunicationEntryDirection.Response,
-                        CLDefinitions.CLRegistrationLinkRequestURLString,
-                        true,
-                        null,
-                        result.Headers,
-                        result.Content,
-                        Settings.Settings.Instance.TraceExcludeAuthorization);
+                    if (Settings.Settings.Instance.TraceEnabled)
+                    {
+                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            Settings.Settings.Instance.Udid,
+                            Settings.Settings.Instance.Uuid,
+                            CommunicationEntryDirection.Response,
+                            CLDefinitions.CLRegistrationLinkRequestURLString,
+                            true,
+                            null,
+                            result.Headers,
+                            result.Content,
+                            Settings.Settings.Instance.TraceExcludeAuthorization);
+                    }
+
+                    if (result.IsSuccessStatusCode)
+                    {
+                        string jsonResult = result.Content.ReadAsString();
+
+                        _trace.writeToLog(1, "CLRegistration.cs: LoginInternal: Registration Response: {0}.", jsonResult);
+
+                        isSuccess = ProcessServerResponse(outRegistration, jsonResult, out error);
+
+                        // Set the new UDID after successfull link.. This id is used by the notification server.. 
+                        CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
+                    }
+                    else
+                    {
+                        error += new Exception("Login error: " + result.StatusCode.ToString() + "." +
+                            (result.Content == null
+                            ? string.Empty
+                            : Environment.NewLine + GetErrorOrMessageFromJsonServerResponse(result.Content.ReadAsString())) + ".");
+                    }
                 }
-
-                if (result.IsSuccessStatusCode)
+                finally
                 {
-                    string jsonResult = result.Content.ReadAsString();
-
-                    _trace.writeToLog(1, "CLRegistration.cs: LoginInternal: Registration Response: {0}.", jsonResult);
-
-                    isSuccess = ProcessServerResponse(outRegistration, jsonResult, out error);
-
-                    // Set the new UDID after successfull link.. This id is used by the notification server.. 
-                    CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
-                }
-                else
-                {
-                    error += new Exception("Login error: " + result.StatusCode.ToString() + "." +
-                        (result.Content == null
-                        ? string.Empty
-                        : Environment.NewLine + GetErrorOrMessageFromJsonServerResponse(result.Content.ReadAsString())) + ".");
+                    try
+                    {
+                        result.Dispose();
+                    }
+                    catch
+                    {
+                    }
                 }
             }
 
@@ -840,38 +892,51 @@ namespace CloudApiPrivate.Model
                     if (foundWebEx != null
                         && (exceptionResponse = foundWebEx.Response as System.Net.HttpWebResponse) != null)
                     {
-                        string exceptionBody = null;
                         try
                         {
-                            using (Stream unlinkResponseStream = exceptionResponse.GetResponseStream())
+                            string exceptionBody = null;
+                            try
                             {
-                                using (StreamReader unlinkResponseStreamReader = new StreamReader(unlinkResponseStream, Encoding.UTF8))
+                                using (Stream unlinkResponseStream = exceptionResponse.GetResponseStream())
                                 {
-                                    exceptionBody = unlinkResponseStreamReader.ReadToEnd();
+                                    using (StreamReader unlinkResponseStreamReader = new StreamReader(unlinkResponseStream, Encoding.UTF8))
+                                    {
+                                        exceptionBody = unlinkResponseStreamReader.ReadToEnd();
+                                    }
                                 }
                             }
-                        }
-                        catch
-                        {
-                        }
+                            catch
+                            {
+                            }
 
-                        if (Settings.Settings.Instance.TraceEnabled)
-                        {
-                            Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                                Settings.Settings.Instance.Udid,
-                                Settings.Settings.Instance.Uuid,
-                                CommunicationEntryDirection.Response,
-                                CLDefinitions.CLRegistrationUnlinkRequestURLString,
-                                true,
-                                exceptionResponse.Headers,
-                                exceptionBody,
-                                Settings.Settings.Instance.TraceExcludeAuthorization);
-                        }
+                            if (Settings.Settings.Instance.TraceEnabled)
+                            {
+                                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                                    Settings.Settings.Instance.Udid,
+                                    Settings.Settings.Instance.Uuid,
+                                    CommunicationEntryDirection.Response,
+                                    CLDefinitions.CLRegistrationUnlinkRequestURLString,
+                                    true,
+                                    exceptionResponse.Headers,
+                                    exceptionBody,
+                                    Settings.Settings.Instance.TraceExcludeAuthorization);
+                            }
 
-                        error += new AggregateException("Unlink error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
-                            (string.IsNullOrEmpty(exceptionBody)
-                            ? string.Empty
-                            : Environment.NewLine + "Response: " + exceptionBody), ex);
+                            error += new AggregateException("Unlink error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
+                                (string.IsNullOrEmpty(exceptionBody)
+                                ? string.Empty
+                                : Environment.NewLine + "Response: " + exceptionBody), ex);
+                        }
+                        finally
+                        {
+                            try
+                            {
+                                exceptionResponse.Close();
+                            }
+                            catch
+                            {
+                            }
+                        }
                     }
                     else
                     {
@@ -881,30 +946,43 @@ namespace CloudApiPrivate.Model
 
                 if (result != null)
                 {
-                    if (Settings.Settings.Instance.TraceEnabled)
+                    try
                     {
-                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                            Settings.Settings.Instance.Udid,
-                            Settings.Settings.Instance.Uuid,
-                            CommunicationEntryDirection.Response,
-                            CLDefinitions.CLRegistrationUnlinkRequestURLString,
-                            true,
-                            null,
-                            result.Headers,
-                            result.Content,
-                            Settings.Settings.Instance.TraceExcludeAuthorization);
-                    }
+                        if (Settings.Settings.Instance.TraceEnabled)
+                        {
+                            Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                                Settings.Settings.Instance.Udid,
+                                Settings.Settings.Instance.Uuid,
+                                CommunicationEntryDirection.Response,
+                                CLDefinitions.CLRegistrationUnlinkRequestURLString,
+                                true,
+                                null,
+                                result.Headers,
+                                result.Content,
+                                Settings.Settings.Instance.TraceExcludeAuthorization);
+                        }
 
-                    if (!result.IsSuccessStatusCode)
-                    {
-                        error += new Exception("Unlink error: " + result.StatusCode.ToString() + "." +
-                            (result.Content == null
-                            ? string.Empty
-                            : Environment.NewLine + GetErrorOrMessageFromJsonServerResponse(result.Content.ReadAsString())) + ".");
+                        if (!result.IsSuccessStatusCode)
+                        {
+                            error += new Exception("Unlink error: " + result.StatusCode.ToString() + "." +
+                                (result.Content == null
+                                ? string.Empty
+                                : Environment.NewLine + GetErrorOrMessageFromJsonServerResponse(result.Content.ReadAsString())) + ".");
+                        }
+                        else
+                        {
+                            isSuccess = true;
+                        }
                     }
-                    else
+                    finally
                     {
-                        isSuccess = true;
+                        try
+                        {
+                            result.Dispose();
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }

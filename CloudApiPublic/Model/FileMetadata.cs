@@ -37,7 +37,7 @@ namespace CloudApiPublic.Model
 
         public RevisionChanger RevisionChanger { get; private set; }
 
-        public FileMetadata(RevisionChanger revisionChanger)
+        public FileMetadata(RevisionChanger revisionChanger = null)
         {
             if (revisionChanger == null)
             {

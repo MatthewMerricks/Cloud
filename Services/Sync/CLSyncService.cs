@@ -908,7 +908,7 @@ namespace win_client.Services.Sync
                 {
                     if (evt.ChangeReference.Metadata == null)
                     {
-                        evt.ChangeReference.Metadata = new FileMetadata(null);
+                        evt.ChangeReference.Metadata = new FileMetadata();
                     }
                     evt.ChangeReference.Metadata.HashableProperties = new FileMetadataHashableProperties(true,// this first input parameter is the only one changed
                         evt.ChangeReference.Metadata.HashableProperties.LastTime,// copied
@@ -1055,7 +1055,7 @@ namespace win_client.Services.Sync
 
                         if (fileMetadata.ChangeReference.Metadata == null)
                         {
-                            fileMetadata.ChangeReference.Metadata = new FileMetadata(null);
+                            fileMetadata.ChangeReference.Metadata = new FileMetadata();
                         }
                         fileMetadata.ChangeReference.Metadata.Revision = metadataRevision;
                         fileMetadata.ChangeReference.Metadata.HashableProperties = new FileMetadataHashableProperties(metadataIsDirectory,
@@ -1094,7 +1094,7 @@ namespace win_client.Services.Sync
                             {
                                 if (evt.ChangeReference.Metadata == null)
                                 {
-                                    evt.ChangeReference.Metadata = new FileMetadata(null);
+                                    evt.ChangeReference.Metadata = new FileMetadata();
                                 }
                                 evt.ChangeReference.Metadata.Revision = indexedMetadata.Revision;
                             }
@@ -1111,7 +1111,7 @@ namespace win_client.Services.Sync
                         {
                             if (evt.ChangeReference.Metadata == null)
                             {
-                                evt.ChangeReference.Metadata = new FileMetadata(null);
+                                evt.ChangeReference.Metadata = new FileMetadata();
                             }
                             evt.ChangeReference.Metadata.Revision = indexedMetadata.Revision;
                         }
@@ -1135,7 +1135,7 @@ namespace win_client.Services.Sync
                         {
                             if (evt.ChangeReference.Metadata == null)
                             {
-                                evt.ChangeReference.Metadata = new FileMetadata(null);
+                                evt.ChangeReference.Metadata = new FileMetadata();
                             }
                             evt.ChangeReference.Metadata.Revision = indexedMetadata.Revision;
 

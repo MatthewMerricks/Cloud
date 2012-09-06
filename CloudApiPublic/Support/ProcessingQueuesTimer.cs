@@ -13,7 +13,7 @@ namespace CloudApiPublic.Support
     /// Class to handle queueing up processing changes on a configurable timer,
     /// must be externally locked on property TimerRunningLocker for all access
     /// </summary>
-    public sealed class ProcessingQueuesTimer
+    public sealed class ProcessingQueuesTimer : IDisposable
     {
         /// <summary>
         /// Returns whether the current processing queue timer is running;
@@ -125,6 +125,33 @@ namespace CloudApiPublic.Support
             else
             {
                 OnTimeout(UserState);
+            }
+        }
+        
+        #region IDisposable members
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        ~ProcessingQueuesTimer()
+        {
+            Dispose(false);
+        }
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+        
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        private void Dispose(bool disposing)
+        {
+            lock (this)
+            {
+                // Run dispose on inner managed objects based on disposing condition
+                if (disposing)
+                {
+                    SleepEvent.Dispose();
+                }
             }
         }
     }

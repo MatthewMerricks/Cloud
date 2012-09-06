@@ -1,5 +1,5 @@
 ﻿//
-//  CLPreferences.cs
+//  ContextMenuObject.cs
 //  Cloud Windows
 //
 //  Created by BobS.
