@@ -17,7 +17,7 @@
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
     xmlns:resx="clr-namespace:win_client.Resources"
-    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="485"
     DataContext="{Binding PageCreateNewAccountViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Create New Account" >
 
@@ -37,19 +37,19 @@
     <!--<extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" Margin="0,1,0,-1">-->
         <Grid x:Name="LayoutRoot">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.056*"/>
+                <ColumnDefinition Width="37"/>
                 <ColumnDefinition  Width="0.385*"/>
                 <ColumnDefinition Width="0.061*"/>
                 <ColumnDefinition Width="0.052*"/>
                 <ColumnDefinition  Width="0.382*"/>
-                <ColumnDefinition Width="0.064*"/>
+                <ColumnDefinition Width="40"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="59*"/>
+                <RowDefinition Height="75"/>
                 <RowDefinition Height="228*"/>
                 <RowDefinition Height="22*"/>
                 <RowDefinition Height="71*"/>
-                <RowDefinition Height="62*"/>
+                <RowDefinition Height="93"/>
             </Grid.RowDefinitions>
             
             <Grid.Background>
@@ -97,28 +97,33 @@
                          Text="{Binding ComputerName, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="5" FontSize="12" Style="{StaticResource controlHasErrorCheck}" 
                          Validation.ErrorTemplate="{StaticResource errorTemplate}" Watermark="e.g.: Home Computer" ToolTip="Enter a name to identify this computer." />
 
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelEMail}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Width="Auto" Target="tbEMail" FontSize="12" Height="Auto"   />
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelFullName}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Width="Auto" Target="tbFullName" FontSize="12" Height="Auto"  />
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="5" Width="Auto" Target="tbPassword" FontSize="12" Height="Auto"  />
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelConfirmPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="6" Width="Auto" Target="tbConfirmPassword" FontSize="12" Height="Auto"  />
-                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelComputerName}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="8" Width="Auto" Target="tbComputerName" FontSize="12" Height="Auto"  />
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelEMail}" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                       Grid.Row="1" Width="Auto" Target="tbEMail" FontSize="12" Foreground="#ff333333"   />
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelFullName}" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                       Grid.Row="3" Width="Auto" Target="tbFullName" FontSize="12"  Foreground="#ff333333"  />
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                       Grid.Row="5" Width="Auto" Target="tbPassword" FontSize="12"  Foreground="#ff333333"  />
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelConfirmPassword}" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                       Grid.Row="6" Width="Auto" Target="tbConfirmPassword" FontSize="12"  Foreground="#ff333333"  />
+                <Label Content="{x:Static resx:Resources.ViewPageCreateNewAccountLabelComputerName}" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                       Grid.Row="8" Width="Auto" Target="tbComputerName" FontSize="12"  Foreground="#ff333333"  />
                 <TextBlock TextWrapping="Wrap" Text="{x:Static resx:Resources.ViewPageCreateNewAccountLabelThisWillBeYourUsername}" Opacity="0.7"
-    			    Foreground="Black" Grid.Row="2" TextAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Height="Auto" />
+    			    Foreground="#ff818181" Grid.Row="2" FontSize="12" TextAlignment="Left" VerticalAlignment="Top" Grid.Column="1" />
     	    </Grid>
             
             <TextBlock TextWrapping="Wrap" Text="Let's create your Cloud account" FontFamily="Segoe UI"
-                                Foreground="Black" FontSize="17" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="Auto" />
+                                Foreground="#ff0f0f0f" FontSize="17" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="Auto" />
 
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="2" Grid.ColumnSpan="3" Grid.Row="4">
-                <Button x:Name="btnRight" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
+                <Button x:Name="btnRight" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="80" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Margin="0,0,0,22"
                         Command="{Binding PageCreateNewAccount_ContinueCommand, Mode=OneTime}" TabIndex="6" IsDefault="True" ToolTip="Click to continue.">
                     <AccessText Text="{x:Static resx:Resources.ViewPageCreateNewAccountButtonContinue}"/>
                 </Button>
                 
-                <Button x:Name="btnLeft" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                <Button x:Name="btnLeft" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="80" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
                         Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
-                        Command="{Binding PageCreateNewAccount_BackCommand, Mode=OneTime}" TabIndex="7" Margin="15,0,0,0" ToolTip="Click to go back to the home page.">
+                        Command="{Binding PageCreateNewAccount_BackCommand, Mode=OneTime}" TabIndex="7" Margin="10,0,0,22" ToolTip="Click to go back to the home page.">
                         <AccessText Text="{x:Static resx:Resources.ViewPageCreateNewAccountButtonBack}"/>
                 </Button>
             </StackPanel>

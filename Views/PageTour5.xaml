@@ -16,7 +16,7 @@
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:resx="clr-namespace:win_client.Resources"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
-    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="485"
     DataContext="{Binding PageTourViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Setup Complete" >
 

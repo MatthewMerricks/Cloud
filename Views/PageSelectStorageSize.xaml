@@ -15,7 +15,7 @@
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
-    mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
+    mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="485"
     DataContext="{Binding PageSelectStorageSizeViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Select Storage Size" >
 
@@ -33,27 +33,28 @@
 
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="42*"/>
+            <ColumnDefinition Width="37"/>
             <ColumnDefinition  Width="233*"/>
             <ColumnDefinition Width="38*"/>
             <ColumnDefinition Width="32*"/>
             <ColumnDefinition  Width="239*"/>
-            <ColumnDefinition Width="40*"/>
+            <ColumnDefinition Width="40"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30*"/>
+            <RowDefinition Height="75"/>
             <RowDefinition Height="149*"/>
-            <RowDefinition Height="11*"/>
-            <RowDefinition Height="31*"/>
+            <RowDefinition Height="21"/>
+            <RowDefinition Height="72"/>
         </Grid.RowDefinitions>
 
         <Grid.Background>
             <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
         </Grid.Background>
 
-        <TextBlock TextWrapping="Wrap" Text="How much storage would you like?" Foreground="Black" FontSize="17" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="22" Margin="0,19"/>
+        <TextBlock TextWrapping="Wrap" Text="How much storage would you like?" FontSize="17" Foreground="#ff0f0f0f"
+                   Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="22" Margin="0,19"/>
 
-        <TextBlock TextWrapping="Wrap" Text="Pricing terms"	Foreground="#FF2975A9" VerticalAlignment="Top" Height="Auto" HorizontalAlignment="Left" Width="Auto" Grid.Row="2" Grid.Column="1"/>
+        <TextBlock TextWrapping="Wrap" Text="Pricing terms"	Foreground="#FF489dd3" VerticalAlignment="Bottom" Height="Auto" HorizontalAlignment="Left" Width="Auto" Grid.Row="2" Grid.Column="1"/>
 
         <Grid Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="1" Grid.Row="1">
             <Grid.RowDefinitions>
@@ -90,8 +91,9 @@
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Label Content="_5 GB" Grid.Row="1" FontSize="16" Target="rb5Gb" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Blue"/>
-                    <TextBlock TextWrapping="Wrap" Text="Free" Foreground="Black" FontSize="16" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
+                    <Label Content="_5 GB" Grid.Row="1" FontSize="18" FontWeight="Bold" Foreground="#ff489dd3" Target="rb5Gb" 
+                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    <TextBlock TextWrapping="Wrap" Text="Free" Foreground="#ff525151" FontSize="18" FontWeight="SemiBold" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
                     <RadioButton x:Name="rb5Gb" VerticalAlignment="Center" HorizontalAlignment="Center" 
                          IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size5Gb, Converter={StaticResource RadioButtonStorageSizeSelectionsConverter}, Mode=TwoWay}" GroupName="Group1"
                          TabIndex="2" FontSize="16" Grid.Row="3"/>
@@ -116,8 +118,9 @@
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Label Content="5_0 GB" Grid.Row="1" FontSize="16" Target="rb50Gb" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Blue"/>
-                    <TextBlock TextWrapping="Wrap" Text="$9 / Month" Foreground="Black" FontSize="16" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
+                    <Label Content="5_0 GB" Grid.Row="1" FontSize="18" FontWeight="Bold" Target="rb50Gb" 
+                           VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#ff489dd3"/>
+                    <TextBlock TextWrapping="Wrap" Text="$9 / Month" Foreground="#ff525151" FontSize="18" FontWeight="SemiBold" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
                     <RadioButton x:Name="rb50Gb" VerticalAlignment="Center" HorizontalAlignment="Center" 
                          IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size50Gb, Converter={StaticResource RadioButtonStorageSizeSelectionsConverter}, Mode=TwoWay}" GroupName="Group1"
                          TabIndex="3" FontSize="16" Grid.Row="3"/>
@@ -142,8 +145,9 @@
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Label Content="500 _GB" Grid.Row="1" FontSize="16" Target="rb500Gb" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Blue"/>
-                    <TextBlock TextWrapping="Wrap" Text="$19 / Month" Foreground="Black" FontSize="16" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
+                    <Label Content="500 _GB" Grid.Row="1" FontSize="18" FontWeight="Bold" Target="rb500Gb" 
+                           VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#ff489dd3"/>
+                    <TextBlock TextWrapping="Wrap" Text="$19 / Month" Foreground="#ff525151" FontSize="18" FontWeight="SemiBold" Height="Auto" VerticalAlignment="Top" TextAlignment="Center" Grid.Row="2"/>
                     <RadioButton x:Name="rb500Gb" VerticalAlignment="Center" HorizontalAlignment="Center" 
                          IsChecked="{Binding PageSelectStorageSize_SizeSelected, ConverterParameter=Size500Gb, Converter={StaticResource RadioButtonStorageSizeSelectionsConverter}, Mode=TwoWay}" GroupName="Group1"
                          TabIndex="4" FontSize="16" Grid.Row="3"/>
@@ -153,16 +157,16 @@
             </Grid>
 
             <!-- Line separators -->
-            <Line X1="0" Y1="0" X2="0" Y2="1" Stroke="Black" Stretch="Fill" Opacity="0.5" Grid.Row="1" Grid.Column="2" Grid.RowSpan="2" Margin="0, 20, 0, 20"/>
-            <Line X1="0" Y1="0" X2="0" Y2="1" Stroke="Black" Stretch="Fill" Opacity="0.5" Grid.Row="1" Grid.Column="4" Grid.RowSpan="2" Margin="0, 20, 0, 20"/>
+            <Line X1="0" Y1="0" X2="0" Y2="1" Stroke="#ffe1e1e2" Stretch="Fill" Opacity="0.5" Grid.Row="1" Grid.Column="2" Grid.RowSpan="2" Margin="0, 20, 0, 20"/>
+            <Line X1="0" Y1="0" X2="0" Y2="1" Stroke="#ffe1e1e2" Stretch="Fill" Opacity="0.5" Grid.Row="1" Grid.Column="4" Grid.RowSpan="2" Margin="0, 20, 0, 20"/>
 
         </Grid>
         
         <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="2" Grid.ColumnSpan="3" Grid.Row="4">
-            <Button x:Name="cmdContinue" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="4" Grid.Column="4"
+            <Button x:Name="cmdContinue" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="80" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="4" Grid.Column="4" Margin="0,0,0,22"
                         Command="{Binding PageSelectStorageSize_ContinueCommand, Mode=OneTime}" TabIndex="6" IsDefault="True" ToolTip="Click to continue.">
-                <AccessText Text="_Continue"/>
+                <AccessText Text="_Next"/>
             </Button>
 
         </StackPanel>

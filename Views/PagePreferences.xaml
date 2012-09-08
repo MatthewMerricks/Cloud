@@ -16,7 +16,7 @@
     xmlns:common="clr-namespace:win_client.Common"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     xmlns:resx="clr-namespace:win_client.Resources"
-    mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="485"
+    mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="421"
     DataContext="{Binding PagePreferencesViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Cloud Preferences"  >
 
