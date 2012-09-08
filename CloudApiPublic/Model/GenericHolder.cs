@@ -11,12 +11,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System;
+using System.Reflection;
 
 namespace CloudApiPublic.Model
 {
     public sealed class GenericHolder<T>
     {
         public T Value { get; set; }
+
+        public static readonly PropertyInfo ValueInfo = typeof(GenericHolder<T>)
+            .GetProperty("Value", BindingFlags.Instance | BindingFlags.Public);
 
         /// <summary>
         /// Attempts to cast the first parameter as the current generic typed GenericHolder and sets Value to the second parameter

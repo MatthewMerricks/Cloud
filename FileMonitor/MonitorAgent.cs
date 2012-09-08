@@ -987,7 +987,7 @@ namespace FileMonitor
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
-                                    CLError updateSqlError = ProcessMergeToSQL(CurrentEarlierChange, null, false);
+                                    CLError updateSqlError = ProcessMergeToSQL(CurrentEarlierChange, null, true);
                                     if (updateSqlError != null)
                                     {
                                         toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.GrabExceptions());
@@ -1032,7 +1032,7 @@ namespace FileMonitor
                                         if (FilePathComparer.Instance.Equals(renamedOverlap, LaterChange.OldPath))
                                         {
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
-                                            CLError replacePathPortionError = ProcessMergeToSQL(CurrentEarlierChange, null, false);
+                                            CLError replacePathPortionError = ProcessMergeToSQL(CurrentEarlierChange, null, true);
                                             if (replacePathPortionError != null)
                                             {
                                                 toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());

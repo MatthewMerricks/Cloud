@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -47,6 +48,13 @@ namespace CloudApiPublic.Static
         {
             return (T)DefaultForType(typeof(T));
         }
+
+        public static readonly MethodInfo DefaultForTypeInfo = typeof(Helpers)
+            .GetMethod("DefaultForType",
+                BindingFlags.Public | BindingFlags.Static,
+                null,
+                new Type[0],
+                null);
 
         //private static readonly char[] ValidDateTimeStringChars = new char[]
         //{
@@ -422,5 +430,27 @@ namespace CloudApiPublic.Static
                 toTruncate.Second,
                 toTruncate.Kind);
         }
+
+        public static T ConvertTo<T>(object toConvert)
+        {
+            return (T)ConvertTo(toConvert, typeof(T));
+        }
+
+        public static object ConvertTo(object toConvert, Type newType)
+        {
+            if (toConvert == null)
+            {
+                return null;
+            }
+
+            return Convert.ChangeType(toConvert, Nullable.GetUnderlyingType(newType) ?? newType);
+        }
+
+        public static readonly MethodInfo ConvertToInfo = typeof(Helpers)
+            .GetMethod("ConvertTo",
+                BindingFlags.Static | BindingFlags.Public,
+                null,
+                new Type[] { typeof(object) },
+                null);
     }
 }

@@ -350,7 +350,7 @@
 		<row><td>CloudUpdater.exe</td><td>{1E65DA1C-18C7-4BB7-AED6-473C7B9753CA}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudupdater.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td>{0D8DF327-F492-416E-9D7A-45516132482A}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.abstractions.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td>{45AB52EC-5E33-4DF5-9D14-F444FA8E02A4}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.implementors.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>EntityFramework.dll</td><td>{534FCFA7-FD16-4B2F-BAD4-4B29C51A93D4}</td><td>INSTALLDIR</td><td>2</td><td/><td>entityframework.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ErikEJ.SqlCe40.dll</td><td>{53B764E4-20F9-4C4D-A175-DA4BC68EB2B5}</td><td>INSTALLDIR</td><td>2</td><td/><td>erikej.sqlce40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>FileMonitor.Primary_output</td><td>{4C00C7F8-AFC1-40C8-910B-1E42AB5981D9}</td><td>INSTALLDIR</td><td>2</td><td/><td>filemonitor.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>{018468C0-823E-43A2-9D29-AB51440EE907}</td><td>INSTALLDIR</td><td>2</td><td/><td>galasoft.mvvmlight.extras.wp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>GalaSoft.MvvmLight.WPF4.dll</td><td>{A707E09C-B186-453E-BB12-A9026046B62A}</td><td>INSTALLDIR</td><td>2</td><td/><td>galasoft.mvvmlight.wpf4.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1937,7 +1937,7 @@
 		<row><td>AlwaysInstall</td><td>CloudUpdater.exe</td></row>
 		<row><td>AlwaysInstall</td><td>Dialog.Abstractions.Wpf.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>Dialog.Implementors.Wpf.Primary_output</td></row>
-		<row><td>AlwaysInstall</td><td>EntityFramework.dll</td></row>
+		<row><td>AlwaysInstall</td><td>ErikEJ.SqlCe40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>FileMonitor.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td></row>
 		<row><td>AlwaysInstall</td><td>GalaSoft.MvvmLight.WPF4.dll</td></row>
@@ -2010,7 +2010,7 @@
 		<row><td>cloudupdater.exe</td><td>CloudUpdater.exe</td><td>CLOUDU~1.EXE|CloudUpdater.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\CloudUpdater.exe</td><td>1</td><td/></row>
 		<row><td>dialog.abstractions.wpf.prim</td><td>Dialog.Abstractions.Wpf.Primary_output</td><td>Dialog.Abstractions.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Abstractions.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>dialog.implementors.wpf.prim</td><td>Dialog.Implementors.Wpf.Primary_output</td><td>Dialog.Implementors.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Implementors.Wpf&gt;|Built</td><td>3</td><td/></row>
-		<row><td>entityframework.dll</td><td>EntityFramework.dll</td><td>ENTITY~1.DLL|EntityFramework.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\EntityFramework.dll</td><td>1</td><td/></row>
+		<row><td>erikej.sqlce40.dll</td><td>ErikEJ.SqlCe40.dll</td><td>ERIKEJ~1.DLL|ErikEJ.SqlCe40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</td><td>1</td><td/></row>
 		<row><td>filemonitor.primary_output</td><td>FileMonitor.Primary_output</td><td>FileMonitor.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;FileMonitor&gt;|Built</td><td>3</td><td/></row>
 		<row><td>galasoft.mvvmlight.extras.wp</td><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>GALASO~1.DLL|GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>1</td><td/></row>
 		<row><td>galasoft.mvvmlight.wpf4.dll</td><td>GalaSoft.MvvmLight.WPF4.dll</td><td>GALASO~1.DLL|GalaSoft.MvvmLight.WPF4.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\GalaSoft.MvvmLight.WPF4.dll</td><td>1</td><td/></row>
@@ -2320,7 +2320,7 @@
 		<row><td>CloudUpdater.exe</td><td/><td/><td>_9D933A0F_642B_465A_8E23_986B9BFB96A9_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td/><td/><td>_20049C24_C097_4693_B36E_AE931F83388C_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td/><td/><td>_03BAA0A3_E5E9_4BAE_A8DC_7916EB10CC2F_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>EntityFramework.dll</td><td/><td/><td>_7F5D51B9_67FF_4B87_A90F_89DEEEB0460B_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ErikEJ.SqlCe40.dll</td><td/><td/><td>_D061E4D3_FFDD_4EEE_8483_F32C676D05BC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>FileMonitor.Primary_output</td><td/><td/><td>_D12F2FB2_EF23_4993_A175_2815BAF9508A_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td><td/><td/><td>_0BE3DFB9_ADDA_4750_BE5C_079BE270FD2D_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>GalaSoft.MvvmLight.WPF4.dll</td><td/><td/><td>_29E100B2_C650_4E00_B992_E72B73409D0E_FILTER</td><td/><td/><td/><td/></row>

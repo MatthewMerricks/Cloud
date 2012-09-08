@@ -76,6 +76,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>3rdParty\bin\Release\EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="ErikEJ.SqlCe40">
+      <HintPath>3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
+    </Reference>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4">
       <HintPath>3rdParty\bin\Release\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
     </Reference>
