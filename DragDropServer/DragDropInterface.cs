@@ -1,17 +1,24 @@
-﻿using System;
+﻿//
+//  DragDropInterface.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 
-namespace win_client.DragDrop
+namespace win_client.DragDropServer
 {
-    internal class DragDropAction
+    public class DragDropOperation
     {
         public readonly String Action;
         public readonly DateTime Timestamp = DateTime.Now;
         public readonly Int32 ClientPID;
 
-        public DragDropAction(
+        public DragDropOperation(
             Int32 InClientPID,
             String InAction)
         {
@@ -46,9 +53,9 @@ namespace win_client.DragDrop
              * We should just check if the client is still in our list
              * of hooked processes...
              */
-            lock (Form1.ProcessList)
+            lock (DragDropServer.Instance.Locker)
             {
-                return Form1.HookedProcesses.Contains(InClientPID);
+                return DragDropServer.Instance.HookedProcesses.Contains(InClientPID);
             }
         }
 
@@ -60,15 +67,16 @@ namespace win_client.DragDrop
             Int32 InClientPID,
             String[] InActions)
         {
-            if (Form1.IsMonitoring)
+            if (DragDropServer.Instance.IsStarted)
             {
-                lock (Form1.MonitorQueue)
+                lock (DragDropServer.Instance.Locker)
                 {
-                    for (int i = 0; i < InFileNames.Length; i++)
+                    for (int i = 0; i < InActions.Length; i++)
                     {
-                        Form1.MonitorQueue.Enqueue(new DragDropAction(
+                        DragDropServer.Instance.InjectionQueue.Enqueue(
+                            new DragDropOperation(
                                 InClientPID,
-                                "[FILE]: \"" + InFileNames[i] + "\""
+                                InActions[i]
                             ));
                     }
                 }
