@@ -19,6 +19,8 @@ using EasyHook;
 using System.Security.Principal;
 using CloudApiPublic.Model;
 using win_client.Common;
+using System.Runtime.InteropServices;
+using System.Windows;
 
 
 namespace win_client.DragDropServer
@@ -40,7 +42,14 @@ namespace win_client.DragDropServer
         public bool IsStarted { get; private set; }
         public Queue<DragDropOperation> InjectionQueue { get; set; }
 
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern bool OpenProcessToken(IntPtr ProcessHandle, UInt32 DesiredAccess, out IntPtr TokenHandle);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool CloseHandle(IntPtr hObject);
+
+        static uint TOKEN_QUERY = 0x0008;
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -69,6 +78,7 @@ namespace win_client.DragDropServer
         private DragDropServer()
         {
             // Initialize members, etc. here (at static initialization time).
+            _trace.writeToLog(9, "DragDropServer: DragDropServer: Entry.");
             this.CurrentProcesses = new List<ProcessInfo>();
             this.Locker = new object();
             this. HookedProcesses = new List<Int32>();
@@ -83,8 +93,16 @@ namespace win_client.DragDropServer
         {
             lock (Locker)
             {
+                _trace.writeToLog(9, "DragDropServer: StartDragDropServer: Entry.");
+                if (IsStarted)
+                {
+                    _trace.writeToLog(9, "DragDropServer: StartDragDropServer: Return. Already started.");
+                    return;
+                }
                 IsStarted = true;
+
                 _currentUser = RemoteHooking.GetProcessIdentity(RemoteHooking.GetCurrentProcessId()).Name;
+                _trace.writeToLog(9, "DragDropServer: StartDragDropServer: Current user: {0}.", _currentUser);
 
                 // Start a timer to watch this user's processes and inject them as they start.
                 _timerProcessUpdate = new System.Threading.Timer(new System.Threading.TimerCallback(OnTimerProcessUpdate), null, 0, 250);
@@ -93,7 +111,12 @@ namespace win_client.DragDropServer
                 _timerCheckInjectionMsgQueue = new System.Threading.Timer(new System.Threading.TimerCallback(OnTimerCheckInjectionMsgQueue), null, 100, 100);
 
                 // Create the server end of the IPC notification channel.
+                _trace.writeToLog(9, "DragDropServer: StartDragDropServer: Create the server IPC channel end.");
                 _hookServer = RemoteHooking.IpcCreateServer<DragDropInterface>(ref _channelName, WellKnownObjectMode.Singleton);
+                if (_hookServer == null)
+                {
+                    _trace.writeToLog(9, "DragDropServer: StartDragDropServer: ERROR: Server IPC channel end null.");
+                }
             }
         }
 
@@ -122,12 +145,18 @@ namespace win_client.DragDropServer
                     if (operation.Action.Equals("Enter", StringComparison.InvariantCulture))
                     {
                       // Send a message to PageInvisible to show the systray drop window.
-                      CLAppMessages.Message_DragDropServer_ShouldShowSystrayDropWindow.Send(operation);
+                        _trace.writeToLog(9, "DragDropServer: OnTimerCheckInjectionMsgQueue: Send 'Enter' message to PageInvisible.");
+                        CLAppMessages.Message_DragDropServer_ShouldShowSystrayDropWindow.Send(operation);
                     }
                     else if (operation.Action.Equals("Leave", StringComparison.InvariantCulture))
                     {
-                      // Send a message to the systray drop window to hide itself.
-                      CLAppMessages.Message_DragDropServer_ShouldHideSystrayDropWindow.Send(operation);
+                        // Send a message to the systray drop window to hide itself.
+                        _trace.writeToLog(9, "DragDropServer: OnTimerCheckInjectionMsgQueue: Send 'Leave' message to systray Drop window.");
+                        CLAppMessages.Message_DragDropServer_ShouldHideSystrayDropWindow.Send(operation);
+                    }
+                    else
+                    {
+                        _trace.writeToLog(9, "DragDropServer: OnTimerCheckInjectionMsgQueue: ERROR: Invalid message: {0].", operation.Action);
                     }
                 }
 
@@ -152,7 +181,8 @@ namespace win_client.DragDropServer
                 }
 
                 // Enumerate all of the processes for this user.  Inject any new processes.
-                ProcessInfo[] processArray = (ProcessInfo[])RemoteHooking.ExecuteAsService<DragDropServer>("EnumProcesses");
+                //Replaced: ProcessInfo[] processArray = (ProcessInfo[])RemoteHooking.ExecuteAsService<DragDropServer>("EnumProcesses", _currentUser);
+                ProcessInfo[] processArray = EnumProcesses(_currentUser);
                 CurrentProcesses.Clear();
                 for (int i = 0; i < processArray.Length; i++)
                 {
@@ -162,21 +192,25 @@ namespace win_client.DragDropServer
                     if (!HookedProcesses.Contains(processArray[i].Id))
                     {
                         // Inject the enumerated process
+                        string fullPathDragDropInjectionDll = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase) + "\\DragDropInjection.dll";
+                        _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: Add new process <{0}> with ID: {1}.", processArray[i].FileName, processArray[i].Id);
                         HookedProcesses.Add(processArray[i].Id); // this will ensure that Ping() returns true...
                         try
                         {
+                            _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: Inject the process.");
                             RemoteHooking.Inject(
                                 processArray[i].Id,
-                                "DragDropInjection.dll", // 32-bit version (the same because AnyCPU)
-                                "DragDropInjection.dll", // 64-bit version (the same because AnyCPU)
+                                fullPathDragDropInjectionDll,   // 32-bit version (the same because AnyCPU)
+                                fullPathDragDropInjectionDll,   // 64-bit version (the same because AnyCPU)
                                 // the optional parameter list...
                                 _channelName);
+                            _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: After injecting the process.");
                         }
                         catch(Exception ex)
                         {
                             HookedProcesses.Remove(processArray[i].Id);
                             CLError error = ex;
-                            _trace.writeToLog(1, "DragDropServer: OnTimerProcessUpdate: ERROR. Exception.  Msg: <[0]>. Code: {1}.", error.errorDescription, error.errorCode);
+                            _trace.writeToLog(1, "DragDropServer: OnTimerProcessUpdate: ERROR. Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
                         }
                     }
                 }
@@ -206,6 +240,7 @@ namespace win_client.DragDropServer
                 // Now remove the pids from the hooked list.
                 for (Int32 i = 0; i < pidsToRemove.Length; i++)
                 {
+                    _trace.writeToLog(1, "DragDropServer: OnTimerProcessUpdate: Remove process with ID: {0}.", pidsToRemove[i]);
                     HookedProcesses.Remove(pidsToRemove[i]);
                 }
 
@@ -220,6 +255,7 @@ namespace win_client.DragDropServer
         {
             lock (Locker)
             {
+                _trace.writeToLog(1, "DragDropServer: StopDragDropServer: Entry.");
                 IsStarted = false;
             }
         }
@@ -233,7 +269,7 @@ namespace win_client.DragDropServer
             public String User;
         }
 
-        public static ProcessInfo[] EnumProcesses()
+        public static ProcessInfo[] EnumProcesses(string currentUser)
         {
             List<ProcessInfo> Result = new List<ProcessInfo>();
             Process[] ProcList = Process.GetProcesses();
@@ -246,15 +282,28 @@ namespace win_client.DragDropServer
                 {
                     ProcessInfo Info = new ProcessInfo();
 
+                    // This might cause an exception for an unprivileged user.  Ignore it
                     Info.FileName = Proc.MainModule.FileName;
                     Info.Id = Proc.Id;
                     Info.Is64Bit = RemoteHooking.IsX64Process(Proc.Id);
-                    Info.User = RemoteHooking.GetProcessIdentity(Proc.Id).Name;
 
-                    Result.Add(Info);
+                    // Get the user name (owner of this process)
+                    // The OpenProcessToken() function might cause an exception for an unprivileged user.  Ignore it.
+                    IntPtr ph = IntPtr.Zero;
+                    OpenProcessToken(Proc.Handle, TOKEN_QUERY, out ph);
+                    WindowsIdentity wi = new WindowsIdentity(ph);
+
+                    // Changed: Info.User = RemoteHooking.GetProcessIdentity(Proc.Id).Name;
+                    Info.User = wi.Name;
+
+                    if (Info.User == currentUser)
+                    {
+                        Result.Add(Info);
+                    }
                 }
                 catch
                 {
+                    // Ignore.  All processes that are not owned by this user will take an exception and be ignored.
                 }
             }
 

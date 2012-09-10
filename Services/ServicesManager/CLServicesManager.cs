@@ -17,6 +17,7 @@ using win_client.Services.UiActivity;
 using win_client.Services.Indexing;
 using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
+using win_client.DragDropServer;
 
 namespace win_client.Services.ServicesManager
 {
@@ -119,6 +120,7 @@ namespace win_client.Services.ServicesManager
                 {
                     CLNotificationService.Instance.ConnectPushNotificationServer();
                 }
+                DragDropServer.DragDropServer.Instance.StartDragDropServer();
             }
         }
 
@@ -129,6 +131,7 @@ namespace win_client.Services.ServicesManager
                 _coreServicesStarted = false;
                 CLUIActivityService.Instance.EndUIActivityService();
                 CLBadgingService.Instance.EndBadgingServices();
+                DragDropServer.DragDropServer.Instance.StopDragDropServer();
                 CLNotificationService.Instance.DisconnectPushNotificationServer();
                 CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                 CLFSMonitoringService.Instance.EndFileSystemMonitoring();
