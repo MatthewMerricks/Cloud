@@ -12,22 +12,22 @@ using System.Text;
 
 namespace SQLIndexer.SqlModel
 {
-    [SqlAccess("Syncs")]
+    [SqlAccess.Class("Syncs")]
     public class Sync
     {
-        [SqlAccess]
+        [SqlAccess.Property]
         public string SyncId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public long SyncCounter { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public string RootPath { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public SyncState SyncState { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public Event Event { get; set; }
     }
 }

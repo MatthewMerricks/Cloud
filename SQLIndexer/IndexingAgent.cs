@@ -188,7 +188,7 @@ namespace SQLIndexer
                         {
                             int storeCategoryId = -1;
                             foreach (EnumCategory currentCategory in SqlAccessor<EnumCategory>
-                                .SelectResults(indexDB,
+                                .SelectResultSet(indexDB,
                                     "SELECT * FROM [EnumCategories]"))
                             {
                                 if (currentCategory.Name == typeof(FileChangeType).Name)
@@ -198,7 +198,7 @@ namespace SQLIndexer
                             }
 
                             foreach (SqlEnum currentChangeEnum in SqlAccessor<SqlEnum>
-                                .SelectResults(indexDB,
+                                .SelectResultSet(indexDB,
                                     "SELECT * FROM [Enums] WHERE [Enums].[EnumCategoryId] = " + storeCategoryId.ToString()))
                             {
                                 changeCategoryId = currentChangeEnum.EnumCategoryId;
@@ -264,7 +264,7 @@ namespace SQLIndexer
                 {
                     // Pull the last sync from the database
                     Sync lastSync = SqlAccessor<Sync>
-                        .SelectResults(indexDB,
+                        .SelectResultSet(indexDB,
                             "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                         .SingleOrDefault();
 
@@ -286,7 +286,7 @@ namespace SQLIndexer
 
                         // Loop through all sync states for the last sync
                         foreach (SyncState currentSyncState in SqlAccessor<SyncState>
-                            .SelectResults(indexDB,
+                            .SelectResultSet(indexDB,
                                 "SELECT " + SqlAccessor<SyncState>.GetSelectColumns() + ", " +
                                 SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + ", " +
                                 SqlAccessor<FileSystemObject>.GetSelectColumns("ServerLinkedFileSystemObject", "ServerLinkedFileSystemObjects") + " " +
@@ -348,7 +348,7 @@ namespace SQLIndexer
                 {
                     // Grab the most recent sync from the database to pull sync states
                     Sync lastSync = SqlAccessor<Sync>
-                        .SelectResults(indexDB,
+                        .SelectResultSet(indexDB,
                             "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                         .SingleOrDefault();
 
@@ -361,7 +361,7 @@ namespace SQLIndexer
                         int pathCRC = StringCRC.Crc(path);
 
                         SyncState foundSync = SqlAccessor<SyncState>
-                            .SelectResults(indexDB,
+                            .SelectResultSet(indexDB,
                                 "SELECT TOP 1 " +
                                 SqlAccessor<SyncState>.GetSelectColumns() + ", " +
                                 SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
@@ -372,12 +372,11 @@ namespace SQLIndexer
                                 (revision == null
                                     ? "AND [FileSystemObjects].[RevisionIsNull] = 1"
                                     : "AND [FileSystemObjects].[RevisionIsNull] = 0 " +
-                                        "AND [FileSystemObjects].[Revision] = '" + revision.Replace("'", "''") + "'"),
+                                        "AND LOWER([FileSystemObjects].[Revision]) = '" + revision.Replace("'", "''").ToLowerInvariant() + "'"),
                                 new string[]
                                 {
                                     FileSystemObject.Name
-                                },
-                                false)
+                                })
                             .Where(parent => parent.FileSystemObject.Path == path) // run in memory since Path field is not indexable
                             .SingleOrDefault();
 
@@ -427,7 +426,7 @@ namespace SQLIndexer
                 {
                     // Pull the last sync from the database
                     Sync lastSync = SqlAccessor<Sync>
-                        .SelectResults(indexDB,
+                        .SelectResultSet(indexDB,
                             "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                         .SingleOrDefault();
                     // Fill in a nullable id for the last sync
@@ -441,7 +440,7 @@ namespace SQLIndexer
                     // Loop through all the events in the database after the last sync (if any)
                     foreach (Event currentChange in
                         SqlAccessor<Event>
-                            .SelectResults(indexDB,
+                            .SelectResultSet(indexDB,
                                 "SELECT " +
                                 SqlAccessor<Event>.GetSelectColumns() + ", " +
                                 SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) +
@@ -519,7 +518,7 @@ namespace SQLIndexer
                     {
                         // Grab the last sync from the database
                         Sync lastSync = SqlAccessor<Sync>
-                            .SelectResults(indexDB,
+                            .SelectResultSet(indexDB,
                                 "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                             .SingleOrDefault();
                         // Fill in a nullable id of the last sync
@@ -592,7 +591,7 @@ namespace SQLIndexer
                 using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
                 {
                     // Find the existing event for the given id
-                    Event toDelete = SqlAccessor<Event>.SelectResults(indexDB,
+                    Event toDelete = SqlAccessor<Event>.SelectResultSet(indexDB,
                         "SELECT TOP 1 * FROM [Events] WHERE [Events].[EventId] = " + eventId.ToString())
                         .SingleOrDefault();
 
@@ -650,7 +649,7 @@ namespace SQLIndexer
                         // used to ensure all event ids to be deleted were found
                         List<long> orderedDBIds = new List<long>();
                         // Grab all events with ids in the specified range
-                        Event[] deleteEvents = SqlAccessor<Event>.SelectResults(indexDB,
+                        Event[] deleteEvents = SqlAccessor<Event>.SelectResultSet(indexDB,
                             "SELECT * FROM [Events] " +
                             "WHERE [Events].[EventId] IN (" + string.Join(", ", eventIdsArray.Select(currentId => currentId.ToString()).ToArray()) + ") " +
                             "ORDER BY [Events].[EventId]")
@@ -722,7 +721,7 @@ namespace SQLIndexer
                     using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
                     {
                         // Retrieve last sync if it exists
-                        Sync lastSync = SqlAccessor<Sync>.SelectResults(indexDB,
+                        Sync lastSync = SqlAccessor<Sync>.SelectResultSet(indexDB,
                             "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                             .SingleOrDefault();
                         // Store last sync counter value or null for no last sync
@@ -783,7 +782,7 @@ namespace SQLIndexer
                         if (lastSyncCounter != null)
                         {
                             // Loop through previous sync states
-                            foreach (SyncState currentState in SqlAccessor<SyncState>.SelectResults(indexDB,
+                            foreach (SyncState currentState in SqlAccessor<SyncState>.SelectResultSet(indexDB,
                                 "SELECT " +
                                 SqlAccessor<SyncState>.GetSelectColumns() + ", " +
                                 SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + ", " +
@@ -872,7 +871,7 @@ namespace SQLIndexer
                         }
 
                         // Grab all events from the database since the previous sync, ordering by id to ensure correct processing logic
-                        Event[] existingEvents = SqlAccessor<Event>.SelectResults(indexDB,
+                        Event[] existingEvents = SqlAccessor<Event>.SelectResultSet(indexDB,
                             "SELECT " +
                             SqlAccessor<Event>.GetSelectColumns() + ", " +
                             SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
@@ -1301,7 +1300,7 @@ namespace SQLIndexer
                                 && (mergedEvent == null || mergedEvent.EventId != eventToRemove.EventId))
                             {
                                 // Find the existing event for the given id
-                                Event toDelete = SqlAccessor<Event>.SelectResults(indexDB,
+                                Event toDelete = SqlAccessor<Event>.SelectResultSet(indexDB,
                                     "SELECT TOP 1 * FROM [Events] WHERE [Events].[EventId] = " + eventToRemove.EventId.ToString())
                                     .SingleOrDefault();
 
@@ -1349,7 +1348,7 @@ namespace SQLIndexer
                         if (eventIdToUpdate != null)
                         {
                             // Find the existing event for the given id
-                            Event toModify = SqlAccessor<Event>.SelectResults(indexDB,
+                            Event toModify = SqlAccessor<Event>.SelectResultSet(indexDB,
                                 "SELECT TOP 1 " +
                                 SqlAccessor<Event>.GetSelectColumns() + ", " +
                                 SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
@@ -1508,7 +1507,7 @@ namespace SQLIndexer
                     using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
                     {
                         // grab the event from the database by provided id
-                        currentEvent = SqlAccessor<Event>.SelectResults(indexDB,
+                        currentEvent = SqlAccessor<Event>.SelectResultSet(indexDB,
                             "SELECT TOP 1 " +
                             SqlAccessor<Event>.GetSelectColumns() + ", " +
                             SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
@@ -1527,7 +1526,7 @@ namespace SQLIndexer
                         }
 
                         // Retrieve last syncs if they exists
-                        Sync[] lastSyncs = SqlAccessor<Sync>.SelectResults(indexDB,
+                        Sync[] lastSyncs = SqlAccessor<Sync>.SelectResultSet(indexDB,
                             "SELECT TOP 2 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                             .ToArray();
                         // ensure a previous sync was found
@@ -1550,7 +1549,7 @@ namespace SQLIndexer
 
                         // pull the sync states for the new path of the current event
                         Sync firstLastSync = lastSyncs[0];
-                        SyncState[] newPathStates = SqlAccessor<SyncState>.SelectResults(indexDB,
+                        SyncState[] newPathStates = SqlAccessor<SyncState>.SelectResultSet(indexDB,
                             "SELECT " +
                             SqlAccessor<SyncState>.GetSelectColumns() + ", " +
                             SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + ", " +
@@ -1619,7 +1618,7 @@ namespace SQLIndexer
                             int crcIntPrevious = StringCRC.Crc(currentEvent.PreviousPath);
 
                             // fill in the old path sync states
-                            oldPathStates = SqlAccessor<SyncState>.SelectResults(indexDB,
+                            oldPathStates = SqlAccessor<SyncState>.SelectResultSet(indexDB,
                                 "SELECT " +
                                 SqlAccessor<SyncState>.GetSelectColumns() + ", " +
                                 SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + ", " +
@@ -1818,7 +1817,7 @@ namespace SQLIndexer
             using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
             {
                 // Grab the most recent sync from the database to pull sync states
-                Sync lastSync = SqlAccessor<Sync>.SelectResults(indexDB,
+                Sync lastSync = SqlAccessor<Sync>.SelectResultSet(indexDB,
                     "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                     .SingleOrDefault();
                 // Store the sync counter from the last sync, defaulting to null
@@ -1846,7 +1845,7 @@ namespace SQLIndexer
                 if (lastSync != null)
                 {
                     // Loop through the sync states for the last sync
-                    foreach (SyncState currentSyncState in SqlAccessor<SyncState>.SelectResults(indexDB,
+                    foreach (SyncState currentSyncState in SqlAccessor<SyncState>.SelectResultSet(indexDB,
                         "SELECT " +
                         SqlAccessor<SyncState>.GetSelectColumns() + ", " +
                         SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
@@ -1876,7 +1875,7 @@ namespace SQLIndexer
                 lock (changeEnumsLocker)
                 {
                     // Loop through database events since the last sync to add changes
-                    foreach (Event currentEvent in SqlAccessor<Event>.SelectResults(indexDB,
+                    foreach (Event currentEvent in SqlAccessor<Event>.SelectResultSet(indexDB,
                         "SELECT " +
                         SqlAccessor<Event>.GetSelectColumns() + ", " +
                         SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
@@ -1885,7 +1884,11 @@ namespace SQLIndexer
                         (lastSync == null
                             ? "WHERE [Events].[SyncCounter] IS NULL "
                             : "WHERE [Events].[SyncCounter] = " + lastSync.SyncCounter.ToString() + " ") +
-                        "ORDER BY [Events].[EventId]"))
+                        "ORDER BY [Events].[EventId]",
+                        new string[]
+                        {
+                            FileSystemObject.Name
+                        }))
                     {
 
                         // Add database event to list of changes

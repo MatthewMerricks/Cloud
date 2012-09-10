@@ -13,19 +13,19 @@ using System.Threading.Tasks;
 
 namespace SQLIndexer.SqlModel
 {
-    [SqlAccess("EnumCategories")]
+    [SqlAccess.Class("EnumCategories")]
     public class EnumCategory
     {
-        [SqlAccess]
+        [SqlAccess.Property]
         public int EnumCategoryId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public string Name { get; set; }
 
-        [SqlAccess(Constants.SqlEnumName, true)]
+        [SqlAccess.Property(Constants.SqlEnumName, true)]
         public SqlEnum SqlEnum { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public Event Event { get; set; }
     }
 }

@@ -53,7 +53,7 @@ namespace CloudApiPublic.Static
             .GetMethod("DefaultForType",
                 BindingFlags.Public | BindingFlags.Static,
                 null,
-                new Type[0],
+                new Type[] { typeof(Type) },
                 null);
 
         //private static readonly char[] ValidDateTimeStringChars = new char[]

@@ -12,28 +12,28 @@ using System.Text;
 
 namespace SQLIndexer.SqlModel
 {
-    [SqlAccess("SyncStates")]
+    [SqlAccess.Class("SyncStates")]
     public class SyncState
     {
-        [SqlAccess]
+        [SqlAccess.Property]
         public long SyncStateId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public long SyncCounter { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public long FileSystemObjectId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public Nullable<long> ServerLinkedFileSystemObjectId { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public Sync Sync { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public FileSystemObject FileSystemObject { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public FileSystemObject ServerLinkedFileSystemObject { get; set; }
     }
 }

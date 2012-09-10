@@ -1951,7 +1951,7 @@ namespace Sync
                                 {
                                     fromEvents.Add(currentEventIndex);
                                 }
-                                else
+                                else if (currentEvent.Header.Status != CLDefinitions.CLEventTypeDownload)// exception for download when looking for dependencies since we actually want the Sync From event
                                 {
                                     eventsByPath.Add(getCloudRoot() + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'));
                                 }

@@ -12,22 +12,22 @@ using System.Text;
 
 namespace SQLIndexer.SqlModel
 {
-    [SqlAccess("Enums")]
+    [SqlAccess.Class("Enums")]
     public class SqlEnum
     {
-        [SqlAccess]
+        [SqlAccess.Property]
         public int EnumId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public int EnumCategoryId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public string Name { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public EnumCategory EnumCategory { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public Event Event { get; set; }
     }
 }

@@ -12,40 +12,40 @@ using System.Text;
 
 namespace SQLIndexer.SqlModel
 {
-    [SqlAccess("Events")]
+    [SqlAccess.Class("Events")]
     public class Event
     {
-        [SqlAccess]
+        [SqlAccess.Property]
         public long EventId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public Nullable<long> SyncCounter { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public int FileChangeTypeCategoryId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public int FileChangeTypeEnumId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public string PreviousPath { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public long FileSystemObjectId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public bool SyncFrom { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public Sync Sync { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public EnumCategory EnumCategory { get; set; }
 
-        [SqlAccess(Constants.SqlEnumName, true)]
+        [SqlAccess.Property(Constants.SqlEnumName, true)]
         public SqlEnum SqlEnum { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public FileSystemObject FileSystemObject { get; set; }
     }
 }

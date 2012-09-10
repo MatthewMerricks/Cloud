@@ -12,51 +12,51 @@ using System.Text;
 
 namespace SQLIndexer.SqlModel
 {
-    [SqlAccess("FileSystemObjects")]
+    [SqlAccess.Class("FileSystemObjects")]
     public class FileSystemObject
     {
         public static readonly string Name = (typeof(FileSystemObject)).Name;
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public long FileSystemObjectId { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public string Path { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public Nullable<DateTime> LastTime { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public Nullable<DateTime> CreationTime { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public bool IsFolder { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public Nullable<long> Size { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public string TargetPath { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public int PathChecksum { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public string Revision { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public bool RevisionIsNull { get; set; }
 
-        [SqlAccess]
+        [SqlAccess.Property]
         public string StorageKey { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public Event Event { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public SyncState SyncState { get; set; }
 
-        [SqlAccess(true)]
+        [SqlAccess.Property(true)]
         public SyncState ServerLinkedSyncState { get; set; }
     }
 }
