@@ -120,7 +120,8 @@ namespace win_client.Services.ServicesManager
                 {
                     CLNotificationService.Instance.ConnectPushNotificationServer();
                 }
-                DragDropServer.DragDropServer.Instance.StartDragDropServer();
+                //TODO: Enable to hook all user processes for the start of a drag/drop operation
+                //DragDropServer.DragDropServer.Instance.StartDragDropServer();
             }
         }
 
@@ -131,7 +132,10 @@ namespace win_client.Services.ServicesManager
                 _coreServicesStarted = false;
                 CLUIActivityService.Instance.EndUIActivityService();
                 CLBadgingService.Instance.EndBadgingServices();
-                DragDropServer.DragDropServer.Instance.StopDragDropServer();
+
+                //TODO: Enable to hook all user processes for the start of a drag/drop operation
+                //DragDropServer.DragDropServer.Instance.StopDragDropServer();
+
                 CLNotificationService.Instance.DisconnectPushNotificationServer();
                 CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                 CLFSMonitoringService.Instance.EndFileSystemMonitoring();

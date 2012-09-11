@@ -107,7 +107,7 @@ namespace DragDropInjection
 
         // just use a P-Invoke implementation to get native API access from C# (this step is not necessary for C++.NET)
         [DllImport("ole32.dll", CharSet = CharSet.Unicode, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
-        private static extern Int32 DoDragDrop(
+        static extern Int32 DoDragDrop(
             IntPtr InData,
             IntPtr InDropSource,
             UInt32 InOkEffects,

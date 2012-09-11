@@ -170,53 +170,71 @@ namespace win_client.DragDropServer
         /// <param name="state"></param>
         private void OnTimerProcessUpdate(object state)
         {
-            lock (Locker)
+            _timerProcessUpdate.Change(Timeout.Infinite, Timeout.Infinite);        // disable the timer
+
+            // Just return if not started.
+            if (!IsStarted)
             {
-                _timerProcessUpdate.Change(Timeout.Infinite, Timeout.Infinite);        // disable the timer
+                return;
+            }
 
-                // Just return if not started.
-                if (!IsStarted)
+            // Enumerate all of the processes for this user.  Inject any new processes.
+            //Replaced: ProcessInfo[] processArray = (ProcessInfo[])RemoteHooking.ExecuteAsService<DragDropServer>("EnumProcesses", _currentUser);
+            ProcessInfo[] processArray = EnumProcesses(_currentUser);
+            CurrentProcesses.Clear();
+            for (int i = 0; i < processArray.Length; i++)
+            {
+                CurrentProcesses.Add(processArray[i]);  // Add this process to the current snapshot
+
+                // Inject this process if it is new
+                bool processAdded = false;
+                lock (Locker)
                 {
-                    return;
-                }
-
-                // Enumerate all of the processes for this user.  Inject any new processes.
-                //Replaced: ProcessInfo[] processArray = (ProcessInfo[])RemoteHooking.ExecuteAsService<DragDropServer>("EnumProcesses", _currentUser);
-                ProcessInfo[] processArray = EnumProcesses(_currentUser);
-                CurrentProcesses.Clear();
-                for (int i = 0; i < processArray.Length; i++)
-                {
-                    CurrentProcesses.Add(processArray[i]);  // Add this process to the current snapshot
-
-                    // Inject this process if it is new
                     if (!HookedProcesses.Contains(processArray[i].Id))
                     {
-                        // Inject the enumerated process
-                        string fullPathDragDropInjectionDll = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase) + "\\DragDropInjection.dll";
-                        _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: Add new process <{0}> with ID: {1}.", processArray[i].FileName, processArray[i].Id);
+                        _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: New process <{0}> with ID: {1}.", processArray[i].FileName, processArray[i].Id);
                         HookedProcesses.Add(processArray[i].Id); // this will ensure that Ping() returns true...
-                        try
-                        {
-                            _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: Inject the process.");
-                            RemoteHooking.Inject(
-                                processArray[i].Id,
-                                fullPathDragDropInjectionDll,   // 32-bit version (the same because AnyCPU)
-                                fullPathDragDropInjectionDll,   // 64-bit version (the same because AnyCPU)
-                                // the optional parameter list...
-                                _channelName);
-                            _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: After injecting the process.");
-                        }
-                        catch(Exception ex)
-                        {
-                            HookedProcesses.Remove(processArray[i].Id);
-                            CLError error = ex;
-                            _trace.writeToLog(1, "DragDropServer: OnTimerProcessUpdate: ERROR. Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
-                        }
+                        processAdded = true;
                     }
                 }
 
-                // Enumerate all of the processes that have already been hooked.  Remove the item if the process has exited.
-                Int32[] pidsToRemove = new Int32[0];
+                // Inject this process if we should
+                if (processAdded)
+                {
+                    // Inject the enumerated process.  Get the full path of the dll.
+                    string fullPathDragDropInjectionDll = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
+                    fullPathDragDropInjectionDll = fullPathDragDropInjectionDll.Replace("file:\\", String.Empty);  // remove the file:\ from the beginning to get c:\....
+                    string fullPathDragDropInjectionDll64 = fullPathDragDropInjectionDll + "\\DragDropInjectionx64.dll";
+                    string fullPathDragDropInjectionDll86 = fullPathDragDropInjectionDll + "\\DragDropInjectionx86.dll";
+                    _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: Injection dll path64: <{0}>. path86: <{1}>.", fullPathDragDropInjectionDll64, fullPathDragDropInjectionDll86);
+
+                    try
+                    {
+                        _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: Inject the process.");
+                        RemoteHooking.Inject(
+                            processArray[i].Id,
+                            fullPathDragDropInjectionDll86,   // 32-bit version (the same because AnyCPU)
+                            fullPathDragDropInjectionDll64,   // 64-bit version (the same because AnyCPU)
+                            // the optional parameter list...
+                            _channelName);
+                        _trace.writeToLog(9, "DragDropServer: OnTimerProcessUpdate: After injecting the process.");
+                    }
+                    catch(Exception ex)
+                    {
+                        lock (Locker)
+                        {
+                            HookedProcesses.Remove(processArray[i].Id);
+                        }
+                        CLError error = ex;
+                        _trace.writeToLog(1, "DragDropServer: OnTimerProcessUpdate: ERROR. Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
+                    }
+                }
+            }
+
+            // Enumerate all of the processes that have already been hooked.  Remove the item if the process has exited.
+            Int32[] pidsToRemove = new Int32[0];
+            lock (Locker)
+            {
                 foreach (Int32 pid in HookedProcesses)
                 {
                     // Look for this PID in the current process list snapshot.
@@ -236,16 +254,20 @@ namespace win_client.DragDropServer
                         pidsToRemove[pidsToRemove.Length] = pid;
                     }
                 }
+            }
 
-                // Now remove the pids from the hooked list.
+            // Now remove the pids from the hooked list.
+            lock (Locker)
+            {
                 for (Int32 i = 0; i < pidsToRemove.Length; i++)
                 {
                     _trace.writeToLog(1, "DragDropServer: OnTimerProcessUpdate: Remove process with ID: {0}.", pidsToRemove[i]);
                     HookedProcesses.Remove(pidsToRemove[i]);
                 }
-
-                _timerProcessUpdate.Change(250, 250);           // enable the timer
             }
+
+            // Let the timer fly again.
+            _timerProcessUpdate.Change(250, 250);           // enable the timer
         }
 
         /// <summary>
