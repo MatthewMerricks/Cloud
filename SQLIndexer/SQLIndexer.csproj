@@ -79,6 +79,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IndexingAgent.cs" />
+    <Compile Include="Migrations\Migration2.cs" />
+    <Compile Include="Migrations\MigrationList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlModel\Constants.cs" />
     <Compile Include="SqlModel\EnumCategory.cs" />

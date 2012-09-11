@@ -1652,7 +1652,7 @@ namespace Sync
                     }
                 }
 
-                // if there is at least one change to communicate or we have a push notification to communcate anyways,
+                // if there is at least one change to communicate or we have a push notification to communicate anyways,
                 // then process communication
                 if (communicationArray.Length > 0)
                 {

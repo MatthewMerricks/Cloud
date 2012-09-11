@@ -22,6 +22,7 @@ using BadgeNET;
 using System.Data.SqlServerCe;
 using System.Globalization;
 using SQLIndexer.SqlModel;
+using SQLIndexer.Migrations;
 
 namespace SQLIndexer
 {
@@ -95,7 +96,45 @@ namespace SQLIndexer
                 {
                     if (changeEnums == null)
                     {
-                        if (!File.Exists(newAgent.indexDBLocation))
+                        bool needToMakeDB = true;
+
+                        if (File.Exists(newAgent.indexDBLocation))
+                        {
+                            try
+                            {
+                                using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation)))
+                                {
+                                    int versionBeforeUpdate;
+                                    using (SqlCeCommand versionCommand = indexDB.CreateCommand())
+                                    {
+                                        versionCommand.CommandText = "SELECT [Version].[Version] FROM [Version] WHERE [Version].[TrueKey] = 1";
+                                        versionBeforeUpdate = Helpers.ConvertTo<int>(versionCommand.ExecuteScalar());
+                                    }
+
+                                    int newVersion = 1;
+
+                                    foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(versionBeforeUpdate))
+                                    {
+                                        currentDBMigration.Value.Apply(indexDB);
+
+                                        newVersion = currentDBMigration.Key;
+                                    }
+
+                                    using (SqlCeCommand updateVersionCommand = indexDB.CreateCommand())
+                                    {
+                                        updateVersionCommand.CommandText = "UPDATE [Version] SET [Version].[Version] = " + newVersion.ToString() + " WHERE [Version].[TrueKey] = 1";
+                                        updateVersionCommand.ExecuteNonQuery();
+                                    }
+                                }
+
+                                needToMakeDB = false;
+                            }
+                            catch
+                            {
+                            }
+                        }
+
+                        if (needToMakeDB)
                         {
                             FileInfo indexDBInfo = new FileInfo(newAgent.indexDBLocation);
                             if (!indexDBInfo.Directory.Exists)
