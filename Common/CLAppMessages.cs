@@ -11,6 +11,7 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Navigation;
 using System.Collections.Generic;
 using win_client.Model;
+using win_client.DragDropServer;
 
 
 namespace win_client.Common
@@ -46,6 +47,8 @@ namespace win_client.Common
             Message_PageFolderSelection_ShouldChooseCloudFolder,
             Message_PageSetupSelector_ShouldChooseCloudFolder,
             Message_DialogCheckForUpdates_ShouldCheckForUpdates,
+            Message_DragDropServer_ShouldShowSystrayDropWindow,
+            Message_DragDropServer_ShouldHideSystrayDropWindow,
                 
 
             // Navigation requests
@@ -368,7 +371,32 @@ namespace win_client.Common
             }
         }
 
-        
+        public static class Message_DragDropServer_ShouldShowSystrayDropWindow
+        {
+            public static void Send(DragDropOperation operation)
+            {
+                Messenger.Default.Send(operation, MessageTypes.Message_DragDropServer_ShouldShowSystrayDropWindow);
+            }
+
+            public static void Register(object recipient, Action<DragDropOperation> operation)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_DragDropServer_ShouldShowSystrayDropWindow, operation);
+            }
+        }
+
+        public static class Message_DragDropServer_ShouldHideSystrayDropWindow
+        {
+            public static void Send(DragDropOperation operation)
+            {
+                Messenger.Default.Send(operation, MessageTypes.Message_DragDropServer_ShouldHideSystrayDropWindow);
+            }
+
+            public static void Register(object recipient, Action<DragDropOperation> operation)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_DragDropServer_ShouldHideSystrayDropWindow, operation);
+            }
+        }
+
 
         // Navigation requests
         public static class PageCloudFolderMissing_NavigationRequest
