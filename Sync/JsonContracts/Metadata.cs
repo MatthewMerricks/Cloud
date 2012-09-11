@@ -33,7 +33,7 @@ namespace Sync.JsonContracts
                 {
                     return null;
                 }
-                return ((DateTime)CreatedDate).ToString("o"); // ISO 8601
+                return ((DateTime)CreatedDate).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK"); // ISO 8601 (dropped seconds)
             }
             set
             {
@@ -62,7 +62,7 @@ namespace Sync.JsonContracts
                 {
                     return null;
                 }
-                return ((DateTime)ModifiedDate).ToString("o"); // ISO 8601
+                return ((DateTime)ModifiedDate).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK"); // ISO 8601 (dropped seconds)
             }
             set
             {

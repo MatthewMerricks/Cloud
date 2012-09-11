@@ -1763,7 +1763,10 @@ namespace Sync
                                     Revision = currentEvent.Key.Metadata.Revision,
                                     Size = currentEvent.Key.Metadata.HashableProperties.Size,
                                     StorageKey = currentEvent.Key.Metadata.StorageKey,
-                                    Version = "1.0"
+                                    Version = "1.0",
+                                    TargetPath = (currentEvent.Key.Metadata.LinkTargetPath == null
+                                        ? null
+                                        : currentEvent.Key.Metadata.LinkTargetPath.GetRelativePath(getCloudRoot(), true))
                                 }
                             }).ToArray()
                         };
@@ -2018,7 +2021,9 @@ namespace Sync
                                             currentEvent.Metadata.ModifiedDate,
                                             currentEvent.Metadata.CreatedDate,
                                             currentEvent.Metadata.Size),
-                                        LinkTargetPath = currentEvent.Metadata.TargetPath,
+                                        LinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
+                                            ? null
+                                            : getCloudRoot() + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\")),
                                         Revision = currentEvent.Metadata.Revision,
                                         StorageKey = currentEvent.Metadata.StorageKey
                                     };
@@ -2117,23 +2122,23 @@ namespace Sync
                                 {
                                     currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
 
-                                    if (matchedChange != null
-                                        && (castMatchedChange = ((KeyValuePair<FileChange, FileStream>)matchedChange).Key as FileChangeWithDependencies) != null)
+                                    if (matchedChange != null)
                                     {
-                                        foreach (FileChange matchedDependency in castMatchedChange.Dependencies)
+                                        if ((castMatchedChange = ((KeyValuePair<FileChange, FileStream>)matchedChange).Key as FileChangeWithDependencies) != null)
                                         {
-                                            currentChange.AddDependency(matchedDependency);
+                                            foreach (FileChange matchedDependency in castMatchedChange.Dependencies)
+                                            {
+                                                currentChange.AddDependency(matchedDependency);
+                                            }
                                         }
-                                    }
 
-                                    if (matchedChange != null
-                                        && (sameCreationTime
-                                            || sameLastTime))
-                                    {
-                                        currentChange.Metadata.HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder,
-                                            (sameLastTime ? ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.LastTime : currentChange.Metadata.HashableProperties.LastTime),
-                                            (sameCreationTime ? ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.CreationTime : currentChange.Metadata.HashableProperties.CreationTime),
-                                            currentChange.Metadata.HashableProperties.Size);
+                                        if (sameCreationTime || sameLastTime)
+                                        {
+                                            currentChange.Metadata.HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder,
+                                                (sameLastTime ? ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.LastTime : currentChange.Metadata.HashableProperties.LastTime),
+                                                (sameCreationTime ? ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.CreationTime : currentChange.Metadata.HashableProperties.CreationTime),
+                                                currentChange.Metadata.HashableProperties.Size);
+                                        }
                                     }
                                 }
                                 else
@@ -2367,13 +2372,18 @@ namespace Sync
                                                         currentChange.Type = FileChangeType.Created;
                                                         currentChange.NewPath = new FilePath(finalizedMainName + findExtension, originalConflictPath.Parent);
                                                         currentChange.Metadata.Revision = null;
+                                                        currentChange.Metadata.StorageKey = null;
                                                         currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
 
                                                         FileChangeWithDependencies reparentConflict;
                                                         CLError reparentCreateError = FileChangeWithDependencies.CreateAndInitialize(new FileChange()
                                                         {
                                                             Direction = SyncDirection.From,
-                                                            Metadata = currentChange.Metadata,
+                                                            Metadata = new FileMetadata()
+                                                            {
+                                                                HashableProperties = currentChange.Metadata.HashableProperties,
+                                                                LinkTargetPath = currentChange.Metadata.LinkTargetPath
+                                                            },
                                                             NewPath = currentChange.NewPath,
                                                             OldPath = originalConflictPath,
                                                             Type = FileChangeType.Renamed
@@ -2710,7 +2720,10 @@ namespace Sync
                                     currentEvent.Metadata.CreatedDate,
                                     currentEvent.Metadata.Size),
                                 Revision = currentEvent.Metadata.Revision,
-                                StorageKey = currentEvent.Metadata.StorageKey
+                                StorageKey = currentEvent.Metadata.StorageKey,
+                                LinkTargetPath = (currentEvent.Metadata.TargetPath == null
+                                    ? null
+                                    : getCloudRoot() + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\"))
                             }
                         },
                         currentEvent.Metadata.Hash), null)))

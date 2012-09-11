@@ -680,7 +680,7 @@ namespace BadgeNET
         private static void NotifySystemForBadgeUpdate(FilePath filePath = null)
         {
             _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Entry.");
-            if (string.IsNullOrEmpty(filePath.ToString()))
+            if (filePath == null)
             {
                 //The following will refresh all icons, does not force OS to reload relevant COM objects
                 //    (for now I test after restarting explorer.exe)

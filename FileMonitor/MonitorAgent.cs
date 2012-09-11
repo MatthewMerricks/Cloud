@@ -710,6 +710,9 @@ namespace FileMonitor
 
             try
             {
+
+                List<GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>> startProcessingActions = new List<GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>>();
+
                 // lock to prevent the current, in-memory index from being seperately read/modified
                 lock (AllPaths)
                 {
@@ -754,6 +757,9 @@ namespace FileMonitor
                                         break;
                                 }
 
+                                GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>();
+                                startProcessingActions.Add(newProcessingAction);
+
                                 QueueFileChange(new FileChange(QueuedChanges)
                                     {
                                         NewPath = currentChange.NewPath,
@@ -762,7 +768,7 @@ namespace FileMonitor
                                         Type = currentChange.Type,
                                         DoNotAddToSQLIndex = currentChange.DoNotAddToSQLIndex,
                                         EventId = currentChange.EventId
-                                    });
+                                    }, newProcessingAction);
                             }
                         }
 
@@ -784,16 +790,28 @@ namespace FileMonitor
                 {
                     // take the currently dequeued file system event and run it back through for processing
 
+                    GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>();
+                    startProcessingActions.Add(newProcessingAction);
+
                     ChangesQueueHolder currentChange = ChangesQueueForInitialIndexing.Dequeue();
                     CheckMetadataAgainstFile(currentChange.newPath,
                         currentChange.oldPath,
                         currentChange.changeType,
                         currentChange.folderOnly,
-                        true);
+                        true,
+                        newProcessingAction);
                 }
 
                 // null the pointer for the initial index queue so it can be cleared from memory
                 ChangesQueueForInitialIndexing = null;
+
+                foreach (GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> startProcessing in startProcessingActions)
+                {
+                    if (startProcessing.Value != null)
+                    {
+                        ((KeyValuePair<Action<object>, object>)startProcessing.Value).Key(((KeyValuePair<Action<object>, object>)startProcessing.Value).Value);
+                    }
+                }
             }
             finally
             {
@@ -1854,7 +1872,7 @@ namespace FileMonitor
         /// <param name="changeType">Type of file system event</param>
         /// <param name="folderOnly">Specificity from routing of file system event</param>
         /// <param name="alreadyHoldingIndexLock">Optional param only to be set (as true) from BeginProcessing method</param>
-        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly, bool alreadyHoldingIndexLock = false)
+        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly, bool alreadyHoldingIndexLock = false, GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> startProcessingAction = null)
         {
             // File system events come through here to resolve the combination of current change, existing metadata, and actual file information on disk;
             // When the file monitoring is first started, it waits for the completion of an initial indexing (which will process differences as new file events);
@@ -2011,7 +2029,7 @@ namespace FileMonitor
                                                     NewPath = pathObject,
                                                     Metadata = newMetadata,
                                                     Type = FileChangeType.Modified
-                                                });
+                                                }, startProcessingAction);
                                             }
                                         }
                                     }
@@ -2033,7 +2051,7 @@ namespace FileMonitor
                                             NewPath = pathObject,
                                             Metadata = AllPaths[pathObject],
                                             Type = FileChangeType.Created
-                                        });
+                                        }, startProcessingAction);
                                     }
                                 }
                                 // if file file does not exist, but an index exists
@@ -2045,7 +2063,7 @@ namespace FileMonitor
                                         NewPath = pathObject,
                                         Metadata = AllPaths[pathObject],
                                         Type = FileChangeType.Deleted
-                                    });
+                                    }, startProcessingAction);
                                     // remove index
                                     AllPaths.Remove(pathObject);
                                 }
@@ -2082,7 +2100,7 @@ namespace FileMonitor
                                             NewPath = oldPathObject,
                                             Metadata = AllPaths[oldPathObject],
                                             Type = FileChangeType.Deleted
-                                        });
+                                        }, startProcessingAction);
                                         // remove index at previous path
                                         AllPaths.Remove(oldPathObject);
                                     }
@@ -2118,7 +2136,7 @@ namespace FileMonitor
                                                     NewPath = pathObject,
                                                     Metadata = newMetadata,
                                                     Type = FileChangeType.Modified
-                                                });
+                                                }, startProcessingAction);
                                             }
                                         }
                                     }
@@ -2131,7 +2149,7 @@ namespace FileMonitor
                                             NewPath = pathObject,
                                             Metadata = AllPaths[pathObject],
                                             Type = FileChangeType.Deleted
-                                        });
+                                        }, startProcessingAction);
                                         // remove index for new path
                                         AllPaths.Remove(pathObject);
 
@@ -2148,7 +2166,7 @@ namespace FileMonitor
                                             NewPath = oldPath,
                                             Metadata = AllPaths[oldPathObject],
                                             Type = FileChangeType.Deleted
-                                        });
+                                        }, startProcessingAction);
                                         // remove index at the previous path
                                         AllPaths.Remove(oldPath);
                                     }
@@ -2177,7 +2195,7 @@ namespace FileMonitor
                                         OldPath = oldPath,
                                         Metadata = newMetadata ?? previousMetadata,
                                         Type = FileChangeType.Renamed
-                                    });
+                                    }, startProcessingAction);
                                 }
                                 // if index does not exist at either the old nor new paths and the file exists
                                 else
@@ -2197,7 +2215,7 @@ namespace FileMonitor
                                         NewPath = pathObject,
                                         Metadata = AllPaths[pathObject],
                                         Type = FileChangeType.Created
-                                    });
+                                    }, startProcessingAction);
                                 }
                             }
                             // for file system events marked as delete
@@ -2234,7 +2252,7 @@ namespace FileMonitor
                                                 NewPath = pathObject,
                                                 Metadata = newMetadata,
                                                 Type = FileChangeType.Modified
-                                            });
+                                            }, startProcessingAction);
                                         }
                                     }
                                 }
@@ -2247,7 +2265,7 @@ namespace FileMonitor
                                         NewPath = pathObject,
                                         Metadata = AllPaths[pathObject],
                                         Type = FileChangeType.Deleted
-                                    });
+                                    }, startProcessingAction);
                                     // remove index
                                     AllPaths.Remove(pathObject);
                                 }
@@ -2402,7 +2420,7 @@ namespace FileMonitor
         /// Insert new file change into a synchronized queue and begin its delay timer for processing
         /// </summary>
         /// <param name="toChange">New file change</param>
-        private void QueueFileChange(FileChange toChange)
+        private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> startProcessingAction = null)
         {
             // lock on queue to prevent conflicting updates/reads
             lock (QueuedChanges)
@@ -2411,7 +2429,7 @@ namespace FileMonitor
                 FileChange matchedFileChangeForRename;
 
                 // function to move the file change to the metadata-keyed queue and start the delayed processing
-                Action<FileChange> StartDelay = toDelay =>
+                Action<FileChange, GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>> StartDelay = (toDelay, runActionExternal) =>
                 {
                     // move the file change to the metadata-keyed queue if it does not already exist
                     if (!QueuedChangesByMetadata.ContainsKey(toDelay.Metadata.HashableProperties))
@@ -2426,12 +2444,41 @@ namespace FileMonitor
                         OnQueueing(this, toDelay);
                     }
 
-                    // start delayed processing of file change
-                    toDelay.ProcessAfterDelay(
-                        ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
-                        null,// Userstate if needed on callback (unused)
-                        ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
-                        ProcessingDelayMaxResets);// number of processing delay resets before it will process the file anyways
+                    if (runActionExternal != null)
+                    {
+                        runActionExternal.Value = new KeyValuePair<Action<object>, object>(state =>
+                            {
+                                Tuple<FileChange,
+                                    Action<FileChange, object, int>,
+                                    int,
+                                    int> castState = state as Tuple<FileChange, Action<FileChange, object, int>, int, int>;
+
+                                if (castState != null)
+                                {
+                                    // start delayed processing of file change
+                                    castState.Item1.ProcessAfterDelay(
+                                        castState.Item2,// Callback which fires on process timer completion (on a new thread)
+                                        null,// Userstate if needed on callback (unused)
+                                        castState.Item3,// processing delay to wait for more events on this file
+                                        castState.Item4);// number of processing delay resets before it will process the file anyways
+                                }
+                            }, new Tuple<FileChange,
+                                Action<FileChange, object, int>,
+                                int,
+                                int>(toDelay, // file change to delay-process
+                                ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
+                                ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
+                                ProcessingDelayMaxResets));// number of processing delay resets before it will process the file anyways
+                    }
+                    else
+                    {
+                        // start delayed processing of file change
+                        toDelay.ProcessAfterDelay(
+                            ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
+                            null,// Userstate if needed on callback (unused)
+                            ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
+                            ProcessingDelayMaxResets);// number of processing delay resets before it will process the file anyways
+                    }
                 };
                 // if queue already contains a file change at the same path,
                 // either replace change and start the new one if the old one is currently processing
@@ -2469,7 +2516,7 @@ namespace FileMonitor
                         }
 
                         // call method that starts the FileChange delayed-processing
-                        StartDelay(toChange);
+                        StartDelay(toChange, startProcessingAction);
                     }
                     // file change has not already started processing
                     else
@@ -2617,7 +2664,7 @@ namespace FileMonitor
                                                 QueuedChanges.Add(toChange.OldPath,
                                                     oldLocationDelete);
                                             }
-                                            StartDelay(oldLocationDelete);
+                                            StartDelay(oldLocationDelete, startProcessingAction);
                                         }
                                         break;
                                     case FileChangeType.Modified:
@@ -2693,7 +2740,7 @@ namespace FileMonitor
                     // add file change to the queue
                     QueuedChanges.Add(toChange.NewPath, toChange);
 
-                    StartDelay(toChange);
+                    StartDelay(toChange, startProcessingAction);
 
                     if (toChange.Type == FileChangeType.Renamed)
                     {
@@ -2721,18 +2768,6 @@ namespace FileMonitor
                 lock (QueuesTimer.TimerRunningLocker)
                 {
                     ProcessingChanges.AddLast(sender);
-
-                    if (remainingOperations == 0) // flush remaining operations before starting processing timer
-                    {
-                        if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
-                        {
-                            QueuesTimer.TriggerTimerCompletionImmediately();
-                        }
-                        else
-                        {
-                            QueuesTimer.StartTimerIfNotRunning();
-                        }
-                    }
                 }
             }
             else
@@ -2747,11 +2782,23 @@ namespace FileMonitor
                     ": " + mergeError.errorDescription);
 
             }
+
+            if (remainingOperations == 0) // flush remaining operations before starting processing timer
+            {
+                if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
+                {
+                    QueuesTimer.TriggerTimerCompletionImmediately();
+                }
+                else
+                {
+                    QueuesTimer.StartTimerIfNotRunning();
+                }
+            }
         }
 
         // Finds the FileChange in QueuedChanges in the same Dictionary as well as any other associated dictionaries,
         // and removes it
-        private void RemoveFileChangeFromQueuedChanges(FileChange toRemove)
+        private bool RemoveFileChangeFromQueuedChanges(FileChange toRemove)
         {
             // If the change is a rename that is being removed, take off its old/new path pair
             if (toRemove.Type == FileChangeType.Renamed)
@@ -2764,15 +2811,16 @@ namespace FileMonitor
             }
 
             // remove file changes from each queue if they exist
-            if (QueuedChanges.ContainsKey(toRemove.NewPath)
-                && QueuedChanges[toRemove.NewPath] == toRemove)
-            {
-                QueuedChanges.Remove(toRemove.NewPath);
-            }
             if (QueuedChangesByMetadata.ContainsKey(toRemove.Metadata.HashableProperties))
             {
                 QueuedChangesByMetadata.Remove(toRemove.Metadata.HashableProperties);
             }
+            if (QueuedChanges.ContainsKey(toRemove.NewPath)
+                && QueuedChanges[toRemove.NewPath] == toRemove)
+            {
+                return QueuedChanges.Remove(toRemove.NewPath);
+            }
+            return false;
         }
 
         /// <summary>

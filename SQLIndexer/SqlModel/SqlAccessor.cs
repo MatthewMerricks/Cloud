@@ -53,16 +53,16 @@ namespace SQLIndexer.SqlModel
                 // then calculate it
                 if (_tableName == null)
                 {
-                    // Pull the SqlAccess.SqlAccessBase attribute on the current generic type, if any
-                    SqlAccess.SqlAccessBase insertAccess = CurrentGenericType.GetCustomAttributes(typeof(SqlAccess.SqlAccessBase), true).Cast<SqlAccess.SqlAccessBase>().SingleOrDefault();
+                    // Pull the ISqlAccess attribute on the current generic type, if any
+                    ISqlAccess insertAccess = CurrentGenericType.GetCustomAttributes(typeof(SqlAccess.ClassAttribute), true).Cast<ISqlAccess>().SingleOrDefault();
 
-                    // If the SqlAccess.SqlAccessBase attribute exists and has a non-default name, then set the table name by the custom name
+                    // If the ISqlAccess attribute exists and has a non-default name, then set the table name by the custom name
                     if (insertAccess != null
                         && insertAccess.SqlName != null)
                     {
                         _tableName = insertAccess.SqlName;
                     }
-                    // Else if the SqlAccess.SqlAccessBase attribute does not exist or has a default name, then set the table name by the current generic type name
+                    // Else if the ISqlAccess attribute does not exist or has a default name, then set the table name by the current generic type name
                     else
                     {
                         _tableName = CurrentGenericType.Name;
@@ -317,7 +317,7 @@ namespace SQLIndexer.SqlModel
         /// <summary>
         /// Builds a portion of the select string with all the columns to be selected for the current generic type's columns (i.e. "[EnumCategories].[EnumCategoryId], [EnumCategories].[Name]")
         /// </summary>
-        /// <param name="child">The SqlName (or reference name if not specified in SqlAccess.SqlAccessBase attribute) of the inner joined object</param>
+        /// <param name="child">The SqlName (or reference name if not specified in ISqlAccess attribute) of the inner joined object</param>
         /// <param name="collectionName">The name of the joined set in the Select statement if not the table name (i.e. 'ServerLinkedFileSystemObjects' for LEFT OUTER JOIN [FileSystemObjects] ServerLinkedFileSystemObjects</param>
         /// <returns>Returns the build portion of the select string with the current generic type's columns</returns>
         public static string GetSelectColumns(string child = null, string collectionName = null)
@@ -344,13 +344,13 @@ namespace SQLIndexer.SqlModel
 
                         // Column names as a string array, based on current generic type
                         CurrentGenericType
-                            // Get public instance properties on the current generic type that have one and only one SqlAccess.SqlAccessBase attribute
+                            // Get public instance properties on the current generic type that have one and only one ISqlAccess attribute
                             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                            .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<SqlAccess.SqlAccessBase>>(currentProp, currentProp.GetCustomAttributes(typeof(SqlAccess.SqlAccessBase), true).Cast<SqlAccess.SqlAccessBase>()))
+                            .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<ISqlAccess>>(currentProp, currentProp.GetCustomAttributes(typeof(SqlAccess.PropertyAttribute), true).Cast<ISqlAccess>()))
                             .Where(currentProp => currentProp.Value.Any(currentAttrib => !currentAttrib.IsChild))
-                            .Select(currentProp => new KeyValuePair<PropertyInfo, SqlAccess.SqlAccessBase>(currentProp.Key, currentProp.Value.Single()))
+                            .Select(currentProp => new KeyValuePair<PropertyInfo, ISqlAccess>(currentProp.Key, currentProp.Value.Single()))
 
-                            // For each of these SqlAccess.SqlAccessBase properties
+                            // For each of these ISqlAccess properties
                             .Select(currentProp =>
 
                                 // If collection name is defaulted,
@@ -768,15 +768,15 @@ namespace SQLIndexer.SqlModel
                             // Set the PropertyInfoes in a current generic typed object used to access the primary key values
                             primaryKeyValues = CurrentGenericType
                                 
-                                // Filter the current generic type's properties by those with one and only one SqlAccess.SqlAccessBase attribute
+                                // Filter the current generic type's properties by those with one and only one ISqlAccess attribute
                                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<SqlAccess.SqlAccessBase>>(currentProp,
-                                    currentProp.GetCustomAttributes(typeof(SqlAccess.SqlAccessBase), true)
-                                        .Cast<SqlAccess.SqlAccessBase>()))
+                                .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<ISqlAccess>>(currentProp,
+                                    currentProp.GetCustomAttributes(typeof(SqlAccess.PropertyAttribute), true)
+                                        .Cast<ISqlAccess>()))
                                 .Where(currentProp => currentProp.Value.Any())
-                                .Select(currentProp => new KeyValuePair<PropertyInfo, SqlAccess.SqlAccessBase>(currentProp.Key, currentProp.Value.Single()))
+                                .Select(currentProp => new KeyValuePair<PropertyInfo, ISqlAccess>(currentProp.Key, currentProp.Value.Single()))
 
-                                // Filter the SqlAccess.SqlAccessBase properties to those in the primary key (case-insensitive comparison)
+                                // Filter the ISqlAccess properties to those in the primary key (case-insensitive comparison)
                                 .Where(currentProp => primaryKeyColumnNames.ContainsKey(currentProp.Value.SqlName ?? currentProp.Key.Name))
 
                                 // Order according to the order of the primary key columns in the index
@@ -837,30 +837,30 @@ namespace SQLIndexer.SqlModel
                 if (!ResultParsers.TryGetValue(currentParserKey, out currentParser))
                 {
                     // Get all the properties in the current generic type which can be set from the database
-                    IEnumerable<KeyValuePair<ParameterExpression, KeyValuePair<PropertyInfo, SqlAccess.SqlAccessBase>>> sqlProps =
+                    IEnumerable<KeyValuePair<ParameterExpression, KeyValuePair<PropertyInfo, ISqlAccess>>> sqlProps =
                         
-                        // Find all the public instance properties in the current generic type which are decorated with a SqlAccess.SqlAccessBase attribute
+                        // Find all the public instance properties in the current generic type which are decorated with a ISqlAccess attribute
                         CurrentGenericType
                         .GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
-                        .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<SqlAccess.SqlAccessBase>>(currentProp,
+                        .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<ISqlAccess>>(currentProp,
                             currentProp
-                                .GetCustomAttributes(typeof(SqlAccess.SqlAccessBase), true)
-                                .Cast<SqlAccess.SqlAccessBase>()))
+                                .GetCustomAttributes(typeof(SqlAccess.PropertyAttribute), true)
+                                .Cast<ISqlAccess>()))
                         .Where(currentProp => currentProp.Value.Any())
 
                         // For each, output a new parameter of KeyValuePair<[PropertyType], bool>,
                         // the PropertyInfo,
-                        // and the SqlAccess.SqlAccessBase attribute
-                        .Select(currentProp => new KeyValuePair<ParameterExpression, KeyValuePair<PropertyInfo, SqlAccess.SqlAccessBase>>(
+                        // and the ISqlAccess attribute
+                        .Select(currentProp => new KeyValuePair<ParameterExpression, KeyValuePair<PropertyInfo, ISqlAccess>>(
                             Expression.Parameter(
-                                SqlAccess.SqlAccessBase.keyValueType.MakeGenericType(currentProp.Key.PropertyType, SqlAccess.SqlAccessBase.boolType)),
-                            new KeyValuePair<PropertyInfo, SqlAccess.SqlAccessBase>(currentProp.Key,
+                                SqlAccess.keyValueType.MakeGenericType(currentProp.Key.PropertyType, SqlAccess.boolType)),
+                            new KeyValuePair<PropertyInfo, ISqlAccess>(currentProp.Key,
                                 currentProp.Value.Single())));
 
                     // Create the parameters that will be passed into the expression
-                    ParameterExpression selectedRow = Expression.Parameter(SqlAccess.SqlAccessBase.recordType);
-                    ParameterExpression parentExpression = Expression.Parameter(SqlAccess.SqlAccessBase.stringType);
-                    ParameterExpression nullCounterExpression = Expression.Parameter(SqlAccess.SqlAccessBase.counterType);
+                    ParameterExpression selectedRow = Expression.Parameter(SqlAccess.recordType);
+                    ParameterExpression parentExpression = Expression.Parameter(SqlAccess.stringType);
+                    ParameterExpression nullCounterExpression = Expression.Parameter(SqlAccess.counterType);
 
                     // Create the construction expression for the current generic typed object
                     NewExpression newResult = Expression.New(CurrentGenericType);
@@ -869,7 +869,7 @@ namespace SQLIndexer.SqlModel
                     PropertyInfo indexProp =
                         
                         // Pull public instance properties from the database row type
-                        SqlAccess.SqlAccessBase.recordType
+                        SqlAccess.recordType
                         .GetProperties(BindingFlags.Instance | BindingFlags.Public)
 
                         // For each, select the PropertyInfo and indexer parameters
@@ -878,7 +878,7 @@ namespace SQLIndexer.SqlModel
                         // Output the PropertyInfo that has one and only one indexer parameter which is a string type
                         .Single(currentProp => currentProp.Value != null
                             && currentProp.Value.Length == 1
-                            && currentProp.Value[0].ParameterType == SqlAccess.SqlAccessBase.stringType)
+                            && currentProp.Value[0].ParameterType == SqlAccess.stringType)
                         .Key;
 
                     // Start a counter for the number of columns in the current generic type (not children objects)
@@ -923,8 +923,8 @@ namespace SQLIndexer.SqlModel
                                                     sqlProp.Key,
 
                                                     // PropertyInfo for Value in KeyValuePair<[property type], bool>
-                                                    SqlAccess.SqlAccessBase.keyValueType
-                                                        .MakeGenericType(sqlProp.Value.Key.PropertyType, SqlAccess.SqlAccessBase.boolType)
+                                                    SqlAccess.keyValueType
+                                                        .MakeGenericType(sqlProp.Value.Key.PropertyType, SqlAccess.boolType)
                                                         .GetProperty("Value", BindingFlags.Instance | BindingFlags.Public)),
 
                                                 // If true: return null
@@ -932,7 +932,7 @@ namespace SQLIndexer.SqlModel
 
                                                 // If false: return constructed object
                                                 Expression.Property(sqlProp.Key,
-                                                    SqlAccess.SqlAccessBase.keyValueType.MakeGenericType(sqlProp.Value.Key.PropertyType, SqlAccess.SqlAccessBase.boolType)
+                                                    SqlAccess.keyValueType.MakeGenericType(sqlProp.Value.Key.PropertyType, SqlAccess.boolType)
                                                         .GetProperty("Key", BindingFlags.Instance | BindingFlags.Public))),
 
                                             // Input parameter for null check test: the constructed inner object 
@@ -969,17 +969,17 @@ namespace SQLIndexer.SqlModel
 
                                             // First parameter for recursed inner expression: [parent name];
                                             // Create by current [parent name] + [column name] + "." --> string.Concat([parent name], [column name] + ".")
-                                            Expression.Call(SqlAccess.SqlAccessBase.ConcatStringsInfo,
+                                            Expression.Call(SqlAccess.ConcatStringsInfo,
 
                                                 // new string[] { [parent name], [column name] + "." }
-                                                Expression.NewArrayInit(SqlAccess.SqlAccessBase.stringType,
+                                                Expression.NewArrayInit(SqlAccess.stringType,
 
                                                     // [parent name]
                                                     parentExpression,
 
                                                     // [column name] + "."
                                                     Expression.Constant((sqlProp.Value.Value.SqlName ?? sqlProp.Value.Key.Name) + ".",
-                                                        SqlAccess.SqlAccessBase.stringType))),
+                                                        SqlAccess.stringType))),
 
                                             // Second parameter for recursed inner expression: current database row
                                             selectedRow,
@@ -1010,32 +1010,32 @@ namespace SQLIndexer.SqlModel
                                                     selectedRow,
 
                                                     // [current database row].IsDBNull
-                                                    SqlAccess.SqlAccessBase.IsNullRecordInfo,
+                                                    SqlAccess.IsNullRecordInfo,
 
                                                     // [current database row].GetOrdinal([parent name] + [column name])
                                                     Expression.Call(selectedRow,
 
                                                         // [current database row].GetOrdinal
-                                                        SqlAccess.SqlAccessBase.GetOrdinalRecordInfo,
+                                                        SqlAccess.GetOrdinalRecordInfo,
 
                                                         // [parent name] + [column name] --> string.Concat([parent name], [column name])
-                                                        Expression.Call(SqlAccess.SqlAccessBase.ConcatStringsInfo,
+                                                        Expression.Call(SqlAccess.ConcatStringsInfo,
 
                                                             // new string[] { [parent name], [column name] }
-                                                            Expression.NewArrayInit(SqlAccess.SqlAccessBase.stringType,
+                                                            Expression.NewArrayInit(SqlAccess.stringType,
                                                                 
                                                                 // [parent name]
                                                                 parentExpression,
 
                                                                 // [column name]
                                                                 Expression.Constant((sqlProp.Value.Value.SqlName ?? sqlProp.Value.Key.Name),
-                                                                    SqlAccess.SqlAccessBase.stringType))))),
+                                                                    SqlAccess.stringType))))),
 
                                                 // If true: increment the counter for null columns found and default the current property
                                                 Expression.Block(
                                                 
                                                     // block returns an object
-                                                    SqlAccess.SqlAccessBase.objectType,
+                                                    SqlAccess.objectType,
 
                                                     // first line out of two: increment count of null database columns
                                                     Expression.AddAssign(
@@ -1063,17 +1063,17 @@ namespace SQLIndexer.SqlModel
                                                     new Expression[]
                                                         {
                                                             // parameter for indexer: [parent name] + [column name] <-- string.Concat([parent name], [column name])
-                                                            Expression.Call(SqlAccess.SqlAccessBase.ConcatStringsInfo,
+                                                            Expression.Call(SqlAccess.ConcatStringsInfo,
 
                                                                 // new string[] { [parent name], [column name] }
-                                                                Expression.NewArrayInit(SqlAccess.SqlAccessBase.stringType,
+                                                                Expression.NewArrayInit(SqlAccess.stringType,
 
                                                                     // [parent name]
                                                                     parentExpression,
 
                                                                     // [column name]
                                                                     Expression.Constant((sqlProp.Value.Value.SqlName ?? sqlProp.Value.Key.Name),
-                                                                        SqlAccess.SqlAccessBase.stringType)))
+                                                                        SqlAccess.stringType)))
                                                         })))
 
                                         // not possible (an Int32 + 1 is always greater than Int32.MinValue):
@@ -1086,14 +1086,14 @@ namespace SQLIndexer.SqlModel
                     Type[] keyValueTypes = new Type[]
                     {
                         initResult.Type,
-                        SqlAccess.SqlAccessBase.boolType
+                        SqlAccess.boolType
                     };
 
                     // Expression to construct the KeyValuePair of constructed object type and bool (for if all inner columns are null)
                     NewExpression returnPairExpression = Expression.New(
 
                         // KeyValuePair<[current generic type], bool>
-                        SqlAccess.SqlAccessBase.keyValueType
+                        SqlAccess.keyValueType
                             .MakeGenericType(keyValueTypes)
 
                             // Get KeyValuePair<[current generic type], bool> constructor that takes [current generic type] and bool parameters
@@ -1188,15 +1188,15 @@ namespace SQLIndexer.SqlModel
                             }
                             
                             // Set the PropertyInfoes for the current generic typed object of Sql columns which are not identities
-                            IEnumerable<KeyValuePair<PropertyInfo, SqlAccess.SqlAccessBase>> sqlProps = CurrentGenericType
+                            IEnumerable<KeyValuePair<PropertyInfo, ISqlAccess>> sqlProps = CurrentGenericType
                                 
-                                // Get properties which have one and only one SqlAccess.SqlAccessBase attribute
+                                // Get properties which have one and only one ISqlAccess attribute
                                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<SqlAccess.SqlAccessBase>>(currentProp,
-                                    currentProp.GetCustomAttributes(typeof(SqlAccess.SqlAccessBase), true)
-                                        .Cast<SqlAccess.SqlAccessBase>()))
+                                .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<ISqlAccess>>(currentProp,
+                                    currentProp.GetCustomAttributes(typeof(SqlAccess.PropertyAttribute), true)
+                                        .Cast<ISqlAccess>()))
                                 .Where(currentProp => currentProp.Value.Any(currentAttrib => !currentAttrib.IsChild))
-                                .Select(currentProp => new KeyValuePair<PropertyInfo, SqlAccess.SqlAccessBase>(currentProp.Key, currentProp.Value.Single()))
+                                .Select(currentProp => new KeyValuePair<PropertyInfo, ISqlAccess>(currentProp.Key, currentProp.Value.Single()))
 
                                 // Filter by properties not in the HashSet of identities
                                 .Where(currentProp => !hashedIdentities.Contains(currentProp.Value.SqlName ?? currentProp.Key.Name));
@@ -1232,6 +1232,19 @@ namespace SQLIndexer.SqlModel
         #endregion
     }
 
+    public interface ISqlAccess
+    {
+        /// <summary>
+        /// Overrided name of table/property to match name in SQL
+        /// </summary>
+        string SqlName { get; }
+
+        /// <summary>
+        /// Whether a property represents a child object from another SQL table
+        /// </summary>
+        bool IsChild { get; }
+    }
+
     /// <summary>
     /// Attribute parent namespace for decorating classes and properties to signify POCO objects/properties that match SQL CE tables/columns
     /// </summary>
@@ -1241,7 +1254,7 @@ namespace SQLIndexer.SqlModel
         /// <summary>
         /// Attribute for decorating properties to signify POCO object properties that match SQL CE columns
         /// </summary>
-        public sealed class PropertyAttribute : SqlAccessBase
+        public sealed class PropertyAttribute : SqlAccessBase, ISqlAccess
         {
             public PropertyAttribute() { }
             public PropertyAttribute(string sqlName)
@@ -1263,7 +1276,7 @@ namespace SQLIndexer.SqlModel
         /// <summary>
         /// Attribute for decorating classes to signify POCO objects that match SQL CE tables
         /// </summary>
-        public sealed class ClassAttribute : SqlAccessBase
+        public sealed class ClassAttribute : SqlAccessBase, ISqlAccess
         {
             public ClassAttribute() { }
             public ClassAttribute(string sqlName)
@@ -1274,7 +1287,7 @@ namespace SQLIndexer.SqlModel
 
         public abstract class SqlAccessBase : Attribute
         {
-            protected SqlAccessBase() { }
+            protected internal SqlAccessBase() { }
 
             /// <summary>
             /// Overrided name of table/property to match name in SQL
@@ -1301,35 +1314,35 @@ namespace SQLIndexer.SqlModel
             }
             // Default to false
             protected bool _isChild = false;
+        }
 
-            // find all the needed Types which are used more than once in GetParserExpression
-            internal static readonly Type recordType = typeof(SqlCeDataReader);
-            internal static readonly Type typeType = typeof(Type);
-            internal static readonly Type stringType = typeof(string);
-            internal static readonly Type counterType = typeof(GenericHolder<short>);
-            internal static readonly Type boolType = typeof(bool);
-            internal static readonly Type keyValueType = typeof(KeyValuePair<,>);
-            internal static readonly Type objectType = typeof(object);
+        // find all the needed Types which are used more than once in GetParserExpression
+        internal static readonly Type recordType = typeof(SqlCeDataReader);
+        internal static readonly Type typeType = typeof(Type);
+        internal static readonly Type stringType = typeof(string);
+        internal static readonly Type counterType = typeof(GenericHolder<short>);
+        internal static readonly Type boolType = typeof(bool);
+        internal static readonly Type keyValueType = typeof(KeyValuePair<,>);
+        internal static readonly Type objectType = typeof(object);
 
-            #region reused method infoes for SqlAccessor
-            internal static readonly MethodInfo IsNullRecordInfo = recordType
-                .GetMethod("IsDBNull",
-                    BindingFlags.Instance | BindingFlags.Public);
+        #region reused method infoes for SqlAccessor
+        internal static readonly MethodInfo IsNullRecordInfo = recordType
+            .GetMethod("IsDBNull",
+                BindingFlags.Instance | BindingFlags.Public);
 
-            internal static readonly MethodInfo GetOrdinalRecordInfo = recordType
-                .GetMethod("GetOrdinal",
-                    BindingFlags.Instance | BindingFlags.Public);
+        internal static readonly MethodInfo GetOrdinalRecordInfo = recordType
+            .GetMethod("GetOrdinal",
+                BindingFlags.Instance | BindingFlags.Public);
 
-            internal static readonly MethodInfo ConcatStringsInfo = stringType
-                .GetMethod("Concat",
-                    BindingFlags.Static | BindingFlags.Public,
-                    null,
-                    new Type[]
+        internal static readonly MethodInfo ConcatStringsInfo = stringType
+            .GetMethod("Concat",
+                BindingFlags.Static | BindingFlags.Public,
+                null,
+                new Type[]
                 {
                     typeof(string[])
                 },
-                    null);
-            #endregion
-        }
+                null);
+        #endregion
     }
 }
