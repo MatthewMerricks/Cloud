@@ -2801,9 +2801,12 @@ namespace FileMonitor
 
                     lock (NeedsMergeToSql)
                     {
-                        FileChange nextMerge = NeedsMergeToSql.Dequeue();
-                        mergeBatch.Add(nextMerge);
-                        mergeAll.Add(nextMerge);
+                        while (NeedsMergeToSql.Count > 0)
+                        {
+                            FileChange nextMerge = NeedsMergeToSql.Dequeue();
+                            mergeBatch.Add(nextMerge);
+                            mergeAll.Add(nextMerge);
+                        }
                     }
 
                     CLError mergeError = ProcessMergeToSQL(mergeBatch.Select(currentMerge => new KeyValuePair<FileChange, FileChange>(currentMerge, null)), false);

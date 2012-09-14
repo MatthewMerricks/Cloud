@@ -2392,7 +2392,7 @@ namespace Sync
                                                             throw new AggregateException("Error creating reparentConflict", reparentCreateError.GrabExceptions());
                                                         }
 
-                                                        mergeToSql(null, currentChange, false);
+                                                        mergeToSql(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(null, currentChange) }, false);
                                                         currentChange.EventId = 0;
                                                         mergeToSql(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(reparentConflict, null) }, false);
                                                         mergeToSql(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(currentChange, null) }, false);

@@ -469,7 +469,7 @@ namespace CloudApiPublic.Model
                             _count++;
                         }
                     }
-                    else if (CurrentValue != null && value == null)
+                    else if (value == null)
                     {
                         _count--;
                     }
@@ -482,6 +482,7 @@ namespace CloudApiPublic.Model
                         if (value == null)
                         {
                             _count--;
+                            pathsAtCurrentLevel.Remove(key);
                         }
                         else
                         {
