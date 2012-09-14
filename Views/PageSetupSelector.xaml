@@ -84,7 +84,7 @@
                         </Grid.RowDefinitions>
                         <StackPanel Orientation="Vertical" Grid.Row="1" HorizontalAlignment="Stretch" >
                             <Label Content="_Default" FontSize="18" FontWeight="SemiBold" Foreground="#FF333333" Target="rbDefault" Margin="-5,0,0,0" />                        
-                            <TextBlock TextWrapping="Wrap" Text="Set up your Cloud service with the settings we recomment the most." FontSize="12" 
+                            <TextBlock TextWrapping="Wrap" Text="Set up your Cloud service with the settings we recommend the most." FontSize="12" 
                                        Foreground="#FF5a5a5a" HorizontalAlignment="Left" Height="Auto"/>
                         </StackPanel>
 				    </Grid>

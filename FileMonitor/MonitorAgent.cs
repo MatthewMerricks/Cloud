@@ -1406,7 +1406,15 @@ namespace FileMonitor
                                         {
                                             try
                                             {
-                                                OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
+                                                try
+                                                {
+                                                    OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
+                                                }
+                                                catch (FileNotFoundException)
+                                                {
+                                                    CurrentDependencyTree.DependencyFileChange.NotFoundForStreamCounter++;
+                                                    throw;
+                                                }
                                                 byte[] previousMD5Bytes;
                                                 CLError retrieveMD5Error = CurrentDependencyTree.DependencyFileChange.GetMD5Bytes(out previousMD5Bytes);
                                                 if (retrieveMD5Error != null)
@@ -2788,17 +2796,17 @@ namespace FileMonitor
                         {
                             if (NeedsMergeToSql.Count == 0)
                             {
-                                MergingToSql = false;
-                                return false;
+                                return MergingToSql = false;
                             }
                             return true;
                         }
                     };
 
-                while (operationsRemaining()) // flush remaining operations before starting processing timer
-                {
-                    mergeBatch.Clear();
+                mergeBatch.Add(sender);
+                mergeAll.Add(sender);
 
+                do
+                {
                     lock (NeedsMergeToSql)
                     {
                         while (NeedsMergeToSql.Count > 0)
@@ -2821,7 +2829,10 @@ namespace FileMonitor
                                     : currentError.Message)).ToArray()));
                     }
 
+                    // clear out batch for merge for next set of remaining operations
+                    mergeBatch.Clear();
                 }
+                while (operationsRemaining()); // flush remaining operations before starting processing timer
                 
                 lock (QueuesTimer.TimerRunningLocker)
                 {

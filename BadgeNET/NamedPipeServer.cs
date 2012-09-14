@@ -79,6 +79,7 @@ namespace BadgeNET
         private bool _running;
         private readonly object _runningLocker = new object();
         private readonly EventWaitHandle _terminateHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+        private readonly GenericHolder<bool> terminateHandleDisposedLocker = new GenericHolder<bool>(false);
         private ManualResetEvent _resetEvent = null;
 
         public string PipeName { get; set; }
@@ -113,7 +114,21 @@ namespace BadgeNET
             }
 
             CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Signal Stop.");
-            _terminateHandle.Set();
+            bool alreadyDisposed;
+            lock (terminateHandleDisposedLocker)
+            {
+                alreadyDisposed = terminateHandleDisposedLocker.Value;
+            }
+            if (!alreadyDisposed)
+            {
+                try
+                {
+                    _terminateHandle.Set();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+            }
             CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Exit thread.");
         }
 
@@ -157,7 +172,11 @@ namespace BadgeNET
                 // Timed out.
                 CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Thread timed out."); 
             }
-            _terminateHandle.Dispose();
+            lock (terminateHandleDisposedLocker)
+            {
+                _terminateHandle.Dispose();
+                terminateHandleDisposedLocker.Value = true;
+            }
             CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Exit.");
         }
 

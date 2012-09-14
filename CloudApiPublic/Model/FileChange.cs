@@ -147,6 +147,7 @@ namespace CloudApiPublic.Model
         }
         private byte[] MD5 = null;
         public byte FailureCounter = 0;
+        public byte NotFoundForStreamCounter = 0;
 
         // If properties are changed/added/removed, make sure to update FileChangeWithDependencies in the Sync project!!
 

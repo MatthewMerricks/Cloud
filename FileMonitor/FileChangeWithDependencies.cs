@@ -98,6 +98,7 @@ namespace FileMonitor
             base.DoNotAddToSQLIndex = baseChange.DoNotAddToSQLIndex;
             base.EventId = baseChange.EventId;
             base.FailureCounter = baseChange.FailureCounter;
+            base.NotFoundForStreamCounter = baseChange.NotFoundForStreamCounter;
             base.Metadata = baseChange.Metadata;
             base.NewPath = baseChange.NewPath;
             base.OldPath = baseChange.OldPath;

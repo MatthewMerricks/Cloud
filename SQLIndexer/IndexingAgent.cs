@@ -23,6 +23,7 @@ using System.Data.SqlServerCe;
 using System.Globalization;
 using SQLIndexer.SqlModel;
 using SQLIndexer.Migrations;
+using System.Windows;
 
 namespace SQLIndexer
 {
@@ -1593,7 +1594,10 @@ namespace SQLIndexer
                         }
                         finally
                         {
-                            CELocker.ExitReadLock();
+                            if (!alreadyObtainedLock)
+                            {
+                                CELocker.ExitReadLock();
+                            }
                         }
                     }
 
@@ -2101,126 +2105,155 @@ namespace SQLIndexer
             // Create a list of the traversed paths at or below the current level
             List<string> filePathsFound = new List<string>();
 
-            // Loop through all subdirectories under the current directory
-            foreach (DirectoryInfo subDirectory in currentDirectory.EnumerateDirectories())
+            try
             {
-                // Store current subdirectory path as traversed
-                filePathsFound.Add(subDirectory.FullName);
-                // Create properties for the current subdirectory
-                FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(true,
-                    subDirectory.LastWriteTimeUtc.DropSubSeconds(),
-                    subDirectory.CreationTimeUtc.DropSubSeconds(),
-                    null);
-                // Grab the last event that matches the current directory path, if any
-                FileChange existingEvent = changeList.LastOrDefault(currentChange => FilePathComparer.Instance.Equals(currentChange.NewPath, (FilePath)subDirectory));
-                // If there is no existing event, the directory has to be checked for changes
-                if (existingEvent == null)
+                // Loop through all subdirectories under the current directory
+                foreach (DirectoryInfo subDirectory in currentDirectory.EnumerateDirectories())
                 {
-                    // If the index did not include the current subdirectory, it needs to be added as a creation
-                    if (!indexPaths.ContainsKey(subDirectory))
+                    if ((FileAttributes)0 ==// compare bitwise and of FileAttributes and all unwanted attributes to '0'
+                        (subDirectory.Attributes// change is on folder, grab folder attributes
+                            & (FileAttributes.Hidden// ignore hidden files
+                                | FileAttributes.Offline// ignore offline files (data is not available on them)
+                                | FileAttributes.System// ignore system files
+                                | FileAttributes.Temporary)))// ignore temporary files
                     {
-                        changeList.Add(new FileChange()
+                        // Store current subdirectory path as traversed
+                        filePathsFound.Add(subDirectory.FullName);
+                        // Create properties for the current subdirectory
+                        FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(true,
+                            subDirectory.LastWriteTimeUtc.DropSubSeconds(),
+                            subDirectory.CreationTimeUtc.DropSubSeconds(),
+                            null);
+                        // Grab the last event that matches the current directory path, if any
+                        FileChange existingEvent = changeList.LastOrDefault(currentChange => FilePathComparer.Instance.Equals(currentChange.NewPath, (FilePath)subDirectory));
+                        // If there is no existing event, the directory has to be checked for changes
+                        if (existingEvent == null)
                         {
-                            NewPath = subDirectory.FullName,
-                            Type = FileChangeType.Created,
-                            Metadata = new FileMetadata()
-                            {
-                                HashableProperties = compareProperties
-                            }
-                        });
-                    }
-                }
-                // Add the inner paths to the output list by recursing (which will also process inner changes)
-                filePathsFound.AddRange(RecurseIndexDirectory(changeList,
-                    subDirectory,
-                    indexPaths,
-                    RemoveEventCallback,
-                    uncoveredChanges));
-            }
-            // Loop through all files under the current directory
-            foreach (FileInfo currentFile in currentDirectory.EnumerateFiles())
-            {
-                // Remove file from list of changes which have not yet been traversed (since it has been traversed)
-                uncoveredChanges.Remove(currentFile.FullName);
-
-                // define value for file size to be used in metadata, defaulting to an impossible value -1
-                long currentFileLength = -1;
-                // presume finding the file length did not fail until it fails
-                bool fileLengthFailed = false;
-                try
-                {
-                    // store the length of the current file
-                    currentFileLength = currentFile.Length;
-                }
-                catch
-                {
-                    // finding the file length failed
-                    // (probably because the file was deleted in the time between reading the current directory and reading the current file)
-                    fileLengthFailed = true;
-                }
-                // If finding the file length did not fail and the length itself is a sensible value,
-                // check the file against the index and existing events and mark it traversed
-                if (!fileLengthFailed
-                    && currentFileLength >= 0)
-                {
-                    // Add file path to traversed output list
-                    filePathsFound.Add(currentFile.FullName);
-                    // Find file properties
-                    FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(false,
-                        currentFile.LastWriteTimeUtc.DropSubSeconds(),
-                        currentFile.CreationTimeUtc.DropSubSeconds(),
-                        currentFileLength);
-                    // Find the latest change at the current file path, if any exist
-                    FileChange existingEvent = changeList.LastOrDefault(currentChange => FilePathComparer.Instance.Equals(currentChange.NewPath, (FilePath)currentFile));
-                    // If a change does not already exist for the current file path,
-                    // check if file has changed since last index to process changes
-                    if (existingEvent == null)
-                    {
-                        // If the index already contained a file at the current path,
-                        // then check if a file modification needs to be processed
-                        if (indexPaths.ContainsKey(currentFile))
-                        {
-                            FileMetadata existingIndexPath = indexPaths[currentFile];
-
-                            // If the file has changed (different metadata), then process a file modification change
-                            if (!fileComparer.Equals(compareProperties, existingIndexPath.HashableProperties))
+                            // If the index did not include the current subdirectory, it needs to be added as a creation
+                            if (!indexPaths.ContainsKey(subDirectory))
                             {
                                 changeList.Add(new FileChange()
                                 {
-                                    NewPath = currentFile,
-                                    Type = FileChangeType.Modified,
+                                    NewPath = subDirectory.FullName,
+                                    Type = FileChangeType.Created,
                                     Metadata = new FileMetadata()
                                     {
-                                        HashableProperties = compareProperties,
-                                        LinkTargetPath = existingIndexPath.LinkTargetPath,//Todo: needs to check again for new target path
-                                        Revision = existingIndexPath.Revision,
-                                        StorageKey = existingIndexPath.StorageKey
+                                        HashableProperties = compareProperties
                                     }
                                 });
                             }
                         }
-                        // else if index doesn't contain the current path, then the file has been created
-                        else
-                        {
-                            changeList.Add(new FileChange()
-                            {
-                                NewPath = currentFile,
-                                Type = FileChangeType.Created,
-                                Metadata = new FileMetadata()
-                                {
-                                    HashableProperties = compareProperties
-                                }
-                            });
-                        }
+                        // Add the inner paths to the output list by recursing (which will also process inner changes)
+                        filePathsFound.AddRange(RecurseIndexDirectory(changeList,
+                            subDirectory,
+                            indexPaths,
+                            RemoveEventCallback,
+                            uncoveredChanges));
                     }
-                    // else if a change exists at the current file path and the file has changed
-                    else if (!fileComparer.Equals(compareProperties, existingEvent.Metadata.HashableProperties))
+                }
+
+                // Loop through all files under the current directory
+                foreach (FileInfo currentFile in currentDirectory.EnumerateFiles())
+                {
+                    if ((FileAttributes)0 ==// compare bitwise and of FileAttributes and all unwanted attributes to '0'
+                        (currentFile.Attributes// change is on file, grab file attributes
+                            & (FileAttributes.Hidden// ignore hidden files
+                                | FileAttributes.Offline// ignore offline files (data is not available on them)
+                                | FileAttributes.System// ignore system files
+                                | FileAttributes.Temporary)))// ignore temporary files
                     {
-                        // mark that SQL can be updated again with the changes to the metadata
-                        existingEvent.DoNotAddToSQLIndex = false;
+
+                        // Remove file from list of changes which have not yet been traversed (since it has been traversed)
+                        uncoveredChanges.Remove(currentFile.FullName);
+
+                        // define value for file size to be used in metadata, defaulting to an impossible value -1
+                        long currentFileLength = -1;
+                        // presume finding the file length did not fail until it fails
+                        bool fileLengthFailed = false;
+                        try
+                        {
+                            // store the length of the current file
+                            currentFileLength = currentFile.Length;
+                        }
+                        catch
+                        {
+                            // finding the file length failed
+                            // (probably because the file was deleted in the time between reading the current directory and reading the current file)
+                            fileLengthFailed = true;
+                        }
+                        // If finding the file length did not fail and the length itself is a sensible value,
+                        // check the file against the index and existing events and mark it traversed
+                        if (!fileLengthFailed
+                            && currentFileLength >= 0)
+                        {
+                            // Add file path to traversed output list
+                            filePathsFound.Add(currentFile.FullName);
+                            // Find file properties
+                            FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(false,
+                                currentFile.LastWriteTimeUtc.DropSubSeconds(),
+                                currentFile.CreationTimeUtc.DropSubSeconds(),
+                                currentFileLength);
+                            // Find the latest change at the current file path, if any exist
+                            FileChange existingEvent = changeList.LastOrDefault(currentChange => FilePathComparer.Instance.Equals(currentChange.NewPath, (FilePath)currentFile));
+                            // If a change does not already exist for the current file path,
+                            // check if file has changed since last index to process changes
+                            if (existingEvent == null)
+                            {
+                                // If the index already contained a file at the current path,
+                                // then check if a file modification needs to be processed
+                                if (indexPaths.ContainsKey(currentFile))
+                                {
+                                    FileMetadata existingIndexPath = indexPaths[currentFile];
+
+                                    // If the file has changed (different metadata), then process a file modification change
+                                    if (!fileComparer.Equals(compareProperties, existingIndexPath.HashableProperties))
+                                    {
+                                        changeList.Add(new FileChange()
+                                        {
+                                            NewPath = currentFile,
+                                            Type = FileChangeType.Modified,
+                                            Metadata = new FileMetadata()
+                                            {
+                                                HashableProperties = compareProperties,
+                                                LinkTargetPath = existingIndexPath.LinkTargetPath,//Todo: needs to check again for new target path
+                                                Revision = existingIndexPath.Revision,
+                                                StorageKey = existingIndexPath.StorageKey
+                                            }
+                                        });
+                                    }
+                                }
+                                // else if index doesn't contain the current path, then the file has been created
+                                else
+                                {
+                                    changeList.Add(new FileChange()
+                                    {
+                                        NewPath = currentFile,
+                                        Type = FileChangeType.Created,
+                                        Metadata = new FileMetadata()
+                                        {
+                                            HashableProperties = compareProperties
+                                        }
+                                    });
+                                }
+                            }
+                            // else if a change exists at the current file path and the file has changed
+                            else if (!fileComparer.Equals(compareProperties, existingEvent.Metadata.HashableProperties))
+                            {
+                                // mark that SQL can be updated again with the changes to the metadata
+                                existingEvent.DoNotAddToSQLIndex = false;
+                            }
+                        }
                     }
                 }
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                if (outermostMethodCall)
+                {
+                    MessageBox.Show("Unable to scan files/folders in Cloud folder. Location not accessible:" + Environment.NewLine + ex.Message, "Error Starting Cloud");
+                }
+            }
+            catch (Exception ex) { }
 
             // If this method call was the outermost one (not recursed),
             // then the uncoveredChanges list was depleted of all traversed paths leaving

@@ -19,12 +19,15 @@ using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudApiPublic.Support;
 using FileMonitor;
+using BadgeNET;
 
 namespace Sync
 {
     public static class Sync
     {
         private const int HttpTimeoutMilliseconds = 180000;// 180 seconds
+        private const byte MaxNumberOfFailureRetries = 20;
+        private const byte MaxNumberOfNotFounds = 10;
 
         private static ProcessingQueuesTimer GetFailureTimer(Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue)
         {
@@ -96,7 +99,10 @@ namespace Sync
                         {
                             foreach (FileChange currentError in errList.Value)
                             {
-                                FailedChangesQueue.Enqueue(currentError);
+                                if (ContinueToRetry(null, currentError))
+                                {
+                                    FailedChangesQueue.Enqueue(currentError);
+                                }
 
                                 GetFailureTimer(AddChangesToProcessingQueue).StartTimerIfNotRunning();
                             }
@@ -113,7 +119,10 @@ namespace Sync
                         // rethrow error for logging
                         foreach (FileChange currentError in failedChanges)
                         {
-                            FailedChangesQueue.Enqueue(currentError);
+                            if (ContinueToRetry(null, currentError))
+                            {
+                                FailedChangesQueue.Enqueue(currentError);
+                            }
 
                             GetFailureTimer(AddChangesToProcessingQueue).StartTimerIfNotRunning();
                         }
@@ -571,7 +580,10 @@ namespace Sync
 
                             foreach (FileChange currentTopLevelError in topLevelErrors ?? Enumerable.Empty<FileChange>())
                             {
-                                FailedChangesQueue.Enqueue(currentTopLevelError);
+                                if (ContinueToRetry(mergeToSql, currentTopLevelError))
+                                {
+                                    FailedChangesQueue.Enqueue(currentTopLevelError);
+                                }
                             }
                         }
                         catch
@@ -581,7 +593,10 @@ namespace Sync
                             // finally, rethrow the exception
                             for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
                             {
-                                FailedChangesQueue.Enqueue(dequeuedFailures[currentQueueIndex]);
+                                if (ContinueToRetry(mergeToSql, dequeuedFailures[currentQueueIndex]))
+                                {
+                                    FailedChangesQueue.Enqueue(dequeuedFailures[currentQueueIndex]);
+                                }
                             }
                             throw;
                         }
@@ -711,7 +726,10 @@ namespace Sync
                         {
                             foreach (FileChange currentQueueingError in queueingErrors.Value)
                             {
-                                FailedChangesQueue.Enqueue(currentQueueingError);
+                                if (ContinueToRetry(mergeToSql, currentQueueingError))
+                                {
+                                    FailedChangesQueue.Enqueue(currentQueueingError);
+                                }
 
                                 GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
                             }
@@ -730,7 +748,10 @@ namespace Sync
                     {
                         foreach (FileChange currentDependency in thingsThatWereDependenciesToQueue)
                         {
-                            FailedChangesQueue.Enqueue(currentDependency);
+                            if (ContinueToRetry(mergeToSql, currentDependency))
+                            {
+                                FailedChangesQueue.Enqueue(currentDependency);
+                            }
 
                             GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
                         }
@@ -759,7 +780,11 @@ namespace Sync
                                     if (successfulEventIds.BinarySearch(errorToQueue.Key.EventId) < 0)
                                     {
                                         toReturn += errorToQueue.Value;
-                                        FailedChangesQueue.Enqueue(errorToQueue.Key);
+
+                                        if (ContinueToRetry(mergeToSql, errorToQueue.Key))
+                                        {
+                                            FailedChangesQueue.Enqueue(errorToQueue.Key);
+                                        }
 
                                         GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
                                     }
@@ -1031,7 +1056,10 @@ namespace Sync
                                                             {
                                                                 foreach (FileChange currentError in errList.Value)
                                                                 {
-                                                                    FailedChangesQueue.Enqueue(currentError);
+                                                                    if (ContinueToRetry(null, currentError))
+                                                                    {
+                                                                        FailedChangesQueue.Enqueue(currentError);
+                                                                    }
 
                                                                     castState.FailureTimer.StartTimerIfNotRunning();
                                                                 }
@@ -1090,7 +1118,10 @@ namespace Sync
 
                                                     lock (exceptionState.Value.TimerRunningLocker)
                                                     {
-                                                        FailedChangesQueue.Enqueue(exceptionState.Key);
+                                                        if (ContinueToRetry(null, exceptionState.Key))
+                                                        {
+                                                            FailedChangesQueue.Enqueue(exceptionState.Key);
+                                                        }
 
                                                         exceptionState.Value.StartTimerIfNotRunning();
                                                     }
@@ -1321,7 +1352,10 @@ namespace Sync
                                                 {
                                                     foreach (FileChange currentError in errList.Value)
                                                     {
-                                                        FailedChangesQueue.Enqueue(currentError);
+                                                        if (ContinueToRetry(null, currentError))
+                                                        {
+                                                            FailedChangesQueue.Enqueue(currentError);
+                                                        }
 
                                                         castState.FailureTimer.StartTimerIfNotRunning();
                                                     }
@@ -1389,7 +1423,10 @@ namespace Sync
 
                                         lock (exceptionState.Value.Key.TimerRunningLocker)
                                         {
-                                            FailedChangesQueue.Enqueue(exceptionState.Key);
+                                            if (ContinueToRetry(null, exceptionState.Key))
+                                            {
+                                                FailedChangesQueue.Enqueue(exceptionState.Key);
+                                            }
 
                                             exceptionState.Value.Key.StartTimerIfNotRunning();
                                         }
@@ -2870,6 +2907,61 @@ namespace Sync
                 return FileChangeType.Renamed;
             }
             throw new ArgumentException("eventString was not parsable to FileChangeType: " + actionString);
+        }
+
+        private static bool ContinueToRetry(Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql, FileChange toRetry)
+        {
+            if (toRetry.FailureCounter == 0)
+            {
+                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeFailed),
+                    ((toRetry.Direction == SyncDirection.From && toRetry.Type == FileChangeType.Renamed)
+                        ? toRetry.OldPath
+                        : toRetry.NewPath));
+            }
+
+            toRetry.FailureCounter++;
+
+            if (toRetry.FailureCounter < MaxNumberOfFailureRetries
+                && toRetry.NotFoundForStreamCounter < MaxNumberOfNotFounds)
+            {
+                return true;
+            }
+
+            if (toRetry.NotFoundForStreamCounter == MaxNumberOfNotFounds)
+            {
+                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), toRetry.NewPath);
+                if (mergeToSql != null)
+                {
+                    mergeToSql(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(null, toRetry) }, false);
+                }
+            }
+
+            FileChangeWithDependencies castRetry = toRetry as FileChangeWithDependencies;
+            if (castRetry != null
+                && castRetry.DependenciesCount > 0)
+            {
+                BadgeDependenciesAsFailures(castRetry.Dependencies);
+            }
+
+            return false;
+        }
+
+        private static void BadgeDependenciesAsFailures(IEnumerable<FileChange> dependencies)
+        {
+            foreach (FileChange dependency in (dependencies ?? Enumerable.Empty<FileChange>()))
+            {
+                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeFailed),
+                    ((dependency.Direction == SyncDirection.From && dependency.Type == FileChangeType.Renamed)
+                        ? dependency.OldPath
+                        : dependency.NewPath));
+
+                FileChangeWithDependencies castDependency = dependency as FileChangeWithDependencies;
+                if (castDependency != null
+                    && castDependency.DependenciesCount > 0)
+                {
+                    BadgeDependenciesAsFailures(castDependency.Dependencies);
+                }
+            }
         }
 
         private static DataContractJsonSerializer PushSerializer
