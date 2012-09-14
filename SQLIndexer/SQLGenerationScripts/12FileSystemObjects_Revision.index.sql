@@ -7,6 +7,5 @@
  */
 CREATE NONCLUSTERED INDEX [Idx_FileSystemObjects_Revision] ON [FileSystemObjects]
 (
-	[Revision] ASC,
-	[RevisionIsNull] ASC
+	[Revision] ASC
 )

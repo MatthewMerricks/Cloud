@@ -374,6 +374,7 @@ namespace CloudApiPublic.Static
             return Environment.MachineName;
         }
 
+        #region encrypt/decrypt strings
         // create and initialize a crypto algorithm 
         private static SymmetricAlgorithm getAlgorithm(string password)
         {
@@ -419,7 +420,8 @@ namespace CloudApiPublic.Static
             cs.Close();
             return System.Text.Encoding.Unicode.GetString(ms.ToArray());
         }
-		
+        #endregion
+
         public static DateTime DropSubSeconds(this DateTime toTruncate)
         {
             return new DateTime(toTruncate.Year,

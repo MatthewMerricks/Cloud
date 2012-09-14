@@ -19,9 +19,6 @@ namespace SQLIndexer.SqlModel
         public long EventId { get; set; }
 
         [SqlAccess.Property]
-        public Nullable<long> SyncCounter { get; set; }
-
-        [SqlAccess.Property]
         public int FileChangeTypeCategoryId { get; set; }
 
         [SqlAccess.Property]
@@ -31,13 +28,13 @@ namespace SQLIndexer.SqlModel
         public string PreviousPath { get; set; }
 
         [SqlAccess.Property]
-        public long FileSystemObjectId { get; set; }
-
-        [SqlAccess.Property]
         public bool SyncFrom { get; set; }
 
-        [SqlAccess.Property(true)]
-        public Sync Sync { get; set; }
+        [SqlAccess.Property]
+        public Nullable<Guid> GroupId { get; set; }
+
+        [SqlAccess.Property]
+        public Nullable<int> GroupOrder { get; set; }
 
         [SqlAccess.Property(true)]
         public EnumCategory EnumCategory { get; set; }

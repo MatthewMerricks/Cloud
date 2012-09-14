@@ -913,7 +913,7 @@ namespace win_client.Services.Indexing
             {
                 if (item.ChangeReference != null)
                 {
-                    CLFSMonitoringService.Instance.IndexingAgent.AddEvent(item.ChangeReference);
+                    CLFSMonitoringService.Instance.IndexingAgent.AddEvents(new FileChange[] { item.ChangeReference });
                 }
             }
             else if (item.ChangeReference != null

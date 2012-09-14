@@ -477,20 +477,32 @@ namespace CloudApiPublic.Model
                 }
                 else
                 {
-                    if (value == null)
-                    {
-                        throw new ArgumentException("Cannot set index to null value");
-                    }
                     if (pathsAtCurrentLevel != null && pathsAtCurrentLevel.ContainsKey(key))
                     {
-                        pathsAtCurrentLevel[key] = value;
+                        if (value == null)
+                        {
+                            _count--;
+                        }
+                        else
+                        {
+                            pathsAtCurrentLevel[key] = value;
+                        }
                     }
                     else if (innerFolders == null)
                     {
-                        Add(key, value);
+                        if (value != null)
+                        {
+                            Add(key, value);
+                        }
                     }
                     else if (innerFolders.ContainsKey(key))
                     {
+                        if (innerFolders[key].CurrentValue != null
+                            && value == null)
+                        {
+                            _count--;
+                        }
+
                         innerFolders[key][null] = value;
                     }
                     else
@@ -500,11 +512,24 @@ namespace CloudApiPublic.Model
                         {
                             if (innerFolders.ContainsKey(recurseParent))
                             {
-                                innerFolders[recurseParent][key] = value;
+                                if (value == null)
+                                {
+                                    int previousCount = innerFolders[recurseParent].Count;
+                                    innerFolders[recurseParent][key] = value;
+                                    if (innerFolders[recurseParent].Count < previousCount)
+                                    {
+                                        _count--;
+                                    }
+                                }
+                                else
+                                {
+                                    innerFolders[recurseParent][key] = value;
+                                }
                                 break;
                             }
                         }
-                        if (recurseParent == null)
+                        if (recurseParent == null
+                            && value != null)
                         {
                             Add(key, value);
                         }

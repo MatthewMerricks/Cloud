@@ -89,30 +89,8 @@
     <Compile Include="SqlModel\SqlAccessor.cs" />
     <Compile Include="SqlModel\SqlEnum.cs" />
     <Compile Include="SqlModel\Sync.cs" />
-    <Compile Include="SqlModel\SyncState.cs" />
     <Compile Include="StringCRC.cs" />
     <Compile Include="SyncedObject.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="IndexDBScripts\10SyncStates_FileSystemObjectId.index.sql" />
-    <EmbeddedResource Include="IndexDBScripts\11SyncStates_ServerLinkedFileSystemObjectId.index.sql" />
-    <EmbeddedResource Include="IndexDBScripts\12SyncStates_SyncCounter.index.sql" />
-    <EmbeddedResource Include="IndexDBScripts\13Events.table.sql" />
-    <EmbeddedResource Include="IndexDBScripts\14Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
-    <EmbeddedResource Include="IndexDBScripts\15Events_FileSystemObjectId.index.sql" />
-    <EmbeddedResource Include="IndexDBScripts\16Events_SyncCounter.index.sql" />
-    <EmbeddedResource Include="IndexDBScripts\17FileChangeTypesEnum1.data.sql" />
-    <EmbeddedResource Include="IndexDBScripts\18FileChangeTypesEnum2.data.sql" />
-    <EmbeddedResource Include="IndexDBScripts\19FileChangeTypesEnum3.data.sql" />
-    <EmbeddedResource Include="IndexDBScripts\20FileChangeTypesEnum4.data.sql" />
-    <EmbeddedResource Include="IndexDBScripts\21FileChangeTypesEnum5.data.sql" />
-    <EmbeddedResource Include="IndexDBScripts\3EnumCategories.table.sql" />
-    <EmbeddedResource Include="IndexDBScripts\4Enums.table.sql" />
-    <EmbeddedResource Include="IndexDBScripts\5FileSystemObjects.table.sql" />
-    <EmbeddedResource Include="IndexDBScripts\6FileSystemObjects.PathChecksum.index.sql" />
-    <EmbeddedResource Include="IndexDBScripts\7Syncs.table.sql" />
-    <EmbeddedResource Include="IndexDBScripts\8Syncs_SyncId.index.sql" />
-    <EmbeddedResource Include="IndexDBScripts\9SyncStates.table.sql" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -152,12 +130,30 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="IndexDBScripts\22FileSystemObjects_Revision.index.sql" />
-    <EmbeddedResource Include="IndexDBScripts\23CompletedVersion.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\10FileSystemObjects_SyncCounter_ServerLinked.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\11FileSystemObjects_EventId.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\12FileSystemObjects_Revision.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\13FileSystemObjects.PathChecksum.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\7Events.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\8Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\9FileSystemObjects.table.sql" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="IndexDBScripts\0Version.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\14FileChangeTypesEnum1.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\15FileChangeTypesEnum2.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\16FileChangeTypesEnum3.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\17FileChangeTypesEnum4.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\18FileChangeTypesEnum5.data.sql" />
     <EmbeddedResource Include="IndexDBScripts\1IncompleteVersion.data.sql" />
+    <EmbeddedResource Include="IndexDBScripts\3EnumCategories.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\4Enums.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\5Syncs.table.sql" />
+    <EmbeddedResource Include="IndexDBScripts\6Syncs_SyncId.index.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IndexDBScripts\19Events_GroupId.index.sql" />
+    <EmbeddedResource Include="IndexDBScripts\20CompletedVersion.data.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

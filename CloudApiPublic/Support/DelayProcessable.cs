@@ -38,6 +38,10 @@ namespace CloudApiPublic.Support
         private bool startedDelay = false;
         // resetable timer, default to lock on first wait (not set)
         private readonly AutoResetEvent delayEvent = new AutoResetEvent(false);
+        // locker for delay event (cannot lock on event while it's being disposed)
+        private readonly object delayEventLocker = new object();
+        // indicates when delay event is disposed
+        private bool delayEventDisposed = false;
         // boolean to store whether call to reset delay has begun waiting for a pulse-back from processing thread
         private bool waitingForReset = false;
         // field where the synchronization locker is stored (locked when DelayCompleted boolean is read or written to)
@@ -155,10 +159,34 @@ namespace CloudApiPublic.Support
                     // or maxDelays is reached
                     while (true)
                     {
-                        // Wait on timer reset or timeout
-                        if (nonNullState.Key.delayEvent.WaitOne(nonNullState.Value.millisecondWait)
-                            && (nonNullState.Value.maxDelays < 0
-                                || nonNullState.Key.delayCounter < nonNullState.Value.maxDelays))
+                        bool timerSet = false;
+                        lock (nonNullState.Key.delayEventLocker)
+                        {
+                            if (nonNullState.Key.delayEventDisposed)
+                            {
+                                timerSet = true;
+                            }
+                        }
+
+                        if (!timerSet)
+                        {
+                            try
+                            {
+                                // Wait on timer reset or timeout
+
+                                // ¡¡ A bug in underlying threading code can cause the next line to throw an ObjectDisposedException !!
+                                timerSet = nonNullState.Key.delayEvent.WaitOne(nonNullState.Value.millisecondWait)
+                                    && (nonNullState.Value.maxDelays < 0
+                                        || nonNullState.Key.delayCounter < nonNullState.Value.maxDelays);
+                                // ¡¡ A bug in underlying threading code can cause the next line to throw an ObjectDisposedException !!
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                timerSet = true;
+                            }
+                        }
+
+                        if (timerSet)
                         {
                             // break out of loop if delay already completed (such as on dispose)
                             if (nonNullState.Key.DelayCompleted)
@@ -176,14 +204,20 @@ namespace CloudApiPublic.Support
                                 Thread.Sleep(50);
                             }
                             // Lock on AutoResetEvent to synchronize with reset thread
-                            lock (nonNullState.Key.delayEvent)
+                            lock (nonNullState.Key.delayEventLocker)
                             {
-                                // Record new timer reset
-                                nonNullState.Key.delayCounter++;
-                                // Reset timer for waiting again on next loop
-                                nonNullState.Key.delayEvent.Reset();
-                                // Pulse reset thread to continue
-                                Monitor.Pulse(nonNullState.Key.delayEvent);
+                                if (!nonNullState.Key.delayEventDisposed)
+                                {
+                                    lock (nonNullState.Key.delayEvent)
+                                    {
+                                        // Record new timer reset
+                                        nonNullState.Key.delayCounter++;
+                                        // Reset timer for waiting again on next loop
+                                        nonNullState.Key.delayEvent.Reset();
+                                        // Pulse reset thread to continue
+                                        Monitor.Pulse(nonNullState.Key.delayEvent);
+                                    }
+                                }
                             }
                         }
                         // Timer completed (timed out), stop reset loop to continue onto processing
@@ -202,10 +236,16 @@ namespace CloudApiPublic.Support
                         nonNullState.Key.DelayCompleted = true;
 
                         // Lock on AutoResetEvent to synchronize with reset thread
-                        lock (nonNullState.Key.delayEvent)
+                        lock (nonNullState.Key.delayEventLocker)
                         {
-                            // Pulse remaining reset threads so they all continue
-                            Monitor.PulseAll(nonNullState.Key.delayEvent);
+                            if (!nonNullState.Key.delayEventDisposed)
+                            {
+                                lock (nonNullState.Key.delayEvent)
+                                {
+                                    // Pulse remaining reset threads so they all continue
+                                    Monitor.PulseAll(nonNullState.Key.delayEvent);
+                                }
+                            }
                         }
 
                         // Run any preprocessing actions queued in the synchronized context
@@ -288,12 +328,18 @@ namespace CloudApiPublic.Support
                     // reset delay timer
                     delayEvent.Set();
                     // Lock on AutoResetEvent to synchronize with processing thread
-                    lock (delayEvent)
+                    lock (delayEventLocker)
                     {
-                        // stop waiting for reset, allows processing thread to continue and pulse-back
-                        waitingForReset = false;
-                        // wait for pulse-back
-                        Monitor.Wait(delayEvent);
+                        if (!delayEventDisposed)
+                        {
+                            lock (delayEvent)
+                            {
+                                // stop waiting for reset, allows processing thread to continue and pulse-back
+                                waitingForReset = false;
+                                // wait for pulse-back
+                                Monitor.Wait(delayEvent);
+                            }
+                        }
                     }
                 }
             }
@@ -370,10 +416,23 @@ namespace CloudApiPublic.Support
                     // Run dispose on inner managed objects based on disposing condition
                     if (disposing)
                     {
-                        // trigger processing thread to break out
-                        delayEvent.Set();
+                        lock (delayEventLocker)
+                        {
+                            if (!delayEventDisposed)
+                            {
+                                lock (delayEvent)
+                                {
+                                    Monitor.PulseAll(delayEvent);
 
-                        delayEvent.Dispose();
+                                    // trigger processing thread to break out
+                                    delayEvent.Set();
+
+                                    delayEvent.Dispose();
+
+                                    delayEventDisposed = true;
+                                }
+                            }
+                        }
                     }
 
                     // Dispose local unmanaged resources last

@@ -1178,7 +1178,7 @@ namespace win_client.Services.Sync
             // -David
             if (evt.ChangeReference != null)
             {
-                CLFSMonitoringService.Instance.IndexingAgent.MergeEventIntoDatabase(evt.ChangeReference, null);
+                CLFSMonitoringService.Instance.IndexingAgent.MergeEventsIntoDatabase(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(evt.ChangeReference, null) });
             }
 
             // return event;
