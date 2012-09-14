@@ -25,9 +25,6 @@ namespace SQLIndexer.SqlModel
         public string RootPath { get; set; }
 
         [SqlAccess.Property(true)]
-        public SyncState SyncState { get; set; }
-
-        [SqlAccess.Property(true)]
-        public Event Event { get; set; }
+        public FileSystemObject FileSystemObject { get; set; }
     }
 }

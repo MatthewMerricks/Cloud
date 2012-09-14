@@ -459,7 +459,14 @@ namespace BadgeNET
                 {
                     // newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
                     _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Add this type to the dictionary.");
-                    allBadges[filePath] = newType;
+                    if (newType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
+                    {
+                        allBadges[filePath] = null;
+                    }
+                    else
+                    {
+                        allBadges[filePath] = newType;
+                    }
                 }
 
                 // Notify this node, and all of the parents until the node is null, or equal to the Cloud path.

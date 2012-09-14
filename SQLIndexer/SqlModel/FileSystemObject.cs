@@ -45,18 +45,21 @@ namespace SQLIndexer.SqlModel
         public string Revision { get; set; }
 
         [SqlAccess.Property]
-        public bool RevisionIsNull { get; set; }
+        public string StorageKey { get; set; }
 
         [SqlAccess.Property]
-        public string StorageKey { get; set; }
+        public Nullable<long> SyncCounter { get; set; }
+
+        [SqlAccess.Property]
+        public bool ServerLinked { get; set; }
+
+        [SqlAccess.Property]
+        public Nullable<long> EventId { get; set; }
 
         [SqlAccess.Property(true)]
         public Event Event { get; set; }
 
         [SqlAccess.Property(true)]
-        public SyncState SyncState { get; set; }
-
-        [SqlAccess.Property(true)]
-        public SyncState ServerLinkedSyncState { get; set; }
+        public Sync Sync { get; set; }
     }
 }

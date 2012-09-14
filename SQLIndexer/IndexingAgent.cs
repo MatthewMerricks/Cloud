@@ -22,6 +22,7 @@ using BadgeNET;
 using System.Data.SqlServerCe;
 using System.Globalization;
 using SQLIndexer.SqlModel;
+using SQLIndexer.Migrations;
 
 namespace SQLIndexer
 {
@@ -95,7 +96,52 @@ namespace SQLIndexer
                 {
                     if (changeEnums == null)
                     {
-                        if (!File.Exists(newAgent.indexDBLocation))
+                        bool needToMakeDB = true;
+
+                        if (File.Exists(newAgent.indexDBLocation))
+                        {
+                            try
+                            {
+                                using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation)))
+                                {
+                                    indexDB.Open();
+
+                                    int versionBeforeUpdate;
+                                    using (SqlCeCommand versionCommand = indexDB.CreateCommand())
+                                    {
+                                        versionCommand.CommandText = "SELECT [Version].[Version] FROM [Version] WHERE [Version].[TrueKey] = 1";
+                                        versionBeforeUpdate = Helpers.ConvertTo<int>(versionCommand.ExecuteScalar());
+                                    }
+
+                                    if (versionBeforeUpdate == 0)
+                                    {
+
+                                        int newVersion = 1;
+
+                                        foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(versionBeforeUpdate))
+                                        {
+                                            currentDBMigration.Value.Apply(indexDB, getDecodedIndexDBPassword());
+
+                                            newVersion = currentDBMigration.Key;
+                                        }
+
+                                        using (SqlCeCommand updateVersionCommand = indexDB.CreateCommand())
+                                        {
+                                            updateVersionCommand.CommandText = "UPDATE [Version] SET [Version].[Version] = " + newVersion.ToString() + " WHERE [Version].[TrueKey] = 1";
+                                            updateVersionCommand.ExecuteNonQuery();
+                                        }
+                                    }
+                                }
+
+                                needToMakeDB = false;
+                            }
+                            catch
+                            {
+                                File.Delete(newAgent.indexDBLocation);
+                            }
+                        }
+
+                        if (needToMakeDB)
                         {
                             FileInfo indexDBInfo = new FileInfo(newAgent.indexDBLocation);
                             if (!indexDBInfo.Directory.Exists)
@@ -284,38 +330,58 @@ namespace SQLIndexer
                             return createDictError;
                         }
 
+                        Dictionary<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>> mappedSyncStates = new Dictionary<long,KeyValuePair<GenericHolder<FileSystemObject>,GenericHolder<FileSystemObject>>>();
+
                         // Loop through all sync states for the last sync
-                        foreach (SyncState currentSyncState in SqlAccessor<SyncState>
+                        foreach (FileSystemObject currentSyncState in SqlAccessor<FileSystemObject>
                             .SelectResultSet(indexDB,
-                                "SELECT " + SqlAccessor<SyncState>.GetSelectColumns() + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns("ServerLinkedFileSystemObject", "ServerLinkedFileSystemObjects") + " " +
-                                "FROM [SyncStates] " +
-                                "INNER JOIN [FileSystemObjects] ON [SyncStates].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                                "LEFT OUTER JOIN [FileSystemObjects] ServerLinkedFileSystemObjects ON [SyncStates].[ServerLinkedFileSystemObjectId] = [ServerLinkedFileSystemObjects].[FileSystemObjectId] " +
-                                "WHERE [SyncStates].[SyncCounter] = " + lastSync.SyncCounter.ToString(),
-                                new string[]
+                                "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter.ToString()))
+                        {
+                            if (mappedSyncStates.ContainsKey(currentSyncState.FileSystemObjectId))
+                            {
+                                if (currentSyncState.ServerLinked)
                                 {
-                                    FileSystemObject.Name,
-                                    "ServerLinkedFileSystemObject"
-                                }))
+                                    mappedSyncStates[currentSyncState.FileSystemObjectId].Value.Value = currentSyncState;
+                                }
+                                else
+                                {
+                                    mappedSyncStates[currentSyncState.FileSystemObjectId].Key.Value = currentSyncState;
+                                }
+                            }
+                            else if (currentSyncState.ServerLinked)
+                            {
+                                mappedSyncStates.Add(currentSyncState.FileSystemObjectId,
+                                    new KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>(
+                                        new GenericHolder<FileSystemObject>(),
+                                        new GenericHolder<FileSystemObject>(currentSyncState)));
+                            }
+                            else
+                            {
+                                mappedSyncStates.Add(currentSyncState.FileSystemObjectId,
+                                    new KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>(
+                                        new GenericHolder<FileSystemObject>(currentSyncState),
+                                        new GenericHolder<FileSystemObject>()));
+                            }
+                        }
+
+                        foreach (KeyValuePair<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>> currentSyncState in mappedSyncStates)
                         {
                             // Add the current sync state from the last sync to the output dictionary
-                            syncStates.Add(currentSyncState.FileSystemObject.Path,
+                            syncStates.Add(currentSyncState.Value.Key.Value.Path,
                                 new SyncedObject()
                                 {
-                                    ServerLinkedPath = currentSyncState.ServerLinkedFileSystemObject == null
+                                    ServerLinkedPath = currentSyncState.Value.Value.Value == null
                                         ? null
-                                        : currentSyncState.ServerLinkedFileSystemObject.Path,
+                                        : currentSyncState.Value.Value.Value.Path,
                                     Metadata = new FileMetadata()
                                     {
-                                        HashableProperties = new FileMetadataHashableProperties(currentSyncState.FileSystemObject.IsFolder,
-                                            currentSyncState.FileSystemObject.LastTime,
-                                            currentSyncState.FileSystemObject.CreationTime,
-                                            currentSyncState.FileSystemObject.Size),
-                                        LinkTargetPath = currentSyncState.FileSystemObject.TargetPath,
-                                        Revision = (currentSyncState.FileSystemObject.RevisionIsNull ? null : currentSyncState.FileSystemObject.Revision),
-                                        StorageKey = currentSyncState.FileSystemObject.StorageKey
+                                        HashableProperties = new FileMetadataHashableProperties(currentSyncState.Value.Key.Value.IsFolder,
+                                            currentSyncState.Value.Key.Value.LastTime,
+                                            currentSyncState.Value.Key.Value.CreationTime,
+                                            currentSyncState.Value.Key.Value.Size),
+                                        LinkTargetPath = currentSyncState.Value.Key.Value.TargetPath,
+                                        Revision = currentSyncState.Value.Key.Value.Revision,
+                                        StorageKey = currentSyncState.Value.Key.Value.StorageKey
                                     }
                                 });
                         }
@@ -360,37 +426,30 @@ namespace SQLIndexer
                     {
                         int pathCRC = StringCRC.Crc(path);
 
-                        SyncState foundSync = SqlAccessor<SyncState>
+                        FileSystemObject foundSync = SqlAccessor<FileSystemObject>
                             .SelectResultSet(indexDB,
-                                "SELECT TOP 1 " +
-                                SqlAccessor<SyncState>.GetSelectColumns() + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
-                                "FROM [SyncStates] " +
-                                "INNER JOIN [FileSystemObjects] ON [SyncStates].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                                "WHERE [SyncStates].[SyncCounter] = " + lastSync.SyncCounter.ToString() + " " +
+                                "SELECT TOP 1 * " +
+                                "FROM [FileSystemObjects] " +
+                                "WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter.ToString() + " " +
                                 "AND [FileSystemObjects].[PathChecksum] = " + pathCRC.ToString() + " " +
                                 (revision == null
                                     ? "AND [FileSystemObjects].[RevisionIsNull] = 1"
                                     : "AND [FileSystemObjects].[RevisionIsNull] = 0 " +
-                                        "AND LOWER([FileSystemObjects].[Revision]) = '" + revision.Replace("'", "''").ToLowerInvariant() + "'"),
-                                new string[]
-                                {
-                                    FileSystemObject.Name
-                                })
-                            .Where(parent => parent.FileSystemObject.Path == path) // run in memory since Path field is not indexable
+                                        "AND LOWER([FileSystemObjects].[Revision]) = '" + revision.Replace("'", "''").ToLowerInvariant() + "'"))
+                            .Where(parent => parent.Path == path) // run in memory since Path field is not indexable
                             .SingleOrDefault();
 
                         if (foundSync != null)
                         {
                             metadata = new FileMetadata()
                             {
-                                HashableProperties = new FileMetadataHashableProperties(foundSync.FileSystemObject.IsFolder,
-                                    foundSync.FileSystemObject.LastTime,
-                                    foundSync.FileSystemObject.CreationTime,
-                                    foundSync.FileSystemObject.Size),
-                                LinkTargetPath = foundSync.FileSystemObject.TargetPath,
+                                HashableProperties = new FileMetadataHashableProperties(foundSync.IsFolder,
+                                    foundSync.LastTime,
+                                    foundSync.CreationTime,
+                                    foundSync.Size),
+                                LinkTargetPath = foundSync.TargetPath,
                                 Revision = revision,
-                                StorageKey = foundSync.FileSystemObject.StorageKey
+                                StorageKey = foundSync.StorageKey
                             };
                         }
                         else
@@ -417,23 +476,13 @@ namespace SQLIndexer
         /// </summary>
         /// <param name="changeEvents">Outputs the unprocessed events</param>
         /// <returns>Returns an error that occurred filling the unprocessed events, if any</returns>
-        public CLError GetEventsSinceLastSync(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
+        public CLError GetPendingEvents(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
         {
             CELocker.EnterReadLock();
             try
             {
                 using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
                 {
-                    // Pull the last sync from the database
-                    Sync lastSync = SqlAccessor<Sync>
-                        .SelectResultSet(indexDB,
-                            "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
-                        .SingleOrDefault();
-                    // Fill in a nullable id for the last sync
-                    Nullable<long> lastSyncCounter = (lastSync == null
-                        ? (Nullable<long>)null
-                        : lastSync.SyncCounter);
-
                     // Create the output list
                     changeEvents = new List<KeyValuePair<FilePath, FileChange>>();
 
@@ -445,10 +494,8 @@ namespace SQLIndexer
                                 SqlAccessor<Event>.GetSelectColumns() + ", " +
                                 SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) +
                                 "FROM [Events] " +
-                                "INNER JOIN [FileSystemObjects] ON [Events].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                                (lastSyncCounter == null
-                                    ? "WHERE [FileSystemObjects].[SyncCounter] IS NULL "
-                                    : "WHERE [FileSystemObjects].[SyncCounter] = " + ((long)lastSyncCounter).ToString() + " ") +
+                                "INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
+                                "WHERE [FileSystemObjects].[SyncCounter] IS NULL " +
                                 "ORDER BY [Events].[EventId]",
                                 new string[]
                                 {
@@ -468,7 +515,7 @@ namespace SQLIndexer
                                         currentChange.FileSystemObject.LastTime,
                                         currentChange.FileSystemObject.CreationTime,
                                         currentChange.FileSystemObject.Size),
-                                    Revision = (currentChange.FileSystemObject.RevisionIsNull ? null : currentChange.FileSystemObject.Revision),
+                                    Revision = currentChange.FileSystemObject.Revision,
                                     StorageKey = currentChange.FileSystemObject.StorageKey,
                                     LinkTargetPath = currentChange.FileSystemObject.TargetPath
                                 },
@@ -493,79 +540,104 @@ namespace SQLIndexer
         /// Adds an unprocessed change since the last sync as a new event to the database,
         /// EventId property of the input event is set after database update
         /// </summary>
-        /// <param name="newEvent">Change to add</param>
+        /// <param name="newEvents">Change to add</param>
         /// <returns>Returns error that occurred when adding the event to database, if any</returns>
-        public CLError AddEvent(FileChange newEvent)
+        public CLError AddEvents(IEnumerable<FileChange> newEvents, bool alreadyObtainedLock = false)
         {
-            CELocker.EnterReadLock();
+            if (!alreadyObtainedLock)
+            {
+                CELocker.EnterReadLock();
+            }
             try
             {
                 // Ensure input parameter is set
-                if (newEvent == null)
+                if (newEvents == null)
                 {
-                    throw new NullReferenceException("newEvent cannot be null");
+                    throw new NullReferenceException("newEvents cannot be null");
                 }
-                if (newEvent.Metadata == null)
+                if (newEvents.Any(newEvent => newEvent.Metadata == null))
                 {
-                    throw new NullReferenceException("The Metadata property of newEvent cannot be null");
+                    throw new NullReferenceException("The Metadata property of every newEvent cannot be null");
                 }
+
+                List<Event> eventsToAdd = new List<Event>();
+                Guid eventGroup = Guid.NewGuid();
+                int eventCounter = 0;
+                Dictionary<int, KeyValuePair<FileChange, GenericHolder<long>>> orderToChange = new Dictionary<int, KeyValuePair<FileChange, GenericHolder<long>>>();
 
                 // If change is marked for adding to SQL,
                 // then process database addition
-                if (!newEvent.DoNotAddToSQLIndex)
+                foreach (FileChange newEvent in newEvents.Where(newEvent => !newEvent.DoNotAddToSQLIndex))
+                {
+                    string newPathString = newEvent.NewPath.ToString();
+
+                    eventCounter++;
+                    orderToChange.Add(eventCounter, new KeyValuePair<FileChange, GenericHolder<long>>(newEvent, new GenericHolder<long>()));
+
+                    // Define the new event to add for the unprocessed change
+                    eventsToAdd.Add(new Event()
+                    {
+                        FileChangeTypeCategoryId = changeCategoryId,
+                        FileChangeTypeEnumId = changeEnumsBackward[newEvent.Type],
+                        FileSystemObject = new FileSystemObject()
+                        {
+                            CreationTime = newEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                ? (Nullable<DateTime>)null
+                                : newEvent.Metadata.HashableProperties.CreationTime,
+                            IsFolder = newEvent.Metadata.HashableProperties.IsFolder,
+                            LastTime = newEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                ? (Nullable<DateTime>)null
+                                : newEvent.Metadata.HashableProperties.LastTime,
+                            Path = newPathString,
+                            Size = newEvent.Metadata.HashableProperties.Size,
+                            Revision = newEvent.Metadata.Revision,
+                            StorageKey = newEvent.Metadata.StorageKey,
+                            TargetPath = (newEvent.Metadata.LinkTargetPath == null ? null : newEvent.Metadata.LinkTargetPath.ToString()),
+                            SyncCounter = null,
+                            ServerLinked = false,
+
+                            // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
+                            PathChecksum = StringCRC.Crc(newPathString)
+                        },
+                        PreviousPath = (newEvent.OldPath == null
+                            ? null
+                            : newEvent.OldPath.ToString()),
+                        GroupId = eventGroup,
+                        GroupOrder = eventCounter
+                    });
+                }
+
+                if (eventsToAdd.Count > 0)
                 {
                     using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
                     {
-                        // Grab the last sync from the database
-                        Sync lastSync = SqlAccessor<Sync>
-                            .SelectResultSet(indexDB,
-                                "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
-                            .SingleOrDefault();
-                        // Fill in a nullable id of the last sync
-                        Nullable<long> lastSyncCounter = (lastSync == null
-                            ? (Nullable<long>)null
-                            : lastSync.SyncCounter);
+                        SqlAccessor<Event>.InsertRows(indexDB, eventsToAdd);
+                    }
 
-                        string newPathString = newEvent.NewPath.ToString();
-
-                        // Define the new event to add for the unprocessed change
-                        Event toAdd = new Event()
+                    using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
+                    {
+                        Dictionary<int, long> groupOrderToId = new Dictionary<int, long>();
+                        foreach (Event createdEvent in SqlAccessor<Event>.SelectResultSet(indexDB,
+                            "SELECT * FROM [Events] WHERE [Events].[GroupId] = '" + eventGroup.ToString() + "'"))
                         {
-                            SyncCounter = lastSyncCounter,
-                            FileChangeTypeCategoryId = changeCategoryId,
-                            FileChangeTypeEnumId = changeEnumsBackward[newEvent.Type],
-                            FileSystemObject = new FileSystemObject()
+                            groupOrderToId.Add((int)createdEvent.GroupOrder, createdEvent.EventId);
+                        }
+
+                        Func<Event, FileSystemObject> setIdAndGrabObject = currentEvent =>
                             {
-                                CreationTime = newEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                    ? (Nullable<DateTime>)null
-                                    : newEvent.Metadata.HashableProperties.CreationTime,
-                                IsFolder = newEvent.Metadata.HashableProperties.IsFolder,
-                                LastTime = newEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                    ? (Nullable<DateTime>)null
-                                    : newEvent.Metadata.HashableProperties.LastTime,
-                                Path = newPathString,
-                                Size = newEvent.Metadata.HashableProperties.Size,
-                                Revision = newEvent.Metadata.Revision ?? string.Empty,
-                                RevisionIsNull = newEvent.Metadata.Revision == null,
-                                StorageKey = newEvent.Metadata.StorageKey,
-                                TargetPath = (newEvent.Metadata.LinkTargetPath == null ? null : newEvent.Metadata.LinkTargetPath.ToString()),
+                                currentEvent.FileSystemObject.EventId = orderToChange[(int)currentEvent.GroupOrder].Value.Value = groupOrderToId[(int)currentEvent.GroupOrder];
+                                return currentEvent.FileSystemObject;
+                            };
 
-                                // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
-                                PathChecksum = StringCRC.Crc(newPathString)
-                            },
-                            PreviousPath = (newEvent.OldPath == null
-                                ? null
-                                : newEvent.OldPath.ToString())
-                        };
+                        SqlAccessor<FileSystemObject>.InsertRows(indexDB, eventsToAdd.Select(setIdAndGrabObject));
+                    }
 
-                        // Add the new event to the database
-                        // Store the new event id to the change and return it
-                        toAdd.FileSystemObjectId = SqlAccessor<FileSystemObject>.InsertRow<long>(indexDB, toAdd.FileSystemObject);
-                        newEvent.EventId = SqlAccessor<Event>.InsertRow<long>(indexDB, toAdd);
+                    foreach (KeyValuePair<FileChange, GenericHolder<long>> currentAddedEvent in orderToChange.Values)
+                    {
+                        currentAddedEvent.Key.EventId = currentAddedEvent.Value.Value;
+                        ProcessNewEventBadge(currentAddedEvent.Key, null);
                     }
                 }
-
-                ProcessNewEventBadge(newEvent, null);
             }
             catch (Exception ex)
             {
@@ -573,7 +645,10 @@ namespace SQLIndexer
             }
             finally
             {
-                CELocker.ExitReadLock();
+                if (!alreadyObtainedLock)
+                {
+                    CELocker.ExitReadLock();
+                }
             }
             return null;
         }
@@ -590,9 +665,9 @@ namespace SQLIndexer
             {
                 using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
                 {
-                    // Find the existing event for the given id
-                    Event toDelete = SqlAccessor<Event>.SelectResultSet(indexDB,
-                        "SELECT TOP 1 * FROM [Events] WHERE [Events].[EventId] = " + eventId.ToString())
+                    // Find the existing object for the given id
+                    FileSystemObject toDelete = SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
+                        "SELECT TOP 1 * FROM [FileSystemObjects] WHERE [FileSystemObjects].[EventId] = " + eventId.ToString())
                         .SingleOrDefault();
 
                     Func<Exception> notFoundException = () => new Exception("Event not found to delete");
@@ -604,11 +679,12 @@ namespace SQLIndexer
                     }
 
                     // Remove the found event from the database
-                    if (!SqlAccessor<Event>.DeleteRow(indexDB, toDelete)
-                        || !SqlAccessor<FileSystemObject>.DeleteRow(indexDB,
-                            new FileSystemObject()
+                    if (!SqlAccessor<FileSystemObject>.DeleteRow(indexDB,
+                            toDelete)
+                        || !SqlAccessor<Event>.DeleteRow(indexDB,
+                            new Event()
                             {
-                                FileSystemObjectId = toDelete.FileSystemObjectId
+                                EventId = eventId
                             }))
                     {
                         throw notFoundException();
@@ -633,6 +709,8 @@ namespace SQLIndexer
         /// <returns>Returns an error in removing events, if any</returns>
         public CLError RemoveEventsByIds(IEnumerable<long> eventIds)
         {
+            CLError notFoundErrors = null;
+
             CELocker.EnterReadLock();
             try
             {
@@ -648,51 +726,56 @@ namespace SQLIndexer
                         // Create list to copy event ids from database objects,
                         // used to ensure all event ids to be deleted were found
                         List<long> orderedDBIds = new List<long>();
-                        // Grab all events with ids in the specified range
-                        Event[] deleteEvents = SqlAccessor<Event>.SelectResultSet(indexDB,
-                            "SELECT * FROM [Events] " +
-                            "WHERE [Events].[EventId] IN (" + string.Join(", ", eventIdsArray.Select(currentId => currentId.ToString()).ToArray()) + ") " +
-                            "ORDER BY [Events].[EventId]")
+                        // Grab all objects with ids in the specified range
+                        FileSystemObject[] deleteObjects = SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
+                            "SELECT * " +
+                            "FROM [FileSystemObjects] " +
+                            "WHERE [FileSystemObjects].[EventId] IN (" + string.Join(", ", eventIdsArray.Select(currentId => currentId.ToString()).ToArray()) + ") ")
                             .ToArray();
-                        // Delete each event that was returned
-                        Array.ForEach(deleteEvents, toDelete =>
-                            {
-                                if (SqlAccessor<Event>.DeleteRow(indexDB, toDelete)
-                                    && SqlAccessor<FileSystemObject>.DeleteRow(indexDB,
-                                        new FileSystemObject()
-                                        {
-                                            FileSystemObjectId = toDelete.FileSystemObjectId
-                                        }))
-                                {
-                                    orderedDBIds.Add(toDelete.EventId);
-                                }
-                            });
+
+                        IEnumerable<int> unableToFindIndexes;
+                        SqlAccessor<FileSystemObject>.DeleteRows(indexDB,
+                            deleteObjects,
+                            out unableToFindIndexes);
+                        
                         // Check all event ids intended for delete and make sure they were actually deleted,
-                        // otherwise throw exception
-                        CLError notFoundErrors = null;
-                        foreach (long deletedEventId in eventIdsArray)
+                        // otherwise create exception
+                        if (unableToFindIndexes != null)
                         {
-                            if (orderedDBIds.BinarySearch(deletedEventId) < 0)
+                            foreach (int notDeletedIndex in unableToFindIndexes)
                             {
-                                notFoundErrors += new Exception("Event with id " + deletedEventId + " not found to delete");
+                                notFoundErrors += new Exception("Event with id " + eventIdsArray[notDeletedIndex].ToString() + " not found to delete");
                             }
                         }
-                        if (notFoundErrors != null)
+
+                        unableToFindIndexes = new HashSet<int>(unableToFindIndexes ?? Enumerable.Empty<int>());
+
+                        SqlAccessor<Event>.DeleteRows(indexDB,
+                            deleteObjects.Where((deleteObject, objectIndex) => !((HashSet<int>)unableToFindIndexes).Contains(objectIndex))
+                                .Select(deleteObject => new Event()
+                                {
+                                    EventId = (long)deleteObject.EventId
+                                }), out unableToFindIndexes);
+
+                        if (unableToFindIndexes != null)
                         {
-                            return notFoundErrors;
+                            foreach (int notDeletedIndex in unableToFindIndexes)
+                            {
+                                notFoundErrors += new Exception("Event with id " + eventIdsArray[notDeletedIndex].ToString() + " not found to delete");
+                            }
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                return ex;
+                notFoundErrors += ex;
             }
             finally
             {
                 CELocker.ExitReadLock();
             }
-            return null;
+            return notFoundErrors;
         }
 
         /// <summary>
@@ -767,8 +850,8 @@ namespace SQLIndexer
                         syncCounter = SqlAccessor<Sync>.InsertRow<long>(indexDB, newSync);
 
                         // Create the dictionary for new sync states, returning an error if it occurred
-                        FilePathDictionary<FileMetadata> newSyncStates;
-                        CLError newSyncStatesError = FilePathDictionary<FileMetadata>.CreateAndInitialize(newRootPath,
+                        FilePathDictionary<Tuple<long, Nullable<long>, FileMetadata>> newSyncStates;
+                        CLError newSyncStatesError = FilePathDictionary<Tuple<long, Nullable<long>, FileMetadata>>.CreateAndInitialize(newRootPath,
                             out newSyncStates);
                         if (newSyncStatesError != null)
                         {
@@ -781,24 +864,45 @@ namespace SQLIndexer
                         // If there was a previous sync, pull the previous sync states to modify
                         if (lastSyncCounter != null)
                         {
-                            // Loop through previous sync states
-                            foreach (SyncState currentState in SqlAccessor<SyncState>.SelectResultSet(indexDB,
-                                "SELECT " +
-                                SqlAccessor<SyncState>.GetSelectColumns() + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns("ServerLinkedFileSystemObject", "ServerLinkedFileSystemObjects") + " " +
-                                "FROM [SyncStates] " +
-                                "INNER JOIN [FileSystemObjects] ON [SyncStates].[FileSystemObjectId] = [SyncStates].[FileSystemObjectId] " +
-                                "LEFT OUTER JOIN [FileSystemObjects] ServerLinkedFileSystemObjects ON [SyncStates].[ServerLinkedFileSystemObjectId] = ServerLinkedFileSystemObjects.[FileSystemObjectId] " +
-                                "WHERE [SyncStates].[SyncCounter] = " + ((long)lastSyncCounter).ToString(),
-                                new string[]
-                                {
-                                    FileSystemObject.Name,
-                                    "ServerLinkedFileSystemObject"
-                                }))
+                            Dictionary<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>> mappedSyncStates = new Dictionary<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>>();
+
+                            // Loop through all sync states for the last sync
+                            foreach (FileSystemObject currentSyncState in SqlAccessor<FileSystemObject>
+                                .SelectResultSet(indexDB,
+                                    "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[SyncCounter] = " + ((long)lastSyncCounter).ToString()))
                             {
-                                string localPath = currentState.FileSystemObject.Path;
-                                string serverPath = (currentState.ServerLinkedFileSystemObject == null ? null : currentState.ServerLinkedFileSystemObject.Path);
+                                if (mappedSyncStates.ContainsKey(currentSyncState.FileSystemObjectId))
+                                {
+                                    if (currentSyncState.ServerLinked)
+                                    {
+                                        mappedSyncStates[currentSyncState.FileSystemObjectId].Value.Value = currentSyncState;
+                                    }
+                                    else
+                                    {
+                                        mappedSyncStates[currentSyncState.FileSystemObjectId].Key.Value = currentSyncState;
+                                    }
+                                }
+                                else if (currentSyncState.ServerLinked)
+                                {
+                                    mappedSyncStates.Add(currentSyncState.FileSystemObjectId,
+                                        new KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>(
+                                            new GenericHolder<FileSystemObject>(),
+                                            new GenericHolder<FileSystemObject>(currentSyncState)));
+                                }
+                                else
+                                {
+                                    mappedSyncStates.Add(currentSyncState.FileSystemObjectId,
+                                        new KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>(
+                                            new GenericHolder<FileSystemObject>(currentSyncState),
+                                            new GenericHolder<FileSystemObject>()));
+                                }
+                            }
+
+                            // Loop through previous sync states
+                            foreach (KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>> currentState in mappedSyncStates.Values)
+                            {
+                                string localPath = currentState.Key.Value.Path;
+                                string serverPath = (currentState.Value.Value == null ? null : currentState.Value.Value.Path);
 
                                 if (syncStatesNeedRemap)
                                 {
@@ -850,23 +954,25 @@ namespace SQLIndexer
                                 }
 
                                 // Check if previous syncstate had a server-remapped path to store
-                                if (currentState.ServerLinkedFileSystemObject != null)
+                                if (currentState.Value.Value != null)
                                 {
                                     serverRemappedPaths.Add(localPath,
                                         serverPath);
                                 }
 
                                 // Add the previous sync state to the dictionary as the baseline before changes
-                                newSyncStates[localPath] = new FileMetadata()
+                                newSyncStates[localPath] = new Tuple<long, Nullable<long>, FileMetadata>(currentState.Key.Value.FileSystemObjectId,
+                                    currentState.Key.Value.EventId,
+                                    new FileMetadata()
                                     {
-                                        HashableProperties = new FileMetadataHashableProperties(currentState.FileSystemObject.IsFolder,
-                                            currentState.FileSystemObject.LastTime,
-                                            currentState.FileSystemObject.CreationTime,
-                                            currentState.FileSystemObject.Size),
-                                        LinkTargetPath = currentState.FileSystemObject.TargetPath,
-                                        Revision = (currentState.FileSystemObject.RevisionIsNull ? null : currentState.FileSystemObject.Revision),
-                                        StorageKey = currentState.FileSystemObject.StorageKey
-                                    };
+                                        HashableProperties = new FileMetadataHashableProperties(currentState.Key.Value.IsFolder,
+                                            currentState.Key.Value.LastTime,
+                                            currentState.Key.Value.CreationTime,
+                                            currentState.Key.Value.Size),
+                                        LinkTargetPath = currentState.Key.Value.TargetPath,
+                                        Revision = currentState.Key.Value.Revision,
+                                        StorageKey = currentState.Key.Value.StorageKey
+                                    });
                             }
                         }
 
@@ -876,10 +982,8 @@ namespace SQLIndexer
                             SqlAccessor<Event>.GetSelectColumns() + ", " +
                             SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
                             "FROM [Events] " +
-                            "INNER JOIN [FileSystemObjects] ON [Events].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                            (lastSyncCounter == null
-                                ? "WHERE [Events].[SyncCounter] IS NULL "
-                                : "WHERE [Events].[SyncCounter] = " + ((long)lastSyncCounter).ToString() + " ") +
+                            "INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
+                            "WHERE [FileSystemObjects].[SyncCounter] IS NULL " +
                             "ORDER BY [Events].[EventId]",
                             new string[]
                             {
@@ -891,6 +995,9 @@ namespace SQLIndexer
                             {
                                 IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(badgeType), badgePath);
                             };
+
+                        List<Event> eventsToUpdate = new List<Event>();
+                        List<FileSystemObject> objectsToUpdate = new List<FileSystemObject>();
 
                         // Loop through existing events to process into the new sync states
                         foreach (Event previousEvent in existingEvents)
@@ -954,7 +1061,8 @@ namespace SQLIndexer
                                 switch (changeEnums[previousEvent.FileChangeTypeEnumId])
                                 {
                                     case FileChangeType.Created:
-                                        newSyncStates[newPath] =
+                                        newSyncStates[newPath] = new Tuple<long, Nullable<long>, FileMetadata>(previousEvent.FileSystemObject.FileSystemObjectId,
+                                            previousEvent.EventId,
                                             new FileMetadata()
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
@@ -962,9 +1070,9 @@ namespace SQLIndexer
                                                     previousEvent.FileSystemObject.CreationTime,
                                                     previousEvent.FileSystemObject.Size),
                                                 LinkTargetPath = previousEvent.FileSystemObject.TargetPath,
-                                                Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision),
+                                                Revision = previousEvent.FileSystemObject.Revision,
                                                 StorageKey = previousEvent.FileSystemObject.StorageKey
-                                            };
+                                            });
 
                                         if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                             && existingEvent.FileSystemObject.Path == newPath.ToString()))
@@ -990,28 +1098,30 @@ namespace SQLIndexer
                                     case FileChangeType.Modified:
                                         if (newSyncStates.ContainsKey(newPath))
                                         {
-                                            FileMetadata modifiedMetadata = newSyncStates[newPath];
+                                            FileMetadata modifiedMetadata = newSyncStates[newPath].Item3;
                                             modifiedMetadata.HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                     previousEvent.FileSystemObject.LastTime,
                                                     previousEvent.FileSystemObject.CreationTime,
                                                     previousEvent.FileSystemObject.Size);
                                             modifiedMetadata.LinkTargetPath = previousEvent.FileSystemObject.TargetPath;
-                                            modifiedMetadata.Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision);
+                                            modifiedMetadata.Revision = previousEvent.FileSystemObject.Revision;
                                             modifiedMetadata.StorageKey = previousEvent.FileSystemObject.StorageKey;
                                         }
                                         else
                                         {
                                             newSyncStates.Add(newPath,
-                                                new FileMetadata()
-                                                {
-                                                    HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
-                                                        previousEvent.FileSystemObject.LastTime,
-                                                        previousEvent.FileSystemObject.CreationTime,
-                                                        previousEvent.FileSystemObject.Size),
-                                                    LinkTargetPath = previousEvent.FileSystemObject.TargetPath,
-                                                    Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision),
-                                                    StorageKey = previousEvent.FileSystemObject.StorageKey
-                                                });
+                                                new Tuple<long, Nullable<long>, FileMetadata>(previousEvent.FileSystemObject.FileSystemObjectId,
+                                                    previousEvent.EventId,
+                                                    new FileMetadata()
+                                                    {
+                                                        HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
+                                                            previousEvent.FileSystemObject.LastTime,
+                                                            previousEvent.FileSystemObject.CreationTime,
+                                                            previousEvent.FileSystemObject.Size),
+                                                        LinkTargetPath = previousEvent.FileSystemObject.TargetPath,
+                                                        Revision = previousEvent.FileSystemObject.Revision,
+                                                        StorageKey = previousEvent.FileSystemObject.StorageKey
+                                                    }));
                                         }
 
 
@@ -1028,41 +1138,43 @@ namespace SQLIndexer
                                             {
                                                 newSyncStates.Remove(oldPath);
                                             }
-                                            FileMetadata renameMetadata = newSyncStates[newPath];
+                                            FileMetadata renameMetadata = newSyncStates[newPath].Item3;
                                             renameMetadata.HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                     previousEvent.FileSystemObject.LastTime,
                                                     previousEvent.FileSystemObject.CreationTime,
                                                     previousEvent.FileSystemObject.Size);
                                             renameMetadata.LinkTargetPath = previousEvent.FileSystemObject.TargetPath;
-                                            renameMetadata.Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision);
+                                            renameMetadata.Revision = previousEvent.FileSystemObject.Revision;
                                             renameMetadata.StorageKey = previousEvent.FileSystemObject.StorageKey;
                                         }
                                         else if (newSyncStates.ContainsKey(oldPath))
                                         {
                                             newSyncStates.Rename(oldPath, newPath);
 
-                                            FileMetadata renameMetadata = newSyncStates[newPath];
+                                            FileMetadata renameMetadata = newSyncStates[newPath].Item3;
                                             renameMetadata.HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                     previousEvent.FileSystemObject.LastTime,
                                                     previousEvent.FileSystemObject.CreationTime,
                                                     previousEvent.FileSystemObject.Size);
                                             renameMetadata.LinkTargetPath = previousEvent.FileSystemObject.TargetPath;
-                                            renameMetadata.Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision);
+                                            renameMetadata.Revision = previousEvent.FileSystemObject.Revision;
                                             renameMetadata.StorageKey = previousEvent.FileSystemObject.StorageKey;
                                         }
                                         else
                                         {
                                             newSyncStates.Add(newPath,
-                                                new FileMetadata()
-                                                {
-                                                    HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
-                                                        previousEvent.FileSystemObject.LastTime,
-                                                        previousEvent.FileSystemObject.CreationTime,
-                                                        previousEvent.FileSystemObject.Size),
-                                                    LinkTargetPath = previousEvent.FileSystemObject.TargetPath,
-                                                    Revision = (previousEvent.FileSystemObject.RevisionIsNull ? null : previousEvent.FileSystemObject.Revision),
-                                                    StorageKey = previousEvent.FileSystemObject.StorageKey
-                                                });
+                                                new Tuple<long, Nullable<long>, FileMetadata>(previousEvent.FileSystemObject.FileSystemObjectId,
+                                                    previousEvent.EventId,
+                                                    new FileMetadata()
+                                                    {
+                                                        HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
+                                                            previousEvent.FileSystemObject.LastTime,
+                                                            previousEvent.FileSystemObject.CreationTime,
+                                                            previousEvent.FileSystemObject.Size),
+                                                        LinkTargetPath = previousEvent.FileSystemObject.TargetPath,
+                                                        Revision = previousEvent.FileSystemObject.Revision,
+                                                        StorageKey = previousEvent.FileSystemObject.StorageKey
+                                                    }));
                                         }
 
                                         if (previousEvent.SyncFrom)
@@ -1082,91 +1194,104 @@ namespace SQLIndexer
                             // The event will get moved to after the current sync so it will be processed later
                             else
                             {
-                                previousEvent.SyncCounter = syncCounter;
                                 if (syncStatesNeedRemap)
                                 {
                                     if (!FilePathComparer.Instance.Equals(previousEvent.FileSystemObject.Path, newPath))
                                     {
                                         previousEvent.FileSystemObject.Path = newPath;
 
-                                        SqlAccessor<FileSystemObject>.UpdateRow(indexDB,
-                                            previousEvent.FileSystemObject);
+                                        objectsToUpdate.Add(previousEvent.FileSystemObject);
                                     }
                                     previousEvent.PreviousPath = oldPath;
                                 }
-                                SqlAccessor<Event>.UpdateRow(indexDB,
-                                    previousEvent);
+                                eventsToUpdate.Add(previousEvent);
                             }
                         }
 
-                        List<SyncState> newStates = new List<SyncState>(newSyncStates.Count);
+                        bool atLeastOneServerLinked = false;
 
                         // Loop through modified set of sync states (including new changes) and add the matching database objects
-                        foreach (KeyValuePair<FilePath, FileMetadata> newSyncState in newSyncStates)
+                        foreach (KeyValuePair<FilePath, Tuple<long, Nullable<long>, FileMetadata>> newSyncState in newSyncStates)
                         {
                             string newPathString = newSyncState.Key.ToString();
 
                             // Add the file/folder object for the current sync state
-                            FileSystemObject newSyncedObject = new FileSystemObject()
+                            objectsToUpdate.Add(new FileSystemObject()
                             {
-                                CreationTime = (newSyncState.Value.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                CreationTime = (newSyncState.Value.Item3.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                     ? (Nullable<DateTime>)null
-                                    : newSyncState.Value.HashableProperties.CreationTime),
-                                IsFolder = newSyncState.Value.HashableProperties.IsFolder,
-                                LastTime = (newSyncState.Value.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                    : newSyncState.Value.Item3.HashableProperties.CreationTime),
+                                IsFolder = newSyncState.Value.Item3.HashableProperties.IsFolder,
+                                LastTime = (newSyncState.Value.Item3.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                     ? (Nullable<DateTime>)null
-                                    : newSyncState.Value.HashableProperties.LastTime),
+                                    : newSyncState.Value.Item3.HashableProperties.LastTime),
                                 Path = newPathString,
-                                Size = newSyncState.Value.HashableProperties.Size,
-                                TargetPath = (newSyncState.Value.LinkTargetPath == null ? null : newSyncState.Value.LinkTargetPath.ToString()),
-                                Revision = newSyncState.Value.Revision ?? string.Empty,
-                                RevisionIsNull = newSyncState.Value.Revision == null,
-                                StorageKey = newSyncState.Value.StorageKey,
+                                Size = newSyncState.Value.Item3.HashableProperties.Size,
+                                TargetPath = (newSyncState.Value.Item3.LinkTargetPath == null ? null : newSyncState.Value.Item3.LinkTargetPath.ToString()),
+                                Revision = newSyncState.Value.Item3.Revision,
+                                StorageKey = newSyncState.Value.Item3.StorageKey,
+                                SyncCounter = syncCounter,
+                                ServerLinked = false,
+                                FileSystemObjectId = newSyncState.Value.Item1,
+                                EventId = newSyncState.Value.Item2,
 
                                 // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
                                 PathChecksum = StringCRC.Crc(newPathString)
-                            };
-
-                            newSyncedObject.FileSystemObjectId = SqlAccessor<FileSystemObject>.InsertRow<long>(indexDB, newSyncedObject);
+                            });
 
                             // If the file/folder path is remapped on the server, add the file/folder object for the server-mapped state
-                            Nullable<long> serverRemappedObjectId = null;
-                            if (serverRemappedPaths.ContainsKey(newSyncedObject.Path))
+                            if (serverRemappedPaths.ContainsKey(newPathString))
                             {
-                                FileSystemObject serverSyncedObject = new FileSystemObject()
+                                atLeastOneServerLinked = true;
+
+                                objectsToUpdate.Add(new FileSystemObject()
                                 {
-                                    CreationTime = (newSyncState.Value.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                    CreationTime = (newSyncState.Value.Item3.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                         ? (Nullable<DateTime>)null
-                                        : newSyncState.Value.HashableProperties.CreationTime),
-                                    IsFolder = newSyncState.Value.HashableProperties.IsFolder,
-                                    LastTime = (newSyncState.Value.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                        : newSyncState.Value.Item3.HashableProperties.CreationTime),
+                                    IsFolder = newSyncState.Value.Item3.HashableProperties.IsFolder,
+                                    LastTime = (newSyncState.Value.Item3.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                         ? (Nullable<DateTime>)null
-                                        : newSyncState.Value.HashableProperties.LastTime),
-                                    Path = serverRemappedPaths[newSyncedObject.Path],
-                                    Size = newSyncState.Value.HashableProperties.Size,
-                                    TargetPath = (newSyncState.Value.LinkTargetPath == null ? null : newSyncState.Value.LinkTargetPath.ToString()),
-                                    Revision = newSyncState.Value.Revision ?? string.Empty,
-                                    RevisionIsNull = newSyncState.Value.Revision == null,
-                                    StorageKey = newSyncState.Value.StorageKey,
+                                        : newSyncState.Value.Item3.HashableProperties.LastTime),
+                                    Path = serverRemappedPaths[newPathString],
+                                    Size = newSyncState.Value.Item3.HashableProperties.Size,
+                                    TargetPath = (newSyncState.Value.Item3.LinkTargetPath == null ? null : newSyncState.Value.Item3.LinkTargetPath.ToString()),
+                                    Revision = newSyncState.Value.Item3.Revision,
+                                    StorageKey = newSyncState.Value.Item3.StorageKey,
+                                    SyncCounter = syncCounter,
+                                    ServerLinked = true,
+                                    FileSystemObjectId = newSyncState.Value.Item1,
+                                    EventId = newSyncState.Value.Item2,
 
                                     // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
-                                    PathChecksum = StringCRC.Crc(serverRemappedPaths[newSyncedObject.Path])
-                                };
-
-                                serverRemappedObjectId = SqlAccessor<FileSystemObject>.InsertRow<long>(indexDB, serverSyncedObject);
-                            }
-                            
-                            // Queue adding the sync state database object tied to its file/folder objects and the current sync
-                            newStates.Add(
-                                new SyncState()
-                                {
-                                    FileSystemObjectId = newSyncedObject.FileSystemObjectId,
-                                    ServerLinkedFileSystemObjectId = serverRemappedObjectId,
-                                    SyncCounter = syncCounter
+                                    PathChecksum = StringCRC.Crc(serverRemappedPaths[newPathString])
                                 });
+                            }
                         }
 
-                        SqlAccessor<SyncState>.InsertRows(indexDB, newStates);
+                        // Define field that will be output for indexes not updated
+                        IEnumerable<int> unableToFindIndexes;
+
+                        // Update Events that were queued for modification
+                        SqlAccessor<Event>.UpdateRows(indexDB,
+                            eventsToUpdate,
+                            out unableToFindIndexes);
+
+                        // Update FileSystemObjects that were queued for modification
+                        SqlAccessor<FileSystemObject>.UpdateRows(indexDB,
+                            objectsToUpdate,
+                            out unableToFindIndexes);
+
+                        // If any FileSystemObjects were not found to update,
+                        // then they need to be inserted
+                        if (unableToFindIndexes != null
+                            && unableToFindIndexes.Count() > 0)
+                        {
+                            // Insert new FileSystemObjects with IDENTITY_INSERT ON (will force server-linked sync state to have a matching identity to the non-server-linked sync state)
+                            SqlAccessor<FileSystemObject>.InsertRows(indexDB,
+                                unableToFindIndexes.Select(currentInsert => objectsToUpdate[currentInsert]),
+                                true);
+                        }
                     }
 
                     // update the exposed last sync id upon sync completion
@@ -1248,45 +1373,47 @@ namespace SQLIndexer
         /// <param name="eventToRemove">Previous event to set if an old event is being replaced in the process</param>
         /// <returns>Returns an error from merging the events, if any</returns>
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public CLError MergeEventIntoDatabase(FileChange mergedEvent, FileChange eventToRemove, bool alreadyObtainedLock = false)
+        public CLError MergeEventsIntoDatabase(IEnumerable<KeyValuePair<FileChange, FileChange>> mergeToFroms, bool alreadyObtainedLock = false)
         {
-            try
+            CLError toReturn = null;
+            if (mergeToFroms != null)
             {
-                // Return out if boolean set indicating not to add to SQL
-                if (mergedEvent.DoNotAddToSQLIndex)
-                {
-                    ProcessNewEventBadge(mergedEvent, eventToRemove);
-                    return null;
-                }
-
-                // Ensure input variables have proper references set
-                if (mergedEvent == null)
-                {
-                    // null merge events are only valid if there is an oldEvent to remove
-                    if (eventToRemove == null)
-                    {
-                        throw new NullReferenceException("mergedEvent cannot be null");
-                    }
-                }
-                else if (mergedEvent.Metadata == null)
-                {
-                    throw new NullReferenceException("mergedEvent cannot have null Metadata");
-                }
-
-                // Define field for the event id that needs updating in the database,
-                // defaulting to none
-                Nullable<long> eventIdToUpdate = null;
-
-                if (!alreadyObtainedLock)
-                {
-                    CELocker.EnterReadLock();
-                }
                 try
                 {
-                    Func<Exception> notFoundException = () => new Exception("Event not found to delete");
+                    List<FileChange> toAdd = new List<FileChange>();
+                    Dictionary<long, FileChange> toUpdate = new Dictionary<long, FileChange>();
+                    HashSet<long> toDelete = new HashSet<long>();
 
-                    using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
+                    foreach (KeyValuePair<FileChange, FileChange> currentMergeToFrom in mergeToFroms)
                     {
+                        FileChange mergedEvent = currentMergeToFrom.Key;
+                        FileChange eventToRemove = currentMergeToFrom.Value;
+
+                        // Continue to next iteration if boolean set indicating not to add to SQL
+                        if (mergedEvent.DoNotAddToSQLIndex)
+                        {
+                            ProcessNewEventBadge(mergedEvent, eventToRemove);
+                            continue;
+                        }
+
+                        // Ensure input variables have proper references set
+                        if (mergedEvent == null)
+                        {
+                            // null merge events are only valid if there is an oldEvent to remove
+                            if (eventToRemove == null)
+                            {
+                                throw new NullReferenceException("mergedEvent cannot be null");
+                            }
+                        }
+                        else if (mergedEvent.Metadata == null)
+                        {
+                            throw new NullReferenceException("mergedEvent cannot have null Metadata");
+                        }
+
+                        // Define field for the event id that needs updating in the database,
+                        // defaulting to none
+                        Nullable<long> eventIdToUpdate = null;
+
                         // If the mergedEvent already has an id (exists in database),
                         // then the database event will be updated at the mergedEvent id;
                         // also, if the oldEvent exists in the database, it needs to be removed
@@ -1299,34 +1426,14 @@ namespace SQLIndexer
                                 // which should not be removed
                                 && (mergedEvent == null || mergedEvent.EventId != eventToRemove.EventId))
                             {
-                                // Find the existing event for the given id
-                                Event toDelete = SqlAccessor<Event>.SelectResultSet(indexDB,
-                                    "SELECT TOP 1 * FROM [Events] WHERE [Events].[EventId] = " + eventToRemove.EventId.ToString())
-                                    .SingleOrDefault();
-
-                                // Throw exception if an existing event does not exist
-                                if (toDelete == null)
-                                {
-                                    throw notFoundException();
-                                }
-
-                                // Remove the found event from the database
-                                if (!SqlAccessor<Event>.DeleteRow(indexDB, toDelete)
-                                    || !SqlAccessor<FileSystemObject>.DeleteRow(indexDB,
-                                        new FileSystemObject()
-                                        {
-                                            FileSystemObjectId = toDelete.FileSystemObjectId
-                                        }))
-                                {
-                                    throw notFoundException();
-                                }
+                                toDelete.Add(eventToRemove.EventId);
                             }
 
                             // If the mergedEvent it null and the oldEvent is set with a valid eventId,
-                            // then save only the deletion of the oldEvent and return
+                            // then save only the deletion of the oldEvent and continue to next iteration
                             if (mergedEvent == null)
                             {
-                                return null;
+                                continue;
                             }
 
                             eventIdToUpdate = mergedEvent.EventId;
@@ -1347,84 +1454,167 @@ namespace SQLIndexer
                         // then update the object in the database with the latest properties from mergedEvent
                         if (eventIdToUpdate != null)
                         {
-                            // Find the existing event for the given id
-                            Event toModify = SqlAccessor<Event>.SelectResultSet(indexDB,
-                                "SELECT TOP 1 " +
-                                SqlAccessor<Event>.GetSelectColumns() + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
-                                "FROM [Events] " +
-                                "INNER JOIN [FileSystemObjects] ON [Events].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                                "WHERE [Events].[EventId] = " + mergedEvent.EventId.ToString(),
-                                new string[]
+                            toUpdate[(long)eventIdToUpdate] = mergedEvent;
+                        }
+                        // Else the database event does not already exist,
+                        // then add it
+                        else
+                        {
+                            toAdd.Add(mergedEvent);
+                        }
+                    }
+
+                    if (toAdd.Count > 0
+                        || toUpdate.Count > 0
+                        || toDelete.Count > 0)
+                    {
+                        if (!alreadyObtainedLock)
+                        {
+                            CELocker.EnterReadLock();
+                        }
+                        try
+                        {
+                            using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
+                            {
+                                if (toDelete.Count > 0)
                                 {
-                                    FileSystemObject.Name
-                                })
-                                .SingleOrDefault();
+                                    CLError deleteErrors = RemoveEventsByIds(toDelete);
 
-                            // Throw exception if an existing event does not exist
-                            if (toModify == null)
-                            {
-                                throw notFoundException();
-                            }
-                            // Throw exception if existing event does not have a FileSystemObject to modify
-                            if (toModify.FileSystemObject == null)
-                            {
-                                throw new Exception("Event does not have required FileSystemObject");
-                            }
+                                    if (deleteErrors != null)
+                                    {
+                                        toReturn += new AggregateException("Error deleting some events", deleteErrors.GrabExceptions());
+                                    }
+                                }
 
-                            // Update database object with latest event properties
-                            toModify.FileChangeTypeEnumId = changeEnumsBackward[mergedEvent.Type];
-                            toModify.PreviousPath = (mergedEvent.OldPath == null
-                                ? null
-                                : mergedEvent.OldPath.ToString());
-                            toModify.FileSystemObject.CreationTime = (mergedEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                ? (Nullable<DateTime>)null
-                                : mergedEvent.Metadata.HashableProperties.CreationTime);
-                            toModify.FileSystemObject.IsFolder = mergedEvent.Metadata.HashableProperties.IsFolder;
-                            toModify.FileSystemObject.LastTime = (mergedEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                ? (Nullable<DateTime>)null
-                                : mergedEvent.Metadata.HashableProperties.LastTime);
-                            toModify.FileSystemObject.Path = mergedEvent.NewPath.ToString();
-                            toModify.FileSystemObject.Size = mergedEvent.Metadata.HashableProperties.Size;
-                            toModify.FileSystemObject.TargetPath = (mergedEvent.Metadata.LinkTargetPath == null ? null : mergedEvent.Metadata.LinkTargetPath.ToString());
-                            toModify.FileSystemObject.Revision = mergedEvent.Metadata.Revision ?? string.Empty;
-                            toModify.FileSystemObject.RevisionIsNull = mergedEvent.Metadata.Revision == null;
-                            toModify.FileSystemObject.StorageKey = mergedEvent.Metadata.StorageKey;
+                                if (toUpdate.Count > 0)
+                                {
+                                    Dictionary<long, KeyValuePair<FileChange, GenericHolder<bool>>> findOriginal = toUpdate.ToDictionary(currentToUpdate => currentToUpdate.Key,
+                                        currentToUpdate => new KeyValuePair<FileChange, GenericHolder<bool>>(currentToUpdate.Value, new GenericHolder<bool>(false)));
 
-                            if (!SqlAccessor<FileSystemObject>.UpdateRow(indexDB, toModify.FileSystemObject)
-                                || !SqlAccessor<Event>.UpdateRow(indexDB, toModify))
-                            {
-                                throw notFoundException();
+                                    // Find the existing event for the given id
+                                    Event[] toModify = SqlAccessor<Event>.SelectResultSet(indexDB,
+                                        "SELECT " +
+                                        SqlAccessor<Event>.GetSelectColumns() + ", " +
+                                        SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
+                                        "FROM [Events] " +
+                                        "INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
+                                        "WHERE [Events].[EventId] IN (" +
+                                        string.Join(", ", findOriginal.Keys.Select(currentToUpdate => currentToUpdate.ToString()).ToArray()) + ")",
+                                        new string[]
+                                    {
+                                        FileSystemObject.Name
+                                    }).ToArray();
+
+                                    // Record exception if an existing event does not exist
+                                    if (toModify == null
+                                        || !toModify.Any())
+                                    {
+                                        foreach (long missingEventId in findOriginal.Keys)
+                                        {
+                                            toReturn += new Exception("Unable to find event with id " + missingEventId.ToString() + " to update");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        foreach (Event currentToModify in toModify)
+                                        {
+                                            KeyValuePair<FileChange, GenericHolder<bool>> mergedPair = findOriginal[currentToModify.EventId];
+                                            mergedPair.Value.Value = true;
+                                            FileChange mergedEvent = mergedPair.Key;
+
+                                            // Update database object with latest event properties
+                                            currentToModify.FileChangeTypeEnumId = changeEnumsBackward[mergedEvent.Type];
+                                            currentToModify.PreviousPath = (mergedEvent.OldPath == null
+                                                ? null
+                                                : mergedEvent.OldPath.ToString());
+                                            currentToModify.FileSystemObject.CreationTime = (mergedEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                ? (Nullable<DateTime>)null
+                                                : mergedEvent.Metadata.HashableProperties.CreationTime);
+                                            currentToModify.FileSystemObject.IsFolder = mergedEvent.Metadata.HashableProperties.IsFolder;
+                                            currentToModify.FileSystemObject.LastTime = (mergedEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                ? (Nullable<DateTime>)null
+                                                : mergedEvent.Metadata.HashableProperties.LastTime);
+                                            currentToModify.FileSystemObject.Path = mergedEvent.NewPath.ToString();
+                                            currentToModify.FileSystemObject.Size = mergedEvent.Metadata.HashableProperties.Size;
+                                            currentToModify.FileSystemObject.TargetPath = (mergedEvent.Metadata.LinkTargetPath == null ? null : mergedEvent.Metadata.LinkTargetPath.ToString());
+                                            currentToModify.FileSystemObject.Revision = mergedEvent.Metadata.Revision;
+                                            currentToModify.FileSystemObject.StorageKey = mergedEvent.Metadata.StorageKey;
+                                        }
+
+                                        foreach (KeyValuePair<FileChange, GenericHolder<bool>> mergedPair in findOriginal.Values)
+                                        {
+                                            if (!mergedPair.Value.Value)
+                                            {
+                                                toReturn += new Exception("Unable to find event with id " + mergedPair.Key.EventId.ToString() + " to update");
+                                            }
+                                        }
+
+                                        IEnumerable<int> unableToFindIndexes;
+
+                                        SqlAccessor<Event>.UpdateRows(indexDB,
+                                            toModify,
+                                            out unableToFindIndexes);
+
+                                        if (unableToFindIndexes != null
+                                            && unableToFindIndexes.Any())
+                                        {
+                                            foreach (long missingEventId in
+                                                unableToFindIndexes.Select(currentUnableToFind => toModify[currentUnableToFind].EventId)
+                                                    .Distinct())// Possible to get back multiple Event objects with the same EventId if two or more FileSystemObjects have the same EventId (which is an error)
+                                            {
+                                                toReturn += new Exception("Unable to find event with id " + missingEventId.ToString() + " to update");
+                                            }
+                                        }
+
+                                        SqlAccessor<FileSystemObject>.UpdateRows(indexDB,
+                                            toModify.Select(currentToModify => currentToModify.FileSystemObject),
+                                            out unableToFindIndexes);
+
+                                        if (unableToFindIndexes != null)
+                                        {
+                                            foreach (long missingFileSystemObjectId in unableToFindIndexes.Select(currentUnableToFind => toModify[currentUnableToFind].FileSystemObject.FileSystemObjectId))
+                                            {
+                                                toReturn += new Exception("Unable to find file system object with id " + missingFileSystemObjectId.ToString() + " to update");
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (toAdd.Count > 0)
+                                {
+                                    CLError addError = AddEvents(toAdd, true);
+
+                                    if (addError != null)
+                                    {
+                                        toReturn += new AggregateException("Error in adding events", addError.GrabExceptions());
+                                    }
+                                }
                             }
+                        }
+                        finally
+                        {
+                            CELocker.ExitReadLock();
+                        }
+                    }
+
+                    foreach (KeyValuePair<FileChange, FileChange> currentMergeToFrom in mergeToFroms)
+                    {
+                        // If mergedEvent was not processed in AddEvents,
+                        // then process badging (AddEvents processes badging for the rest)
+                        if (currentMergeToFrom.Key == null
+                            || toUpdate.ContainsKey(currentMergeToFrom.Key.EventId)
+                            || toDelete.Contains(currentMergeToFrom.Key.EventId))
+                        {
+                            ProcessNewEventBadge(currentMergeToFrom.Key, currentMergeToFrom.Value);
                         }
                     }
                 }
-                finally
+                catch (Exception ex)
                 {
-                    if (!alreadyObtainedLock)
-                    {
-                        CELocker.ExitReadLock();
-                    }
-                }
-
-                // If an id for the database event does not already exist,
-                // then process the event as a new one;
-                // this is done outside the database entities using statement since
-                // AddEvent has it's own entities context
-                if (eventIdToUpdate == null)
-                {
-                    return AddEvent(mergedEvent);
-                }
-                else
-                {
-                    ProcessNewEventBadge(mergedEvent, eventToRemove);
+                    toReturn += ex;
                 }
             }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return toReturn;
         }
 
         private static void ProcessNewEventBadge(FileChange mergedEvent, FileChange eventToRemove)
@@ -1512,8 +1702,9 @@ namespace SQLIndexer
                             SqlAccessor<Event>.GetSelectColumns() + ", " +
                             SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
                             "FROM [Events] " +
-                            "INNER JOIN [FileSystemObjects] ON [Events].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                            "WHERE [Events].[EventId] = " + eventId.ToString(),
+                            "INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
+                            "WHERE [FileSystemObjects].[SyncCounter] IS NULL " +
+                            "AND [Events].[EventId] = " + eventId.ToString(),
                             new string[]
                             {
                                 FileSystemObject.Name
@@ -1522,22 +1713,18 @@ namespace SQLIndexer
                         // ensure an event was found
                         if (currentEvent == null)
                         {
-                            throw new KeyNotFoundException("Previous event not found for given id");
+                            throw new KeyNotFoundException("Previous event not found or not pending for given id: " + eventId.ToString());
                         }
 
-                        // Retrieve last syncs if they exists
-                        Sync[] lastSyncs = SqlAccessor<Sync>.SelectResultSet(indexDB,
-                            "SELECT TOP 2 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
-                            .ToArray();
+                        // Grab the most recent sync from the database to pull sync states
+                        Sync lastSync = SqlAccessor<Sync>.SelectResultSet(indexDB,
+                            "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
+                            .SingleOrDefault();
+
                         // ensure a previous sync was found
-                        if (lastSyncs.Length == 0)
+                        if (lastSync == null)
                         {
                             throw new Exception("Previous sync not found for completed event");
-                        }
-
-                        if (lastSyncs[0].SyncCounter != currentEvent.SyncCounter)
-                        {
-                            throw new Exception("Previous event is not pending");
                         }
 
                         // declare fields to store server paths in case they are different than the local paths,
@@ -1546,142 +1733,95 @@ namespace SQLIndexer
                         string serverRemappedOldPath = null;
 
                         int crcInt = StringCRC.Crc(currentEvent.FileSystemObject.Path);
+                        Nullable<int> crcIntOld = (currentEvent.FileChangeTypeEnumId == changeEnumsBackward[FileChangeType.Renamed]
+                                && currentEvent.PreviousPath != null
+                            ? StringCRC.Crc(currentEvent.PreviousPath)
+                            : (Nullable<int>)null);
 
                         // pull the sync states for the new path of the current event
-                        Sync firstLastSync = lastSyncs[0];
-                        SyncState[] newPathStates = SqlAccessor<SyncState>.SelectResultSet(indexDB,
-                            "SELECT " +
-                            SqlAccessor<SyncState>.GetSelectColumns() + ", " +
-                            SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + ", " +
-                            SqlAccessor<FileSystemObject>.GetSelectColumns("ServerLinkedFileSystemObject", "ServerLinkedFileSystemObjects") + " " +
-                            "FROM [SyncStates] " +
-                            "INNER JOIN [FileSystemObjects] ON [SyncStates].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                            "LEFT OUTER JOIN [FileSystemObjects] ServerLinkedFileSystemObjects ON [SyncStates].[ServerLinkedFileSystemObjectId] = ServerLinkedFileSystemObjects.[FileSystemObjectId] " +
+                        IEnumerable<FileSystemObject> existingObjectsAtPath = SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
+                                "SELECT * " +
+                                "FROM [FileSystemObjects] " +
+                                "WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter.ToString() + " " +
+                                "AND [FileSystemObjects].[ServerLinked] = 0 AND " +
+                                (crcIntOld == null
+                                    ? "[FileSystemObjects].[PathChecksum] = " + crcInt.ToString()
+                                    : "([FileSystemObjects].[PathChecksum] = " + crcInt.ToString() + " OR [FileSystemObjects].[PathChecksum] = " + ((int)crcIntOld).ToString() + ")"))
+                            .Where(currentSyncState =>
+                                (crcIntOld == null
+                                    ? currentSyncState.Path == currentEvent.FileSystemObject.Path
+                                    : (currentSyncState.Path == currentEvent.FileSystemObject.Path || currentSyncState.Path == currentEvent.PreviousPath))); // run in memory since Path field is not indexable
 
-                            "WHERE [SyncStates].[SyncCounter] = " + firstLastSync.SyncCounter.ToString() + " " +
-                            "AND [FileSystemObjects].[PathChecksum] = " + crcInt.ToString(),
-                            new string[]
-                            {
-                                FileSystemObject.Name,
-                                "ServerLinkedFileSystemObject"
-                            })
-                            .Where(currentSyncState => currentSyncState.FileSystemObject.Path == currentEvent.FileSystemObject.Path) // run in memory since Path field is not indexable
-                            .ToArray();
-
-                        // declare field for the index of the latest sync state found at the new path
-                        Nullable<int> latestNewPathSyncStateArrayIndex = null;
-                        // declare field for the highest sync state id found at the new path
-                        long latestNewPathSyncStateId = 0;
-                        // loop through the sync states found at the new path
-                        for (int newPathStateIndex = 0; newPathStateIndex < newPathStates.Length; newPathStateIndex++)
+                        if (existingObjectsAtPath != null
+                            && existingObjectsAtPath.Any())
                         {
-                            // if the current sync state found at the new path has the highest sync state id checked so far,
-                            // record its ids and replace the server remapped new path with the current one
-                            if (newPathStates[newPathStateIndex].SyncStateId > latestNewPathSyncStateId)
-                            {
-                                serverRemappedNewPath = (newPathStates[newPathStateIndex].ServerLinkedFileSystemObject == null
-                                    ? null
-                                    : newPathStates[newPathStateIndex].ServerLinkedFileSystemObject.Path);
-                                latestNewPathSyncStateId = newPathStates[newPathStateIndex].SyncStateId;
-                                latestNewPathSyncStateArrayIndex = newPathStateIndex;
-                            }
-
-                            // remove the current new path sync state
-                            SqlAccessor<SyncState>.DeleteRow(indexDB, newPathStates[newPathStateIndex]);
-                            if (newPathStates[newPathStateIndex].ServerLinkedFileSystemObject == null)
-                            {
-                                SqlAccessor<FileSystemObject>.DeleteRow(indexDB, newPathStates[newPathStateIndex].FileSystemObject);
-                            }
-                            else
-                            {
-                                IEnumerable<int> unableToFindIndexes;
-                                SqlAccessor<FileSystemObject>.DeleteRows(indexDB,
-                                    new FileSystemObject[]
-                                        {
-                                            newPathStates[newPathStateIndex].FileSystemObject,
-                                            newPathStates[newPathStateIndex].ServerLinkedFileSystemObject
-                                        },
-                                    out unableToFindIndexes);
-                            }
+                            // add in server-linked objects
+                            existingObjectsAtPath = existingObjectsAtPath.Concat(SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
+                                "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[ServerLinked] = 1 AND [FileSystemObjects].[FileSystemObjectId] IN (" +
+                                string.Join(", ", existingObjectsAtPath.Select(currentExistingObject => currentExistingObject.FileSystemObjectId.ToString()).ToArray())));
                         }
-                        // latestNewPathSyncStateId is now the highest of the new path sync state ids,
-                        // and latestNewPathSyncStateArrayIndex represents the index of the same sync state in newPathStates;
-                        // also serverRemappedNewPath is set as the remapped path of the latest change
 
-                        // declare the field for the sync states for the old path
-                        SyncState[] oldPathStates;
-                        // if the change type of the current event is a rename and it has a previous path,
-                        // then fill in the old path sync states from the database
-                        if (changeEnums[currentEvent.FileChangeTypeEnumId] == FileChangeType.Renamed
-                            && currentEvent.PreviousPath != null)
+                        Dictionary<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>> newPathStates = new Dictionary<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>>();
+
+                        foreach (FileSystemObject currentExistingObject in existingObjectsAtPath)
                         {
-                            int crcIntPrevious = StringCRC.Crc(currentEvent.PreviousPath);
-
-                            // fill in the old path sync states
-                            oldPathStates = SqlAccessor<SyncState>.SelectResultSet(indexDB,
-                                "SELECT " +
-                                SqlAccessor<SyncState>.GetSelectColumns() + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns("ServerLinkedFileSystemObject", "ServerLinkedFileSystemObjects") + " " +
-                                "FROM [SyncStates] " +
-                                "INNER JOIN [FileSystemObjects] ON [SyncStates].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                                "LEFT OUTER JOIN [FileSystemObjects] ServerLinkedFileSystemObjects ON [SyncStates].[ServerLinkedFileSystemObjectId] = ServerLinkedFileSystemObjects.[FileSystemObjectId] " +
-                                "WHERE [SyncStates].[SyncCounter] = " + lastSyncs[0].SyncCounter.ToString() + " " +
-                                "AND [FileSystemObjects].[PathChecksum] = " + crcIntPrevious.ToString(),
-                                new string[]
+                            if (newPathStates.ContainsKey(currentExistingObject.FileSystemObjectId))
+                            {
+                                if (currentExistingObject.ServerLinked)
                                 {
-                                    FileSystemObject.Name,
-                                    "ServerLinkedFileSystemObject"
-                                })
-                                .Where(currentSyncState => currentSyncState.FileSystemObject.Path == currentEvent.PreviousPath) // run in memory since Path field is not indexable
-                                .ToArray();
-                        }
-                        // else if the change type of the current event is not a rename or it does not have a previous path,
-                        // then old path sync states should be an empty array
-                        else
-                        {
-                            oldPathStates = new SyncState[0];
-                        }
-
-                        // declare field for the index of the latest sync state found at the old path
-                        Nullable<int> latestOldPathSyncStateArrayIndex = null;
-                        // declare field for the highest sync state id found at the old path
-                        long latestOldPathSyncStateId = 0;
-                        // loop through the sync states found at the old path
-                        for (int oldPathStateIndex = 0; oldPathStateIndex < oldPathStates.Length; oldPathStateIndex++)
-                        {
-                            // if the current sync state found at the old path has the highest sync state id checked so far,
-                            // record its ids and replace the server remapped old path with the current one
-                            if (oldPathStates[oldPathStateIndex].SyncStateId > latestOldPathSyncStateId)
-                            {
-                                serverRemappedOldPath = (oldPathStates[oldPathStateIndex].ServerLinkedFileSystemObject == null
-                                    ? null
-                                    : oldPathStates[oldPathStateIndex].ServerLinkedFileSystemObject.Path);
-                                latestOldPathSyncStateId = oldPathStates[oldPathStateIndex].SyncStateId;
-                                latestOldPathSyncStateArrayIndex = oldPathStateIndex;
+                                    newPathStates[currentExistingObject.FileSystemObjectId].Value.Value = currentExistingObject;
+                                }
+                                else
+                                {
+                                    newPathStates[currentExistingObject.FileSystemObjectId].Key.Value = currentExistingObject;
+                                }
                             }
-
-                            // remove the current old path sync state
-                            SqlAccessor<SyncState>.DeleteRow(indexDB, oldPathStates[oldPathStateIndex]);
-                            if (oldPathStates[oldPathStateIndex].ServerLinkedFileSystemObject == null)
+                            else if (currentExistingObject.ServerLinked)
                             {
-                                SqlAccessor<FileSystemObject>.DeleteRow(indexDB, oldPathStates[oldPathStateIndex].FileSystemObject);
+                                newPathStates.Add(currentExistingObject.FileSystemObjectId,
+                                    new KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>(
+                                        new GenericHolder<FileSystemObject>(),
+                                        new GenericHolder<FileSystemObject>(currentExistingObject)));
                             }
                             else
                             {
-                                IEnumerable<int> unableToFindIndexes;
-                                SqlAccessor<FileSystemObject>.DeleteRows(indexDB,
-                                    new FileSystemObject[]
-                                        {
-                                            oldPathStates[oldPathStateIndex].FileSystemObject,
-                                            oldPathStates[oldPathStateIndex].ServerLinkedFileSystemObject
-                                        },
-                                    out unableToFindIndexes);
+                                newPathStates.Add(currentExistingObject.FileSystemObjectId,
+                                    new KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>(
+                                        new GenericHolder<FileSystemObject>(currentExistingObject),
+                                        new GenericHolder<FileSystemObject>()));
                             }
                         }
-                        // latestOldPathSyncStateId is now the highest of the old path sync state ids,
-                        // and latestOldPathSyncStateArrayIndex represents the index of the same sync state in oldPathStates;
-                        // also serverRemappedOldPath is set as the remapped path of the latest change
+
+                        List<FileSystemObject> toDelete = new List<FileSystemObject>();
+
+                        foreach (KeyValuePair<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>> currentPreviousState in
+                            newPathStates.OrderBy(orderState => orderState.Key))
+                        {
+                            if (currentPreviousState.Value.Key.Value.Path == currentEvent.FileSystemObject.Path)
+                            {
+                                if (currentPreviousState.Value.Value.Value != null)
+                                {
+                                    serverRemappedNewPath = currentPreviousState.Value.Value.Value.Path;
+
+                                    toDelete.Add(currentPreviousState.Value.Value.Value);
+                                }
+                            }
+                            else if (currentPreviousState.Value.Value.Value != null)
+                            {
+                                serverRemappedOldPath = currentPreviousState.Value.Value.Value.Path;
+
+                                toDelete.Add(currentPreviousState.Value.Value.Value);
+                            }
+
+                            toDelete.Add(currentPreviousState.Value.Key.Value);
+                        }
+
+                        if (toDelete.Count > 0)
+                        {
+                            // remove the current sync state(s)
+                            IEnumerable<int> unableToFindIndexes;
+                            SqlAccessor<FileSystemObject>.DeleteRows(indexDB, toDelete, out unableToFindIndexes);
+                        }
 
                         // if the change type of the current event is not a deletion,
                         // then a new sync state needs to be created for the event and added to the database
@@ -1689,7 +1829,7 @@ namespace SQLIndexer
                         {
                             // function to produce a new file system object to store in the database for the event's object;
                             // dynamically sets the path from input
-                            Func<string, FileSystemObject> getNewFileSystemObject = fileSystemPath =>
+                            Func<string, bool, FileSystemObject> getNewFileSystemObject = (fileSystemPath, serverLinked) =>
                                 {
                                     return new FileSystemObject()
                                     {
@@ -1699,8 +1839,12 @@ namespace SQLIndexer
                                         Path = fileSystemPath,
                                         Size = currentEvent.FileSystemObject.Size,
                                         TargetPath = currentEvent.FileSystemObject.TargetPath,
-                                        Revision = (currentEvent.FileSystemObject.RevisionIsNull ? null : currentEvent.FileSystemObject.Revision),
+                                        Revision = currentEvent.FileSystemObject.Revision,
                                         StorageKey = currentEvent.FileSystemObject.StorageKey,
+                                        EventId = eventId,
+                                        FileSystemObjectId = currentEvent.FileSystemObject.FileSystemObjectId,
+                                        ServerLinked = serverLinked,
+                                        SyncCounter = lastSync.SyncCounter,
 
                                         // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
                                         PathChecksum = StringCRC.Crc(fileSystemPath)
@@ -1708,40 +1852,23 @@ namespace SQLIndexer
                                 };
 
                             // create the file system object for the local path for the event
-                            FileSystemObject eventFileSystemObject = getNewFileSystemObject(currentEvent.FileSystemObject.Path);
-                            // create the file system object for the server remapped path for the event,
-                            // or set it to null for no path
-                            FileSystemObject serverRemappedFileSystemObject = (serverRemappedNewPath == null
-                                ? null
-                                : getNewFileSystemObject(serverRemappedNewPath));
+                            FileSystemObject eventFileSystemObject = getNewFileSystemObject(currentEvent.FileSystemObject.Path, false);
 
-                            // add the file system object(s) to the database
-                            eventFileSystemObject.FileSystemObjectId = SqlAccessor<FileSystemObject>.InsertRow<long>(indexDB, eventFileSystemObject);
-                            if (serverRemappedFileSystemObject != null)
+                            if (serverRemappedNewPath != null)
                             {
-                                serverRemappedFileSystemObject.FileSystemObjectId = SqlAccessor<FileSystemObject>.InsertRow<long>(indexDB, serverRemappedFileSystemObject);
+                                // create the file system object for the server remapped path for the event
+                                FileSystemObject serverRemappedFileSystemObject = getNewFileSystemObject(serverRemappedNewPath, true);
+
+                                // apply the events to the Sync
+                                IEnumerable<int> unableToFindIndexes;
+                                SqlAccessor<FileSystemObject>.UpdateRows(indexDB, new FileSystemObject[] { eventFileSystemObject, serverRemappedFileSystemObject }, out unableToFindIndexes);
                             }
-
-                            // create the sync state for the current event for the latest sync with the new file system object(s) id(s)
-                            SqlAccessor<SyncState>.InsertRow(indexDB,
-                                new SyncState()
-                                {
-                                    FileSystemObjectId = eventFileSystemObject.FileSystemObjectId,
-                                    ServerLinkedFileSystemObjectId = (serverRemappedFileSystemObject == null
-                                        ? (Nullable<long>)null
-                                        : serverRemappedFileSystemObject.FileSystemObjectId),
-                                    SyncCounter = lastSyncs[0].SyncCounter
-                                });
+                            else
+                            {
+                                // apply the event to the Sync
+                                SqlAccessor<FileSystemObject>.UpdateRow(indexDB, eventFileSystemObject);
+                            }
                         }
-
-                        // move the current event back one sync
-                        // (or to a null sync if one does not exist)
-                        currentEvent.SyncCounter = (lastSyncs.Length > 1
-                            ? lastSyncs[1].SyncCounter
-                            : (Nullable<long>)null);
-
-                        SqlAccessor<Event>.UpdateRow(indexDB,
-                            currentEvent);
                     }
                 }
                 finally
@@ -1845,29 +1972,20 @@ namespace SQLIndexer
                 if (lastSync != null)
                 {
                     // Loop through the sync states for the last sync
-                    foreach (SyncState currentSyncState in SqlAccessor<SyncState>.SelectResultSet(indexDB,
-                        "SELECT " +
-                        SqlAccessor<SyncState>.GetSelectColumns() + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
-                        "FROM [SyncStates] " +
-                        "INNER JOIN [FileSystemObjects] ON [SyncStates].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                        "WHERE [SyncStates].[SyncCounter] = " + lastSync.SyncCounter.ToString(),
-                        new string[]
-                        {
-                            FileSystemObject.Name
-                        }))
+                    foreach (FileSystemObject currentSyncState in SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
+                        "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter.ToString()))
                     {
                         // Add the previous sync state to the initial index
-                        indexPaths.Add(currentSyncState.FileSystemObject.Path,
+                        indexPaths.Add(currentSyncState.Path,
                             new FileMetadata()
                             {
-                                HashableProperties = new FileMetadataHashableProperties(currentSyncState.FileSystemObject.IsFolder,
-                                    currentSyncState.FileSystemObject.LastTime,
-                                    currentSyncState.FileSystemObject.CreationTime,
-                                    currentSyncState.FileSystemObject.Size),
-                                LinkTargetPath = currentSyncState.FileSystemObject.TargetPath,
-                                Revision = (currentSyncState.FileSystemObject.RevisionIsNull ? null : currentSyncState.FileSystemObject.Revision),
-                                StorageKey = currentSyncState.FileSystemObject.StorageKey
+                                HashableProperties = new FileMetadataHashableProperties(currentSyncState.IsFolder,
+                                    currentSyncState.LastTime,
+                                    currentSyncState.CreationTime,
+                                    currentSyncState.Size),
+                                LinkTargetPath = currentSyncState.TargetPath,
+                                Revision = currentSyncState.Revision,
+                                StorageKey = currentSyncState.StorageKey
                             });
                     }
                 }
@@ -1880,10 +1998,8 @@ namespace SQLIndexer
                         SqlAccessor<Event>.GetSelectColumns() + ", " +
                         SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
                         "FROM [Events] " +
-                        "INNER JOIN [FileSystemObjects] ON [Events].[FileSystemObjectId] = [FileSystemObjects].[FileSystemObjectId] " +
-                        (lastSync == null
-                            ? "WHERE [Events].[SyncCounter] IS NULL "
-                            : "WHERE [Events].[SyncCounter] = " + lastSync.SyncCounter.ToString() + " ") +
+                        "INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
+                        "WHERE [FileSystemObjects].[SyncCounter] IS NULL " +
                         "ORDER BY [Events].[EventId]",
                         new string[]
                         {
@@ -1901,7 +2017,7 @@ namespace SQLIndexer
                                     currentEvent.FileSystemObject.CreationTime,
                                     currentEvent.FileSystemObject.Size),
                                 LinkTargetPath = currentEvent.FileSystemObject.TargetPath,
-                                Revision = (currentEvent.FileSystemObject.RevisionIsNull ? null : currentEvent.FileSystemObject.Revision),
+                                Revision = currentEvent.FileSystemObject.Revision,
                                 StorageKey = currentEvent.FileSystemObject.StorageKey
                             },
                             NewPath = currentEvent.FileSystemObject.Path,

@@ -76,7 +76,7 @@ namespace win_client.Services.FileSystemMonitoring
             CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath,
                 out monitorToSet,
                 global::Sync.Sync.Run,
-                IndexingAgent.MergeEventIntoDatabase,
+                IndexingAgent.MergeEventsIntoDatabase,
                 (syncId, successfulEventIds, newRootPath) =>
                 {
                     long newSyncCounter;

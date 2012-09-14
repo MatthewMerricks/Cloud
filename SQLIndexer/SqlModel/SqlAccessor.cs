@@ -31,9 +31,9 @@ namespace SQLIndexer.SqlModel
 
         #region columns
         // Array of insertable columns (used to build DataTable for bulk insert or to find column names), set via FindInsertColumns
-        private static DataColumn[] InsertColumns = null;
-        // Array of properties in the current generic type which will provide the values for the InsertColumns (they match 1:1), set via FindInsertColumns
-        private static PropertyInfo[] InsertValues = null;
+        private static KeyValuePair<string, PropertyInfo>[] InsertColumns = null;
+        // Array of identity columns (used in addition to InsertableColumns for identity insert), set via FindInsertColumns
+        private static KeyValuePair<string, PropertyInfo>[] IdentityColumns = null;
         // String in the format "SELECT TOP 0 * FROM [TableName]", set via FindInsertColumns
         private static string InsertSelectTopZero = null;
         // Object to lock on for reading/writing to fields in this 'columns' group
@@ -150,7 +150,7 @@ namespace SQLIndexer.SqlModel
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="toInsert">Generic typed objects to insert</param>
-        public static void InsertRows(SqlCeConnection connection, IEnumerable<T> toInsert)
+        public static void InsertRows(SqlCeConnection connection, IEnumerable<T> toInsert, bool identityInsert = false)
         {
             if (connection.State != ConnectionState.Open)
             {
@@ -165,12 +165,12 @@ namespace SQLIndexer.SqlModel
                 string insertTableName = TableName;
 
                 // Group of fields to pull from 'columns' group
-                DataColumn[] columns;
-                PropertyInfo[] values;
+                KeyValuePair<string, PropertyInfo>[] columns;
+                KeyValuePair<string, PropertyInfo>[] identities;
                 string selectTopZero;
 
                 // Fill in the 'columns' group fields
-                FindInsertColumns(connection, insertTableName, out columns, out values, out selectTopZero);
+                FindInsertColumns(connection, insertTableName, out columns, out identities, out selectTopZero);
 
                 // Store whether more than one row is set for insert, defaulting with false
                 bool foundMultiple = false;
@@ -207,69 +207,150 @@ namespace SQLIndexer.SqlModel
                 // then use the SQL Compact Bulk Insert Library (3rd party) to add the objects as rows
                 if (foundMultiple)
                 {
-                    // Create a new SQL Compact Bulk Inserter, preserving null values
-                    using (SqlCeBulkCopy bulkCopy = new SqlCeBulkCopy(connection, SqlCeBulkCopyOptions.KeepNulls))
+                    SqlCeCommand identityOnCommand = null;
+                    SqlCeCommand identityOffCommand = null;
+
+                    try
                     {
-                        // Create a new DataTable to hold all the columns and rows to add
-                        DataTable insertTable = new DataTable();
-
-                        // Add new DataColumns to match the list of columns
-                        foreach (DataColumn currentColumn in columns)
+                        if (identityInsert)
                         {
-                            insertTable.Columns.Add(new DataColumn(currentColumn.ColumnName, currentColumn.DataType));
+                            identityOnCommand = connection.CreateCommand();
+
+                            identityOnCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] ON";
+                            identityOnCommand.ExecuteNonQuery();
                         }
 
-                        // Loop through all objects to insert
-                        foreach (T currentInsert in toInsert)
+                        // Create a new SQL Compact Bulk Inserter, preserving null values
+                        using (SqlCeBulkCopy bulkCopy = new SqlCeBulkCopy(connection, SqlCeBulkCopyOptions.KeepNulls))
                         {
-                            // Add a new row to the DataTable with all insertable column values set
-                            insertTable.Rows.Add(values.Select(currentValue => currentValue.GetValue(currentInsert, null) ?? DBNull.Value).ToArray());
+                            // Create a new DataTable to hold all the columns and rows to add
+                            DataTable insertTable = new DataTable();
+
+                            // Define the enumerable of types to retrieve
+                            IEnumerable<PropertyInfo> values = columns.Select(currentColumn => currentColumn.Value);
+
+                            // Add new DataColumns to match the list of columns
+                            foreach (KeyValuePair<string, PropertyInfo> currentColumn in columns)
+                            {
+                                insertTable.Columns.Add(new DataColumn(currentColumn.Key, Nullable.GetUnderlyingType(currentColumn.Value.PropertyType) ?? currentColumn.Value.PropertyType));
+                            }
+                            if (identityInsert)
+                            {
+                                values = values.Concat(identities.Select(currentIdentity => currentIdentity.Value));
+
+                                foreach (KeyValuePair<string, PropertyInfo> currentIdentity in identities)
+                                {
+                                    insertTable.Columns.Add(new DataColumn(currentIdentity.Key, Nullable.GetUnderlyingType(currentIdentity.Value.PropertyType) ?? currentIdentity.Value.PropertyType));
+                                }
+                            }
+
+                            // Loop through all objects to insert
+                            foreach (T currentInsert in toInsert)
+                            {
+                                // Add a new row to the DataTable with all insertable column values set
+                                insertTable.Rows.Add(values.Select(currentValue => currentValue.GetValue(currentInsert, null) ?? DBNull.Value).ToArray());
+                            }
+
+                            // Set the table to insert into
+                            bulkCopy.DestinationTableName = insertTableName;
+
+                            // Write the DataTable with all the columns and objects to the database
+                            bulkCopy.WriteToServer(insertTable);
                         }
 
-                        // Set the table to insert into
-                        bulkCopy.DestinationTableName = insertTableName;
+                        if (identityInsert)
+                        {
+                            identityOffCommand = connection.CreateCommand();
 
-                        // Write the DataTable with all the columns and objects to the database
-                        bulkCopy.WriteToServer(insertTable);
+                            identityOffCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] OFF";
+                            identityOffCommand.ExecuteNonQuery();
+                        }
+                    }
+                    finally
+                    {
+                        if (identityOnCommand != null)
+                        {
+                            identityOnCommand.Dispose();
+                        }
+                        if (identityOffCommand != null)
+                        {
+                            identityOffCommand.Dispose();
+                        }
                     }
                 }
                 // else if only a sinle object was found,
                 // then write the object via updatable SqlCeResultSet
                 else if (saveSingle != null)
                 {
-                    // create the command for querying the table to insert into
-                    SqlCeCommand singleCommand = connection.CreateCommand();
+                    SqlCeCommand identityOnCommand = null;
+                    SqlCeCommand identityOffCommand = null;
+
                     try
                     {
-                        // set the select statement with a zero row query on the current table
-                        singleCommand.CommandText = selectTopZero;
+                        if (identityInsert)
+                        {
+                            identityOnCommand = connection.CreateCommand();
 
-                        // execute a result set (empty) for the current table as updatable
-                        SqlCeResultSet singleResult = singleCommand.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable);
+                            identityOnCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] ON";
+                            identityOnCommand.ExecuteNonQuery();
+                        }
+
+                        // create the command for querying the table to insert into
+                        SqlCeCommand singleCommand = connection.CreateCommand();
                         try
                         {
-                            // create the new database row
-                            SqlCeUpdatableRecord singleUpdate = singleResult.CreateRecord();
+                            // set the select statement with a zero row query on the current table
+                            singleCommand.CommandText = selectTopZero;
 
-                            // loop through the insertable columns
-                            for (int columnIndex = 0; columnIndex < columns.Length; columnIndex++)
+                            // execute a result set (empty) for the current table as updatable
+                            SqlCeResultSet singleResult = singleCommand.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable);
+                            try
                             {
-                                // set the value in the new database row from the matching property in the current object to insert
-                                singleUpdate.SetValue(singleResult.GetOrdinal(columns[columnIndex].ColumnName),
-                                    values[columnIndex].GetValue(saveSingle, null) ?? DBNull.Value);
-                            }
+                                // create the new database row
+                                SqlCeUpdatableRecord singleUpdate = singleResult.CreateRecord();
 
-                            // add the new database row to the database
-                            singleResult.Insert(singleUpdate);
+                                // loop through the insertable columns
+                                for (int columnIndex = 0; columnIndex < columns.Length; columnIndex++)
+                                {
+                                    // set the value in the new database row from the matching property in the current object to insert
+                                    singleUpdate.SetValue(singleResult.GetOrdinal(columns[columnIndex].Key),
+                                        columns[columnIndex].Value.GetValue(saveSingle, null) ?? DBNull.Value);
+                                }
+
+                                if (identityInsert)
+                                {
+                                    // loop through the identity columns
+                                    for (int identityIndex = 0; identityIndex < identities.Length; identityIndex++)
+                                    {
+                                        // set the value in the new database row from the matching property in the current object to insert
+                                        singleUpdate.SetValue(singleResult.GetOrdinal(identities[identityIndex].Key),
+                                            identities[identityIndex].Value.GetValue(saveSingle, null) ?? DBNull.Value);
+                                    }
+                                }
+
+                                // add the new database row to the database
+                                singleResult.Insert(singleUpdate);
+                            }
+                            finally
+                            {
+                                singleResult.Dispose();
+                            }
                         }
                         finally
                         {
-                            singleResult.Dispose();
+                            singleCommand.Dispose();
                         }
                     }
                     finally
                     {
-                        singleCommand.Dispose();
+                        if (identityOnCommand != null)
+                        {
+                            identityOnCommand.Dispose();
+                        }
+                        if (identityOffCommand != null)
+                        {
+                            identityOffCommand.Dispose();
+                        }
                     }
                 }
             }
@@ -427,16 +508,16 @@ namespace SQLIndexer.SqlModel
             // get the current table name
             string updateTableName = TableName;
 
-            // define the fields to store the values of the fields in the 'columns' group
-            DataColumn[] columns;
-            PropertyInfo[] values;
+            // Group of fields to pull from 'columns' group
+            KeyValuePair<string, PropertyInfo>[] columns;
+            KeyValuePair<string, PropertyInfo>[] identities;
             string selectTopZero;
 
-            // get the values to store in the 'columns' group fields
-            FindInsertColumns(connection, updateTableName, out columns, out values, out selectTopZero);
+            // Fill in the 'columns' group fields
+            FindInsertColumns(connection, updateTableName, out columns, out identities, out selectTopZero);
 
             // build an array of the types of properties which will be checked for update
-            Type[] valueTypes = values.Select(currentValue => currentValue.PropertyType).ToArray();
+            Type[] valueTypes = columns.Select(currentValue => currentValue.Value.PropertyType).ToArray();
 
             // get the primary key name and the properties which will retrieve values for the primary key search
             string primaryKeyName;
@@ -484,10 +565,10 @@ namespace SQLIndexer.SqlModel
                                 for (int columnIndex = 0; columnIndex < columns.Length; columnIndex++)
                                 {
                                     // get the column position of the current named updateble column
-                                    int columnOrdinal = retrievedExisting.GetOrdinal(columns[columnIndex].ColumnName);
+                                    int columnOrdinal = retrievedExisting.GetOrdinal(columns[columnIndex].Key);
 
                                     // get the value that will be checked against the current column
-                                    object valueToUpdate = values[columnIndex].GetValue(currentUpdate, null);
+                                    object valueToUpdate = columns[columnIndex].Value.GetValue(currentUpdate, null);
 
                                     // store a boolean for whether a difference was found requiring the column to be updated, defaulting to false
                                     bool foundDifference = false;
@@ -646,13 +727,13 @@ namespace SQLIndexer.SqlModel
             // Get the table name
             string deleteTableName = TableName;
 
-            // Define the fields for storing the fields in the 'columns' group
-            DataColumn[] columns;
-            PropertyInfo[] values;
+            // Group of fields to pull from 'columns' group
+            KeyValuePair<string, PropertyInfo>[] columns;
+            KeyValuePair<string, PropertyInfo>[] identities;
             string selectTopZero;
 
-            // Call function to store the fields in the 'columns' group
-            FindInsertColumns(connection, deleteTableName, out columns, out values, out selectTopZero);
+            // Fill in the 'columns' group fields
+            FindInsertColumns(connection, deleteTableName, out columns, out identities, out selectTopZero);
 
             // Get the primary key name and PropertyInfoes for accesing the primary key values from current generic typed objects
             string primaryKeyName;
@@ -1149,7 +1230,7 @@ namespace SQLIndexer.SqlModel
 
         // Gets and sets as necessary, lists of the updatable columns and corresponding PropertyInfoes to access the values in the current generic typed objects;
         // also creates a select statement that pulls zero rows with all the columns for the current table
-        private static void FindInsertColumns(SqlCeConnection connection, string TableName, out DataColumn[] columns, out PropertyInfo[] values, out string selectTopZero)
+        private static void FindInsertColumns(SqlCeConnection connection, string TableName, out KeyValuePair<string, PropertyInfo>[] columns, out KeyValuePair<string, PropertyInfo>[] identities, out string selectTopZero)
         {
             if (connection.State != ConnectionState.Open)
             {
@@ -1196,18 +1277,26 @@ namespace SQLIndexer.SqlModel
                                     currentProp.GetCustomAttributes(typeof(SqlAccess.PropertyAttribute), true)
                                         .Cast<ISqlAccess>()))
                                 .Where(currentProp => currentProp.Value.Any(currentAttrib => !currentAttrib.IsChild))
-                                .Select(currentProp => new KeyValuePair<PropertyInfo, ISqlAccess>(currentProp.Key, currentProp.Value.Single()))
+                                .Select(currentProp => new KeyValuePair<PropertyInfo, ISqlAccess>(currentProp.Key, currentProp.Value.Single()));
 
-                                // Filter by properties not in the HashSet of identities
-                                .Where(currentProp => !hashedIdentities.Contains(currentProp.Value.SqlName ?? currentProp.Key.Name));
 
                             // Set the list of insertable (not identity) columns as new DataColumns with the name of the column in Sql and the type of the property
-                            InsertColumns = sqlProps.Select(currentProp => new DataColumn((currentProp.Value.SqlName ?? currentProp.Key.Name),
-                                    (Nullable.GetUnderlyingType(currentProp.Key.PropertyType) ?? currentProp.Key.PropertyType)))
+                            InsertColumns = sqlProps
+                                // Filter by properties not in the HashSet of identities
+                                .Where(currentProp => !hashedIdentities.Contains(currentProp.Value.SqlName ?? currentProp.Key.Name))
+
+                                .Select(currentProp => new KeyValuePair<string, PropertyInfo>((currentProp.Value.SqlName ?? currentProp.Key.Name),
+                                    currentProp.Key))
                                 .ToArray();
 
-                            // Set the list of PropertyInfoes for accessing values corresponding to the insertable columns
-                            InsertValues = sqlProps.Select(currentProp => currentProp.Key).ToArray();
+                            // Do the same for identity columns
+                            IdentityColumns = sqlProps
+                                // Filter by properties in the HashSet of identities
+                                .Where(currentProp => hashedIdentities.Contains(currentProp.Value.SqlName ?? currentProp.Key.Name))
+
+                                .Select(currentProp => new KeyValuePair<string, PropertyInfo>((currentProp.Value.SqlName ?? currentProp.Key.Name),
+                                    currentProp.Key))
+                                .ToArray();
 
                             // Build the select statement that pulls zero rows with all the columns for the current table
                             InsertSelectTopZero = "SELECT TOP 0 * FROM [" + TableName + "]";
@@ -1225,7 +1314,7 @@ namespace SQLIndexer.SqlModel
 
                 // Set the return fields from the 'columns' group
                 columns = InsertColumns;
-                values = InsertValues;
+                identities = IdentityColumns;
                 selectTopZero = InsertSelectTopZero;
             }
         }

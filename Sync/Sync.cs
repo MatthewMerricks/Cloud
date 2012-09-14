@@ -164,7 +164,7 @@ namespace Sync
         /// <returns>Returns all aggregated errors that occurred during the synchronous part of the Sync process, if any</returns>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public static CLError Run(GrabProcessedChanges grabChangesFromFileSystemMonitor,
-            Func<FileChange, FileChange, bool, CLError> mergeToSql,
+            Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql,
             Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> addChangesToProcessingQueue,
             bool respondingToPushNotification,
             Func<string, IEnumerable<long>, string, CLError> completeSyncSql,
@@ -485,17 +485,14 @@ namespace Sync
                     }
 
                     // Merge in server values into DB (storage key, revision, etc) and add new Sync From events
-                    foreach (KeyValuePair<bool, FileChange> currentStoreUpdate in (completedChanges ?? Enumerable.Empty<KeyValuePair<bool, FileChange>>())
+                    mergeToSql((completedChanges ?? Enumerable.Empty<KeyValuePair<bool, FileChange>>())
                         .Concat((incompleteChanges ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>())
                             .Select(currentIncompleteChange => new KeyValuePair<bool, FileChange>(currentIncompleteChange.Key, currentIncompleteChange.Value.Key)))
                         .Concat((changesInError ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>())
-                            .Select(currentChangeInError => new KeyValuePair<bool, FileChange>(currentChangeInError.Key, currentChangeInError.Value.Key))))
-                    {
-                        if (currentStoreUpdate.Key)
-                        {
-                            mergeToSql(currentStoreUpdate.Value, null, false);
-                        }
-                    }
+                            .Select(currentChangeInError => new KeyValuePair<bool, FileChange>(currentChangeInError.Key, currentChangeInError.Value.Key)))
+                        .Where(currentMerge => currentMerge.Key)
+                        .Select(currentMerge => new KeyValuePair<FileChange, FileChange>(currentMerge.Value, null)), false);
+
                     if (changesInError != null)
                     {
                         foreach (KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>> grabException in changesInError)
@@ -560,7 +557,7 @@ namespace Sync
                                         .Intersect(thingsThatWereDependenciesToQueue);
                                 }
                                 if (thingsThatWereDependenciesToQueue != null
-                                    && thingsThatWereDependenciesToQueue.Count() == 0)
+                                    && !thingsThatWereDependenciesToQueue.Any())
                                 {
                                     thingsThatWereDependenciesToQueue = null;
                                 }
@@ -1456,7 +1453,7 @@ namespace Sync
         }
 
         private static Exception CommunicateWithServer(IEnumerable<KeyValuePair<FileChange, FileStream>> toCommunicate,
-            Func<FileChange, FileChange, bool, CLError> mergeToSql,
+            Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql,
             Func<string> getLastSyncId,
             bool respondingToPushNotification,
             Func<string> getCloudRoot,
@@ -1652,7 +1649,7 @@ namespace Sync
                     }
                 }
 
-                // if there is at least one change to communicate or we have a push notification to communcate anyways,
+                // if there is at least one change to communicate or we have a push notification to communicate anyways,
                 // then process communication
                 if (communicationArray.Length > 0)
                 {
@@ -2397,7 +2394,7 @@ namespace Sync
 
                                                         currentChange = reparentConflict;
 
-                                                        mergeToSql(currentChange, null, false);
+                                                        mergeToSql(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(currentChange, null) }, false);
                                                         metadataIsDifferent = false;
                                                     }
                                                     catch
