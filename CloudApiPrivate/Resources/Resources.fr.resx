@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CloudFolderIconDescription" xml:space="preserve">
+    <value>Show the contents of the Cloud folder.</value>
+  </data>
   <data name="useProxyHTTP" xml:space="preserve">
     <value>HTTP</value>
     <comment>Enum value friendly name for binding</comment>

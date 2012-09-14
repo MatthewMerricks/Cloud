@@ -55,6 +55,16 @@
   <ItemGroup>
     <Content Include="Artwork\cloud.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CloudApiPrivate\CloudApiPrivate.csproj">
+      <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
+      <Name>CloudApiPrivate</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
+      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
+      <Name>CloudSdkPublic</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

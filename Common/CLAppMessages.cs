@@ -11,7 +11,9 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Navigation;
 using System.Collections.Generic;
 using win_client.Model;
+#if TRASH
 using win_client.DragDropServer;
+#endif // TRASH
 
 
 namespace win_client.Common
@@ -47,8 +49,10 @@ namespace win_client.Common
             Message_PageFolderSelection_ShouldChooseCloudFolder,
             Message_PageSetupSelector_ShouldChooseCloudFolder,
             Message_DialogCheckForUpdates_ShouldCheckForUpdates,
+#if TRASH
             Message_DragDropServer_ShouldShowSystrayDropWindow,
             Message_DragDropServer_ShouldHideSystrayDropWindow,
+#endif // TRASH
                 
 
             // Navigation requests
@@ -371,6 +375,7 @@ namespace win_client.Common
             }
         }
 
+#if TRASH
         public static class Message_DragDropServer_ShouldShowSystrayDropWindow
         {
             public static void Send(DragDropOperation operation)
@@ -396,6 +401,7 @@ namespace win_client.Common
                 Messenger.Default.Register(recipient, MessageTypes.Message_DragDropServer_ShouldHideSystrayDropWindow, operation);
             }
         }
+#endif // TRASH
 
 
         // Navigation requests

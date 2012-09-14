@@ -18,7 +18,9 @@ using CloudApiPublic.Static;
 using CloudApiPrivate.Static.FriendlyEnumValues;
 using CloudApiPrivate.Resources;
 using CloudApiPublic.Model;
-
+using System.Windows;
+using System.Reflection;
+using CloudApiPrivate.Common;
 
 namespace CloudApiPrivate.Model.Settings
 {
@@ -1108,6 +1110,8 @@ namespace CloudApiPrivate.Model.Settings
         {  
             CloudFolderPath = path;
             CloudFolderCreationTimeUtc = creationTime;
+
+            CLShortcuts.AddCloudFolderShortcuts(path);
         }
 
         /// <summary>

@@ -9,6 +9,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using CloudApiPrivate.Common;
+using CloudApiPrivate.Model.Settings;
+using CloudApiPrivate.Model;
+using CloudApiPublic.Model;
 
 namespace RegisterCom
 {
@@ -89,46 +93,9 @@ namespace RegisterCom
     /// Note that InstallShield deletes all of the files before calling this executable after the uninstall is complete.
     /// Parameters:
     ///   o After installation:
-    ///     RegisterCom <path to the Cloud directory in Program Files>
+    ///     RegisterCom <path to the Cloud installation directory in Program Files>
     ///   o After uninstall:
     ///     RegisterCom /u
-    /// This processes as follows:
-    ///   if first parm is not "/u"
-    ///     check to see that the target BadgeCom.dll exists.
-    ///     if BadgeCom.ddl does not exist
-    ///       trace error
-    ///       exit
-    ///     else BadgeCom.dll exists
-    ///       delete the target file for the following copy command (if it exists)
-    ///       copy the 32-bit or 64-bit BadgeCom.dll to System32 as CloudBadgeCOM.dll
-    ///       if error copying
-    ///         trace error
-    ///         exit
-    ///       endif error copying
-    ///       delete the target file for the following copy command (if it exists)
-    ///       copy the RegisterCom.exe file to System32 as CloudRegisterCom.exe
-    ///       if this is 64-bit
-    ///         copy ProgramFiles\msvcp100.dll to System32, unless it already exists
-    ///         copy ProgramFiles\msvcr100.dll to System32, unless it already exists
-    ///         copy ProgramFiles\atl100.dll to System32, unless it already exists
-    ///       endif this is 64-bit
-    ///     endelse BadgeCom.ddl exists
-    ///     ;
-    ///     stop Explorer
-    ///     wait for Explorer processes to stop
-    ///     ;
-    ///     perform the equivalalent of RegSvr32 BadgeCOM.dll
-    ///     ;
-    ///     start Explorer
-    ///   else first parm is "/u"
-    ///     stop Explorer
-    ///     wait for all Explorer processes to stop
-    ///     ;
-    ///     perform the equivalent of RegSvr32 /u c:\windows\system32\CloudBadgeCOM.dll
-    ///     delete c:\windows\system32\BadgeCOM.dll
-    ///     ;
-    ///     start Explorer
-    ///   endif first parm is "/u"
     /// </summary>
 
     public static class MainProgram
@@ -137,10 +104,19 @@ namespace RegisterCom
 
         static int Main(string[] args)
         {
+            bool wasExplorerStopped = false;
+            string explorerLocation = null;
+
             try
             {
                 Trace.WriteLine("RegisterCom: Main program starting.");
                 Trace.WriteLine(String.Format("RegisterCom: Arg count: {0}.", args.Length));
+
+                if (args.Length == 0)
+                {
+                    Trace.WriteLine(String.Format("RegisterCom: ERROR. No args.  Exit."));
+                    return 1;
+                }
 
                 string firstArg = args[0];
 
@@ -173,12 +149,12 @@ namespace RegisterCom
                     return rc;
                 }
 
-                // Installation.  The first parm should point to BadgeCOM.dll in the program files directory.
+                // Installation.  The first parm should point to the Cloud program files directory.
                 if (args.Length == 0 || firstArg == null)
                 {
                     // No arguments.
                     Trace.WriteLine("RegisterCom: Main: ERROR.  No arguments.");
-                    return 1;
+                    return 2;
                 }
 
                 // Determine whether 32-bit or 64-bit architecture
@@ -196,64 +172,26 @@ namespace RegisterCom
 
                 // See if BadgeCOM exists at that path.
                 string pathBadgeCOM = Path.Combine(firstArg, bitness + "\\BadgeCOM.dll");
+                Trace.WriteLine(String.Format("RegisterCom: Main: Source path of BadgeCOM.dll: <{0}>.", pathBadgeCOM));
                 if (!File.Exists(pathBadgeCOM))
                 {
                     Trace.WriteLine(string.Format("RegisterCom: Main: ERROR.  Could not find BadgeCOM.dll at path {0}.", pathBadgeCOM));
-                    return 2;
+                    return 3;
                 }
-
-                string pathSystem32BadgeCOM = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "CloudBadgeCOM.dll");
 
                 // Stop Explorer
                 Trace.WriteLine("RegisterCom: Main: Stop Explorer");
-                string explorerLocation = StopExplorer();
+                explorerLocation = StopExplorer();
+                wasExplorerStopped = true;
 
-                // Copy BadgeCom.dll to System32\CloudBadgeCom.dll for uninstall.
-                try
+
+                // Copy some files that will not be automatically uninstalled.  These files are needed for uninstall.  The uninstall
+                // process will delete them.
+                int rcLocal = CopyFilesNeededForUninstall();
+                if (rcLocal != 0)
                 {
-                    // Found BadgeCOM.dll.  We will copy it to System32 as CloudBadgeCom.dll.  Delete the target first
-                    if (File.Exists(pathSystem32BadgeCOM))
-                    {
-                        Trace.WriteLine("RegisterCom: Main: Delete existing CloudBadgeCOM.dll in System32.");
-                        File.Delete(pathSystem32BadgeCOM);
-                    }
-
-                    Trace.WriteLine(String.Format("RegisterCom: Main: Copy file {0} to {1}.", pathBadgeCOM, pathSystem32BadgeCOM));
-                    File.Copy(pathBadgeCOM, pathSystem32BadgeCOM);
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine(String.Format("RegisterCom: Main: ERROR: Exception.  Msg: {0}.", ex.Message));
-
-                    // Start Explorer
-                    Trace.WriteLine("RegisterCom: Main: Start Explorer");
-                    Process.Start(explorerLocation);
-                    return 3;
-                }
-
-                // Also copy this program (RegisterCom.exe) to system32 as CloudRegisterCom.exe.
-                string pathSystem32RegisterCom = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "CloudRegisterCom.exe");
-                string pathRegisterCom = Path.Combine(firstArg, "RegisterCom.exe");
-                try
-                {
-                    // Delete the target first
-                    if (File.Exists(pathSystem32RegisterCom))
-                    {
-                        Trace.WriteLine("RegisterCom: Main: Delete existing CloudRegisterCom.exe in System32.");
-                        File.Delete(pathSystem32RegisterCom);
-                    }
-
-                    Trace.WriteLine(String.Format("RegisterCom: Main: Copy file {0} to {1}.", pathRegisterCom, pathSystem32RegisterCom));
-                    File.Copy(pathRegisterCom, pathSystem32RegisterCom);
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine(String.Format("RegisterCom: Main: ERROR: Exception(2).  Msg: {0}.", ex.Message));
-
-                    // Start Explorer
-                    Trace.WriteLine("RegisterCom: Main: Start Explorer");
-                    Process.Start(explorerLocation);
-                    return 3;
+                    Trace.WriteLine(String.Format("RegisterCom: Main: ERROR: From CopyFilesNeededForUninstall: rc: {0}.", rcLocal));
+                    return rcLocal;
                 }
 
                 // Copy the VC100 files only for 64-bit systems
@@ -276,7 +214,7 @@ namespace RegisterCom
                         // Start Explorer
                         Trace.WriteLine("RegisterCom: Main: Start Explorer");
                         Process.Start(explorerLocation);
-                        return 4;
+                        return 6;
                     }
 
                     // Copy msvcr100.dll
@@ -296,7 +234,7 @@ namespace RegisterCom
                         // Start Explorer
                         Trace.WriteLine("RegisterCom: Main: Start Explorer");
                         Process.Start(explorerLocation);
-                        return 5;
+                        return 7;
                     }
 
                     // Copy atl100.dll
@@ -316,25 +254,26 @@ namespace RegisterCom
                         // Start Explorer
                         Trace.WriteLine("RegisterCom: Main: Start Explorer");
                         Process.Start(explorerLocation);
-                        return 6;
+                        return 8;
                     }
                 }
 
-                // Register BadgeCOM.dll in the System32 directory.
-                Trace.WriteLine("RegisterCom: Call RegisterAssembly.");
-                RegisterAssembly(pathSystem32BadgeCOM);
-                Trace.WriteLine("RegisterCom: Back from RegisterAssembly.");
+                // Register BadgeCOM.dll in the CloudSupport folder.
+                string pathUninstallFiles = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
 
-                // Start Explorer
-                Trace.WriteLine("RegisterCom: Main: Start Explorer");
-                Process.Start(explorerLocation);
+                Trace.WriteLine(String.Format("RegisterCom: Call RegisterAssembly. Path: <{0}>.", pathUninstallFiles));
+                rcLocal = RegisterAssembly(pathUninstallFiles);
+                if (rcLocal != 0)
+                {
+                    Trace.WriteLine(String.Format("RegisterCom: ERROR: From RegisterAssembly. rc: {0}.", rcLocal));
+                }
 
-                Trace.WriteLine("RegisterCom: Main: Installation successful.");
-                return 0;
+                Trace.WriteLine(String.Format("RegisterCom: Main: Installation exit.  rc: {0}.", rcLocal));
+                return rcLocal;
             }
             catch (Exception ex)
             {
-                StringBuilder exBuilder = new StringBuilder("RegisterCom: Main: Exception: ");
+                StringBuilder exBuilder = new StringBuilder("RegisterCom: Main: ERROR: Outer exception: ");
                 int tabCount = 0;
 
                 Exception currentEx = ex;
@@ -356,6 +295,99 @@ namespace RegisterCom
 
                 throw;
             }
+            finally
+            {
+                // Start Explorer
+                if (wasExplorerStopped)
+                {
+                    Trace.WriteLine("RegisterCom: Main: Start Explorer");
+                    Process.Start(explorerLocation);
+                }
+            }
+        }
+
+        private static int CopyFilesNeededForUninstall()
+        {
+            // Build AnyCpu "from" directory
+            string fromDirectory = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
+
+            // Build bitness "from" directory
+            string fromDirectoryBitness;
+            if (IntPtr.Size == 4)
+            {
+                // 32-bit 
+                fromDirectoryBitness = fromDirectory + "\\x86";
+            }
+            else
+            {
+                // 64-bit 
+                fromDirectoryBitness = fromDirectory + "\\amd64";
+            }
+
+
+            // Build the "to" directory
+            string toDirectory = fromDirectory + CLPrivateDefinitions.CloudSupportFolderInProgramFiles;
+
+            try 
+        	{
+                // Create the "to" directory
+                Directory.CreateDirectory(toDirectory);
+
+                // Copy the files
+                Trace.WriteLine(String.Format("RegisterCom: CopyFilesNeededForUninstall: Entry. fromDirectory: <{0}>. fromDirectoryBitness: <{1}>. toDirectory: <{2}>.", fromDirectory, fromDirectoryBitness, toDirectory));
+                CopyFileWithDeleteFirst(fromDirectoryBitness, toDirectory, "BadgeCOM.dll");
+                CopyFileWithDeleteFirst(fromDirectory, toDirectory, "RegisterCom.exe");
+                CopyFileWithDeleteFirst(fromDirectory, toDirectory, "CloudApiPrivate.dll");
+                CopyFileWithDeleteFirst(fromDirectory, toDirectory, "CloudApiPublic.dll");
+                CopyFileWithDeleteFirst(fromDirectory, toDirectory, "Microsoft.Net.Http.dll");
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(String.Format("RegisterCom: Main: ERROR: Exception.  Msg: {0}.", ex.Message));
+                return 200;
+            }
+
+            return 0;
+        }
+
+        private static void CopyFileWithDeleteFirst(string fromDirectory, string toDirectory, string filenameExt)
+        {
+            try
+            {
+                // Build the paths
+                string fromPath = fromDirectory + "\\" + filenameExt;
+                string toPath = toDirectory + "\\" + filenameExt;
+
+                // Found BadgeCOM.dll.  We will copy it to System32 as CloudBadgeCom.dll.  Delete the target first
+                if (File.Exists(toPath))
+                {
+                    Trace.WriteLine(String.Format("RegisterCom: CopyFileWithDeleteFirst: Delete existing file <{0}>.", toPath));
+                    File.Delete(toPath);
+                }
+
+                Trace.WriteLine(String.Format("RegisterCom: CopyFileWithDeleteFirst: Copy file {0} to {1}.", fromPath, toPath));
+                File.Copy(fromPath, toPath);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(String.Format("RegisterCom: CopyFileWithDeleteFirst: ERROR: Exception.  Msg: {0}.", ex.Message));
+                throw;
+            }
+        }
+
+        private static string GetProgramFilesFolderPathForBitness()
+        {
+            // Determine whether 32-bit or 64-bit architecture
+            if (IntPtr.Size == 4)
+            {
+                // 32-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            }
+            else
+            {
+                // 64-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            }
         }
 
         private static string GenerateTab(int tabCount)
@@ -369,27 +401,37 @@ namespace RegisterCom
         /// <returns>string: The path to the Explorer.exe file.</returns>
         private static string StopExplorer()
         {
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            startInfo.FileName = "cmd.exe";
-            startInfo.Arguments = "/C taskkill /F /IM explorer.exe";
-            process.StartInfo = startInfo;
-            process.Start();
-
-            // Wait for all Explorer processes to stop.
             string explorerLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
-
-            const int maxProcessWaits = 40; // corresponds to trying for 20 seconds (if each iteration waits 500 milliseconds)
-            for (int waitCounter = 0; waitCounter < maxProcessWaits; waitCounter++)
+            try
             {
-                // For some reason this won't work unless we wait here for a bit.
-                Thread.Sleep(500);
-                if (!IsExplorerRunning(explorerLocation))
+                Trace.WriteLine(String.Format("RegisterCom: StopExplorer: Entry. Explorer location: <{0}>.", explorerLocation));
+                System.Diagnostics.Process process = new System.Diagnostics.Process();
+                System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+                startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                startInfo.FileName = "cmd.exe";
+                startInfo.Arguments = "/C taskkill /F /IM explorer.exe";
+                process.StartInfo = startInfo;
+                Trace.WriteLine("RegisterCom: StopExplorer: Start the command.");
+                process.Start();
+
+                // Wait for all Explorer processes to stop.
+                const int maxProcessWaits = 40; // corresponds to trying for 20 seconds (if each iteration waits 500 milliseconds)
+                for (int waitCounter = 0; waitCounter < maxProcessWaits; waitCounter++)
                 {
-                    break;
+                    // For some reason this won't work unless we wait here for a bit.
+                    Thread.Sleep(500);
+                    if (!IsExplorerRunning(explorerLocation))
+                    {
+                        Trace.WriteLine("RegisterCom: StopExplorer: Explorer is not running.  Break.");
+                        break;
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(String.Format("RegisterCom: StopExplorer: ERROR: Exception: Msg: <{0}.", ex.Message));
+            }
+            Trace.WriteLine(String.Format("RegisterCom: StopExplorer: Return. explorerLocation: <{0}>.", explorerLocation));
             return explorerLocation;
         }
 
@@ -399,55 +441,169 @@ namespace RegisterCom
         /// <returns></returns>
         private static int UninstallCOM()
         {
-            // The BadgeCOM.dll file should be in the system directory
+            string explorerLocation = null;
             Trace.WriteLine("RegisterCom: UninstallCOM: Entry.");
-            string pathSystem32BadgeCOM = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "CloudBadgeCOM.dll");
-            if (!File.Exists(pathSystem32BadgeCOM))
-            {
-                Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: ERROR.  BadgeCOM.dll not found at path {0}.", pathSystem32BadgeCOM));
-                return 104;
-            }
-
             try
             {
                 // Stop Explorer
                 Trace.WriteLine("RegisterCom: UninstallCOM: Stop Explorer");
-                string explorerLocation = StopExplorer();
+                explorerLocation = StopExplorer();
 
-                // Unregister BadgeCOM in System32.
-                UnregisterAssembly(pathSystem32BadgeCOM);
+                // The BadgeCOM.dll was registered in the Cloud program files CloudSupport directory.  Find it there and unregister it.
+                string pathToCopiedBadgeCOM = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
+                if (File.Exists(pathToCopiedBadgeCOM))
+                {
+                    // Unregister BadgeCOM
+                    Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: BadgeCOM exists at path <{0}>.  Unregister it.", pathToCopiedBadgeCOM));
+                    UnregisterAssembly(pathToCopiedBadgeCOM);
 
-                // Delete BadgeCOM.dll in System32.
-                File.Delete(pathSystem32BadgeCOM);
+                }
+                else
+                {
+                    Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: ERROR.  BadgeCOM.dll not found at path {0}.", pathToCopiedBadgeCOM));
+                }
 
-                // Start Explorer
-                Trace.WriteLine("RegisterCom: UninstallCOM: Start Explorer");
-                Process.Start(explorerLocation);
+                // Remove all of the Cloud folder shortcuts
+                Trace.WriteLine("RegisterCom: UninstallCOM: Remove Cloud folder shortcuts.");
+                CLShortcuts.RemoveCloudFolderShortcuts(Settings.Instance.CloudFolderPath);
+
+                // Remotely unlink this computer from the account.
+                if (!String.IsNullOrEmpty(Settings.Instance.Akey))
+                {
+                    CLError error = null;
+                    Trace.WriteLine("RegisterCom: UninstallCOM: Remotely unlink this device.");
+                    CLRegistration registration = new CLRegistration();
+                    registration.UnlinkDeviceWithAccessKey(Settings.Instance.Akey, out error);
+                    if (error != null)
+                    {
+                        Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: ERROR: Remotely unlinking. Msg: <{0}>. Code: {1}>.", error.errorDescription, error.errorCode));
+                    }
+                }
+
+                // Clear the settings.
+                Trace.WriteLine("RegisterCom: UninstallCOM: Clear settings.");
+                Settings.Instance.resetSettings();
+
+                // Delete the database file to force a re-index at the next start.
+                string indexDBLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + CLPrivateDefinitions.CloudIndexDatabaseLocation;
+                Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: Index DB location: <{0}>.", indexDBLocation));
+                if (File.Exists(indexDBLocation))
+                {
+                    Trace.WriteLine("RegisterCom: UninstallCOM: Delete the index DB file.");
+                    File.Delete(indexDBLocation);
+                }
+
+                // Delete all of the support files copied at installation, and delete the ProgramFiles Cloud folders if there are no remaining files.
+                DeleteCloudSupportFiles();
             }
             catch (Exception ex)
             {
                 Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: ERROR.  Exception.  Msg: {0}.", ex.Message));
                 return 105;
             }
+            finally
+            {
+                // Start Explorer
+                Trace.WriteLine("RegisterCom: UninstallCOM: Start Explorer.");
+                Process.Start(explorerLocation);
+            }
 
             Trace.WriteLine("RegisterCom: UninstallCOM: Uninstallation successful.");
             return 0;
         }
 
+        private static void DeleteCloudSupportFiles()
+        {
+            // Delete the support files
+            Trace.WriteLine("RegisterCom: DeleteCloudSupportFiles: Entry.");
+            string supportPath = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + CLPrivateDefinitions.CloudSupportFolderInProgramFiles;
+            DeleteFile(supportPath, "BadgeCOM.dll");
+            DeleteFile(supportPath, "CloudApiPrivate.dll");
+            DeleteFile(supportPath, "CloudApiPublic.dll");
+            DeleteFile(supportPath, "Microsoft.Net.Http.dll");
+            DeleteFile(supportPath, "RegisterCom.exe");
+
+            // Delete the CloudSupport directory if it is empty
+            if (Directory.GetFiles(supportPath).Length == 0)
+            {
+                Trace.WriteLine(String.Format("RegisterCom: DeleteCloudSupportFiles: Delete the CloudSupport directory at <{0}>.", supportPath));
+                DirectoryInfo parentInfo = Directory.GetParent(supportPath);
+                string parentPath = parentInfo.FullName;
+                Directory.Delete(supportPath);
+                supportPath = parentPath;
+            }
+
+            // Delete the Trace.log file if it exists
+            Trace.WriteLine("RegisterCom: DeleteCloudSupportFiles: Delete the Trace.log file if it exists.");
+            File.Delete(supportPath + "\\Trace.log");
+
+            // Delete the Cloud directory if it is empty.
+            if (Directory.GetFiles(supportPath).Length == 0)
+            {
+                Trace.WriteLine(String.Format("RegisterCom: DeleteCloudSupportFiles: Delete the Cloud directory at <{0}>.", supportPath));
+                DirectoryInfo parentInfo = Directory.GetParent(supportPath);
+                string parentPath = parentInfo.FullName;
+                Directory.Delete(supportPath);
+                supportPath = parentPath;
+            }
+
+            // Delete the Cloud.com directory if it is empty.
+            if (Directory.GetFiles(supportPath).Length == 0)
+            {
+                Trace.WriteLine(String.Format("RegisterCom: DeleteCloudSupportFiles: Delete the Cloud.com directory at <{0}>.", supportPath));
+                DirectoryInfo parentInfo = Directory.GetParent(supportPath);
+                string parentPath = parentInfo.FullName;
+                Directory.Delete(supportPath);
+                //supportPath = parentPath;
+            }
+        }
+
+        private static void DeleteFile(string supportPath, string filenameExt)
+        {
+            string path = supportPath + "\\" + filenameExt;
+            Trace.WriteLine(String.Format("RegisterCom: DeleteFile: Entry.  Delete file at <{0}>.", path));
+            File.Delete(path);
+        }
+
         private static bool IsExplorerRunning(string explorerLocation)
         {
-            string wmiQueryString = "SELECT ProcessId, ExecutablePath FROM Win32_Process";
-            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(wmiQueryString))
-            using (ManagementObjectCollection results = searcher.Get())
+            bool isExplorerRunning = false;         // assume not running
+
+            try
             {
-                return Process.GetProcesses()
-                    .Where(parent => parent.ProcessName.Equals("explorer", StringComparison.InvariantCultureIgnoreCase))
-                    .Join(results.Cast<ManagementObject>(),
-                        parent => parent.Id,
-                        parent => (int)(uint)parent["ProcessId"],
-                        (outer, inner) => new ProcessWithPath(outer, (string)inner["ExecutablePath"]))
-                    .Any(parent => parent.Path.Equals(explorerLocation, StringComparison.InvariantCultureIgnoreCase));
+                Trace.WriteLine(String.Format("RegisterCom: IsExplorerRunning: Entry. explorerLocation: <{0}>.", explorerLocation));
+                string wmiQueryString = "SELECT ProcessId, ExecutablePath FROM Win32_Process";
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(wmiQueryString))
+                {
+                    if (searcher != null)
+                    {
+                        Trace.WriteLine("RegisterCom: IsExplorerRunning: searcher not null. Get the results.");
+                        using (ManagementObjectCollection results = searcher.Get())
+                        {
+                            Trace.WriteLine("RegisterCom: IsExplorerRunning: Run the query.");
+                            isExplorerRunning = Process.GetProcesses()
+                                .Where(parent => parent.ProcessName.Equals("explorer", StringComparison.InvariantCultureIgnoreCase))
+                                .Join(results.Cast<ManagementObject>(),
+                                    parent => parent.Id,
+                                    parent => (int)(uint)parent["ProcessId"],
+                                    (outer, inner) => new ProcessWithPath(outer, (string)inner["ExecutablePath"]))
+                                .Any(parent => parent.Path.Equals(explorerLocation, StringComparison.InvariantCultureIgnoreCase));
+                        }
+                    }
+                    else
+                    {
+                        // searcher is null.
+                        Trace.WriteLine("RegisterCom: IsExplorerRunning: ERROR: searcher is null.");
+                        return isExplorerRunning;           // assume Explorer is not running.
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(String.Format("RegisterCom: IsExplorerRunning: ERROR: Exception: Msg: <{0}>.", ex.Message));
+            }
+
+            return isExplorerRunning;
         }
 
         private class ProcessWithPath
@@ -469,8 +625,9 @@ namespace RegisterCom
             }
         }
 
-        private static void RegisterAssembly(string dllPath)
+        private static int RegisterAssembly(string dllPath)
         {
+            int rc = 0;
 
             if (File.Exists(dllPath))
             {
@@ -487,12 +644,16 @@ namespace RegisterCom
                 catch (Exception ex)
                 {
                     Trace.WriteLine(String.Format("RegisterCom: RegisterAssembly: ERROR.  Exception.  Msg: <{0}>.", ex.Message));
+                    rc = 2;
                 }
             }
             else
             {
                 Trace.WriteLine(String.Format("RegisterCom: RegisterAssembly: ERROR.  Could not find file <{0}>.", dllPath));
+                rc = 1;
             }
+
+            return rc;
         }
 
         private static void UnregisterAssembly(string dllPath)

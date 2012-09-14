@@ -5,6 +5,7 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
+#if TRASH
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -84,3 +85,4 @@ namespace win_client.DragDropServer
         }
     }
 }
+#endif // TRASH

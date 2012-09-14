@@ -17,7 +17,9 @@ using win_client.Services.UiActivity;
 using win_client.Services.Indexing;
 using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
+#if TRASH
 using win_client.DragDropServer;
+#endif // TRASH
 
 namespace win_client.Services.ServicesManager
 {

@@ -39,6 +39,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using CloudApiPrivate.Model;
+using CloudApiPrivate.Common;
 
 namespace win_client.AppDelegate
 {
@@ -56,6 +57,7 @@ namespace win_client.AppDelegate
         private static object InstanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance; 
         private static bool _isWindowPlacedFirstTime = false;
+        private static bool _isUnlinked = false;
         #endregion
         #region Public Properties
 
@@ -298,7 +300,13 @@ namespace win_client.AppDelegate
             //BOOL rc = YES;
             // Note: allocated below.
 
-            //// todo: tell cloud service to untrust this device and wait for confirmation.
+            // Don't run this twice
+            if (_isUnlinked)
+            {
+                error = null;
+                return;
+            }
+
             //CLRegistration *regstration = [[CLRegistration alloc] init];
             //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
             if (!String.IsNullOrEmpty(Settings.Instance.Akey))
@@ -322,6 +330,9 @@ namespace win_client.AppDelegate
             // Remove the Cloud folder if it contains only our Public and Pictures folder.
             RemoveNullCloudFolder();
 
+            // Remove all of the Cloud folder shortcuts
+            CLShortcuts.RemoveCloudFolderShortcuts(Settings.Instance.CloudFolderPath);
+
             //// clean our settings
             //[[CLSettings sharedSettings] resetSettings];
             Settings.Instance.resetSettings();
@@ -336,6 +347,7 @@ namespace win_client.AppDelegate
             //TODO: Stop the badging service.
 
             //return rc;
+            _isUnlinked = true;
         }
 
         /// <summary>
