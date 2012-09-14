@@ -1,0 +1,168 @@
+   '
+   '  CloudClean.vbs
+   '  Cloud Windows
+   '
+   '  Created by BobS.
+   '  Copyright (c) Cloud.com. All rights reserved.
+   '
+
+   ' Parameter: The program files path for this platform.  e.g., C:\Program Files (x86)
+   ' Parameter: The Explorer.exe path.  e.g., c:\Windows
+    
+   Function IsExplorerRunning(explorerPath)
+      IsExplorerRunning = False
+      Dim colProcesses
+      Dim refProcess
+      Dim objWMIService
+
+      Set objWMIService = GetObject("winmgmts:\\.\root\CIMV2") 
+      Set colProcesses = objWMIService.ExecQuery( "SELECT * FROM Win32_Process")
+
+      For Each refProcess In colProcesses
+         If refProcess.ExecutablePath = explorerPath And refProcess.Name = "Explorer" Then
+            IsExplorerRunning = True
+            Exit For
+         End If
+      Next
+   End Function
+
+   '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   ' Don't run if we don't have the necessary parameters
+   wscript.echo("CloudSetup: Arg count: " & wscript.Arguments.Count)
+   If wscript.Arguments.Count < 2 Then
+      wscript.echo("CloudSetup: ERROR: Wrong arguments.")
+      wscript.Quit 1
+   End If
+
+   ' Allocate the objects we will need
+   Dim objShell
+   Dim filesys
+   Dim sTaskKill
+   Dim sProgramFilesDirPath
+   Dim sProgramFilesCloudDirPath
+   Dim sProgramFilesCloudComDirPath
+   Dim sProgramFilesCloudSupportDirPath
+   Dim sExplorerPath
+   Dim folderSupport
+   Dim folderSupportFiles
+   Dim folderCloud
+   Dim folderCloudFiles
+   Dim folderCloudCom
+   Dim folderCloudComFiles
+   Dim objFSO
+   Dim objMOS
+
+   Const DeleteReadOnly = TRUE
+
+   set objShell = wscript.createObject("wscript.shell") 
+   Set filesys = wscript.CreateObject("Scripting.FileSystemObject") 
+
+   ' Determine the program files directory to use
+   sExplorerPath = wscript.Arguments(1)
+   sProgramFilesDirPath = wscript.Arguments(0)
+   sProgramFilesCloudDirPath = sProgramFilesDirPath & "\Cloud.com\Cloud"
+   sProgramFilesCloudComDirPath = sProgramFilesDirPath & "\Cloud.com"
+   sProgramFilesCloudSupportDirPath = sProgramFilesCloudDirPath & "\CloudSupport"
+
+   wscript.echo "CloudSetup: Explorer path:", sExplorerPath
+   wscript.echo "CloudSetup: sProgramFilesDirPath: " & sProgramFilesDirPath
+   wscript.echo "CloudSetup: sProgramFilesCloudDirPath: " & sProgramFilesCloudDirPath
+   wscript.echo "CloudSetup: sProgramFilesCloudComDirPath: " & sProgramFilesCloudComDirPath
+   wscript.echo "CloudSetup: sProgramFilesCloudSupportDirPath: " & sProgramFilesCloudSupportDirPath
+
+   ' Loop trying to complete normally
+   For i = 1 to 3
+      ' Wait for 1 second
+      wscript.echo "CloudSetup: Wait one second..."
+      Wscript.Sleep 1000
+
+      ' Kill Explorer in case it wasn't killed before (as it should be by RegisterCom).
+      wscript.echo "CloudSetup: Kill Explorer."
+      sTaskKill = "taskkill /F /IM explorer.exe"
+      objShell.Run sTaskKill
+
+      ' Wait for Explorer to exit
+      wscript.echo "CloudSetup: Wait for Explorer to exit."
+      Do While True
+         Wscript.Sleep 100
+         If Not IsExplorerRunning(sExplorerPath) Then
+            Exit Do
+         End If
+      Loop
+      wscript.echo "CloudSetup: Explorer exited."
+
+	   ' Unregister BadgeCom.dll if it is present.
+      If filesys.FileExists(sProgramFilesCloudSupportDirPath & "\BadgeCom.dll") Then
+         wscript.echo "CloudSetup: Delete file: " & sProgramFilesCloudSupportDirPath & "\BadgeCom.dll"
+         filesys.DeleteFile(sProgramFilesCloudSupportDirPath & "\BadgeCom.dll")
+      End If
+
+      ' Attempt to delete all files in CloudSupport
+      If filesys.FolderExists(sProgramFilesCloudSupportDirPath & "\") Then
+         set folderSupport = filesys.GetFolder(sProgramFilesCloudSupportDirPath & "\")
+         Set folderSupportFiles = folderSupport.Files
+         If folderSupportFiles.Count > 0 Then
+            wscript.echo "CloudSetup: Delete all files in : " & sProgramFilesCloudSupportDirPath
+            filesys.DeleteFile(sProgramFilesCloudSupportDirPath & "\*.*"), DeleteReadOnly
+         End If
+      End If
+
+      ' If the CloudSupport directory is empty now, delete the directory itself
+      If filesys.FolderExists(sProgramFilesCloudSupportDirPath & "\") Then
+         set folderSupport = filesys.GetFolder(sProgramFilesCloudSupportDirPath & "\")
+         Set folderSupportFiles = folderSupport.Files
+         If folderSupportFiles.Count = 0 Then
+            wscript.echo "CloudSetup: Delete folder: " & sProgramFilesCloudSupportDirPath
+            folderSupport.Delete
+         End If
+      End If 
+
+      ' Delete the trace.log file
+      If filesys.FileExists(sProgramFilesCloudDirPath + "\trace.log") Then
+         wscript.echo "CloudSetup: Delete file: " & sProgramFilesCloudDirPath + "\trace.log"
+         filesys.DeleteFile(sProgramFilesCloudDirPath + "\trace.log")
+      End If
+
+      ' If the Cloud directory is empty
+      If filesys.FolderExists(sProgramFilesCloudDirPath & "\") Then
+         set folderCloud = filesys.GetFolder(sProgramFilesCloudDirPath & "\")
+         Set folderCloudFiles = folderCloud.Files
+         If folderCloudFiles.Count = 0 Then
+            wscript.echo "CloudSetup: Delete folder: " & sProgramFilesCloudDirPath + "\"
+            folderCloud.Delete
+         End If
+      End If
+
+      ' If the Cloud.Com directory is empty
+      If filesys.FolderExists(sProgramFilesCloudComDirPath & "\") Then
+         set folderCloudCom = filesys.GetFolder(sProgramFilesCloudComDirPath & "\")
+         Set folderCloudComFiles = folderCloudCom.Files
+         If folderCloudComFiles.Count = 0 Then
+            wscript.echo "CloudSetup: Delete folder: " & sProgramFilesCloudComDirPath + "\"
+            folderCloudCom.Delete
+         End If
+      End If
+
+      ' If the Cloud.com directory does not exist
+      If Not filesys.FolderExists(sProgramFilesCloudComDirPath & "\") Then
+         wscript.echo "CloudSetup: Exit the loop."
+         Exit For
+      End If 
+   Next
+
+   ' Start Explorer
+   wscript.echo "CloudSetup: Start Explorer: " & sExplorerPath & "\Explorer.exe"
+   objShell.Run sExplorerPath & "\Explorer.exe"
+
+   ' Free resources
+   set objShell = Nothing
+   Set filesys = Nothing
+   set folderSupport = Nothing
+   Set folderSupportFiles = Nothing
+   set folderCloud = Nothing
+   Set folderCloudFiles = Nothing
+   set folderCloudCom = Nothing
+   Set folderCloudComFiles = Nothing
+
+   wscript.Quit 0
+
