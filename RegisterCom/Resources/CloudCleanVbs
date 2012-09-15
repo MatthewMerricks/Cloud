@@ -51,6 +51,7 @@
    Dim folderCloudComFiles
    Dim objFSO
    Dim objMOS
+   Dim sScriptFile
 
    Const DeleteReadOnly = TRUE
 
@@ -164,5 +165,8 @@
    set folderCloudCom = Nothing
    Set folderCloudComFiles = Nothing
 
-   wscript.Quit 0
+   ' Delete ourselves.  This is possible because VBS runs everything out of memory.
+   sScriptFile = Wscript.ScriptFullName
+   filesys.DeleteFile(sScriptFile)
 
+   wscript.Quit 0

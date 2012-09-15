@@ -1,5 +1,0 @@
-REM Parm1: Full path to this CloudClean.cmd file
-REM Parm2: Full path to the CloudClean.vbs file
-REM Parm3: Full path to the platform's program files directory (e.g., C:\Program Files (x86)" for 64-bit.
-REM Parm4: Full path to the directory containing the Explorer.exe file to launch.
-cscript //nologo //T:7 %2 %3 %4c:\utils\vbsTest.vbs "c:\Program Files (x86)" "c:\Windows"

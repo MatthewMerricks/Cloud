@@ -496,9 +496,9 @@ namespace RegisterCom
                 // Finalize the uninstall.  We are running in this assembly, and this assembly has various DLLs loaded and locked, so we can't
                 // just delete them.  We would like to delete all of the files recursively up to c:\program files (x86)\Cloud.com (including Cloud.com)),
                 // assuming that the user hasn't added any files that we or the installer don't know about.  We will save a VBScript file in the user's
-                // temp directory, and a batch file.  We will start a new process naming cmd.exe and the batch file.  The batch file will execute.
-                // It will execute the VBScript file (call).  When the VBScript program is complete, the batch file will delete itself and exit.
-                // Under normal circumstances, the entire ProgramFiles Cloud.com directory should be removed.  The VBScript program will
+                // temp directory.  We will start a new process naming cscript and the VBScript file.  The VBScript file will unregister BadgeCom, clean
+                // up the program files directory, and then delete itself.  We will just exit here so the files will be unlocked so they can
+                // be cleaned up.  Under normal circumstances, the entire ProgramFiles Cloud.com directory should be removed.  The VBScript program will
                 // restart Explorer.
                 FinalizeUninstall();
 
@@ -529,9 +529,9 @@ namespace RegisterCom
                 Trace.WriteLine("RegisterCom: FinalizeUninstall: Entry.");
                 string userTempDirectory = Path.GetTempPath();
                 string vbsPath = userTempDirectory + "\\CloudClean.vbs";
-                string cmdPath = userTempDirectory + "\\CloudClean.cmd";
 
-                // Stream the CloudClean.vbs file
+                // Stream the CloudClean.vbs file out to the temp directory
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Create file <{0}>.", vbsPath));
                 System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(RegisterCom.MainProgram));
                 using (Stream txtStream = storeAssembly.GetManifestResourceStream(storeAssembly.GetName().Name + ".Resources.CloudCleanVbs"))
                 using (FileStream tempStream = new FileStream(vbsPath, FileMode.Create))
@@ -545,69 +545,15 @@ namespace RegisterCom
                     }
                 }
 
-                &&&
-                    cscript //nologo //T:5 c:\utils\vbsTest.vbs "c:\Program Files (x86)" "c:\Windows"
-                // Stream the CloudClean.cmd file
-                storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(RegisterCom.MainProgram));
-                using (Stream txtStream = storeAssembly.GetManifestResourceStream(storeAssembly.GetName().Name + ".Resources.CloudCleanCmd"))
-                using (FileStream tempStream = new FileStream(cmdPath, FileMode.Create))
-                {
-                    byte[] streamBuffer = new byte[4096];
-                    int readAmount;
-
-                    while ((readAmount = txtStream.Read(streamBuffer, 0, 0)) > 0)
-                    {
-                        tempStream.Write(streamBuffer, 0, readAmount);
-                    }
-                }
-
-                // Delete the support files
-                Trace.WriteLine("RegisterCom: FinalizeUninstall: Entry.");
-                string supportPath = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + CLPrivateDefinitions.CloudSupportFolderInProgramFiles;
-                DeleteFile(supportPath, "BadgeCOM.dll");
-                DeleteFile(supportPath, "CloudApiPrivate.dll");
-                DeleteFile(supportPath, "CloudApiPublic.dll");
-                DeleteFile(supportPath, "Microsoft.Net.Http.dll");
-                DeleteFile(supportPath, "RegisterCom.exe");
-
-                // Delete the CloudSupport directory if it is empty
-                if (Directory.GetFiles(supportPath).Length == 0)
-                {
-                    Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Delete the CloudSupport directory at <{0}>.", supportPath));
-                    DirectoryInfo parentInfo = Directory.GetParent(supportPath);
-                    string parentPath = parentInfo.FullName;
-                    Directory.Delete(supportPath);
-                    supportPath = parentPath;
-                }
-
-                // Delete the Trace.log file if it exists
-                Trace.WriteLine("RegisterCom: FinalizeUninstall: Delete the Trace.log file if it exists.");
-                File.Delete(supportPath + "\\Trace.log");
-
-                // Delete the Cloud directory if it is empty.
-                if (Directory.GetFiles(supportPath).Length == 0)
-                {
-                    Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Delete the Cloud directory at <{0}>.", supportPath));
-                    DirectoryInfo parentInfo = Directory.GetParent(supportPath);
-                    string parentPath = parentInfo.FullName;
-                    Directory.Delete(supportPath);
-                    supportPath = parentPath;
-                }
-
-                // Delete the Cloud.com directory if it is empty.
-                if (Directory.GetFiles(supportPath).Length == 0)
-                {
-                    Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Delete the Cloud.com directory at <{0}>.", supportPath));
-                    DirectoryInfo parentInfo = Directory.GetParent(supportPath);
-                    string parentPath = parentInfo.FullName;
-                    Directory.Delete(supportPath);
-                    //supportPath = parentPath;
-                }
+                // Now we will create a new process to run the VBScript file.
+                Trace.WriteLine("RegisterCom: FinalizeUninstall: Launch the VBScript file.");
+                System.Diagnostics.Process.Start(@"cscript //B //T:5 //Nologo " + vbsPath);
             }
             catch (Exception ex)
             {
-
+                Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: Exception. Msg: {0}.", ex.Message);
             }
+            Trace.WriteLine("RegisterCom: FinalizeUninstall: Exit.");
         }
 
         private static void DeleteFile(string supportPath, string filenameExt)
