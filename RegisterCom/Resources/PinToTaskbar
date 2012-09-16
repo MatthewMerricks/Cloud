@@ -1,0 +1,117 @@
+﻿    '
+    '  PinToTaskbar.vbs
+    '  Cloud Windows
+    '
+    '  Created by BobS.
+    '  Copyright (c) Cloud.com. All rights reserved.
+    '
+    '  Mostly from: http://wayneye.wordpress.com/2010/07/17/programmatically-pin-shortcut-onto-taskbar-on-win7/
+    '
+    ' Parameter: The full path to the user's Desktop folder.
+    ' Parameter: The name of the shortcut file in the user's Desktop folder (without the extension).
+    ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Users\BobLaptop\Desktop" "Shortcut"
+    
+    Option Explicit 
+
+    Const ForReading = 1
+    Const ForWriting = 2
+    Const ForAppending = 8
+    'Const CSIDL_COMMON_PROGRAMS = &H17 
+
+    Dim objShell
+    Dim filesys
+    Dim Desktop 
+    Dim LnkFile 
+    Dim logFileFullPath
+
+    ' Global variables
+    Dim shouldTrace
+   
+    Set objShell = CreateObject("Shell.Application") 
+    Set filesys = CreateObject("Scripting.FileSystemObject") 
+ 
+    ' Set the following variable to False to turn off trace   
+    shouldTrace = True
+    logFileFullPath = filesys.GetSpecialFolder(2) & "\CloudTrace.log"
+
+    ' Trace function
+    Sub WriteLog(LogMessage)
+       Dim objLogFile
+ 
+       If shouldTrace Then
+          wscript.echo Now() & ": " & LogMessage
+          Set objLogFile = filesys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
+          objLogFile.Writeline(Now() & ": " & LogMessage)
+          objLogFile.Close
+          set objLogFile = Nothing
+       End If
+    End Sub
+
+    ' Try pattern
+    Class PinToTaskbar
+        ' Constructor
+        Private Sub Class_Initialize
+            WriteLog("PinToTaskbar: ERROR: Wrong arguments.")
+
+            ' Don't run if we don't have the necessary parameters
+            WriteLog("PinToTaskbar: Arg count: " & wscript.Arguments.Count)
+            If wscript.Arguments.Count < 2 Then
+                WriteLog("PinToTaskbar: ERROR: Wrong arguments.")
+                Exit Sub
+            End If
+
+            'Set StartMenuFolder = objShell.NameSpace(CSIDL_COMMON_PROGRAMS) 
+            WriteLog("PinToTaskbar: Desktop path: " & wscript.Arguments(0))
+            Set Desktop =  objShell.NameSpace(wscript.Arguments(0)) 
+			 
+            WriteLog("PinToTaskbar: Lnk file path: " & wscript.Arguments(1))
+            LnkFile = Desktop.Self.Path & wscript.Arguments(1) & ".lnk"
+    
+            If(filesys.FileExists(LnkFile)) Then 
+                Dim tmp, verb 
+    
+	            WriteLog("PinToTaskbar: Lnk file exists.")
+                'For Each verb in Desktop.ParseName("ScheduleNotifier.lnk").Verbs 
+                    'tmp = tmp&verb&chr(13) 
+                'Next 
+
+                'MsgBox(tmp) 
+
+                Dim desktopItems, item 
+
+                Set desktopItems = Desktop.Items() 
+                For Each item in desktopItems 
+                    If (item.Name = wscript.Arguments(1)) Then 
+			            WriteLog("PinToTaskbar: Found the desktop items.")
+                        'MsgBox(item.Name) 
+                        For Each verb in item.Verbs 
+                            If (verb.Name = "Pin to Tas&kbar") Then 'If (verb.Name = "锁定到任务栏(&K)") 
+					            WriteLog("PinToTaskbar: Found the Taskbar verb.")
+                                verb.DoIt 
+                            End If 
+                        Next 
+                    End If 
+                Next 
+            End If 
+            WriteLog("PinToTaskbar: Exit constructor.")
+        End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
+            ' Catch
+            Select Case Err.Number
+                Case Else WriteLog("CloudClean: Unhandled error " & Err.Number & " occurred.")
+            End Select
+        Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
+            ' Finally
+            WriteLog("CloudClean: Exiting constructor (finally).")
+        End Sub 
+    End Class
+
+    ' Drive the main program
+    WriteLog("PinToTaskbar: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    WriteLog("PinToTaskbar: Drive the main program.")
+    With New PinToTaskbar : End With
+    WriteLog("PinToTaskbar: Exit 0.")
+   
+    ' No tracing after this
+    set objShell = Nothing
+    set filesys = Nothing
+    wscript.Quit 0

@@ -17,6 +17,8 @@ using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Common;
 using System.Reflection;
+using System.Threading;
+using System.Diagnostics;
 
 namespace CloudApiPrivate.Common
 {
@@ -127,23 +129,148 @@ namespace CloudApiPrivate.Common
         }
 
         /// <summary>
+        /// Write an embedded resource file out to the file system as a real file
+        /// </summary>
+        /// <param name="assembly">The assembly containing the resource.</param>
+        /// <param name="resourceName">The name of the resource.</param>
+        /// <param name="targetFileFullPath">The full path of the target file.</param>
+        /// <returns>int: 0: success.  Otherwise, error code.</returns>
+        public static int WriteResourceFileToFilesystemFile(Assembly storeAssembly, string resourceName, string targetFileFullPath)
+        {
+            try
+            {
+                _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: Entry: resource: {0}. targetFileFullPath: {1}.", resourceName, targetFileFullPath));
+                _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName(): <{0}>.", storeAssembly.GetName()));
+                _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName().Name: <{0}>.", storeAssembly.GetName() != null ? storeAssembly.GetName().Name : "ERROR: Not Set!"));
+                using (Stream txtStream = storeAssembly.GetManifestResourceStream(storeAssembly.GetName().Name + ".Resources." + resourceName))
+                {
+                    if (txtStream == null)
+                    {
+                        _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: txtStream null.");
+                        return 1;
+                    }
+                    using (FileStream tempStream = new FileStream(targetFileFullPath, FileMode.Create))
+                    {
+                        if (tempStream == null)
+                        {
+                            _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: tempStream null.");
+                            return 2;
+                        }
+
+                        byte[] streamBuffer = new byte[4096];
+                        int readAmount;
+
+                        while ((readAmount = txtStream.Read(streamBuffer, 0, 4096)) > 0)
+                        {
+                            _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: Write {0} bytes to the .vbs file.", readAmount));
+                            tempStream.Write(streamBuffer, 0, readAmount);
+                        }
+                        _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: Finished writing the .vbs file.");
+                    }
+                }
+
+                // For some reason, Windows is dozing (WinDoze?).  The file we just wrote does not immediately appear in the
+                // file system, and the process we will launch next won't find it.  Wait until we can see it in the file system.  ????
+                for (int i = 0; i < 10; i++)
+                {
+                    if (System.IO.File.Exists(targetFileFullPath))
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(50);
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                return 3;
+            }
+
+            _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: Exit successfully.");
+            return 0;
+        }
+
+        /// <summary>
         /// Add shortcuts to the Cloud folder to various quick-access locations
         /// </summary>
         /// <param name="cloudFolderPath">The path to the Cloud folder.</param>
         public static void AddCloudFolderShortcuts(string cloudFolderPath)
         {
-            if (!String.IsNullOrWhiteSpace(cloudFolderPath))
+            try
             {
-                // Add or update the various Cloud folder shortcuts because the Cloud folder path has just changed.
-                string cloudIconPath = Assembly.GetEntryAssembly().Location;
+                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Entry. cloudFolderPath: <{0}>.", cloudFolderPath));
+                if (!String.IsNullOrWhiteSpace(cloudFolderPath))
+                {
+                    // Add or update the various Cloud folder shortcuts because the Cloud folder path has just changed.
+                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Get the location of the Cloud icon.");
+                    string cloudIconPath = Assembly.GetEntryAssembly().Location;
+                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Cloud icon path: <{0}>.", cloudIconPath));
 
-                string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
-                CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Favorites), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
-                CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
-                CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, explorerFavoritesPath, Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                    string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
+                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: ExplorerFavoritesPath: <{0}>.", explorerFavoritesPath));
+                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Favorites), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, explorerFavoritesPath, Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                    // CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                
+                    // Set the folder Cloud icon.
+                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Set the folder Cloud icon.");
+                    CLShortcuts.SetCloudFolderIcon(Settings.Instance.CloudFolderPath, cloudIconPath, "View the Cloud folder");
 
-                // Set the folder Cloud icon.
-                CLShortcuts.SetCloudFolderIcon(Settings.Instance.CloudFolderPath, cloudIconPath, "View the Cloud folder");
+                    // Pin the Cloud folder path shortcut to the taskbar.  First, write a VBScript file to handle this task.
+                    // Stream the CloudClean.vbs file out to the user's temp directory
+                    // Locate the user's temp directory.
+                    string userTempDirectory = Path.GetTempPath();
+                    string vbsPath = userTempDirectory + "\\PinToTaskbar.vbs";
+                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Target location of .vbs file: <{0}>.", vbsPath));
+
+                    // Get the assembly containing the .vbs resource.
+                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Get the assembly containing the .vbs resource.");
+                    System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(CloudApiPrivate.Common.CLShortcuts));
+                    if (storeAssembly == null)
+                    {
+                        _trace.writeToLog(1, "CLShortcuts: AddCloudFolderShortcuts: ERROR: storeAssembly null");
+                        return;
+                    }
+
+                    // Stream the CloudClean.vbs file out to the temp directory
+                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Call WriteResourceFileToFilesystemFile.");
+                    int rc = WriteResourceFileToFilesystemFile(storeAssembly, "PinToTaskbar", vbsPath);
+                    if (rc != 0)
+                    {
+                        _trace.writeToLog(1, "CLShortcuts: AddCloudFolderShortcuts: ERROR: From WriteResourceFileToFilesystemFile.");
+                        return;
+                    }
+                
+                    // Now create a new process to run the VBScript file.
+                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Build the paths for launching the VBScript file.");
+                    string systemFolderPath = GetSystemFolderPathForBitness();
+                    string cscriptPath = systemFolderPath + "\\cscript.exe";
+                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Cscript executable path: <{0}>.", cscriptPath));
+
+                    string parm1Path = GetProgramFilesFolderPathForBitness();
+                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Parm 1: <{0}>.", parm1Path));
+
+                    string parm2Path = Environment.GetEnvironmentVariable("SystemRoot");
+                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Parm 2: <{0}>.", parm2Path));
+
+                    string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""" + @" """ + parm1Path + @""" """ + parm2Path + @"""";
+                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
+            
+                    // Launch the process
+                    ProcessStartInfo startInfo = new ProcessStartInfo();
+                    startInfo.CreateNoWindow = true;
+                    startInfo.UseShellExecute = false;
+                    startInfo.FileName = cscriptPath;
+                    startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    startInfo.Arguments = argumentsString;
+                    Process.Start(startInfo);
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
@@ -165,6 +292,36 @@ namespace CloudApiPrivate.Common
             CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Favorites));
             CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
             CLShortcuts.RemoveCloudFolderShortcutFromFolder(explorerFavoritesPath);
+        }
+
+        public static string GetProgramFilesFolderPathForBitness()
+        {
+            // Determine whether 32-bit or 64-bit architecture
+            if (IntPtr.Size == 4)
+            {
+                // 32-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            }
+            else
+            {
+                // 64-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            }
+        }
+
+        public static string GetSystemFolderPathForBitness()
+        {
+            // Determine whether 32-bit or 64-bit architecture
+            if (IntPtr.Size == 4)
+            {
+                // 32-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.System);
+            }
+            else
+            {
+                // 64-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
+            }
         }
     }
 }

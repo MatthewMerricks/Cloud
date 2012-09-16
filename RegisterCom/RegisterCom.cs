@@ -259,7 +259,8 @@ namespace RegisterCom
                 }
 
                 // Register BadgeCOM.dll in the CloudSupport folder.
-                string pathUninstallFiles = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
+                string pathUninstallFiles = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + 
+                    CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
 
                 Trace.WriteLine(String.Format("RegisterCom: Call RegisterAssembly. Path: <{0}>.", pathUninstallFiles));
                 rcLocal = RegisterAssembly(pathUninstallFiles);
@@ -309,7 +310,7 @@ namespace RegisterCom
         private static int CopyFilesNeededForUninstall()
         {
             // Build AnyCpu "from" directory
-            string fromDirectory = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
+            string fromDirectory = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
 
             // Build bitness "from" directory
             string fromDirectoryBitness;
@@ -334,7 +335,8 @@ namespace RegisterCom
                 Directory.CreateDirectory(toDirectory);
 
                 // Copy the files
-                Trace.WriteLine(String.Format("RegisterCom: CopyFilesNeededForUninstall: Entry. fromDirectory: <{0}>. fromDirectoryBitness: <{1}>. toDirectory: <{2}>.", fromDirectory, fromDirectoryBitness, toDirectory));
+                Trace.WriteLine(String.Format("RegisterCom: CopyFilesNeededForUninstall: Entry. fromDirectory: <{0}>. fromDirectoryBitness: <{1}>. toDirectory: <{2}>.", 
+                            fromDirectory, fromDirectoryBitness, toDirectory));
                 CopyFileWithDeleteFirst(fromDirectoryBitness, toDirectory, "BadgeCOM.dll");
                 CopyFileWithDeleteFirst(fromDirectory, toDirectory, "RegisterCom.exe");
                 CopyFileWithDeleteFirst(fromDirectory, toDirectory, "CloudApiPrivate.dll");
@@ -372,36 +374,6 @@ namespace RegisterCom
             {
                 Trace.WriteLine(String.Format("RegisterCom: CopyFileWithDeleteFirst: ERROR: Exception.  Msg: {0}.", ex.Message));
                 throw;
-            }
-        }
-
-        private static string GetProgramFilesFolderPathForBitness()
-        {
-            // Determine whether 32-bit or 64-bit architecture
-            if (IntPtr.Size == 4)
-            {
-                // 32-bit 
-                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            }
-            else
-            {
-                // 64-bit 
-                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            }
-        }
-
-        private static string GetSystemFolderPathForBitness()
-        {
-            // Determine whether 32-bit or 64-bit architecture
-            if (IntPtr.Size == 4)
-            {
-                // 32-bit 
-                return Environment.GetFolderPath(Environment.SpecialFolder.System);
-            }
-            else
-            {
-                // 64-bit 
-                return Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
             }
         }
 
@@ -466,7 +438,8 @@ namespace RegisterCom
                 explorerLocation = StopExplorer();
 
                 // The BadgeCOM.dll was registered in the Cloud program files CloudSupport directory.  Find it there and unregister it.
-                string pathToCopiedBadgeCOM = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
+                string pathToCopiedBadgeCOM = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + 
+                        CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
                 if (File.Exists(pathToCopiedBadgeCOM))
                 {
                     // Unregister BadgeCOM
@@ -547,67 +520,37 @@ namespace RegisterCom
         {
             try
             {
+                // Stream the CloudClean.vbs file out to the user's temp directory
                 // Locate the user's temp directory.
                 Trace.WriteLine("RegisterCom: FinalizeUninstall: Entry.");
                 string userTempDirectory = Path.GetTempPath();
                 string vbsPath = userTempDirectory + "\\CloudClean.vbs";
 
-                // Stream the CloudClean.vbs file out to the temp directory
-                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Create file <{0}>.", vbsPath));
+                // Get the assembly containing the .vbs resource.
+                Trace.WriteLine("RegisterCom: FinalizeUninstall: Get the assembly containing the .vbs resource.");
                 System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(RegisterCom.MainProgram));
                 if (storeAssembly == null)
                 {
                     Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: storeAssembly null.");
                     return 1;
                 }
-                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: ERROR: storeAssembly.GetName(): <{0}>.", storeAssembly.GetName()));
-                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: ERROR: storeAssembly.GetName().Name: <{0}>.", storeAssembly.GetName() != null ? storeAssembly.GetName().Name : "ERROR: Not Set!"));
-                using (Stream txtStream = storeAssembly.GetManifestResourceStream(storeAssembly.GetName().Name + ".Resources.CloudCleanVbs"))
+
+                // Stream the CloudClean.vbs file out to the temp directory
+                Trace.WriteLine("RegisterCom: Call WriteResourceFileToFilesystemFile.");
+                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudCleanVbs", vbsPath);
+                if (rc != 0)
                 {
-                    if (txtStream == null)
-                    {
-                        Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: txtStream null.");
-                        return 2;
-                    }
-                    using (FileStream tempStream = new FileStream(vbsPath, FileMode.Create))
-                    {
-                        if (tempStream == null)
-                        {
-                            Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: tempStream null.");
-                            return 3;
-                        }
-
-                        byte[] streamBuffer = new byte[4096];
-                        int readAmount;
-
-                        while ((readAmount = txtStream.Read(streamBuffer, 0, 4096)) > 0)
-                        {
-                            Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Write {0} bytes to the .vbs file.", readAmount));
-                            tempStream.Write(streamBuffer, 0, readAmount);
-                        }
-                        Trace.WriteLine("RegisterCom: FinalizeUninstall: Finished writing the .vbs file.");
-                    }
+                    Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100));
+                    return rc + 100;
                 }
-
-                // For some reason, Windows is dozing (WinDoze?).  The file we just wrote does not immediately appear in the
-                // file system, and the process we will launch next won't find it.  Wait until we can see it in the file system.  ????
-                for (int i = 0; i < 10; i++)
-                {
-                    if (File.Exists(vbsPath))
-                    {
-                        break;
-                    }
-
-                    Thread.Sleep(100);
-                }
-
+                
                 // Now we will create a new process to run the VBScript file.
                 Trace.WriteLine("RegisterCom: FinalizeUninstall: Build the paths for launching the VBScript file.");
-                string systemFolderPath = GetSystemFolderPathForBitness();
+                string systemFolderPath = CLShortcuts.GetSystemFolderPathForBitness();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
                 Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Cscript executable path: <{0}>.", cscriptPath));
 
-                string parm1Path = GetProgramFilesFolderPathForBitness();
+                string parm1Path = CLShortcuts.GetProgramFilesFolderPathForBitness();
                 Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Parm 1: <{0}>.", parm1Path));
 
                 string parm2Path = Environment.GetEnvironmentVariable("SystemRoot");

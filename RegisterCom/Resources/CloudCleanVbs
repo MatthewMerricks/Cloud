@@ -12,7 +12,6 @@
    
    Option Explicit
 
-   Const LOG_FILE = "c:\Trash\CloudLog.txt"
    Const ForReading = 1
    Const ForWriting = 2
    Const ForAppending = 8
@@ -24,9 +23,11 @@
    Dim shouldTrace
    Dim shouldExplorerBeStarted
    Dim sExplorerPath
+   Dim logFileFullPath
    
    shouldTrace = True
    shouldExplorerBeStarted = True
+   logFileFullPath = filesys.GetSpecialFolder(2) & "\CloudTrace.log"
    
    Set filesys = wscript.CreateObject("Scripting.FileSystemObject") 
    Set objShell = wscript.createObject("wscript.shell") 
@@ -37,7 +38,7 @@
  
       If shouldTrace Then
          wscript.echo Now() & ": " & LogMessage
-         Set objLogFile = filesys.OpenTextFile(LOG_FILE, ForAppending, TRUE)
+         Set objLogFile = filesys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
          objLogFile.Writeline(Now() & ": " & LogMessage)
          objLogFile.Close
          set objLogFile = Nothing
@@ -89,7 +90,7 @@
    End Sub
 
    '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-   ' Try/Catch pattern
+   ' Try pattern
    Class CloudClean
       Private Sub Class_Initialize
          WriteLog("CloudClean: Constructor entry.")

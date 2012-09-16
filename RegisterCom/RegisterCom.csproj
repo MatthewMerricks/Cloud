@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Artwork\cloud.ico" />
+    <None Include="Resources\PinToTaskbar" />
     <EmbeddedResource Include="Resources\CloudCleanVbs" />
   </ItemGroup>
   <ItemGroup>
