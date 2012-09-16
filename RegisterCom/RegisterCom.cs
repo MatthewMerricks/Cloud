@@ -390,6 +390,21 @@ namespace RegisterCom
             }
         }
 
+        private static string GetSystemFolderPathForBitness()
+        {
+            // Determine whether 32-bit or 64-bit architecture
+            if (IntPtr.Size == 4)
+            {
+                // 32-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.System);
+            }
+            else
+            {
+                // 64-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
+            }
+        }
+
         private static string GenerateTab(int tabCount)
         {
             return new string(Enumerable.Range(0, tabCount).Select(parent => ' ').ToArray());
@@ -404,15 +419,16 @@ namespace RegisterCom
             string explorerLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
             try
             {
+                // Kill Explorer
                 Trace.WriteLine(String.Format("RegisterCom: StopExplorer: Entry. Explorer location: <{0}>.", explorerLocation));
-                System.Diagnostics.Process process = new System.Diagnostics.Process();
-                System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-                startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                startInfo.FileName = "cmd.exe";
-                startInfo.Arguments = "/C taskkill /F /IM explorer.exe";
-                process.StartInfo = startInfo;
+                ProcessStartInfo taskKillInfo = new ProcessStartInfo();
+                taskKillInfo.CreateNoWindow = true;
+                taskKillInfo.UseShellExecute = false;
+                taskKillInfo.FileName = "cmd.exe";
+                taskKillInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                taskKillInfo.Arguments = "/C taskkill /F /IM explorer.exe";
                 Trace.WriteLine("RegisterCom: StopExplorer: Start the command.");
-                process.Start();
+                Process.Start(taskKillInfo);
 
                 // Wait for all Explorer processes to stop.
                 const int maxProcessWaits = 40; // corresponds to trying for 20 seconds (if each iteration waits 500 milliseconds)
@@ -500,15 +516,21 @@ namespace RegisterCom
                 // up the program files directory, and then delete itself.  We will just exit here so the files will be unlocked so they can
                 // be cleaned up.  Under normal circumstances, the entire ProgramFiles Cloud.com directory should be removed.  The VBScript program will
                 // restart Explorer.
-                FinalizeUninstall();
-
+                Trace.WriteLine("RegisterCom: UninstallCOM: Call FinalizeUninstall.");
+                int rc = FinalizeUninstall();
+                if (rc != 0)
+                {
+                    // Restart Explorer
+                    Trace.WriteLine("RegisterCom: UninstallCOM: Start Explorer.");
+                    Process.Start(explorerLocation);
+                }
             }
             catch (Exception ex)
             {
                 Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: ERROR.  Exception.  Msg: {0}.", ex.Message));
 
                 // Restart Explorer
-                Trace.WriteLine("RegisterCom: UninstallCOM: Start Explorer");
+                Trace.WriteLine("RegisterCom: UninstallCOM: Start Explorer.");
                 Process.Start(explorerLocation);
 
                 return 105;
@@ -521,7 +543,7 @@ namespace RegisterCom
         /// <summary>
         /// Finalize the uninstall
         /// </summary>
-        private static void FinalizeUninstall()
+        private static int FinalizeUninstall()
         {
             try
             {
@@ -533,27 +555,84 @@ namespace RegisterCom
                 // Stream the CloudClean.vbs file out to the temp directory
                 Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Create file <{0}>.", vbsPath));
                 System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(RegisterCom.MainProgram));
-                using (Stream txtStream = storeAssembly.GetManifestResourceStream(storeAssembly.GetName().Name + ".Resources.CloudCleanVbs"))
-                using (FileStream tempStream = new FileStream(vbsPath, FileMode.Create))
+                if (storeAssembly == null)
                 {
-                    byte[] streamBuffer = new byte[4096];
-                    int readAmount;
-
-                    while ((readAmount = txtStream.Read(streamBuffer, 0, 0)) > 0)
+                    Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: storeAssembly null.");
+                    return 1;
+                }
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: ERROR: storeAssembly.GetName(): <{0}>.", storeAssembly.GetName()));
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: ERROR: storeAssembly.GetName().Name: <{0}>.", storeAssembly.GetName() != null ? storeAssembly.GetName().Name : "ERROR: Not Set!"));
+                using (Stream txtStream = storeAssembly.GetManifestResourceStream(storeAssembly.GetName().Name + ".Resources.CloudCleanVbs"))
+                {
+                    if (txtStream == null)
                     {
-                        tempStream.Write(streamBuffer, 0, readAmount);
+                        Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: txtStream null.");
+                        return 2;
+                    }
+                    using (FileStream tempStream = new FileStream(vbsPath, FileMode.Create))
+                    {
+                        if (tempStream == null)
+                        {
+                            Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: tempStream null.");
+                            return 3;
+                        }
+
+                        byte[] streamBuffer = new byte[4096];
+                        int readAmount;
+
+                        while ((readAmount = txtStream.Read(streamBuffer, 0, 4096)) > 0)
+                        {
+                            Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Write {0} bytes to the .vbs file.", readAmount));
+                            tempStream.Write(streamBuffer, 0, readAmount);
+                        }
+                        Trace.WriteLine("RegisterCom: FinalizeUninstall: Finished writing the .vbs file.");
                     }
                 }
 
+                // For some reason, Windows is dozing (WinDoze?).  The file we just wrote does not immediately appear in the
+                // file system, and the process we will launch next won't find it.  Wait until we can see it in the file system.  ????
+                for (int i = 0; i < 10; i++)
+                {
+                    if (File.Exists(vbsPath))
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(100);
+                }
+
                 // Now we will create a new process to run the VBScript file.
-                Trace.WriteLine("RegisterCom: FinalizeUninstall: Launch the VBScript file.");
-                System.Diagnostics.Process.Start(@"cscript //B //T:5 //Nologo " + vbsPath);
+                Trace.WriteLine("RegisterCom: FinalizeUninstall: Build the paths for launching the VBScript file.");
+                string systemFolderPath = GetSystemFolderPathForBitness();
+                string cscriptPath = systemFolderPath + "\\cscript.exe";
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Cscript executable path: <{0}>.", cscriptPath));
+
+                string parm1Path = GetProgramFilesFolderPathForBitness();
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Parm 1: <{0}>.", parm1Path));
+
+                string parm2Path = Environment.GetEnvironmentVariable("SystemRoot");
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Parm 2: <{0}>.", parm2Path));
+
+                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""" + @" """ + parm1Path + @""" """ + parm2Path + @"""";
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
+            
+                // Launch the process
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.FileName = cscriptPath;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.Arguments = argumentsString;
+                Process.Start(startInfo);
             }
             catch (Exception ex)
             {
-                Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: Exception. Msg: {0}.", ex.Message);
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: ERROR: Exception. Msg: {0}.", ex.Message));
+                return 4;
             }
-            Trace.WriteLine("RegisterCom: FinalizeUninstall: Exit.");
+
+            Trace.WriteLine("RegisterCom: FinalizeUninstall: Exit successfully.");
+            return 0;
         }
 
         private static void DeleteFile(string supportPath, string filenameExt)
