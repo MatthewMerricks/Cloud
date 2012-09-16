@@ -222,7 +222,7 @@ namespace CloudApiPrivate.Common
                     // Stream the CloudClean.vbs file out to the user's temp directory
                     // Locate the user's temp directory.
                     string userTempDirectory = Path.GetTempPath();
-                    string vbsPath = userTempDirectory + "\\PinToTaskbar.vbs";
+                    string vbsPath = userTempDirectory + "PinToTaskbar.vbs";
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Target location of .vbs file: <{0}>.", vbsPath));
 
                     // Get the assembly containing the .vbs resource.
@@ -234,7 +234,7 @@ namespace CloudApiPrivate.Common
                         return;
                     }
 
-                    // Stream the CloudClean.vbs file out to the temp directory
+                    // Stream the PinToTaskbar.vbs file out to the temp directory
                     _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Call WriteResourceFileToFilesystemFile.");
                     int rc = WriteResourceFileToFilesystemFile(storeAssembly, "PinToTaskbar", vbsPath);
                     if (rc != 0)
@@ -249,10 +249,10 @@ namespace CloudApiPrivate.Common
                     string cscriptPath = systemFolderPath + "\\cscript.exe";
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Cscript executable path: <{0}>.", cscriptPath));
 
-                    string parm1Path = GetProgramFilesFolderPathForBitness();
+                    string parm1Path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Parm 1: <{0}>.", parm1Path));
 
-                    string parm2Path = Environment.GetEnvironmentVariable("SystemRoot");
+                    string parm2Path = "PinToTaskbar";
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Parm 2: <{0}>.", parm2Path));
 
                     string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""" + @" """ + parm1Path + @""" """ + parm2Path + @"""";
@@ -272,6 +272,7 @@ namespace CloudApiPrivate.Common
             {
                 _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
+            _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Exit.");
         }
 
         /// <summary>
