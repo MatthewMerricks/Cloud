@@ -5,11 +5,11 @@
     '  Created by BobS.
     '  Copyright (c) Cloud.com. All rights reserved.
     '
-    '  Mostly from: http://wayneye.wordpress.com/2010/07/17/programmatically-pin-shortcut-onto-taskbar-on-win7/
+    '  Mostly from: http://wayneye.wordpress.com/2010/07/17/programmatically-pin-shortcut-onto-taskbar-on-win7/, and others.
     '
-    ' Parameter: The full path to the user's Desktop folder.
-    ' Parameter: The name of the shortcut file in the user's Desktop folder (without the extension).
-    ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Users\BobLaptop\Desktop" "Shortcut"
+    ' Parameter: The full path to the folder containing the application.exe or shortcut to pin to the taskbar.
+    ' Parameter: The name of the application or shortcut file in the folder above (without the extension).
+    ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Program Files (x86)\Cloud.com\Cloud" "ShowCloudFolder"
     
     Option Explicit 
 
@@ -20,9 +20,11 @@
 
     Dim objShell
     Dim filesys
-    Dim Desktop 
-    Dim LnkFile 
+    Dim targetFolder 
+    Dim LnkFilePath 
+    Dim LnkFile
     Dim logFileFullPath
+	Dim sScriptFile
 
     ' Global variables
     Dim shouldTrace
@@ -51,7 +53,7 @@
     Class PinToTaskbar
         ' Constructor
         Private Sub Class_Initialize
-            WriteLog("PinToTaskbar: ERROR: Wrong arguments.")
+            WriteLog("PinToTaskbar: Constructor entry.")
 
             ' Don't run if we don't have the necessary parameters
             WriteLog("PinToTaskbar: Arg count: " & wscript.Arguments.Count)
@@ -61,47 +63,65 @@
             End If
 
             'Set StartMenuFolder = objShell.NameSpace(CSIDL_COMMON_PROGRAMS) 
-            WriteLog("PinToTaskbar: Desktop path: " & wscript.Arguments(0))
-            Set Desktop =  objShell.NameSpace(wscript.Arguments(0)) 
+            WriteLog("PinToTaskbar: targetFolder path: " & wscript.Arguments(0))
+            Set targetFolder =  objShell.NameSpace(wscript.Arguments(0)) 
 			 
             WriteLog("PinToTaskbar: Lnk file path: " & wscript.Arguments(1))
-            LnkFile = Desktop.Self.Path & wscript.Arguments(1) & ".lnk"
+            LnkFilePath = targetFolder.Self.Path & "\" & wscript.Arguments(1) & ".lnk"
+            LnkFile = wscript.Arguments(1) & ".lnk"
+            
+			if Not filesys.FileExists(LnkFilePath) Then
+	          WriteLog("PinToTaskbar: Lnk file path: " & wscript.Arguments(1) & ".lnk does not exist.  Try the .exe file.")
+			  LnkFilePath = targetFolder.Self.Path & "\" & wscript.Arguments(1) & ".exe"
+              LnkFile = wscript.Arguments(1) & ".exe"
+			End If
+			WriteLog("PinToTaskbar: LnkFilePath: " & LnkFilePath)
     
-            If(filesys.FileExists(LnkFile)) Then 
+            If(filesys.FileExists(LnkFilePath)) Then 
                 Dim tmp, verb 
     
-	            WriteLog("PinToTaskbar: Lnk file exists.")
-                'For Each verb in Desktop.ParseName("ScheduleNotifier.lnk").Verbs 
-                    'tmp = tmp&verb&chr(13) 
-                'Next 
+	            WriteLog("PinToTaskbar: Lnk file exists: " & LnkFilePath)
+                tmp = ""
+                Dim myItem
+                Set myItem = targetFolder.ParseName(LnkFile)
 
-                'MsgBox(tmp) 
+                For Each verb in myItem.Verbs 
+                    tmp = tmp & verb & ", " 
+                Next 
+                WriteLog("PinToTaskbar: Verbs: <" & tmp & ">.")
 
-                Dim desktopItems, item 
+                Dim itemList, item 
 
-                Set desktopItems = Desktop.Items() 
-                For Each item in desktopItems 
-                    If (item.Name = wscript.Arguments(1)) Then 
-			            WriteLog("PinToTaskbar: Found the desktop items.")
-                        'MsgBox(item.Name) 
+                Set itemList = targetFolder.Items() 
+                For Each item in itemList 
+                    WriteLog("PinToTaskbar: Item name: " & item.Name)
+                    If (item.Name = LnkFile) Then 
+			            WriteLog("PinToTaskbar: Found the target folder item.")
                         For Each verb in item.Verbs 
-                            If (verb.Name = "Pin to Tas&kbar") Then 'If (verb.Name = "锁定到任务栏(&K)") 
+                            If (verb.Name = "Pin to Tas&kbar") Then 
 					            WriteLog("PinToTaskbar: Found the Taskbar verb.")
                                 verb.DoIt 
                             End If 
                         Next 
                     End If 
                 Next 
+            Else
+	            WriteLog("PinToTaskbar: ERROR: Lnk file <" & LnkFilePath & "> does not exist.")
             End If 
             WriteLog("PinToTaskbar: Exit constructor.")
         End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
             ' Catch
             Select Case Err.Number
-                Case Else WriteLog("CloudClean: Unhandled error " & Err.Number & " occurred.")
+                Case Else WriteLog("PinToTaskbar: Unhandled error " & Err.Number & " occurred.")
             End Select
         Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
             ' Finally
-            WriteLog("CloudClean: Exiting constructor (finally).")
+            WriteLog("PinToTaskbar: Exiting constructor (finally).")
+
+			' Delete ourselves.  This is possible because VBS runs everything out of memory.
+            sScriptFile = Wscript.ScriptFullName
+            WriteLog "PinToTaskbar: Delete this file.  PinToTaskbar.vbs full path: " & sScriptFIle
+            filesys.DeleteFile sScriptFile, True
         End Sub 
     End Class
 
@@ -115,3 +135,6 @@
     set objShell = Nothing
     set filesys = Nothing
     wscript.Quit 0
+
+
+

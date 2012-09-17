@@ -54,7 +54,7 @@
 
         <TextBlock TextWrapping="Wrap" Text="Select the location for your Cloud folder." Foreground="Black" FontSize="17" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="Auto" />
 
-        <Image Source="/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4"/>
+        <Image Source="/Cloud;component/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4"/>
 
         <Grid Grid.Column="1" ColumnSpan="4" Grid.Row="1">
     		<Grid.RowDefinitions>

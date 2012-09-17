@@ -61,7 +61,7 @@ namespace CloudApiPrivate.Common
                 //
                 // 3. After that, save the shortcut file in the "Favourites" folder.
                 // Specify the path to the shortcut (.lnk) file.  We append the shortcut filename to the already discovered "Favourites" path.
-                targetFolder += CLPrivateDefinitions.CloudFolderShortcutFilenameExt;
+                targetFolder += "\\" + CLPrivateDefinitions.CloudFolderShortcutFilename + ".lnk";
 
                 // Create a WshShell object.
                 WshShell wsh = new WshShell();
@@ -101,7 +101,7 @@ namespace CloudApiPrivate.Common
                 _trace.writeToLog(9, "CLShortcuts: RemoveCloudFolderShortcutToFolder: Entry. Target folder: <{0}>.", targetFolder);
 
                 // Specify the path to the shortcut (.lnk) file.  We append the shortcut filename to the already discovered "Favourites" path.
-                targetFolder += CLPrivateDefinitions.CloudFolderShortcutFilenameExt;
+                targetFolder += "\\" + CLPrivateDefinitions.CloudFolderShortcutFilename + ".lnk";
 
                 // Delete the file
                 System.IO.File.Delete(targetFolder);
@@ -128,6 +128,8 @@ namespace CloudApiPrivate.Common
             folderIcon.CreateFolderIcon(iconPath, toolTip);
         }
 
+        private static readonly Encoding UTF8WithoutBOM = new UTF8Encoding(false);
+
         /// <summary>
         /// Write an embedded resource file out to the file system as a real file
         /// </summary>
@@ -149,23 +151,37 @@ namespace CloudApiPrivate.Common
                         _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: txtStream null.");
                         return 1;
                     }
-                    using (FileStream tempStream = new FileStream(targetFileFullPath, FileMode.Create))
+
+                    using (TextReader txtReader = new StreamReader(txtStream,
+                        Encoding.Unicode,
+                        true,
+                        4096))
                     {
-                        if (tempStream == null)
+                        if (txtReader == null)
                         {
-                            _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: tempStream null.");
+                            _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: txtReader null.");
                             return 2;
                         }
 
-                        byte[] streamBuffer = new byte[4096];
-                        int readAmount;
-
-                        while ((readAmount = txtStream.Read(streamBuffer, 0, 4096)) > 0)
+                        using (StreamWriter tempStream = new StreamWriter(targetFileFullPath, false, UTF8WithoutBOM, 4096))
                         {
-                            _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: Write {0} bytes to the .vbs file.", readAmount));
-                            tempStream.Write(streamBuffer, 0, readAmount);
+                            if (tempStream == null)
+                            {
+                                _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: tempStream null.");
+                                return 3;
+                            }
+
+                            char[] streamBuffer = new char[4096];
+                            int readAmount;
+
+                            while ((readAmount = txtReader.ReadBlock(streamBuffer, 0, 4096)) > 0)
+                            {
+                                _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: Write {0} bytes to the .vbs file.", readAmount));
+                                tempStream.Write(streamBuffer, 0, readAmount);
+                            }
+
+                            _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: Finished writing the .vbs file.");
                         }
-                        _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: Finished writing the .vbs file.");
                     }
                 }
 
@@ -184,7 +200,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 _trace.writeToLog(1, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: Exception.  Msg: <{0}>.", ex.Message));
-                return 3;
+                return 4;
             }
 
             _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: Exit successfully.");
@@ -212,8 +228,7 @@ namespace CloudApiPrivate.Common
                     CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Favorites), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
                     CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
                     CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, explorerFavoritesPath, Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
-                    // CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
-                
+
                     // Set the folder Cloud icon.
                     _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Set the folder Cloud icon.");
                     CLShortcuts.SetCloudFolderIcon(Settings.Instance.CloudFolderPath, cloudIconPath, "View the Cloud folder");
@@ -249,13 +264,16 @@ namespace CloudApiPrivate.Common
                     string cscriptPath = systemFolderPath + "\\cscript.exe";
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Cscript executable path: <{0}>.", cscriptPath));
 
-                    string parm1Path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                    // Parm 1 should be the full path of the Program Files Cloud installation directory.
+                    string parm1Path = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Parm 1: <{0}>.", parm1Path));
 
-                    string parm2Path = "PinToTaskbar";
+                    // Parm 2 should be the filename of the .exe or .lnk file that will be pinned to the taskbar (without the extension)
+                    string parm2Path = CLPrivateDefinitions.ShowCloudFolderProgramFilenameOnly;
+
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Parm 2: <{0}>.", parm2Path));
 
-                    string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""" + @" """ + parm1Path + @""" """ + parm2Path + @"""";
+                    string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @""" """ + parm1Path + @""" """ + parm2Path + @"""";
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
             
                     // Launch the process

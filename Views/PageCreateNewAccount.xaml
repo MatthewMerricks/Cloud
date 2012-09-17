@@ -74,8 +74,8 @@
     			    <ColumnDefinition Width="0.556*"/>
     			    <ColumnDefinition Width="0.096*"/>
     		    </Grid.ColumnDefinitions>
-                
-                <Image Grid.ColumnSpan="3" Grid.RowSpan="10" Source="/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" /> 
+
+            <Image Grid.ColumnSpan="3" Grid.RowSpan="10" Source="/Cloud;component/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" /> 
                 
                 <TextBox Name="tbEMail" TextAlignment="Left" Foreground="Black" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"
                          Text="{Binding EMail, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="12"

@@ -49,7 +49,7 @@
             <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
         </Grid.Background>
 
-        <Image Source="/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" Grid.Row="1" Grid.Column="1" />
+        <Image Source="/Cloud;component/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" Grid.Row="1" Grid.Column="1" />
         <TextBlock x:Name="tblkStatus" TextWrapping="Wrap" Foreground="Black" FontSize="14" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Grid.Row="1" Grid.Column="1" Margin="5,5,5,5" 
                    Text="Page 3 of the Cloud tour (TBD)." Padding="100"/>
 

@@ -14,6 +14,7 @@ using win_client.Common;
 using BadgeNET;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
+using System.Windows.Media.Imaging;
 
 namespace win_client
 {
@@ -79,7 +80,11 @@ namespace win_client
             CLError error = IconOverlay.Initialize(Settings.Instance.CloudFolderPath);
             CLAppDelegate app = CLAppDelegate.Instance;                 // fire up the singleton
 
+            // Instantiate a new window
             MyNavigationWindow window = new MyNavigationWindow();
+
+            // Set the window's icon
+            window.Icon = BitmapFrame.Create(GetResourceStream(new Uri("/Cloud;component/Artwork/Cloud.ico", UriKind.RelativeOrAbsolute)).Stream);
             window.ShowsNavigationUI = false;
 
             //    // Set the window to display, selected in CLAppDelegate.initAppDelegate.  
