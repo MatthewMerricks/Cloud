@@ -112,7 +112,7 @@ namespace Sync
                         return _instanceTo;
                     }
                 default:
-                    // if a new SyncDirection was added, this class needs to be updated to work with it, until then throw this exception
+                    // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
                     throw new NotSupportedException("Unknown SyncDirection: " + direction.ToString());
             }
         }
@@ -131,58 +131,80 @@ namespace Sync
         {
             try
             {
-                (new Thread(() =>
+                lock (GCOverrideLocker)
                 {
-                    // conditions for this while loop should cause the thread to keep running so long as both currently instantiated HttpSchedulers are not disposed;
-                    // in other words, if at least one has been instantiated and all that have been instantiated have been disposed
-                    Func<bool> continueGarbageCollecting = () =>
+                    if (!GCOverrideInitialized
+                        && (_instanceFrom != null || _instanceTo != null))
                     {
+                        bool instanceFound;
                         lock (instanceFromLocker)
+                        {
+                            instanceFound = _instanceFrom != null;
+                        }
+                        if (!instanceFound)
                         {
                             lock (instanceToLocker)
                             {
-                                return !(_instanceFrom == null && _instanceTo == null)
-                                    && ((!HttpScheduler.FromDisposed && !HttpScheduler.ToDisposed)
-                                        || (HttpScheduler.FromDisposed && _instanceTo != null && !HttpScheduler.ToDisposed)
-                                        || (_instanceFrom != null && !HttpScheduler.FromDisposed && HttpScheduler.ToDisposed));
+                                instanceFound = _instanceTo != null;
                             }
                         }
-                    };
-                    // if condition is met for continuing to override the minimum garbage collection interval
-                    while (continueGarbageCollecting())
-                    {
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
 
-                        int garbageCollectionRoundedSeconds = Convert.ToInt32(Math.Floor(GarbageCollectionMinimumIntervalSeconds));
-                        double remainderSeconds = GarbageCollectionMinimumIntervalSeconds - (double)garbageCollectionRoundedSeconds;
-
-                        if (remainderSeconds > 0)
+                        (new Thread(() =>
                         {
-                            for (int sleepCounter = 0; sleepCounter < garbageCollectionRoundedSeconds; sleepCounter++)
+                            // conditions for this while loop should cause the thread to keep running so long as both currently instantiated HttpSchedulers are not disposed;
+                            // in other words, if at least one has been instantiated and all that have been instantiated have been disposed
+                            Func<bool> continueGarbageCollecting = () =>
                             {
-                                Thread.Sleep(1000);// sleep for one second for this second iteration
-                                if (!continueGarbageCollecting())
+                                lock (instanceFromLocker)
                                 {
-                                    return;
+                                    lock (instanceToLocker)
+                                    {
+                                        return !(_instanceFrom == null && _instanceTo == null)
+                                            && ((!HttpScheduler.FromDisposed && !HttpScheduler.ToDisposed)
+                                                || (HttpScheduler.FromDisposed && _instanceTo != null && !HttpScheduler.ToDisposed)
+                                                || (_instanceFrom != null && !HttpScheduler.FromDisposed && HttpScheduler.ToDisposed));
+                                    }
+                                }
+                            };
+                            // if condition is met for continuing to override the minimum garbage collection interval
+                            while (continueGarbageCollecting())
+                            {
+                                GC.Collect();
+                                GC.WaitForPendingFinalizers();
+
+                                int garbageCollectionRoundedSeconds = Convert.ToInt32(Math.Floor(GarbageCollectionMinimumIntervalSeconds));
+                                double remainderSeconds = GarbageCollectionMinimumIntervalSeconds - (double)garbageCollectionRoundedSeconds;
+
+                                if (remainderSeconds > 0)
+                                {
+                                    for (int sleepCounter = 0; sleepCounter < garbageCollectionRoundedSeconds; sleepCounter++)
+                                    {
+                                        Thread.Sleep(1000);// sleep for one second for this second iteration
+                                        if (!continueGarbageCollecting())
+                                        {
+                                            return;
+                                        }
+                                    }
+                                    Thread.Sleep((int)(remainderSeconds * 1000));
+                                }
+                                else
+                                {
+                                    for (int sleepCounter = 0; sleepCounter < garbageCollectionRoundedSeconds - 1; sleepCounter++)
+                                    {
+                                        Thread.Sleep(1000);// sleep for one second for this second iteration
+                                        if (!continueGarbageCollecting())
+                                        {
+                                            return;
+                                        }
+                                    }
+                                    Thread.Sleep(1000);// sleep for one second for this second iteration
                                 }
                             }
-                            Thread.Sleep((int)(remainderSeconds * 1000));
-                        }
-                        else
-                        {
-                            for (int sleepCounter = 0; sleepCounter < garbageCollectionRoundedSeconds - 1; sleepCounter++)
-                            {
-                                Thread.Sleep(1000);// sleep for one second for this second iteration
-                                if (!continueGarbageCollecting())
-                                {
-                                    return;
-                                }
-                            }
-                            Thread.Sleep(1000);// sleep for one second for this second iteration
-                        }
+                        })).Start();
+
+                        GCOverrideInitialized = true;
                     }
-                })).Start();
+                }
             }
             catch (Exception ex)
             {

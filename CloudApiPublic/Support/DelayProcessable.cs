@@ -38,10 +38,6 @@ namespace CloudApiPublic.Support
         private bool startedDelay = false;
         // resetable timer, default to lock on first wait (not set)
         private readonly AutoResetEvent delayEvent = new AutoResetEvent(false);
-        // locker for delay event (cannot lock on event while it's being disposed)
-        private readonly object delayEventLocker = new object();
-        // indicates when delay event is disposed
-        private bool delayEventDisposed = false;
         // boolean to store whether call to reset delay has begun waiting for a pulse-back from processing thread
         private bool waitingForReset = false;
         // field where the synchronization locker is stored (locked when DelayCompleted boolean is read or written to)
@@ -159,14 +155,7 @@ namespace CloudApiPublic.Support
                     // or maxDelays is reached
                     while (true)
                     {
-                        bool timerSet = false;
-                        lock (nonNullState.Key.delayEventLocker)
-                        {
-                            if (nonNullState.Key.delayEventDisposed)
-                            {
-                                timerSet = true;
-                            }
-                        }
+                        bool timerSet = nonNullState.Key.DelayCompleted;
 
                         if (!timerSet)
                         {
@@ -197,27 +186,29 @@ namespace CloudApiPublic.Support
                             // If timer was reset on another thread and the delay counter is less than the amount allowed,
                             // Prepare timer for another waiting round
 
+                            Func<bool> isWaitingForReset = () =>
+                                {
+                                    lock (this)
+                                    {
+                                        return nonNullState.Key.waitingForReset;
+                                    }
+                                };
+
                             // Ensure the timer reset thread is waiting for synchronization by continually waiting and checking
-                            while (nonNullState.Key.waitingForReset)
+                            while (isWaitingForReset())
                             {
                                 // Arbitrary time to wait for reset thread to synchronize, it may never even hit this sleep
                                 Thread.Sleep(50);
                             }
                             // Lock on AutoResetEvent to synchronize with reset thread
-                            lock (nonNullState.Key.delayEventLocker)
+                            lock (nonNullState.Key.delayEvent)
                             {
-                                if (!nonNullState.Key.delayEventDisposed)
-                                {
-                                    lock (nonNullState.Key.delayEvent)
-                                    {
-                                        // Record new timer reset
-                                        nonNullState.Key.delayCounter++;
-                                        // Reset timer for waiting again on next loop
-                                        nonNullState.Key.delayEvent.Reset();
-                                        // Pulse reset thread to continue
-                                        Monitor.Pulse(nonNullState.Key.delayEvent);
-                                    }
-                                }
+                                // Record new timer reset
+                                nonNullState.Key.delayCounter++;
+                                // Reset timer for waiting again on next loop
+                                nonNullState.Key.delayEvent.Reset();
+                                // Pulse reset thread to continue
+                                Monitor.Pulse(nonNullState.Key.delayEvent);
                             }
                         }
                         // Timer completed (timed out), stop reset loop to continue onto processing
@@ -236,16 +227,10 @@ namespace CloudApiPublic.Support
                         nonNullState.Key.DelayCompleted = true;
 
                         // Lock on AutoResetEvent to synchronize with reset thread
-                        lock (nonNullState.Key.delayEventLocker)
+                        lock (nonNullState.Key.delayEvent)
                         {
-                            if (!nonNullState.Key.delayEventDisposed)
-                            {
-                                lock (nonNullState.Key.delayEvent)
-                                {
-                                    // Pulse remaining reset threads so they all continue
-                                    Monitor.PulseAll(nonNullState.Key.delayEvent);
-                                }
-                            }
+                            // Pulse remaining reset threads so they all continue
+                            Monitor.PulseAll(nonNullState.Key.delayEvent);
                         }
 
                         // Run any preprocessing actions queued in the synchronized context
@@ -328,18 +313,12 @@ namespace CloudApiPublic.Support
                     // reset delay timer
                     delayEvent.Set();
                     // Lock on AutoResetEvent to synchronize with processing thread
-                    lock (delayEventLocker)
+                    lock (delayEvent)
                     {
-                        if (!delayEventDisposed)
-                        {
-                            lock (delayEvent)
-                            {
-                                // stop waiting for reset, allows processing thread to continue and pulse-back
-                                waitingForReset = false;
-                                // wait for pulse-back
-                                Monitor.Wait(delayEvent);
-                            }
-                        }
+                        // stop waiting for reset, allows processing thread to continue and pulse-back
+                        waitingForReset = false;
+                        // wait for pulse-back
+                        Monitor.Wait(delayEvent);
                     }
                 }
             }
@@ -416,23 +395,10 @@ namespace CloudApiPublic.Support
                     // Run dispose on inner managed objects based on disposing condition
                     if (disposing)
                     {
-                        lock (delayEventLocker)
-                        {
-                            if (!delayEventDisposed)
-                            {
-                                lock (delayEvent)
-                                {
-                                    Monitor.PulseAll(delayEvent);
+                        // trigger processing thread to break out
+                        delayEvent.Set();
 
-                                    // trigger processing thread to break out
-                                    delayEvent.Set();
-
-                                    delayEvent.Dispose();
-
-                                    delayEventDisposed = true;
-                                }
-                            }
-                        }
+                        delayEvent.Dispose();
                     }
 
                     // Dispose local unmanaged resources last
@@ -443,17 +409,17 @@ namespace CloudApiPublic.Support
         private static void PostDelayProcessor(object state)
         {
             Func<bool> checkDisposed = () =>
+            {
+                ProcessTerminationLocker.EnterReadLock();
+                try
                 {
-                    ProcessTerminationLocker.EnterReadLock();
-                    try
-                    {
-                        return ProcessingTerminated;
-                    }
-                    finally
-                    {
-                        ProcessTerminationLocker.ExitReadLock();
-                    }
-                };
+                    return ProcessingTerminated;
+                }
+                finally
+                {
+                    ProcessTerminationLocker.ExitReadLock();
+                }
+            };
 
             while (!checkDisposed())
             {
@@ -466,7 +432,7 @@ namespace CloudApiPublic.Support
                         IsProcessThreadRunning = false;
                         break;
                     }
-                    
+
                     toRun = ProcessingQueue.Dequeue();
                     remainingCount = ProcessingQueue.Count;
                 }

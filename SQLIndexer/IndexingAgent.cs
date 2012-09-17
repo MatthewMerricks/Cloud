@@ -568,7 +568,7 @@ namespace SQLIndexer
 
                 // If change is marked for adding to SQL,
                 // then process database addition
-                foreach (FileChange newEvent in newEvents.Where(newEvent => !newEvent.DoNotAddToSQLIndex))
+                foreach (FileChange newEvent in newEvents.Where(newEvent => newEvent.EventId == 0 || !newEvent.DoNotAddToSQLIndex))
                 {
                     string newPathString = newEvent.NewPath.ToString();
 
@@ -636,7 +636,7 @@ namespace SQLIndexer
                     foreach (KeyValuePair<FileChange, GenericHolder<long>> currentAddedEvent in orderToChange.Values)
                     {
                         currentAddedEvent.Key.EventId = currentAddedEvent.Value.Value;
-                        ProcessNewEventBadge(currentAddedEvent.Key, null);
+                        IconOverlay.QueueNewEventBadge(currentAddedEvent.Key, null);
                     }
                 }
             }
@@ -994,7 +994,7 @@ namespace SQLIndexer
 
                         Action<cloudAppIconBadgeType, FilePath> setBadge = (badgeType, badgePath) =>
                             {
-                                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(badgeType), badgePath);
+                                IconOverlay.QueueSetBadge(badgeType, badgePath);
                             };
 
                         List<Event> eventsToUpdate = new List<Event>();
@@ -1391,9 +1391,9 @@ namespace SQLIndexer
                         FileChange eventToRemove = currentMergeToFrom.Value;
 
                         // Continue to next iteration if boolean set indicating not to add to SQL
-                        if (mergedEvent.DoNotAddToSQLIndex)
+                        if (mergedEvent.DoNotAddToSQLIndex && mergedEvent.EventId != 0)
                         {
-                            ProcessNewEventBadge(mergedEvent, eventToRemove);
+                            IconOverlay.QueueNewEventBadge(mergedEvent, eventToRemove);
                             continue;
                         }
 
@@ -1609,7 +1609,7 @@ namespace SQLIndexer
                             || toUpdate.ContainsKey(currentMergeToFrom.Key.EventId)
                             || toDelete.Contains(currentMergeToFrom.Key.EventId))
                         {
-                            ProcessNewEventBadge(currentMergeToFrom.Key, currentMergeToFrom.Value);
+                            IconOverlay.QueueNewEventBadge(currentMergeToFrom.Key, currentMergeToFrom.Value);
                         }
                     }
                 }
@@ -1619,67 +1619,6 @@ namespace SQLIndexer
                 }
             }
             return toReturn;
-        }
-
-        private static void ProcessNewEventBadge(FileChange mergedEvent, FileChange eventToRemove)
-        {
-            Action<cloudAppIconBadgeType, FilePath> setBadge = (badgeType, badgePath) =>
-            {
-                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(badgeType), badgePath);
-            };
-
-            // Update the badges for this merged event.
-            //TODO: Do we need to do anything with the eventToRemove?
-            if (mergedEvent != null)
-            {
-                switch (mergedEvent.Type)
-                {
-                    case FileChangeType.Deleted:
-                        switch (mergedEvent.Direction)
-                        {
-                            case SyncDirection.From:
-                                setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
-                                break;
-                            case SyncDirection.To:
-                                bool isDeleted;
-                                IconOverlay.DeleteBadgePath(mergedEvent.NewPath, out isDeleted);
-                                break;
-                            default:
-                                throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());
-                        }
-                        break;
-                    case FileChangeType.Created:
-                    case FileChangeType.Modified:
-                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
-                        break;
-                    case FileChangeType.Renamed:
-                        switch (mergedEvent.Direction)
-                        {
-                            case SyncDirection.From:
-                                setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
-                                break;
-                            case SyncDirection.To:
-                                IconOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
-
-                                setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
-                                break;
-                            default:
-                                throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());
-                        }
-                        break;
-                    default:
-                        throw new NotSupportedException("Unknown mergedEvent.Type: " + mergedEvent.Type.ToString());
-                }
-
-                if (eventToRemove != null)
-                {
-                    throw new NotImplementedException("Have not handled badging when two events are merged together");
-                }
-            }
-            else
-            {
-                setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, eventToRemove.NewPath);
-            }
         }
 
         /// <summary>
@@ -1762,7 +1701,7 @@ namespace SQLIndexer
                             // add in server-linked objects
                             existingObjectsAtPath = existingObjectsAtPath.Concat(SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
                                 "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[ServerLinked] = 1 AND [FileSystemObjects].[FileSystemObjectId] IN (" +
-                                string.Join(", ", existingObjectsAtPath.Select(currentExistingObject => currentExistingObject.FileSystemObjectId.ToString()).ToArray())));
+                                string.Join(", ", existingObjectsAtPath.Select(currentExistingObject => currentExistingObject.FileSystemObjectId.ToString()).ToArray()) + ")"));
                         }
 
                         Dictionary<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>> newPathStates = new Dictionary<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>>();
@@ -1882,7 +1821,7 @@ namespace SQLIndexer
 
                 Action<FilePath> setBadgeSynced = syncedPath =>
                     {
-                        IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), syncedPath);
+                        IconOverlay.QueueSetBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, syncedPath);
                     };
 
                 // Adjust the badge for this completed event.

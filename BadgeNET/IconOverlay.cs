@@ -1261,5 +1261,178 @@ namespace BadgeNET
             return cloudAppIconBadgeType.cloudAppBadgeSynced;
         }
         #endregion
+
+        #region badge queue
+        public static void QueueNewEventBadge(FileChange mergedEvent, FileChange eventToRemove)
+        {
+            QueueBadgeParams(new badgeParams.newEvent(mergedEvent, eventToRemove));
+        }
+        public static void QueueSetBadge(cloudAppIconBadgeType badgeType, FilePath badgePath)
+        {
+            QueueBadgeParams(new badgeParams.genericSetter(badgeType, badgePath));
+        }
+        private static readonly Queue<badgeParams.baseParams> setBadgeQueue = new Queue<badgeParams.baseParams>();
+        private static bool badgesQueueing = false;
+        private static void QueueBadgeParams(badgeParams.baseParams toQueue)
+        {
+            lock (Instance)
+            {
+                if (_instance.Disposed)
+                {
+                    return;
+                }
+            }
+
+            lock (setBadgeQueue)
+            {
+                if (badgesQueueing)
+                {
+                    setBadgeQueue.Enqueue(toQueue);
+                }
+                else
+                {
+                    badgesQueueing = true;
+                    ThreadPool.UnsafeQueueUserWorkItem(BadgeParamsProcessor, toQueue);
+                }
+            }
+        }
+        private static void BadgeParamsProcessor(object firstBadge)
+        {
+            badgeParams.baseParams firstBadgeCast = firstBadge as badgeParams.baseParams;
+
+            if (firstBadgeCast != null)
+            {
+                firstBadgeCast.Process();
+            }
+
+            Func<badgeParams.baseParams> keepProcessing = () =>
+            {
+                lock (Instance)
+                {
+                    if (_instance.Disposed)
+                    {
+                        return null;
+                    }
+                }
+
+                lock (setBadgeQueue)
+                {
+                    if (setBadgeQueue.Count == 0)
+                    {
+                        badgesQueueing = false;
+                        return null;
+                    }
+                    return setBadgeQueue.Dequeue();
+                }
+            };
+
+            badgeParams.baseParams currentToProcess;
+            while ((currentToProcess = keepProcessing()) != null)
+            {
+                currentToProcess.Process();
+            }
+        }
+        private static class badgeParams
+        {
+            public abstract class baseParams
+            {
+                protected baseParams() { }
+
+                public abstract void Process();
+            }
+
+            public class genericSetter : baseParams
+            {
+                private cloudAppIconBadgeType badgeType;
+                private FilePath badgePath;
+
+                public genericSetter(cloudAppIconBadgeType badgeType, FilePath badgePath)
+                    : base()
+                {
+                    this.badgeType = badgeType;
+                    this.badgePath = badgePath;
+                }
+
+                public override void Process()
+                {
+                    IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(badgeType), badgePath);
+                }
+            }
+
+            public class newEvent : baseParams
+            {
+                private FileChange mergedEvent;
+                private FileChange eventToRemove;
+
+                public newEvent(FileChange mergedEvent, FileChange eventToRemove)
+                    : base()
+                {
+                    this.mergedEvent = mergedEvent;
+                    this.eventToRemove = eventToRemove;
+                }
+
+                public override void Process()
+                {
+                    Action<cloudAppIconBadgeType, FilePath> setBadge = (badgeType, badgePath) =>
+                    {
+                        IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(badgeType), badgePath);
+                    };
+
+                    // Update the badges for this merged event.
+                    //TODO: Do we need to do anything with the eventToRemove?
+                    if (mergedEvent != null)
+                    {
+                        switch (mergedEvent.Type)
+                        {
+                            case FileChangeType.Deleted:
+                                switch (mergedEvent.Direction)
+                                {
+                                    case SyncDirection.From:
+                                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
+                                        break;
+                                    case SyncDirection.To:
+                                        bool isDeleted;
+                                        IconOverlay.DeleteBadgePath(mergedEvent.NewPath, out isDeleted);
+                                        break;
+                                    default:
+                                        throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());
+                                }
+                                break;
+                            case FileChangeType.Created:
+                            case FileChangeType.Modified:
+                                setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
+                                break;
+                            case FileChangeType.Renamed:
+                                switch (mergedEvent.Direction)
+                                {
+                                    case SyncDirection.From:
+                                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
+                                        break;
+                                    case SyncDirection.To:
+                                        IconOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
+
+                                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
+                                        break;
+                                    default:
+                                        throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());
+                                }
+                                break;
+                            default:
+                                throw new NotSupportedException("Unknown mergedEvent.Type: " + mergedEvent.Type.ToString());
+                        }
+
+                        if (eventToRemove != null)
+                        {
+                            throw new NotImplementedException("Have not handled badging when two events are merged together");
+                        }
+                    }
+                    else if (eventToRemove != null)
+                    {
+                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, eventToRemove.NewPath);
+                    }
+                }
+            }
+        }
+        #endregion
     }
 }

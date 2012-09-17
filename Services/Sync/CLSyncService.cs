@@ -4136,7 +4136,7 @@ namespace win_client.Services.Sync
             //[[CLUIActivityService sharedService] badgeIconAtPath:fileSystemPath withStatus:badge];
             //TODO: Remove this whole module when the redesigned sync is working properly.
             //string fileSystemPath = Settings.Instance.CloudFolderPath + cloudPath;
-            //BadgeNET.IconOverlay.setBadgeType(badge, fileSystemPath);
+            //BadgeNET.IconOverlay.QueueSetBadge(badge, fileSystemPath);
         }
 
         //- (void)retryEvent:(CLEvent *)event isDownload:(BOOL)isDownload

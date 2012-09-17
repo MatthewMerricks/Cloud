@@ -20,6 +20,7 @@ using CloudApiPublic.Static;
 using CloudApiPublic.Support;
 using FileMonitor;
 using BadgeNET;
+using System.Threading;
 
 namespace Sync
 {
@@ -63,6 +64,8 @@ namespace Sync
         private static object TempDownloadsCleanedLocker = new object();
         private static HashSet<Guid> TempDownloads = new HashSet<Guid>();
         private static string TempDownloadsFolder = null;
+
+        private static readonly CancellationTokenSource FullShutdownToken = new CancellationTokenSource();
 
         // EventHandler for when the _failureTimer hits the end of its timer;
         // state object must be the Function which adds failed items to the FileMonitor processing queue
@@ -194,6 +197,19 @@ namespace Sync
             IEnumerable<FileChange> thingsThatWereDependenciesToQueue = null;
             try
             {
+                Monitor.Enter(FullShutdownToken);
+                try
+                {
+                    if (FullShutdownToken.Token.IsCancellationRequested)
+                    {
+                        return toReturn;
+                    }
+                }
+                finally
+                {
+                    Monitor.Exit(FullShutdownToken);
+                }
+
                 // assert parameters are set
                 if (grabChangesFromFileSystemMonitor == null)
                 {
@@ -287,6 +303,21 @@ namespace Sync
                     }
                 }
 
+                syncStatus = "Sync Run temp download files cleaned";
+
+                Monitor.Enter(FullShutdownToken);
+                try
+                {
+                    if (FullShutdownToken.Token.IsCancellationRequested)
+                    {
+                        return toReturn;
+                    }
+                }
+                finally
+                {
+                    Monitor.Exit(FullShutdownToken);
+                }
+
                 IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges;
                 IEnumerable<FileChange> outputChangesInError;
                 lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
@@ -318,6 +349,19 @@ namespace Sync
 
                 syncStatus = "Sync Run grabbed processed changes (with dependencies and final metadata)";
 
+                Monitor.Enter(FullShutdownToken);
+                try
+                {
+                    if (FullShutdownToken.Token.IsCancellationRequested)
+                    {
+                        return toReturn;
+                    }
+                }
+                finally
+                {
+                    Monitor.Exit(FullShutdownToken);
+                }
+
                 // Synchronously or asynchronously fire off all events without dependencies that have a storage key (MDS events);
                 // leave changes that did not complete in the errorsToQueue list so they will be added to the failure queue later;
                 // pull out inner dependencies and append to the enumerable thingsThatWereDependenciesToQueue;
@@ -333,6 +377,11 @@ namespace Sync
 
                             foreach (FileChange currentDependency in thingsThatWereDependenciesToQueue)
                             {
+                                if (currentDependency.EventId == 0)
+                                {
+                                    throw new ArgumentException("Cannot communicate FileChange without EventId");
+                                }
+
                                 // these conditions ensure that no file uploads without FileStreams are processed in the current batch
                                 if (currentDependency.Metadata == null
                                     || currentDependency.Metadata.HashableProperties.IsFolder
@@ -370,6 +419,19 @@ namespace Sync
                 {
                     foreach (KeyValuePair<FileChange, FileStream> topLevelChange in outputChanges)
                     {
+                        Monitor.Enter(FullShutdownToken);
+                        try
+                        {
+                            if (FullShutdownToken.Token.IsCancellationRequested)
+                            {
+                                return toReturn;
+                            }
+                        }
+                        finally
+                        {
+                            Monitor.Exit(FullShutdownToken);
+                        }
+
                         if (topLevelChange.Key.EventId > 0
                             && !preprocessedEventIds.Contains(topLevelChange.Key.EventId)
                             && (topLevelChange.Key.Direction == SyncDirection.From
@@ -418,6 +480,19 @@ namespace Sync
 
                                     nonNullTask.Value.ContinueWith(completeState =>
                                         {
+                                            Monitor.Enter(FullShutdownToken);
+                                            try
+                                            {
+                                                if (FullShutdownToken.Token.IsCancellationRequested)
+                                                {
+                                                    return;
+                                                }
+                                            }
+                                            finally
+                                            {
+                                                Monitor.Exit(FullShutdownToken);
+                                            }
+
                                             if (!completeState.IsFaulted)
                                             {
                                                 CLError sqlCompleteError = completeState.Result.Value(completeState.Result.Key);
@@ -513,6 +588,23 @@ namespace Sync
 
                     syncStatus = "Sync Run server values merged into database";
 
+                    Monitor.Enter(FullShutdownToken);
+                    try
+                    {
+                        if (FullShutdownToken.Token.IsCancellationRequested)
+                        {
+                            completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                            incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                            changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
+                            newSyncId = Helpers.DefaultForType<string>();
+                            return new Exception("Shut down in the middle of communication");
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(FullShutdownToken);
+                    }
+
                     // Within a lock on the failure queue (failureTimer.TimerRunningLocker),
                     // check if each current server action needs to be moved to a dependency under a failure event or a server action in the current batch
                     lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
@@ -604,6 +696,23 @@ namespace Sync
 
                     syncStatus = "Sync Run post-communication dependencies calculated";
 
+                    Monitor.Enter(FullShutdownToken);
+                    try
+                    {
+                        if (FullShutdownToken.Token.IsCancellationRequested)
+                        {
+                            completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                            incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                            changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
+                            newSyncId = Helpers.DefaultForType<string>();
+                            return new Exception("Shut down in the middle of communication");
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(FullShutdownToken);
+                    }
+
                     List<KeyValuePair<KeyValuePair<FileChange, FileStream>, KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>>> asyncTasksToRun = new List<KeyValuePair<KeyValuePair<FileChange, FileStream>, KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>>>();
 
                     // Synchronously complete all local operations without dependencies (exclude file upload/download) and record successful events;
@@ -653,6 +762,23 @@ namespace Sync
 
                     syncStatus = "Sync Run synchronous post-communication operations complete";
 
+                    Monitor.Enter(FullShutdownToken);
+                    try
+                    {
+                        if (FullShutdownToken.Token.IsCancellationRequested)
+                        {
+                            completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                            incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                            changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
+                            newSyncId = Helpers.DefaultForType<string>();
+                            return new Exception("Shut down in the middle of communication");
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(FullShutdownToken);
+                    }
+
                     // Write new Sync point to database with successful events
                     CLError recordSyncError = completeSyncSql(newSyncId, successfulEventIds, Settings.Instance.CloudFolderPath);
                     if (recordSyncError != null)
@@ -661,6 +787,23 @@ namespace Sync
                     }
 
                     syncStatus = "Sync Run new sync point persisted";
+
+                    Monitor.Enter(FullShutdownToken);
+                    try
+                    {
+                        if (FullShutdownToken.Token.IsCancellationRequested)
+                        {
+                            completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                            incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                            changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
+                            newSyncId = Helpers.DefaultForType<string>();
+                            return new Exception("Shut down in the middle of communication");
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(FullShutdownToken);
+                    }
 
                     // Asynchronously fire off all remaining upload/download operations without dependencies
                     foreach (KeyValuePair<KeyValuePair<FileChange, FileStream>, KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask in asyncTasksToRun)
@@ -839,6 +982,26 @@ namespace Sync
             return toReturn;
         }
 
+        /// <summary>
+        /// Call this to terminate all sync threads including active uploads and downloads;
+        /// after calling this, a restart is required to sync again
+        /// </summary>
+        public static void Shutdown()
+        {
+            Monitor.Enter(FullShutdownToken);
+            try
+            {
+                FullShutdownToken.Cancel();
+            }
+            catch
+            {
+            }
+            finally
+            {
+                Monitor.Exit(FullShutdownToken);
+            }
+        }
+
         #region subroutine calls of Sync Run
         private static Exception CompleteFileChange(KeyValuePair<FileChange, FileStream> toComplete, Func<FileChange, CLError> applySyncFromChange, Func<long, CLError> completeSingleEvent, ProcessingQueuesTimer failureTimer, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue, out Nullable<long> immediateSuccessEventId, out Nullable<KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask)
         {
@@ -867,6 +1030,19 @@ namespace Sync
                                     FileChange storeFileChange = null;
                                     try
                                     {
+                                        Monitor.Enter(FullShutdownToken);
+                                        try
+                                        {
+                                            if (FullShutdownToken.Token.IsCancellationRequested)
+                                            {
+                                                return new KeyValuePair<long, Func<long, CLError>>(0, null);
+                                            }
+                                        }
+                                        finally
+                                        {
+                                            Monitor.Exit(FullShutdownToken);
+                                        }
+
                                         DownloadTaskState castState = downloadState as DownloadTaskState;
                                         if (castState == null)
                                         {
@@ -1007,6 +1183,19 @@ namespace Sync
                                                             while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
                                                             {
                                                                 tempFileStream.Write(data, 0, read);
+
+                                                                Monitor.Enter(FullShutdownToken);
+                                                                try
+                                                                {
+                                                                    if (FullShutdownToken.Token.IsCancellationRequested)
+                                                                    {
+                                                                        return new KeyValuePair<long, Func<long, CLError>>(0, null);
+                                                                    }
+                                                                }
+                                                                finally
+                                                                {
+                                                                    Monitor.Exit(FullShutdownToken);
+                                                                }
                                                             }
                                                             tempFileStream.Flush();
                                                         }
@@ -1192,6 +1381,19 @@ namespace Sync
                             FileStream storeFileStream = null;
                             try
                             {
+                                Monitor.Enter(FullShutdownToken);
+                                try
+                                {
+                                    if (FullShutdownToken.Token.IsCancellationRequested)
+                                    {
+                                        return new KeyValuePair<long, Func<long, CLError>>(0, null);
+                                    }
+                                }
+                                finally
+                                {
+                                    Monitor.Exit(FullShutdownToken);
+                                }
+
                                 UploadTaskState castState = uploadState as UploadTaskState;
                                 if (castState == null)
                                 {
@@ -1284,6 +1486,19 @@ namespace Sync
                                     while ((bytesRead = storeFileStream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
                                     {
                                         uploadRequestStream.Write(uploadBuffer, 0, bytesRead);
+
+                                        Monitor.Enter(FullShutdownToken);
+                                        try
+                                        {
+                                            if (FullShutdownToken.Token.IsCancellationRequested)
+                                            {
+                                                return new KeyValuePair<long, Func<long, CLError>>(0, null);
+                                            }
+                                        }
+                                        finally
+                                        {
+                                            Monitor.Exit(FullShutdownToken);
+                                        }
                                     }
                                 }
 
@@ -1504,6 +1719,23 @@ namespace Sync
         {
             try
             {
+                Monitor.Enter(FullShutdownToken);
+                try
+                {
+                    if (FullShutdownToken.Token.IsCancellationRequested)
+                    {
+                        completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                        incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                        changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
+                        newSyncId = Helpers.DefaultForType<string>();
+                        return new Exception("Shut down in the middle of communication");
+                    }
+                }
+                finally
+                {
+                    Monitor.Exit(FullShutdownToken);
+                }
+
                 KeyValuePair<FileChange, FileStream>[] communicationArray = (toCommunicate ?? Enumerable.Empty<KeyValuePair<FileChange, FileStream>>()).ToArray();
                 
                 FilePathDictionary<FileChange> failuresDict = null;
@@ -1686,6 +1918,23 @@ namespace Sync
                     }
                 }
 
+                Monitor.Enter(FullShutdownToken);
+                try
+                {
+                    if (FullShutdownToken.Token.IsCancellationRequested)
+                    {
+                        completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                        incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                        changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
+                        newSyncId = Helpers.DefaultForType<string>();
+                        return new Exception("Shut down in the middle of communication");
+                    }
+                }
+                finally
+                {
+                    Monitor.Exit(FullShutdownToken);
+                }
+
                 // if there is at least one change to communicate or we have a push notification to communicate anyways,
                 // then process communication
                 if (communicationArray.Length > 0)
@@ -1719,6 +1968,23 @@ namespace Sync
                     int totalBatches = (int)Math.Ceiling(((double)communicationArray.Length) / ((double)CLDefinitions.SyncConstantsMaximumSyncToEvents));
                     for (int batchNumber = 0; batchNumber < totalBatches; batchNumber++)
                     {
+                        Monitor.Enter(FullShutdownToken);
+                        try
+                        {
+                            if (FullShutdownToken.Token.IsCancellationRequested)
+                            {
+                                completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                                incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                                changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
+                                newSyncId = Helpers.DefaultForType<string>();
+                                return new Exception("Shut down in the middle of communication");
+                            }
+                        }
+                        finally
+                        {
+                            Monitor.Exit(FullShutdownToken);
+                        }
+
                         KeyValuePair<FileChange, FileStream>[] currentBatch = new KeyValuePair<FileChange,FileStream>[batchNumber == totalBatches - 1
                             ? communicationArray.Length % CLDefinitions.SyncConstantsMaximumSyncToEvents
                             : CLDefinitions.SyncConstantsMaximumSyncToEvents];
@@ -2019,6 +2285,23 @@ namespace Sync
                     HashSet<FileStream> completedStreams = new HashSet<FileStream>();
                     for (int currentEventIndex = 0; currentEventIndex < deserializedResponse.Events.Length; currentEventIndex++)
                     {
+                        Monitor.Enter(FullShutdownToken);
+                        try
+                        {
+                            if (FullShutdownToken.Token.IsCancellationRequested)
+                            {
+                                completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                                incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                                changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
+                                newSyncId = Helpers.DefaultForType<string>();
+                                return new Exception("Shut down in the middle of communication");
+                            }
+                        }
+                        finally
+                        {
+                            Monitor.Exit(FullShutdownToken);
+                        }
+
                         if (duplicatedEvents.BinarySearch(currentEventIndex) < 0)
                         {
                             JsonContracts.Event currentEvent = deserializedResponse.Events[currentEventIndex];
@@ -2770,6 +3053,23 @@ namespace Sync
                             .Where(incompleteChange => incompleteChange.Value.Key.Type == FileChangeType.Renamed)
                             .Select(incompleteChange => incompleteChange.Value.Key))
                         {
+                            Monitor.Enter(FullShutdownToken);
+                            try
+                            {
+                                if (FullShutdownToken.Token.IsCancellationRequested)
+                                {
+                                    completedChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                                    incompleteChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
+                                    changesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>>();
+                                    newSyncId = Helpers.DefaultForType<string>();
+                                    return new Exception("Shut down in the middle of communication");
+                                }
+                            }
+                            finally
+                            {
+                                Monitor.Exit(FullShutdownToken);
+                            }
+
                             if (currentChange.OldPath == null)
                             {
                                 throw new NullReferenceException("OldPath cannot be null if currentChange is of Type Renamed");
@@ -2913,7 +3213,7 @@ namespace Sync
         {
             if (toRetry.FailureCounter == 0)
             {
-                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeFailed),
+                IconOverlay.QueueSetBadge(cloudAppIconBadgeType.cloudAppBadgeFailed,
                     ((toRetry.Direction == SyncDirection.From && toRetry.Type == FileChangeType.Renamed)
                         ? toRetry.OldPath
                         : toRetry.NewPath));
@@ -2929,7 +3229,7 @@ namespace Sync
 
             if (toRetry.NotFoundForStreamCounter == MaxNumberOfNotFounds)
             {
-                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), toRetry.NewPath);
+                IconOverlay.QueueSetBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, toRetry.NewPath);
                 if (mergeToSql != null)
                 {
                     mergeToSql(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(null, toRetry) }, false);
@@ -2950,7 +3250,7 @@ namespace Sync
         {
             foreach (FileChange dependency in (dependencies ?? Enumerable.Empty<FileChange>()))
             {
-                IconOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeFailed),
+                IconOverlay.QueueSetBadge(cloudAppIconBadgeType.cloudAppBadgeFailed,
                     ((dependency.Direction == SyncDirection.From && dependency.Type == FileChangeType.Renamed)
                         ? dependency.OldPath
                         : dependency.NewPath));

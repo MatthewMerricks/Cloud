@@ -14,6 +14,7 @@ using win_client.Common;
 using BadgeNET;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
+using CloudApiPublic.Support;
 
 namespace win_client
 {
@@ -118,6 +119,8 @@ namespace win_client
         { 
             //TODO: Clean up...
             IconOverlay.Shutdown();
+            DelayProcessable<FileChange>.TerminateAllProcessing();
+            Sync.Sync.Shutdown();
         }
     }
 }

@@ -142,6 +142,9 @@ namespace win_client.Services.ServicesManager
                 CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                 CLFSMonitoringService.Instance.EndFileSystemMonitoring();
                 CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
+                DelayProcessable<FileChange>.TerminateAllProcessing();
+                global::Sync.Sync.Shutdown();
+
                 // Outdated, Sync process replaced
                 // -David
                 //CLSyncService.Instance.StopSyncServices();

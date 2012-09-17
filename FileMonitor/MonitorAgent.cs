@@ -1301,15 +1301,20 @@ namespace FileMonitor
                 {
                     lock (QueuesTimer.TimerRunningLocker)
                     {
-                        Func<FileChange, FileChangeWithDependencies> convertChange = toConvert =>
+                        Func<KeyValuePair<FileChangeSource, FileChange>, FileChangeWithDependencies> convertChange = toConvert =>
                             {
                                 FileChangeWithDependencies converted;
-                                CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(toConvert,
-                                    ((toConvert is FileChangeWithDependencies) ? ((FileChangeWithDependencies)toConvert).Dependencies : null),
+                                CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(toConvert.Value,
+                                    ((toConvert.Value is FileChangeWithDependencies) ? ((FileChangeWithDependencies)toConvert.Value).Dependencies : null),
                                     out converted);
                                 if (conversionError != null)
                                 {
                                     throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
+                                }
+                                if (converted.EventId == 0
+                                    && toConvert.Key != FileChangeSource.QueuedChanges)
+                                {
+                                    throw new ArgumentException("Cannot communicate FileChange without EventId; FileChangeSource: " + toConvert.Key.ToString());
                                 }
                                 return converted;
                             };
@@ -1324,10 +1329,12 @@ namespace FileMonitor
                             .Select(currentFileChange => new
                             {
                                 OriginalFileChange = currentFileChange.Value,
-                                DependencyFileChange = convertChange(currentFileChange.Value),
+                                DependencyFileChange = convertChange(currentFileChange),
                                 SourceType = currentFileChange.Key
                             })
                             .ToArray();
+
+                        List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>> queuedChangesNeedMergeToSql = new List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>>();
 
                         Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings = AllFileChanges.ToDictionary(keySelector => keySelector.DependencyFileChange,
                             valueSelector => new KeyValuePair<FileChange, FileChangeSource>(valueSelector.OriginalFileChange, valueSelector.SourceType));
@@ -1345,56 +1352,53 @@ namespace FileMonitor
 
                             if (!PulledChanges.Contains(CurrentDependencyTree.DependencyFileChange))
                             {
-                                Action removeQueuedChangesFromDependencyTree = () =>
+                                Action<List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>>> removeQueuedChangesFromDependencyTree = changesToAdd =>
                                 {
-                                    using (IEnumerator<KeyValuePair<int, FileChange>> queuedChangesEnumerator = EnumerateDependencies(CurrentDependencyTree.DependencyFileChange))
+                                    IEnumerable<KeyValuePair<int, FileChange>> queuedChangesEnumerable = EnumerateDependencies(CurrentDependencyTree.DependencyFileChange);
+                                    foreach (KeyValuePair<int, FileChange> currentQueuedChange in queuedChangesEnumerable)
                                     {
-                                        while (queuedChangesEnumerator.MoveNext())
+                                        FileChangeWithDependencies castEnumeratedQueuedChange;
+                                        KeyValuePair<FileChange, FileChangeSource> mappedOriginalQueuedChange;
+                                        if ((castEnumeratedQueuedChange = currentQueuedChange.Value as FileChangeWithDependencies) != null
+                                            && OriginalFileChangeMappings.TryGetValue(castEnumeratedQueuedChange,
+                                                out mappedOriginalQueuedChange)
+                                            && mappedOriginalQueuedChange.Value == FileChangeSource.QueuedChanges)
                                         {
-                                            FileChangeWithDependencies castEnumeratedQueuedChange;
-                                            KeyValuePair<FileChange, FileChangeSource> mappedOriginalQueuedChange;
-                                            if ((castEnumeratedQueuedChange = queuedChangesEnumerator.Current.Value as FileChangeWithDependencies) != null
-                                                && OriginalFileChangeMappings.TryGetValue(castEnumeratedQueuedChange,
-                                                    out mappedOriginalQueuedChange)
-                                                && mappedOriginalQueuedChange.Value == FileChangeSource.QueuedChanges)
-                                            {
-                                                mappedOriginalQueuedChange.Key.Dispose();
-                                                RemoveFileChangeFromQueuedChanges(mappedOriginalQueuedChange.Key);
-                                            }
+                                            changesToAdd.Add(new KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>(
+                                                new KeyValuePair<FileChange, FileChange>(currentQueuedChange.Value, null),
+                                                mappedOriginalQueuedChange.Key));
                                         }
                                     }
                                 };
 
                                 if (CurrentDependencyTree.SourceType == FileChangeSource.FailureQueue)
                                 {
-                                    removeQueuedChangesFromDependencyTree();
+                                    removeQueuedChangesFromDependencyTree(queuedChangesNeedMergeToSql);
 
                                     OutputFailuresList.Add(CurrentDependencyTree.DependencyFileChange);
                                 }
                                 else
                                 {
                                     bool nonQueuedChangeFound = false;
-
-                                    using (IEnumerator<KeyValuePair<int, FileChange>> nonQueuedChangesEnumerator = EnumerateDependencies(CurrentDependencyTree.DependencyFileChange))
+                                    
+                                    IEnumerable<KeyValuePair<int, FileChange>> nonQueuedChangesEnumerable = EnumerateDependencies(CurrentDependencyTree.DependencyFileChange);
+                                    foreach (KeyValuePair<int, FileChange> currentNonQueuedChange in nonQueuedChangesEnumerable)
                                     {
-                                        while (nonQueuedChangesEnumerator.MoveNext())
+                                        FileChangeWithDependencies castEnumeratedNonQueuedChange;
+                                        KeyValuePair<FileChange, FileChangeSource> mappedOriginalNonQueuedChange;
+                                        if ((castEnumeratedNonQueuedChange = currentNonQueuedChange.Value as FileChangeWithDependencies) != null
+                                            && OriginalFileChangeMappings.TryGetValue(castEnumeratedNonQueuedChange,
+                                                out mappedOriginalNonQueuedChange)
+                                            && mappedOriginalNonQueuedChange.Value != FileChangeSource.QueuedChanges)
                                         {
-                                            FileChangeWithDependencies castEnumeratedNonQueuedChange;
-                                            KeyValuePair<FileChange, FileChangeSource> mappedOriginalNonQueuedChange;
-                                            if ((castEnumeratedNonQueuedChange = nonQueuedChangesEnumerator.Current.Value as FileChangeWithDependencies) != null
-                                                && OriginalFileChangeMappings.TryGetValue(castEnumeratedNonQueuedChange,
-                                                    out mappedOriginalNonQueuedChange)
-                                                && mappedOriginalNonQueuedChange.Value != FileChangeSource.QueuedChanges)
-                                            {
-                                                nonQueuedChangeFound = true;
-                                                break;
-                                            }
+                                            nonQueuedChangeFound = true;
+                                            break;
                                         }
                                     }
 
                                     if (nonQueuedChangeFound)
                                     {
-                                        removeQueuedChangesFromDependencyTree();
+                                        removeQueuedChangesFromDependencyTree(queuedChangesNeedMergeToSql);
 
                                         FileStream OutputStream = null;
                                         bool CurrentFailed = false;
@@ -1505,6 +1509,31 @@ namespace FileMonitor
                             }
                         }
 
+                        CLError queuedChangesSqlError = ProcessMergeToSQL(queuedChangesNeedMergeToSql.Select(currentQueuedChangeToSql => currentQueuedChangeToSql.Key), false);
+                        if (queuedChangesSqlError != null)
+                        {
+                            toReturn += new AggregateException("Error adding QueuedChanges within processing/failed changes dependency tree to SQL", queuedChangesSqlError.GrabExceptions());
+                        }
+                        foreach (KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange> mergedToSql in queuedChangesNeedMergeToSql)
+                        {
+                            try
+                            {
+                                if (mergedToSql.Key.Key.EventId == 0)
+                                {
+                                    throw new ArgumentException("Cannot communicate FileChange without EventId; FileChangeSource: QueuedChanges");
+                                }
+                                else
+                                {
+                                    mergedToSql.Value.Dispose();
+                                    RemoveFileChangeFromQueuedChanges(mergedToSql.Value);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                toReturn += ex;
+                            }
+                        }
+
                         outputChanges = OutputChangesList;
                         outputChangesInError = OutputFailuresList;
                     }
@@ -1524,30 +1553,41 @@ namespace FileMonitor
             FailureQueue,
             ProcessingChanges
         }
-        private IEnumerator<KeyValuePair<int, FileChange>> EnumerateDependencies(FileChange toEnumerate, int currentLevelDeep = 1, bool onlyRenamePathsFromTop = false)
+        private IEnumerable<KeyValuePair<int, FileChange>> EnumerateDependencies(FileChange toEnumerate, int currentLevelDeep = 0, bool onlyRenamePathsFromTop = false)
         {
-            if (toEnumerate != null
+            if (currentLevelDeep == 0)
+            {
+                List<KeyValuePair<int, FileChange>> toReturn = new List<KeyValuePair<int, FileChange>>();
+
+                foreach (KeyValuePair<int, FileChange> currentInnerNode in EnumerateDependencies(toEnumerate, 1, onlyRenamePathsFromTop))
+                {
+                    toReturn.Add(currentInnerNode);
+                }
+
+                return toReturn;
+            }
+            else if (toEnumerate != null
                 && (!onlyRenamePathsFromTop
                     || toEnumerate.Type == FileChangeType.Renamed))
             {
-                yield return new KeyValuePair<int, FileChange>(currentLevelDeep, toEnumerate);
+                KeyValuePair<int, FileChange>[] currentEnumerated = new KeyValuePair<int, FileChange>[] { new KeyValuePair<int, FileChange>(currentLevelDeep, toEnumerate) };
 
                 FileChangeWithDependencies castEnumerate = toEnumerate as FileChangeWithDependencies;
                 if (castEnumerate != null && castEnumerate.DependenciesCount > 0)
                 {
-                    foreach (FileChange currentInnerChange in castEnumerate.Dependencies)
-                    {
-                        using (IEnumerator<KeyValuePair<int, FileChange>> currentInnerChangeEnumerator = EnumerateDependencies(currentInnerChange, currentLevelDeep + 1, onlyRenamePathsFromTop))
-                        {
-                            if (currentInnerChangeEnumerator.MoveNext())
-                            {
-                                yield return currentInnerChangeEnumerator.Current;
-                            }
-                        }
-                    }
+                    return currentEnumerated.Concat(castEnumerate.Dependencies.SelectMany(innerDependency => EnumerateDependencies(innerDependency, currentLevelDeep + 1, onlyRenamePathsFromTop)));
+                }
+                else
+                {
+                    return currentEnumerated;
                 }
             }
+            else
+            {
+                return Enumerable.Empty<KeyValuePair<int, FileChange>>();
+            }
         }
+
         private IEnumerable<FileChange> EnumerateDependenciesFromFileChangeDeepestLevelsFirst(FileChange toEnumerate, bool onlyRenamePathsFromTop = false)
         {
             if (toEnumerate == null)
@@ -1556,18 +1596,17 @@ namespace FileMonitor
             }
 
             List<List<FileChange>> levelsOfDependencies = new List<List<FileChange>>();
-            using (IEnumerator<KeyValuePair<int, FileChange>> dependencyEnumerator = EnumerateDependencies(toEnumerate, onlyRenamePathsFromTop: onlyRenamePathsFromTop))
+
+            IEnumerable<KeyValuePair<int, FileChange>> dependencyEnumerable = EnumerateDependencies(toEnumerate, onlyRenamePathsFromTop: onlyRenamePathsFromTop);
+            foreach (KeyValuePair<int, FileChange> currentDependency in dependencyEnumerable)
             {
-                while (dependencyEnumerator.MoveNext())
+                if (levelsOfDependencies.Count < currentDependency.Key)
                 {
-                    if (levelsOfDependencies.Count < dependencyEnumerator.Current.Key)
-                    {
-                        levelsOfDependencies.Add(new List<FileChange>(new FileChange[] { dependencyEnumerator.Current.Value }));
-                    }
-                    else
-                    {
-                        levelsOfDependencies[dependencyEnumerator.Current.Key - 1].Add(dependencyEnumerator.Current.Value);
-                    }
+                    levelsOfDependencies.Add(new List<FileChange>(new FileChange[] { currentDependency.Value }));
+                }
+                else
+                {
+                    levelsOfDependencies[currentDependency.Key - 1].Add(currentDependency.Value);
                 }
             }
 
@@ -2838,6 +2877,16 @@ namespace FileMonitor
                 {
                     foreach (FileChange nextMerge in mergeAll)
                     {
+                        if (nextMerge.EventId == 0)
+                        {
+                            string noEventIdErrorMessage = "EventId was zero on a FileChange to queue to ProcessingChanges: " +
+                                nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
+
+                            // forces logging even if the setting is turned off in the severe case since a message box had to appear
+                            ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(Settings.Instance.ErrorLogLocation, true);
+                            MessageBox.Show(noEventIdErrorMessage);
+                        }
+
                         ProcessingChanges.AddLast(nextMerge);
                     }
 
