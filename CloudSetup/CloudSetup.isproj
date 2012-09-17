@@ -64,5 +64,9 @@
 			<Name>Dialog.Abstractions.Wpf</Name>
 			<Project>{3697919F-7A1E-43BA-BFDB-3EEC2553DD44}</Project>
 		</ProjectReference>
+		<ProjectReference Include="..\ShowCloudFolder\ShowCloudFolder.csproj">
+			<Name>ShowCloudFolder</Name>
+			<Project>{2C3E07F7-038C-49FC-92D3-A2015E56D781}</Project>
+		</ProjectReference>
 	</ItemGroup>
 </Project>

@@ -120,6 +120,10 @@
   <data name="CloudFolderIconDescription" xml:space="preserve">
     <value>Show the contents of the Cloud folder.</value>
   </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="PinToTaskBar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>PinToTaskbar;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="useProxyHTTP" xml:space="preserve">
     <value>HTTP</value>
     <comment>Enum value friendly name for binding</comment>

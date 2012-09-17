@@ -70,6 +70,26 @@ namespace CloudApiPrivate.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to     &apos;
+        ///    &apos;  PinToTaskbar.vbs
+        ///    &apos;  Cloud Windows
+        ///    &apos;
+        ///    &apos;  Created by BobS.
+        ///    &apos;  Copyright (c) Cloud.com. All rights reserved.
+        ///    &apos;
+        ///    &apos;  Mostly from: http://wayneye.wordpress.com/2010/07/17/programmatically-pin-shortcut-onto-taskbar-on-win7/
+        ///    &apos;
+        ///    &apos; Parameter: The full path to the user&apos;s Desktop folder.
+        ///    &apos; Parameter: The name of the shortcut file in the user&apos;s Desktop folder (without the extension).
+        ///    &apos; Call as &quot;C:\Windows\SysWOW64\cscript.exe&quot; //B //T:30 //Nologo &quot;&lt;path to thi [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string PinToTaskBar {
+            get {
+                return ResourceManager.GetString("PinToTaskBar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to HTTP.
         /// </summary>
         public static string useProxyHTTP {
