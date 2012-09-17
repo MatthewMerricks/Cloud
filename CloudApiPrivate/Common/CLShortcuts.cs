@@ -236,59 +236,78 @@ namespace CloudApiPrivate.Common
                     // Pin the Cloud folder path shortcut to the taskbar.  First, write a VBScript file to handle this task.
                     // Stream the CloudClean.vbs file out to the user's temp directory
                     // Locate the user's temp directory.
-                    string userTempDirectory = Path.GetTempPath();
-                    string vbsPath = userTempDirectory + "PinToTaskbar.vbs";
-                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Target location of .vbs file: <{0}>.", vbsPath));
-
-                    // Get the assembly containing the .vbs resource.
-                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Get the assembly containing the .vbs resource.");
-                    System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(CloudApiPrivate.Common.CLShortcuts));
-                    if (storeAssembly == null)
-                    {
-                        _trace.writeToLog(1, "CLShortcuts: AddCloudFolderShortcuts: ERROR: storeAssembly null");
-                        return;
-                    }
-
-                    // Stream the PinToTaskbar.vbs file out to the temp directory
-                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Call WriteResourceFileToFilesystemFile.");
-                    int rc = WriteResourceFileToFilesystemFile(storeAssembly, "PinToTaskbar", vbsPath);
-                    if (rc != 0)
-                    {
-                        _trace.writeToLog(1, "CLShortcuts: AddCloudFolderShortcuts: ERROR: From WriteResourceFileToFilesystemFile.");
-                        return;
-                    }
-                
-                    // Now create a new process to run the VBScript file.
-                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Build the paths for launching the VBScript file.");
-                    string systemFolderPath = GetSystemFolderPathForBitness();
-                    string cscriptPath = systemFolderPath + "\\cscript.exe";
-                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Cscript executable path: <{0}>.", cscriptPath));
-
-                    // Parm 1 should be the full path of the Program Files Cloud installation directory.
-                    string parm1Path = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
-                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Parm 1: <{0}>.", parm1Path));
-
-                    // Parm 2 should be the filename of the .exe or .lnk file that will be pinned to the taskbar (without the extension)
-                    string parm2Path = CLPrivateDefinitions.ShowCloudFolderProgramFilenameOnly;
-
-                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Parm 2: <{0}>.", parm2Path));
-
-                    string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @""" """ + parm1Path + @""" """ + parm2Path + @"""";
-                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
-            
-                    // Launch the process
-                    ProcessStartInfo startInfo = new ProcessStartInfo();
-                    startInfo.CreateNoWindow = true;
-                    startInfo.UseShellExecute = false;
-                    startInfo.FileName = cscriptPath;
-                    startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                    startInfo.Arguments = argumentsString;
-                    Process.Start(startInfo);
+                    PinShowCloudFolderToTaskbar();
                 }
             }
             catch (Exception ex)
             {
                 _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+            }
+            _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Exit.");
+        }
+
+        /// <summary>
+        /// Pin a shortcut to the ShowCloudFolder.exe program in the Cloud Program Files folder to the taskbar.
+        /// </summary>
+        private static void PinShowCloudFolderToTaskbar()
+        {
+            try
+            {
+                string userTempDirectory = Path.GetTempPath();
+                string vbsPath = userTempDirectory + "PinToTaskbar.vbs";
+                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Target location of .vbs file: <{0}>.", vbsPath));
+
+                // Get the assembly containing the .vbs resource.
+                _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Get the assembly containing the .vbs resource.");
+                System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(CloudApiPrivate.Common.CLShortcuts));
+                if (storeAssembly == null)
+                {
+                    _trace.writeToLog(1, "CLShortcuts: PinShowCloudFolderToTaskbar: ERROR: storeAssembly null");
+                    return;
+                }
+
+                // Stream the PinToTaskbar.vbs file out to the temp directory
+                _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Call WriteResourceFileToFilesystemFile.");
+                int rc = WriteResourceFileToFilesystemFile(storeAssembly, "PinToTaskbar", vbsPath);
+                if (rc != 0)
+                {
+                    _trace.writeToLog(1, "CLShortcuts: PinShowCloudFolderToTaskbar: ERROR: From WriteResourceFileToFilesystemFile.");
+                    return;
+                }
+
+                // Now create a new process to run the VBScript file.
+                _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Build the paths for launching the VBScript file.");
+                string systemFolderPath = GetSystemFolderPathForBitness();
+                string cscriptPath = systemFolderPath + "\\cscript.exe";
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Cscript executable path: <{0}>.", cscriptPath));
+
+                // Parm 1 should be the full path of the Program Files Cloud installation directory.
+                string parm1Path = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 1: <{0}>.", parm1Path));
+
+                // Parm 2 should be the filename of the .exe or .lnk file that will be pinned to the taskbar (without the extension)
+                string parm2Path = CLPrivateDefinitions.ShowCloudFolderProgramFilenameOnly;
+
+                // Parm 3 should be the action ("P": Pin.  "U": Unpin)
+                string parm3 = "P";
+
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 2: <{0}>.", parm2Path));
+
+                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @""" """ + parm1Path + @""" """ + parm2Path + @""" " + parm3;
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
+
+                // Launch the process
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.FileName = cscriptPath;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.Arguments = argumentsString;
+                Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
             _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Exit.");
         }

@@ -7,8 +7,9 @@
     '
     '  Mostly from: http://wayneye.wordpress.com/2010/07/17/programmatically-pin-shortcut-onto-taskbar-on-win7/, and others.
     '
-    ' Parameter: The full path to the folder containing the application.exe or shortcut to pin to the taskbar.
-    ' Parameter: The name of the application or shortcut file in the folder above (without the extension).
+    ' Parameter 1: The full path to the folder containing the application.exe or shortcut to pin to the taskbar.
+    ' Parameter 2: The name of the application or shortcut file in the folder above (without the extension).
+	' Parameter 3: "P": Pin.  "U": Unpin.
     ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Program Files (x86)\Cloud.com\Cloud" "ShowCloudFolder"
     
     Option Explicit 
@@ -25,6 +26,7 @@
     Dim LnkFile
     Dim logFileFullPath
 	Dim sScriptFile
+	Dim sAction
 
     ' Global variables
     Dim shouldTrace
@@ -57,7 +59,7 @@
 
             ' Don't run if we don't have the necessary parameters
             WriteLog("PinToTaskbar: Arg count: " & wscript.Arguments.Count)
-            If wscript.Arguments.Count < 2 Then
+            If wscript.Arguments.Count < 3 Then
                 WriteLog("PinToTaskbar: ERROR: Wrong arguments.")
                 Exit Sub
             End If
@@ -76,6 +78,15 @@
               LnkFile = wscript.Arguments(1) & ".exe"
 			End If
 			WriteLog("PinToTaskbar: LnkFilePath: " & LnkFilePath)
+
+			' Set the mode (Pin or Unpin)
+			if Left(Arguments(2), 1) = "P" then
+                WriteLog("PinToTaskbar: This is a pin action")
+			    sAction = "Pin to Tas&kbar"
+			else
+                WriteLog("PinToTaskbar: This is an unpin action")
+			    sAction = "Unpin from Tas&kbar"
+			end if
     
             If(filesys.FileExists(LnkFilePath)) Then 
                 Dim tmp, verb 
@@ -98,7 +109,7 @@
                     If (item.Name = LnkFile) Then 
 			            WriteLog("PinToTaskbar: Found the target folder item.")
                         For Each verb in item.Verbs 
-                            If (verb.Name = "Pin to Tas&kbar") Then 
+                            If (verb.Name = sAction) Then 
 					            WriteLog("PinToTaskbar: Found the Taskbar verb.")
                                 verb.DoIt 
                             End If 
