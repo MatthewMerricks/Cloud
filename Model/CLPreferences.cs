@@ -22,8 +22,15 @@ namespace win_client.Model
         public bool ShouldStartCloudWhenSystemStarts { get; set; }
         public bool ShouldAnimateMenuBarIcon { get; set; }
         public bool ShouldShowDesktopNotification { get; set; }
-        public bool ShouldUseCloudAsFolderIcon { get; set; }
         public cloudAppLanguageType Language { get; set; }
+
+        // Shortcuts pane (FramePreferencesShortcuts)
+        public bool ShouldAddShowCloudFolderOnDesktop { get; set; }
+        public bool ShouldAddShowCloudFolderInExplorerFavorites { get; set; }
+        public bool ShouldAddShowCloudFolderInInternetExplorerFavorites { get; set; }
+        public bool ShouldAddShowCloudFolderOnTaskbar { get; set; }
+        public bool ShouldAddShowCloudFolderInStartMenu { get; set; }
+        public bool ShouldUseCloudAsFolderIcon { get; set; }
 
         // Account pane (FramePreferencesAccount)
         public int Quota { get; set; }
@@ -60,6 +67,14 @@ namespace win_client.Model
             this.ShouldUseCloudAsFolderIcon = Settings.Instance.UseColorIconForCloudFolder;
             this.Language = (cloudAppLanguageType)Settings.Instance.CloudAppLanguage;
 
+            // Shortcuts pane
+            this.ShouldAddShowCloudFolderOnDesktop = Settings.Instance.ShouldAddShowCloudFolderOnDesktop;
+            this.ShouldAddShowCloudFolderInExplorerFavorites = Settings.Instance.ShouldAddShowCloudFolderInExplorerFavorites;
+            this.ShouldAddShowCloudFolderInInternetExplorerFavorites = Settings.Instance.ShouldAddShowCloudFolderInInternetExplorerFavorites;
+            this.ShouldAddShowCloudFolderOnTaskbar = Settings.Instance.ShouldAddShowCloudFolderOnTaskbar;
+            this.ShouldAddShowCloudFolderInStartMenu = Settings.Instance.ShouldAddShowCloudFolderInStartMenu;
+            this.ShouldUseCloudAsFolderIcon = Settings.Instance.UseColorIconForCloudFolder;
+
             // Account pane 
             this.Quota = Settings.Instance.Quota;
             this.UserName = Settings.Instance.UserName;
@@ -95,6 +110,14 @@ namespace win_client.Model
             Settings.Instance.StartCloudAppWithSystem = this.ShouldStartCloudWhenSystemStarts;
             Settings.Instance.UseColorIconForCloudFolder = this.ShouldUseCloudAsFolderIcon;
             Settings.Instance.CloudAppLanguage = (int)this.Language;
+
+            // Shortcuts pane
+            Settings.Instance.ShouldAddShowCloudFolderOnDesktop = this.ShouldAddShowCloudFolderOnDesktop;
+            Settings.Instance.ShouldAddShowCloudFolderInExplorerFavorites = this.ShouldAddShowCloudFolderInExplorerFavorites;
+            Settings.Instance.ShouldAddShowCloudFolderInInternetExplorerFavorites = this.ShouldAddShowCloudFolderInInternetExplorerFavorites;
+            Settings.Instance.ShouldAddShowCloudFolderOnTaskbar = this.ShouldAddShowCloudFolderOnTaskbar;
+            Settings.Instance.ShouldAddShowCloudFolderInStartMenu = this.ShouldAddShowCloudFolderInStartMenu;
+            Settings.Instance.UseColorIconForCloudFolder = this.ShouldUseCloudAsFolderIcon;
 
             // Account pane 
             Settings.Instance.Quota = this.Quota;

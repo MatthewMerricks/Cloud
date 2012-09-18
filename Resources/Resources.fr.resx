@@ -409,4 +409,10 @@
   <data name="SystemTrayContextMenuShowCloudFolder" xml:space="preserve">
     <value>_Show Cloud Folder...</value>
   </data>
+  <data name="PagePreferencesShortcutsTitle" xml:space="preserve">
+    <value>Cloud Shortcut Preferences</value>
+  </data>
+  <data name="ViewPagePreferencesButtonShortcuts" xml:space="preserve">
+    <value>_Shortcuts</value>
+  </data>
 </root>

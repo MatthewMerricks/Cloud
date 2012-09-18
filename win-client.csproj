@@ -233,6 +233,7 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
+    <Compile Include="ViewModels\FramePreferencesShortcutsViewModel.cs" />
     <Compile Include="ViewModels\DialogCheckForUpdatesViewModel.cs" />
     <Compile Include="ViewModels\PageTourAdvancedEndViewModel.cs" />
     <Compile Include="ViewModels\PageFolderSelectionViewModel.cs" />
@@ -257,6 +258,9 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\FramePreferencesShortcuts.xaml.cs">
+      <DependentUpon>FramePreferencesShortcuts.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DialogCheckForUpdates.xaml.cs">
       <DependentUpon>DialogCheckForUpdates.xaml</DependentUpon>
     </Compile>
@@ -361,6 +365,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FramePreferencesShortcuts.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

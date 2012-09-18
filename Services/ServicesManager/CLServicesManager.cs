@@ -17,6 +17,7 @@ using win_client.Services.UiActivity;
 using win_client.Services.Indexing;
 using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
+using CloudApiPrivate.Common;
 #if TRASH
 using win_client.DragDropServer;
 #endif // TRASH
@@ -124,6 +125,9 @@ namespace win_client.Services.ServicesManager
                 }
                 //TODO: Enable to hook all user processes for the start of a drag/drop operation
                 //DragDropServer.DragDropServer.Instance.StartDragDropServer();
+
+                // Update the shell integration shortcuts
+                CLShortcuts.UpdateAllShortcuts();
             }
         }
 

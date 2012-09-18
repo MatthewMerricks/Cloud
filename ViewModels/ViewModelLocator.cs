@@ -73,6 +73,7 @@ namespace win_client.ViewModels
 
             // Navigation frames
             SimpleIoc.Default.Register<FramePreferencesGeneralViewModel>();
+            SimpleIoc.Default.Register<FramePreferencesShortcutsViewModel>();
             SimpleIoc.Default.Register<FramePreferencesAccountViewModel>();
             SimpleIoc.Default.Register<FramePreferencesNetworkViewModel>();
             SimpleIoc.Default.Register<FramePreferencesAdvancedViewModel>();
@@ -281,6 +282,20 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<FramePreferencesGeneralViewModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the FramePreferencesShortcutsViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public FramePreferencesShortcutsViewModel FramePreferencesShortcutsViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<FramePreferencesShortcutsViewModel>();
             }
         }
 

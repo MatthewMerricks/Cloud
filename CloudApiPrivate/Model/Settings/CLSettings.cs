@@ -186,8 +186,6 @@ namespace CloudApiPrivate.Model.Settings
         public const string kCloudFolderPath = "cloud_folder_path";
         public const string kEid = "eid";
         public const string kSid = "sid";
-        public const string kAddCloudFolderToQuickLaunch = "add_quick_launch_folder";
-        public const string kAddCloudFolderToDesktop = "add_cloud_folder_to_desktop";
         public const string kRecentFileItems = "recent_file_items";
         public const string kUdid = "device_udid";
         public const string kLogErrors = "log_errors";
@@ -197,6 +195,11 @@ namespace CloudApiPrivate.Model.Settings
         public const string kTraceEnabled = "trace_enabled";
         public const string kTraceLocation = "trace_location";
         public const string kTraceExcludeAuthorization = "trace_exclude_authorization";
+        public const string kShouldAddShowCloudFolderOnDesktop = "should_add_show_cloud_folder_on_desktop";
+        public const string kShouldAddShowCloudFolderInExplorerFavorites = "should_add_show_cloud_folder_in_explorer_favorites";
+        public const string kShouldAddShowCloudFolderInInternetExplorerFavorites = "should_add_show_cloud_folder_in_internet_explorer_favorites";
+        public const string kShouldAddShowCloudFolderOnTaskbar = "should_add_show_cloud_folder_on_taskbar";
+        public const string kShouldAddShowCloudFolderInStartMenu = "should_add_show_cloud_folder_in_start_menu";
 
         /// <summary>
         /// The persistent settings properties.
@@ -210,6 +213,7 @@ namespace CloudApiPrivate.Model.Settings
             {
                 _startCloudAppWithSystem = value;
                 SettingsBase.Write<bool>(kStartCloudAppWithSystem, value);
+                CLShortcuts.UpdateShouldStartCloudAppWithSystem(value);
             }
         }
 
@@ -243,6 +247,7 @@ namespace CloudApiPrivate.Model.Settings
             {
                 _useColorIconForCloudFolder = value;
                 SettingsBase.Write<bool>(kUseColorIconForCloudFolder, value);
+                CLShortcuts.UpdateShouldUseCloudIconForCloudFolder(value);
             }
         }
 
@@ -562,27 +567,66 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private Boolean _addCloudFolderToQuickLaunch;
-        public Boolean AddCloudFolderToQuickLaunch
+        private Boolean _shouldAddShowCloudFolderOnDesktop;
+        public Boolean ShouldAddShowCloudFolderOnDesktop
         {
-            get { return _addCloudFolderToQuickLaunch; }
+            get { return _shouldAddShowCloudFolderOnDesktop; }
             set
             {
-                _addCloudFolderToQuickLaunch = value;
-                SettingsBase.Write<Boolean>(kAddCloudFolderToQuickLaunch, value);
+                _shouldAddShowCloudFolderOnDesktop = value;
+                SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderOnDesktop, value);
+                CLShortcuts.UpdateShouldShowCloudFolderOnDesktop(value);
             }
         }
 
-        private Boolean _addCloudFolderToDesktop;
-        public Boolean AddCloudFolderToDesktop
+        private Boolean _shouldAddShowCloudFolderInExplorerFavorites;
+        public Boolean ShouldAddShowCloudFolderInExplorerFavorites
         {
-            get { return _addCloudFolderToDesktop; }
+            get { return _shouldAddShowCloudFolderInExplorerFavorites; }
             set
             {
-                _addCloudFolderToDesktop = value;
-                SettingsBase.Write<Boolean>(kAddCloudFolderToDesktop, value);
+                _shouldAddShowCloudFolderInExplorerFavorites = value;
+                SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderInExplorerFavorites, value);
+                CLShortcuts.UpdateShouldShowCloudFolderInExplorerFavorites(value);
             }
         }
+
+        private Boolean _shouldAddShowCloudFolderInInternetExplorerFavorites;
+        public Boolean ShouldAddShowCloudFolderInInternetExplorerFavorites
+        {
+            get { return _shouldAddShowCloudFolderInInternetExplorerFavorites; }
+            set
+            {
+                _shouldAddShowCloudFolderInInternetExplorerFavorites = value;
+                SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderInInternetExplorerFavorites, value);
+                CLShortcuts.UpdateShouldShowCloudFolderInInternetExplorerFavorites(value);
+            }
+        }
+
+        private Boolean _shouldAddShowCloudFolderOnTaskbar;
+        public Boolean ShouldAddShowCloudFolderOnTaskbar
+        {
+            get { return _shouldAddShowCloudFolderOnTaskbar; }
+            set
+            {
+                _shouldAddShowCloudFolderOnTaskbar = value;
+                SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderOnTaskbar, value);
+                CLShortcuts.UpdateShouldShowCloudFolderOnTaskbar(value);
+            }
+        }
+
+        private Boolean _shouldAddShowCloudFolderInStartMenu;
+        public Boolean ShouldAddShowCloudFolderInStartMenu
+        {
+            get { return _shouldAddShowCloudFolderInStartMenu; }
+            set
+            {
+                _shouldAddShowCloudFolderInStartMenu = value;
+                SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderInStartMenu, value);
+                CLShortcuts.UpdateShouldShowCloudFolderInStartMenu(value);
+            }
+        }
+
 
         private List<string> _recentFileItems;
         public List<string> RecentFileItems
@@ -766,8 +810,12 @@ namespace CloudApiPrivate.Model.Settings
             _eid = Helpers.DefaultForType<long>();
     
             // Others
-            _addCloudFolderToQuickLaunch = true;
-            _addCloudFolderToDesktop = true;
+            _shouldAddShowCloudFolderOnDesktop = true;
+            _shouldAddShowCloudFolderInExplorerFavorites = true;
+            _shouldAddShowCloudFolderInInternetExplorerFavorites = true;
+            _shouldAddShowCloudFolderOnTaskbar = true;
+            _shouldAddShowCloudFolderInStartMenu = true;
+
             _sid = "0";
             _recentFileItems.Clear();
             _mainWindowPlacement = "";
@@ -1004,16 +1052,28 @@ namespace CloudApiPrivate.Model.Settings
             }
     
             // Others
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(kAddCloudFolderToQuickLaunch, out tempBoolean);
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kShouldAddShowCloudFolderInExplorerFavorites, out tempBoolean);
             if (isPresent)
             {
-                _addCloudFolderToQuickLaunch = tempBoolean;
+                _shouldAddShowCloudFolderInExplorerFavorites = tempBoolean;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(kAddCloudFolderToDesktop, out tempBoolean);
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kShouldAddShowCloudFolderInInternetExplorerFavorites, out tempBoolean);
             if (isPresent)
             {
-                _addCloudFolderToDesktop = tempBoolean;
+                _shouldAddShowCloudFolderInInternetExplorerFavorites = tempBoolean;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kShouldAddShowCloudFolderOnTaskbar, out tempBoolean);
+            if (isPresent)
+            {
+                _shouldAddShowCloudFolderOnTaskbar = tempBoolean;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kShouldAddShowCloudFolderInStartMenu, out tempBoolean);
+            if (isPresent)
+            {
+                _shouldAddShowCloudFolderInStartMenu = tempBoolean;
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kSid, out tempString);

@@ -61,6 +61,10 @@
             <Button x:Name="cmdGeneral" Margin="8,15,8,5" Command="{Binding PagePreferences_GeneralCommand, Mode=OneTime}" BorderBrush="{x:Null}" Background="{x:Null}" BorderThickness="0"  HorizontalAlignment="Left" Foreground="#FF136296">
                 <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonGeneral}"/>
             </Button>
+            
+            <Button x:Name="cmdShortcuts" Margin="8,15,8,5" Command="{Binding PagePreferences_ShortcutsCommand, Mode=OneTime}" BorderBrush="{x:Null}" Background="{x:Null}" BorderThickness="0"  HorizontalAlignment="Left" Foreground="#FF136296">
+                <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonShortcuts}"/>
+            </Button>
 
             <Button x:Name="cmdAccount" Margin="8,5,8,5" Command="{Binding PagePreferences_AccountCommand, Mode=OneTime}" BorderBrush="{x:Null}" Background="{x:Null}" BorderThickness="0"  HorizontalAlignment="Left" Foreground="#FF136296">
                 <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAccount}" HorizontalAlignment="Center"/>

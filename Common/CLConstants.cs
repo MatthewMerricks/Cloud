@@ -32,6 +32,7 @@ namespace win_client.Common
         public const string kPageTourAdvancedEnd = "/Views/PageTourAdvancedEnd.xaml";
         public const string kPagePreferences = "/Views/PagePreferences.xaml";
         public const string kFramePreferencesGeneral = "/Views/FramePreferencesGeneral.xaml";
+        public const string kFramePreferencesShortcuts = "/Views/FramePreferencesShortcuts.xaml";
         public const string kFramePreferencesAccount = "/Views/FramePreferencesAccount.xaml";
         public const string kFramePreferencesNetwork = "/Views/FramePreferencesNetwork.xaml";
         public const string kFramePreferencesAdvanced = "/Views/FramePreferencesAdvanced.xaml";
