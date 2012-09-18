@@ -48,19 +48,25 @@
     <ContextMenu x:Shared="false" x:Key="tbMenu">
         <MenuItem IsEnabled="False" Header="{x:Static p:Resources.SystemTrayContextMenuHeader}">
             <MenuItem.Icon>
-                <Image Width="16" Height="16" Source="/Artwork/StatusItem-Online.png" />
+                <Image Width="16" Height="16" Source="/Cloud;component/Artwork/StatusItem-Online.png" />
+            </MenuItem.Icon>
+        </MenuItem>
+
+        <MenuItem Header="{x:Static p:Resources.SystemTrayContextMenuShowCloudFolder}" Command="{Binding ShowCloudFolderCommand, Mode=OneTime}" CommandParameter="{Binding}">
+            <MenuItem.Icon>
+                <Image Width="16" Height="16" Source="/Cloud;component/Artwork/AddNotifyIconSample.png" />
             </MenuItem.Icon>
         </MenuItem>
 
         <MenuItem Header="{x:Static p:Resources.SystemTrayContextMenuPreferences}" Command="{Binding ShowPreferencesPageCommand, Mode=OneTime}" CommandParameter="{Binding}">
             <MenuItem.Icon>
-                <Image Width="16" Height="16" Source="/Artwork/AddNotifyIconSample.png" />
+                <Image Width="16" Height="16" Source="/Cloud;component/Artwork/AddNotifyIconSample.png" />
             </MenuItem.Icon>
         </MenuItem>
 
         <MenuItem Header="{x:Static p:Resources.SystemTrayContextMenuCheckForUpdates}" Command="{Binding CheckForUpdatesCommand, Mode=OneTime}" CommandParameter="{Binding}">
             <MenuItem.Icon>
-                <Image Width="16" Height="16" Source="/Artwork/AddNotifyIconSample.png" />
+                <Image Width="16" Height="16" Source="/Cloud;component/Artwork/AddNotifyIconSample.png" />
             </MenuItem.Icon>
         </MenuItem>
 
@@ -68,7 +74,7 @@
 
         <MenuItem Header="{x:Static p:Resources.SystemTrayContextMenuExit}" Command="{Binding ExitApplicationCommand, Mode=OneTime}" CommandParameter="{Binding}">
             <MenuItem.Icon>
-                <Image Width="16" Height="16" Source="/Artwork/RemoveNotifyIconSample.png" />
+                <Image Width="16" Height="16" Source="/Cloud;component/Artwork/RemoveNotifyIconSample.png" />
             </MenuItem.Icon>
         </MenuItem>
     </ContextMenu>

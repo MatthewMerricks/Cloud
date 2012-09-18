@@ -173,13 +173,13 @@
     <value>Greetings {0}!  Welcome to Cloud!</value>
   </data>
   <data name="SystemTrayContextMenuExit" xml:space="preserve">
-    <value>Exit</value>
+    <value>_Exit</value>
   </data>
   <data name="SystemTrayContextMenuHeader" xml:space="preserve">
     <value>Cloud</value>
   </data>
   <data name="SystemTrayContextMenuPreferences" xml:space="preserve">
-    <value>Preferences...</value>
+    <value>_Preferences...</value>
   </data>
   <data name="SystemTrayContextMenuCheckForUpdates" xml:space="preserve">
     <value>Check for updates</value>
@@ -405,5 +405,8 @@
   </data>
   <data name="pageCloudFolderMissingOkButtonRestoreTooltip" xml:space="preserve">
     <value>Click to restore your moved or deleted Cloud folder.</value>
+  </data>
+  <data name="SystemTrayContextMenuShowCloudFolder" xml:space="preserve">
+    <value>_Show Cloud Folder...</value>
   </data>
 </root>

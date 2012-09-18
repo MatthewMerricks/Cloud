@@ -21,7 +21,7 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Skins/NotifyIconResources.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/NotifyIconResources.xaml" />
       </ResourceDictionary.MergedDictionaries>
       <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
     </ResourceDictionary>

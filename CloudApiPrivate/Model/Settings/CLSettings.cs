@@ -1099,15 +1099,24 @@ namespace CloudApiPrivate.Model.Settings
         /// </summary>
         public void resetSettings()
         {  
+            // Remember the current cloud folder path and creation date to restore it after the reset.
+            string cloudFolderPath = Settings.Instance.CloudFolderPath;
+            DateTime cloudFolderCreationDate = Settings.Instance.CloudFolderCreationTimeUtc;
+
+            // Clear the settings.
             SettingsBase.Clear();
             Settings.Instance.CompletedSetup = false;       // tested at ExitApplication()
+
+            // Restore the saved cloud folder path and creation date.
+            Settings.Instance.CloudFolderPath = cloudFolderPath;
+            Settings.Instance.CloudFolderCreationTimeUtc = cloudFolderCreationDate;
         }
 
         /// <summary>
         /// Record the new Cloud folder path.
         /// </summary>
         public void updateCloudFolderPath(string path, DateTime creationTime)
-        {  
+        {
             CloudFolderPath = path;
             CloudFolderCreationTimeUtc = creationTime;
 

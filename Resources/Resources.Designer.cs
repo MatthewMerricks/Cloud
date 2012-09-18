@@ -709,7 +709,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exit.
+        ///   Looks up a localized string similar to _Exit.
         /// </summary>
         public static string SystemTrayContextMenuExit {
             get {
@@ -727,11 +727,20 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Preferences....
+        ///   Looks up a localized string similar to _Preferences....
         /// </summary>
         public static string SystemTrayContextMenuPreferences {
             get {
                 return ResourceManager.GetString("SystemTrayContextMenuPreferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Show Cloud Folder....
+        /// </summary>
+        public static string SystemTrayContextMenuShowCloudFolder {
+            get {
+                return ResourceManager.GetString("SystemTrayContextMenuShowCloudFolder", resourceCulture);
             }
         }
         

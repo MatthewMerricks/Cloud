@@ -19,6 +19,8 @@ using CloudApiPrivate.Common;
 using System.Reflection;
 using System.Threading;
 using System.Diagnostics;
+using Microsoft.Win32;
+using System.Windows;
 
 namespace CloudApiPrivate.Common
 {
@@ -218,18 +220,23 @@ namespace CloudApiPrivate.Common
                 _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Entry. cloudFolderPath: <{0}>.", cloudFolderPath));
                 if (!String.IsNullOrWhiteSpace(cloudFolderPath))
                 {
-                    // Add or update the various Cloud folder shortcuts because the Cloud folder path has just changed.
+                    // Add the various Cloud folder shortcuts.
                     _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Get the location of the Cloud icon.");
                     string cloudIconPath = Assembly.GetEntryAssembly().Location;
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Cloud icon path: <{0}>.", cloudIconPath));
 
+                    // Add a folder shortcut to the Explorer Favorites list.
                     string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
                     _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: ExplorerFavoritesPath: <{0}>.", explorerFavoritesPath));
-                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Favorites), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
-                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
                     CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, explorerFavoritesPath, Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
 
-                    // Set the folder Cloud icon.
+                    // Add a folder shortcut to the Internet Explorer favorites list
+                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Favorites), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+
+                    // Add a folder shortcut to the desktop
+                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+
+                    // Set the custom folder Cloud icon.  That will show anywhere the cloud folder appears.
                     _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Set the folder Cloud icon.");
                     CLShortcuts.SetCloudFolderIcon(Settings.Instance.CloudFolderPath, cloudIconPath, "View the Cloud folder");
 
@@ -237,6 +244,9 @@ namespace CloudApiPrivate.Common
                     // Stream the CloudClean.vbs file out to the user's temp directory
                     // Locate the user's temp directory.
                     PinShowCloudFolderToTaskbar();
+
+                    // Add an autostart shortcut to the startup folder:
+                    AddCloudAutostartShortcut();
                 }
             }
             catch (Exception ex)
@@ -247,7 +257,93 @@ namespace CloudApiPrivate.Common
         }
 
         /// <summary>
-        /// Pin a shortcut to the ShowCloudFolder.exe program in the Cloud Program Files folder to the taskbar.
+        /// Autostart Cloud.exe
+        /// </summary>
+        private static void AddCloudAutostartShortcut()
+        {
+            _trace.writeToLog(9, "CLShortcuts: AddCloudAutostartShortcut: Entry.");
+            try
+            {
+                RegistryKey rkApp = Registry.LocalMachine.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", true);   // Run for all users at startup
+                rkApp.SetValue(CLPrivateDefinitions.CloudAppName, GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe");
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Remove Autostart Cloud.exe
+        /// </summary>
+        public static void RemoveCloudAutostartShortcut()
+        {
+            _trace.writeToLog(9, "CLShortcuts: RemoveCloudAutostartShortcut: Entry.");
+            try
+            {
+                RegistryKey rkApp = Registry.LocalMachine.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", true);   // Run for all users at startup
+                rkApp.DeleteValue(CLPrivateDefinitions.CloudAppName, false);
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(9, String.Format("CLShortcuts: RemoveCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Replace all of the cloud folder shortcuts with a new cloud folder location.
+        /// </summary>
+        /// <param name="newCloudFolderPath"></param>
+        public static void ModifyCloudFolderShortcuts(string newCloudFolderPath)
+        {
+            try
+            {
+                _trace.writeToLog(9, "CLShortcuts: ModifyCloudFolderShortcuts: Entry: newCloudFolderPath: <{0}>.", newCloudFolderPath);
+
+                // Modify the Explorer Favorites shortcut.
+                string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
+                _trace.writeToLog(9, String.Format("CLShortcuts: ModifyCloudFolderShortcuts: ExplorerFavoritesPath: <{0}>.", explorerFavoritesPath));
+                ModifyShortcutTargetPath(explorerFavoritesPath, CLPrivateDefinitions.CloudFolderShortcutFilename, newCloudFolderPath);
+
+                // Modify the cloud folder shortcut in the Internet Explorer favorites list
+                ModifyShortcutTargetPath(Environment.GetFolderPath(Environment.SpecialFolder.Favorites), CLPrivateDefinitions.CloudFolderShortcutFilename, newCloudFolderPath);
+
+                // Modify the cloud folder shortcut in the Desktop.
+                ModifyShortcutTargetPath(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), CLPrivateDefinitions.CloudFolderShortcutFilename, newCloudFolderPath);
+
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(9, String.Format("CLShortcuts: ModifyCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Change the target path in a shortcut file.
+        /// </summary>
+        /// <param name="pathFolderContainingShortcut">Full path of the folder that contains the shortcut .lnk file (without trailing backslash).</param>
+        /// <param name="shortcutNameWithoutLnkExtension"></param>
+        /// <param name="newTargetLocation">The full path of the new target item.</param>
+        private static void ModifyShortcutTargetPath(string pathFolderContainingShortcut, string shortcutNameWithoutLnkExtension, string newTargetLocation)
+        {
+            try 
+	        {
+                _trace.writeToLog(9, "CLShortcuts: ModifyShortcutTargetPath: Entry: pathFolderContainingShortcut: <{0}>. shortcutNameWithoutLnkExtension: <{1}>. newTargetLocation: <{2>.", pathFolderContainingShortcut, shortcutNameWithoutLnkExtension, newTargetLocation);
+                Shell32.Shell shl = new Shell32.Shell();
+                Shell32.Folder dir = shl.NameSpace(pathFolderContainingShortcut);
+                Shell32.FolderItem itm = dir.Items().Item(shortcutNameWithoutLnkExtension + ".lnk");
+                Shell32.ShellLinkObject lnk = (Shell32.ShellLinkObject)itm.GetLink;
+                lnk.SetIconLocation(newTargetLocation, 1);
+                lnk.Save(null);
+	        }
+	        catch (Exception ex)
+	        {
+                _trace.writeToLog(9, String.Format("CLShortcuts: ModifyShortcutTargetPath: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+            }
+        }
+        
+        /// <summary>
+        /// Pin a shortcut to the ShowCloudFolder.exe program in the Cloud Program Files folder to the taskbar and to the start menu.
         /// </summary>
         private static void PinShowCloudFolderToTaskbar()
         {
@@ -287,17 +383,46 @@ namespace CloudApiPrivate.Common
 
                 // Parm 2 should be the filename of the .exe or .lnk file that will be pinned to the taskbar (without the extension)
                 string parm2Path = CLPrivateDefinitions.ShowCloudFolderProgramFilenameOnly;
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 2: <{0}>.", parm2Path));
 
                 // Parm 3 should be the action ("P": Pin.  "U": Unpin)
                 string parm3 = "P";
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 3: <{0}>.", parm3));
 
-                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 2: <{0}>.", parm2Path));
+                // Parm 4 should be the target ("T": Taskbar.  "S": Start menu)
+                string parm4 = "T";
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 4: <{0}>.", parm4));
 
-                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @""" """ + parm1Path + @""" """ + parm2Path + @""" " + parm3;
+                // Parm 5 should be whether the script self-destructs ("D": Self-destruct.  "R": Remain.  Don't delete. menu)
+                string parm5 = "R";
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 5: <{0}>.", parm5));
+
+                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @""" """ + parm1Path + @""" """ + parm2Path + @""" " + parm3 + " " + parm4 + " " + parm5;
                 _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
 
-                // Launch the process
+                // Launch the process to pin to the taskbar.
                 ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.FileName = cscriptPath;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.Arguments = argumentsString;
+                Process p = Process.Start(startInfo);
+                p.WaitForExit(3000);            // wait for this action to complete
+
+                // Now also pin it to the start menu.
+                parm4 = "S";
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 4(2): <{0}>.", parm4));
+
+                // Parm 5 should be whether the script self-destructs ("D": Self-destruct.  "R": Remain.  Don't delete. menu)
+                parm5 = "D";
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 5(2): <{0}>.", parm5));
+
+                argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @""" """ + parm1Path + @""" """ + parm2Path + @""" " + parm3 + " " + parm4 + " " + parm5;
+                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Launch the VBScript file(2).  Launch: <{0}>.", argumentsString));
+
+                // Launch the process to pin to the taskbar.
+                startInfo = new ProcessStartInfo();
                 startInfo.CreateNoWindow = true;
                 startInfo.UseShellExecute = false;
                 startInfo.FileName = cscriptPath;
@@ -325,11 +450,15 @@ namespace CloudApiPrivate.Common
                 CLShortcuts.SetCloudFolderIcon(cloudFolderPath, null);
             }
 
-            // Remove the shortcuts
+            // Remove the shortcuts.  Remove the Windows Explorer Favorites list item
             string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
-            CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Favorites));
-            CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
             CLShortcuts.RemoveCloudFolderShortcutFromFolder(explorerFavoritesPath);
+
+            // Remove the Internet Explorer favorites list item.
+            CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Favorites));
+
+            // Remove the Desktop item
+            CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
         }
 
         public static string GetProgramFilesFolderPathForBitness()

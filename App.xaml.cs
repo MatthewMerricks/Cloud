@@ -85,7 +85,7 @@ namespace win_client
             MyNavigationWindow window = new MyNavigationWindow();
 
             // Set the window's icon
-            window.Icon = BitmapFrame.Create(GetResourceStream(new Uri("/Cloud;component/Artwork/Cloud.ico", UriKind.RelativeOrAbsolute)).Stream);
+            window.Icon = BitmapFrame.Create(GetResourceStream(new Uri("/Cloud;component/Artwork/Cloud.ico", UriKind.Relative)).Stream);
             window.ShowsNavigationUI = false;
 
             //    // Set the window to display, selected in CLAppDelegate.initAppDelegate.  

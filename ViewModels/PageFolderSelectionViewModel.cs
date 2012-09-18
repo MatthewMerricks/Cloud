@@ -573,7 +573,19 @@ namespace win_client.ViewModels
             //}
             //&&&&&
 
-            if (Directory.Exists(Settings.Instance.CloudFolderPath) && !_isMergingFolder)
+            // Get the creation time of the cloud folder if it exists
+            DateTime cloudFolderCreationTime = DateTime.MinValue;
+            bool cloudFolderExists = Directory.Exists(Settings.Instance.CloudFolderPath);
+            if (cloudFolderExists)
+            {
+                DirectoryInfo info = new DirectoryInfo(Settings.Instance.CloudFolderPath);
+                cloudFolderCreationTime = info.CreationTime.ToUniversalTime();
+            }
+
+            // Show the Locate/Merge dialog if we don't have an exact folder match at the current location, 
+            // and the directory exists, and we are not merging
+            if (!(cloudFolderExists && cloudFolderCreationTime == Settings.Instance.CloudFolderCreationTimeUtc)
+                && (cloudFolderExists && !_isMergingFolder))
             {
                 // Tell the user that there is already a Cloud folder at that location.  Allow him to choose 'Select new location' or 'Merge'.
                 string cloudFolderRoot = Path.GetDirectoryName(Settings.Instance.CloudFolderPath);  // e.g., "c:/Users/<username>/Documents", if CloudFolderPath is "c:/Users/<username>/Documents/Cloud"

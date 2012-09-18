@@ -47,7 +47,7 @@
         <tb:TaskbarIcon
         x:Name="tb"
         VerticalAlignment="Top"
-        IconSource="/Artwork/cloud.ico"
+        IconSource="/Cloud;component/Artwork/cloud.ico"
         ToolTipText="Cloud"
         ContextMenu="{StaticResource tbMenu}"
         Visibility="{Binding TaskbarIconVisibility, Mode=TwoWay}"

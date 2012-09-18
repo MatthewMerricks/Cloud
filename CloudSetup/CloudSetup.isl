@@ -4129,6 +4129,7 @@
 		<row><td>ID_STRING6</td><td>1033</td><td>http://www.Cloud.com/Updates</td><td>0</td><td/><td>1411425005</td></row>
 		<row><td>ID_STRING7</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>1411394317</td></row>
 		<row><td>ID_STRING8</td><td>1033</td><td>CLOUDF~1|Cloud Folder</td><td>0</td><td/><td>1688259718</td></row>
+		<row><td>ID_STRING9</td><td>1033</td><td>SHOWCL~1|Show Cloud Folder</td><td>0</td><td/><td>-1801417881</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>1411410125</td></row>
 	</table>
 
@@ -4838,6 +4839,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="L255">FileName</col>
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
+		<row><td>NewShortcut2</td><td>ISX_DEFAULTCOMPONENT1</td><td/><td>cloud</td><td>2</td></row>
 		<row><td>UNINST_Uninstall_Cloud</td><td>NewComponent1</td><td/><td>cloud</td><td>2</td></row>
 	</table>
 
@@ -4925,6 +4927,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
 		<row><td>NewShortcut1</td><td>SendToFolder</td><td>##ID_STRING8##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[INSTALLDIR]CloudCopy.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut2</td><td>cloud</td><td>##ID_STRING9##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[INSTALLDIR]ShowCloudFolder.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>UNINST_Uninstall_Cloud</td><td>cloud</td><td>UNINST|Uninstall Cloud</td><td>NewComponent1</td><td>[SystemFolder]msiexec.exe</td><td>/x {5BEB6668-C562-480D-ADAB-BDCCC7A9CD02}</td><td/><td/><td>UNINST_Uninstall_C_13DC8BF1E345480593F92A818D2CADC9.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 

@@ -33,6 +33,7 @@ using System.Windows.Input;
 using CleanShutdown.Helpers;
 using win_client.ViewModelHelpers;
 using System.Windows.Threading;
+using System.Diagnostics;
 
 
 namespace win_client.ViewModels
@@ -223,6 +224,31 @@ namespace win_client.ViewModels
         #endregion
 
         #region Relay Commands
+
+
+        /// <summary>
+        /// The user clicked the system tray NotifyIcon context menu "Show Cloud Folder" item.
+        /// </summary>
+        private ICommand _showCloudFolderCommand;
+        public ICommand ShowCloudFolderCommand
+        {
+            get
+            {
+                return _showCloudFolderCommand
+                    ?? (_showCloudFolderCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                            // Launch the process
+                                            System.Diagnostics.Process process = new System.Diagnostics.Process();
+                                            process.StartInfo.CreateNoWindow = true;
+                                            process.StartInfo.UseShellExecute = false;
+                                            process.StartInfo.FileName = @"explorer";
+                                            process.StartInfo.Arguments = Settings.Instance.CloudFolderPath;
+                                            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                                            process.Start();
+                                          }));
+            }
+        }
 
         /// <summary>
         /// The user clicked system tray NotifyIcon context menu preferences item.

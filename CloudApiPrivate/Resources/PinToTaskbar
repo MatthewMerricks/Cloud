@@ -10,6 +10,8 @@
     ' Parameter 1: The full path to the folder containing the application.exe or shortcut to pin to the taskbar.
     ' Parameter 2: The name of the application or shortcut file in the folder above (without the extension).
 	' Parameter 3: "P": Pin.  "U": Unpin.
+	' Parameter 4: "T": Taskbar.  "S": Start menu.
+	' Parameter 5: "D": Self-destruct.  "S": Remain.  Don't delete the script.
     ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Program Files (x86)\Cloud.com\Cloud" "ShowCloudFolder"
     
     Option Explicit 
@@ -30,9 +32,12 @@
 
     ' Global variables
     Dim shouldTrace
+	Dim shouldSelfDestruct
    
     Set objShell = CreateObject("Shell.Application") 
     Set filesys = CreateObject("Scripting.FileSystemObject") 
+
+	shouldSelfDestruct = True
  
     ' Set the following variable to False to turn off trace   
     shouldTrace = True
@@ -59,7 +64,7 @@
 
             ' Don't run if we don't have the necessary parameters
             WriteLog("PinToTaskbar: Arg count: " & wscript.Arguments.Count)
-            If wscript.Arguments.Count < 3 Then
+            If wscript.Arguments.Count < 5 Then
                 WriteLog("PinToTaskbar: ERROR: Wrong arguments.")
                 Exit Sub
             End If
@@ -80,14 +85,34 @@
 			WriteLog("PinToTaskbar: LnkFilePath: " & LnkFilePath)
 
 			' Set the mode (Pin or Unpin)
-			if Left(Arguments(2), 1) = "P" then
-                WriteLog("PinToTaskbar: This is a pin action")
-			    sAction = "Pin to Tas&kbar"
+			if Left(wscript.Arguments(2), 1) = "P" then
+				' Set the mode (Taskbar or StartMenu)
+			    if Left(wscript.Arguments(3), 1) = "T" then
+                    WriteLog("PinToTaskbar: This is a pin to taskbar action")
+				    sAction = "Pin to Tas&kbar"
+				else
+	                WriteLog("PinToTaskbar: This is a pin to start menu action")
+			        sAction = "Pin to Start Men&u"
+				end if
 			else
-                WriteLog("PinToTaskbar: This is an unpin action")
-			    sAction = "Unpin from Tas&kbar"
+				' Set the mode (Taskbar or StartMenu)
+			    if Left(wscript.Arguments(3), 1) = "T" then
+	                WriteLog("PinToTaskbar: This is an unpin from taskbar action")
+				    sAction = "Unpin from Tas&kbar"
+				else
+	                WriteLog("PinToTaskbar: This is an unpin from start menu action")
+				    sAction = "Unpin from Start Men&u"
+				end if
+			end if
+
+			' Set the mode (Self destruct or don't)
+		    if Left(wscript.Arguments(4), 1) = "D" then
+				shouldSelfDestruct = True
+			else
+				shouldSelfDestruct = False
 			end if
     
+			' Process if the shortcut file is there
             If(filesys.FileExists(LnkFilePath)) Then 
                 Dim tmp, verb 
     
@@ -130,9 +155,11 @@
             WriteLog("PinToTaskbar: Exiting constructor (finally).")
 
 			' Delete ourselves.  This is possible because VBS runs everything out of memory.
-            sScriptFile = Wscript.ScriptFullName
-            WriteLog "PinToTaskbar: Delete this file.  PinToTaskbar.vbs full path: " & sScriptFIle
-            filesys.DeleteFile sScriptFile, True
+			if shouldSelfDestruct then
+				sScriptFile = Wscript.ScriptFullName
+				WriteLog "PinToTaskbar: Delete this file.  PinToTaskbar.vbs full path: " & sScriptFIle
+				filesys.DeleteFile sScriptFile, True
+			end if
         End Sub 
     End Class
 
