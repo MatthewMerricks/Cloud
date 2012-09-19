@@ -63,6 +63,7 @@
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
     <Compile Include="Model\CombinedCollection.cs" />
     <Compile Include="Model\FileChange.cs" />
+    <Compile Include="Model\FileChangeWithDependencies.cs" />
     <Compile Include="Model\FileMetadata.cs" />
     <Compile Include="FilePath\FilePath.cs" />
     <Compile Include="FilePath\FilePathComparer.cs" />

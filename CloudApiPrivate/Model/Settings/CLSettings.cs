@@ -194,9 +194,8 @@ namespace CloudApiPrivate.Model.Settings
         public const string kLogErrorLocation = "log_error_location";
         public const string kCloudFolderCreationTimeUtc = "cloud_folder_path_creation_time";
         public const string kMainWindowPlacement = "main_window_placement";
-        public const string kTraceEnabled = "trace_enabled";
+        public const string kTraceType = "trace_type";
         public const string kTraceLocation = "trace_location";
-        public const string kTraceExcludeAuthorization = "trace_exclude_authorization";
 
         /// <summary>
         /// The persistent settings properties.
@@ -623,14 +622,19 @@ namespace CloudApiPrivate.Model.Settings
 
         // Setting to determine whether to log trace to disk
         // Added by David
-        private int _traceEnabled;
-        public bool TraceEnabled
+        private int _traceType;
+        public TraceType TraceType
         {
-            get { return _traceEnabled != 0; }
+            get { return (TraceType)_traceType; }
             set
             {
-                _traceEnabled = (value ? 1 : 0);
-                SettingsBase.Write<int>(kTraceEnabled, _traceEnabled);
+                if ((value & TraceType.AddAuthorization) == TraceType.AddAuthorization
+                    && (value & TraceType.CommunicationIncludeAuthorization) != CloudApiPublic.Static.TraceType.CommunicationIncludeAuthorization)
+                {
+                    throw new ArgumentException("A TraceType of AddAuthorization can only be used in conjunction with Communication");
+                }
+                _traceType = (int)value;
+                SettingsBase.Write<int>(kTraceType, _traceType);
             }
         }
 
@@ -647,16 +651,22 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        // Setting to determine whether the Authorization header is logged in Trace
+        // Setting to determine whether the Authorization header is excluded from Trace
         // Added by David
         private int _traceExcludeAuthorization;
         public bool TraceExcludeAuthorization
         {
-            get { return _traceExcludeAuthorization != 0; }
+            get { return (TraceType & TraceType.AddAuthorization) != TraceType.AddAuthorization; }
             set
             {
-                _traceExcludeAuthorization = (value ? 1 : 0);
-                SettingsBase.Write<int>(kTraceExcludeAuthorization, _traceExcludeAuthorization);
+                if (value)
+                {
+                    TraceType &= ~TraceType.AddAuthorization;
+                }
+                else
+                {
+                    TraceType |= TraceType.AddAuthorization;
+                }
             }
         }
 
@@ -718,10 +728,11 @@ namespace CloudApiPrivate.Model.Settings
             _logErrors = 0;
             _errorLogLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
                 "\\Cloud\\ErrorLog";
-            _traceEnabled = 0;
+            _traceType = 0;
+            // _traceType of zero implies the following:
+            //_traceExcludeAuthorization = 1;
             _traceLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
                 "\\Cloud\\Trace";
-            _traceExcludeAuthorization = 1;
 
             // General
             _startCloudAppWithSystem = true;
@@ -792,22 +803,16 @@ namespace CloudApiPrivate.Model.Settings
                 _errorLogLocation = tempString;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<int>(kTraceEnabled, out temp);
+            isPresent = SettingsBase.ReadIfPresent<int>(kTraceType, out temp);
             if (isPresent)
             {
-                _traceEnabled = temp;
+                _traceType = temp;
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kTraceLocation, out tempString);
             if (isPresent)
             {
                 _traceLocation = tempString;
-            }
-
-            isPresent = SettingsBase.ReadIfPresent<int>(kTraceExcludeAuthorization, out temp);
-            if (isPresent)
-            {
-                _traceExcludeAuthorization = temp;
             }
 
             // General

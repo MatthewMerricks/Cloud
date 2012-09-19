@@ -15,6 +15,7 @@ using BadgeNET;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Support;
+using CloudApiPublic.Static;
 
 namespace win_client
 {
@@ -37,27 +38,28 @@ namespace win_client
                     int loggingLevel;
                     if (int.TryParse(e.Args[1], out loggingLevel))
                     {
-                        switch (loggingLevel)
+                        TraceType setType = TraceType.NotEnabled;
+
+                        if ((loggingLevel & (int)TraceType.AddAuthorization) == (int)TraceType.AddAuthorization)
                         {
-                            case 0:
-                                Settings.Instance.LogErrors = false;
-                                Settings.Instance.TraceEnabled = false;
-                                Settings.Instance.TraceExcludeAuthorization = true;
-                                this.Shutdown(0);
-                                break;
-                            case 1:
-                                Settings.Instance.LogErrors = true;
-                                Settings.Instance.TraceEnabled = true;
-                                Settings.Instance.TraceExcludeAuthorization = true;
-                                this.Shutdown(0);
-                                break;
-                            case 2:
-                                Settings.Instance.LogErrors = true;
-                                Settings.Instance.TraceEnabled = true;
-                                Settings.Instance.TraceExcludeAuthorization = false;
-                                this.Shutdown(0);
-                                break;
+                            setType &= ~TraceType.Communication;
+                            setType &= ~TraceType.AddAuthorization;
                         }
+                        else if ((loggingLevel & (int)TraceType.Communication) == (int)TraceType.Communication)
+                        {
+                            setType &= ~TraceType.Communication;
+                        }
+
+                        if ((loggingLevel & (int)TraceType.FileChangeFlow) == (int)TraceType.FileChangeFlow)
+                        {
+                            setType &= ~TraceType.FileChangeFlow;
+                        }
+
+                        Settings.Instance.TraceType = setType;
+
+                        Settings.Instance.LogErrors = (setType != TraceType.NotEnabled);
+
+                        this.Shutdown(0);
                     }
                 }
             }

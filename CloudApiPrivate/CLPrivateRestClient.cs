@@ -333,7 +333,7 @@ namespace CloudApiPrivate
                     Queue = queue,
                     HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync,
                     UserState = processedChanges,
-                    TraceEnabled = Settings.Instance.TraceEnabled,
+                    TraceEnabled = ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication),
                     TraceLocation = Settings.Instance.TraceLocation,
                     UDid = Settings.Instance.Udid,
                     UUid = Settings.Instance.Uuid,
@@ -622,7 +622,7 @@ namespace CloudApiPrivate
                     CompletionHandler = completionHandler,
                     Queue = queue,
                     HandleResponseFromServer = this.HandleResponseFromServerCallbackAsync,
-                    TraceEnabled = Settings.Instance.TraceEnabled,
+                    TraceEnabled = ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication),
                     TraceLocation = Settings.Instance.TraceLocation,
                     UDid = Settings.Instance.Udid,
                     UUid = Settings.Instance.Uuid,
@@ -782,7 +782,7 @@ namespace CloudApiPrivate
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _trace.writeToLog(9, "CLPrivateRestClient: StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to upload file.  Path: {0}, Request: {1}.", path, request.Headers.ToString());
-            return new CLHTTPConnectionOperation(Settings.Instance.Udid, Settings.Instance.Uuid, Settings.Instance.TraceEnabled, Settings.Instance.TraceExcludeAuthorization, Settings.Instance.TraceLocation, _client, request, path, size, hash, isUpload: true, uploadStream: uploadStream);
+            return new CLHTTPConnectionOperation(Settings.Instance.Udid, Settings.Instance.Uuid, ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication), Settings.Instance.TraceExcludeAuthorization, Settings.Instance.TraceLocation, _client, request, path, size, hash, isUpload: true, uploadStream: uploadStream);
         }
 
         /// <summary>
@@ -821,7 +821,7 @@ namespace CloudApiPrivate
             request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _trace.writeToLog(9, "CLPrivateRestClient: StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to download file.  Path: {0}, json: {1}, Request: {2}.", path, json, request.Headers.ToString());
-            return new CLHTTPConnectionOperation(Settings.Instance.Udid, Settings.Instance.Uuid, Settings.Instance.TraceEnabled, Settings.Instance.TraceExcludeAuthorization, Settings.Instance.TraceLocation, _client, request, path, size, hash, isUpload: false, uploadStream: null);
+            return new CLHTTPConnectionOperation(Settings.Instance.Udid, Settings.Instance.Uuid, ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication), Settings.Instance.TraceExcludeAuthorization, Settings.Instance.TraceLocation, _client, request, path, size, hash, isUpload: false, uploadStream: null);
         }
     }
 }

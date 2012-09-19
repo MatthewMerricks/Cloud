@@ -12,7 +12,7 @@ using System.Text;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 
-namespace FileMonitor
+namespace CloudApiPublic.Model
 {
     /// <summary>
     /// Extension of FileChange to add a property for Dependencies

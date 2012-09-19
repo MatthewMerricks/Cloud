@@ -129,7 +129,7 @@ namespace win_client.Services.Notification
                 _trace.writeToLog(1, "CLNotificationService: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>.", url);
 
                 //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on Settings.Instance.TraceExcludeAuthorization !!
-                if (Settings.Instance.TraceEnabled)
+                if ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
                     Trace.LogCommunication(Settings.Instance.TraceLocation,
                         Settings.Instance.Udid,
@@ -187,7 +187,7 @@ namespace win_client.Services.Notification
             {
                 _trace.writeToLog(1, "CLNotificationService: OnConnectionReceived: Received msg: <{0}.", e.Message);
 
-                if (Settings.Instance.TraceEnabled)
+                if ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
                     Trace.LogCommunication(Settings.Instance.TraceLocation,
                         Settings.Instance.Udid,

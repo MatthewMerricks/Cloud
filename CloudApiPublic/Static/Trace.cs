@@ -880,6 +880,103 @@ namespace CloudApiPublic.Static
                 }
             }
         }
+
+        public static void LogFileChangeFlow(string traceLocation, string UserDeviceId, string UniqueUserId, FileChangeFlowEntryPositionInFlow position, IEnumerable<FileChange> changes)
+        {
+            try
+            {
+                FileChange[] changesArray = (changes ?? Enumerable.Empty<FileChange>()).ToArray();
+
+                TraceFileChange[] traceChangesArray = (changesArray.Length == 0 ? null : new TraceFileChange[changesArray.Length]);
+
+                Entry newEntry = new FileChangeFlowEntry()
+                {
+                    Type = (int)TraceType.FileChangeFlow,
+                    Time = DateTime.UtcNow,
+                    ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
+                    ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,
+                    PositionInFlow = position,
+                    FileChanges = traceChangesArray
+                };
+
+                if (changesArray.Length > 0)
+                {
+                    Action<object, TraceFileChange[], int, FileChange> fillIndexInTraceFileChangeArray = (thisAction, currentArray, currentIndex, currentChange) =>
+                        {
+                            Action<object, TraceFileChange[], int, FileChange> castThisAction = thisAction as Action<object, TraceFileChange[], int, FileChange>;
+                            if (castThisAction != null)
+                            {
+                                FileChangeWithDependencies currentChangeWithDependencies = currentChange as FileChangeWithDependencies;
+
+                                TraceFileChange[] innerTraceArray;
+                                if (currentChangeWithDependencies != null
+                                    && currentChangeWithDependencies.DependenciesCount > 0)
+                                {
+                                    innerTraceArray = new TraceFileChange[currentChangeWithDependencies.DependenciesCount];
+                                }
+                                else
+                                {
+                                    innerTraceArray = null;
+                                }
+
+                                TraceFileChangeType convertedCurrentType;
+                                switch (currentChange.Type)
+                                {
+                                    case FileChangeType.Created:
+                                        convertedCurrentType = TraceFileChangeType.Created;
+                                        break;
+                                    case FileChangeType.Deleted:
+                                        convertedCurrentType = TraceFileChangeType.Deleted;
+                                        break;
+                                    case FileChangeType.Modified:
+                                        convertedCurrentType = TraceFileChangeType.Modified;
+                                        break;
+                                    case FileChangeType.Renamed:
+                                        convertedCurrentType = TraceFileChangeType.Renamed;
+                                        break;
+                                    default:
+                                        throw new NotSupportedException("Unknown FileChangeType: " + currentChange.Type.ToString());
+                                }
+
+                                currentArray[currentIndex] = new TraceFileChange()
+                                {
+                                    NewPath = currentChange.NewPath.ToString(),
+                                    OldPath = (currentChange.OldPath == null ? null : currentChange.OldPath.ToString()),
+                                    IsFolder = currentChange.Metadata.HashableProperties.IsFolder,
+                                    Type = convertedCurrentType,
+                                    LastTime = currentChange.Metadata.HashableProperties.LastTime,
+                                    LastTimeSpecified = currentChange.Metadata.HashableProperties.LastTime.Ticks != FileConstants.InvalidUtcTimeTicks,
+                                    CreationTime = currentChange.Metadata.HashableProperties.CreationTime,
+                                    CreationTimeSpecified = currentChange.Metadata.HashableProperties.CreationTime.Ticks != FileConstants.InvalidUtcTimeTicks,
+                                    Size = (currentChange.Metadata.HashableProperties.Size == null ? 0L : (long)currentChange.Metadata.HashableProperties.Size),
+                                    SizeSpecified = currentChange.Metadata.HashableProperties.Size != null,
+                                    Dependencies = traceChangesArray
+                                };
+
+                                if (traceChangesArray != null)
+                                {
+                                    FileChange[] innerDependencies = currentChangeWithDependencies.Dependencies;
+
+                                    for (int innerDependencyIndex = 0; innerDependencyIndex < innerDependencies.Length; innerDependencyIndex++)
+                                    {
+                                        castThisAction(castThisAction, traceChangesArray, innerDependencyIndex, innerDependencies[innerDependencyIndex]);
+                                    }
+                                }
+                            }
+                        };
+
+                    for (int outerChangeIndex = 0; outerChangeIndex < changesArray.Length; outerChangeIndex++)
+                    {
+                        fillIndexInTraceFileChangeArray(fillIndexInTraceFileChangeArray, traceChangesArray, outerChangeIndex, changesArray[outerChangeIndex]);
+                    }
+                }
+
+                WriteLogEntry(newEntry, traceLocation, UserDeviceId, UniqueUserId);
+            }
+            catch
+            {
+            }
+        }
         #endregion
 
         #region private methods
@@ -924,6 +1021,12 @@ namespace CloudApiPublic.Static
                 Body = body
             };
 
+            WriteLogEntry(newEntry, traceLocation, UserDeviceId, UniqueUserId);
+        }
+        // the calling method should wrap this private helper in a try/catch
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        private static void WriteLogEntry(Entry logEntry, string traceLocation, string UserDeviceId, string UniqueUserId)
+        {
             string logLocation = CheckLogFileExistance(traceLocation, UserDeviceId, UniqueUserId);
 
             lock (LogFileLocker)
@@ -938,7 +1041,7 @@ namespace CloudApiPublic.Static
                     logWriter.Write(Environment.NewLine + "  ");
                     using (XmlWriter logXmlWriter = XmlWriter.Create(logWriter, logWriterSettings))
                     {
-                        LogEntryTypeSerializer.Serialize(logXmlWriter, newEntry);
+                        LogEntryTypeSerializer.Serialize(logXmlWriter, logEntry);
                     }
                 }
             }

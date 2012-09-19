@@ -171,7 +171,7 @@ namespace CloudApiPrivate.Model
 
             string body = getBody(false);
             string authorizationExcludedBody = null;
-            if (Settings.Settings.Instance.TraceEnabled
+            if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
                 && Settings.Settings.Instance.TraceExcludeAuthorization)
             {
                 authorizationExcludedBody = getBody(true);
@@ -180,7 +180,7 @@ namespace CloudApiPrivate.Model
             HttpContent content = new StringContent(body, Encoding.UTF8);
             content.Headers.ContentType.MediaType = "application/json";
 
-            if (Settings.Settings.Instance.TraceEnabled)
+            if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
             {
                 Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                     Settings.Settings.Instance.Udid,
@@ -252,7 +252,7 @@ namespace CloudApiPrivate.Model
                         {
                         }
 
-                        if (Settings.Settings.Instance.TraceEnabled)
+                        if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
                             Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                                 Settings.Settings.Instance.Udid,
@@ -291,7 +291,7 @@ namespace CloudApiPrivate.Model
             {
                 try
                 {
-                    if (Settings.Settings.Instance.TraceEnabled)
+                    if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                     {
                         Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                             Settings.Settings.Instance.Udid,
@@ -502,7 +502,7 @@ namespace CloudApiPrivate.Model
 
             string body = getBody(false);
             string authorizationExcludedBody = null;
-            if (Settings.Settings.Instance.TraceEnabled
+            if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
                 && Settings.Settings.Instance.TraceExcludeAuthorization)
             {
                 authorizationExcludedBody = getBody(true);
@@ -514,7 +514,7 @@ namespace CloudApiPrivate.Model
             HttpContent content = new StringContent(body, Encoding.UTF8);
             content.Headers.ContentType.MediaType = "application/json";
 
-            if (Settings.Settings.Instance.TraceEnabled)
+            if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
             {
                 Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                     Settings.Settings.Instance.Udid,
@@ -586,7 +586,7 @@ namespace CloudApiPrivate.Model
                         {
                         }
 
-                        if (Settings.Settings.Instance.TraceEnabled)
+                        if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
                             Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                                 Settings.Settings.Instance.Udid,
@@ -625,7 +625,7 @@ namespace CloudApiPrivate.Model
             {
                 try
                 {
-                    if (Settings.Settings.Instance.TraceEnabled)
+                    if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                     {
                         Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                             Settings.Settings.Instance.Udid,
@@ -837,7 +837,7 @@ namespace CloudApiPrivate.Model
                 HttpContent content = new StringContent(body, Encoding.UTF8);
                 content.Headers.ContentType.MediaType = "application/json";
 
-                if (Settings.Settings.Instance.TraceEnabled)
+                if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                 {
                     Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                         Settings.Settings.Instance.Udid,
@@ -909,7 +909,7 @@ namespace CloudApiPrivate.Model
                             {
                             }
 
-                            if (Settings.Settings.Instance.TraceEnabled)
+                            if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                             {
                                 Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                                     Settings.Settings.Instance.Udid,
@@ -948,7 +948,7 @@ namespace CloudApiPrivate.Model
                 {
                     try
                     {
-                        if (Settings.Settings.Instance.TraceEnabled)
+                        if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
                             Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                                 Settings.Settings.Instance.Udid,

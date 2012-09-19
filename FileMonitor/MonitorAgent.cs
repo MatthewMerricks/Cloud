@@ -31,9 +31,9 @@ namespace FileMonitor
     /// <param name="outputChanges">Output array of FileChanges to process</param>
     /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
     /// <returns>Returns error(s) that occurred while pulling processed changes, if any</returns>
-    public delegate CLError GrabProcessedChanges(IEnumerable<FileChange> initialFailures,
+    public delegate CLError GrabProcessedChanges(IEnumerable<KeyValuePair<bool, FileChange>> initialFailures,
         out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
-        out IEnumerable<FileChange> outputChangesInError);
+        out IEnumerable<KeyValuePair<bool, FileChange>> outputChangesInError);
 
     public delegate CLError DependencyAssignments(IEnumerable<KeyValuePair<FileChange, FileStream>> toAssign,
         IEnumerable<FileChange> currentFailures,
@@ -1290,9 +1290,9 @@ namespace FileMonitor
         /// <param name="outputChanges">Output array of FileChanges to process</param>
         /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
         /// <returns>Returns error(s) that occurred finalizing the FileChange array, if any</returns>
-        public CLError GrabPreprocessedChanges(IEnumerable<FileChange> initialFailures,
+        public CLError GrabPreprocessedChanges(IEnumerable<KeyValuePair<bool, FileChange>> initialFailures,
             out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
-            out IEnumerable<FileChange> outputChangesInError)
+            out IEnumerable<KeyValuePair<bool, FileChange>> outputChangesInError)
         {
             CLError toReturn = null;
             try
@@ -1301,11 +1301,11 @@ namespace FileMonitor
                 {
                     lock (QueuesTimer.TimerRunningLocker)
                     {
-                        Func<KeyValuePair<FileChangeSource, FileChange>, FileChangeWithDependencies> convertChange = toConvert =>
+                        Func<KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>, FileChangeWithDependencies> convertChange = toConvert =>
                             {
                                 FileChangeWithDependencies converted;
-                                CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(toConvert.Value,
-                                    ((toConvert.Value is FileChangeWithDependencies) ? ((FileChangeWithDependencies)toConvert.Value).Dependencies : null),
+                                CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(toConvert.Value.Value,
+                                    ((toConvert.Value.Value is FileChangeWithDependencies) ? ((FileChangeWithDependencies)toConvert.Value.Value).Dependencies : null),
                                     out converted);
                                 if (conversionError != null)
                                 {
@@ -1320,15 +1320,16 @@ namespace FileMonitor
                             };
 
                         var AllFileChanges = (ProcessingChanges.DequeueAll()
-                            .Select(currentProcessingChange => new KeyValuePair<FileChangeSource, FileChange>(FileChangeSource.ProcessingChanges, currentProcessingChange))
-                            .Concat(initialFailures.Select(currentInitialFailure => new KeyValuePair<FileChangeSource, FileChange>(FileChangeSource.FailureQueue, currentInitialFailure))))
-                            .OrderBy(eventOrdering => eventOrdering.Value.EventId)
+                            .Select(currentProcessingChange => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.ProcessingChanges, new KeyValuePair<bool, FileChange>(false, currentProcessingChange)))
+                            .Concat(initialFailures.Select(currentInitialFailure => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailureQueue, new KeyValuePair<bool, FileChange>(currentInitialFailure.Key, currentInitialFailure.Value)))))
+                            .OrderBy(eventOrdering => eventOrdering.Value.Value.EventId)
                             .Concat(QueuedChanges.Values
                                 .OrderBy(memoryIdOrdering => memoryIdOrdering.InMemoryId)
-                                .Select(currentQueuedChange => new KeyValuePair<FileChangeSource, FileChange>(FileChangeSource.QueuedChanges, currentQueuedChange)))
+                                .Select(currentQueuedChange => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.QueuedChanges, new KeyValuePair<bool, FileChange>(false, currentQueuedChange))))
                             .Select(currentFileChange => new
                             {
-                                OriginalFileChange = currentFileChange.Value,
+                                ExistingError = currentFileChange.Value.Key,
+                                OriginalFileChange = currentFileChange.Value.Value,
                                 DependencyFileChange = convertChange(currentFileChange),
                                 SourceType = currentFileChange.Key
                             })
@@ -1344,7 +1345,7 @@ namespace FileMonitor
                             OriginalFileChangeMappings,
                             out PulledChanges);
                         List<KeyValuePair<FileChange, FileStream>> OutputChangesList = new List<KeyValuePair<FileChange, FileStream>>();
-                        List<FileChange> OutputFailuresList = new List<FileChange>();
+                        List<KeyValuePair<bool, FileChange>> OutputFailuresList = new List<KeyValuePair<bool, FileChange>>();
 
                         for (int currentChangeIndex = 0; currentChangeIndex < AllFileChanges.Length; currentChangeIndex++)
                         {
@@ -1375,7 +1376,7 @@ namespace FileMonitor
                                 {
                                     removeQueuedChangesFromDependencyTree(queuedChangesNeedMergeToSql);
 
-                                    OutputFailuresList.Add(CurrentDependencyTree.DependencyFileChange);
+                                    OutputFailuresList.Add(new KeyValuePair<bool, FileChange>(AllFileChanges[currentChangeIndex].ExistingError, CurrentDependencyTree.DependencyFileChange));
                                 }
                                 else
                                 {
@@ -1498,7 +1499,7 @@ namespace FileMonitor
 
                                         if (CurrentFailed)
                                         {
-                                            OutputFailuresList.Add(CurrentDependencyTree.DependencyFileChange);
+                                            OutputFailuresList.Add(new KeyValuePair<bool, FileChange>(false, CurrentDependencyTree.DependencyFileChange));
                                         }
                                         else
                                         {
@@ -1542,7 +1543,7 @@ namespace FileMonitor
             catch (Exception ex)
             {
                 outputChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<FileChange, FileStream>>>();
-                outputChangesInError = Helpers.DefaultForType<IEnumerable<FileChange>>();
+                outputChangesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
                 toReturn += ex;
             }
             return toReturn;
@@ -3167,61 +3168,6 @@ namespace FileMonitor
                         });
                 }
             }
-
-            // FileChanges are now sorted when Sync calls back to ProcessFileListForSyncProcessing in this class
-
-            //List<FileChange> DeleteFiles = new List<FileChange>();
-            //List<FileChange> DeleteFolders = new List<FileChange>();
-            //List<FileChange> OtherFolderOperations = new List<FileChange>();
-            //List<FileChange> OtherFileOperations = new List<FileChange>();
-
-            //FileChange[] batchedChanges = new FileChange[ProcessingChanges.Count];
-
-            //while (ProcessingChanges.Count > 0)
-            //{
-            //    FileChange currentChangeToAdd = ProcessingChanges.Dequeue();
-            //    if (currentChangeToAdd.Type == FileChangeType.Deleted)
-            //    {
-            //        if (currentChangeToAdd.Metadata.HashableProperties.IsFolder)
-            //        {
-            //            DeleteFolders.Add(currentChangeToAdd);
-            //        }
-            //        else
-            //        {
-            //            DeleteFiles.Add(currentChangeToAdd);
-            //        }
-            //    }
-            //    else if (currentChangeToAdd.Metadata.HashableProperties.IsFolder)
-            //    {
-            //        OtherFolderOperations.Add(currentChangeToAdd);
-            //    }
-            //    else
-            //    {
-            //        OtherFileOperations.Add(currentChangeToAdd);
-            //    }
-            //}
-
-            //int batchedChangeIndex = 0;
-            //foreach (FileChange currentDeleteFile in DeleteFiles)
-            //{
-            //    batchedChanges[batchedChangeIndex] = currentDeleteFile;
-            //    batchedChangeIndex++;
-            //}
-            //foreach (FileChange currentDeleteFolder in DeleteFolders)
-            //{
-            //    batchedChanges[batchedChangeIndex] = currentDeleteFolder;
-            //    batchedChangeIndex++;
-            //}
-            //foreach (FileChange currentOtherFolder in OtherFolderOperations)
-            //{
-            //    batchedChanges[batchedChangeIndex] = currentOtherFolder;
-            //    batchedChangeIndex++;
-            //}
-            //foreach (FileChange currentOtherFile in OtherFileOperations)
-            //{
-            //    batchedChanges[batchedChangeIndex] = currentOtherFile;
-            //    batchedChangeIndex++;
-            //}
         }
 
         private static void RunOnProcessEventGroupCallback(object state)

@@ -30,6 +30,14 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:enumeration>
+            <!-- Skip value 2 since that is used for "include authorization" which is a modifier of value 1, Communication packets -->
+            <xs:enumeration value="4">
+              <xs:annotation>
+                <xs:documentation>
+                  FileChange flow
+                </xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
             <!-- Add more types of trace logs here, make them all bases of 2 unless they represent a combination of base 2 types -->
           </xs:restriction>
         </xs:simpleType>
@@ -76,6 +84,54 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="FileChangeFlowEntry">
+    <xs:annotation>
+      <xs:documentation>
+        Corresponds to Type "4"
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="Entry">
+        <xs:sequence>
+          <xs:element name="PositionInFlow" minOccurs="1" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="FileMonitorAddingToQueuedChanges" />
+                <xs:enumeration value="FileMonitorAddingBatchToSQL" />
+                <xs:enumeration value="SyncRunInitialErrors" />
+                <xs:enumeration value="GrabChangesQueuedChangesAddedToSQL" />
+                <xs:enumeration value="GrabChangesOutputChanges" />
+                <xs:enumeration value="GrabChangesOutputChangesInError" />
+                <xs:enumeration value="SyncRunPreprocessedEventsSynchronous" />
+                <xs:enumeration value="SyncRunPreprocessedEventsAsynchronous" />
+                <xs:enumeration value="SyncRunRequeuedFailuresBeforeCommunication" />
+                <xs:enumeration value="SyncRunChangesForCommunication" />
+                <xs:enumeration value="CommunicationCompletedChanges" />
+                <xs:enumeration value="CommunicationIncompletedChanges" />
+                <xs:enumeration value="CommunicationChangesInError" />
+                <xs:enumeration value="SyncRunPostCommunicationDequeuedFailures" />
+                <xs:enumeration value="DependencyAssignmentOutputChanges" />
+                <xs:enumeration value="DependencyAssignmentTopLevelErrors" />
+                <xs:enumeration value="SyncRunPostCommunicationSynchronous" />
+                <xs:enumeration value="SyncRunPostCommunicationAsynchronous" />
+                <xs:enumeration value="SyncRunEndThingsThatWereDependenciesToQueue" />
+                <xs:enumeration value="SyncRunEndRequeuedFailures" />
+                <xs:enumeration value="UploadDownloadSuccess" />
+                <xs:enumeration value="UploadDownloadFailure" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="FileChanges" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:choice minOccurs="1" maxOccurs="unbounded">
+                <xs:element name="FileChange" type="TraceFileChange" minOccurs="1" maxOccurs="unbounded" />
+              </xs:choice>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="Copyright">
     <xs:sequence>
       <xs:element name="FileName" minOccurs="0" maxOccurs="1" type="xs:string" />
@@ -88,6 +144,33 @@
       </xs:element>
       <xs:element name="Creator" minOccurs="1" maxOccurs="1" type="xs:string" />
     </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="TraceFileChange">
+    <xs:all>
+      <xs:element name="NewPath" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="OldPath" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="IsFolder" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="Type" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Created" />
+            <xs:enumeration value="Deleted" />
+            <xs:enumeration value="Renamed" />
+            <xs:enumeration value="Modified" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="LastTime" minOccurs="0" maxOccurs="1" type="xs:dateTime" />
+      <xs:element name="CreationTime" minOccurs="0" maxOccurs="1" type="xs:dateTime" />
+      <xs:element name="Size" minOccurs="0" maxOccurs="1" type="xs:long" />
+      <xs:element name="Dependencies" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:choice minOccurs="1" maxOccurs="unbounded">
+            <xs:element name="FileChange" type="TraceFileChange" minOccurs="1" maxOccurs="unbounded" />
+          </xs:choice>
+        </xs:complexType>
+      </xs:element>
+    </xs:all>
   </xs:complexType>
   <xs:element name="Log">
     <xs:complexType>
