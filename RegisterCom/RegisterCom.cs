@@ -259,7 +259,8 @@ namespace RegisterCom
                 }
 
                 // Register BadgeCOM.dll in the CloudSupport folder.
-                string pathUninstallFiles = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
+                string pathUninstallFiles = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + 
+                    CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
 
                 Trace.WriteLine(String.Format("RegisterCom: Call RegisterAssembly. Path: <{0}>.", pathUninstallFiles));
                 rcLocal = RegisterAssembly(pathUninstallFiles);
@@ -309,7 +310,7 @@ namespace RegisterCom
         private static int CopyFilesNeededForUninstall()
         {
             // Build AnyCpu "from" directory
-            string fromDirectory = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
+            string fromDirectory = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
 
             // Build bitness "from" directory
             string fromDirectoryBitness;
@@ -334,7 +335,8 @@ namespace RegisterCom
                 Directory.CreateDirectory(toDirectory);
 
                 // Copy the files
-                Trace.WriteLine(String.Format("RegisterCom: CopyFilesNeededForUninstall: Entry. fromDirectory: <{0}>. fromDirectoryBitness: <{1}>. toDirectory: <{2}>.", fromDirectory, fromDirectoryBitness, toDirectory));
+                Trace.WriteLine(String.Format("RegisterCom: CopyFilesNeededForUninstall: Entry. fromDirectory: <{0}>. fromDirectoryBitness: <{1}>. toDirectory: <{2}>.", 
+                            fromDirectory, fromDirectoryBitness, toDirectory));
                 CopyFileWithDeleteFirst(fromDirectoryBitness, toDirectory, "BadgeCOM.dll");
                 CopyFileWithDeleteFirst(fromDirectory, toDirectory, "RegisterCom.exe");
                 CopyFileWithDeleteFirst(fromDirectory, toDirectory, "CloudApiPrivate.dll");
@@ -375,21 +377,6 @@ namespace RegisterCom
             }
         }
 
-        private static string GetProgramFilesFolderPathForBitness()
-        {
-            // Determine whether 32-bit or 64-bit architecture
-            if (IntPtr.Size == 4)
-            {
-                // 32-bit 
-                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            }
-            else
-            {
-                // 64-bit 
-                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            }
-        }
-
         private static string GenerateTab(int tabCount)
         {
             return new string(Enumerable.Range(0, tabCount).Select(parent => ' ').ToArray());
@@ -404,15 +391,16 @@ namespace RegisterCom
             string explorerLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
             try
             {
+                // Kill Explorer
                 Trace.WriteLine(String.Format("RegisterCom: StopExplorer: Entry. Explorer location: <{0}>.", explorerLocation));
-                System.Diagnostics.Process process = new System.Diagnostics.Process();
-                System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-                startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                startInfo.FileName = "cmd.exe";
-                startInfo.Arguments = "/C taskkill /F /IM explorer.exe";
-                process.StartInfo = startInfo;
+                ProcessStartInfo taskKillInfo = new ProcessStartInfo();
+                taskKillInfo.CreateNoWindow = true;
+                taskKillInfo.UseShellExecute = false;
+                taskKillInfo.FileName = "cmd.exe";
+                taskKillInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                taskKillInfo.Arguments = "/C taskkill /F /IM explorer.exe";
                 Trace.WriteLine("RegisterCom: StopExplorer: Start the command.");
-                process.Start();
+                Process.Start(taskKillInfo);
 
                 // Wait for all Explorer processes to stop.
                 const int maxProcessWaits = 40; // corresponds to trying for 20 seconds (if each iteration waits 500 milliseconds)
@@ -450,7 +438,8 @@ namespace RegisterCom
                 explorerLocation = StopExplorer();
 
                 // The BadgeCOM.dll was registered in the Cloud program files CloudSupport directory.  Find it there and unregister it.
-                string pathToCopiedBadgeCOM = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
+                string pathToCopiedBadgeCOM = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + 
+                        CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
                 if (File.Exists(pathToCopiedBadgeCOM))
                 {
                     // Unregister BadgeCOM
@@ -493,69 +482,100 @@ namespace RegisterCom
                     File.Delete(indexDBLocation);
                 }
 
-                // Delete all of the support files copied at installation, and delete the ProgramFiles Cloud folders if there are no remaining files.
-                DeleteCloudSupportFiles();
+                // Finalize the uninstall.  We are running in this assembly, and this assembly has various DLLs loaded and locked, so we can't
+                // just delete them.  We would like to delete all of the files recursively up to c:\program files (x86)\Cloud.com (including Cloud.com)),
+                // assuming that the user hasn't added any files that we or the installer don't know about.  We will save a VBScript file in the user's
+                // temp directory.  We will start a new process naming cscript and the VBScript file.  The VBScript file will unregister BadgeCom, clean
+                // up the program files directory, and then delete itself.  We will just exit here so the files will be unlocked so they can
+                // be cleaned up.  Under normal circumstances, the entire ProgramFiles Cloud.com directory should be removed.  The VBScript program will
+                // restart Explorer.
+                Trace.WriteLine("RegisterCom: UninstallCOM: Call FinalizeUninstall.");
+                int rc = FinalizeUninstall();
+                if (rc != 0)
+                {
+                    // Restart Explorer
+                    Trace.WriteLine("RegisterCom: UninstallCOM: Start Explorer.");
+                    Process.Start(explorerLocation);
+                }
             }
             catch (Exception ex)
             {
                 Trace.WriteLine(String.Format("RegisterCom: UninstallCOM: ERROR.  Exception.  Msg: {0}.", ex.Message));
-                return 105;
-            }
-            finally
-            {
-                // Start Explorer
+
+                // Restart Explorer
                 Trace.WriteLine("RegisterCom: UninstallCOM: Start Explorer.");
                 Process.Start(explorerLocation);
+
+                return 105;
             }
 
-            Trace.WriteLine("RegisterCom: UninstallCOM: Uninstallation successful.");
+            Trace.WriteLine("RegisterCom: UninstallCOM: Exit successfully.");
             return 0;
         }
 
-        private static void DeleteCloudSupportFiles()
+        /// <summary>
+        /// Finalize the uninstall
+        /// </summary>
+        private static int FinalizeUninstall()
         {
-            // Delete the support files
-            Trace.WriteLine("RegisterCom: DeleteCloudSupportFiles: Entry.");
-            string supportPath = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + CLPrivateDefinitions.CloudSupportFolderInProgramFiles;
-            DeleteFile(supportPath, "BadgeCOM.dll");
-            DeleteFile(supportPath, "CloudApiPrivate.dll");
-            DeleteFile(supportPath, "CloudApiPublic.dll");
-            DeleteFile(supportPath, "Microsoft.Net.Http.dll");
-            DeleteFile(supportPath, "RegisterCom.exe");
-
-            // Delete the CloudSupport directory if it is empty
-            if (Directory.GetFiles(supportPath).Length == 0)
+            try
             {
-                Trace.WriteLine(String.Format("RegisterCom: DeleteCloudSupportFiles: Delete the CloudSupport directory at <{0}>.", supportPath));
-                DirectoryInfo parentInfo = Directory.GetParent(supportPath);
-                string parentPath = parentInfo.FullName;
-                Directory.Delete(supportPath);
-                supportPath = parentPath;
+                // Stream the CloudClean.vbs file out to the user's temp directory
+                // Locate the user's temp directory.
+                Trace.WriteLine("RegisterCom: FinalizeUninstall: Entry.");
+                string userTempDirectory = Path.GetTempPath();
+                string vbsPath = userTempDirectory + "\\CloudClean.vbs";
+
+                // Get the assembly containing the .vbs resource.
+                Trace.WriteLine("RegisterCom: FinalizeUninstall: Get the assembly containing the .vbs resource.");
+                System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(RegisterCom.MainProgram));
+                if (storeAssembly == null)
+                {
+                    Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: storeAssembly null.");
+                    return 1;
+                }
+
+                // Stream the CloudClean.vbs file out to the temp directory
+                Trace.WriteLine("RegisterCom: Call WriteResourceFileToFilesystemFile.");
+                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudCleanVbs", vbsPath);
+                if (rc != 0)
+                {
+                    Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100));
+                    return rc + 100;
+                }
+                
+                // Now we will create a new process to run the VBScript file.
+                Trace.WriteLine("RegisterCom: FinalizeUninstall: Build the paths for launching the VBScript file.");
+                string systemFolderPath = CLShortcuts.GetSystemFolderPathForBitness();
+                string cscriptPath = systemFolderPath + "\\cscript.exe";
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Cscript executable path: <{0}>.", cscriptPath));
+
+                string parm1Path = CLShortcuts.GetProgramFilesFolderPathForBitness();
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Parm 1: <{0}>.", parm1Path));
+
+                string parm2Path = Environment.GetEnvironmentVariable("SystemRoot");
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Parm 2: <{0}>.", parm2Path));
+
+                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""" + @" """ + parm1Path + @""" """ + parm2Path + @"""";
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
+            
+                // Launch the process
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.FileName = cscriptPath;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.Arguments = argumentsString;
+                Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: ERROR: Exception. Msg: {0}.", ex.Message));
+                return 4;
             }
 
-            // Delete the Trace.log file if it exists
-            Trace.WriteLine("RegisterCom: DeleteCloudSupportFiles: Delete the Trace.log file if it exists.");
-            File.Delete(supportPath + "\\Trace.log");
-
-            // Delete the Cloud directory if it is empty.
-            if (Directory.GetFiles(supportPath).Length == 0)
-            {
-                Trace.WriteLine(String.Format("RegisterCom: DeleteCloudSupportFiles: Delete the Cloud directory at <{0}>.", supportPath));
-                DirectoryInfo parentInfo = Directory.GetParent(supportPath);
-                string parentPath = parentInfo.FullName;
-                Directory.Delete(supportPath);
-                supportPath = parentPath;
-            }
-
-            // Delete the Cloud.com directory if it is empty.
-            if (Directory.GetFiles(supportPath).Length == 0)
-            {
-                Trace.WriteLine(String.Format("RegisterCom: DeleteCloudSupportFiles: Delete the Cloud.com directory at <{0}>.", supportPath));
-                DirectoryInfo parentInfo = Directory.GetParent(supportPath);
-                string parentPath = parentInfo.FullName;
-                Directory.Delete(supportPath);
-                //supportPath = parentPath;
-            }
+            Trace.WriteLine("RegisterCom: FinalizeUninstall: Exit successfully.");
+            return 0;
         }
 
         private static void DeleteFile(string supportPath, string filenameExt)

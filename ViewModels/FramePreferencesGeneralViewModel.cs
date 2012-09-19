@@ -1,5 +1,5 @@
 ﻿//
-//  FramePreferencesViewModel.cs
+//  FramePreferencesGeneralViewModel.cs
 //  Cloud Windows
 //
 //  Created by BobS.

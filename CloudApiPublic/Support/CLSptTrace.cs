@@ -61,32 +61,39 @@ namespace CloudApiPublic.Support
         /// <param name="message">The message to write to the log</param>
         public void writeToLog(int priority, string format, params object[] args)
         {
-            // Only write high priority messages
-            if (priority <= _maxPriority)
+            try
             {
-                // Lock while writing to prevent contention for the log file
-                lock (_instance)
+                // Only write high priority messages
+                if (priority <= _maxPriority)
                 {
-                    // Format the string
-                    string message = string.Format(format, args);
-
-                    // Create the entry
-                    LogMessage logEntry = new LogMessage(priority, message);
-
-                    // Log to the VS output window, or to DbgView
-                    Debug.WriteLine(string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message));
-
-                    string logPath = _logDir + _logFile;
-
-                    // This could be optimised to prevent opening and closing the file for each write
-                    using (FileStream fs = File.Open(logPath, FileMode.Append, FileAccess.Write, FileShare.Write))
+                    // Lock while writing to prevent contention for the log file
+                    lock (_instance)
                     {
-                        using (StreamWriter log = new StreamWriter(fs))
+                        // Format the string
+                        string message = string.Format(format, args);
+
+                        // Create the entry
+                        LogMessage logEntry = new LogMessage(priority, message);
+
+                        // Log to the VS output window, or to DbgView
+                        Debug.WriteLine(string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message));
+
+                        string logPath = _logDir + _logFile;
+
+                        // This could be optimised to prevent opening and closing the file for each write
+                        using (FileStream fs = File.Open(logPath, FileMode.Append, FileAccess.Write, FileShare.Write))
                         {
-                            log.WriteLine(string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message));
+                            using (StreamWriter log = new StreamWriter(fs))
+                            {
+                                log.WriteLine(string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message));
+                            }
                         }
                     }
                 }
+            }
+            catch
+            {
+
             }
         }
     }

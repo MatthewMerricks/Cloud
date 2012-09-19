@@ -1,0 +1,281 @@
+﻿   '
+   '  CloudClean.vbs
+   '  Cloud Windows
+   '
+   '  Created by BobS.
+   '  Copyright (c) Cloud.com. All rights reserved.
+   '
+
+   ' Parameter: The program files path for this platform.  e.g., C:\Program Files (x86)
+   ' Parameter: The Explorer.exe path.  e.g., c:\Windows
+   ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:5 //Nologo "<path to this CloudClean.vbs file>" "C:\Program Files (x86)" "c:\Windows"
+   
+   Option Explicit
+
+   Const ForReading = 1
+   Const ForWriting = 2
+   Const ForAppending = 8
+   
+   Dim filesys
+   Dim objShell
+ 
+   ' Global variables
+   Dim shouldTrace
+   Dim shouldExplorerBeStarted
+   Dim sExplorerPath
+   Dim logFileFullPath
+   Dim sScriptFile
+   
+   Set filesys = wscript.CreateObject("Scripting.FileSystemObject") 
+   Set objShell = wscript.createObject("wscript.shell") 
+ 
+   shouldTrace = True
+   shouldExplorerBeStarted = True
+   logFileFullPath = filesys.GetSpecialFolder(2) & "\CloudTrace.log"
+   
+   ' Trace function
+   Sub WriteLog(LogMessage)
+      Dim objLogFile
+ 
+      If shouldTrace Then
+         wscript.echo Now() & ": " & LogMessage
+         Set objLogFile = filesys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
+         objLogFile.Writeline(Now() & ": " & LogMessage)
+         objLogFile.Close
+         set objLogFile = Nothing
+      End If
+   End Sub
+
+   ' Check to see if Explorer is running   
+   Function IsExplorerRunning(explorerPath)
+      IsExplorerRunning = False
+      Dim colProcesses
+      Dim refProcess
+      Dim objWMIService
+
+      'WriteLog "CloudClean: IsExplorerRunning: Entry. explorerPath: " & explorerPath
+      Set objWMIService = GetObject("winmgmts:\\.\root\CIMV2") 
+      Set colProcesses = objWMIService.ExecQuery( "SELECT * FROM Win32_Process")
+
+      'WriteLog "CloudClean: IsExplorerRunning: Loop through executing processes."
+      For Each refProcess In colProcesses
+         'WriteLog "CloudClean: IsExplorerRunning: Process name <" & refProcess.Name & ">, ExecutablePath <" & refProcess.ExecutablePath & ">."
+         If UCase(refProcess.ExecutablePath) = UCase(explorerPath & "\explorer.exe") And UCase(refProcess.Name) = "EXPLORER.EXE" Then
+            'WriteLog "CloudClean: IsExplorerRunning: Explorer is running."
+            IsExplorerRunning = True
+            Exit For
+         End If
+      Next
+      'WriteLog "CloudClean: IsExplorerRunning: Exit rc: " & IsExplorerRunning
+   End Function
+
+   ' Kill any Explorer processes
+   Sub KillExplorer(explorerPath)
+      Dim colProcesses
+      Dim refProcess
+      Dim objWMIService
+
+      'WriteLog "CloudClean: KillExplorer: Entry. explorerPath: " & explorerPath
+      Set objWMIService = GetObject("winmgmts:\\.\root\CIMV2") 
+      Set colProcesses = objWMIService.ExecQuery( "SELECT * FROM Win32_Process")
+
+      'WriteLog "CloudClean: KillExplorer: Loop through executing processes."
+      For Each refProcess In colProcesses
+         'WriteLog "CloudClean: KillExplorer: Process name <" & refProcess.Name & ">, ExecutablePath <" & refProcess.ExecutablePath & ">."
+         If UCase(refProcess.ExecutablePath) = UCase(explorerPath & "\explorer.exe") And UCase(refProcess.Name) = "EXPLORER.EXE" Then
+            'WriteLog "CloudClean: KillExplorer: Explorer is running."
+            refProcess.Terminate()
+         End If
+      Next
+      'WriteLog "CloudClean: KillExplorer: Exit."
+   End Sub
+
+   '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   ' Try pattern
+   Class CloudClean
+      Private Sub Class_Initialize
+         WriteLog("CloudClean: Constructor entry.")
+         ' Don't run if we don't have the necessary parameters
+         WriteLog("CloudClean: Arg count: " & wscript.Arguments.Count)
+         If wscript.Arguments.Count < 2 Then
+            WriteLog("CloudClean: ERROR: Wrong arguments.")
+            Exit Sub
+         End If
+
+         ' Allocate the objects we will need
+         Dim sProgramFilesDirPath
+         Dim sProgramFilesCloudDirPath
+         Dim sProgramFilesCloudComDirPath
+         Dim sProgramFilesCloudSupportDirPath
+         Dim sTempFolderPath
+         Dim folderSupport
+         Dim folderSupportFiles
+         Dim folderCloud
+         Dim folderCloudFiles
+         Dim folderCloudCom
+         Dim folderCloudComFiles
+         Dim objFSO
+         Dim objMOS
+         Dim i
+
+         ' Determine the program files directory to use
+         sExplorerPath = wscript.Arguments(1)
+         sProgramFilesDirPath = wscript.Arguments(0)
+         sProgramFilesCloudDirPath = sProgramFilesDirPath & "\Cloud.com\Cloud"
+         sProgramFilesCloudComDirPath = sProgramFilesDirPath & "\Cloud.com"
+         sProgramFilesCloudSupportDirPath = sProgramFilesCloudDirPath & "\CloudSupport"
+         ' Get the user's temp directory path
+         sTempFolderPath = filesys.GetSpecialFolder(2)
+
+         WriteLog "CloudClean: Explorer path:" & sExplorerPath
+         WriteLog "CloudClean: sProgramFilesDirPath: " & sProgramFilesDirPath
+         WriteLog "CloudClean: sProgramFilesCloudDirPath: " & sProgramFilesCloudDirPath
+         WriteLog "CloudClean: sProgramFilesCloudComDirPath: " & sProgramFilesCloudComDirPath
+         WriteLog "CloudClean: sProgramFilesCloudSupportDirPath: " & sProgramFilesCloudSupportDirPath
+         WriteLog "CloudClean: sTempFolderPath: " & sTempFolderPath
+
+         ' Loop trying to complete normally
+         For i = 1 to 3
+            ' Wait for 1 second
+            WriteLog "CloudClean: Wait one second..."
+            Wscript.Sleep 1000
+
+            ' If Explorer is running, kill it (in case it wasn't killed before (as it should be by RegisterCom)).
+            WriteLog "CloudClean: Check for Explorer running."
+            if IsExplorerRunning(sExplorerPath) Then
+              WriteLog "CloudClean: Kill Explorer."
+              'KillExplorer(sExplorerPath)
+              objShell.Run "taskkill /f /im explorer.exe", 0, true
+              
+              ' Wait for Explorer to exit
+              WriteLog "CloudClean: Wait for Explorer to exit."
+              Do While True
+                 Wscript.Sleep 100
+                 If Not IsExplorerRunning(sExplorerPath) Then
+                    Exit Do
+                 End If
+              Loop
+              WriteLog "CloudClean: Explorer exited."
+            End If
+
+
+            ' Delete BadgeCom.dll if it is present.
+            If filesys.FileExists(sProgramFilesCloudSupportDirPath & "\BadgeCom.dll") Then
+               WriteLog "CloudClean: Delete file: " & sProgramFilesCloudSupportDirPath & "\BadgeCom.dll"
+               filesys.DeleteFile sProgramFilesCloudSupportDirPath & "\BadgeCom.dll", True
+            End If
+            
+            ' Deleting folders will fail if it is our current directory.  Change to the user's Temp directory to avoid this problem.
+            WriteLog "CloudClean: Change to the temp directory: " & sTempFolderPath
+            objShell.CurrentDirectory = sTempFolderPath
+
+            ' Attempt to delete all files in CloudSupport
+            WriteLog "CloudClean: Does CloudSupport folder exist?"
+            If filesys.FolderExists(sProgramFilesCloudSupportDirPath & "\") Then
+               WriteLog "CloudClean: Check for files in CloudSupport folder."
+               set folderSupport = filesys.GetFolder(sProgramFilesCloudSupportDirPath & "\")
+               Set folderSupportFiles = folderSupport.Files
+               If folderSupportFiles.Count > 0 Then
+                  WriteLog "CloudClean: Delete all files in : " & sProgramFilesCloudSupportDirPath
+                  filesys.DeleteFile sProgramFilesCloudSupportDirPath & "\*.*", True
+               End If
+            End If
+
+            ' If the CloudSupport directory is empty now, delete the directory itself
+            WriteLog "CloudClean: Does CloudSupport folder exist? (2)."
+            If filesys.FolderExists(sProgramFilesCloudSupportDirPath & "\") Then
+               WriteLog "CloudClean: Check for files in CloudSupport folder (2)."
+               set folderSupport = filesys.GetFolder(sProgramFilesCloudSupportDirPath & "\")
+               Set folderSupportFiles = folderSupport.Files
+               If folderSupportFiles.Count = 0 Then
+                  WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudSupportDirPath & "\"
+                  filesys.DeleteFolder sProgramFilesCloudSupportDirPath, True
+               End If
+            End If 
+
+            ' Delete the trace.log file
+            WriteLog "CloudClean: Check for Trace.log file."
+            If filesys.FileExists(sProgramFilesCloudDirPath + "\trace.log") Then
+               WriteLog "CloudClean: Delete file: " & sProgramFilesCloudDirPath & "\trace.log"
+               filesys.DeleteFile sProgramFilesCloudDirPath + "\trace.log", True
+            End If
+
+            ' If the Cloud directory is empty
+            WriteLog "CloudClean: Does Cloud directory exist?"
+            If filesys.FolderExists(sProgramFilesCloudDirPath & "\") Then
+               WriteLog "CloudClean: Check for files in the Cloud directory."
+               set folderCloud = filesys.GetFolder(sProgramFilesCloudDirPath & "\")
+               Set folderCloudFiles = folderCloud.Files
+               If folderCloudFiles.Count = 0 Then
+                  WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudDirPath & "\"
+                  filesys.DeleteFolder sProgramFilesCloudDirPath, True
+               End If
+            End If
+
+            ' If the Cloud.Com directory is empty
+            WriteLog "CloudClean: Does Cloud.com directory exist?"
+            If filesys.FolderExists(sProgramFilesCloudComDirPath & "\") Then
+               WriteLog "CloudClean: Check for files in the Cloud.com directory."
+               set folderCloudCom = filesys.GetFolder(sProgramFilesCloudComDirPath & "\")
+               Set folderCloudComFiles = folderCloudCom.Files
+               If folderCloudComFiles.Count = 0 Then
+                  WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudComDirPath & "\"
+                  filesys.DeleteFolder sProgramFilesCloudComDirPath, True
+               End If
+            End If
+
+            ' If the Cloud.com directory does not exist
+            WriteLog "CloudClean: Does Cloud.com directory exist (2)?"
+            If Not filesys.FolderExists(sProgramFilesCloudComDirPath & "\") Then
+               WriteLog "CloudClean: Exit the loop."
+               Exit For
+            End If 
+         Next
+
+         ' Start Explorer
+         WriteLog "CloudClean: Start Explorer: " & sExplorerPath & "\Explorer.exe"
+         objShell.Run """" & sExplorerPath & "\Explorer.exe"""
+         WriteLog "CloudClean: After starting Explorer."
+         shouldExplorerBeStarted = False
+
+         ' Free resources
+         set folderSupport = Nothing
+         Set folderSupportFiles = Nothing
+         set folderCloud = Nothing
+         Set folderCloudFiles = Nothing
+         set folderCloudCom = Nothing
+         Set folderCloudComFiles = Nothing
+
+         WriteLog "CloudClean: Exit normally"
+      End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
+         ' Catch
+         Select Case Err.Number
+            Case Else WriteLog("CloudClean: Unhandled error " & Err.Number & " occurred.")
+         End Select
+      Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
+         ' Finally
+         WriteLog("CloudClean: Exiting constructor (finally).")
+         if shouldExplorerBeStarted Then
+            WriteLog "CloudClean: Start Explorer(2): " & sExplorerPath & "\Explorer.exe"
+            objShell.Run """" & sExplorerPath & "\Explorer.exe"""
+            WriteLog "CloudClean: After starting Explorer(2)."
+         End If
+
+         ' Delete ourselves.  This is possible because VBS runs everything out of memory.
+         sScriptFile = Wscript.ScriptFullName
+         WriteLog "CloudClean: CloudClean.vbs full path: " & sScriptFIle
+         filesys.DeleteFile sScriptFile, True
+      End Sub 
+   End Class
+   
+   ' Drive the main program
+   WriteLog("CloudClean: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+   WriteLog("CloudClean: Drive the main program.")
+   With New CloudClean : End With
+   WriteLog("CloudClean: Exit 0.")
+   
+   ' No tracing after this
+   set objShell = Nothing
+   set filesys = Nothing
+   wscript.Quit 0
+

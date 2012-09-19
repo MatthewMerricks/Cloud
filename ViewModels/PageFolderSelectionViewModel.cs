@@ -209,33 +209,108 @@ namespace win_client.ViewModels
                 }
 
                 _cbAddCloudFolderShortcutToDesktop = value;
-                Settings.Instance.AddCloudFolderToDesktop = value;
+                Settings.Instance.ShouldAddShowCloudFolderOnDesktop = value;
                 RaisePropertyChanged(CbAddCloudFolderShortcutToDesktopPropertyName);
             }
         }
 
         /// <summary>
-        /// The <see cref="CbAddCloudFolderShortcutToQuickLaunch" /> property's name.
+        /// The <see cref="CbAddCloudFolderShortcutToTaskbar" /> property's name.
         /// </summary>
-        public const string CbAddCloudFolderShortcutToQuickLaunchPropertyName = "CbAddCloudFolderShortcutToQuickLaunch";
-        private bool _cbAddCloudFolderShortcutToQuickLaunch = false;
-        public bool CbAddCloudFolderShortcutToQuickLaunch
+        public const string CbAddCloudFolderShortcutToTaskbarPropertyName = "CbAddCloudFolderShortcutToTaskbar";
+        private bool _cbAddCloudFolderShortcutToTaskbar = false;
+        public bool CbAddCloudFolderShortcutToTaskbar
         {
             get
             {
-                return _cbAddCloudFolderShortcutToQuickLaunch;
+                return _cbAddCloudFolderShortcutToTaskbar;
             }
 
             set
             {
-                if (_cbAddCloudFolderShortcutToQuickLaunch == value)
+                if (_cbAddCloudFolderShortcutToTaskbar == value)
                 {
                     return;
                 }
 
-                _cbAddCloudFolderShortcutToQuickLaunch = value;
-                Settings.Instance.AddCloudFolderToQuickLaunch = value;
-                RaisePropertyChanged(CbAddCloudFolderShortcutToQuickLaunchPropertyName);
+                _cbAddCloudFolderShortcutToTaskbar = value;
+                Settings.Instance.ShouldAddShowCloudFolderOnTaskbar = value;
+                RaisePropertyChanged(CbAddCloudFolderShortcutToTaskbarPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="CbAddCloudFolderShortcutToStartMenu" /> property's name.
+        /// </summary>
+        public const string CbAddCloudFolderShortcutToStartMenuPropertyName = "CbAddCloudFolderShortcutToStartMenu";
+        private bool _cbAddCloudFolderShortcutToStartMenu = false;
+        public bool CbAddCloudFolderShortcutToStartMenu
+        {
+            get
+            {
+                return _cbAddCloudFolderShortcutToStartMenu;
+            }
+
+            set
+            {
+                if (_cbAddCloudFolderShortcutToStartMenu == value)
+                {
+                    return;
+                }
+
+                _cbAddCloudFolderShortcutToStartMenu = value;
+                Settings.Instance.ShouldAddShowCloudFolderInStartMenu = value;
+                RaisePropertyChanged(CbAddCloudFolderShortcutToStartMenuPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="CbAddCloudFolderShortcutToStartMenu" /> property's name.
+        /// </summary>
+        public const string CbAddCloudFolderShortcutToExplorerFavoritesPropertyName = "CbAddCloudFolderShortcutToExplorerFavorites";
+        private bool _cbAddCloudFolderShortcutToExplorerFavorites = false;
+        public bool CbAddCloudFolderShortcutToExplorerFavorites
+        {
+            get
+            {
+                return _cbAddCloudFolderShortcutToExplorerFavorites;
+            }
+
+            set
+            {
+                if (_cbAddCloudFolderShortcutToExplorerFavorites == value)
+                {
+                    return;
+                }
+
+                _cbAddCloudFolderShortcutToExplorerFavorites = value;
+                Settings.Instance.ShouldAddShowCloudFolderInExplorerFavorites = value;
+                RaisePropertyChanged(CbAddCloudFolderShortcutToExplorerFavoritesPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="CbAddCloudFolderShortcutToInternetExplorerFavorites" /> property's name.
+        /// </summary>
+        public const string CbAddCloudFolderShortcutToInternetExplorerFavoritesPropertyName = "CbAddCloudFolderShortcutToInternetExplorerFavorites";
+        private bool _cbAddCloudFolderShortcutToInternetExplorerFavorites = false;
+        public bool CbAddCloudFolderShortcutToInternetExplorerFavorites
+        {
+            get
+            {
+                return _cbAddCloudFolderShortcutToInternetExplorerFavorites;
+            }
+
+            set
+            {
+                if (_cbAddCloudFolderShortcutToInternetExplorerFavorites == value)
+                {
+                    return;
+                }
+
+                _cbAddCloudFolderShortcutToInternetExplorerFavorites = value;
+                Settings.Instance.ShouldAddShowCloudFolderInInternetExplorerFavorites = value;
+                RaisePropertyChanged(CbAddCloudFolderShortcutToInternetExplorerFavoritesPropertyName);
             }
         }
 
@@ -282,8 +357,11 @@ namespace win_client.ViewModels
                                             {
                                                 // Load the current state from the persistent settings.
                                                 PageFolderSelection_CloudFolder = Settings.Instance.CloudFolderPath;
-                                                CbAddCloudFolderShortcutToDesktop = Settings.Instance.AddCloudFolderToDesktop;
-                                                CbAddCloudFolderShortcutToQuickLaunch = Settings.Instance.AddCloudFolderToQuickLaunch;
+                                                CbAddCloudFolderShortcutToDesktop = Settings.Instance.ShouldAddShowCloudFolderOnDesktop;
+                                                CbAddCloudFolderShortcutToTaskbar = Settings.Instance.ShouldAddShowCloudFolderOnTaskbar;
+                                                CbAddCloudFolderShortcutToStartMenu = Settings.Instance.ShouldAddShowCloudFolderInStartMenu;
+                                                CbAddCloudFolderShortcutToExplorerFavorites = Settings.Instance.ShouldAddShowCloudFolderInExplorerFavorites;
+                                                CbAddCloudFolderShortcutToInternetExplorerFavorites = Settings.Instance.ShouldAddShowCloudFolderInInternetExplorerFavorites;
                                             }));
             }
         }
@@ -573,7 +651,19 @@ namespace win_client.ViewModels
             //}
             //&&&&&
 
-            if (Directory.Exists(Settings.Instance.CloudFolderPath) && !_isMergingFolder)
+            // Get the creation time of the cloud folder if it exists
+            DateTime cloudFolderCreationTime = DateTime.MinValue;
+            bool cloudFolderExists = Directory.Exists(Settings.Instance.CloudFolderPath);
+            if (cloudFolderExists)
+            {
+                DirectoryInfo info = new DirectoryInfo(Settings.Instance.CloudFolderPath);
+                cloudFolderCreationTime = info.CreationTime.ToUniversalTime();
+            }
+
+            // Show the Locate/Merge dialog if we don't have an exact folder match at the current location, 
+            // and the directory exists, and we are not merging
+            if (!(cloudFolderExists && cloudFolderCreationTime == Settings.Instance.CloudFolderCreationTimeUtc)
+                && (cloudFolderExists && !_isMergingFolder))
             {
                 // Tell the user that there is already a Cloud folder at that location.  Allow him to choose 'Select new location' or 'Merge'.
                 string cloudFolderRoot = Path.GetDirectoryName(Settings.Instance.CloudFolderPath);  // e.g., "c:/Users/<username>/Documents", if CloudFolderPath is "c:/Users/<username>/Documents/Cloud"

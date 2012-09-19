@@ -1,0 +1,178 @@
+﻿    '
+    '  PinToTaskbar.vbs
+    '  Cloud Windows
+    '
+    '  Created by BobS.
+    '  Copyright (c) Cloud.com. All rights reserved.
+    '
+    '  Mostly from: http://wayneye.wordpress.com/2010/07/17/programmatically-pin-shortcut-onto-taskbar-on-win7/, and others.
+    '
+    ' Parameter 1: The full path to the folder containing the application.exe or shortcut to pin to the taskbar.
+    ' Parameter 2: The name of the application or shortcut file in the folder above (without the extension).
+	' Parameter 3: "P": Pin.  "U": Unpin.
+	' Parameter 4: "T": Taskbar.  "S": Start menu.
+	' Parameter 5: "D": Self-destruct.  "S": Remain.  Don't delete the script.
+    ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Program Files (x86)\Cloud.com\Cloud" "ShowCloudFolder"
+    
+    Option Explicit 
+
+    Const ForReading = 1
+    Const ForWriting = 2
+    Const ForAppending = 8
+    'Const CSIDL_COMMON_PROGRAMS = &H17 
+
+    Dim objShell
+    Dim filesys
+    Dim targetFolder 
+    Dim LnkFilePath 
+    Dim LnkFile
+    Dim logFileFullPath
+	Dim sScriptFile
+	Dim sAction
+
+    ' Global variables
+    Dim shouldTrace
+	Dim shouldSelfDestruct
+   
+    Set objShell = CreateObject("Shell.Application") 
+    Set filesys = CreateObject("Scripting.FileSystemObject") 
+
+	shouldSelfDestruct = True
+ 
+    ' Set the following variable to False to turn off trace   
+    shouldTrace = True
+    logFileFullPath = filesys.GetSpecialFolder(2) & "\CloudTrace.log"
+
+    ' Trace function
+    Sub WriteLog(LogMessage)
+       Dim objLogFile
+ 
+       If shouldTrace Then
+          wscript.echo Now() & ": " & LogMessage
+          Set objLogFile = filesys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
+          objLogFile.Writeline(Now() & ": " & LogMessage)
+          objLogFile.Close
+          set objLogFile = Nothing
+       End If
+    End Sub
+
+    ' Try pattern
+    Class PinToTaskbar
+        ' Constructor
+        Private Sub Class_Initialize
+            WriteLog("PinToTaskbar: Constructor entry.")
+
+            ' Don't run if we don't have the necessary parameters
+            WriteLog("PinToTaskbar: Arg count: " & wscript.Arguments.Count)
+            If wscript.Arguments.Count < 5 Then
+                WriteLog("PinToTaskbar: ERROR: Wrong arguments.")
+                Exit Sub
+            End If
+
+            'Set StartMenuFolder = objShell.NameSpace(CSIDL_COMMON_PROGRAMS) 
+            WriteLog("PinToTaskbar: targetFolder path: " & wscript.Arguments(0))
+            Set targetFolder =  objShell.NameSpace(wscript.Arguments(0)) 
+			 
+            WriteLog("PinToTaskbar: Lnk file path: " & wscript.Arguments(1))
+            LnkFilePath = targetFolder.Self.Path & "\" & wscript.Arguments(1) & ".lnk"
+            LnkFile = wscript.Arguments(1) & ".lnk"
+            
+			if Not filesys.FileExists(LnkFilePath) Then
+	          WriteLog("PinToTaskbar: Lnk file path: " & wscript.Arguments(1) & ".lnk does not exist.  Try the .exe file.")
+			  LnkFilePath = targetFolder.Self.Path & "\" & wscript.Arguments(1) & ".exe"
+              LnkFile = wscript.Arguments(1) & ".exe"
+			End If
+			WriteLog("PinToTaskbar: LnkFilePath: " & LnkFilePath)
+
+			' Set the mode (Pin or Unpin)
+			if Left(wscript.Arguments(2), 1) = "P" then
+				' Set the mode (Taskbar or StartMenu)
+			    if Left(wscript.Arguments(3), 1) = "T" then
+                    WriteLog("PinToTaskbar: This is a pin to taskbar action")
+				    sAction = "Pin to Tas&kbar"
+				else
+	                WriteLog("PinToTaskbar: This is a pin to start menu action")
+			        sAction = "Pin to Start Men&u"
+				end if
+			else
+				' Set the mode (Taskbar or StartMenu)
+			    if Left(wscript.Arguments(3), 1) = "T" then
+	                WriteLog("PinToTaskbar: This is an unpin from taskbar action")
+				    sAction = "Unpin from Tas&kbar"
+				else
+	                WriteLog("PinToTaskbar: This is an unpin from start menu action")
+				    sAction = "Unpin from Start Men&u"
+				end if
+			end if
+
+			' Set the mode (Self destruct or don't)
+		    if Left(wscript.Arguments(4), 1) = "D" then
+				shouldSelfDestruct = True
+			else
+				shouldSelfDestruct = False
+			end if
+    
+			' Process if the shortcut file is there
+            If(filesys.FileExists(LnkFilePath)) Then 
+                Dim tmp, verb 
+    
+	            WriteLog("PinToTaskbar: Lnk file exists: " & LnkFilePath)
+                tmp = ""
+                Dim myItem
+                Set myItem = targetFolder.ParseName(LnkFile)
+
+                For Each verb in myItem.Verbs 
+                    tmp = tmp & verb & ", " 
+                Next 
+                WriteLog("PinToTaskbar: Verbs: <" & tmp & ">.")
+
+                Dim itemList, item 
+
+                Set itemList = targetFolder.Items() 
+                For Each item in itemList 
+                    WriteLog("PinToTaskbar: Item name: " & item.Name)
+                    If (item.Name = LnkFile) Then 
+			            WriteLog("PinToTaskbar: Found the target folder item.")
+                        For Each verb in item.Verbs 
+                            If (verb.Name = sAction) Then 
+					            WriteLog("PinToTaskbar: Found the Taskbar verb.")
+                                verb.DoIt 
+                            End If 
+                        Next 
+                    End If 
+                Next 
+            Else
+	            WriteLog("PinToTaskbar: ERROR: Lnk file <" & LnkFilePath & "> does not exist.")
+            End If 
+            WriteLog("PinToTaskbar: Exit constructor.")
+        End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
+            ' Catch
+            Select Case Err.Number
+                Case Else WriteLog("PinToTaskbar: Unhandled error " & Err.Number & " occurred.")
+            End Select
+        Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
+            ' Finally
+            WriteLog("PinToTaskbar: Exiting constructor (finally).")
+
+			' Delete ourselves.  This is possible because VBS runs everything out of memory.
+			if shouldSelfDestruct then
+				sScriptFile = Wscript.ScriptFullName
+				WriteLog "PinToTaskbar: Delete this file.  PinToTaskbar.vbs full path: " & sScriptFIle
+				filesys.DeleteFile sScriptFile, True
+			end if
+        End Sub 
+    End Class
+
+    ' Drive the main program
+    WriteLog("PinToTaskbar: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    WriteLog("PinToTaskbar: Drive the main program.")
+    With New PinToTaskbar : End With
+    WriteLog("PinToTaskbar: Exit 0.")
+   
+    ' No tracing after this
+    set objShell = Nothing
+    set filesys = Nothing
+    wscript.Quit 0
+
+
+

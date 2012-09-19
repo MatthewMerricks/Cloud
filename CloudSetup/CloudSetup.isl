@@ -372,6 +372,7 @@
 		<row><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>{227C8773-5E56-4DD1-9355-FEFA9C9DDF08}</td><td>INSTALLDIR</td><td>2</td><td/><td>ookii.dialogs.wpfminustaskdi</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>RegisterCom.exe</td><td>{4D0EC4AC-A399-4407-B146-8DB8570BD0F2}</td><td>INSTALLDIR</td><td>2</td><td/><td>registercom.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SQLIndexer.Primary_output</td><td>{34BABC21-57FF-4923-A46D-A7F33AB4CE4F}</td><td>INSTALLDIR</td><td>2</td><td/><td>sqlindexer.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ShowCloudFolder.Primary_output</td><td>{1459739C-3FD8-4ED9-A0D8-A2A64E61B8F5}</td><td>INSTALLDIR</td><td>2</td><td/><td>showcloudfolder.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SimpleJson.dll</td><td>{3A7C4C31-6BF3-4216-A74E-14365AB7A31F}</td><td>INSTALLDIR</td><td>2</td><td/><td>simplejson.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SuperSocket.ClientEngine.Common.dll</td><td>{A5CCCE36-F96C-427F-8585-E2C6DCA13D4D}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.com</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SuperSocket.ClientEngine.Core.dll</td><td>{311737ED-A6CF-464D-AFA9-48DD3A332B36}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.cor</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -397,7 +398,7 @@
 		<row><td>sqlceqp40.dll1</td><td>{973E8424-8D4F-4934-967B-A86B89E668D5}</td><td>X86</td><td>2</td><td/><td>sqlceqp40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlcese40.dll</td><td>{C6AED280-4285-451B-A8AB-2B786AA255F4}</td><td>AMD64</td><td>2</td><td/><td>sqlcese40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlcese40.dll1</td><td>{BB1A9E02-6711-4A22-818C-E71178FA4EB2}</td><td>X86</td><td>2</td><td/><td>sqlcese40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>win_client.Primary_output</td><td>{1DC26801-E3C1-4E10-97FF-18F6F0719D06}</td><td>INSTALLDIR</td><td>2</td><td/><td>win_client.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>win_client.Primary_output</td><td>{A8839CCA-A5BC-4468-892E-5DD187387D95}</td><td>INSTALLDIR</td><td>2</td><td/><td>win_client.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
 
 	<table name="Condition">
@@ -1962,6 +1963,7 @@
 		<row><td>AlwaysInstall</td><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td></row>
 		<row><td>AlwaysInstall</td><td>RegisterCom.exe</td></row>
 		<row><td>AlwaysInstall</td><td>SQLIndexer.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>ShowCloudFolder.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>SimpleJson.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Common.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Core.dll</td></row>
@@ -2034,6 +2036,7 @@
 		<row><td>regid.2000_12.com.cloud_clou</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
 		<row><td>registercom.exe</td><td>RegisterCom.exe</td><td>REGIST~1.EXE|RegisterCom.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe</td><td>1</td><td/></row>
 		<row><td>registercom.exe.config</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGIST~1.CON|RegisterCom.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe.config</td><td>1</td><td/></row>
+		<row><td>showcloudfolder.primary_outp</td><td>ShowCloudFolder.Primary_output</td><td>ShowCloudFolder.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ShowCloudFolder&gt;|Built</td><td>3</td><td/></row>
 		<row><td>simplejson.dll</td><td>SimpleJson.dll</td><td>SIMPLE~1.DLL|SimpleJson.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SimpleJson.dll</td><td>1</td><td/></row>
 		<row><td>sqlceca40.dll</td><td>sqlceca40.dll</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlceca40.dll</td><td>1</td><td/></row>
 		<row><td>sqlceca40.dll1</td><td>sqlceca40.dll1</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlceca40.dll</td><td>1</td><td/></row>
@@ -2345,6 +2348,7 @@
 		<row><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td/><td/><td>_B1B22F10_13DE_4A85_A01F_7F629E22E895_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>RegisterCom.exe</td><td/><td/><td>_67D98D99_7A4C_480E_A11B_B350FBA8E07E_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SQLIndexer.Primary_output</td><td/><td/><td>_3682A8A1_3E56_400E_BE49_AF6A532811F4_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ShowCloudFolder.Primary_output</td><td/><td/><td>_72974E47_1F9D_44E6_A0BD_FAF16E7D7DF7_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.dll</td><td/><td/><td>_FA8E56BA_31C1_4CB7_85E2_E09A4E728EF8_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SuperSocket.ClientEngine.Common.dll</td><td/><td/><td>_FAB4D98D_8F27_4D87_A4C5_D74E20FE619E_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SuperSocket.ClientEngine.Core.dll</td><td/><td/><td>_06133FC7_4E52_473A_A01E_09B61A3D273F_FILTER</td><td/><td/><td/><td/></row>
@@ -2370,7 +2374,7 @@
 		<row><td>sqlceqp40.dll1</td><td/><td/><td>_37629767_EE8D_42C9_A60C_A8B485FB4E28_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlcese40.dll</td><td/><td/><td>_F6FA354E_B08B_42EE_837B_95ACEBF931E3_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlcese40.dll1</td><td/><td/><td>_3657B294_BC82_49D1_8748_84EABD49AEE1_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>win_client.Primary_output</td><td/><td/><td>_0EB8F45F_9741_491F_9984_BD0467E0355D_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>win_client.Primary_output</td><td/><td/><td>_14598A93_563B_454B_B95E_4889E451D5EE_FILTER</td><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="ISCustomActionReference">
@@ -2698,6 +2702,7 @@
 		<row><td>ISProjectFolder</td><td/><td/><td>1</td></row>
 		<row><td>ProgramFilesFolder</td><td/><td/><td>1</td></row>
 		<row><td>SQLIndexer</td><td>SQLIndexer\SQLIndexer.csproj</td><td/><td>2</td></row>
+		<row><td>ShowCloudFolder</td><td>ShowCloudFolder\ShowCloudFolder.csproj</td><td/><td>2</td></row>
 		<row><td>Sync</td><td>Sync\Sync.csproj</td><td/><td>2</td></row>
 		<row><td>SystemFolder</td><td/><td/><td>1</td></row>
 		<row><td>WindowsFolder</td><td/><td/><td>1</td></row>
@@ -4124,6 +4129,7 @@
 		<row><td>ID_STRING6</td><td>1033</td><td>http://www.Cloud.com/Updates</td><td>0</td><td/><td>1411425005</td></row>
 		<row><td>ID_STRING7</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>1411394317</td></row>
 		<row><td>ID_STRING8</td><td>1033</td><td>CLOUDF~1|Cloud Folder</td><td>0</td><td/><td>1688259718</td></row>
+		<row><td>ID_STRING9</td><td>1033</td><td>SHOWCL~1|Show Cloud Folder</td><td>0</td><td/><td>-1801417881</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>1411410125</td></row>
 	</table>
 
@@ -4833,8 +4839,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="L255">FileName</col>
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
+		<row><td>NewShortcut2</td><td>ISX_DEFAULTCOMPONENT1</td><td/><td>cloud</td><td>2</td></row>
 		<row><td>UNINST_Uninstall_Cloud</td><td>NewComponent1</td><td/><td>cloud</td><td>2</td></row>
-		<row><td>_Built</td><td>win_client.Primary_output</td><td/><td>cloud</td><td>2</td></row>
 	</table>
 
 	<table name="RemoveIniFile">
@@ -4921,8 +4927,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
 		<row><td>NewShortcut1</td><td>SendToFolder</td><td>##ID_STRING8##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[INSTALLDIR]CloudCopy.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut2</td><td>cloud</td><td>##ID_STRING9##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[INSTALLDIR]ShowCloudFolder.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>UNINST_Uninstall_Cloud</td><td>cloud</td><td>UNINST|Uninstall Cloud</td><td>NewComponent1</td><td>[SystemFolder]msiexec.exe</td><td>/x {5BEB6668-C562-480D-ADAB-BDCCC7A9CD02}</td><td/><td/><td>UNINST_Uninstall_C_13DC8BF1E345480593F92A818D2CADC9.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
-		<row><td>_Built</td><td>cloud</td><td>##IDS_SHORTCUT_DISPLAY_NAME2##</td><td>win_client.Primary_output</td><td>AlwaysInstall</td><td/><td/><td/><td>_Built_89CBD42AF95E460EAD3B2ADAEF01734A.exe</td><td>1</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">

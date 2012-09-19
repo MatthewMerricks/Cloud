@@ -610,6 +610,15 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cloud Shortcut Preferences.
+        /// </summary>
+        public static string PagePreferencesShortcutsTitle {
+            get {
+                return ResourceManager.GetString("PagePreferencesShortcutsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Are you sure you want to quit the Cloud.com application setup?.
         /// </summary>
         public static string PromptExitApplication_BodyText {
@@ -709,7 +718,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exit.
+        ///   Looks up a localized string similar to _Exit.
         /// </summary>
         public static string SystemTrayContextMenuExit {
             get {
@@ -727,11 +736,20 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Preferences....
+        ///   Looks up a localized string similar to _Preferences....
         /// </summary>
         public static string SystemTrayContextMenuPreferences {
             get {
                 return ResourceManager.GetString("SystemTrayContextMenuPreferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Show Cloud Folder....
+        /// </summary>
+        public static string SystemTrayContextMenuShowCloudFolder {
+            get {
+                return ResourceManager.GetString("SystemTrayContextMenuShowCloudFolder", resourceCulture);
             }
         }
         
@@ -922,6 +940,15 @@ namespace win_client.Resources {
         public static string ViewPagePreferencesButtonNetwork {
             get {
                 return ResourceManager.GetString("ViewPagePreferencesButtonNetwork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Shortcuts.
+        /// </summary>
+        public static string ViewPagePreferencesButtonShortcuts {
+            get {
+                return ResourceManager.GetString("ViewPagePreferencesButtonShortcuts", resourceCulture);
             }
         }
     }

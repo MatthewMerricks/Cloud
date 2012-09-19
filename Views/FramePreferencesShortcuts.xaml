@@ -1,0 +1,94 @@
+﻿<!--
+//
+//  FramePreferencesShortcuts.xaml
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.<ResourceDictionary
+-->
+
+<Page 
+    x:Class="win_client.Views.FramePreferencesShortcuts"                      
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:common="clr-namespace:CloudApiPrivate.Common;assembly=CloudApiPrivate"
+    xmlns:commonClient="clr-namespace:win_client.Common"
+    xmlns:parentNS="clr-namespace:win_client.Views"
+    xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
+    mc:Ignorable="d" d:DesignWidth="573" d:DesignHeight="315" 
+    WindowTitle="Cloud Shortcut Preferences"
+    x:Name="FramePreferencesShortcutsRoot">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary Source="/Cloud;component/Skins/ErrorTemplates.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Page.DataContext>
+        <Binding Path="FramePreferencesShortcutsViewModel" Source="{StaticResource Locator}"/>
+    </Page.DataContext>
+
+    <Grid x:Name="LayoutRoot">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="52*"/>
+            <ColumnDefinition  Width="545*"/>
+            <ColumnDefinition Width="52*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0*"/>
+            <RowDefinition/>
+            <RowDefinition Height="0*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.Background>
+            <ImageBrush ImageSource="/Cloud;component/Artwork/WinClient_Preferences_Text_Container_458x246.png" Stretch="Fill" />
+        </Grid.Background>
+
+        <Grid Grid.Column="1" Grid.Row="1" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="10"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="182*"/>
+                <ColumnDefinition Width="39*"/>
+                <ColumnDefinition Width="303*"/>
+                <ColumnDefinition Width="0*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock TextWrapping="Wrap" Text="Show Cloud Folder: " Foreground="Black" FontSize="12" Grid.Row="1" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
+            <CheckBox x:Name="chkShowCloudFolderOnDesktop"  Content="_On your Desktop" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" FontSize="12" Width="Auto"
+                      IsChecked="{Binding Preferences.ShouldAddShowCloudFolderOnDesktop, ElementName=FramePreferencesShortcutsRoot, Mode=TwoWay}" Height="Auto" ToolTip="Check to add an icon on your desktop that will show your Cloud folder." />
+
+            <CheckBox x:Name="chkShowCloudFolderInExplorerFavorites" Content="In _Explorer's favorites list" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" FontSize="12" Width="Auto"
+                      IsChecked="{Binding Preferences.ShouldAddShowCloudFolderInExplorerFavorites, ElementName=FramePreferencesShortcutsRoot, Mode=TwoWay}" Height="Auto" ToolTip="Check to add a menu item to Explorer's favorites list that will show your Cloud folder." />
+
+            <CheckBox x:Name="chkShowCloudFolderInInternetExplorerFavorites" Content="In _Internet Explorer's favorites list" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" FontSize="12" Width="Auto" 
+                      IsChecked="{Binding Preferences.ShouldAddShowCloudFolderInInternetExplorerFavorites, ElementName=FramePreferencesShortcutsRoot}" Height="Auto" ToolTip="Check to add a menu item to Internet Explorer's favorites list that will show your Cloud folder." />
+
+            <CheckBox x:Name="chkShowCloudFolderOnTaskbar" Content="On your _Taskbar" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" FontSize="12" Width="Auto" 
+                      IsChecked="{Binding Preferences.ShouldAddShowCloudFolderOnTaskbar, ElementName=FramePreferencesShortcutsRoot}" Height="Auto" ToolTip="Check to add an icon to your taskbar that will show your Cloud folder." />
+
+            <CheckBox x:Name="chkShowCloudFolderInStartMenu" Content="In your _Start menu" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" FontSize="12" Width="Auto" 
+                      IsChecked="{Binding Preferences.ShouldAddShowCloudFolderInStartMenu, ElementName=FramePreferencesShortcutsRoot}" Height="Auto" ToolTip="Check to add a menu item to your Start menu that will show your Cloud folder." />
+
+            <TextBlock TextWrapping="Wrap" Text="Cloud folder icon: " Foreground="Black" FontSize="12" Grid.Row="6" TextAlignment="Right" VerticalAlignment="Center" Height="Auto"  />
+            <CheckBox x:Name="chkUseCloudAsFolderIcon" Content="Use cloud as _folder icon" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="6" Grid.Column="2" FontSize="12" Width="Auto" 
+                      IsChecked="{Binding Preferences.ShouldUseCloudAsFolderIcon, ElementName=FramePreferencesShortcutsRoot, Mode=TwoWay}" Height="Auto" ToolTip="Check to use the Cloud icon as the folder icon for your Cloud folder."  />
+
+        </Grid>
+    </Grid>
+</Page>

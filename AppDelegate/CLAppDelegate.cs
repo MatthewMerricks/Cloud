@@ -331,7 +331,11 @@ namespace win_client.AppDelegate
             RemoveNullCloudFolder();
 
             // Remove all of the Cloud folder shortcuts
-            CLShortcuts.RemoveCloudFolderShortcuts(Settings.Instance.CloudFolderPath);
+            //TODO: Should we remove the cloud folder shortcuts when we unlink?
+            //CLShortcuts.RemoveCloudFolderShortcuts(Settings.Instance.CloudFolderPath);
+
+            // Remove the autostart of Cloud.exe
+            CLShortcuts.RemoveCloudAutostartShortcut();
 
             //// clean our settings
             //[[CLSettings sharedSettings] resetSettings];

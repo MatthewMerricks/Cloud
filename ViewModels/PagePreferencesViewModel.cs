@@ -274,6 +274,28 @@ namespace win_client.ViewModels
             }
         }
 
+        private RelayCommand _pagePreferences_ShortcutsCommand;
+        public RelayCommand PagePreferences_ShortcutsCommand
+        {
+            get
+            {
+                return _pagePreferences_ShortcutsCommand
+                    ?? (_pagePreferences_ShortcutsCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // Set the general background
+                                              PagePreferences_BackgroundImageSource = CLConstants.kPagePreferencesBackgroundGeneral;
+
+                                              // Navigate to the next page
+                                              Uri nextPageUri = new System.Uri(CLConstants.kFramePreferencesShortcuts, System.UriKind.Relative);
+                                              KeyValuePair<Uri, CLPreferences> nextPage = new KeyValuePair<Uri, CLPreferences>(nextPageUri, Preferences);
+
+                                              CLAppMessages.PagePreferences_FrameNavigationRequest_WithPreferences.Send(nextPage);
+                                              Title = Resources.Resources.PagePreferencesShortcutsTitle;
+                                          }));
+            }
+        }
+
         /// <summary>
         /// Show the account preferences.
         /// </summary>
@@ -370,11 +392,11 @@ namespace win_client.ViewModels
             }
         }
 
-        private ICommand _onNavigated;
 
         /// <summary>
         /// Gets the OnNavigated.
         /// </summary>
+        private ICommand _onNavigated;
         public ICommand OnNavigated
         {
             get

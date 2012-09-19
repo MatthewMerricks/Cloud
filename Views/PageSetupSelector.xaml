@@ -65,7 +65,7 @@
     		    </Grid.ColumnDefinitions>
                 
                 <!-- Image backdrop for text area -->
-                <Image Grid.RowSpan="3" Source="/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" HorizontalAlignment="Stretch" 
+                <Image Grid.RowSpan="3" Source="/Cloud;component/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" HorizontalAlignment="Stretch" 
                        VerticalAlignment="Stretch" />
 
                 <!-- Default option -->

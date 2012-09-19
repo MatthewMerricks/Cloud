@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Artwork\cloud.ico" />
+    <EmbeddedResource Include="Resources\CloudCleanVbs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CloudApiPrivate\CloudApiPrivate.csproj">
