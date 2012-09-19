@@ -44,48 +44,61 @@ namespace CloudApiPrivate.Common
             try
             {
                 // Get the path to the user's Favorites folder.
-                _trace.writeToLog(9, "CLShortcuts: AddCloudFolderToExplorerFavorites: Entry.  Target folder: <{0}>.", targetFolder);
+                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderToExplorerFavorites: Entry.  Target folder: <{0}>.", targetFolder));
 
-                // Remove it first, in case it exists
-                RemoveCloudFolderShortcutFromFolder(targetFolder);
-
-                // The code below creates a Folder Shortcut inside the "Favourites" folder. 
-                //
-                // The following is the general technique:
-                //
-                // 1. There are 3 entities involved here: 
-                //      * The target folder (e.g. "c:\foldername").
-                //      * The shortcut file (.lnk file) that points 
-                //          to the target folder.
-                //      * The "Favourites" folder itself.
-                // 
-                // 2. You need to create the shortcut file that will point to the target folder (e.g. "c:\foldername").
-                //
-                // 3. After that, save the shortcut file in the "Favourites" folder.
-                // Specify the path to the shortcut (.lnk) file.  We append the shortcut filename to the already discovered "Favourites" path.
-                targetFolder += "\\" + CLPrivateDefinitions.CloudFolderShortcutFilename + ".lnk";
-
-                // Create a WshShell object.
-                WshShell wsh = new WshShell();
-
-                // Create a shortcut object and specify the shortcut file path. The shortcut file path must be inside the "Favourites" folder.
-                IWshShortcut shortcut = (IWshShortcut)wsh.CreateShortcut(targetFolder.ToString());
-
-                // Specify the target folder to shortcut to.
-                shortcut.TargetPath = cloudFolderPath;
-                if (iconExeFilePath != null)
+                // Just exit if the cloud path is not valid
+                if (String.IsNullOrWhiteSpace(cloudFolderPath))
                 {
-                    shortcut.IconLocation = String.Format("{0}, {1}", iconExeFilePath, iconOffset.ToString());
+                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderToExplorerFavorites: ERROR: Cloud folder path null.");
                 }
-                shortcut.Description = targetDescription;
 
-                // Save the shortcut file.
-                shortcut.Save();
+                // If the .lnk file exists, modify it with the new target path.  Otherwise, create it.
+                string targetFile = targetFolder + "\\" + CLPrivateDefinitions.CloudFolderShortcutFilename + ".lnk";
+                if (System.IO.File.Exists(targetFile))
+                {
+                    // The file already exists.  Modify it.
+                    ModifyShortcutTargetPath(targetFolder, CLPrivateDefinitions.CloudFolderShortcutFilename, cloudFolderPath, iconExeFilePath);
+                }
+                else
+                {
+                    // The file doesn't exist.  Create it.
+                    // The code below creates a Folder Shortcut inside the "Favourites" folder. 
+                    //
+                    // The following is the general technique:
+                    //
+                    // 1. There are 3 entities involved here: 
+                    //      * The target folder (e.g. "c:\foldername").
+                    //      * The shortcut file (.lnk file) that points 
+                    //          to the target folder.
+                    //      * The "Favourites" folder itself.
+                    // 
+                    // 2. You need to create the shortcut file that will point to the target folder (e.g. "c:\foldername").
+                    //
+                    // 3. After that, save the shortcut file in the "Favourites" folder.
+                    // Specify the path to the shortcut (.lnk) file.  We append the shortcut filename to the already discovered "Favourites" path.
+
+                    // Create a WshShell object.
+                    WshShell wsh = new WshShell();
+
+                    // Create a shortcut object and specify the shortcut file path. The shortcut file path must be inside the "Favourites" folder.
+                    IWshShortcut shortcut = (IWshShortcut)wsh.CreateShortcut(targetFile);
+
+                    // Specify the target folder to shortcut to.
+                    shortcut.TargetPath = cloudFolderPath;
+                    if (iconExeFilePath != null)
+                    {
+                        shortcut.IconLocation = String.Format("{0}, {1}", iconExeFilePath, iconOffset.ToString());
+                    }
+                    shortcut.Description = targetDescription;
+
+                    // Save the shortcut file.
+                    shortcut.Save();
+                }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
-                _trace.writeToLog(9, "CLShortcuts: AddCloudFolderToExplorerFavorites: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLShortcuts: AddCloudFolderToExplorerFavorites: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
 
@@ -103,16 +116,16 @@ namespace CloudApiPrivate.Common
                 _trace.writeToLog(9, "CLShortcuts: RemoveCloudFolderShortcutToFolder: Entry. Target folder: <{0}>.", targetFolder);
 
                 // Specify the path to the shortcut (.lnk) file.  We append the shortcut filename to the already discovered "Favourites" path.
-                targetFolder += "\\" + CLPrivateDefinitions.CloudFolderShortcutFilename + ".lnk";
+                string targetFile = targetFolder + "\\" + CLPrivateDefinitions.CloudFolderShortcutFilename + ".lnk";
 
                 // Delete the file
-                System.IO.File.Delete(targetFolder);
+                System.IO.File.Delete(targetFile);
 
             }
             catch (Exception ex)
             {
                 CLError error = ex;
-                _trace.writeToLog(9, "CLShortcuts: RemoveCloudFolderShortcutToFolder: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLShortcuts: RemoveCloudFolderShortcutToFolder: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
 
@@ -125,9 +138,21 @@ namespace CloudApiPrivate.Common
         /// <param name="useCloudIcon"></param>
         public static void SetCloudFolderIcon(string cloudFolderPath, string iconPath, string toolTip = null)
         {
-            // The Cloud folder should have the Cloud icon.
-            CLFolderIcon folderIcon = new CLFolderIcon(cloudFolderPath);
-            folderIcon.CreateFolderIcon(iconPath, toolTip);
+            try
+            {
+                // The Cloud folder should have the Cloud icon.
+                _trace.writeToLog(9, "CLShortcuts: SetCloudFolderIcon: Entry.");
+                if (!String.IsNullOrWhiteSpace(cloudFolderPath) && Directory.Exists(cloudFolderPath))
+                {
+                    _trace.writeToLog(9, "CLShortcuts: SetCloudFolderIcon: Create or remove the custom icon.");
+                    CLFolderIcon folderIcon = new CLFolderIcon(cloudFolderPath);
+                    folderIcon.CreateFolderIcon(iconPath, toolTip);
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLShortcuts: SetCloudFolderIcon: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
         }
 
         private static readonly Encoding UTF8WithoutBOM = new UTF8Encoding(false);
@@ -210,75 +235,28 @@ namespace CloudApiPrivate.Common
         }
 
         /// <summary>
-        /// Add shortcuts to the Cloud folder to various quick-access locations
+        /// Remove the shortcuts to the Cloud folder from various quick-access locations.
         /// </summary>
-        /// <param name="cloudFolderPath">The path to the Cloud folder.</param>
-        public static void AddCloudFolderShortcuts(string cloudFolderPath)
+        /// <param name="cloudFolderPath">The full path of the cloud folder.</param>
+        public static void RemoveCloudFolderShortcuts(string cloudFolderPath)
         {
             try
             {
-                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Entry. cloudFolderPath: <{0}>.", cloudFolderPath));
-                if (!String.IsNullOrWhiteSpace(cloudFolderPath))
-                {
-                    // Add the various Cloud folder shortcuts.
-                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Get the location of the Cloud icon.");
-                    string cloudIconPath = Assembly.GetEntryAssembly().Location;
-                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Cloud icon path: <{0}>.", cloudIconPath));
-
-                    // Add a folder shortcut to the Explorer Favorites list.
-                    string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
-                    _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: ExplorerFavoritesPath: <{0}>.", explorerFavoritesPath));
-                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, explorerFavoritesPath, Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
-
-                    // Add a folder shortcut to the Internet Explorer favorites list
-                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Favorites), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
-
-                    // Add a folder shortcut to the desktop
-                    CLShortcuts.AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
-
-                    // Set the custom folder Cloud icon.  That will show anywhere the cloud folder appears.
-                    _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Set the folder Cloud icon.");
-                    CLShortcuts.SetCloudFolderIcon(Settings.Instance.CloudFolderPath, cloudIconPath, "View the Cloud folder");
-
-                    // Pin the Cloud folder path shortcut to the taskbar.  First, write a VBScript file to handle this task.
-                    // Stream the CloudClean.vbs file out to the user's temp directory
-                    // Locate the user's temp directory.
-                    PinShowCloudFolderToTaskbar(shouldProcessTaskbar: true, shouldPin: true, scriptShouldSelfDestruct: false, shouldWaitForCompletion: true);
-                    PinShowCloudFolderToTaskbar(shouldProcessTaskbar: false, shouldPin: true, scriptShouldSelfDestruct: true, shouldWaitForCompletion: false);
-
-                    // Add an autostart shortcut to the startup folder:
-                    AddCloudAutostartShortcut();
-                }
+                // Remove all of the Cloud folder shortcuts.
+                _trace.writeToLog(9, "CLShortcuts: RemoveCloudFolderShortcuts: Entry.");
+                UpdateShouldStartCloudAppWithSystem(false, cloudFolderPath);
+                UpdateShouldShowCloudFolderOnDesktop(false, cloudFolderPath);
+                UpdateShouldShowCloudFolderInExplorerFavorites(false, cloudFolderPath);
+                UpdateShouldShowCloudFolderInInternetExplorerFavorites(false, cloudFolderPath);
+                UpdateShouldShowCloudFolderOnTaskbar(false, cloudFolderPath, shouldWaitForCompletion: true);
+                UpdateShouldShowCloudFolderInStartMenu(false, cloudFolderPath, shouldWaitForCompletion: false);
+                UpdateShouldUseCloudIconForCloudFolder(false, cloudFolderPath);
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, String.Format("CLShortcuts: RemoveCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
-            _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Exit.");
-        }
-
-        /// <summary>
-        /// Remove the shortcuts to the Cloud folder from various quick-access locations.
-        /// </summary>
-        /// <param name="cloudFolderPath"></param>
-        public static void RemoveCloudFolderShortcuts(string cloudFolderPath)
-        {
-            // Remove all of the Cloud folder shortcuts.
-            if (!String.IsNullOrWhiteSpace(cloudFolderPath) && Directory.Exists(cloudFolderPath))
-            {
-                // Reset the Cloud folder Cloud icon.
-                CLShortcuts.SetCloudFolderIcon(cloudFolderPath, null);
-            }
-
-            // Remove the shortcuts.  Remove the Windows Explorer Favorites list item
-            string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
-            CLShortcuts.RemoveCloudFolderShortcutFromFolder(explorerFavoritesPath);
-
-            // Remove the Internet Explorer favorites list item.
-            CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Favorites));
-
-            // Remove the Desktop item
-            CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+            _trace.writeToLog(9, "CLShortcuts: RemoveCloudFolderShortcuts: Exit.");
         }
 
 
@@ -287,15 +265,15 @@ namespace CloudApiPrivate.Common
         /// </summary>
         private static void AddCloudAutostartShortcut()
         {
-            _trace.writeToLog(9, "CLShortcuts: AddCloudAutostartShortcut: Entry.");
             try
             {
+                _trace.writeToLog(9, "CLShortcuts: AddCloudAutostartShortcut: Entry.");
                 RegistryKey rkApp = Registry.LocalMachine.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", true);   // Run for all users at startup
                 rkApp.SetValue(CLPrivateDefinitions.CloudAppName, GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe");
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, String.Format("CLShortcuts: AddCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
@@ -304,205 +282,256 @@ namespace CloudApiPrivate.Common
         /// </summary>
         public static void RemoveCloudAutostartShortcut()
         {
-            _trace.writeToLog(9, "CLShortcuts: RemoveCloudAutostartShortcut: Entry.");
             try
             {
+                _trace.writeToLog(9, "CLShortcuts: RemoveCloudAutostartShortcut: Entry.");
                 RegistryKey rkApp = Registry.LocalMachine.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", true);   // Run for all users at startup
                 rkApp.DeleteValue(CLPrivateDefinitions.CloudAppName, false);
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(9, String.Format("CLShortcuts: RemoveCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, String.Format("CLShortcuts: RemoveCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
         /// <summary>
         /// Update all of the shortcuts to match the current settings.
         /// </summary>
-        public static void UpdateAllShortcuts()
+        /// <param name="cloudFolderPath">The full path to the user's cloud folder.</param>
+        public static void UpdateAllShortcuts(string cloudFolderPath)
         {
-            UpdateShouldStartCloudAppWithSystem(Settings.Instance.StartCloudAppWithSystem);
-            UpdateShouldShowCloudFolderOnDesktop(Settings.Instance.ShouldAddShowCloudFolderOnDesktop);
-            UpdateShouldShowCloudFolderInExplorerFavorites(Settings.Instance.ShouldAddShowCloudFolderInExplorerFavorites);
-            UpdateShouldShowCloudFolderInInternetExplorerFavorites(Settings.Instance.ShouldAddShowCloudFolderInInternetExplorerFavorites);
-            UpdateShouldShowCloudFolderOnTaskbar(Settings.Instance.ShouldAddShowCloudFolderOnTaskbar);
-            UpdateShouldShowCloudFolderInStartMenu(Settings.Instance.ShouldAddShowCloudFolderInStartMenu);
-            UpdateShouldUseCloudIconForCloudFolder(Settings.Instance.UseColorIconForCloudFolder);
+            try
+            {
+                _trace.writeToLog(9, "CLShortcuts: UpdateAllShortcuts: Entry.");
+                UpdateShouldStartCloudAppWithSystem(Settings.Instance.StartCloudAppWithSystem, cloudFolderPath);
+                UpdateShouldShowCloudFolderOnDesktop(Settings.Instance.ShouldAddShowCloudFolderOnDesktop, cloudFolderPath);
+                UpdateShouldShowCloudFolderInExplorerFavorites(Settings.Instance.ShouldAddShowCloudFolderInExplorerFavorites, cloudFolderPath);
+                UpdateShouldShowCloudFolderInInternetExplorerFavorites(Settings.Instance.ShouldAddShowCloudFolderInInternetExplorerFavorites, cloudFolderPath);
+                UpdateShouldShowCloudFolderOnTaskbar(Settings.Instance.ShouldAddShowCloudFolderOnTaskbar, cloudFolderPath, shouldWaitForCompletion: true);
+                UpdateShouldShowCloudFolderInStartMenu(Settings.Instance.ShouldAddShowCloudFolderInStartMenu, cloudFolderPath, shouldWaitForCompletion: false);
+                UpdateShouldUseCloudIconForCloudFolder(Settings.Instance.UseColorIconForCloudFolder, cloudFolderPath);
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateAllShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+            }
         }
 
         /// <summary>
         /// Update the Cloud.exe autostart start-up setting.
         /// </summary>
-        /// <param name="shouldBeActive"></param>
-        public static void UpdateShouldStartCloudAppWithSystem(bool shouldBeActive)
+        /// <param name="shouldBeActive">true: Cloud should be auto-started.</param>
+        /// <param name="cloudFolderPath">The full path to the user's cloud folder.</param>
+        public static void UpdateShouldStartCloudAppWithSystem(bool shouldBeActive, string cloudFolderPath)
         {
-            if (shouldBeActive)
+            try
             {
-                AddCloudAutostartShortcut();
+                _trace.writeToLog(9, "CLShortcuts: UpdateShouldStartCloudAppWithSystem: Entry.");
+                if (shouldBeActive)
+                {
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldStartCloudAppWithSystem: Add autostart.");
+                    AddCloudAutostartShortcut();
+                }
+                else
+                {
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldStartCloudAppWithSystem: Remove autostart.");
+                    RemoveCloudAutostartShortcut();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                RemoveCloudAutostartShortcut();
+                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldStartCloudAppWithSystem: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
         /// <summary>
         /// Update the status of the Desktop cloud folder shortcut.
         /// </summary>
-        /// <param name="shouldBeActive"></param>
-        public static void UpdateShouldShowCloudFolderOnDesktop(bool shouldBeActive)
+        /// <param name="shouldBeActive">true: The shortcut should be placed.  False, the shortcut should be removed.</param>
+        /// <param name="cloudFolderPath">The full path to the user's cloud folder.</param>
+        public static void UpdateShouldShowCloudFolderOnDesktop(bool shouldBeActive, string cloudFolderPath)
         {
-            if (shouldBeActive)
+            try
             {
-                // Get the cloud icon path.
-                _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Get the location of the Cloud icon.");
-                string cloudIconPath = Assembly.GetEntryAssembly().Location;
+                _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderOnDesktop: Entry.");
+                if (shouldBeActive)
+                {
+                    // Get the cloud icon path.
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderOnDesktop: Add the cloud folder icon.");
+                    string cloudIconPath = Assembly.GetEntryAssembly().Location;
 
-                // Add a folder shortcut to the desktop
-                CLShortcuts.AddCloudFolderShortcutToFolder(Settings.Instance.CloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                    // Add a folder shortcut to the desktop
+                    AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                }
+                else
+                {
+                    // Remove the Desktop item
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderOnDesktop: Remove the cloud folder icon.");
+                    RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Remove the Desktop item
-                CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderOnDesktop: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
         /// <summary>
         /// Update the status of the Explorer favorites cloud folder shortcut.
         /// </summary>
-        /// <param name="shouldBeActive"></param>
-        public static void UpdateShouldShowCloudFolderInExplorerFavorites(bool shouldBeActive)
+        /// <param name="shouldBeActive">true: The shortcut should be placed.  False, the shortcut should be removed.</param>
+        /// <param name="cloudFolderPath">The full path to the user's cloud folder.</param>
+        public static void UpdateShouldShowCloudFolderInExplorerFavorites(bool shouldBeActive, string cloudFolderPath)
         {
-            if (shouldBeActive)
+            try
             {
-                // Get the cloud icon path.
-                _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInExplorerFavorites: Get the location of the Cloud icon.");
-                string cloudIconPath = Assembly.GetEntryAssembly().Location;
+                _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInExplorerFavorites: Entry.");
+                if (shouldBeActive)
+                {
+                    // Get the cloud icon path.
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInExplorerFavorites: Add the shortcut.");
+                    string cloudIconPath = Assembly.GetEntryAssembly().Location;
 
-                // Add a folder shortcut to the Explorer Favorites list.
-                string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
-                _trace.writeToLog(9, String.Format("CLShortcuts: UpdateShouldShowCloudFolderInExplorerFavorites: ExplorerFavoritesPath: <{0}>.", explorerFavoritesPath));
-                CLShortcuts.AddCloudFolderShortcutToFolder(Settings.Instance.CloudFolderPath, explorerFavoritesPath, Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                    // Add a folder shortcut to the Explorer Favorites list.
+                    string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
+                    AddCloudFolderShortcutToFolder(cloudFolderPath, explorerFavoritesPath, Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                }
+                else
+                {
+                    // Remove the shortcuts.  Remove the Windows Explorer Favorites list item
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInExplorerFavorites: Remove the shortcut.");
+                    string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
+                    RemoveCloudFolderShortcutFromFolder(explorerFavoritesPath);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Remove the shortcuts.  Remove the Windows Explorer Favorites list item
-                string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
-                CLShortcuts.RemoveCloudFolderShortcutFromFolder(explorerFavoritesPath);
+                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderInExplorerFavorites: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
         /// <summary>
         /// Update the status of the Internet Explorer favorites cloud folder shortcut.
         /// </summary>
-        /// <param name="shouldBeActive"></param>
-        public static void UpdateShouldShowCloudFolderInInternetExplorerFavorites(bool shouldBeActive)
+        /// <param name="shouldBeActive">true: The shortcut should be placed.  False, the shortcut should be removed.</param>
+        /// <param name="cloudFolderPath">The full path to the user's cloud folder.</param>
+        public static void UpdateShouldShowCloudFolderInInternetExplorerFavorites(bool shouldBeActive, string cloudFolderPath)
         {
-            if (shouldBeActive)
+            try
             {
-                // Get the cloud icon path.
-                _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInInternetExplorerFavorites: Get the location of the Cloud icon.");
-                string cloudIconPath = Assembly.GetEntryAssembly().Location;
+                _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInInternetExplorerFavorites: Entry.");
+                if (shouldBeActive)
+                {
+                    // Get the cloud icon path.
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInInternetExplorerFavorites: Add the shortcut.");
+                    string cloudIconPath = Assembly.GetEntryAssembly().Location;
 
-                // Add a folder shortcut to the Internet Explorer favorites list
-                CLShortcuts.AddCloudFolderShortcutToFolder(Settings.Instance.CloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Favorites), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                    // Add a folder shortcut to the Internet Explorer favorites list
+                    AddCloudFolderShortcutToFolder(cloudFolderPath, Environment.GetFolderPath(Environment.SpecialFolder.Favorites), Resources.Resources.CloudFolderIconDescription, cloudIconPath, 0);
+                }
+                else
+                {
+                    // Remove the Internet Explorer favorites list item.
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInInternetExplorerFavorites: Remove the shortcut.");
+                    RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Favorites));
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Remove the Internet Explorer favorites list item.
-                CLShortcuts.RemoveCloudFolderShortcutFromFolder(Environment.GetFolderPath(Environment.SpecialFolder.Favorites));
+                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderInInternetExplorerFavorites: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
         /// <summary>
         /// Update the status of the taskbar cloud folder shortcut.
         /// </summary>
-        /// <param name="shouldBeActive"></param>
-        public static void UpdateShouldShowCloudFolderOnTaskbar(bool shouldBeActive)
+        /// <param name="shouldBeActive">true: The shortcut should be placed.  False, the shortcut should be removed.</param>
+        /// <param name="cloudFolderPath">The full path to the user's cloud folder.</param>
+        /// <param name="shouldWaitForCompletion">true: wait for this task to complete.</param>
+        public static void UpdateShouldShowCloudFolderOnTaskbar(bool shouldBeActive, string cloudFolderPath, bool shouldWaitForCompletion)
         {
-            if (shouldBeActive)
+            try
             {
-                PinShowCloudFolderToTaskbar(shouldProcessTaskbar: true, shouldPin: true, scriptShouldSelfDestruct: true, shouldWaitForCompletion: false);
+                _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderOnTaskbar: Entry.");
+                if (shouldBeActive)
+                {
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderOnTaskbar: Add the shortcut.");
+                    PinShowCloudFolderToTaskbar(shouldProcessTaskbar: true, shouldPin: true, scriptShouldSelfDestruct: true, shouldWaitForCompletion: shouldWaitForCompletion);
+                }
+                else
+                {
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderOnTaskbar: Remove the shortcut.");
+                    PinShowCloudFolderToTaskbar(shouldProcessTaskbar: true, shouldPin: false, scriptShouldSelfDestruct: true, shouldWaitForCompletion: shouldWaitForCompletion);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                PinShowCloudFolderToTaskbar(shouldProcessTaskbar: true, shouldPin: false, scriptShouldSelfDestruct: true, shouldWaitForCompletion: false);
+                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderOnTaskbar: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
         /// <summary>
         /// Update the status of the Start menu cloud folder shortcut.
         /// </summary>
-        /// <param name="shouldBeActive"></param>
-        public static void UpdateShouldShowCloudFolderInStartMenu(bool shouldBeActive)
+        /// <param name="shouldBeActive">true: The shortcut should be placed.  False, the shortcut should be removed.</param>
+        /// <param name="cloudFolderPath">The full path to the user's cloud folder.</param>
+        /// <param name="shouldWaitForCompletion">true: wait for this task to complete.</param>
+        public static void UpdateShouldShowCloudFolderInStartMenu(bool shouldBeActive, string cloudFolderPath, bool shouldWaitForCompletion)
         {
-            if (shouldBeActive)
+            try
             {
-                PinShowCloudFolderToTaskbar(shouldProcessTaskbar: false, shouldPin: true, scriptShouldSelfDestruct: true, shouldWaitForCompletion: false);
+                _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInStartMenu: Entry.");
+                if (shouldBeActive)
+                {
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInStartMenu: Add the shortcut.");
+                    PinShowCloudFolderToTaskbar(shouldProcessTaskbar: false, shouldPin: true, scriptShouldSelfDestruct: true, shouldWaitForCompletion: shouldWaitForCompletion);
+                }
+                else
+                {
+                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldShowCloudFolderInStartMenu: Remove the shortcut.");
+                    PinShowCloudFolderToTaskbar(shouldProcessTaskbar: false, shouldPin: false, scriptShouldSelfDestruct: true, shouldWaitForCompletion: shouldWaitForCompletion);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                PinShowCloudFolderToTaskbar(shouldProcessTaskbar: false, shouldPin: false, scriptShouldSelfDestruct: true, shouldWaitForCompletion: false);
+                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderInStartMenu: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
         /// <summary>
         /// Update the status of the user choice to use the cloud icon as a custom icon for the cloud folder.
         /// </summary>
-        /// <param name="shouldBeActive"></param>
-        public static void UpdateShouldUseCloudIconForCloudFolder(bool shouldBeActive)
-        {
-            string cloudFolderPath = Settings.Instance.CloudFolderPath;
-            if (shouldBeActive)
-            {
-                if (!String.IsNullOrWhiteSpace(cloudFolderPath) && Directory.Exists(cloudFolderPath))
-                {
-                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: Get the location of the Cloud icon.");
-                    string cloudIconPath = Assembly.GetEntryAssembly().Location;
-                    _trace.writeToLog(9, String.Format("CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: Cloud icon path: <{0}>.", cloudIconPath));
-
-                    // Set the custom folder Cloud icon.  That will show anywhere the cloud folder appears.
-                    _trace.writeToLog(9, "CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: Set the folder Cloud icon.");
-                    CLShortcuts.SetCloudFolderIcon(cloudFolderPath, cloudIconPath, "View the Cloud folder");
-
-                }
-            }
-            else
-            {
-                // Remove all of the Cloud folder shortcuts.
-                if (!String.IsNullOrWhiteSpace(cloudFolderPath) && Directory.Exists(cloudFolderPath))
-                {
-                    // Reset the Cloud folder Cloud icon.
-                    CLShortcuts.SetCloudFolderIcon(cloudFolderPath, null);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Replace all of the cloud folder shortcuts with a new cloud folder location.
-        /// </summary>
-        /// <param name="newCloudFolderPath"></param>
-        public static void ModifyCloudFolderShortcuts(string newCloudFolderPath)
+        /// <param name="shouldBeActive">true: The shortcut should be placed.  False, the shortcut should be removed.</param>
+        /// <param name="cloudFolderPath">The full path to the user's cloud folder.</param>
+        public static void UpdateShouldUseCloudIconForCloudFolder(bool shouldBeActive, string cloudFolderPath)
         {
             try
             {
-                _trace.writeToLog(9, "CLShortcuts: ModifyCloudFolderShortcuts: Entry: newCloudFolderPath: <{0}>.", newCloudFolderPath);
+                _trace.writeToLog(9, "CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: Entry.");
+                if (shouldBeActive)
+                {
+                    if (!String.IsNullOrWhiteSpace(cloudFolderPath) && Directory.Exists(cloudFolderPath))
+                    {
+                        _trace.writeToLog(9, "CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: Add the shortcut.");
+                        string cloudIconPath = Assembly.GetEntryAssembly().Location;
 
-                // Modify the Explorer Favorites shortcut.
-                string explorerFavoritesPath = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Favorites)) + "\\Links";
-                _trace.writeToLog(9, String.Format("CLShortcuts: ModifyCloudFolderShortcuts: ExplorerFavoritesPath: <{0}>.", explorerFavoritesPath));
-                ModifyShortcutTargetPath(explorerFavoritesPath, CLPrivateDefinitions.CloudFolderShortcutFilename, newCloudFolderPath);
-
-                // Modify the cloud folder shortcut in the Internet Explorer favorites list
-                ModifyShortcutTargetPath(Environment.GetFolderPath(Environment.SpecialFolder.Favorites), CLPrivateDefinitions.CloudFolderShortcutFilename, newCloudFolderPath);
-
-                // Modify the cloud folder shortcut in the Desktop.
-                ModifyShortcutTargetPath(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), CLPrivateDefinitions.CloudFolderShortcutFilename, newCloudFolderPath);
-
+                        // Set the custom folder Cloud icon.  That will show anywhere the cloud folder appears.
+                        SetCloudFolderIcon(cloudFolderPath, cloudIconPath, "View the Cloud folder");
+                    }
+                }
+                else
+                {
+                    // Remove all of the Cloud folder shortcuts.
+                    if (!String.IsNullOrWhiteSpace(cloudFolderPath) && Directory.Exists(cloudFolderPath))
+                    {
+                        // Reset the Cloud folder Cloud icon.
+                        _trace.writeToLog(9, "CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: Remove the shortcut.");
+                        SetCloudFolderIcon(cloudFolderPath, null);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(9, String.Format("CLShortcuts: ModifyCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
@@ -512,7 +541,9 @@ namespace CloudApiPrivate.Common
         /// <param name="pathFolderContainingShortcut">Full path of the folder that contains the shortcut .lnk file (without trailing backslash).</param>
         /// <param name="shortcutNameWithoutLnkExtension"></param>
         /// <param name="newTargetLocation">The full path of the new target item.</param>
-        private static void ModifyShortcutTargetPath(string pathFolderContainingShortcut, string shortcutNameWithoutLnkExtension, string newTargetLocation)
+        /// <param name="iconExeFilePath">The path to an executable file containing the icon to display in the shortcut.  May be null for the default icon.</param>
+        /// <param name="iconOffset">The offset of the icon in the executable file (optional, default 0);</param>
+        private static void ModifyShortcutTargetPath(string pathFolderContainingShortcut, string shortcutNameWithoutLnkExtension, string newTargetLocation, string iconExeFilePath = null, int iconOffset = 0)
         {
             try 
 	        {
@@ -521,12 +552,16 @@ namespace CloudApiPrivate.Common
                 Shell32.Folder dir = shl.NameSpace(pathFolderContainingShortcut);
                 Shell32.FolderItem itm = dir.Items().Item(shortcutNameWithoutLnkExtension + ".lnk");
                 Shell32.ShellLinkObject lnk = (Shell32.ShellLinkObject)itm.GetLink;
-                lnk.SetIconLocation(newTargetLocation, 1);
-                lnk.Save(null);
+                if (iconExeFilePath != null)
+                {
+                    lnk.SetIconLocation(iconExeFilePath, iconOffset);
+                }
+                lnk.Path = newTargetLocation;
+                lnk.Save();
 	        }
 	        catch (Exception ex)
 	        {
-                _trace.writeToLog(9, String.Format("CLShortcuts: ModifyShortcutTargetPath: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, String.Format("CLShortcuts: ModifyShortcutTargetPath: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
         

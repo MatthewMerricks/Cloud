@@ -18,6 +18,7 @@ using win_client.Services.Indexing;
 using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
 using CloudApiPrivate.Common;
+using CloudApiPrivate.Model.Settings;
 #if TRASH
 using win_client.DragDropServer;
 #endif // TRASH
@@ -105,6 +106,9 @@ namespace win_client.Services.ServicesManager
             {
                 _coreServicesStarted = true;
 
+                // Update the shell integration shortcuts
+                CLShortcuts.UpdateAllShortcuts(Settings.Instance.CloudFolderPath);
+
                 // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
                 // before the initial list is passed (via InitializeOrReplace)
                 CLBadgingService.Instance.BeginBadgingServices();
@@ -126,8 +130,6 @@ namespace win_client.Services.ServicesManager
                 //TODO: Enable to hook all user processes for the start of a drag/drop operation
                 //DragDropServer.DragDropServer.Instance.StartDragDropServer();
 
-                // Update the shell integration shortcuts
-                CLShortcuts.UpdateAllShortcuts();
             }
         }
 

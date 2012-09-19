@@ -211,9 +211,12 @@ namespace CloudApiPrivate.Model.Settings
         get {return _startCloudAppWithSystem; } 
         set
             {
+                if (value != _startCloudAppWithSystem)
+                {
+                    CLShortcuts.UpdateShouldStartCloudAppWithSystem(value, Settings.Instance.CloudFolderPath);
+                }
                 _startCloudAppWithSystem = value;
                 SettingsBase.Write<bool>(kStartCloudAppWithSystem, value);
-                CLShortcuts.UpdateShouldStartCloudAppWithSystem(value);
             }
         }
 
@@ -245,9 +248,12 @@ namespace CloudApiPrivate.Model.Settings
             get { return _useColorIconForCloudFolder; }
             set
             {
+                if (value != _useColorIconForCloudFolder)
+                {
+                    CLShortcuts.UpdateShouldUseCloudIconForCloudFolder(value, Settings.Instance.CloudFolderPath);
+                }
                 _useColorIconForCloudFolder = value;
                 SettingsBase.Write<bool>(kUseColorIconForCloudFolder, value);
-                CLShortcuts.UpdateShouldUseCloudIconForCloudFolder(value);
             }
         }
 
@@ -573,9 +579,12 @@ namespace CloudApiPrivate.Model.Settings
             get { return _shouldAddShowCloudFolderOnDesktop; }
             set
             {
+                if (value != _shouldAddShowCloudFolderOnDesktop)
+                {
+                    CLShortcuts.UpdateShouldShowCloudFolderOnDesktop(value, Settings.Instance.CloudFolderPath);
+                }
                 _shouldAddShowCloudFolderOnDesktop = value;
                 SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderOnDesktop, value);
-                CLShortcuts.UpdateShouldShowCloudFolderOnDesktop(value);
             }
         }
 
@@ -585,9 +594,12 @@ namespace CloudApiPrivate.Model.Settings
             get { return _shouldAddShowCloudFolderInExplorerFavorites; }
             set
             {
+                if (value != _shouldAddShowCloudFolderInExplorerFavorites)
+                {
+                    CLShortcuts.UpdateShouldShowCloudFolderInExplorerFavorites(value, Settings.Instance.CloudFolderPath);
+                }
                 _shouldAddShowCloudFolderInExplorerFavorites = value;
                 SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderInExplorerFavorites, value);
-                CLShortcuts.UpdateShouldShowCloudFolderInExplorerFavorites(value);
             }
         }
 
@@ -597,9 +609,12 @@ namespace CloudApiPrivate.Model.Settings
             get { return _shouldAddShowCloudFolderInInternetExplorerFavorites; }
             set
             {
+                if (value != _shouldAddShowCloudFolderInInternetExplorerFavorites)
+                {
+                    CLShortcuts.UpdateShouldShowCloudFolderInInternetExplorerFavorites(value, Settings.Instance.CloudFolderPath);
+                }
                 _shouldAddShowCloudFolderInInternetExplorerFavorites = value;
                 SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderInInternetExplorerFavorites, value);
-                CLShortcuts.UpdateShouldShowCloudFolderInInternetExplorerFavorites(value);
             }
         }
 
@@ -609,9 +624,12 @@ namespace CloudApiPrivate.Model.Settings
             get { return _shouldAddShowCloudFolderOnTaskbar; }
             set
             {
+                if (value != _shouldAddShowCloudFolderOnTaskbar)
+                {
+                    CLShortcuts.UpdateShouldShowCloudFolderOnTaskbar(value, Settings.Instance.CloudFolderPath, shouldWaitForCompletion: true);
+                }
                 _shouldAddShowCloudFolderOnTaskbar = value;
                 SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderOnTaskbar, value);
-                CLShortcuts.UpdateShouldShowCloudFolderOnTaskbar(value);
             }
         }
 
@@ -621,9 +639,12 @@ namespace CloudApiPrivate.Model.Settings
             get { return _shouldAddShowCloudFolderInStartMenu; }
             set
             {
+                if (value != _shouldAddShowCloudFolderInStartMenu)
+                {
+                    CLShortcuts.UpdateShouldShowCloudFolderInStartMenu(value, Settings.Instance.CloudFolderPath, shouldWaitForCompletion: true);
+                }
                 _shouldAddShowCloudFolderInStartMenu = value;
                 SettingsBase.Write<Boolean>(kShouldAddShowCloudFolderInStartMenu, value);
-                CLShortcuts.UpdateShouldShowCloudFolderInStartMenu(value);
             }
         }
 
@@ -1159,17 +1180,11 @@ namespace CloudApiPrivate.Model.Settings
         /// </summary>
         public void resetSettings()
         {  
-            // Remember the current cloud folder path and creation date to restore it after the reset.
-            string cloudFolderPath = Settings.Instance.CloudFolderPath;
-            DateTime cloudFolderCreationDate = Settings.Instance.CloudFolderCreationTimeUtc;
-
             // Clear the settings.
-            SettingsBase.Clear();
+            //TODO: Check this.  Removed clearing the entire settings base so the user's settings would be remembered.
+            //SettingsBase.Clear();
             Settings.Instance.CompletedSetup = false;       // tested at ExitApplication()
-
-            // Restore the saved cloud folder path and creation date.
-            Settings.Instance.CloudFolderPath = cloudFolderPath;
-            Settings.Instance.CloudFolderCreationTimeUtc = cloudFolderCreationDate;
+            Settings.Instance.Akey = String.Empty;          // lose the key
         }
 
         /// <summary>
@@ -1180,7 +1195,7 @@ namespace CloudApiPrivate.Model.Settings
             CloudFolderPath = path;
             CloudFolderCreationTimeUtc = creationTime;
 
-            CLShortcuts.AddCloudFolderShortcuts(path);
+            CLShortcuts.UpdateAllShortcuts(path);
         }
 
         /// <summary>
