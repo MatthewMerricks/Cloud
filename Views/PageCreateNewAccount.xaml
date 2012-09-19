@@ -34,7 +34,7 @@
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
 
-    <!--<extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" Margin="0,1,0,-1">-->
+    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" Margin="0,1,0,-1">
         <Grid x:Name="LayoutRoot">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="37"/>
@@ -127,8 +127,6 @@
                         <AccessText Text="{x:Static resx:Resources.ViewPageCreateNewAccountButtonBack}"/>
                 </Button>
             </StackPanel>
-    </Grid>
-        
-<!--    </extToolkit:BusyIndicator>-->
-
+        </Grid>
+    </extToolkit:BusyIndicator>
 </Page>

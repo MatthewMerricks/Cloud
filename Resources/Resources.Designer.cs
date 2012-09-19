@@ -709,6 +709,15 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Browse to Cloud.com....
+        /// </summary>
+        public static string SystemTrayContextMenuBrowseToCloudCom {
+            get {
+                return ResourceManager.GetString("SystemTrayContextMenuBrowseToCloudCom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Check for updates.
         /// </summary>
         public static string SystemTrayContextMenuCheckForUpdates {

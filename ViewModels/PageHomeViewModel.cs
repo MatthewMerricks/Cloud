@@ -17,13 +17,15 @@ using win_client.Common;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Static;
+using CloudApiPrivate.Common;
 using CloudApiPublic.Model;
+using CloudApiPublic.Support;
+using CloudApiPublic.Static;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Data;
 using System.Collections.Generic;
 using Dialog.Abstractions.Wpf.Intefaces;
-using CloudApiPublic.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
@@ -33,7 +35,6 @@ using System.Windows.Input;
 using CleanShutdown.Messaging;
 using CleanShutdown.Helpers;
 using System.Windows.Threading;
-using CloudApiPublic.Static;
 
 namespace win_client.ViewModels
 {  
@@ -301,6 +302,23 @@ namespace win_client.ViewModels
                                               {
                                                   CLAppMessages.Home_FocusToError.Send("");
                                               }
+                                          }));
+            }
+        }
+
+        /// <summary>
+        /// The user clicked the "Forgot password" hyperlink.
+        /// </summary>
+        private ICommand _pageHome_ForgotPasswordCommand;
+        public ICommand PageHome_ForgotPasswordCommand
+        {
+            get
+            {
+                return _pageHome_ForgotPasswordCommand
+                    ?? (_pageHome_ForgotPasswordCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              CLShortcuts.StartBrowserToUrl(CLConstants.kUrlCloudCom);
                                           }));
             }
         }

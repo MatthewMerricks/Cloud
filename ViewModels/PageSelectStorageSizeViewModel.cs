@@ -31,6 +31,7 @@ using win_client.Resources;
 using Dialog.Abstractions.Wpf.Intefaces;
 using CleanShutdown.Helpers;
 using System.Windows.Threading;
+using CloudApiPrivate.Common;
 
 namespace win_client.ViewModels
 {
@@ -180,6 +181,25 @@ namespace win_client.ViewModels
                                             }));
             }
         }
+
+        /// <summary>
+        /// The user clicked the "Pricing terms" hyperlink.
+        /// </summary>
+        private ICommand _pageSelectStorageSize_PricingTermsCommand;
+        public ICommand PageSelectStorageSize_PricingTermsCommand
+        {
+            get
+            {
+                return _pageSelectStorageSize_PricingTermsCommand
+                    ?? (_pageSelectStorageSize_PricingTermsCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              CLShortcuts.StartBrowserToUrl(CLConstants.kUrlCloudCom);
+                                          }));
+            }
+        }
+
+
 
         /// <summary>
         /// The user clicked the area over the 5Gb RadioButton on the PageSelectStorageSize page.

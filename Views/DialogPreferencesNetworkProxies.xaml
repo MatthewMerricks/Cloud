@@ -54,7 +54,7 @@
             <RowDefinition Height="81*"/>
             <RowDefinition Height="8*"/>
             <RowDefinition Height="37.5"/>
-            <RowDefinition Height="10"/>
+            <RowDefinition Height="22"/>
         </Grid.RowDefinitions>
         
         <Grid Grid.Row="0">
@@ -63,43 +63,43 @@
         		<ColumnDefinition Width="463*"/>
         	</Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="10"/>
+                <RowDefinition Height="33"/>
                 <RowDefinition Height="25"/>
                 <RowDefinition Height="25"/>
                 <RowDefinition Height="25"/>
                 <RowDefinition Height="10"/>
-                <RowDefinition/>
+                <RowDefinition Height="22"/>
                 <RowDefinition Height="10"/>
-                <RowDefinition/>
-                <RowDefinition Height="10"/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition Height="5" />
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="22"/>
+                <RowDefinition Height="10" />
                 <RowDefinition/>
             </Grid.RowDefinitions>
             
             <!-- Proxy Settings -->
-            <TextBlock TextWrapping="Wrap" Text="Proxy settings: " Foreground="Black" FontSize="12" Grid.Row="1" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
+            <TextBlock TextWrapping="Wrap" Text="Proxy settings: " Foreground="Black" FontSize="12" Grid.Row="1" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" />
             <Grid Grid.Column="1" Grid.Row="1" Grid.RowSpan="3">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <RadioButton Content="_No Proxy" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Grid.Row="0" Margin="10,0,0,0"
+                <RadioButton Content="_No Proxy" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Top" FontSize="12" Width="Auto" Grid.Row="0" Margin="5,0,0,0"
                              IsChecked="{Binding RbProxySettingsNoProxy, Mode=TwoWay}" 
                              ToolTip="Don't use a proxy server."/>
-                <RadioButton Content="_Auto-Detect" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Grid.Row="1" Margin="10,0,0,0"
+                <RadioButton Content="_Auto-Detect" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Top" FontSize="12" Width="Auto" Grid.Row="1" Margin="5,0,0,0"
                              IsChecked="{Binding RbProxySettingsAutoDetect, Mode=TwoWay}"
                              ToolTip="Automatically detect and use a proxy server."/>
-                <RadioButton Content="_Manual" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Grid.Row="2" Margin="10,0,0,0"
+                <RadioButton Content="_Manual" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Top" FontSize="12" Width="Auto" Grid.Row="2" Margin="5,0,0,0"
                              IsChecked="{Binding RbProxySettingsManual, Mode=TwoWay}" 
                              ToolTip="Manually configure and use a proxy server." />
             </Grid>
                         
             <!-- Proxy Type -->
-            <Label Content="Proxy t_ype:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="5" Width="Auto" FontSize="12" Height="Auto" Target="cbProxyType" Opacity="{Binding ProxyManualOpacity, Mode=OneWay}"  />
-            <ComboBox x:Name="cbProxyType" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150" Grid.Column="1" Grid.Row="5" MinWidth="150" FontSize="12" Margin="10,0,0,0"
+            <Label Content="Proxy t_ype:" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="5"  FontSize="12" Target="cbProxyType" Opacity="{Binding ProxyManualOpacity, Mode=OneWay}" Margin="0,-3,0,0" />
+            <ComboBox x:Name="cbProxyType" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Grid.Column="1" Grid.Row="5" MinWidth="150" FontSize="12" Margin="10,0,0,0"
                     ItemsSource="{Binding Source={StaticResource dataFromEnum}}" ToolTip="Select the type of the proxy server to use."  
                     SelectedValue="{Binding CbProxyType, Mode=TwoWay, Converter={StaticResource DebugConverter}}" Height="Auto"
                     Opacity="{Binding ProxyManualOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyManualControlsEnabled, Mode=OneWay}" >
@@ -113,17 +113,17 @@
             </ComboBox>
 
             <!-- Server -->
-            <Label Content="Proxy _Server:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="7" Width="Auto" FontSize="12" Height="Auto" Target="tbProxyServerAddress" Opacity="{Binding ProxyManualOpacity, Mode=OneWay}"  />
+            <Label Content="Proxy _Server:" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="7" FontSize="12" Target="tbProxyServerAddress" Opacity="{Binding ProxyManualOpacity, Mode=OneWay}" Margin="0,-3,0,0" />
             <StackPanel Grid.Column="1" Grid.Row="7" Orientation="Horizontal" >               
-                <TextBox x:Name="tbProxyServerAddress" TextAlignment="Left" Foreground="Black" Grid.Column="1" Grid.Row="7"
-                             Text="{Binding ProxyServerAddress, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="12" Width="225" Height="Auto" Margin="10,0,0,0"
-                             HorizontalAlignment="Left" VerticalAlignment="Center"
+                <TextBox x:Name="tbProxyServerAddress" TextAlignment="Left" Foreground="Black" Grid.Column="1" Grid.Row="7" 
+                             Text="{Binding ProxyServerAddress, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="12" Width="225" Margin="10,0,0,0"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              Opacity="{Binding ProxyManualOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyManualControlsEnabled, Mode=OneWay}" 
                              ToolTip="Enter the network address of the proxy server (URL)." >
                 </TextBox>
-                <Label Content="Po_rt:" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="1" Grid.Row="7" Width="Auto" FontSize="12" Height="Auto" Target="tbProxyServerPort" Opacity="{Binding ProxyManualOpacity, Mode=OneWay}"  />
-                <TextBox x:Name="tbProxyServerPort" TextAlignment="Left" Foreground="Black" VerticalAlignment="Center"
+                <Label Content="Po_rt:" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Grid.Row="7" Width="Auto" FontSize="12" Target="tbProxyServerPort" Opacity="{Binding ProxyManualOpacity, Mode=OneWay}"  />
+                <TextBox x:Name="tbProxyServerPort" TextAlignment="Left" Foreground="Black" VerticalAlignment="Top"
                              Text="{Binding ProxyServerPort, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="12" Width="75" Margin="5,0,0,0"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              Opacity="{Binding ProxyManualOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyManualControlsEnabled, Mode=OneWay}" 
@@ -136,19 +136,19 @@
                       Opacity="{Binding ProxyNoProxyOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyNoProxyControlsEnabled, Mode=OneWay}"
                       ToolTip="Check this box if the proxy server requires login credentials."/>
             
-            <Label Content="_User name:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="10" Width="Auto" FontSize="12" Height="Auto" Target="tbProxyServerUsername" Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}" />
+            <Label Content="_User name:" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="10" FontSize="12" Target="tbProxyServerUsername" Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}" Margin="0,-3,0,0"/>
             <TextBox x:Name="tbProxyServerUsername" TextAlignment="Left" Foreground="Black" Margin="10,0,0,0" Grid.Column="1" Grid.Row="10"
                              Text="{Binding ProxyServerUsername, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="12" Width="250"
-                             HorizontalAlignment="Left" VerticalAlignment="Center"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyAuthenticationControlsEnabledPropertyName, Mode=OneWay}"
                              ToolTip="Enter the proxy server login user name." Height="Auto">
             </TextBox>
             
-            <Label Content="_Password:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="12" Width="80" FontSize="12" Height="Auto" Target="tbProxyServerPassword" Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}"  />
+            <Label Content="_Password:" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="12" Width="80" FontSize="12" Target="tbProxyServerPassword" Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}"  />
             <commonClient:SecurePasswordBox x:Name="tbProxyServerPassword" TextAlignment="Left" Foreground="Black" Margin="10,0,0,0" Grid.Column="1" Grid.Row="12"
                                Text="{Binding ProxyServerPassword, Mode=TwoWay, ValidatesOnDataErrors=True}" TabIndex="1" FontSize="12" Width="250"
-                             HorizontalAlignment="Left" VerticalAlignment="Center"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
                              Validation.ErrorTemplate="{StaticResource errorTemplate}"
                              Opacity="{Binding ProxyAuthenticationControlsOpacity, Mode=OneWay}" IsEnabled="{Binding ProxyAuthenticationControlsEnabledPropertyName, Mode=OneWay}"
                              ToolTip="Enter the proxy server login password." Height="Auto">
@@ -163,7 +163,7 @@
                 <ColumnDefinition Width="30"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1">
-                <Button x:Name="btnCancel" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                <Button x:Name="btnCancel" HorizontalAlignment="Center" VerticalAlignment="Bottom" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
                         Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
                         Click="CancelButton_Click"
 			            Width="{Binding DialogPreferencesNetworkProxies_RightButtonWidth, Mode=OneWay}"
@@ -174,7 +174,7 @@
 			            ToolTip="Click to close this dialog and lose any changes you made here.">
                     <AccessText Text="{Binding DialogPreferencesNetworkProxies_RightButtonContent, Mode=OneWay}"/>
                 </Button>
-                <Button x:Name="btnOk" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                <Button x:Name="btnOk" HorizontalAlignment="Center" VerticalAlignment="Bottom" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
                         Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
                     Click="OKButton_Click" 
         		    Grid.Column="2" TabIndex="0"

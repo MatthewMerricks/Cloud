@@ -199,6 +199,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kShouldAddShowCloudFolderInInternetExplorerFavorites = "should_add_show_cloud_folder_in_internet_explorer_favorites";
         public const string kShouldAddShowCloudFolderOnTaskbar = "should_add_show_cloud_folder_on_taskbar";
         public const string kShouldAddShowCloudFolderInStartMenu = "should_add_show_cloud_folder_in_start_menu";
+        public const string kShouldAnimateToSystemTray = "should_animate_to_system_tray";
 
         /// <summary>
         /// The persistent settings properties.
@@ -647,6 +648,16 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
+        private Boolean _shouldAnimateToSystemTray;
+        public Boolean ShouldAnimateToSystemTray
+        {
+            get { return _shouldAnimateToSystemTray; }
+            set
+            {
+                _shouldAnimateToSystemTray = value;
+                SettingsBase.Write<Boolean>(kShouldAnimateToSystemTray, value);
+            }
+        }
 
         private List<string> _recentFileItems;
         public List<string> RecentFileItems
@@ -847,6 +858,7 @@ namespace CloudApiPrivate.Model.Settings
             _shouldAddShowCloudFolderInInternetExplorerFavorites = true;
             _shouldAddShowCloudFolderOnTaskbar = true;
             _shouldAddShowCloudFolderInStartMenu = true;
+            _shouldAnimateToSystemTray = true;
 
             _sid = "0";
             _recentFileItems.Clear();
@@ -1102,6 +1114,12 @@ namespace CloudApiPrivate.Model.Settings
                 _shouldAddShowCloudFolderInStartMenu = tempBoolean;
             }
 
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kShouldAnimateToSystemTray, out tempBoolean);
+            if (isPresent)
+            {
+                _shouldAnimateToSystemTray = tempBoolean;
+            }
+
             isPresent = SettingsBase.ReadIfPresent<string>(kSid, out tempString);
             if (isPresent)
             {
@@ -1190,6 +1208,7 @@ namespace CloudApiPrivate.Model.Settings
             //SettingsBase.Clear();
             Settings.Instance.CompletedSetup = false;       // tested at ExitApplication()
             Settings.Instance.Akey = String.Empty;          // lose the key
+            Settings.Instance.ShouldAnimateToSystemTray = true;  // Animate to the system tray after setup just the first time
         }
 
         /// <summary>

@@ -46,9 +46,9 @@
         reuse the same context menu again (which will have its DataContext set to the old TaskbarIcon)
   -->
     <ContextMenu x:Shared="false" x:Key="tbMenu">
-        <MenuItem IsEnabled="False" Header="{x:Static p:Resources.SystemTrayContextMenuHeader}">
+        <MenuItem IsEnabled="False" Header="{x:Static p:Resources.SystemTrayContextMenuHeader}" FontWeight="Bold" Foreground="Black">
             <MenuItem.Icon>
-                <Image Width="16" Height="16" Source="/Cloud;component/Artwork/StatusItem-Online.png" />
+                <Image Width="16" Height="16" Source="/Cloud;component/Artwork/Cloud.ico" />
             </MenuItem.Icon>
         </MenuItem>
 
@@ -65,6 +65,12 @@
         </MenuItem>
 
         <MenuItem Header="{x:Static p:Resources.SystemTrayContextMenuCheckForUpdates}" Command="{Binding CheckForUpdatesCommand, Mode=OneTime}" CommandParameter="{Binding}">
+            <MenuItem.Icon>
+                <Image Width="16" Height="16" Source="/Cloud;component/Artwork/AddNotifyIconSample.png" />
+            </MenuItem.Icon>
+        </MenuItem>
+
+        <MenuItem Header="{x:Static p:Resources.SystemTrayContextMenuBrowseToCloudCom}" Command="{Binding BrowseToCloudComCommand, Mode=OneTime}" CommandParameter="{Binding}">
             <MenuItem.Icon>
                 <Image Width="16" Height="16" Source="/Cloud;component/Artwork/AddNotifyIconSample.png" />
             </MenuItem.Icon>

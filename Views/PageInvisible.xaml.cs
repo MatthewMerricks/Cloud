@@ -271,19 +271,23 @@ namespace win_client.Views
                 CLAppDelegate.HideMainWindow(Window.GetWindow(this));
 
                 // Start animating on a separate thread
+                bool startAnimation = Settings.Instance.ShouldAnimateToSystemTray;
+                Settings.Instance.ShouldAnimateToSystemTray = false;  // only one time
                 Task.Factory.StartNew(() =>
                 {
-                    // Perform the animation
-                    AnimateWindow(ToTray: true, screenRect: screenRect, pageRect: pageRect);
+                    // Perform the animation or not
+                    if (startAnimation)
+                    {
+                        AnimateWindow(ToTray: true, screenRect: screenRect, pageRect: pageRect);
+                    }
 
                     // Put up a welcome balloon tooltip.
                     Dispatcher dispatcher = CLAppDelegate.Instance.MainDispatcher;
                     OnAnimateToSystemTrayCompleteDelegate del = OnAnimateToSystemTrayComplete;
-                    CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Welcome to the Cloud!", "Drag files here to share.", BalloonIcon.Error, null);
+                    CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Welcome to the Cloud!", "Check here for Cloud options.", BalloonIcon.Error, null);
                     dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), del, tooltipInfo);
                 });
             }
-
         }
 
         /// <summary>
@@ -331,7 +335,8 @@ namespace win_client.Views
                 Task.Factory.StartNew(() =>
                 {
                     // Perform the animation
-                    AnimateWindow(ToTray: false, screenRect: screenRect, pageRect: pageRect);
+                    //TODO: Add the animation back in?
+                    //AnimateWindow(ToTray: false, screenRect: screenRect, pageRect: pageRect);
 
                     // Navigate to the next page on the main thread
                     Dispatcher dispatcher = CLAppDelegate.Instance.MainDispatcher;

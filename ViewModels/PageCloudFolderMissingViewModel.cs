@@ -212,6 +212,54 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="IsBusy" /> property's name.
+        /// </summary>
+        public const string IsBusyPropertyName = "IsBusy";
+        private bool _isBusy = false;
+        public bool IsBusy
+        {
+            get
+            {
+                return _isBusy;
+            }
+
+            set
+            {
+                if (_isBusy == value)
+                {
+                    return;
+                }
+
+                _isBusy = value;
+                RaisePropertyChanged(IsBusyPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="BusyContent" /> property's name.
+        /// </summary>
+        public const string BusyContentPropertyName = "BusyContent";
+        private string _busyContent = "Unlinking...";
+        public string BusyContent
+        {
+            get
+            {
+                return _busyContent;
+            }
+
+            set
+            {
+                if (_busyContent == value)
+                {
+                    return;
+                }
+
+                _busyContent = value;
+                RaisePropertyChanged(BusyContentPropertyName);
+            }
+        }
+
+        /// <summary>
         /// The <see cref="WindowCloseOk" /> property's name.
         /// </summary>
         public const string WindowCloseOkPropertyName = "WindowCloseOk";
@@ -362,31 +410,41 @@ namespace win_client.ViewModels
                                                 // Process the Remove button click.
                                                 // We will unlink this device.  Stop all core services and exit the application
                                                 CLError error = null;
-                                                CLAppDelegate.Instance.UnlinkFromCloudDotCom(out error);
-                                                if (error != null)
-                                                {
-                                                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                                        errorMessage: error.errorDescription,
-                                                        title: Resources.Resources.pageCloudFolderMissingErrorTitle,
-                                                        headerText: Resources.Resources.pageCloudFolderMissingErrorHeader,
-                                                        rightButtonContent: Resources.Resources.pageCloudFolderMissingErrorRightButtonContent,
-                                                        rightButtonIsDefault: true,
-                                                        rightButtonIsCancel: true,
-                                                        container: this.ViewGridContainer,
-                                                        dialog: out _dialog,
-                                                        actionOkButtonHandler: 
-                                                            returnedViewModelInstance =>
-                                                            {
-                                                                // Exit the app when the user clicks the OK button.
-                                                                CLAppDelegate.Instance.ExitApplication();
-                                                            }
-                                                    );
-                                                }
-                                                else
-                                                {
-                                                    CLAppDelegate.Instance.ExitApplication();
-                                                }
+                                                IsBusy = true;
+                                                CLAppDelegate.Instance.UnlinkFromCloudDotComAsync(UnlinkFromCloudDotComCompleteCallback, timeoutInSeconds: 20);
                                             }));                                              
+            }
+        }
+
+        /// <summary>
+        /// Driven when UnlinkFromCloudDotComAsync is complete.
+        /// </summary>
+        /// <param name="error"></param>
+        private void UnlinkFromCloudDotComCompleteCallback(CLError error)
+        {
+            IsBusy = false;
+            if (error != null)
+            {
+                CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                    errorMessage: error.errorDescription,
+                    title: Resources.Resources.pageCloudFolderMissingErrorTitle,
+                    headerText: Resources.Resources.pageCloudFolderMissingErrorHeader,
+                    rightButtonContent: Resources.Resources.pageCloudFolderMissingErrorRightButtonContent,
+                    rightButtonIsDefault: true,
+                    rightButtonIsCancel: true,
+                    container: this.ViewGridContainer,
+                    dialog: out _dialog,
+                    actionOkButtonHandler:
+                        returnedViewModelInstance =>
+                        {
+                            // Exit the app when the user clicks the OK button.
+                            CLAppDelegate.Instance.ExitApplication();
+                        }
+                );
+            }
+            else
+            {
+                CLAppDelegate.Instance.ExitApplication();
             }
         }
 

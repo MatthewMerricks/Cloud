@@ -154,7 +154,7 @@ namespace win_client.ViewModels
                                                                 // The user said yes.  Unlink this device.
                                                                 _trace.writeToLog(9, "FramePreferencesAccount: Unlink device: User said yes.");
                                                                 CLError error = null;
-                                                                CLAppDelegate.Instance.UnlinkFromCloudDotCom(out error);
+                                                                CLAppDelegate.Instance.UnlinkFromCloudDotComSync(out error);
                                                                 //TODO: Handle any errors here.
 
                                                                 // Restart ourselves now

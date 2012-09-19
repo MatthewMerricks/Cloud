@@ -33,8 +33,8 @@
     <Page.InputBindings>
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
-  
-    <!--<extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" >-->
+
+    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" >
         <Grid x:Name="LayoutRoot">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="115*"/>
@@ -83,12 +83,17 @@
 
             <TextBlock TextWrapping="Wrap" Text="{x:Static resx:Resources.ViewPageHomeTblkInstruction}" 
                                 Foreground="#FF505050" FontSize="12" Grid.ColumnSpan="3" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Width="Auto" />
-            <TextBlock TextWrapping="Wrap" Text="Forgot password" Opacity="0.6"
-                                Foreground="#FF2975A9" FontSize="12" Grid.Column="3" Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Height="Auto" Width="Auto" />
+            
+            <!-- "Forgot password" hyperlink -->
+            <Button Style="{StaticResource HyperlinkLikeButtonStyle}" Grid.Row="3" Grid.Column="3" HorizontalAlignment="Right" ToolTip="Click for help with your password"
+                    Command="{Binding PageHome_ForgotPasswordCommand, Mode=OneTime}">
+                <AccessText Text="_Forgot password"/>
+            </Button>
+            
             <Label Content="_Create new" Foreground="#FF505050" FontSize="12" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Center" Height="Auto" Width="Auto" 
                    Padding="3,3,3,3" Target="cmdCreateAccount"/>
             <Label Content="_Sign in" Foreground="#FF505050" FontSize="12" Grid.Column="3" Grid.Row="5" HorizontalAlignment="Left" VerticalAlignment="Center" Height="Auto" Width="Auto"  
                    Padding="3,3,3,3" Target="cmdSignIn"/>
         </Grid>
-  <!--  </extToolkit:BusyIndicator>-->
+    </extToolkit:BusyIndicator>
 </Page>
