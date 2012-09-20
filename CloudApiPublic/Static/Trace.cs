@@ -940,6 +940,8 @@ namespace CloudApiPublic.Static
 
                                 currentArray[currentIndex] = new TraceFileChange()
                                 {
+                                    EventId = currentChange.EventId,
+                                    EventIdSpecified = currentChange.EventId != 0,
                                     NewPath = currentChange.NewPath.ToString(),
                                     OldPath = (currentChange.OldPath == null ? null : currentChange.OldPath.ToString()),
                                     IsFolder = currentChange.Metadata.HashableProperties.IsFolder,
@@ -950,16 +952,21 @@ namespace CloudApiPublic.Static
                                     CreationTimeSpecified = currentChange.Metadata.HashableProperties.CreationTime.Ticks != FileConstants.InvalidUtcTimeTicks,
                                     Size = (currentChange.Metadata.HashableProperties.Size == null ? 0L : (long)currentChange.Metadata.HashableProperties.Size),
                                     SizeSpecified = currentChange.Metadata.HashableProperties.Size != null,
-                                    Dependencies = traceChangesArray
+                                    IsSyncFrom = IsSyncFromBySyncDirection(currentChange.Direction),
+                                    MD5 = PullMD5(currentChange),
+                                    LinkTargetPath = (currentChange.Metadata.LinkTargetPath == null ? null : currentChange.Metadata.LinkTargetPath.ToString()),
+                                    Revision = currentChange.Metadata.Revision,
+                                    StorageKey = currentChange.Metadata.StorageKey,
+                                    Dependencies = innerTraceArray
                                 };
 
-                                if (traceChangesArray != null)
+                                if (innerTraceArray != null)
                                 {
                                     FileChange[] innerDependencies = currentChangeWithDependencies.Dependencies;
 
                                     for (int innerDependencyIndex = 0; innerDependencyIndex < innerDependencies.Length; innerDependencyIndex++)
                                     {
-                                        castThisAction(castThisAction, traceChangesArray, innerDependencyIndex, innerDependencies[innerDependencyIndex]);
+                                        castThisAction(castThisAction, innerTraceArray, innerDependencyIndex, innerDependencies[innerDependencyIndex]);
                                     }
                                 }
                             }
@@ -1222,6 +1229,28 @@ namespace CloudApiPublic.Static
             }
 
             return finalLocation;
+        }
+        private static bool IsSyncFromBySyncDirection(SyncDirection direction)
+        {
+            switch (direction)
+            {
+                case SyncDirection.From:
+                    return true;
+                case SyncDirection.To:
+                    return false;
+                default:
+                    throw new ArgumentException("Unknown SyncDirection: " + direction.ToString());
+            }
+        }
+        private static string PullMD5(FileChange toPull)
+        {
+            string toReturn;
+            CLError getMD5Error = toPull.GetMD5LowercaseString(out toReturn);
+            if (getMD5Error != null)
+            {
+                throw new AggregateException("Failed to retrieve MD5 lowercase string", getMD5Error.GrabExceptions());
+            }
+            return toReturn;
         }
         #endregion
     }

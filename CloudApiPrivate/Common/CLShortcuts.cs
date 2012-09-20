@@ -547,7 +547,7 @@ namespace CloudApiPrivate.Common
         {
             try 
 	        {
-                _trace.writeToLog(9, "CLShortcuts: ModifyShortcutTargetPath: Entry: pathFolderContainingShortcut: <{0}>. shortcutNameWithoutLnkExtension: <{1}>. newTargetLocation: <{2>.", pathFolderContainingShortcut, shortcutNameWithoutLnkExtension, newTargetLocation);
+                _trace.writeToLog(9, "CLShortcuts: ModifyShortcutTargetPath: Entry: pathFolderContainingShortcut: <{0}>. shortcutNameWithoutLnkExtension: <{1}>. newTargetLocation: <{2}>.", pathFolderContainingShortcut, shortcutNameWithoutLnkExtension, newTargetLocation);
                 Shell32.Shell shl = new Shell32.Shell();
                 Shell32.Folder dir = shl.NameSpace(pathFolderContainingShortcut);
                 Shell32.FolderItem itm = dir.Items().Item(shortcutNameWithoutLnkExtension + ".lnk");

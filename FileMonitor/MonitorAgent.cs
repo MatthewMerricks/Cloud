@@ -87,25 +87,6 @@ namespace FileMonitor
         {
             return CurrentFolderPath;
         }
-        ///// <summary>
-        ///// Retrieves locker for the initial indexing
-        ///// (before file monitor changes process)
-        ///// </summary>
-        ///// <param name="initialIndexLocker">Returned index locker</param>
-        ///// <returns>Error while returning locker, if any</returns>
-        //public CLError GetInitialIndexLocker(out ReaderWriterLockSlim initialIndexLocker)
-        //{
-        //    try
-        //    {
-        //        initialIndexLocker = InitialIndexLocker;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        initialIndexLocker = Helpers.DefaultForType<ReaderWriterLockSlim>();
-        //        return ex;
-        //    }
-        //    return null;
-        //}
 
         private readonly ReaderWriterLockSlim InitialIndexLocker = new ReaderWriterLockSlim();
         #endregion
@@ -146,6 +127,7 @@ namespace FileMonitor
         /// First parameter is syncId, second parameter is successfulEventIds, third parameter is newSyncRoot, returns any error that occurred
         /// </summary>
         private Func<string, IEnumerable<long>, string, CLError> ProcessCompletedSync;
+
 
         // Returns the last sync Id, should be tied to the SQLIndexer IndexingAgent's LastSyncId property under a locker
         private Func<string> GetLastSyncId;
@@ -1295,6 +1277,7 @@ namespace FileMonitor
             out IEnumerable<KeyValuePair<bool, FileChange>> outputChangesInError)
         {
             CLError toReturn = null;
+            List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>> queuedChangesNeedMergeToSql = new List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>>();
             try
             {
                 lock (QueuedChanges)
@@ -1334,8 +1317,6 @@ namespace FileMonitor
                                 SourceType = currentFileChange.Key
                             })
                             .ToArray();
-
-                        List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>> queuedChangesNeedMergeToSql = new List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>>();
 
                         Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings = AllFileChanges.ToDictionary(keySelector => keySelector.DependencyFileChange,
                             valueSelector => new KeyValuePair<FileChange, FileChangeSource>(valueSelector.OriginalFileChange, valueSelector.SourceType));
@@ -1546,6 +1527,19 @@ namespace FileMonitor
                 outputChangesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
                 toReturn += ex;
             }
+
+            if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            {
+                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
+                    {
+                        FileChangeWithDependencies selectedWithoutDependencies;
+                        FileChangeWithDependencies.CreateAndInitialize(removeDependencies, null, out selectedWithoutDependencies);
+                        return selectedWithoutDependencies;
+                    }))(currentQueuedChange.Key.Key)));
+                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<KeyValuePair<FileChange, FileStream>>()).Select(currentOutputChange => currentOutputChange.Key));
+                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<KeyValuePair<bool, FileChange>>()).Select(currentOutputChange => currentOutputChange.Value));
+            }
+
             return toReturn;
         }
         private enum FileChangeSource : byte
@@ -2474,6 +2468,11 @@ namespace FileMonitor
         /// <param name="toChange">New file change</param>
         private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> startProcessingAction = null)
         {
+            if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            {
+                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
+            }
+
             // lock on queue to prevent conflicting updates/reads
             lock (QueuedChanges)
             {
@@ -2867,6 +2866,11 @@ namespace FileMonitor
                                 mergeError.GrabExceptions().Select(currentError => (currentError is AggregateException
                                     ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
                                     : currentError.Message)).ToArray()));
+                    }
+
+                    if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    {
+                        Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
                     }
 
                     // clear out batch for merge for next set of remaining operations

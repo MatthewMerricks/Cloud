@@ -102,10 +102,17 @@ namespace Sync
                             CLError err = AddChangesToProcessingQueue(failedChanges, true, errList);
                             if (errList.Value != null)
                             {
+                                bool atLeastOneFailureAdded = false;
+
                                 foreach (FileChange currentError in errList.Value)
                                 {
                                     FailedChangesQueue.Enqueue(currentError);
 
+                                    atLeastOneFailureAdded = true;
+                                }
+
+                                if (atLeastOneFailureAdded)
+                                {
                                     GetFailureTimer(AddChangesToProcessingQueue).StartTimerIfNotRunning();
                                 }
                             }
@@ -116,6 +123,8 @@ namespace Sync
                         }
                         catch
                         {
+                            bool atLeastOneFailureAdded = false;
+
                             // An error occurred adding all the failed changes to the FileMonitor;
                             // requeue them all to the failure queue;
                             // rethrow error for logging
@@ -123,8 +132,14 @@ namespace Sync
                             {
                                 FailedChangesQueue.Enqueue(currentError);
 
+                                atLeastOneFailureAdded = true;
+                            }
+
+                            if (atLeastOneFailureAdded)
+                            {
                                 GetFailureTimer(AddChangesToProcessingQueue).StartTimerIfNotRunning();
                             }
+
                             throw;
                         }
                     }
@@ -454,6 +469,9 @@ namespace Sync
                 // errorsToQueue may be appended with dependencies whose parents have been completed
                 // and who themselves can be processed (are not file uploads which are missing FileStreams)
 
+                List<FileChange> synchronouslyPreprocessed = new List<FileChange>();
+                List<FileChange> asynchronouslyPreprocessed = new List<FileChange>();
+
                 // process once then repeat if it needs to reprocess for dependencies
                 do
                 {
@@ -482,10 +500,12 @@ namespace Sync
                             preprocessedEventIds.Add(topLevelChange.Key.EventId);
                             Nullable<long> successfulEventId;
                             Nullable<KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask;
-                            Exception completionException = CompleteFileChange(topLevelChange, applySyncFromChange, completeSingleEvent, GetFailureTimer(addChangesToProcessingQueue), addChangesToProcessingQueue, out successfulEventId, out asyncTask);
+                            Exception completionException = CompleteFileChange(topLevelChange, applySyncFromChange, completeSingleEvent, GetFailureTimer(addChangesToProcessingQueue), addChangesToProcessingQueue, mergeToSql, out successfulEventId, out asyncTask);
                             if (successfulEventId != null
                                 && (long)successfulEventId > 0)
                             {
+                                synchronouslyPreprocessed.Add(topLevelChange.Key);
+
                                 successfulEventIds.Add((long)successfulEventId);
 
                                 Nullable<KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>> foundErrorToRemove = errorsToQueue
@@ -552,6 +572,8 @@ namespace Sync
                                     try
                                     {
                                         nonNullTask.Value.Start(HttpScheduler.GetSchedulerByDirection(nonNullTask.Key));
+
+                                        asynchronouslyPreprocessed.Add(topLevelChange.Key);
                                     }
                                     catch
                                     {
@@ -575,6 +597,12 @@ namespace Sync
                     }
                 }
                 while (reprocessForDependencies());
+                
+                if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                {
+                    Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
+                    Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
+                }
 
                 // after each loop where more FileChanges from previous dependencies are processed,
                 // if any FileChange is synchronously complete or queued for file upload/download then it is removed from errorsToQueue
@@ -588,16 +616,25 @@ namespace Sync
                 // outputChanges is not used again,
                 // it is redefined after communication and after reassigning dependencies
 
-                RequeueFailures(new List<KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>>(
-                        errorsToQueue.Where(currentErrorToQueue => !Enumerable.Range(0, changesForCommunication.Length)
-                            .Any(communicationIndex => changesForCommunication[communicationIndex].Key == currentErrorToQueue.Key.Value))),
+                KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>[] errorsToRequeue = errorsToQueue.Where(currentErrorToQueue => !Enumerable.Range(0, changesForCommunication.Length)
+                        .Any(communicationIndex => changesForCommunication[communicationIndex].Key == currentErrorToQueue.Key.Value))
+                    .ToArray();
+
+                RequeueFailures(new List<KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>>(errorsToRequeue),
                     successfulEventIds, addChangesToProcessingQueue, mergeToSql, toReturn);
+                
+                if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                {
+                    Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.Key.Value));
+                    Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.Key));
+                }
 
                 errorsToQueue = new List<KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>>(changesForCommunication
                     .Select(currentChangeForCommunication => new KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>(new KeyValuePair<bool, FileChange>(false, currentChangeForCommunication.Key),
                         currentChangeForCommunication.Value)));
 
-                // errorToQueue is now empty (all the errors that correspond to FileChanges which will not continue onto communication were added back to the failure queue)
+                // errorToQueue is now defined as the changesForCommunication
+                // (all the previous errors that correspond to FileChanges which will not continue onto communication were added back to the failure queue)
 
                 syncStatus = "Sync Run errors queued which were not changes that continued to communication";
 
@@ -629,12 +666,33 @@ namespace Sync
                 else
                 {
                     syncStatus = "Sync Run communication complete";
+                    
+                    if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    {
+                        Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.Value));
+                        Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.Value.Key));
+                        Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.Value.Key));
+                    }
 
                     if (completedChanges != null)
                     {
                         foreach (KeyValuePair<bool, FileChange> currentCompletedChange in completedChanges)
                         {
                             successfulEventIds.Add(currentCompletedChange.Value.EventId);
+
+                            FileChangeWithDependencies castCurrentCompletedChange = currentCompletedChange.Value as FileChangeWithDependencies;
+                            if (castCurrentCompletedChange != null
+                                && castCurrentCompletedChange.DependenciesCount > 0)
+                            {
+                                if (thingsThatWereDependenciesToQueue == null)
+                                {
+                                    thingsThatWereDependenciesToQueue = castCurrentCompletedChange.Dependencies;
+                                }
+                                else
+                                {
+                                    thingsThatWereDependenciesToQueue = thingsThatWereDependenciesToQueue.Concat(castCurrentCompletedChange.Dependencies);
+                                }
+                            }
                         }
                     }
 
@@ -680,6 +738,11 @@ namespace Sync
                         for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
                         {
                             dequeuedFailures[currentQueueIndex] = FailedChangesQueue.Dequeue();
+                        }
+                        
+                        if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                        {
+                            Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
                         }
 
                         // Define errors to set after dependency calculations
@@ -739,6 +802,12 @@ namespace Sync
                                         outputChanges = outputChanges.Where(outputChange => !thingsThatWereDependenciesToQueue.Contains(outputChange.Key));
                                     }
                                 }
+                                
+                                if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                                {
+                                    Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.Key));
+                                    Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
+                                }
 
                                 // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
                                 // (because that means the changes are file uploads without FileStreams and cannot be processed now)
@@ -796,6 +865,8 @@ namespace Sync
 
                     List<KeyValuePair<KeyValuePair<FileChange, FileStream>, KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>>> asyncTasksToRun = new List<KeyValuePair<KeyValuePair<FileChange, FileStream>, KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>>>();
 
+                    List<FileChange> postCommunicationSynchronousChanges = new List<FileChange>();
+
                     // Synchronously complete all local operations without dependencies (exclude file upload/download) and record successful events;
                     // If a completed event has dependencies, stick them on the end of the current batch;
                     // If an event fails to complete, leave it on errorsToQueue so it will be added to the failure queue later
@@ -803,10 +874,12 @@ namespace Sync
                     {
                         Nullable<long> successfulEventId;
                         Nullable<KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask;
-                        Exception completionException = CompleteFileChange(topLevelChange, applySyncFromChange, completeSingleEvent, GetFailureTimer(addChangesToProcessingQueue), addChangesToProcessingQueue, out successfulEventId, out asyncTask);
+                        Exception completionException = CompleteFileChange(topLevelChange, applySyncFromChange, completeSingleEvent, GetFailureTimer(addChangesToProcessingQueue), addChangesToProcessingQueue, mergeToSql, out successfulEventId, out asyncTask);
                         if (successfulEventId != null
                             && (long)successfulEventId > 0)
                         {
+                            postCommunicationSynchronousChanges.Add(topLevelChange.Key);
+
                             successfulEventIds.Add((long)successfulEventId);
 
                             FileChangeWithDependencies changeWithDependencies = topLevelChange.Key as FileChangeWithDependencies;
@@ -835,6 +908,11 @@ namespace Sync
                                 asyncTasksToRun.Add(new KeyValuePair<KeyValuePair<FileChange, FileStream>, KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>>(topLevelChange, (KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>)asyncTask));
                             }
                         }
+                    }
+
+                    if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    {
+                        Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
                     }
 
                     syncStatus = "Sync Run synchronous post-communication operations complete";
@@ -882,6 +960,8 @@ namespace Sync
                         Monitor.Exit(FullShutdownToken);
                     }
 
+                    List<FileChange> postCommunicationAsynchronousChanges = new List<FileChange>();
+
                     // Asynchronously fire off all remaining upload/download operations without dependencies
                     foreach (KeyValuePair<KeyValuePair<FileChange, FileStream>, KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask in asyncTasksToRun)
                     {
@@ -907,6 +987,8 @@ namespace Sync
                             {
                                 asyncTask.Value.Value.Start(HttpScheduler.GetSchedulerByDirection(asyncTask.Value.Key));
 
+                                postCommunicationAsynchronousChanges.Add(asyncTask.Key.Key);
+
                                 Nullable<KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>> foundErrorToRemove = errorsToQueue
                                     .Where(findErrorToQueue => findErrorToQueue.Key.Value == asyncTask.Key.Key && findErrorToQueue.Value == asyncTask.Key.Value)
                                     .Select(findErrorToQueue => (Nullable<KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>>)findErrorToQueue)
@@ -928,6 +1010,11 @@ namespace Sync
                         {
                             toReturn += ex;
                         }
+                    }
+
+                    if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    {
+                        Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
                     }
 
                     // for any FileChange which was asynchronously queued for file upload or download,
@@ -954,10 +1041,17 @@ namespace Sync
                     {
                         lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
                         {
+                            bool atLeastOneFailureAdded = false;
+
                             foreach (FileChange currentQueueingError in queueingErrors.Value)
                             {
                                 FailedChangesQueue.Enqueue(currentQueueingError);
 
+                                atLeastOneFailureAdded = true;
+                            }
+
+                            if (atLeastOneFailureAdded)
+                            {
                                 GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
                             }
                         }
@@ -966,6 +1060,11 @@ namespace Sync
                     {
                         toReturn += new AggregateException("Error adding dependencies to processing queue after sync", queueingError.GrabExceptions());
                     }
+
+                    if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    {
+                        Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -973,10 +1072,17 @@ namespace Sync
                     // instead add them all to the failure queue add add the error to the returned aggregate errors
                     lock (GetFailureTimer(addChangesToProcessingQueue).TimerRunningLocker)
                     {
+                        bool atLeastOneFailureAdded = false;
+
                         foreach (FileChange currentDependency in thingsThatWereDependenciesToQueue)
                         {
                             FailedChangesQueue.Enqueue(currentDependency);
 
+                            atLeastOneFailureAdded = true;
+                        }
+
+                        if (atLeastOneFailureAdded)
+                        {
                             GetFailureTimer(addChangesToProcessingQueue).StartTimerIfNotRunning();
                         }
                     }
@@ -990,6 +1096,11 @@ namespace Sync
             // this should be true regardless of whether a line in the main try/catch threw an exception since it should be up to date at all times
 
             RequeueFailures(errorsToQueue, successfulEventIds, addChangesToProcessingQueue, mergeToSql, toReturn);
+
+            if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            {
+                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.Key.Value));
+            }
 
             // errorsToQueue is no longer used (all its errors were added back to the failure queue)
 
@@ -1106,7 +1217,7 @@ namespace Sync
             }
         }
 
-        private static Exception CompleteFileChange(KeyValuePair<FileChange, FileStream> toComplete, Func<FileChange, CLError> applySyncFromChange, Func<long, CLError> completeSingleEvent, ProcessingQueuesTimer failureTimer, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue, out Nullable<long> immediateSuccessEventId, out Nullable<KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask)
+        private static Exception CompleteFileChange(KeyValuePair<FileChange, FileStream> toComplete, Func<FileChange, CLError> applySyncFromChange, Func<long, CLError> completeSingleEvent, ProcessingQueuesTimer failureTimer, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql, out Nullable<long> immediateSuccessEventId, out Nullable<KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask)
         {
             try
             {
@@ -1131,6 +1242,7 @@ namespace Sync
                                 {
                                     ProcessingQueuesTimer storeFailureTimer = null;
                                     FileChange storeFileChange = null;
+                                    Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> stateMergeToSql = null;
                                     try
                                     {
                                         Monitor.Enter(FullShutdownToken);
@@ -1151,6 +1263,8 @@ namespace Sync
                                         {
                                             throw new NullReferenceException("Download Task downloadState not castable as DownloadTaskState");
                                         }
+
+                                        stateMergeToSql = castState.mergeToSql;
                                         
                                         // attempt to check these two references first so that the failure can be added to the queue if exceptions occur later:
                                         // the failure timer and the failed FileChange
@@ -1188,7 +1302,7 @@ namespace Sync
                                             DownloadSerializer.WriteObject(ms,
                                                 new JsonContracts.Download()
                                                 {
-                                                    StorageKey = castState.FileToDownload.Metadata.StorageKey
+                                                    StorageKey = storeFileChange.Metadata.StorageKey
                                                 });
                                             requestBody = Encoding.Default.GetString(ms.ToArray());
                                         }
@@ -1335,6 +1449,11 @@ namespace Sync
                                                     }
                                                     else
                                                     {
+                                                        if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                                                        {
+                                                            Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { storeFileChange });
+                                                        }
+
                                                         castState.TempDownloads.Remove(newTempFile);
                                                         responseBody = "---Completed file download---";
 
@@ -1346,10 +1465,17 @@ namespace Sync
                                                             CLError err = castState.AddChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, true, errList);
                                                             if (errList.Value != null)
                                                             {
+                                                                bool atLeastOneFailureAdded = false;
+
                                                                 foreach (FileChange currentError in errList.Value)
                                                                 {
                                                                     FailedChangesQueue.Enqueue(currentError);
 
+                                                                    atLeastOneFailureAdded = true;
+                                                                }
+
+                                                                if (atLeastOneFailureAdded)
+                                                                {
                                                                     castState.FailureTimer.StartTimerIfNotRunning();
                                                                 }
                                                             }
@@ -1392,11 +1518,16 @@ namespace Sync
                                     }
                                     catch (Exception ex)
                                     {
-                                        ExecutableException<KeyValuePair<FileChange, ProcessingQueuesTimer>> wrappedEx = new ExecutableException<KeyValuePair<FileChange, ProcessingQueuesTimer>>((exceptionState, exceptions) =>
+                                        if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                                        {
+                                            Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (storeFileChange == null ? null : new FileChange[] { storeFileChange }));
+                                        }
+
+                                        ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, ProcessingQueuesTimer>> wrappedEx = new ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, ProcessingQueuesTimer>>((exceptionState, exceptions) =>
                                             {
                                                 try
                                                 {
-                                                    if (exceptionState.Key == null)
+                                                    if (exceptionState.Key.Key == null)
                                                     {
                                                         throw new NullReferenceException("exceptionState's FileChange cannot be null");
                                                     }
@@ -1405,11 +1536,14 @@ namespace Sync
                                                         throw new NullReferenceException("exceptionState's ProcessingQueuesTimer cannot be null");
                                                     }
 
-                                                    lock (exceptionState.Value.TimerRunningLocker)
+                                                    if (ContinueToRetry(exceptionState.Key.Value, exceptionState.Key.Key, false))
                                                     {
-                                                        FailedChangesQueue.Enqueue(exceptionState.Key);
+                                                        lock (exceptionState.Value.TimerRunningLocker)
+                                                        {
+                                                            FailedChangesQueue.Enqueue(exceptionState.Key.Key);
 
-                                                        exceptionState.Value.StartTimerIfNotRunning();
+                                                            exceptionState.Value.StartTimerIfNotRunning();
+                                                        }
                                                     }
                                                 }
                                                 catch (Exception innerEx)
@@ -1417,7 +1551,9 @@ namespace Sync
                                                     ((CLError)innerEx).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
                                                 }
                                             },
-                                            new KeyValuePair<FileChange, ProcessingQueuesTimer>(toComplete.Key, storeFailureTimer),
+                                            new KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, ProcessingQueuesTimer>(new KeyValuePair<FileChange,Func<IEnumerable<KeyValuePair<FileChange,FileChange>>,bool,CLError>>(toComplete.Key,
+                                                    stateMergeToSql),
+                                                storeFailureTimer),
                                             "Error in download Task, see inner exception",
                                             ex);
                                         throw wrappedEx;
@@ -1441,7 +1577,8 @@ namespace Sync
                                 ApplySyncFromChange = applySyncFromChange,
                                 CompleteSingleEvent = completeSingleEvent,
                                 FailureTimer = failureTimer,
-                                AddChangesToProcessingQueue = AddChangesToProcessingQueue
+                                AddChangesToProcessingQueue = AddChangesToProcessingQueue,
+                                mergeToSql = mergeToSql
                             }));
                     }
                     else
@@ -1475,274 +1612,305 @@ namespace Sync
                         {
                             ProcessingQueuesTimer storeFailureTimer = null;
                             FileChange storeFileChange = null;
+                            Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> stateMergeToSql = null;
                             FileStream storeFileStream = null;
                             try
                             {
-                                Monitor.Enter(FullShutdownToken);
                                 try
                                 {
-                                    if (FullShutdownToken.Token.IsCancellationRequested)
-                                    {
-                                        return new KeyValuePair<long, Func<long, CLError>>(0, null);
-                                    }
-                                }
-                                finally
-                                {
-                                    Monitor.Exit(FullShutdownToken);
-                                }
-
-                                UploadTaskState castState = uploadState as UploadTaskState;
-                                if (castState == null)
-                                {
-                                    throw new NullReferenceException("Upload Task uploadState not castable as UploadTaskState");
-                                }
-
-                                storeFileStream = castState.UploadStream;
-
-                                // attempt to check these two references first so that the failure can be added to the queue if exceptions occur later:
-                                // the failure timer and the failed FileChange
-                                if (castState.FailureTimer == null)
-                                {
-                                    throw new NullReferenceException("UploadTaskState must contain FailureTimer");
-                                }
-                                storeFailureTimer = castState.FailureTimer;
-                                if (castState.FileToUpload == null)
-                                {
-                                    throw new NullReferenceException("UploadTaskState must contain FileToDownload");
-                                }
-                                storeFileChange = castState.FileToUpload;
-
-                                if (castState.UploadStream == null)
-                                {
-                                    throw new NullReferenceException("UploadTaskState must contain UploadStream");
-                                }
-
-                                if (castState.CompleteSingleEvent == null)
-                                {
-                                    throw new NullReferenceException("UploadTaskState must contain CompleteSingleEvent");
-                                }
-
-                                if (storeFileChange.Metadata.HashableProperties.Size == null)
-                                {
-                                    throw new NullReferenceException("storeFileChange must have a Size");
-                                }
-
-                                if (string.IsNullOrWhiteSpace(storeFileChange.Metadata.StorageKey))
-                                {
-                                    throw new NullReferenceException("storeFileChange must have a StorageKey");
-                                }
-
-                                string hash;
-                                CLError retrieveHashError = storeFileChange.GetMD5LowercaseString(out hash);
-                                if (retrieveHashError != null)
-                                {
-                                    throw new AggregateException("Unable to retrieve MD5 from storeFileChange", retrieveHashError.GrabExceptions());
-                                }
-                                if (hash == null)
-                                {
-                                    throw new NullReferenceException("storeFileChange must have a hash");
-                                }
-
-                                HttpWebRequest uploadRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload);
-                                uploadRequest.Method = CLDefinitions.HeaderAppendMethodPut;
-                                uploadRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient;
-                                // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-                                uploadRequest.Headers[CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersionHeaderName] = CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersion;
-                                uploadRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(Settings.Instance.Akey);
-                                uploadRequest.SendChunked = false;
-                                uploadRequest.Timeout = HttpTimeoutMilliseconds;
-                                uploadRequest.ContentType = CLDefinitions.HeaderAppendContentTypeBinary;
-                                uploadRequest.ContentLength = (long)storeFileChange.Metadata.HashableProperties.Size;
-                                uploadRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = storeFileChange.Metadata.StorageKey;
-                                uploadRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = hash;
-                                uploadRequest.KeepAlive = true;
-
-                                if ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
-                                {
-                                    Trace.LogCommunication(Settings.Instance.TraceLocation,
-                                        Settings.Instance.Udid,
-                                        Settings.Instance.Uuid,
-                                        CommunicationEntryDirection.Request,
-                                        CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload,
-                                        true,
-                                        uploadRequest.Headers,
-                                        "---File upload started---",
-                                        Settings.Instance.TraceExcludeAuthorization,
-                                        uploadRequest.Host,
-                                        uploadRequest.ContentLength.ToString(),
-                                        (uploadRequest.Expect == null ? "100-continue" : uploadRequest.Expect),
-                                        (uploadRequest.KeepAlive ? "Keep-Alive" : "Close"));
-                                }
-
-                                using (Stream uploadRequestStream = uploadRequest.GetRequestStream())
-                                {
-                                    byte[] uploadBuffer = new byte[FileConstants.BufferSize];
-
-                                    int bytesRead = 0;
-
-                                    while ((bytesRead = storeFileStream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
-                                    {
-                                        uploadRequestStream.Write(uploadBuffer, 0, bytesRead);
-
-                                        Monitor.Enter(FullShutdownToken);
-                                        try
-                                        {
-                                            if (FullShutdownToken.Token.IsCancellationRequested)
-                                            {
-                                                return new KeyValuePair<long, Func<long, CLError>>(0, null);
-                                            }
-                                        }
-                                        finally
-                                        {
-                                            Monitor.Exit(FullShutdownToken);
-                                        }
-                                    }
-                                }
-
-                                try
-                                {
-                                    storeFileStream.Dispose();
-                                    storeFileStream = null;
-                                }
-                                catch
-                                {
-                                }
-                                
-                                HttpWebResponse uploadResponse;
-                                try
-                                {
-                                    uploadResponse = (HttpWebResponse)uploadRequest.GetResponse();
-                                }
-                                catch (WebException ex)
-                                {
-                                    if (ex.Response == null)
-                                    {
-                                        throw new NullReferenceException("uploadRequest Response cannot be null", ex);
-                                    }
-                                    uploadResponse = (HttpWebResponse)ex.Response;
-                                }
-
-                                try
-                                {
-                                    string responseBody = "---File upload incomplete---";
+                                    Monitor.Enter(FullShutdownToken);
                                     try
                                     {
-                                        if (uploadResponse.StatusCode != HttpStatusCode.OK
-                                            && uploadResponse.StatusCode != HttpStatusCode.Created
-                                            && uploadResponse.StatusCode != HttpStatusCode.NotModified)
+                                        if (FullShutdownToken.Token.IsCancellationRequested)
                                         {
-                                            try
-                                            {
-                                                using (Stream downloadResponseStream = uploadResponse.GetResponseStream())
-                                                {
-                                                    using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
-                                                    {
-                                                        responseBody = downloadResponseStreamReader.ReadToEnd();
-                                                    }
-                                                }
-                                            }
-                                            catch
-                                            {
-                                            }
-
-                                            throw new Exception("Invalid HTTP response status code in file upload: " + ((int)uploadResponse.StatusCode).ToString() +
-                                                (responseBody == null ? string.Empty
-                                                    : Environment.NewLine + "Response:" + Environment.NewLine +
-                                                    responseBody));
-                                        }
-                                        else
-                                        {
-                                            responseBody = "---File upload complete---";
-
-                                            FileChangeWithDependencies toCompleteWithDependencies = toComplete.Key as FileChangeWithDependencies;
-                                            if (toCompleteWithDependencies != null
-                                                && toCompleteWithDependencies.DependenciesCount > 0)
-                                            {
-                                                GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
-                                                CLError err = castState.AddChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, true, errList);
-                                                if (errList.Value != null)
-                                                {
-                                                    foreach (FileChange currentError in errList.Value)
-                                                    {
-                                                        FailedChangesQueue.Enqueue(currentError);
-
-                                                        castState.FailureTimer.StartTimerIfNotRunning();
-                                                    }
-                                                }
-                                                if (err != null)
-                                                {
-                                                    err.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                                                }
-                                            }
-
-                                            return new KeyValuePair<long, Func<long, CLError>>(toComplete.Key.EventId, castState.CompleteSingleEvent);
+                                            return new KeyValuePair<long, Func<long, CLError>>(0, null);
                                         }
                                     }
                                     finally
                                     {
-                                        if ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
+                                        Monitor.Exit(FullShutdownToken);
+                                    }
+
+                                    UploadTaskState castState = uploadState as UploadTaskState;
+                                    if (castState == null)
+                                    {
+                                        throw new NullReferenceException("Upload Task uploadState not castable as UploadTaskState");
+                                    }
+
+                                    stateMergeToSql = castState.mergeToSql;
+                                    storeFileStream = castState.UploadStream;
+
+                                    // attempt to check these two references first so that the failure can be added to the queue if exceptions occur later:
+                                    // the failure timer and the failed FileChange
+                                    if (castState.FailureTimer == null)
+                                    {
+                                        throw new NullReferenceException("UploadTaskState must contain FailureTimer");
+                                    }
+                                    storeFailureTimer = castState.FailureTimer;
+                                    if (castState.FileToUpload == null)
+                                    {
+                                        throw new NullReferenceException("UploadTaskState must contain FileToDownload");
+                                    }
+                                    storeFileChange = castState.FileToUpload;
+
+                                    if (castState.UploadStream == null)
+                                    {
+                                        throw new NullReferenceException("UploadTaskState must contain UploadStream");
+                                    }
+
+                                    if (castState.CompleteSingleEvent == null)
+                                    {
+                                        throw new NullReferenceException("UploadTaskState must contain CompleteSingleEvent");
+                                    }
+
+                                    if (storeFileChange.Metadata.HashableProperties.Size == null)
+                                    {
+                                        throw new NullReferenceException("storeFileChange must have a Size");
+                                    }
+
+                                    if (string.IsNullOrWhiteSpace(storeFileChange.Metadata.StorageKey))
+                                    {
+                                        throw new NullReferenceException("storeFileChange must have a StorageKey");
+                                    }
+
+                                    string hash;
+                                    CLError retrieveHashError = storeFileChange.GetMD5LowercaseString(out hash);
+                                    if (retrieveHashError != null)
+                                    {
+                                        throw new AggregateException("Unable to retrieve MD5 from storeFileChange", retrieveHashError.GrabExceptions());
+                                    }
+                                    if (hash == null)
+                                    {
+                                        throw new NullReferenceException("storeFileChange must have a hash");
+                                    }
+
+                                    HttpWebRequest uploadRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload);
+                                    uploadRequest.Method = CLDefinitions.HeaderAppendMethodPut;
+                                    uploadRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient;
+                                    // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
+                                    uploadRequest.Headers[CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersionHeaderName] = CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersion;
+                                    uploadRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(Settings.Instance.Akey);
+                                    uploadRequest.SendChunked = false;
+                                    uploadRequest.Timeout = HttpTimeoutMilliseconds;
+                                    uploadRequest.ContentType = CLDefinitions.HeaderAppendContentTypeBinary;
+                                    uploadRequest.ContentLength = (long)storeFileChange.Metadata.HashableProperties.Size;
+                                    uploadRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = storeFileChange.Metadata.StorageKey;
+                                    uploadRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = hash;
+                                    uploadRequest.KeepAlive = true;
+
+                                    if ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
+                                    {
+                                        Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                            Settings.Instance.Udid,
+                                            Settings.Instance.Uuid,
+                                            CommunicationEntryDirection.Request,
+                                            CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload,
+                                            true,
+                                            uploadRequest.Headers,
+                                            "---File upload started---",
+                                            Settings.Instance.TraceExcludeAuthorization,
+                                            uploadRequest.Host,
+                                            uploadRequest.ContentLength.ToString(),
+                                            (uploadRequest.Expect == null ? "100-continue" : uploadRequest.Expect),
+                                            (uploadRequest.KeepAlive ? "Keep-Alive" : "Close"));
+                                    }
+
+                                    using (Stream uploadRequestStream = uploadRequest.GetRequestStream())
+                                    {
+                                        byte[] uploadBuffer = new byte[FileConstants.BufferSize];
+
+                                        int bytesRead = 0;
+
+                                        while ((bytesRead = storeFileStream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
                                         {
-                                            Trace.LogCommunication(Settings.Instance.TraceLocation,
-                                                Settings.Instance.Udid,
-                                                Settings.Instance.Uuid,
-                                                CommunicationEntryDirection.Response,
-                                                CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload,
-                                                true,
-                                                uploadResponse.Headers,
-                                                responseBody,
-                                                Settings.Instance.TraceExcludeAuthorization);
+                                            uploadRequestStream.Write(uploadBuffer, 0, bytesRead);
+
+                                            Monitor.Enter(FullShutdownToken);
+                                            try
+                                            {
+                                                if (FullShutdownToken.Token.IsCancellationRequested)
+                                                {
+                                                    return new KeyValuePair<long, Func<long, CLError>>(0, null);
+                                                }
+                                            }
+                                            finally
+                                            {
+                                                Monitor.Exit(FullShutdownToken);
+                                            }
                                         }
                                     }
-                                }
-                                finally
-                                {
+
                                     try
                                     {
-                                        uploadResponse.Close();
+                                        storeFileStream.Dispose();
+                                        storeFileStream = null;
                                     }
                                     catch
                                     {
                                     }
+
+                                    HttpWebResponse uploadResponse;
+                                    try
+                                    {
+                                        uploadResponse = (HttpWebResponse)uploadRequest.GetResponse();
+                                    }
+                                    catch (WebException ex)
+                                    {
+                                        if (ex.Response == null)
+                                        {
+                                            throw new NullReferenceException("uploadRequest Response cannot be null", ex);
+                                        }
+                                        uploadResponse = (HttpWebResponse)ex.Response;
+                                    }
+
+                                    try
+                                    {
+                                        string responseBody = "---File upload incomplete---";
+                                        try
+                                        {
+                                            if (uploadResponse.StatusCode != HttpStatusCode.OK
+                                                && uploadResponse.StatusCode != HttpStatusCode.Created
+                                                && uploadResponse.StatusCode != HttpStatusCode.NotModified)
+                                            {
+                                                try
+                                                {
+                                                    using (Stream downloadResponseStream = uploadResponse.GetResponseStream())
+                                                    {
+                                                        using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
+                                                        {
+                                                            responseBody = downloadResponseStreamReader.ReadToEnd();
+                                                        }
+                                                    }
+                                                }
+                                                catch
+                                                {
+                                                }
+
+                                                throw new Exception("Invalid HTTP response status code in file upload: " + ((int)uploadResponse.StatusCode).ToString() +
+                                                    (responseBody == null ? string.Empty
+                                                        : Environment.NewLine + "Response:" + Environment.NewLine +
+                                                        responseBody));
+                                            }
+                                            else
+                                            {
+                                                if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                                                {
+                                                    Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { storeFileChange });
+                                                }
+
+                                                responseBody = "---File upload complete---";
+
+                                                FileChangeWithDependencies toCompleteWithDependencies = toComplete.Key as FileChangeWithDependencies;
+                                                if (toCompleteWithDependencies != null
+                                                    && toCompleteWithDependencies.DependenciesCount > 0)
+                                                {
+                                                    GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
+                                                    CLError err = castState.AddChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, true, errList);
+                                                    if (errList.Value != null)
+                                                    {
+                                                        bool atLeastOneFailuredAdded = false;
+
+                                                        foreach (FileChange currentError in errList.Value)
+                                                        {
+                                                            FailedChangesQueue.Enqueue(currentError);
+
+                                                            atLeastOneFailuredAdded = true;
+                                                        }
+
+                                                        if (atLeastOneFailuredAdded)
+                                                        {
+                                                            castState.FailureTimer.StartTimerIfNotRunning();
+                                                        }
+                                                    }
+                                                    if (err != null)
+                                                    {
+                                                        err.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                                                    }
+                                                }
+
+                                                return new KeyValuePair<long, Func<long, CLError>>(toComplete.Key.EventId, castState.CompleteSingleEvent);
+                                            }
+                                        }
+                                        finally
+                                        {
+                                            if ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
+                                            {
+                                                Trace.LogCommunication(Settings.Instance.TraceLocation,
+                                                    Settings.Instance.Udid,
+                                                    Settings.Instance.Uuid,
+                                                    CommunicationEntryDirection.Response,
+                                                    CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload,
+                                                    true,
+                                                    uploadResponse.Headers,
+                                                    responseBody,
+                                                    Settings.Instance.TraceExcludeAuthorization);
+                                            }
+                                        }
+                                    }
+                                    finally
+                                    {
+                                        try
+                                        {
+                                            uploadResponse.Close();
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                                    {
+                                        Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (storeFileChange == null ? null : new FileChange[] { storeFileChange }));
+                                    }
+
+                                    throw;
                                 }
                             }
                             catch (Exception ex)
                             {
-                                ExecutableException<KeyValuePair<FileChange, KeyValuePair<ProcessingQueuesTimer, FileStream>>> wrappedEx = new ExecutableException<KeyValuePair<FileChange, KeyValuePair<ProcessingQueuesTimer, FileStream>>>((exceptionState, exceptions) =>
-                                {
-                                    try
+                                ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<ProcessingQueuesTimer, FileStream>>> wrappedEx = new ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<ProcessingQueuesTimer, FileStream>>>((exceptionState, exceptions) =>
                                     {
-                                        if (exceptionState.Value.Value != null)
+                                        try
                                         {
-                                            try
+                                            if (exceptionState.Value.Value != null)
                                             {
-                                                exceptionState.Value.Value.Dispose();
+                                                try
+                                                {
+                                                    exceptionState.Value.Value.Dispose();
+                                                }
+                                                catch
+                                                {
+                                                }
                                             }
-                                            catch
+                                            if (exceptionState.Key.Key == null)
                                             {
+                                                throw new NullReferenceException("exceptionState's FileChange cannot be null");
+                                            }
+                                            if (exceptionState.Value.Key == null)
+                                            {
+                                                throw new NullReferenceException("exceptionState's ProcessingQueuesTimer cannot be null");
+                                            }
+
+                                            if (ContinueToRetry(exceptionState.Key.Value, exceptionState.Key.Key, false))
+                                            {
+                                                lock (exceptionState.Value.Key.TimerRunningLocker)
+                                                {
+                                                    FailedChangesQueue.Enqueue(exceptionState.Key.Key);
+
+                                                    exceptionState.Value.Key.StartTimerIfNotRunning();
+                                                }
                                             }
                                         }
-                                        if (exceptionState.Key == null)
+                                        catch (Exception innerEx)
                                         {
-                                            throw new NullReferenceException("exceptionState's FileChange cannot be null");
+                                            ((CLError)innerEx).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
                                         }
-                                        if (exceptionState.Value.Key == null)
-                                        {
-                                            throw new NullReferenceException("exceptionState's ProcessingQueuesTimer cannot be null");
-                                        }
-
-                                        lock (exceptionState.Value.Key.TimerRunningLocker)
-                                        {
-                                            FailedChangesQueue.Enqueue(exceptionState.Key);
-
-                                            exceptionState.Value.Key.StartTimerIfNotRunning();
-                                        }
-                                    }
-                                    catch (Exception innerEx)
-                                    {
-                                        ((CLError)innerEx).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                                    }
-                                },
-                                    new KeyValuePair<FileChange, KeyValuePair<ProcessingQueuesTimer, FileStream>>(toComplete.Key, new KeyValuePair<ProcessingQueuesTimer, FileStream>(storeFailureTimer, storeFileStream)),
+                                    },
+                                    new KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<ProcessingQueuesTimer, FileStream>>(new KeyValuePair<FileChange,Func<IEnumerable<KeyValuePair<FileChange,FileChange>>,bool,CLError>>(toComplete.Key,
+                                            stateMergeToSql),
+                                        new KeyValuePair<ProcessingQueuesTimer,FileStream>(storeFailureTimer, storeFileStream)),
                                     "Error in upload Task, see inner exception",
                                     ex);
                                 throw wrappedEx;
@@ -1764,7 +1932,8 @@ namespace Sync
                             FailureTimer = failureTimer,
                             FileToUpload = toComplete.Key,
                             UploadStream = toComplete.Value,
-                            AddChangesToProcessingQueue = AddChangesToProcessingQueue
+                            AddChangesToProcessingQueue = AddChangesToProcessingQueue,
+                            mergeToSql = mergeToSql
                         }));
                 }
             }
@@ -1785,6 +1954,7 @@ namespace Sync
             public Func<long, CLError> CompleteSingleEvent { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue { get; set; }
+            public Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql { get; set; }
         }
         private class UploadTaskState
         {
@@ -1793,6 +1963,7 @@ namespace Sync
             public Func<long, CLError> CompleteSingleEvent { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue { get; set; }
+            public Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql { get; set; }
         }
 
         private static Exception CommunicateWithServer(IEnumerable<KeyValuePair<FileChange, FileStream>> toCommunicate,
@@ -3308,6 +3479,11 @@ namespace Sync
             }
             else
             {
+                if (toRetry == null)
+                {
+                    throw new NullReferenceException("toRetry cannot be null");
+                }
+
                 if (toRetry.FailureCounter == 0)
                 {
                     IconOverlay.QueueSetBadge(cloudAppIconBadgeType.cloudAppBadgeFailed,
