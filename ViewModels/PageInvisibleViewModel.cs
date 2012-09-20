@@ -240,13 +240,7 @@ namespace win_client.ViewModels
                                           () =>
                                           {
                                             // Launch the process
-                                            System.Diagnostics.Process process = new System.Diagnostics.Process();
-                                            process.StartInfo.CreateNoWindow = true;
-                                            process.StartInfo.UseShellExecute = false;
-                                            process.StartInfo.FileName = @"explorer";
-                                            process.StartInfo.Arguments = Settings.Instance.CloudFolderPath;
-                                            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                                            process.Start();
+                                            CLShortcuts.LaunchExplorerToFolder(Settings.Instance.CloudFolderPath);
                                           }));
             }
         }

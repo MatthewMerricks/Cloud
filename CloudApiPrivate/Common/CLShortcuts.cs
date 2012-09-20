@@ -700,5 +700,20 @@ namespace CloudApiPrivate.Common
                 _trace.writeToLog(1, String.Format("CLShortcuts: StartBrowserToUrl: ERROR: Exception(2).  Msg: <{0}>.", other.Message));
             }
         }
+
+        /// <summary>
+        /// Launch explorer silently to display the cloud folder.
+        /// </summary>
+        public static void LaunchExplorerToFolder(string folderPath)
+        {
+            Trace.WriteLine(String.Format("CloudSendTo: LaunchExplorerToFolder: Entry.  Path: <{0}>.", folderPath ?? String.Empty));
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.FileName = @"explorer";
+            process.StartInfo.Arguments = folderPath;
+            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            process.Start();
+        }
     }
 }

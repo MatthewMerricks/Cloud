@@ -19,6 +19,14 @@ namespace BadgeNET
         public Int32 top;
         public Int32 right;
         public Int32 bottom;
+
+        public RECT()
+        {
+            left = 0;
+            top = 0;
+            right = 0;
+            bottom = 0;
+        }
     }
 
     [Serializable]
@@ -26,5 +34,11 @@ namespace BadgeNET
     {
         public RECT rectExplorerWindowCoordinates { get; set; }
         public List<string> asSelectedPaths { get; set; }
+
+        public ContextMenuObject()
+        {
+            rectExplorerWindowCoordinates = new RECT();
+            asSelectedPaths = new List<string>();
+        }
     }
 }

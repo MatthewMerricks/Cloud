@@ -6,6 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using CloudApiPrivate.Common;
+using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Model;
 using CloudApiPublic.Support;
 using Newtonsoft.Json;
@@ -88,6 +89,11 @@ namespace BadgeNET
                     CLCopyFiles.CopyFileOrDirectoryWithUi(source, target);
                 }));
             }
+
+            // Show the cloud folder
+            _trace.writeToLog(9, "NamedPipeServerContextMenu: ContextMenuCopyFiles: Show the Cloud folder.");
+            CLShortcuts.LaunchExplorerToFolder(Settings.Instance.CloudFolderPath);
+
             _trace.writeToLog(9, "NamedPipeServerContextMenu: ContextMenuCopyFiles: Return.");
         }
     }

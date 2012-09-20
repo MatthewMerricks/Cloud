@@ -68,5 +68,9 @@
 			<Name>ShowCloudFolder</Name>
 			<Project>{2C3E07F7-038C-49FC-92D3-A2015E56D781}</Project>
 		</ProjectReference>
+		<ProjectReference Include="..\CloudSendTo\CloudSendTo.csproj">
+			<Name>CloudSendTo</Name>
+			<Project>{F645F31E-ED61-481F-9048-E7765ED96691}</Project>
+		</ProjectReference>
 	</ItemGroup>
 </Project>
