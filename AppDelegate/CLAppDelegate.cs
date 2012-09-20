@@ -40,6 +40,8 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Common;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace win_client.AppDelegate
 {
@@ -59,6 +61,12 @@ namespace win_client.AppDelegate
         private static bool _isWindowPlacedFirstTime = false;
         private static bool _isUnlinked = false;
         #endregion
+
+        #region "Public Definitions"
+        public delegate void UnlinkFromCloudDotComAsyncCallback(CLError error);
+        public delegate void InstallCloudServicesAsyncCallback(CLError error);
+        #endregion
+
         #region Public Properties
 
         public string StartupUrlRelative { get; set; }
@@ -270,7 +278,7 @@ namespace win_client.AppDelegate
 
 
         //- (BOOL)unlinkFromCloudDotCom
-        public void UnlinkFromCloudDotCom(out CLError error)
+        public void UnlinkFromCloudDotComSync(out CLError error)
         {
             // Merged 7/26/12
             //BOOL rc = YES;
@@ -301,57 +309,140 @@ namespace win_client.AppDelegate
             // Note: allocated below.
 
             // Don't run this twice
-            if (_isUnlinked)
+            try
             {
-                error = null;
-                return;
-            }
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Entry.");
+                if (_isUnlinked)
+                {
+                    _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Already unlinked.  Return.");
+                    error = null;
+                    return;
+                }
 
-            //CLRegistration *regstration = [[CLRegistration alloc] init];
-            //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
-            if (!String.IsNullOrEmpty(Settings.Instance.Akey))
+                //CLRegistration *regstration = [[CLRegistration alloc] init];
+                //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
+                if (!String.IsNullOrEmpty(Settings.Instance.Akey))
+                {
+                    _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Unlink from the server.");
+                    CLRegistration registration = new CLRegistration();
+                    registration.UnlinkDeviceWithAccessKey(Settings.Instance.Akey, out error);
+                }
+                else
+                {
+                    error = null;
+                }
+
+                // Clear database (will start again at SID "0")
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Wipe the index.");
+                win_client.Services.FileSystemMonitoring.CLFSMonitoringService.Instance.IndexingAgent.WipeIndex(Settings.Instance.CloudFolderPath);
+
+                //// stop services.
+                //CLAppDelegate *delegate = [NSApp delegate];
+                //[delegate stopCloudAppServicesAndUI];
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: StopCloudAppServicesAndUI.");
+                StopCloudAppServicesAndUI();
+
+                // Remove the Cloud folder if it contains only our Public and Pictures folder.
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Remove a possible null cloud folder.");
+                RemoveNullCloudFolder();
+
+                // Remove all of the Cloud folder shortcuts
+                //TODO: Should we remove the cloud folder shortcuts when we unlink?
+                //CLShortcuts.RemoveCloudFolderShortcuts(Settings.Instance.CloudFolderPath);
+
+                // Remove the autostart of Cloud.exe
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Remove the autostart of Cloud.exe.");
+                CLShortcuts.RemoveCloudAutostartShortcut();
+
+                //// clean our settings
+                //[[CLSettings sharedSettings] resetSettings];
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Reset settings.");
+                Settings.Instance.resetSettings();
+
+                //[[CLCoreDataController defaultController] removeCoreDataStore];
+                //TODO: Is SQLIndexer terminated properly?
+
+                //// Stop the badging agent.  Do this synchronously because the system may be immediately exiting.
+                //NSString *path = [[[NSBundle mainBundle] pathForResource:@"LICENSE" ofType:@""] stringByDeletingLastPathComponent];
+                //NSString *cmd = [path stringByAppendingString:@"/CloudApp.bundle/CloudApp.app/Contents/MacOS/CloudApp -d"];
+                //system([cmd UTF8String]);
+                //TODO: Stop the badging service.
+
+                //return rc;
+                _isUnlinked = true;
+            }
+            catch (Exception ex)
             {
-                CLRegistration registration = new CLRegistration();
-                registration.UnlinkDeviceWithAccessKey(Settings.Instance.Akey, out error);
+                error = ex;
+                _trace.writeToLog(9, String.Format("CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
             }
-            else
+            _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Exit.");
+        }
+
+        /// <summary>
+        /// Public method that will asynchronously ask the server to unlink this device from the user's account.
+        /// <param name="callback">The user's callback function which will execute when the asynchronous request is complete.</param>
+        /// <param name="timeoutInSeconds">The maximum time that this request will remain active.  It will be cancelled if it is not complete within this time.  Specify Double.MaxValue for no timeout.</param>
+        /// </summary>
+        public void UnlinkFromCloudDotComAsync(UnlinkFromCloudDotComAsyncCallback callback, double timeoutInSeconds)
+        {
+            var tsMain = new CancellationTokenSource();
+            CancellationToken ctMain = tsMain.Token;
+
+            var tsTimeout = new CancellationTokenSource();
+            CancellationToken ctTimeout = tsMain.Token;
+
+            // Start the thread to be used to communicate with the server.
+            CLError errorFromAsync = null;
+            Task.Factory.StartNew(() => UnlinkFromCloudDotComSync(out errorFromAsync)).ContinueWith(task =>
             {
-                error = null;
-            }
+                bool bResult = false;
+                CLError err = null;
 
-            // Clear database (will start again at SID "0")
-            win_client.Services.FileSystemMonitoring.CLFSMonitoringService.Instance.IndexingAgent.WipeIndex(Settings.Instance.CloudFolderPath);
+                Exception ex = task.Exception;
+                if (ex == null)
+                {
+                    bResult = true;
+                }
 
-            //// stop services.
-            //CLAppDelegate *delegate = [NSApp delegate];
-            //[delegate stopCloudAppServicesAndUI];
-            StopCloudAppServicesAndUI();
+                if (ex != null)
+                {
+                    err += ex;
+                }
+                else if (!bResult)
+                {
+                    err = errorFromAsync;
+                }
 
-            // Remove the Cloud folder if it contains only our Public and Pictures folder.
-            RemoveNullCloudFolder();
+                // The server communication is complete.  Kill the timeout thread.
+                tsTimeout.Cancel();
 
-            // Remove all of the Cloud folder shortcuts
-            //TODO: Should we remove the cloud folder shortcuts when we unlink?
-            //CLShortcuts.RemoveCloudFolderShortcuts(Settings.Instance.CloudFolderPath);
+                // Call the user's (of the API) callback.  This callback will execute on the main thread.
+                // The user's callback function may crash.  Just let the application crash if that happens.
+                // Exit this thread after the callback returns.
+                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    callback(err);
+                }));
+            }, ctMain);
 
-            // Remove the autostart of Cloud.exe
-            CLShortcuts.RemoveCloudAutostartShortcut();
+            // Start timeout thread
+            Task.Factory.StartNew(() =>
+            {
+                int ticksUntilTimeout = (int)(timeoutInSeconds / 0.100);
+                for (int i = 0; i < ticksUntilTimeout; ++i)
+                {
+                    if (ctTimeout.IsCancellationRequested)
+                    {
+                        // We were cancelled because the HTTP request completed.  Exit the timeout thread.
+                        return;
+                    }
+                    Thread.Sleep(100);
+                }
 
-            //// clean our settings
-            //[[CLSettings sharedSettings] resetSettings];
-            Settings.Instance.resetSettings();
-
-            //[[CLCoreDataController defaultController] removeCoreDataStore];
-            //TODO: Is SQLIndexer terminated properly?
-
-            //// Stop the badging agent.  Do this synchronously because the system may be immediately exiting.
-            //NSString *path = [[[NSBundle mainBundle] pathForResource:@"LICENSE" ofType:@""] stringByDeletingLastPathComponent];
-            //NSString *cmd = [path stringByAppendingString:@"/CloudApp.bundle/CloudApp.app/Contents/MacOS/CloudApp -d"];
-            //system([cmd UTF8String]);
-            //TODO: Stop the badging service.
-
-            //return rc;
-            _isUnlinked = true;
+                // We timed out.  Kill the main thread and exit ours.
+                tsMain.Cancel();
+            }, ctTimeout);
         }
 
         /// <summary>
@@ -432,7 +523,7 @@ namespace win_client.AppDelegate
                 try
                 {
                     // Unlink.  Remove all of the settings and unlink from the server if we can.
-                    this.UnlinkFromCloudDotCom(out error);
+                    this.UnlinkFromCloudDotComSync(out error);
                     if (error != null)
                     {
                         _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
@@ -474,6 +565,72 @@ namespace win_client.AppDelegate
 
                 // NOTE: PageInvisible will be shown which will start the core servicees.
             }
+        }
+
+        /// <summary>
+        /// Public method that will asynchronously install the cloud services.
+        /// <param name="callback">The user's callback function which will execute when the asynchronous request is complete.</param>
+        /// <param name="timeoutInSeconds">The maximum time that this request will remain active.  It will be cancelled if it is not complete within this time.  Specify Double.MaxValue for no timeout.</param>
+        /// </summary>
+        public void InstallCloudServicesAsync(InstallCloudServicesAsyncCallback callback, double timeoutInSeconds)
+        {
+            var tsMain = new CancellationTokenSource();
+            CancellationToken ctMain = tsMain.Token;
+
+            var tsTimeout = new CancellationTokenSource();
+            CancellationToken ctTimeout = tsMain.Token;
+
+            // Start the thread to be used to communicate with the server.
+            CLError errorFromAsync = null;
+            Task.Factory.StartNew(() => installCloudServices(out errorFromAsync)).ContinueWith(task =>
+            {
+                bool bResult = false;
+                CLError err = null;
+
+                Exception ex = task.Exception;
+                if (ex == null)
+                {
+                    bResult = true;
+                }
+
+                if (ex != null)
+                {
+                    err += ex;
+                }
+                else if (!bResult)
+                {
+                    err = errorFromAsync;
+                }
+
+                // The server communication is complete.  Kill the timeout thread.
+                tsTimeout.Cancel();
+
+                // Call the user's (of the API) callback.  This callback will execute on the main thread.
+                // The user's callback function may crash.  Just let the application crash if that happens.
+                // Exit this thread after the callback returns.
+                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    callback(err);
+                }));
+            }, ctMain);
+
+            // Start timeout thread
+            Task.Factory.StartNew(() =>
+            {
+                int ticksUntilTimeout = (int)(timeoutInSeconds / 0.100);
+                for (int i = 0; i < ticksUntilTimeout; ++i)
+                {
+                    if (ctTimeout.IsCancellationRequested)
+                    {
+                        // We were cancelled because the HTTP request completed.  Exit the timeout thread.
+                        return;
+                    }
+                    Thread.Sleep(100);
+                }
+
+                // We timed out.  Kill the main thread and exit ours.
+                tsMain.Cancel();
+            }, ctTimeout);
         }
 
         /// <summary>

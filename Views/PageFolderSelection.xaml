@@ -14,6 +14,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:common="clr-namespace:win_client.Common"            
+    xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="485"
     DataContext="{Binding PageFolderSelectionViewModel, Source={StaticResource Locator}}" 
@@ -30,129 +31,131 @@
     <Page.InputBindings>
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
-    
-    <Grid x:Name="LayoutRoot">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.056*"/>
-            <ColumnDefinition  Width="0.384*"/>
-            <ColumnDefinition Width="0.056*"/>
-            <ColumnDefinition Width="0.056*"/>
-            <ColumnDefinition  Width="0.383*"/>
-            <ColumnDefinition Width="0.064*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="79*"/>
-            <RowDefinition Height="263*"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="20"/>
-        </Grid.RowDefinitions>
 
-        <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
-        </Grid.Background>
+    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" >
+        <Grid x:Name="LayoutRoot">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.056*"/>
+                <ColumnDefinition  Width="0.384*"/>
+                <ColumnDefinition Width="0.056*"/>
+                <ColumnDefinition Width="0.056*"/>
+                <ColumnDefinition  Width="0.383*"/>
+                <ColumnDefinition Width="0.064*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="79*"/>
+                <RowDefinition Height="263*"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="20"/>
+            </Grid.RowDefinitions>
 
-        <TextBlock TextWrapping="Wrap" Text="Select the location for your Cloud folder." Foreground="Black" FontSize="17" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="Auto" />
+            <Grid.Background>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
+            </Grid.Background>
 
-        <Image Source="/Cloud;component/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4"/>
+            <TextBlock TextWrapping="Wrap" Text="Select the location for your Cloud folder." Foreground="Black" FontSize="17" Grid.ColumnSpan="4" Grid.Column="1" VerticalAlignment="Center" Height="Auto" />
 
-        <Grid Grid.Column="1" ColumnSpan="4" Grid.Row="1">
-    		<Grid.RowDefinitions>
-    			<RowDefinition Height="0.495*"/>
-    			<RowDefinition Height="0.505*"/>
-    		</Grid.RowDefinitions>
-    		<Grid.ColumnDefinitions>
-    			<ColumnDefinition/>
-    		</Grid.ColumnDefinitions>
+            <Image Source="/Cloud;component/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4"/>
 
-            <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="3"  >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="14*"/>
-                    <ColumnDefinition Width="72*"/>
-                    <ColumnDefinition Width="239"/>
-                    <ColumnDefinition Width="69*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="55"/>
-                    <RowDefinition Height="10"/>
-                    <RowDefinition Height="40"/>
-                    <RowDefinition Height="10"/>
-                    <RowDefinition Height="97*"/>
-                </Grid.RowDefinitions>
+            <Grid Grid.Column="1" ColumnSpan="4" Grid.Row="1">
+    		    <Grid.RowDefinitions>
+    			    <RowDefinition Height="0.495*"/>
+    			    <RowDefinition Height="0.505*"/>
+    		    </Grid.RowDefinitions>
+    		    <Grid.ColumnDefinitions>
+    			    <ColumnDefinition/>
+    		    </Grid.ColumnDefinitions>
 
-                <TextBlock TextWrapping="Wrap" Text="Cloud folder: " Foreground="Black" FontSize="12" Grid.Row="1" Grid.Column="1"  TextAlignment="Left" VerticalAlignment="Bottom" Height="21" Grid.ColumnSpan="2" />
-                <Rectangle Fill="White" RadiusX="2" RadiusY="2" Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" Stroke="#a0a0a0"/>
-                <TextBlock x:Name="tbCloudFolder" TextAlignment="Left" TextWrapping="Wrap" Foreground="Black" Background="White" Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" Margin="2,2,2,2"
-                             Text="{Binding PageFolderSelection_CloudFolder, Mode=TwoWay}" FontSize="16" Opacity="0.70"
-                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-                <Grid Grid.Column="3" Grid.Row="2">
+                <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="3"  >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="14*"/>
+                        <ColumnDefinition Width="72*"/>
+                        <ColumnDefinition Width="239"/>
+                        <ColumnDefinition Width="69*"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
+                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="55"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="97*"/>
                     </Grid.RowDefinitions>
 
-                    <Button x:Name="cmdBrowseCloudFolder" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Margin="10,0,0,0" TabIndex="2"
-                        Command="{Binding PageFolderSelection_ChangeCloudFolder, Mode=OneTime}" ToolTip="Click to use a different Cloud folder location.">
-                        <AccessText Text="Bro_wse..."/>
+                    <TextBlock TextWrapping="Wrap" Text="Cloud folder: " Foreground="Black" FontSize="12" Grid.Row="1" Grid.Column="1"  TextAlignment="Left" VerticalAlignment="Bottom" Height="21" Grid.ColumnSpan="2" />
+                    <Rectangle Fill="White" RadiusX="2" RadiusY="2" Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" Stroke="#a0a0a0"/>
+                    <TextBlock x:Name="tbCloudFolder" TextAlignment="Left" TextWrapping="Wrap" Foreground="Black" Background="White" Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" Margin="2,2,2,2"
+                                 Text="{Binding PageFolderSelection_CloudFolder, Mode=TwoWay}" FontSize="16" Opacity="0.70"
+                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                    <Grid Grid.Column="3" Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <Button x:Name="cmdBrowseCloudFolder" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Margin="10,0,0,0" TabIndex="2"
+                            Command="{Binding PageFolderSelection_ChangeCloudFolder, Mode=OneTime}" ToolTip="Click to use a different Cloud folder location.">
+                            <AccessText Text="Bro_wse..."/>
+                        </Button>
+
+                        <Button x:Name="cmdResetCloudFolder" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="75" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Margin="10,0,0,0" Grid.Row="1"
+                            IsEnabled="{Binding PageFolderSelection_ResetButtonEnabled, Mode=OneWay}"
+                            Command="{Binding PageFolderSelection_ResetCloudFolder, Mode=OneTime}" TabIndex="3" ToolTip="Click to reset the Cloud folder to its default location.">
+                            <AccessText Text="_Reset..."/>
+                        </Button>
+                    </Grid>
+
+                    <TextBlock TextWrapping="Wrap" Text="Selective sync: " Foreground="Black" FontSize="12" Grid.Row="4" Grid.Column="1"  TextAlignment="Right" VerticalAlignment="Center" Height="16" Margin="0,0,10,0" />
+
+                    <Button x:Name="cmdChangeSelectiveSyncSettings" HorizontalAlignment="Left" VerticalAlignment="Center" Width="123" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
+                            Grid.Column="2" Grid.Row="4"
+                            Command="{Binding PageFolderSelection_ChangeSelectiveSyncSettings, Mode=OneTime}" TabIndex="2" ToolTip="Click to select the folders you wish to keep synchronized." >
+                        <AccessText Margin="15,0,15,0" Text="Change _settings..."/>
                     </Button>
 
-                    <Button x:Name="cmdResetCloudFolder" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="75" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Margin="10,0,0,0" Grid.Row="1"
-                        IsEnabled="{Binding PageFolderSelection_ResetButtonEnabled, Mode=OneWay}"
-                        Command="{Binding PageFolderSelection_ResetCloudFolder, Mode=OneTime}" TabIndex="3" ToolTip="Click to reset the Cloud folder to its default location.">
-                        <AccessText Text="_Reset..."/>
-                    </Button>
+                    <Label Content="Desktop Integration:" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="6" Width="118" FontSize="12" Height="26" Grid.Column="1" Margin="0,0,10,0"   />
+                    <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Grid.Column="2" Orientation="Vertical">
+                        <CheckBox x:Name="chkAddShortcutToDesktop" Content="Add Cloud folder shortcut to your _Desktop" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" Margin="0,8,0,0" 
+                            IsChecked="{Binding CbAddCloudFolderShortcutToDesktop, Mode=TwoWay}" Height="Auto"
+                            ToolTip="Check this box to add a shortcut to your Cloud folder to your Desktop."/>
+                    
+                        <CheckBox x:Name="chkAddShortcutToTaskbar" Content="Add Cloud folder shortcut to _Taskbar" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" 
+                            IsChecked="{Binding CbAddCloudFolderShortcutToTaskbar, Mode=TwoWay}" Height="Auto" Margin="0,10,0,0"
+                            ToolTip="Check this box to add a shortcut to your Cloud folder to your Taskbar."/>
+                    
+                        <CheckBox x:Name="chkAddShortcutToStartMenu" Content="Add Cloud folder shortcut to Start _menu" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" 
+                            IsChecked="{Binding CbAddCloudFolderShortcutToStartMenu, Mode=TwoWay}" Height="Auto" Margin="0,10,0,0"
+                            ToolTip="Check this box to add a shortcut to your Cloud folder to your Start menu."/>
+                    
+                        <CheckBox x:Name="chkAddShortcutToExplorerFavorites" Content="Add Cloud folder shortcut to your _Explorer favorites list" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" 
+                            IsChecked="{Binding CbAddCloudFolderShortcutToExplorerFavorites, Mode=TwoWay}" Height="Auto" Margin="0,10,0,0"
+                            ToolTip="Check this box to add a shortcut to your Cloud folder to Explorer's favorites list."/>
+
+                        <CheckBox x:Name="chkAddShortcutToInternetExplorerFavorites" Content="Add Cloud folder shortcut to your _Internet Explorer favorites list" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" 
+                            IsChecked="{Binding CbAddCloudFolderShortcutToInternetExplorerFavorites, Mode=TwoWay}" Height="Auto" Margin="0,10,0,0"
+                            ToolTip="Check this box to add a shortcut to your Cloud folder to Internet Explorer's favorites list."/>
+                    </StackPanel>
                 </Grid>
+      	    </Grid>
 
-                <TextBlock TextWrapping="Wrap" Text="Selective sync: " Foreground="Black" FontSize="12" Grid.Row="4" Grid.Column="1"  TextAlignment="Right" VerticalAlignment="Center" Height="16" Margin="0,0,10,0" />
-
-                <Button x:Name="cmdChangeSelectiveSyncSettings" HorizontalAlignment="Left" VerticalAlignment="Center" Width="123" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
-                        Grid.Column="2" Grid.Row="4"
-                        Command="{Binding PageFolderSelection_ChangeSelectiveSyncSettings, Mode=OneTime}" TabIndex="2" ToolTip="Click to select the folders you wish to keep synchronized." >
-                    <AccessText Margin="15,0,15,0" Text="Change _settings..."/>
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="2" Grid.ColumnSpan="3" Grid.Row="3">
+                <Button x:Name="cmdNext" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
+                            Command="{Binding PageFolderSelection_ContinueCommand, Mode=OneTime}" TabIndex="1" IsDefault="True" ToolTip="Click to continue.">
+                    <AccessText Text="_Next"/>
                 </Button>
 
-                <Label Content="Desktop Integration:" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="6" Width="118" FontSize="12" Height="26" Grid.Column="1" Margin="0,0,10,0"   />
-                <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Grid.Column="2" Orientation="Vertical">
-                    <CheckBox x:Name="chkAddShortcutToDesktop" Content="Add Cloud folder shortcut to your _Desktop" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" Margin="0,8,0,0" 
-                        IsChecked="{Binding CbAddCloudFolderShortcutToDesktop, Mode=TwoWay}" Height="Auto"
-                        ToolTip="Check this box to add a shortcut to your Cloud folder to your Desktop."/>
-                    
-                    <CheckBox x:Name="chkAddShortcutToTaskbar" Content="Add Cloud folder shortcut to _Taskbar" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" 
-                        IsChecked="{Binding CbAddCloudFolderShortcutToTaskbar, Mode=TwoWay}" Height="Auto" Margin="0,10,0,0"
-                        ToolTip="Check this box to add a shortcut to your Cloud folder to your Taskbar."/>
-                    
-                    <CheckBox x:Name="chkAddShortcutToStartMenu" Content="Add Cloud folder shortcut to Start _menu" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" 
-                        IsChecked="{Binding CbAddCloudFolderShortcutToStartMenu, Mode=TwoWay}" Height="Auto" Margin="0,10,0,0"
-                        ToolTip="Check this box to add a shortcut to your Cloud folder to your Start menu."/>
-                    
-                    <CheckBox x:Name="chkAddShortcutToExplorerFavorites" Content="Add Cloud folder shortcut to your _Explorer favorites list" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" 
-                        IsChecked="{Binding CbAddCloudFolderShortcutToExplorerFavorites, Mode=TwoWay}" Height="Auto" Margin="0,10,0,0"
-                        ToolTip="Check this box to add a shortcut to your Cloud folder to Explorer's favorites list."/>
-
-                    <CheckBox x:Name="chkAddShortcutToInternetExplorerFavorites" Content="Add Cloud folder shortcut to your _Internet Explorer favorites list" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Width="Auto" 
-                        IsChecked="{Binding CbAddCloudFolderShortcutToInternetExplorerFavorites, Mode=TwoWay}" Height="Auto" Margin="0,10,0,0"
-                        ToolTip="Check this box to add a shortcut to your Cloud folder to Internet Explorer's favorites list."/>
-                </StackPanel>
-            </Grid>
-      	</Grid>
-
-        <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="2" Grid.ColumnSpan="3" Grid.Row="3">
-            <Button x:Name="cmdNext" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
-                        Command="{Binding PageFolderSelection_ContinueCommand, Mode=OneTime}" TabIndex="1" IsDefault="True" ToolTip="Click to continue.">
-                <AccessText Text="_Next"/>
-            </Button>
-
-            <Button x:Name="cmdBack" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
-                        Command="{Binding PageFolderSelection_BackCommand, Mode=OneTime}" TabIndex="8" Margin="15,0,0,0" ToolTip="Click to go back to the home page.">
-                <AccessText Text="_Back"/>
-            </Button>
-        </StackPanel>
-    </Grid>
+                <Button x:Name="cmdBack" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"
+                            Command="{Binding PageFolderSelection_BackCommand, Mode=OneTime}" TabIndex="8" Margin="15,0,0,0" ToolTip="Click to go back to the home page.">
+                    <AccessText Text="_Back"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </extToolkit:BusyIndicator>
 </Page>

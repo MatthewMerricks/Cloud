@@ -150,7 +150,7 @@ namespace win_client.ViewModels
         /// The <see cref="BusyContent" /> property's name.
         /// </summary>
         public const string BusyContentPropertyName = "BusyContent";
-        private string _busyContent = "Please wait...";
+        private string _busyContent = "Setting up.  Please wait...";
         public string BusyContent
         {
             get
@@ -500,49 +500,55 @@ namespace win_client.ViewModels
                 }
 
                 // Finish the setup.
-                CLError err = null;
                 IsBusy = true;                      // show the busy indicator
-                CLAppDelegate.Instance.installCloudServices(out err);
-                IsBusy = false;                     // remove the busy indicator
-                if (err != null)
-                {
-                    // An error occurred.  Show the user an Oh Snap! modal dialog.
-                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                errorMessage:  err.errorDescription,
-                                title:  Resources.Resources.appDelegateErrorInstallingTitle,
-                                headerText: Resources.Resources.appDelegateErrorInstallingHeader,
-                                rightButtonContent: Resources.Resources.appDelegateErrorInstallingButtonTryAgain,
-                                rightButtonIsDefault: true,
-                                rightButtonIsCancel: true,
-                                container: ViewGridContainer,
-                                dialog: out _dialog,
-                                actionOkButtonHandler: 
-                                    returnedViewModelInstance =>
-                                    {
-                                        if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
-                                        {
-                                            // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
-                                            var dispatcher = CLAppDelegate.Instance.MainDispatcher;
-                                            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
-                                        }
-                                        else
-                                        {
-                                            // @@@@@@@@@ DO NOTHING @@@@@ The user selected Ignore.  We will just leave them on the SetupSelection page.
-                                        }
-                                    });
-                }
-                else
-                {
-                    // Start the tour
-                    string nextPageName = string.Format("{0}{1}{2}", CLConstants.kPageTour, 1, CLConstants.kXamlSuffix);
-                    Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
-                    CLAppMessages.PageSetupSelector_NavigationRequest.Send(nextPage);
-                }
+                CLAppDelegate.Instance.InstallCloudServicesAsync(InstallCloudServicesAsyncCallback, timeoutInSeconds: 30);
             }
             else
             {
                 // Put up the Advanced setup view..
                 Uri nextPage = new System.Uri(CLConstants.kPageFolderSelection, System.UriKind.Relative);
+                CLAppMessages.PageSetupSelector_NavigationRequest.Send(nextPage);
+            }
+        }
+
+        /// <summary>
+        /// Called when InstallCloudServicesAsync completes
+        /// </summary>
+        private void InstallCloudServicesAsyncCallback(CLError err)
+        {
+            IsBusy = false;                     // remove the busy indicator
+            if (err != null)
+            {
+                // An error occurred.  Show the user an Oh Snap! modal dialog.
+                CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                            errorMessage: err.errorDescription,
+                            title: Resources.Resources.appDelegateErrorInstallingTitle,
+                            headerText: Resources.Resources.appDelegateErrorInstallingHeader,
+                            rightButtonContent: Resources.Resources.appDelegateErrorInstallingButtonTryAgain,
+                            rightButtonIsDefault: true,
+                            rightButtonIsCancel: true,
+                            container: ViewGridContainer,
+                            dialog: out _dialog,
+                            actionOkButtonHandler:
+                                returnedViewModelInstance =>
+                                {
+                                    if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                    {
+                                        // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
+                                        var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                        dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () => { goForward(); });
+                                    }
+                                    else
+                                    {
+                                        // @@@@@@@@@ DO NOTHING @@@@@ The user selected Ignore.  We will just leave them on the SetupSelection page.
+                                    }
+                                });
+            }
+            else
+            {
+                // Start the tour
+                string nextPageName = string.Format("{0}{1}{2}", CLConstants.kPageTour, 1, CLConstants.kXamlSuffix);
+                Uri nextPage = new System.Uri(nextPageName, System.UriKind.Relative);
                 CLAppMessages.PageSetupSelector_NavigationRequest.Send(nextPage);
             }
         }

@@ -315,6 +315,54 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// The <see cref="IsBusy" /> property's name.
+        /// </summary>
+        public const string IsBusyPropertyName = "IsBusy";
+        private bool _isBusy = false;
+        public bool IsBusy
+        {
+            get
+            {
+                return _isBusy;
+            }
+
+            set
+            {
+                if (_isBusy == value)
+                {
+                    return;
+                }
+
+                _isBusy = value;
+                RaisePropertyChanged(IsBusyPropertyName);
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="BusyContent" /> property's name.
+        /// </summary>
+        public const string BusyContentPropertyName = "BusyContent";
+        private string _busyContent = "Setting up.  Please wait...";
+        public string BusyContent
+        {
+            get
+            {
+                return _busyContent;
+            }
+
+            set
+            {
+                if (_busyContent == value)
+                {
+                    return;
+                }
+
+                _busyContent = value;
+                RaisePropertyChanged(BusyContentPropertyName);
+            }
+        }
+
+        /// <summary>
         /// The <see cref="WindowCloseOk" /> property's name.
         /// </summary>
         public const string WindowCloseOkPropertyName = "WindowCloseOk";
@@ -732,21 +780,29 @@ namespace win_client.ViewModels
             }
 
             // Finish the setup.
-            CLError err = null;
-            CLAppDelegate.Instance.installCloudServices(out err);
+            IsBusy = true;
+            CLAppDelegate.Instance.InstallCloudServicesAsync(InstallCloudServicesAsyncCallback, timeoutInSeconds: 30);
+        }
+
+        /// <summary>
+        /// Called when InstallCloudServicesAsync completes
+        /// </summary>
+        private void InstallCloudServicesAsyncCallback(CLError err)
+        {
+            IsBusy = false;
             if (err != null)
             {
                 // An error occurred.  Show the user an Oh Snap! modal dialog.
                 CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                            errorMessage:  err.errorDescription,
-                            title:  Resources.Resources.appDelegateErrorInstallingTitle,
+                            errorMessage: err.errorDescription,
+                            title: Resources.Resources.appDelegateErrorInstallingTitle,
                             headerText: Resources.Resources.appDelegateErrorInstallingHeader,
                             rightButtonContent: Resources.Resources.appDelegateErrorInstallingButtonTryAgain,
                             rightButtonIsDefault: true,
                             rightButtonIsCancel: true,
                             container: ViewGridContainer,
                             dialog: out _dialog,
-                            actionOkButtonHandler: 
+                            actionOkButtonHandler:
                                 returnedViewModelInstance =>
                                 {
                                     if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)

@@ -415,4 +415,7 @@
   <data name="ViewPagePreferencesButtonShortcuts" xml:space="preserve">
     <value>_Shortcuts</value>
   </data>
+  <data name="SystemTrayContextMenuBrowseToCloudCom" xml:space="preserve">
+    <value>Browse to Cloud.com...</value>
+  </data>
 </root>

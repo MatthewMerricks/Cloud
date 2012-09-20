@@ -34,6 +34,7 @@ using CleanShutdown.Helpers;
 using win_client.ViewModelHelpers;
 using System.Windows.Threading;
 using System.Diagnostics;
+using CloudApiPrivate.Common;
 
 
 namespace win_client.ViewModels
@@ -246,6 +247,24 @@ namespace win_client.ViewModels
                                             process.StartInfo.Arguments = Settings.Instance.CloudFolderPath;
                                             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                                             process.Start();
+                                          }));
+            }
+        }
+
+        /// <summary>
+        /// The user clicked the system tray NotifyIcon context menu "Browse to Cloud.com..." item.
+        /// </summary>
+        private ICommand _browseToCloudComCommand;
+        public ICommand BrowseToCloudComCommand
+        {
+            get
+            {
+                return _browseToCloudComCommand
+                    ?? (_browseToCloudComCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              // Browse to www.cloud.com
+                                              CLShortcuts.StartBrowserToUrl(CLConstants.kUrlCloudCom);
                                           }));
             }
         }

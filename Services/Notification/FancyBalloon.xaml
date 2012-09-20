@@ -90,7 +90,7 @@
       Margin="72,49.2,10,0"
       VerticalAlignment="Top"
       Foreground="#FFECAD25"
-      TextWrapping="Wrap"><Run Text="This is a user control. The animation uses the attached " Language="de-ch"/><Run FontStyle="Italic" FontWeight="Bold" Text="BalloonShowing " Language="de-ch"/><Run Text="event." Language="de-ch"/></TextBlock>
+      TextWrapping="Wrap"><Run Text="This is a sample status notification."/></TextBlock>
     <Path
       Fill="#FFFFFFFF"
       Stretch="Fill"

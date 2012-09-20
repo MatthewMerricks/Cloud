@@ -111,6 +111,7 @@ namespace win_client.Services.ServicesManager
 
                 // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
                 // before the initial list is passed (via InitializeOrReplace)
+                //TODO: Handle any CLErrors returned from these services.
                 CLBadgingService.Instance.BeginBadgingServices();
                 CLUIActivityService.Instance.BeginUIActivityService(); 
                 CLIndexingService.Instance.StartIndexingService();

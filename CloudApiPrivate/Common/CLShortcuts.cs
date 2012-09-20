@@ -676,5 +676,29 @@ namespace CloudApiPrivate.Common
                 return Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
             }
         }
+
+        /// <summary>
+        /// Launch the default web browser to browse to a URL page.
+        /// </summary>
+        /// <param name="urlTarget"></param>
+        public static void StartBrowserToUrl(string urlTarget)
+        {
+            try
+            {
+                _trace.writeToLog(9, String.Format("CLShortcuts: StartBrowserToUrl: Entry. Url: <{0}>.", urlTarget));
+                System.Diagnostics.Process.Start(urlTarget);
+            }
+            catch(System.ComponentModel.Win32Exception noBrowser)
+            {
+                if (noBrowser.ErrorCode == -2147467259)
+                {
+                    _trace.writeToLog(1, String.Format("CLShortcuts: StartBrowserToUrl: ERROR: Exception.  Msg: <{0}>.", noBrowser.Message));
+                }
+            }
+            catch (System.Exception other)
+            {
+                _trace.writeToLog(1, String.Format("CLShortcuts: StartBrowserToUrl: ERROR: Exception(2).  Msg: <{0}>.", other.Message));
+            }
+        }
     }
 }

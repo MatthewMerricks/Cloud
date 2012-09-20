@@ -79,8 +79,6 @@ namespace win_client
             //System.Diagnostics.Debugger.Launch();
             // throw (new System.Exception()); 
 
-            //TODO: Is this necessary?  Or should it be initialized when CoreServices start?
-            CLError error = IconOverlay.Initialize(Settings.Instance.CloudFolderPath);
             CLAppDelegate app = CLAppDelegate.Instance;                 // fire up the singleton
 
             // Instantiate a new window
@@ -90,22 +88,9 @@ namespace win_client
             window.Icon = BitmapFrame.Create(GetResourceStream(new Uri("/Cloud;component/Artwork/Cloud.ico", UriKind.Relative)).Stream);
             window.ShowsNavigationUI = false;
 
-            //    // Set the window to display, selected in CLAppDelegate.initAppDelegate.  
-            //    ((App)Application.Current).StartupUri = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
+            // Set the window to display, selected in CLAppDelegate.initAppDelegate.  
+            // ((App)Application.Current).StartupUri = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
             window.Source = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
-            // Show the user the error from IconOverlay, if any.
-            if (error != null)
-            {
-                //    //TODO: Incorporate the error description and code below into the BadgeComInitializationErrorView window above.
-                //    //MessageBox.Show(String.Format("Error initializing Cloud shell integration. Message: {0}, Code: {1}.", error.errorDescription, error.errorCode), "Error.");
-                window.Source = new Uri("/Views/PageBadgeComInitializationErrorView.xaml", UriKind.Relative);
-            }
-            else
-            {
-                //    // Set the window to display, selected in CLAppDelegate.initAppDelegate.  
-                //    ((App)Application.Current).StartupUri = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
-                window.Source = new Uri(CLAppDelegate.Instance.StartupUrlRelative, UriKind.Relative);
-            }
 
             // If we are running PageInvisible as the first page in this NavigationWindow, set a flag
             // to prevent the animation of the window into the system tray.

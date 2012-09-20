@@ -32,49 +32,51 @@
     <Page.InputBindings>
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
     </Page.InputBindings>
-    
-    <Grid x:Name="LayoutRoot" Margin="0,0,0,0">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="48"/>
-            <ColumnDefinition  Width="45"/>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="22"/>
-            <ColumnDefinition Width="22"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="17"/>
-        </Grid.RowDefinitions>
 
-        <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Cloud_Folder_Missing.png"/>
-        </Grid.Background>
+    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}">
+        <Grid x:Name="LayoutRoot" Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="48"/>
+                <ColumnDefinition  Width="45"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="22"/>
+                <ColumnDefinition Width="22"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="17"/>
+            </Grid.RowDefinitions>
 
-        <Grid x:Name="gridNonButtonArea" Grid.Column="2" Width="Auto" Margin="0,0,0,0" >
-        	<Grid.RowDefinitions>
-        		<RowDefinition Height="53"/>
-        		<RowDefinition Height="65"/>
-        		<RowDefinition/>
-        		<RowDefinition Height="15"/>
-        	</Grid.RowDefinitions>
-        	<TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="17" Grid.Row="1"
-                    Text="Your Cloud folder is missing!" />
-            <TextBlock x:Name="textBlockMessage2" TextWrapping="Wrap" FontSize="18" Grid.Row="2"
-                    Text="{Binding BodyMessage, Mode=OneWay}" Foreground="#CE000000" Margin="0,0,-10,0" />
+            <Grid.Background>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Cloud_Folder_Missing.png"/>
+            </Grid.Background>
+
+            <Grid x:Name="gridNonButtonArea" Grid.Column="2" Width="Auto" Margin="0,0,0,0" >
+        	    <Grid.RowDefinitions>
+        		    <RowDefinition Height="53"/>
+        		    <RowDefinition Height="65"/>
+        		    <RowDefinition/>
+        		    <RowDefinition Height="15"/>
+        	    </Grid.RowDefinitions>
+        	    <TextBlock x:Name="textBlockMessage" TextWrapping="Wrap" FontSize="17" Grid.Row="1"
+                        Text="Your Cloud folder is missing!" />
+                <TextBlock x:Name="textBlockMessage2" TextWrapping="Wrap" FontSize="18" Grid.Row="2"
+                        Text="{Binding BodyMessage, Mode=OneWay}" Foreground="#CE000000" Margin="0,0,-10,0" />
+            </Grid>
+            <StackPanel x:Name="stackpanelButtonArea" Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="1">
+                <Button x:Name="btnRight" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" 
+                            Command="{Binding PageCloudFolderMissingViewModel_OkCommand, Mode=OneTime}" TabIndex="0" IsDefault="True" ToolTip="{Binding RightButtonTooltip, Mode=OneTime}">
+                    <AccessText Text="{Binding OkButtonContent, Mode=OneWay}"/>
+                </Button>
+
+                <Button x:Name="btnLeft" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="4" Grid.Column="1"
+                            Command="{Binding PageCloudFolderMissingViewModel_UnlinkCommand, Mode=OneTime}" TabIndex="1" Margin="15,0,0,0" ToolTip="Click to remove this computer from your Cloud account.">
+                    <AccessText Text="{x:Static resx:Resources.ViewPageCloudFolderMissingButtonRemove}"/>
+                </Button>
+            </StackPanel>
         </Grid>
-        <StackPanel x:Name="stackpanelButtonArea" Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="1">
-            <Button x:Name="btnRight" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" 
-                        Command="{Binding PageCloudFolderMissingViewModel_OkCommand, Mode=OneTime}" TabIndex="0" IsDefault="True" ToolTip="{Binding RightButtonTooltip, Mode=OneTime}">
-                <AccessText Text="{Binding OkButtonContent, Mode=OneWay}"/>
-            </Button>
-
-            <Button x:Name="btnLeft" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="4" Grid.Column="1"
-                        Command="{Binding PageCloudFolderMissingViewModel_UnlinkCommand, Mode=OneTime}" TabIndex="1" Margin="15,0,0,0" ToolTip="Click to remove this computer from your Cloud account.">
-                <AccessText Text="{x:Static resx:Resources.ViewPageCloudFolderMissingButtonRemove}"/>
-            </Button>
-        </StackPanel>
-    </Grid>
+    </extToolkit:BusyIndicator>
 </Page>

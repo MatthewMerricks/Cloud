@@ -51,16 +51,18 @@
         ToolTipText="Cloud"
         ContextMenu="{StaticResource tbMenu}"
         Visibility="{Binding TaskbarIconVisibility, Mode=TwoWay}"
-        MenuActivation="RightClick"
-        PopupActivation="LeftClick"
+        MenuActivation="LeftOrRightClick"
         DoubleClickCommand="{Binding ShowPreferencesPageCommand, Mode=OneTime}"
         DoubleClickCommandParameter="{Binding RelativeSource={RelativeSource Self}}"
         >
-
+                       
+            <!-- TODO: Add the following code, and add the command on this line to the list above to cause the test popup on left click: PopupActivation="LeftClick"-->
+            <!--
             <tb:TaskbarIcon.TrayPopup>
-                <!-- the control will be put into a popup with an explicit DataContext -->
+                // the control will be put into a popup with an explicit DataContext 
                 <local:FancyPopup />
             </tb:TaskbarIcon.TrayPopup>
+            -->
 
             <tb:TaskbarIcon.TrayToolTip>
                 <!-- the control will be put into a tooltip with an explicit DataContext -->
