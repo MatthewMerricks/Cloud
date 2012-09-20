@@ -21,6 +21,7 @@ using CloudApiPrivate.Common;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Model;
 using CloudApiPublic.Model;
+using Microsoft.Win32;
 
 namespace RegisterCom
 {
@@ -709,6 +710,160 @@ namespace RegisterCom
                 Trace.WriteLine(String.Format("RegisterCom: UnregisterAssembly: ERROR.  Could not find file <{0}>.", dllPath));
             }
         }
+
+
+        /// <summary>
+        /// Always show the Cloud icon on the taskbar, rather than up in the pop-up icon list.
+        /// </summary>
+        /// <param name="WhenToShow"></param>
+        /// <returns></returns>
+        internal bool AlwaysShowNotifyIcon(byte WhenToShow)
+        {
+            // Searches for a notify icon by application path in the registry and updates the key to always show, always hide, or hide when inactive
+            // WhenToShow should be 16 (Dec) for always (verified), 17 (dec) for never (I'm guessing on this), and 18 (Dec) for hide when inactive (verified).
+            // This will return success status.  Highly suggest putting a local setting variable in to only run this once per machine....
+            int x = 0;
+            string myHolderString = null;
+            System.Text.UTF8Encoding encText = new System.Text.UTF8Encoding();
+            reg.SubKey = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TrayNotify";
+            try
+            {
+                // Get our registry entry
+                byte[] myRegistryKeyAsByte = null;
+                string myRegistryKeyAsString = "";
+                try
+                {
+                    // Get the registry key
+                    RegistryKey myKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TrayNotify");
+                    Byte[] myValueArray = myKey.GetValue("IconStreams", new Byte[0])
+                    myRegistryKeyAsByte =  Registry.CurrentUser.OpenSubKey(  reg.Read("IconStreams");
+                    // Convert the bytes to a string of hex values
+                    for (x = 0; x <= Information.UBound(myRegistryKeyAsByte); x++)
+                    {
+                        myHolderString = DoubleToHex(myRegistryKeyAsByte[x]);
+                        switch (myHolderString.Length)
+                        {
+                            case 0:
+                                myRegistryKeyAsString += "00";
+                                break;
+                            case 1:
+                                myRegistryKeyAsString += "0" + myHolderString;
+                                break;
+                            case 2:
+                                myRegistryKeyAsString += myHolderString;
+                                break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+
+                // Get our application path
+                byte[] myTempAppPathAsByte = null;
+                myTempAppPathAsByte = encText.GetBytes(My.Application.Info.DirectoryPath.ToString + "\\" + My.Application.Info.AssemblyName);
+                byte[] myAppPathAsByte = new byte[Information.UBound(myTempAppPathAsByte) * 2 + 1];
+                string myAppPathAsString = "";
+                try
+                {
+                    // Add in zeros for every other byte like the registry key has
+                    for (x = 0; x <= Information.UBound(myAppPathAsByte); x++)
+                    {
+                        if (x % 2 == 0)
+                        {
+                            myAppPathAsByte[x] = myTempAppPathAsByte[Convert.ToInt32(x / 2)];
+                        }
+                        else
+                        {
+                            myAppPathAsByte[x] = 0;
+                        }
+                    }
+                    // Convert the bytes to a string of hex values
+                    for (x = 0; x <= Information.UBound(myAppPathAsByte); x++)
+                    {
+                        myHolderString = DoubleToHex(myAppPathAsByte[x]);
+                        switch (myHolderString.Length)
+                        {
+                            case 0:
+                                myAppPathAsString += "00";
+                                break;
+                            case 1:
+                                myAppPathAsString += "0" + myHolderString;
+                                break;
+                            case 2:
+                                myAppPathAsString += myHolderString;
+                                break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+
+                // Hunt for the application path inside the registry key
+                long myPosition = Strings.InStr(myRegistryKeyAsString, myAppPathAsString) - 1;
+
+                if (myPosition > 0)
+                {
+                    // We found our startup path so make our change to the byte 20 before the start of the path
+                    // I believe this is the right byte to change from manually setting a icon.  I exported out the TrayIcon 
+                    // key, changed the value, rebooted, and expored it out again and this byte was the only thing to change
+                    myRegistryKeyAsByte[Convert.ToInt32(myPosition / 2 - 20)] = WhenToShow;
+                    // Write the modified key back to the registry
+                    WriteCURKByteValue("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TrayNotify", "IconStreams", myRegistryKeyAsByte);
+                    // Now crash explorer.  Thats right....explorer keeps this information in memory and reads it at startup and writes it at shutdown
+                    // so the only way to actaully change these values is to write to the registry then crash explorer so it can't overwrite what
+                    // we did.  It will then poll our information when it starts back up.  First look for explorer in memory:
+                    Process ExplorerProcess = null;
+                    foreach (Process p in Process.GetProcesses())
+                    {
+                        if (p.ProcessName.ToString() == "explorer")
+                        {
+                            ExplorerProcess = p;
+                            break; // TODO: might not be correct. Was : Exit For
+                        }
+                        else
+                        {
+                            ExplorerProcess = null;
+                        }
+                    }
+                    // If we found it then we kill it, it will restart itself
+                    if ((ExplorerProcess != null))
+                    {
+                        ExplorerProcess.Kill();
+                        System.Threading.Thread.Sleep(2000);
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
+
+        }
+
+        private string DoubleToHex(double x)
+        {
+            string functionReturnValue = null;
+            functionReturnValue = "";
+            double lrem = 0;
+            while (x > 0)
+            {
+                lrem = x - Conversion.Int(x / 16) * 16;
+                functionReturnValue = Conversion.Hex(lrem) + functionReturnValue;
+                x = Conversion.Int(x / 16);
+            }
+            return functionReturnValue;
+        }
+
 
     }
 }
