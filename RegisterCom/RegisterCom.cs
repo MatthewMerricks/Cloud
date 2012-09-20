@@ -1,4 +1,12 @@
-﻿using System;
+﻿//
+//  RegisterCom.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+//
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -98,7 +106,7 @@ namespace RegisterCom
     ///     RegisterCom /u
     /// </summary>
 
-    public static class MainProgram
+    public static class RegisterCom
     {
         public static bool shouldTerminate = false;
 
@@ -528,7 +536,7 @@ namespace RegisterCom
 
                 // Get the assembly containing the .vbs resource.
                 Trace.WriteLine("RegisterCom: FinalizeUninstall: Get the assembly containing the .vbs resource.");
-                System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(RegisterCom.MainProgram));
+                System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(global::RegisterCom.RegisterCom));
                 if (storeAssembly == null)
                 {
                     Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: storeAssembly null.");

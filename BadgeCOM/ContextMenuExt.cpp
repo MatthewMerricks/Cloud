@@ -680,7 +680,7 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	// Close the pipe handle
     if (PipeHandle != INVALID_HANDLE_VALUE)
 	{
-		CLTRACE(1, "CBadgeIconFailed: IsMemberOf: Close the pipe handle.");
+		CLTRACE(1, "CBadgeIconFailed: InvokeCommand: Close the pipe handle.");
 		CloseHandle(PipeHandle);
 		PipeHandle = INVALID_HANDLE_VALUE;
 	}
