@@ -18,7 +18,7 @@
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
-    mc:Ignorable="d" d:DesignWidth="573" d:DesignHeight="315"
+    mc:Ignorable="d" d:DesignWidth="458" d:DesignHeight="300"
     DataContext="{Binding FramePreferencesAccountViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Cloud Account Preferences"
     Name="FramePreferencesAccountRoot">
@@ -62,22 +62,22 @@
             </Grid.RowDefinitions>
     		<Grid.ColumnDefinitions>
     			<ColumnDefinition Width="224*"/>
-    			<ColumnDefinition Width="18*"/>
+    			<ColumnDefinition Width="30"/>
                 <ColumnDefinition Width="302*"/>
                 <ColumnDefinition/>
     		</Grid.ColumnDefinitions>
-            <TextBlock TextWrapping="Wrap" Text="Storage: " Foreground="Black" FontSize="12" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="1" />
-            <TextBlock x:Name="tbStorageUsed" TextWrapping="Wrap" Foreground="Black" FontSize="12" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="1"
+            <TextBlock TextWrapping="Wrap" Text="Storage: " Foreground="#ff333333" FontSize="12" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="1" />
+            <TextBlock x:Name="tbStorageUsed" TextWrapping="Wrap" Foreground="#ff5a5a5a" FontSize="12" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="1"
                        Text="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.Quota, Mode=OneWay, Converter={StaticResource QuotaConverter}}"
                        ToolTip="This is the total amount of storage space provided to your account."/>
 
-            <TextBlock TextWrapping="Wrap" Text="Account: " Foreground="Black" FontSize="12" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="2"  />
-            <TextBlock x:Name="tbAccountName" TextWrapping="Wrap" Foreground="Black" FontSize="12" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="2" 
+            <TextBlock TextWrapping="Wrap" Text="Account: " Foreground="#ff333333" FontSize="12" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="2"  />
+            <TextBlock x:Name="tbAccountName" TextWrapping="Wrap" Foreground="#ff5a5a5a" FontSize="12" TextAlignment="Left" VerticalAlignment="Stretch" Grid.Column="2" Grid.Row="2" 
                        Text="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.UserName, Mode=OneWay, Converter={StaticResource DebugConverter}}"
                        ToolTip="This is your account user name."/>
-            
-            <TextBlock TextWrapping="Wrap" Text="Computer name: " Foreground="Black" FontSize="12" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="3"  />
-            <TextBlock x:Name="tbComputerName" TextWrapping="Wrap" Foreground="Black" FontSize="12" TextAlignment="Left" VerticalAlignment="Stretch" Height="Auto" Grid.Column="2" Grid.Row="3" 
+
+            <TextBlock TextWrapping="Wrap" Text="Computer name: " Foreground="#ff333333" FontSize="12" TextAlignment="Right" VerticalAlignment="Top" Height="Auto" Grid.Column="0" Grid.Row="3"  />
+            <TextBlock x:Name="tbComputerName" TextWrapping="Wrap" Foreground="#ff5a5a5a" FontSize="12" TextAlignment="Left" VerticalAlignment="Stretch" Height="Auto" Grid.Column="2" Grid.Row="3" 
                        Text="{Binding ElementName=FramePreferencesAccountRoot, Path=Preferences.DeviceName, Mode=OneWay, Converter={StaticResource DebugConverter}}" 
                        ToolTip="This is the device name representing this computer in your account."/>
         </Grid>

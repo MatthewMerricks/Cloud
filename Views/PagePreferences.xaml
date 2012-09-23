@@ -34,10 +34,10 @@
 
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="36"/>
+            <ColumnDefinition Width="37"/>
             <ColumnDefinition Width="108"/>
-            <ColumnDefinition Width="59*"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="458"/>
+            <ColumnDefinition Width="40"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="29*"/>
@@ -46,44 +46,42 @@
         </Grid.RowDefinitions>
         
         <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="{Binding PagePreferences_BackgroundImageSource, Mode=OneWay}" />
-            <!--<ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_bg_650x421.png"/>-->
-            <!--<ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_about_bg_650x421.png/>-->
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_bg_650x421.png"/>
         </Grid.Background>
         
         <TextBlock Text="{Binding Title, Mode=OneWay}" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="17" Foreground="#0f0f0f"
                    Opacity="0.5" Height="Auto" />
 
-        <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" BorderThickness="0" Grid.Column="2" Grid.Row="1" IsTabStop="False" Grid.ColumnSpan="2" >
+        <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" BorderThickness="0" Grid.Column="2" Grid.Row="1" IsTabStop="False" >
         </Frame>
 
         <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Vertical" >
-            <Button x:Name="cmdGeneral"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'General' preference choices" Foreground="#FF136296" Margin="12,15,8,5" 
+            <Button x:Name="cmdGeneral"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'General' preference choices" Foreground="#FF136296" Margin="0,15,8,5" 
                     Command="{Binding PagePreferences_GeneralCommand, Mode=OneTime}" HorizontalAlignment="Left">
                 <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonGeneral}"/>
             </Button>
             
-            <Button x:Name="cmdShortcuts"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'Shortcut' preference choices" Foreground="#FF136296" Margin="12,15,8,5" 
+            <Button x:Name="cmdShortcuts"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'Shortcut' preference choices" Foreground="#FF136296" Margin="0,15,8,5" 
                     Command="{Binding PagePreferences_ShortcutsCommand, Mode=OneTime}" HorizontalAlignment="Left">
                 <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonShortcuts}"/>
             </Button>
 
-            <Button x:Name="cmdAccount"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'Account' preference choices" Foreground="#FF136296" Margin="12,15,8,5" 
+            <Button x:Name="cmdAccount"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'Account' preference choices" Foreground="#FF136296" Margin="0,15,8,5" 
                     Command="{Binding PagePreferences_AccountCommand, Mode=OneTime}" HorizontalAlignment="Left">
                 <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAccount}" HorizontalAlignment="Center"/>
             </Button>
 
-            <Button x:Name="cmdNetwork"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'Network' preference choices" Foreground="#FF136296" Margin="12,15,8,5" 
+            <Button x:Name="cmdNetwork"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'Network' preference choices" Foreground="#FF136296" Margin="0,15,8,5" 
                     Command="{Binding PagePreferences_NetworkCommand, Mode=OneTime}" HorizontalAlignment="Left">
                 <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonNetwork}" HorizontalAlignment="Center"/>
             </Button>
 
-            <Button x:Name="cmdAdvanced"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'Advanced' preference choices" Foreground="#FF136296" Margin="12,15,8,5" 
+            <Button x:Name="cmdAdvanced"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view the 'Advanced' preference choices" Foreground="#FF136296" Margin="0,15,8,5" 
                     Command="{Binding PagePreferences_AdvancedCommand, Mode=OneTime}" HorizontalAlignment="Left">
                 <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAdvanced}" HorizontalAlignment="Center"/>
             </Button>
 
-            <Button x:Name="cmdAbout"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view information about this Cloud application" Foreground="#FF136296" Margin="12,15,8,5" 
+            <Button x:Name="cmdAbout"  Style="{StaticResource HyperlinkLikeButtonStyle}" ToolTip="Click for to view information about this Cloud application" Foreground="#FF136296" Margin="0,15,8,5" 
                     Command="{Binding PagePreferences_AboutCommand, Mode=OneTime}" HorizontalAlignment="Left">
                 <AccessText Text="{x:Static resx:Resources.ViewPagePreferencesButtonAbout}" HorizontalAlignment="Center"/>
             </Button>
@@ -103,7 +101,7 @@
 
                 <Button x:Name="cmdCancel" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
                         Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" IsCancel="True" 
-                        Command="{Binding PagePreferences_CancelCommand, Mode=OneTime}" TabIndex="1" Margin="15,0,0,0" ToolTip="Click to discard your changes.">
+                        Command="{Binding PagePreferences_CancelCommand, Mode=OneTime}" TabIndex="1" Margin="10,0,0,0" ToolTip="Click to discard your changes.">
                     <AccessText Text="{x:Static resx:Resources.generalCancelButtonContent}" />
                 </Button>
             </StackPanel>

@@ -26,7 +26,7 @@
     Title="{Binding DialogPreferencesNetworkBandwidth_Title, Mode=OneWay}" 
     Height="{Binding DialogPreferencesNetworkBandwidth_WindowHeight, Mode=OneWay}"
     Width="{Binding DialogPreferencesNetworkBandwidth_WindowWidth, Mode=OneWay}"
-    Name="DialogPreferencesNetworkBandwidthRoot" d:DesignWidth="504" d:DesignHeight="325"
+    Name="DialogPreferencesNetworkBandwidthRoot" d:DesignWidth="480" d:DesignHeight="384"
     >
     
     <Window.Resources>
@@ -52,11 +52,12 @@
         
         <Grid Grid.Row="0">
         	<Grid.ColumnDefinitions>
-        		<ColumnDefinition Width="90*"/>
-        		<ColumnDefinition Width="149*"/>
+        		<ColumnDefinition Width="125"/>
+        		<ColumnDefinition Width="15"/>
+                <ColumnDefinition Width="*" />
         	</Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="20"/>
+                <RowDefinition Height="35"/>
                 <RowDefinition Height="25"/>
                 <RowDefinition Height="25"/>
                 <RowDefinition Height="25"/>
@@ -68,16 +69,16 @@
             
             <!-- Download Rate -->
             <TextBlock TextWrapping="Wrap" Text="Download rate: " Foreground="Black" FontSize="12" Grid.Row="1" TextAlignment="Right" VerticalAlignment="Center" Height="21" />
-            <Grid Grid.Column="1" Grid.Row="1" Grid.RowSpan="3">
+            <Grid Grid.Column="2" Grid.Row="1" Grid.RowSpan="2">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <RadioButton Content="_Don't limit" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Grid.Row="0" Margin="10,0,0,0"
+                <RadioButton Content="_Don't limit" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Grid.Row="0"
                              IsChecked="{Binding RbDownloadBandwidthNoLimit, Mode=TwoWay}" 
                              ToolTip="Select to download files as fast as your network will allow."/>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Stretch" >
-                    <RadioButton Content="_Limit to:" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Margin="10,0,0,0"
+                    <RadioButton Content="_Limit to:" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto"
                              IsChecked="{Binding RbDownloadBandwidthLimit, Mode=TwoWay}"
                              ToolTip="Select to limit the download rate to a specific maximum."/>
                     <extToolkit:ButtonSpinner x:Name="spinnerDownloadRate"   AllowSpin="True" ShowButtonSpinner="True" VerticalAlignment="Center" Margin="20,0,0,0" 
@@ -95,20 +96,20 @@
             
             <!-- Upload Rate -->
             <TextBlock TextWrapping="Wrap" Text="Upload rate: " Foreground="Black" FontSize="12" Grid.Row="4" TextAlignment="Right" VerticalAlignment="Center" Height="Auto" />
-            <Grid Grid.Column="1" Grid.Row="4" Grid.RowSpan="3">
+            <Grid Grid.Column="2" Grid.Row="4" Grid.RowSpan="3">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <RadioButton Content="Do_n't limit" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Grid.Row="0" Margin="10,0,0,0"
+                <RadioButton Content="Do_n't limit" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Grid.Row="0"
                              IsChecked="{Binding RbUploadBandwidthNoLimit, Mode=TwoWay}" 
                              ToolTip="Select to upload files as fast as your network will allow."/>
-                <RadioButton Content="Limit _automatically" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Grid.Row="1" Margin="10,0,0,0"
+                <RadioButton Content="Limit _automatically" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Grid.Row="1"
                              IsChecked="{Binding RbUploadBandwidthLimitAutomatically, Mode=TwoWay}" 
                              ToolTip="Select to allow Cloud to determine the best upload bandwidth limiting."/>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Center" >
-                    <RadioButton Content="Limit _to:" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto" Margin="10,0,0,0"
+                    <RadioButton Content="Limit _to:" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Center" FontSize="12" Width="Auto"
                              IsChecked="{Binding RbUploadBandwidthLimit, Mode=TwoWay}"
                              ToolTip="Select to limit the upload rate to a specific maximum."/>
                     <extToolkit:ButtonSpinner x:Name="spinnerUploadRate" AllowSpin="True" ShowButtonSpinner="True" VerticalAlignment="Center" Margin="20,0,0,0" 
@@ -129,9 +130,9 @@
         <!-- Buttons -->
         <Grid Grid.Row="2">
         	<Grid.ColumnDefinitions>
-        	    <ColumnDefinition Width="30"/>
+        	    <ColumnDefinition Width="22"/>
 		    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="22"/>
         	</Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1">
                 <Button x:Name="btnCancel" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 

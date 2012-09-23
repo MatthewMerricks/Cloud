@@ -103,7 +103,7 @@ namespace win_client.Common
             int? inputValue = value as int?;
             if (inputValue != null)
             {
-                return (string)inputValue.ToString() + ".0GB Used";
+                return (string)inputValue.ToString() + ".0GB";
             }
             else
             {

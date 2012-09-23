@@ -19,7 +19,7 @@
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
-    mc:Ignorable="d" d:DesignWidth="573" d:DesignHeight="315" 
+    mc:Ignorable="d" d:DesignWidth="458" d:DesignHeight="300" 
     WindowTitle="Cloud Shortcut Preferences"
     x:Name="FramePreferencesShortcutsRoot">
 

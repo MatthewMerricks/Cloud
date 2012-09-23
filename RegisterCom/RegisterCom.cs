@@ -120,7 +120,9 @@ namespace RegisterCom
             {
                 Trace.WriteLine("RegisterCom: Main program starting.");
                 Trace.WriteLine(String.Format("RegisterCom: Arg count: {0}.", args.Length));
-                bool rcDebug = AlwaysShowNotifyIcon(WhenToShow: 16);
+
+                //TODO: Always pin the systray icon to the taskbar.  This is debug code.
+                //bool rcDebug = AlwaysShowNotifyIcon(WhenToShow: 16);
 
                 if (args.Length == 0)
                 {
@@ -734,21 +736,47 @@ namespace RegisterCom
 
                 try
                 {
-                    //RegistryKey myKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TrayNotify");
-                    myKey = Registry.CurrentUser.OpenSubKey("Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\TrayNotify");
-
+                    // @@@@@@@@@@@  Debug only
+                    myKey = Registry.Users.OpenSubKey("S-1-5-21-169676751-141520382-2068143436-1000_Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\TrayNotify");
                     if (myKey == null)
                     {
                         return false;
                     }
+                    WriteBinaryDataForRegKey(myKey, "IconStreams", "Users");
+                    WriteBinaryDataForRegKey(myKey, "PastIconsStream", "Users");
+
+                    myKey = Registry.CurrentUser.OpenSubKey("Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\TrayNotify");
+                    if (myKey == null)
+                    {
+                        return false;
+                    }
+                    WriteBinaryDataForRegKey(myKey, "IconStreams", "CurrentUser");
+                    WriteBinaryDataForRegKey(myKey, "PastIconsStream", "CurrentUsers");
+
+
+                    //RegistryKey myKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TrayNotify");
+                    myKey = Registry.CurrentUser.OpenSubKey("Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\TrayNotify");
 
                     // Read the data
                     myRegistryKeyAsByte = (byte[])myKey.GetValue("IconStreams", new Byte[0]);
 
                     // @@@@@@@@ Debug only
-                    FileStream outFile = new FileStream("c:\\trash\\IconStreamsByteContent1.bin", FileMode.Create);
+                    FileStream outFile = new FileStream("c:\\trash\\NotifyIcon\\IconStreamsByteContent.bin", FileMode.Create);
                     outFile.Write(myRegistryKeyAsByte, 0, myRegistryKeyAsByte.Length);
                     outFile.Close();
+
+                    // @@@@@@@@ Debug only
+                    // Use rot-13 decryption and decrypt every byte that can be decrypted, and dump it again.
+                    byte[] myRegistryKeyAsByteCopy = new byte[myRegistryKeyAsByte.Length];
+                    myRegistryKeyAsByte.CopyTo(myRegistryKeyAsByteCopy, 0);  // make a copy
+
+                    Rot13DecodeInPlace(ref myRegistryKeyAsByteCopy);  // decode in place
+
+                    outFile = new FileStream("c:\\trash\\NotifyIcon\\IconStreamsByteContentTranslated.bin", FileMode.Create);
+                    outFile.Write(myRegistryKeyAsByteCopy, 0, myRegistryKeyAsByteCopy.Length);
+                    outFile.Close();
+
+
 
                     // Convert the bytes to a string of hex values
                     for (int i = 0; i < myRegistryKeyAsByte.Length; i++)
@@ -844,5 +872,42 @@ namespace RegisterCom
             }
 
         }
+
+        private static void WriteBinaryDataForRegKey(RegistryKey myKey, string subKey, string filePrefix)
+        {
+            byte[] myRegistryKeyAsByte = null;
+
+            // Read the data
+            myRegistryKeyAsByte = (byte[])myKey.GetValue(subKey, new Byte[0]);
+
+            // Use rot-13 decryption and decrypt every byte that can be decrypted, and dump it again.
+            byte[] myRegistryKeyAsByteCopy = new byte[myRegistryKeyAsByte.Length];
+            myRegistryKeyAsByte.CopyTo(myRegistryKeyAsByteCopy, 0);  // make a copy
+
+            Rot13DecodeInPlace(ref myRegistryKeyAsByteCopy);  // decode in place
+
+            FileStream outFile = new FileStream("c:\\trash\\NotifyIcon\\" + filePrefix + "_" + subKey + ".bin", FileMode.Create);
+            outFile.Write(myRegistryKeyAsByteCopy, 0, myRegistryKeyAsByteCopy.Length);
+            outFile.Close();
+        }
+
+        private static void Rot13DecodeInPlace(ref byte[] a)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                byte b = a[i];
+                char c = (char)b;
+                if (c >= 'A' && c <= 'M')
+                    a[i] = (byte)(b + 13);
+                else if (c >= 'N' && c <= 'Z')
+                    a[i] = (byte)(b - 13);
+                else if (c >= 'a' && c <= 'm')
+                    a[i] = (byte)(b + 13);
+                else if (c >= 'n' && c <= 'z')
+                    a[i] = (byte)(b - 13);
+                else a[i] = b;
+            }
+        } 
+
     }
 }

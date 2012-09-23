@@ -18,7 +18,7 @@
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
-    mc:Ignorable="d" d:DesignWidth="573" d:DesignHeight="315"
+    mc:Ignorable="d" d:DesignWidth="458" d:DesignHeight="300"
     DataContext="{Binding FramePreferencesAboutViewModel, Source={StaticResource Locator}}" 
     WindowTitle="About Cloud"
     x:Name="FramePreferencesAboutRoot">
@@ -49,10 +49,16 @@
             <RowDefinition Height="10"/>
             <RowDefinition Height="0*"/>
         </Grid.RowDefinitions>
+        
+        <Grid Grid.RowSpan="7" Grid.ColumnSpan="2">
+            <Grid.Background>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_about_bg_650x421.png"/>
+            </Grid.Background>
+        </Grid>
             
-        <TextBlock Text="Version 1.1.1" Foreground="Black" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Grid.Row="2" Grid.Column="1" />
+        <TextBlock Text="Version 1.1.1" Foreground="#ff333333" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Grid.Row="2" Grid.Column="1" />
 
-        <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="Black" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" 
+        <TextBlock Text="Copyright &#169; Cloud.com.  All rights reserved." Foreground="#ff333333" FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" 
                    Grid.Row="3" Grid.Column="1"  />
 
         <Button Name="cmdTwitter" Content="Button" HorizontalAlignment="Center" Height="33" Grid.Row="5" Grid.Column="1" Style="{DynamicResource twitterButton}" 
