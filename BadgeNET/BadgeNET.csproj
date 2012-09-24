@@ -63,6 +63,7 @@
     <Compile Include="NamedPipeServerBadge.cs" />
     <Compile Include="NamedPipeServerContextMenu.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Static\NativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CloudApiPrivate\CloudApiPrivate.csproj">

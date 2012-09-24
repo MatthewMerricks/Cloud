@@ -58,6 +58,7 @@
     <Compile Include="CloudSendTo.cs" />
     <Compile Include="ManagementObjectSearcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="StreamString.cs" />
   </ItemGroup>
   <ItemGroup>

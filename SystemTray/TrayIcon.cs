@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+// TrayIcon.cs
+// Cloud Windows
+//
+// Created By BobS.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 #if DEBUG
 using System.Diagnostics;
@@ -9,68 +16,17 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows;
-using System.Windows.Interop;
 using win_client.SystemTray.HookWrapper;
+using win_client.Static;
+using System.Windows.Interop;
 
 namespace win_client.SystemTray.TrayIcon
 {
-
-    internal static class NativeMethods
-    {
-        /////////////////////////////////////////////////////////////
-        #region Imports - Constants, Structures and Functions
-
-        public const int NIM_ADD = 0x00;
-        public const int NIM_MODIFY = 0x01;
-        public const int NIM_DELETE = 0x02;
-
-        public const int NIF_MESSAGE = 0x01;
-        public const int NIF_ICON = 0x02;
-        public const int NIF_TIP = 0x04;
-
-        public const int ID_TRAY_APP_ICON = 5000;
-        public const int ID_TRAY_EXIT_CONTEXT_MENU_ITEM = 3000;
-        public const int WM_USER = 0x0400;
-        public const int WM_TRAYICON = (WM_USER + 1);
-
-        public const int WM_LBUTTONDOWN = 0x0201;
-        public const int WM_LBUTTONUP = 0x0202;
-        public const int WM_LBUTTONDBLCLK = 0x0203;
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct NOTIFYICONDATA
-        {
-            public System.Int32 cbSize; // DWORD
-            public System.IntPtr hWnd; // HWND
-            public System.Int32 uID; // UINT
-            public UInt32 uFlags; // UINT
-            public System.Int32 uCallbackMessage; // UINT
-            public System.IntPtr hIcon; // HICON
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-            public System.String szTip; // char[128]
-            public System.Int32 dwState; // DWORD
-            public System.Int32 dwStateMask; // DWORD
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-            public System.String szInfo; // char[256]
-            public System.Int32 uTimeoutOrVersion; // UINT
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
-            public System.String szInfoTitle; // char[64]
-            public System.Int32 dwInfoFlags; // DWORD
-        }
-
-        [DllImport("shell32.dll")]
-        public static extern bool Shell_NotifyIcon(uint dwMessage, [In] ref NOTIFYICONDATA pnid);
-
-        #endregion Imports - Constants, Structures and Functions
-    }
-
     /// <summary>
     /// Declaration of TrayIcon class
     /// </summary>
     public class TrayIcon : IDisposable
     {
-
-
         /////////////////////////////////////////////////////////////l
         // Events and Delegates
 

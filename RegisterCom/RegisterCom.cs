@@ -12,7 +12,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Management;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +21,8 @@ using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Model;
 using CloudApiPublic.Model;
 using Microsoft.Win32;
+using RegisterCom.Static;
+using System.Runtime.InteropServices;
 
 namespace RegisterCom
 {
@@ -29,21 +30,12 @@ namespace RegisterCom
     {
         private IntPtr hLib;
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        internal static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern IntPtr LoadLibrary(string lpFileName);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool FreeLibrary(IntPtr hModule);
-
         internal delegate int PointerToMethodInvoker();
 
         public Registrar(string filePath)
         {
             Trace.WriteLine(String.Format("Registrar: LoadLibrary at path <{0}>.", filePath));
-            hLib = LoadLibrary(filePath);
+            hLib = NativeMethods.LoadLibrary(filePath);
             Trace.WriteLine("Registrar: After LoadLibrary.");
             if (IntPtr.Zero == hLib)
             {
@@ -67,7 +59,7 @@ namespace RegisterCom
         private void CallPointerMethod(string methodName)
         {
             Trace.WriteLine(String.Format("Registrar: Call GetProcAddress for method: <{0}>.", methodName));
-            IntPtr dllEntryPoint = GetProcAddress(hLib, methodName);
+            IntPtr dllEntryPoint = NativeMethods.GetProcAddress(hLib, methodName);
             Trace.WriteLine("Registrar: Back from GetProcAddress.");
             if (IntPtr.Zero == dllEntryPoint)
             {
@@ -90,7 +82,7 @@ namespace RegisterCom
             {
                 //UnRegisterComDLL();    // leave it registered
                 Trace.WriteLine("Registrar: Free the DLL.");
-                FreeLibrary(hLib);
+                NativeMethods.FreeLibrary(hLib);
                 hLib = IntPtr.Zero;
             }
         }
@@ -863,14 +855,12 @@ namespace RegisterCom
                 {
                     return false;
                 }
-
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
                 return false;
             }
-
         }
 
         private static void WriteBinaryDataForRegKey(RegistryKey myKey, string subKey, string filePrefix)
@@ -907,7 +897,6 @@ namespace RegisterCom
                     a[i] = (byte)(b - 13);
                 else a[i] = b;
             }
-        } 
-
+        }
     }
 }

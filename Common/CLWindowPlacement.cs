@@ -11,72 +11,20 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
-using System.Windows.Interop;
 using System.Xml;
 using System.Xml.Serialization;
 using CloudApiPublic.Model;
 using CloudApiPublic.Support;
+using win_client.Static;
+using System.Windows.Interop;
 
 namespace win_client.Common
 {
-    // RECT structure required by WINDOWPLACEMENT structure
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
-    public struct RECT
-    {
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
-
-        public RECT(int left, int top, int right, int bottom)
-        {
-            this.Left = left;
-            this.Top = top;
-            this.Right = right;
-            this.Bottom = bottom;
-        }
-    }
-
-    // POINT structure required by WINDOWPLACEMENT structure
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
-    public struct POINT
-    {
-        public int X;
-        public int Y;
-
-        public POINT(int x, int y)
-        {
-            this.X = x;
-            this.Y = y;
-        }
-    }
-
-    // WINDOWPLACEMENT stores the position, size, and state of a window
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
-    public struct WINDOWPLACEMENT
-    {
-        public int length;
-        public int flags;
-        public int showCmd;
-        public POINT minPosition;
-        public POINT maxPosition;
-        public RECT normalPosition;
-    }
-
     public static class WindowPlacement
     {
         private static Encoding encoding = new UTF8Encoding();
-        private static XmlSerializer serializer = new XmlSerializer(typeof(WINDOWPLACEMENT));
+        private static XmlSerializer serializer = new XmlSerializer(typeof(NativeMethods.WINDOWPLACEMENT));
         private static CLTrace _trace = CLTrace.Instance;
-
-        [DllImport("user32.dll")]
-        private static extern bool SetWindowPlacement(IntPtr hWnd, [In] ref WINDOWPLACEMENT lpwndpl);
-
-        [DllImport("user32.dll")]
-        private static extern bool GetWindowPlacement(IntPtr hWnd, out WINDOWPLACEMENT lpwndpl);
 
         private const int SW_SHOWNORMAL = 1;
         private const int SW_SHOWMINIMIZED = 2;
@@ -87,7 +35,7 @@ namespace win_client.Common
         /// <param name="placementXml">The XML string.</param>
         /// <param name="windowPlacement">The output WINDOWPLACEMENT structure.</param>
         /// <returns>bool: true: Success.</returns>
-        public static bool ExtractWindowPlacementInfo(string placementXml, ref WINDOWPLACEMENT placement)
+        internal static bool ExtractWindowPlacementInfo(string placementXml, ref NativeMethods.WINDOWPLACEMENT placement)
         {
             if (string.IsNullOrEmpty(placementXml))
             {
@@ -101,10 +49,10 @@ namespace win_client.Common
             {
                 using (MemoryStream memoryStream = new MemoryStream(xmlBytes))
                 {
-                    placement = (WINDOWPLACEMENT)serializer.Deserialize(memoryStream);
+                    placement = (NativeMethods.WINDOWPLACEMENT)serializer.Deserialize(memoryStream);
                 }
 
-                placement.length = Marshal.SizeOf(typeof(WINDOWPLACEMENT));
+                placement.length = Marshal.SizeOf(typeof(NativeMethods.WINDOWPLACEMENT));
                 placement.flags = 0;
                 placement.showCmd = (placement.showCmd == SW_SHOWMINIMIZED ? SW_SHOWNORMAL : placement.showCmd);
             }
@@ -126,7 +74,7 @@ namespace win_client.Common
         /// <param name="placementXml">The XML string.</param>
         public static void SetPlacement(IntPtr windowHandle, string placementXml)
         {
-            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
+            NativeMethods.WINDOWPLACEMENT placement = new NativeMethods.WINDOWPLACEMENT();
             bool rc = ExtractWindowPlacementInfo(placementXml, ref placement);
             if (!rc)
             {
@@ -136,7 +84,7 @@ namespace win_client.Common
 
             try
             {
-                SetWindowPlacement(windowHandle, ref placement);
+                NativeMethods.SetWindowPlacement(windowHandle, ref placement);
             }
             catch (InvalidOperationException)
             {
@@ -148,8 +96,8 @@ namespace win_client.Common
 
         public static string GetPlacement(IntPtr windowHandle)
         {
-            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
-            GetWindowPlacement(windowHandle, out placement);
+            NativeMethods.WINDOWPLACEMENT placement = new NativeMethods.WINDOWPLACEMENT();
+            NativeMethods.GetWindowPlacement(windowHandle, out placement);
 
             using (MemoryStream memoryStream = new MemoryStream())
             {

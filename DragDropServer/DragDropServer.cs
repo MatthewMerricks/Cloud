@@ -20,7 +20,6 @@ using EasyHook;
 using System.Security.Principal;
 using CloudApiPublic.Model;
 using win_client.Common;
-using System.Runtime.InteropServices;
 using System.Windows;
 
 
@@ -43,12 +42,9 @@ namespace win_client.DragDropServer
         public bool IsStarted { get; private set; }
         public Queue<DragDropOperation> InjectionQueue { get; set; }
 
-        [DllImport("advapi32.dll", SetLastError = true)]
-        static extern bool OpenProcessToken(IntPtr ProcessHandle, UInt32 DesiredAccess, out IntPtr TokenHandle);
+        static extern bool OpenProcessToken(AccessThisMethodFromwin_client.Static.NativeMethods readThis);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool CloseHandle(IntPtr hObject);
+        static extern bool CloseHandle(AccessThisMethodFromwin_client.Static.NativeMethods readThis);
 
         static uint TOKEN_QUERY = 0x0008;
 

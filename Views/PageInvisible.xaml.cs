@@ -32,78 +32,17 @@ using win_client.Model;
 using CleanShutdown.Messaging;
 using System.Threading.Tasks;
 using System.Threading;
-using System.Runtime.InteropServices;
-using System.Windows.Interop;
 using Microsoft.Win32;
 using CloudApiPublic.Support;
 using System.Resources;
 using CloudApiPrivate.Model.Settings;
+using win_client.Static;
+using System.Windows.Interop;
 
 namespace win_client.Views
 {
     public partial class PageInvisible : Page, IOnNavigated
     {
-
-        #region Definitions for Animating Window to System Tray
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
-        {
-            public int left;
-            public int top;
-            public int right;
-            public int bottom;
-            public override string ToString()
-            {
-                return ("Left :" + left.ToString() + "," + "Top :" + top.ToString() + "," + "Right :" + right.ToString() + "," + "Bottom :" + bottom.ToString());
-            }
-        }
-        private struct APPBARDATA
-        {
-            public int cbSize;
-            public IntPtr hWnd;
-            public int uCallbackMessage;
-            public ABEdge uEdge;
-            public RECT rc;
-            public IntPtr lParam;
-        }
-
-        private enum ABMsg
-        {
-            ABM_NEW = 0,
-            ABM_REMOVE = 1,
-            ABM_QUERYPOS = 2,
-            ABM_SETPOS = 3,
-            ABM_GETSTATE = 4,
-            ABM_GETTASKBARPOS = 5,
-            ABM_ACTIVATE = 6,
-            ABM_GETAUTOHIDEBAR = 7,
-            ABM_SETAUTOHIDEBAR = 8,
-            ABM_WINDOWPOSCHANGED = 9,
-            ABM_SETSTATE = 10
-        }
-
-        private enum ABNotify
-        {
-            ABN_STATECHANGE = 0,
-            ABN_POSCHANGED,
-            ABN_FULLSCREENAPP,
-            ABN_WINDOWARRANGE
-        }
-
-        private enum ABEdge
-        {
-            ABE_LEFT = 0,
-            ABE_TOP,
-            ABE_RIGHT,
-            ABE_BOTTOM
-        }
-        [DllImport("shell32.dll", EntryPoint = "SHAppBarMessage", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-
-        private static extern int SHAppBarMessage(int dwMessage, ref APPBARDATA pData);
-        private const int ABM_GETTASKBARPOS = 0x5;
-        #endregion    // end (Animating Window)
-
         #region Private Instance Variables
 
         private System.Windows.Forms.ContextMenu _cm =new System.Windows.Forms.ContextMenu();
@@ -310,15 +249,15 @@ namespace win_client.Views
             {
                 // Get the target rectangle.  The current window is way off-screen, so we can't use
                 // its coordinates.  Get the coordinates from Settings.
-                WINDOWPLACEMENT windowPlacement = new WINDOWPLACEMENT();
+                NativeMethods.WINDOWPLACEMENT windowPlacement = new NativeMethods.WINDOWPLACEMENT();
                 System.Drawing.Rectangle pageRect = new System.Drawing.Rectangle(200, 200, 640, 480);  // default location
                 bool rc = WindowPlacement.ExtractWindowPlacementInfo(Settings.Instance.MainWindowPlacement, ref windowPlacement);
                 if (rc)
                 {
-                    pageRect.X = windowPlacement.normalPosition.Left;
-                    pageRect.Y = windowPlacement.normalPosition.Top;
-                    pageRect.Width = windowPlacement.normalPosition.Right - windowPlacement.normalPosition.Left;
-                    pageRect.Height = windowPlacement.normalPosition.Bottom - windowPlacement.normalPosition.Top;
+                    pageRect.X = windowPlacement.normalPosition.left;
+                    pageRect.Y = windowPlacement.normalPosition.top;
+                    pageRect.Width = windowPlacement.normalPosition.right - windowPlacement.normalPosition.left;
+                    pageRect.Height = windowPlacement.normalPosition.bottom - windowPlacement.normalPosition.top;
                 }
 
                 // Fix up the window's coordinates so the proper screen will be found below.
@@ -419,21 +358,21 @@ namespace win_client.Views
 
                 // figure out where the taskbar is (and consequently the tray)
                 System.Drawing.Point destPoint = default(System.Drawing.Point);
-                APPBARDATA BarData = default(APPBARDATA);
+                NativeMethods.APPBARDATA BarData = default(NativeMethods.APPBARDATA);
                 BarData.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(BarData);
-                SHAppBarMessage((int)ABMsg.ABM_GETTASKBARPOS, ref BarData);
+                NativeMethods.SHAppBarMessage((int)NativeMethods.ABMsg.ABM_GETTASKBARPOS, ref BarData);
                 switch (BarData.uEdge)
                 {
-                    case ABEdge.ABE_BOTTOM:
-                    case ABEdge.ABE_RIGHT:
+                    case NativeMethods.ABEdge.ABE_BOTTOM:
+                    case NativeMethods.ABEdge.ABE_RIGHT:
                         // Tray is to the Bottom Right
                         destPoint = new System.Drawing.Point(BarData.rc.right - 100, BarData.rc.bottom);
                         break;
-                    case ABEdge.ABE_LEFT:
+                    case NativeMethods.ABEdge.ABE_LEFT:
                         // Tray is to the Bottom Left
                         destPoint = new System.Drawing.Point(100, BarData.rc.bottom);
                         break;
-                    case ABEdge.ABE_TOP:
+                    case NativeMethods.ABEdge.ABE_TOP:
                         // Tray is to the Top Right
                         destPoint = new System.Drawing.Point(BarData.rc.right, 100);
                         break;

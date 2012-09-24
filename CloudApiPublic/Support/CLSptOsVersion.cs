@@ -7,6 +7,7 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 
+using CloudApiPublic.Static;
 using System;
 using System.Runtime.InteropServices;
 
@@ -39,16 +40,16 @@ namespace CloudApiPublic.Support
         {
             get
             {
-                if(s_Edition != null)
+                if (s_Edition != null)
                     return s_Edition;  //***** RETURN *****//
 
                 string edition = String.Empty;
 
                 OperatingSystem osVersion = Environment.OSVersion;
-                OSVERSIONINFOEX osVersionInfo = new OSVERSIONINFOEX();
-                osVersionInfo.dwOSVersionInfoSize = Marshal.SizeOf(typeof(OSVERSIONINFOEX));
+                NativeMethods.OSVERSIONINFOEX osVersionInfo = new NativeMethods.OSVERSIONINFOEX();
+                osVersionInfo.dwOSVersionInfoSize = Marshal.SizeOf(typeof(NativeMethods.OSVERSIONINFOEX));
 
-                if(GetVersionEx(ref osVersionInfo))
+                if (NativeMethods.GetVersionEx(ref osVersionInfo))
                 {
                     int majorVersion = osVersion.Version.Major;
                     int minorVersion = osVersion.Version.Minor;
@@ -56,16 +57,16 @@ namespace CloudApiPublic.Support
                     short suiteMask = osVersionInfo.wSuiteMask;
 
                     #region VERSION 4
-                    if(majorVersion == 4)
+                    if (majorVersion == 4)
                     {
-                        if(productType == VER_NT_WORKSTATION)
+                        if (productType == NativeMethods.VER_NT_WORKSTATION)
                         {
                             // Windows NT 4.0 Workstation
                             edition = "Workstation";
                         }
-                        else if(productType == VER_NT_SERVER)
+                        else if (productType == NativeMethods.VER_NT_SERVER)
                         {
-                            if((suiteMask & VER_SUITE_ENTERPRISE) != 0)
+                            if ((suiteMask & NativeMethods.VER_SUITE_ENTERPRISE) != 0)
                             {
                                 // Windows NT 4.0 Server Enterprise
                                 edition = "Enterprise Server";
@@ -80,11 +81,11 @@ namespace CloudApiPublic.Support
                     #endregion VERSION 4
 
                     #region VERSION 5
-                    else if(majorVersion == 5)
+                    else if (majorVersion == 5)
                     {
-                        if(productType == VER_NT_WORKSTATION)
+                        if (productType == NativeMethods.VER_NT_WORKSTATION)
                         {
-                            if((suiteMask & VER_SUITE_PERSONAL) != 0)
+                            if ((suiteMask & NativeMethods.VER_SUITE_PERSONAL) != 0)
                             {
                                 // Windows XP Home Edition
                                 edition = "Home";
@@ -95,16 +96,16 @@ namespace CloudApiPublic.Support
                                 edition = "Professional";
                             }
                         }
-                        else if(productType == VER_NT_SERVER)
+                        else if (productType == NativeMethods.VER_NT_SERVER)
                         {
-                            if(minorVersion == 0)
+                            if (minorVersion == 0)
                             {
-                                if((suiteMask & VER_SUITE_DATACENTER) != 0)
+                                if ((suiteMask & NativeMethods.VER_SUITE_DATACENTER) != 0)
                                 {
                                     // Windows 2000 Datacenter Server
                                     edition = "Datacenter Server";
                                 }
-                                else if((suiteMask & VER_SUITE_ENTERPRISE) != 0)
+                                else if ((suiteMask & NativeMethods.VER_SUITE_ENTERPRISE) != 0)
                                 {
                                     // Windows 2000 Advanced Server
                                     edition = "Advanced Server";
@@ -117,17 +118,17 @@ namespace CloudApiPublic.Support
                             }
                             else
                             {
-                                if((suiteMask & VER_SUITE_DATACENTER) != 0)
+                                if ((suiteMask & NativeMethods.VER_SUITE_DATACENTER) != 0)
                                 {
                                     // Windows Server 2003 Datacenter Edition
                                     edition = "Datacenter";
                                 }
-                                else if((suiteMask & VER_SUITE_ENTERPRISE) != 0)
+                                else if ((suiteMask & NativeMethods.VER_SUITE_ENTERPRISE) != 0)
                                 {
                                     // Windows Server 2003 Enterprise Edition
                                     edition = "Enterprise";
                                 }
-                                else if((suiteMask & VER_SUITE_BLADE) != 0)
+                                else if ((suiteMask & NativeMethods.VER_SUITE_BLADE) != 0)
                                 {
                                     // Windows Server 2003 Web Edition
                                     edition = "Web Edition";
@@ -143,124 +144,124 @@ namespace CloudApiPublic.Support
                     #endregion VERSION 5
 
                     #region VERSION 6
-                    else if(majorVersion == 6)
+                    else if (majorVersion == 6)
                     {
                         int ed;
-                        if(GetProductInfo(majorVersion, minorVersion,
+                        if (NativeMethods.GetProductInfo(majorVersion, minorVersion,
                             osVersionInfo.wServicePackMajor, osVersionInfo.wServicePackMinor,
                             out ed))
                         {
-                            switch(ed)
+                            switch (ed)
                             {
-                                case PRODUCT_BUSINESS:
+                                case NativeMethods.PRODUCT_BUSINESS:
                                     edition = "Business";
                                     break;
-                                case PRODUCT_BUSINESS_N:
+                                case NativeMethods.PRODUCT_BUSINESS_N:
                                     edition = "Business N";
                                     break;
-                                case PRODUCT_CLUSTER_SERVER:
+                                case NativeMethods.PRODUCT_CLUSTER_SERVER:
                                     edition = "HPC Edition";
                                     break;
-                                case PRODUCT_DATACENTER_SERVER:
+                                case NativeMethods.PRODUCT_DATACENTER_SERVER:
                                     edition = "Datacenter Server";
                                     break;
-                                case PRODUCT_DATACENTER_SERVER_CORE:
+                                case NativeMethods.PRODUCT_DATACENTER_SERVER_CORE:
                                     edition = "Datacenter Server (core installation)";
                                     break;
-                                case PRODUCT_ENTERPRISE:
+                                case NativeMethods.PRODUCT_ENTERPRISE:
                                     edition = "Enterprise";
                                     break;
-                                case PRODUCT_ENTERPRISE_N:
+                                case NativeMethods.PRODUCT_ENTERPRISE_N:
                                     edition = "Enterprise N";
                                     break;
-                                case PRODUCT_ENTERPRISE_SERVER:
+                                case NativeMethods.PRODUCT_ENTERPRISE_SERVER:
                                     edition = "Enterprise Server";
                                     break;
-                                case PRODUCT_ENTERPRISE_SERVER_CORE:
+                                case NativeMethods.PRODUCT_ENTERPRISE_SERVER_CORE:
                                     edition = "Enterprise Server (core installation)";
                                     break;
-                                case PRODUCT_ENTERPRISE_SERVER_CORE_V:
+                                case NativeMethods.PRODUCT_ENTERPRISE_SERVER_CORE_V:
                                     edition = "Enterprise Server without Hyper-V (core installation)";
                                     break;
-                                case PRODUCT_ENTERPRISE_SERVER_IA64:
+                                case NativeMethods.PRODUCT_ENTERPRISE_SERVER_IA64:
                                     edition = "Enterprise Server for Itanium-based Systems";
                                     break;
-                                case PRODUCT_ENTERPRISE_SERVER_V:
+                                case NativeMethods.PRODUCT_ENTERPRISE_SERVER_V:
                                     edition = "Enterprise Server without Hyper-V";
                                     break;
-                                case PRODUCT_HOME_BASIC:
+                                case NativeMethods.PRODUCT_HOME_BASIC:
                                     edition = "Home Basic";
                                     break;
-                                case PRODUCT_HOME_BASIC_N:
+                                case NativeMethods.PRODUCT_HOME_BASIC_N:
                                     edition = "Home Basic N";
                                     break;
-                                case PRODUCT_HOME_PREMIUM:
+                                case NativeMethods.PRODUCT_HOME_PREMIUM:
                                     edition = "Home Premium";
                                     break;
-                                case PRODUCT_HOME_PREMIUM_N:
+                                case NativeMethods.PRODUCT_HOME_PREMIUM_N:
                                     edition = "Home Premium N";
                                     break;
-                                case PRODUCT_HYPERV:
+                                case NativeMethods.PRODUCT_HYPERV:
                                     edition = "Microsoft Hyper-V Server";
                                     break;
-                                case PRODUCT_MEDIUMBUSINESS_SERVER_MANAGEMENT:
+                                case NativeMethods.PRODUCT_MEDIUMBUSINESS_SERVER_MANAGEMENT:
                                     edition = "Windows Essential Business Management Server";
                                     break;
-                                case PRODUCT_MEDIUMBUSINESS_SERVER_MESSAGING:
+                                case NativeMethods.PRODUCT_MEDIUMBUSINESS_SERVER_MESSAGING:
                                     edition = "Windows Essential Business Messaging Server";
                                     break;
-                                case PRODUCT_MEDIUMBUSINESS_SERVER_SECURITY:
+                                case NativeMethods.PRODUCT_MEDIUMBUSINESS_SERVER_SECURITY:
                                     edition = "Windows Essential Business Security Server";
                                     break;
-                                case PRODUCT_SERVER_FOR_SMALLBUSINESS:
+                                case NativeMethods.PRODUCT_SERVER_FOR_SMALLBUSINESS:
                                     edition = "Windows Essential Server Solutions";
                                     break;
-                                case PRODUCT_SERVER_FOR_SMALLBUSINESS_V:
+                                case NativeMethods.PRODUCT_SERVER_FOR_SMALLBUSINESS_V:
                                     edition = "Windows Essential Server Solutions without Hyper-V";
                                     break;
-                                case PRODUCT_SMALLBUSINESS_SERVER:
+                                case NativeMethods.PRODUCT_SMALLBUSINESS_SERVER:
                                     edition = "Windows Small Business Server";
                                     break;
-                                case PRODUCT_STANDARD_SERVER:
+                                case NativeMethods.PRODUCT_STANDARD_SERVER:
                                     edition = "Standard Server";
                                     break;
-                                case PRODUCT_STANDARD_SERVER_CORE:
+                                case NativeMethods.PRODUCT_STANDARD_SERVER_CORE:
                                     edition = "Standard Server (core installation)";
                                     break;
-                                case PRODUCT_STANDARD_SERVER_CORE_V:
+                                case NativeMethods.PRODUCT_STANDARD_SERVER_CORE_V:
                                     edition = "Standard Server without Hyper-V (core installation)";
                                     break;
-                                case PRODUCT_STANDARD_SERVER_V:
+                                case NativeMethods.PRODUCT_STANDARD_SERVER_V:
                                     edition = "Standard Server without Hyper-V";
                                     break;
-                                case PRODUCT_STARTER:
+                                case NativeMethods.PRODUCT_STARTER:
                                     edition = "Starter";
                                     break;
-                                case PRODUCT_STORAGE_ENTERPRISE_SERVER:
+                                case NativeMethods.PRODUCT_STORAGE_ENTERPRISE_SERVER:
                                     edition = "Enterprise Storage Server";
                                     break;
-                                case PRODUCT_STORAGE_EXPRESS_SERVER:
+                                case NativeMethods.PRODUCT_STORAGE_EXPRESS_SERVER:
                                     edition = "Express Storage Server";
                                     break;
-                                case PRODUCT_STORAGE_STANDARD_SERVER:
+                                case NativeMethods.PRODUCT_STORAGE_STANDARD_SERVER:
                                     edition = "Standard Storage Server";
                                     break;
-                                case PRODUCT_STORAGE_WORKGROUP_SERVER:
+                                case NativeMethods.PRODUCT_STORAGE_WORKGROUP_SERVER:
                                     edition = "Workgroup Storage Server";
                                     break;
-                                case PRODUCT_UNDEFINED:
+                                case NativeMethods.PRODUCT_UNDEFINED:
                                     edition = "Unknown product";
                                     break;
-                                case PRODUCT_ULTIMATE:
+                                case NativeMethods.PRODUCT_ULTIMATE:
                                     edition = "Ultimate";
                                     break;
-                                case PRODUCT_ULTIMATE_N:
+                                case NativeMethods.PRODUCT_ULTIMATE_N:
                                     edition = "Ultimate N";
                                     break;
-                                case PRODUCT_WEB_SERVER:
+                                case NativeMethods.PRODUCT_WEB_SERVER:
                                     edition = "Web Server";
                                     break;
-                                case PRODUCT_WEB_SERVER_CORE:
+                                case NativeMethods.PRODUCT_WEB_SERVER_CORE:
                                     edition = "Web Server (core installation)";
                                     break;
                             }
@@ -284,37 +285,37 @@ namespace CloudApiPublic.Support
         {
             get
             {
-                if(s_Name != null)
+                if (s_Name != null)
                     return s_Name;  //***** RETURN *****//
 
                 string name = "unknown";
 
                 OperatingSystem osVersion = Environment.OSVersion;
-                OSVERSIONINFOEX osVersionInfo = new OSVERSIONINFOEX();
-                osVersionInfo.dwOSVersionInfoSize = Marshal.SizeOf(typeof(OSVERSIONINFOEX));
+                NativeMethods.OSVERSIONINFOEX osVersionInfo = new NativeMethods.OSVERSIONINFOEX();
+                osVersionInfo.dwOSVersionInfoSize = Marshal.SizeOf(typeof(NativeMethods.OSVERSIONINFOEX));
 
-                if(GetVersionEx(ref osVersionInfo))
+                if (NativeMethods.GetVersionEx(ref osVersionInfo))
                 {
                     int majorVersion = osVersion.Version.Major;
                     int minorVersion = osVersion.Version.Minor;
 
-                    switch(osVersion.Platform)
+                    switch (osVersion.Platform)
                     {
                         case PlatformID.Win32Windows:
                             {
-                                if(majorVersion == 4)
+                                if (majorVersion == 4)
                                 {
                                     string csdVersion = osVersionInfo.szCSDVersion;
-                                    switch(minorVersion)
+                                    switch (minorVersion)
                                     {
                                         case 0:
-                                            if(csdVersion == "B" || csdVersion == "C")
+                                            if (csdVersion == "B" || csdVersion == "C")
                                                 name = "Windows 95 OSR2";
                                             else
                                                 name = "Windows 95";
                                             break;
                                         case 10:
-                                            if(csdVersion == "A")
+                                            if (csdVersion == "A")
                                                 name = "Windows 98 Second Edition";
                                             else
                                                 name = "Windows 98";
@@ -331,13 +332,13 @@ namespace CloudApiPublic.Support
                             {
                                 byte productType = osVersionInfo.wProductType;
 
-                                switch(majorVersion)
+                                switch (majorVersion)
                                 {
                                     case 3:
                                         name = "Windows NT 3.51";
                                         break;
                                     case 4:
-                                        switch(productType)
+                                        switch (productType)
                                         {
                                             case 1:
                                                 name = "Windows NT 4.0";
@@ -348,7 +349,7 @@ namespace CloudApiPublic.Support
                                         }
                                         break;
                                     case 5:
-                                        switch(minorVersion)
+                                        switch (minorVersion)
                                         {
                                             case 0:
                                                 name = "Windows 2000";
@@ -362,7 +363,7 @@ namespace CloudApiPublic.Support
                                         }
                                         break;
                                     case 6:
-                                        switch(productType)
+                                        switch (productType)
                                         {
                                             case 1:
                                                 name = "Windows Vista";
@@ -384,99 +385,6 @@ namespace CloudApiPublic.Support
         }
         #endregion NAME
 
-        #region PINVOKE
-        #region GET
-        #region PRODUCT INFO
-        [DllImport("Kernel32.dll")]
-        internal static extern bool GetProductInfo(
-            int osMajorVersion,
-            int osMinorVersion,
-            int spMajorVersion,
-            int spMinorVersion,
-            out int edition);
-        #endregion PRODUCT INFO
-
-        #region VERSION
-        [DllImport("kernel32.dll")]
-        private static extern bool GetVersionEx(ref OSVERSIONINFOEX osVersionInfo);
-        #endregion VERSION
-        #endregion GET
-
-        #region OSVERSIONINFOEX
-        [StructLayout(LayoutKind.Sequential)]
-        private struct OSVERSIONINFOEX
-        {
-            public int dwOSVersionInfoSize;
-            public int dwMajorVersion;
-            public int dwMinorVersion;
-            public int dwBuildNumber;
-            public int dwPlatformId;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-            public string szCSDVersion;
-            public short wServicePackMajor;
-            public short wServicePackMinor;
-            public short wSuiteMask;
-            public byte wProductType;
-            public byte wReserved;
-        }
-        #endregion OSVERSIONINFOEX
-
-        #region PRODUCT
-        private const int PRODUCT_UNDEFINED = 0x00000000;
-        private const int PRODUCT_ULTIMATE = 0x00000001;
-        private const int PRODUCT_HOME_BASIC = 0x00000002;
-        private const int PRODUCT_HOME_PREMIUM = 0x00000003;
-        private const int PRODUCT_ENTERPRISE = 0x00000004;
-        private const int PRODUCT_HOME_BASIC_N = 0x00000005;
-        private const int PRODUCT_BUSINESS = 0x00000006;
-        private const int PRODUCT_STANDARD_SERVER = 0x00000007;
-        private const int PRODUCT_DATACENTER_SERVER = 0x00000008;
-        private const int PRODUCT_SMALLBUSINESS_SERVER = 0x00000009;
-        private const int PRODUCT_ENTERPRISE_SERVER = 0x0000000A;
-        private const int PRODUCT_STARTER = 0x0000000B;
-        private const int PRODUCT_DATACENTER_SERVER_CORE = 0x0000000C;
-        private const int PRODUCT_STANDARD_SERVER_CORE = 0x0000000D;
-        private const int PRODUCT_ENTERPRISE_SERVER_CORE = 0x0000000E;
-        private const int PRODUCT_ENTERPRISE_SERVER_IA64 = 0x0000000F;
-        private const int PRODUCT_BUSINESS_N = 0x00000010;
-        private const int PRODUCT_WEB_SERVER = 0x00000011;
-        private const int PRODUCT_CLUSTER_SERVER = 0x00000012;
-        private const int PRODUCT_HOME_SERVER = 0x00000013;
-        private const int PRODUCT_STORAGE_EXPRESS_SERVER = 0x00000014;
-        private const int PRODUCT_STORAGE_STANDARD_SERVER = 0x00000015;
-        private const int PRODUCT_STORAGE_WORKGROUP_SERVER = 0x00000016;
-        private const int PRODUCT_STORAGE_ENTERPRISE_SERVER = 0x00000017;
-        private const int PRODUCT_SERVER_FOR_SMALLBUSINESS = 0x00000018;
-        private const int PRODUCT_SMALLBUSINESS_SERVER_PREMIUM = 0x00000019;
-        private const int PRODUCT_HOME_PREMIUM_N = 0x0000001A;
-        private const int PRODUCT_ENTERPRISE_N = 0x0000001B;
-        private const int PRODUCT_ULTIMATE_N = 0x0000001C;
-        private const int PRODUCT_WEB_SERVER_CORE = 0x0000001D;
-        private const int PRODUCT_MEDIUMBUSINESS_SERVER_MANAGEMENT = 0x0000001E;
-        private const int PRODUCT_MEDIUMBUSINESS_SERVER_SECURITY = 0x0000001F;
-        private const int PRODUCT_MEDIUMBUSINESS_SERVER_MESSAGING = 0x00000020;
-        private const int PRODUCT_SERVER_FOR_SMALLBUSINESS_V = 0x00000023;
-        private const int PRODUCT_STANDARD_SERVER_V = 0x00000024;
-        private const int PRODUCT_ENTERPRISE_SERVER_V = 0x00000026;
-        private const int PRODUCT_STANDARD_SERVER_CORE_V = 0x00000028;
-        private const int PRODUCT_ENTERPRISE_SERVER_CORE_V = 0x00000029;
-        private const int PRODUCT_HYPERV = 0x0000002A;
-        #endregion PRODUCT
-
-        #region VERSIONS
-        private const int VER_NT_WORKSTATION = 1;
-        private const int VER_NT_DOMAIN_CONTROLLER = 2;
-        private const int VER_NT_SERVER = 3;
-        private const int VER_SUITE_SMALLBUSINESS = 1;
-        private const int VER_SUITE_ENTERPRISE = 2;
-        private const int VER_SUITE_TERMINAL = 16;
-        private const int VER_SUITE_DATACENTER = 128;
-        private const int VER_SUITE_SINGLEUSERTS = 256;
-        private const int VER_SUITE_PERSONAL = 512;
-        private const int VER_SUITE_BLADE = 1024;
-        #endregion VERSIONS
-        #endregion PINVOKE
-
         #region SERVICE PACK
         /// <summary>
         /// Gets the service pack information of the operating system running on this computer.
@@ -486,11 +394,11 @@ namespace CloudApiPublic.Support
             get
             {
                 string servicePack = String.Empty;
-                OSVERSIONINFOEX osVersionInfo = new OSVERSIONINFOEX();
+                NativeMethods.OSVERSIONINFOEX osVersionInfo = new NativeMethods.OSVERSIONINFOEX();
 
-                osVersionInfo.dwOSVersionInfoSize = Marshal.SizeOf(typeof(OSVERSIONINFOEX));
+                osVersionInfo.dwOSVersionInfoSize = Marshal.SizeOf(typeof(NativeMethods.OSVERSIONINFOEX));
 
-                if(GetVersionEx(ref osVersionInfo))
+                if (NativeMethods.GetVersionEx(ref osVersionInfo))
                 {
                     servicePack = osVersionInfo.szCSDVersion;
                 }

@@ -1,10 +1,17 @@
-﻿#if TRASH
+﻿//
+//  DragDropInjection.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+//
+
+#if TRASH
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using EasyHook;
 using win_client.DragDropServer;
@@ -98,21 +105,9 @@ namespace DragDropInjection
             _trace.writeToLog(9, "DragDropInjection: Run. Return.");
         }
 
-        //TODO: Needed? [UIPermissionAttribute(SecurityAction.Demand, Clipboard = UIPermissionClipboard.OwnClipboard)]
-        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
-        delegate Int32 DDoDragDrop(
-            IntPtr InData,
-            IntPtr InDropSource,
-            UInt32 InOkEffects,
-            out UInt32[] OutEffect);
+        static extern bool DDoDragDrop(AccessThisMethodFromDragDropInjection.Static.NativeMethods readThis);
 
-        // just use a P-Invoke implementation to get native API access from C# (this step is not necessary for C++.NET)
-        [DllImport("ole32.dll", CharSet = CharSet.Unicode, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
-        static extern Int32 DoDragDrop(
-            IntPtr InData,
-            IntPtr InDropSource,
-            UInt32 InOkEffects,
-            out UInt32[] OutEffect);
+        static extern bool DoDragDrop(AccessThisMethodFromDragDropInjection.Static.NativeMethods readThis);
 
         // This is where the hook is driven.
         static Int32 DoDragDrop_HookCallback(

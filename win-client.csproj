@@ -230,6 +230,7 @@
     <Compile Include="Services\Indexing\CLIndexingService.cs" />
     <Compile Include="Services\Sync\CLSyncService.cs" />
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
+    <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />

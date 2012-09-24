@@ -1,4 +1,11 @@
-﻿using System;
+﻿//
+// HookWrapper.cs
+// Cloud Windows
+//
+// Created By BobS.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 #if DEBUG
 using System.Diagnostics;
@@ -8,64 +15,15 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Interop;
+using win_client.Static;
 
 namespace win_client.SystemTray.HookWrapper
 {
-    internal static class NativeMethods
-    {
-        /////////////////////////////////////////////////////////////
-        #region Imports - Constants, Structures and Functions
-
-        public enum HookType : int
-        {
-            WH_JOURNALRECORD = 0,
-            WH_JOURNALPLAYBACK = 1,
-            WH_KEYBOARD = 2,
-            WH_GETMESSAGE = 3,
-            WH_CALLWNDPROC = 4,
-            WH_CBT = 5,
-            WH_SYSMSGFILTER = 6,
-            WH_MOUSE = 7,
-            WH_HARDWARE = 8,
-            WH_DEBUG = 9,
-            WH_SHELL = 10,
-            WH_FOREGROUNDIDLE = 11,
-            WH_CALLWNDPROCRET = 12,
-            WH_KEYBOARD_LL = 13,
-            WH_MOUSE_LL = 14
-        }
-
-        public const int WM_KEYUP = 0x0101;
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct CWPSTRUCT
-        {
-            public IntPtr lparam;
-            public IntPtr wparam;
-            public int message;
-            public IntPtr hwnd;
-        }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern IntPtr SetWindowsHookEx(HookType hookType, IntPtr pFunc, IntPtr hMod, uint dwThreadId);
-
-        [DllImport("user32.dll")]
-        internal static extern IntPtr CallNextHookEx(IntPtr hHook, int nCode, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool UnhookWindowsHookEx(IntPtr hHook);
-
-        #endregion Imports - Constants, Structures and Functions
-    }
-
-
     /// <summary>
     /// Declaration of HookWrapper class
     /// </summary>
     public class HookWrapper : IDisposable
     {
-
         /////////////////////////////////////////////////////////////
         // Delegates
 
@@ -224,7 +182,5 @@ namespace win_client.SystemTray.HookWrapper
             return iFtmp;
 
         }
-
     }
-
 }

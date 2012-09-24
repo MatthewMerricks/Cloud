@@ -9,7 +9,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Management;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -23,66 +22,22 @@ using CloudApiPrivate.Model;
 using CloudApiPublic.Model;
 using System.IO.Pipes;
 using System.Security.Principal;
-using Microsoft.Win32.SafeHandles;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using System.Drawing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using BadgeNET;
+using Microsoft.Win32.SafeHandles;
+using CloudSendTo.Static;
+using System.IO;
+using System.Drawing;
 
 
 namespace CloudSendTo
 {
     class CloudSendTo
     {
-        #region Interop Definitions
-        private const short FILE_ATTRIBUTE_NORMAL = 0x80;
-        private const uint GENERIC_READ = 0x80000000;
-        private const uint GENERIC_WRITE = 0x40000000;
-        private const uint CREATE_NEW = 1;
-        private const uint CREATE_ALWAYS = 2;
-        private const uint OPEN_EXISTING = 3;
-        private const int ERROR_FILE_NOT_FOUND = 2;
-        private const int ERROR_PIPE_BUSY = 231;
-        private IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct RECT
-        {
-            public int left, top, right, bottom;
-        }
-
-        [DllImport("user32.dll")]
-        static extern bool ClientToScreen(IntPtr hWnd, ref Point lpPoint);
-
-        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern SafeFileHandle CreateFile(
-            string fileName,
-            [MarshalAs(UnmanagedType.U4)] FileAccess fileAccess,
-            [MarshalAs(UnmanagedType.U4)] FileShare fileShare,
-            IntPtr securityAttributes,
-            [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-            int flags,
-            IntPtr template);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool WriteFile(IntPtr hFile, byte[] lpBuffer,
-           uint nNumberOfBytesToWrite, out uint lpNumberOfBytesWritten,
-           [In] ref System.Threading.NativeOverlapped lpOverlapped);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool WaitNamedPipe(string lpNamedPipeName, uint nTimeOut);
-
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern IntPtr GetActiveWindow();
-
-        [DllImport("user32.dll")]
-        static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
-        #endregion
-
         /// <summary>
         /// CloudSendTo.exe is launched by Explorer when the user selects a number of file/folder items in an Explorer window,
         /// right-clicks one of the selected items, selects the "Send-to" context menu item, and then the "Cloud Folder" item
@@ -129,7 +84,7 @@ namespace CloudSendTo
 			    while (!pipeConnectionFailed)
 			    {
 				    Trace.WriteLine("CloudSendTo: Main: Top of CreateFile loop.  Try to open the pipe.");
-                    clientPipeHandle =  CreateFile(
+                    clientPipeHandle =  NativeMethods.CreateFile(
                                         fileName: pipeName, // Pipe name
 					                    fileAccess: FileAccess.Write, // Write access
 					                    fileShare: FileShare.None,       // No sharing
@@ -155,7 +110,7 @@ namespace CloudSendTo
 					    // This is the normal path when the application is not running (lastError will equal ERROR_FILE_NOT_FOUND)
 					    // Start the cloud process on the first attempt or increment a retry counter up to a certain point;
 					    // after 10 seconds of retrying, display an error message and stop trying
-					    if (ERROR_FILE_NOT_FOUND == lastError)
+                        if (NativeMethods.ERROR_FILE_NOT_FOUND == lastError)
 					    {
 						    Trace.WriteLine("CloudSendTo: Main: The file was not found.  Have we started Cloud?");
 						    if (!cloudProcessStarted)
@@ -227,11 +182,11 @@ namespace CloudSendTo
 						    Trace.WriteLine("CloudSendTo: Main: Loop back up for a retry.");
 					    }
 					    // pipe is busy
-					    else if (ERROR_PIPE_BUSY == lastError)
+                        else if (NativeMethods.ERROR_PIPE_BUSY == lastError)
 					    {
 						    // if waiting for a pipe does not complete in 2 seconds, exit  (by setting pipeConnectionFailed to true)
 			    		    Trace.WriteLine("CloudSendTo: Main: Error is pipe_busy. Wait for it for 2 seconds.");
-						    if (!WaitNamedPipe(pipeName, 2000))
+                            if (!NativeMethods.WaitNamedPipe(pipeName, 2000))
 						    {
 							    lastError = Marshal.GetLastWin32Error();
 		    				    Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: after wait.  Code: {0}.  Maybe we should retry.", lastError));
@@ -281,14 +236,14 @@ namespace CloudSendTo
 			    {
 				    // Get the coordinates of the current Explorer window
 				    Trace.WriteLine("CloudSendTo: Main: Pipe connection successful.  Get the window info.");
-				    IntPtr hwnd = GetActiveWindow();
+                    IntPtr hwnd = NativeMethods.GetActiveWindow();
 
-				    RECT rMyRect;
-				    GetClientRect(hwnd,  out rMyRect);
+                    global::CloudSendTo.Static.NativeMethods.RECT rMyRect;
+                    NativeMethods.GetClientRect(hwnd, out rMyRect);
                     Point rMyTopLeft = new Point(rMyRect.left, rMyRect.top);
                     Point rMyBottomRight = new Point(rMyRect.right, rMyRect.bottom);
-				    ClientToScreen(hwnd, ref rMyTopLeft);
-				    ClientToScreen(hwnd, ref rMyBottomRight);
+                    NativeMethods.ClientToScreen(hwnd, ref rMyTopLeft);
+                    NativeMethods.ClientToScreen(hwnd, ref rMyBottomRight);
 
 				    // Put the information into a JSON object.  The formatted JSON will look like this:
 				    // {

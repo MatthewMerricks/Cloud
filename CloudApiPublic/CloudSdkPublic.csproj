@@ -97,6 +97,7 @@
     <Compile Include="Static\CLPublicExtensionMethods.cs" />
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\Helpers.cs" />
+    <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="Static\Trace.cs" />
     <Compile Include="Static\TraceLog.cs">
       <DependentUpon>TraceLog.xsd</DependentUpon>

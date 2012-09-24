@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -330,11 +329,8 @@ namespace CloudApiPublic.Static
             }
 
             return !((firstMD5 == null && secondMD5 == null)
-                || (firstMD5 != null && secondMD5 != null && firstMD5.Length == secondMD5.Length && memcmp(firstMD5, secondMD5, new UIntPtr((uint)firstMD5.Length)) == 0));
+                || (firstMD5 != null && secondMD5 != null && firstMD5.Length == secondMD5.Length && NativeMethods.memcmp(firstMD5, secondMD5, new UIntPtr((uint)firstMD5.Length)) == 0));
         }
-
-        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int memcmp(byte[] b1, byte[] b2, UIntPtr count);
 
         public static void RunActionWithRetries(Action toRun, bool throwExceptionOnFailure, int numRetries = 5, int millisecondsBetweenRetries = 50)
         {

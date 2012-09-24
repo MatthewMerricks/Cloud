@@ -21,7 +21,7 @@ using System.Xml.Linq;
 using CloudApiPrivate.Model.Settings;
 using System.Windows;
 using System.Transactions;
-using System.Runtime.InteropServices;
+using FileMonitor.Static;
 
 namespace FileMonitor
 {
@@ -1435,7 +1435,7 @@ namespace FileMonitor
                                                         || CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
                                                         || ((long)CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
                                                         || !((previousMD5Bytes == null && newMD5Bytes == null)
-                                                            || (previousMD5Bytes != null && newMD5Bytes != null && previousMD5Bytes.Length == newMD5Bytes.Length && Helpers.memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0))) // or md5 changed
+                                                            || (previousMD5Bytes != null && newMD5Bytes != null && previousMD5Bytes.Length == newMD5Bytes.Length && NativeMethods.memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0))) // or md5 changed
                                                     {
                                                         CLError setMD5Error = CurrentDependencyTree.DependencyFileChange.SetMD5(newMD5Bytes);
                                                         if (setMD5Error != null)

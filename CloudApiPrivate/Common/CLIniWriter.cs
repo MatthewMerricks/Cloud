@@ -5,6 +5,7 @@
 //  Created by BobS.
 //  Changes Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPrivate.Static;
 /*-----------------------------------------------------------------------------
 File:           IniWriter.cs
 Copyright:      (c) 2005, Evan Stone, All Rights Reserved
@@ -26,7 +27,6 @@ EULA:           THIS SOURCE CODE MAY NOT BE DISTRIBUTED IN ANY FASHION WITHOUT
 From:           http://www.codeproject.com/Articles/9331/Create-Icons-for-Folders-in-Windows-Explorer-Using
 -----------------------------------------------------------------------------*/
 using System;
-using System.Runtime.InteropServices;
 
 namespace CloudApiPrivate.Common
 {
@@ -35,16 +35,6 @@ namespace CloudApiPrivate.Common
 	/// </summary>
 	public class CLIniWriter
 	{
-        // For convenience's sake, I'm using the WritePrivateProfileString
-        // Win32 API function here. Feel free to write your own .ini file
-        // writing function if you wish.
-        [DllImport("kernel32")] 
-        private static extern int WritePrivateProfileString(
-                string iniSection, 
-                string iniKey, 
-                string iniValue, 
-                string iniFilePath);		
-        
         /// <summary>
         /// Adds to (or modifies) a value to an .ini file. If the file does not exist,
         /// it will be created.
@@ -61,8 +51,7 @@ namespace CloudApiPrivate.Common
                                      string iniValue,
                                      string iniFilePath)
         {
-            WritePrivateProfileString(iniSection, iniKey, iniValue, iniFilePath);
+            NativeMethods.WritePrivateProfileString(iniSection, iniKey, iniValue, iniFilePath);
         }
-        
 	}
 }

@@ -93,6 +93,7 @@
     <Compile Include="SqlModel\SqlAccessor.cs" />
     <Compile Include="SqlModel\SqlEnum.cs" />
     <Compile Include="SqlModel\Sync.cs" />
+    <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="StringCRC.cs" />
     <Compile Include="SyncedObject.cs" />
   </ItemGroup>
