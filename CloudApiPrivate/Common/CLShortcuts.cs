@@ -269,7 +269,7 @@ namespace CloudApiPrivate.Common
             {
                 _trace.writeToLog(9, "CLShortcuts: AddCloudAutostartShortcut: Entry.");
                 RegistryKey rkApp = Registry.LocalMachine.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", true);   // Run for all users at startup
-                rkApp.SetValue(CLPrivateDefinitions.CloudAppName, GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe");
+                rkApp.SetValue(CLPrivateDefinitions.CloudAppName, Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe");
             }
             catch (Exception ex)
             {
@@ -598,12 +598,12 @@ namespace CloudApiPrivate.Common
 
                 // Now create a new process to run the VBScript file.
                 _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Build the paths for launching the VBScript file.");
-                string systemFolderPath = GetSystemFolderPathForBitness();
+                string systemFolderPath = Get32BitSystemFolderPath();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
                 _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Cscript executable path: <{0}>.", cscriptPath));
 
                 // Parm 1 should be the full path of the Program Files Cloud installation directory.
-                string parm1Path = GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
+                string parm1Path = Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles;
                 _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 1: <{0}>.", parm1Path));
 
                 // Parm 2 should be the filename of the .exe or .lnk file that will be pinned to the taskbar (without the extension)
@@ -647,7 +647,7 @@ namespace CloudApiPrivate.Common
             _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Exit.");
         }
 
-        public static string GetProgramFilesFolderPathForBitness()
+        public static string Get32BitProgramFilesFolderPath()
         {
             // Determine whether 32-bit or 64-bit architecture
             if (IntPtr.Size == 4)
@@ -662,7 +662,52 @@ namespace CloudApiPrivate.Common
             }
         }
 
-        public static string GetSystemFolderPathForBitness()
+        public static string Get64BitProgramFilesFolderPath()
+        {
+            // Determine whether 32-bit or 64-bit architecture
+            if (IntPtr.Size == 4)
+            {
+                // 32-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            }
+            else
+            {
+                // 64-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            }
+        }
+
+        public static string Get32BitCommonProgramFilesFolderPath()
+        {
+            // Determine whether 32-bit or 64-bit architecture
+            if (IntPtr.Size == 4)
+            {
+                // 32-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+            }
+            else
+            {
+                // 64-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86);
+            }
+        }
+
+        public static string Get64BitCommonProgramFilesFolderPath()
+        {
+            // Determine whether 32-bit or 64-bit architecture
+            if (IntPtr.Size == 4)
+            {
+                // 32-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86);
+            }
+            else
+            {
+                // 64-bit 
+                return Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+            }
+        }
+
+        public static string Get32BitSystemFolderPath()
         {
             // Determine whether 32-bit or 64-bit architecture
             if (IntPtr.Size == 4)

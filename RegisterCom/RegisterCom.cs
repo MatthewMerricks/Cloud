@@ -270,9 +270,8 @@ namespace RegisterCom
                     }
                 }
 
-                // Register BadgeCOM.dll in the CloudSupport folder.
-                string pathUninstallFiles = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + 
-                    CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
+                // Register BadgeCOM.dll in the ProgramFiles CommonFiles folder.
+                string pathUninstallFiles = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
 
                 Trace.WriteLine(String.Format("RegisterCom: Call RegisterAssembly. Path: <{0}>.", pathUninstallFiles));
                 rcLocal = RegisterAssembly(pathUninstallFiles);
@@ -319,41 +318,71 @@ namespace RegisterCom
             }
         }
 
+        /// <summary>
+        /// This function will copy the files needed for uninstall.  The copies will be as follows:
+        ///                                     From                                            To
+        /// 32-bit systems:
+        ///   - BadgeCom.dll                    Program Files\Cloud.Com\Cloud\x86               Program Files\Common Files\Cloud.Com\Cloud
+        ///   - RegisterCom.exe                 Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
+        ///   - CloudApiPrivate.dll             Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
+        ///   - CloudApiPublic.dll              Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
+        ///   - Microsoft.Net.Http.dll          Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
+        /// 64-bit systems:
+        ///   - BadgeCom.dll                    Program Files (x86)\Cloud.Com\Cloud\amd64       Program Files\Common Files\Cloud.Com\Cloud
+        ///   - BadgeCom.dll                    Program Files (x86)\Cloud.Com\Cloud\x86         Program Files (x86)\Common Files\Cloud.Com\Cloud
+        ///   - RegisterCom.exe                 Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
+        ///   - CloudApiPrivate.dll             Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
+        ///   - CloudApiPublic.dll              Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
+        ///   - Microsoft.Net.Http.dll          Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
+        ///   
+        /// The ProgramFiles 32-bit functions used below will identify the following directories:
+        /// 32-bit systems:
+        ///   - Program Files\
+        /// 64-bit systems:
+        ///   - Program Files (x86)\
+        /// The ProgramFiles 64-bit functions used below will identify the following directories:
+        /// 32-bit systems:
+        ///   - Program Files\
+        /// 64-bit systems:
+        ///   - Program Files\
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private static int CopyFilesNeededForUninstall()
         {
-            // Build AnyCpu "from" directory
-            string fromDirectory = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles;
-
-            // Build bitness "from" directory
-            string fromDirectoryBitness;
-            if (IntPtr.Size == 4)
-            {
-                // 32-bit 
-                fromDirectoryBitness = fromDirectory + "\\x86";
-            }
-            else
-            {
-                // 64-bit 
-                fromDirectoryBitness = fromDirectory + "\\amd64";
-            }
-
-
-            // Build the "to" directory
-            string toDirectory = fromDirectory + CLPrivateDefinitions.CloudSupportFolderInProgramFiles;
+            // Determine the directories to use.
+            string fromDirectory = CLShortcuts.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles;
+            string to32BitDirectory = CLShortcuts.Get32BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon;
+            string to64BitDirectory = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon;
 
             try 
         	{
-                // Create the "to" directory
-                Directory.CreateDirectory(toDirectory);
+                // Make the directories if they don't already exist.
+                Trace.WriteLine(String.Format("RegisterCom: CopyFilesNeededForUninstall: Entry. fromDirectory: <{0}>. to32BitDirectory: <{1}>. to64BitDirectory: <{2}>.",
+                            fromDirectory, to32BitDirectory, to64BitDirectory));
+                Directory.CreateDirectory(to32BitDirectory);
+                Directory.CreateDirectory(to64BitDirectory);
 
                 // Copy the files
-                Trace.WriteLine(String.Format("RegisterCom: CopyFilesNeededForUninstall: Entry. fromDirectory: <{0}>. fromDirectoryBitness: <{1}>. toDirectory: <{2}>.", 
-                            fromDirectory, fromDirectoryBitness, toDirectory));
-                CopyFileWithDeleteFirst(fromDirectoryBitness, toDirectory, "BadgeCOM.dll");
-                CopyFileWithDeleteFirst(fromDirectory, toDirectory, "RegisterCom.exe");
-                CopyFileWithDeleteFirst(fromDirectory, toDirectory, "CloudApiPrivate.dll");
-                CopyFileWithDeleteFirst(fromDirectory, toDirectory, "CloudApiPublic.dll");
-                CopyFileWithDeleteFirst(fromDirectory, toDirectory, "Microsoft.Net.Http.dll");
+                if (IntPtr.Size == 4)
+                {
+                    // 32-bit 
+                    Trace.WriteLine("RegisterCom: CopyFilesNeededForUninstall: Copy 32-bit BadgeCom.dll.");
+                    CopyFileWithDeleteFirst(fromDirectory + "\\x86", to32BitDirectory, "BadgeCOM.dll");
+                }
+                else
+                {
+                    // 64-bit 
+                    Trace.WriteLine("RegisterCom: CopyFilesNeededForUninstall: Copy 64-bit and 32-bit BadgeCom.dll.");
+                    CopyFileWithDeleteFirst(fromDirectory + "\\x86", to32BitDirectory, "BadgeCOM.dll");
+                    CopyFileWithDeleteFirst(fromDirectory + "\\amd64", to64BitDirectory, "BadgeCOM.dll");
+                }
+
+                // Copy the AnyCpu files
+                CopyFileWithDeleteFirst(fromDirectory, to32BitDirectory, "RegisterCom.exe");
+                CopyFileWithDeleteFirst(fromDirectory, to32BitDirectory, "CloudApiPrivate.dll");
+                CopyFileWithDeleteFirst(fromDirectory, to32BitDirectory, "CloudApiPublic.dll");
+                CopyFileWithDeleteFirst(fromDirectory, to32BitDirectory, "Microsoft.Net.Http.dll");
             }
             catch (Exception ex)
             {
@@ -364,6 +393,12 @@ namespace RegisterCom
             return 0;
         }
 
+        /// <summary>
+        /// Copy a file from one directory to another.  Delete the target first if it exists.
+        /// </summary>
+        /// <param name="fromDirectory"></param>
+        /// <param name="toDirectory"></param>
+        /// <param name="filenameExt"></param>
         private static void CopyFileWithDeleteFirst(string fromDirectory, string toDirectory, string filenameExt)
         {
             try
@@ -449,9 +484,8 @@ namespace RegisterCom
                 Trace.WriteLine("RegisterCom: UninstallCOM: Stop Explorer");
                 explorerLocation = StopExplorer();
 
-                // The BadgeCOM.dll was registered in the Cloud program files CloudSupport directory.  Find it there and unregister it.
-                string pathToCopiedBadgeCOM = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + 
-                        CLPrivateDefinitions.CloudSupportFolderInProgramFiles + "\\BadgeCOM.dll";
+                // The BadgeCOM.dll was registered in the ProgramFiles CommonFiles directory.  Find it there and unregister it.
+                string pathToCopiedBadgeCOM = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
                 if (File.Exists(pathToCopiedBadgeCOM))
                 {
                     // Unregister BadgeCOM
@@ -558,17 +592,20 @@ namespace RegisterCom
                 
                 // Now we will create a new process to run the VBScript file.
                 Trace.WriteLine("RegisterCom: FinalizeUninstall: Build the paths for launching the VBScript file.");
-                string systemFolderPath = CLShortcuts.GetSystemFolderPathForBitness();
+                string systemFolderPath = CLShortcuts.Get32BitSystemFolderPath();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
                 Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Cscript executable path: <{0}>.", cscriptPath));
 
-                string parm1Path = CLShortcuts.GetProgramFilesFolderPathForBitness();
+                string parm1Path = CLShortcuts.Get32BitProgramFilesFolderPath();
                 Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Parm 1: <{0}>.", parm1Path));
 
-                string parm2Path = Environment.GetEnvironmentVariable("SystemRoot");
+                string parm2Path = CLShortcuts.Get64BitProgramFilesFolderPath();
                 Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Parm 2: <{0}>.", parm2Path));
 
-                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""" + @" """ + parm1Path + @""" """ + parm2Path + @"""";
+                string parm3Path = Environment.GetEnvironmentVariable("SystemRoot");
+                Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Parm 3: <{0}>.", parm3Path));
+
+                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""" + @" """ + parm1Path + @""" """ + parm2Path + @""" """ + parm3Path + @"""";
                 Trace.WriteLine(String.Format("RegisterCom: FinalizeUninstall: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
             
                 // Launch the process
@@ -588,13 +625,6 @@ namespace RegisterCom
 
             Trace.WriteLine("RegisterCom: FinalizeUninstall: Exit successfully.");
             return 0;
-        }
-
-        private static void DeleteFile(string supportPath, string filenameExt)
-        {
-            string path = supportPath + "\\" + filenameExt;
-            Trace.WriteLine(String.Format("RegisterCom: DeleteFile: Entry.  Delete file at <{0}>.", path));
-            File.Delete(path);
         }
 
         private static bool IsExplorerRunning(string explorerLocation)
@@ -723,6 +753,7 @@ namespace RegisterCom
         /// </summary>
         /// <param name="WhenToShow">16: Always show. 17: Never.  18: Hide when inactive.</param>
         /// <returns>bool: true: success.</returns>
+#if TRASH
         private static bool AlwaysShowNotifyIcon(byte WhenToShow)
         {
             string myHolderString = null;
@@ -792,7 +823,7 @@ namespace RegisterCom
 
                 // Get our application path including just the filename.
                 byte[] myTempAppPathAsByte = null;
-                myTempAppPathAsByte = encText.GetBytes(CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName);
+                myTempAppPathAsByte = encText.GetBytes(CLShortcuts.GetProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName);
                 byte[] myAppPathAsByte = new byte[myTempAppPathAsByte.Length * 2];
                 string myAppPathAsString = "";
                 try
@@ -908,6 +939,6 @@ namespace RegisterCom
                 else a[i] = b;
             }
         } 
-
+#endif // TRASH
     }
 }

@@ -1110,7 +1110,6 @@
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
 		<row><td>AMD64</td><td>ISX_DEFAULTCOMPONENT3</td></row>
-		<row><td>CommonAppDataFolder</td><td>ISO19770_SystemTag</td></row>
 		<row><td>DATABASEDIR</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>INSTALLDIR</td><td>NewComponent1</td></row>
 		<row><td>X86</td><td>ISX_DEFAULTCOMPONENT2</td></row>
@@ -1135,7 +1134,7 @@
 		<row><td>SetARPINSTALLLOCATION</td><td>51</td><td>ARPINSTALLLOCATION</td><td>[INSTALLDIR]</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%SystemRoot]\Profiles\All Users</td><td/><td/></row>
 		<row><td>ShowMsiLog</td><td>226</td><td>SystemFolder</td><td>[SystemFolder]notepad.exe "[MsiLogFileLocation]"</td><td/><td>Shows Property-driven MSI Log</td></row>
-		<row><td>UnregisterComObjects</td><td>1122</td><td>CLOUDSUPPORT</td><td>[CLOUDSUPPORT]RegisterCom.exe /u "[INSTALLDIR]BageCOM.dll"</td><td/><td/></row>
+		<row><td>UnregisterComObjects</td><td>1122</td><td>CLOUD2</td><td>[CLOUD2]RegisterCom.exe /u </td><td/><td/></row>
 		<row><td>setAllUsersProfile2K</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%ALLUSERSPROFILE]</td><td/><td/></row>
 		<row><td>setUserProfileNT</td><td>51</td><td>USERPROFILE</td><td>[%USERPROFILE]</td><td/><td/></row>
 	</table>
@@ -1201,7 +1200,12 @@
 		<row><td>AppDataFolder</td><td>TARGETDIR</td><td>.:APPLIC~1|Application Data</td><td/><td>0</td><td/></row>
 		<row><td>CLOUD</td><td>CLOUD.COM</td><td>Cloud</td><td/><td>0</td><td/></row>
 		<row><td>CLOUD.COM</td><td>ProgramFilesFolder</td><td>CLOUD_~1|Cloud.com</td><td/><td>0</td><td/></row>
+		<row><td>CLOUD.COM1</td><td>COMMON_FILES</td><td>CLOUD_~1|Cloud.com</td><td/><td>0</td><td/></row>
+		<row><td>CLOUD.COM2</td><td>CommonFilesFolder</td><td>CLOUD_~1|Cloud.com</td><td/><td>0</td><td/></row>
+		<row><td>CLOUD1</td><td>CLOUD.COM1</td><td>Cloud</td><td/><td>0</td><td/></row>
+		<row><td>CLOUD2</td><td>CLOUD.COM2</td><td>Cloud</td><td/><td>0</td><td/></row>
 		<row><td>CLOUDSUPPORT</td><td>INSTALLDIR</td><td>CLOUDS~1|CloudSupport</td><td/><td>0</td><td/></row>
+		<row><td>COMMON_FILES</td><td>_.1</td><td>COMMON~1|Common Files</td><td/><td>0</td><td/></row>
 		<row><td>CommonAppDataFolder</td><td>TARGETDIR</td><td>.:Common~1|CommonAppData</td><td/><td>0</td><td/></row>
 		<row><td>CommonFilesFolder</td><td>TARGETDIR</td><td>.:Common</td><td/><td>0</td><td/></row>
 		<row><td>DATABASEDIR</td><td>ISYourDataBaseDir</td><td>.</td><td/><td>0</td><td/></row>
@@ -1240,6 +1244,8 @@
 		<row><td>WindowsFolder</td><td>TARGETDIR</td><td>.:Windows</td><td/><td>0</td><td/></row>
 		<row><td>WindowsVolume</td><td>TARGETDIR</td><td>.:WinRoot</td><td/><td>0</td><td/></row>
 		<row><td>X86</td><td>INSTALLDIR</td><td>x86</td><td/><td>0</td><td/></row>
+		<row><td>_.</td><td>INSTALLDIR</td><td>..</td><td/><td>0</td><td/></row>
+		<row><td>_.1</td><td>_.</td><td>..</td><td/><td>0</td><td/></row>
 		<row><td>cloud</td><td>cloud.com</td><td>Cloud</td><td/><td>1</td><td/></row>
 		<row><td>cloud.com</td><td>ProgramMenuFolder</td><td>Cloud.Com</td><td/><td>1</td><td/></row>
 	</table>
@@ -2037,6 +2043,7 @@
 		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt1</td><td>ISX_DEFAULTCOMPONENT5</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>regid.2000_12.com.cloud_clou</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
+		<row><td>regid.2000_12.com.cloud_clou1</td><td>ISO19770_SystemTag</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Source\Projects\win-client\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
 		<row><td>registercom.exe</td><td>RegisterCom.exe</td><td>REGIST~1.EXE|RegisterCom.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe</td><td>1</td><td/></row>
 		<row><td>registercom.exe.config</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGIST~1.CON|RegisterCom.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe.config</td><td>1</td><td/></row>
 		<row><td>showcloudfolder.primary_outp</td><td>ShowCloudFolder.Primary_output</td><td>ShowCloudFolder.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ShowCloudFolder&gt;|Built</td><td>3</td><td/></row>
