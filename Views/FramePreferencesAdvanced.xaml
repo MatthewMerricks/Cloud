@@ -18,7 +18,7 @@
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
-    mc:Ignorable="d" d:DesignWidth="573" d:DesignHeight="315"
+    mc:Ignorable="d" d:DesignWidth="458" d:DesignHeight="300"
     DataContext="{Binding FramePreferencesAdvancedViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Cloud Advanced Preferences"
     x:Name="FramePreferencesAdvancedRoot">
@@ -59,16 +59,16 @@
 
             <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="3"  >
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="14*"/>
+                    <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="72*"/>
                     <ColumnDefinition Width="239"/>
                     <ColumnDefinition Width="69*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="10"/>
-                    <RowDefinition Height="14*"/>
-                    <RowDefinition Height="25*"/>
-                    <RowDefinition Height="28"/>
+                    <RowDefinition Height="0"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="55"/>
+                    <RowDefinition Height="31"/>
                     <RowDefinition Height="47"/>
                     <RowDefinition Height="16"/>
                     <RowDefinition Height="97"/>

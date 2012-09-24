@@ -1,4 +1,12 @@
-﻿using System;
+﻿//
+//  RegisterCom.cs
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+//
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,6 +21,7 @@ using CloudApiPrivate.Common;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Model;
 using CloudApiPublic.Model;
+using Microsoft.Win32;
 
 namespace RegisterCom
 {
@@ -98,7 +107,7 @@ namespace RegisterCom
     ///     RegisterCom /u
     /// </summary>
 
-    public static class MainProgram
+    public static class RegisterCom
     {
         public static bool shouldTerminate = false;
 
@@ -111,6 +120,9 @@ namespace RegisterCom
             {
                 Trace.WriteLine("RegisterCom: Main program starting.");
                 Trace.WriteLine(String.Format("RegisterCom: Arg count: {0}.", args.Length));
+
+                //TODO: Always pin the systray icon to the taskbar.  This is debug code.
+                //bool rcDebug = AlwaysShowNotifyIcon(WhenToShow: 16);
 
                 if (args.Length == 0)
                 {
@@ -528,7 +540,7 @@ namespace RegisterCom
 
                 // Get the assembly containing the .vbs resource.
                 Trace.WriteLine("RegisterCom: FinalizeUninstall: Get the assembly containing the .vbs resource.");
-                System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(RegisterCom.MainProgram));
+                System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(global::RegisterCom.RegisterCom));
                 if (storeAssembly == null)
                 {
                     Trace.WriteLine("RegisterCom: FinalizeUninstall: ERROR: storeAssembly null.");
@@ -701,6 +713,201 @@ namespace RegisterCom
                 Trace.WriteLine(String.Format("RegisterCom: UnregisterAssembly: ERROR.  Could not find file <{0}>.", dllPath));
             }
         }
+
+
+        /// <summary>
+        /// Always show the Cloud icon on the taskbar, rather than up in the pop-up icon list.
+        /// Searches for a notify icon by application path in the registry and updates the key to always show, always hide, or hide when inactive
+        /// WhenToShow should be 16 (Dec) for always (verified), 17 (dec) for never (I'm guessing on this), and 18 (Dec) for hide when inactive (verified).
+        /// This will return success status.  Highly suggest putting a local setting variable in to only run this once per machine....
+        /// </summary>
+        /// <param name="WhenToShow">16: Always show. 17: Never.  18: Hide when inactive.</param>
+        /// <returns>bool: true: success.</returns>
+        private static bool AlwaysShowNotifyIcon(byte WhenToShow)
+        {
+            string myHolderString = null;
+            System.Text.UTF8Encoding encText = new System.Text.UTF8Encoding();
+            try
+            {
+                // Get our registry entry
+                byte[] myRegistryKeyAsByte = null;
+                string myRegistryKeyAsString = "";
+                RegistryKey myKey = null;
+
+                try
+                {
+                    // @@@@@@@@@@@  Debug only
+                    myKey = Registry.Users.OpenSubKey("S-1-5-21-169676751-141520382-2068143436-1000_Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\TrayNotify");
+                    if (myKey == null)
+                    {
+                        return false;
+                    }
+                    WriteBinaryDataForRegKey(myKey, "IconStreams", "Users");
+                    WriteBinaryDataForRegKey(myKey, "PastIconsStream", "Users");
+
+                    myKey = Registry.CurrentUser.OpenSubKey("Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\TrayNotify");
+                    if (myKey == null)
+                    {
+                        return false;
+                    }
+                    WriteBinaryDataForRegKey(myKey, "IconStreams", "CurrentUser");
+                    WriteBinaryDataForRegKey(myKey, "PastIconsStream", "CurrentUsers");
+
+
+                    //RegistryKey myKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TrayNotify");
+                    myKey = Registry.CurrentUser.OpenSubKey("Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\TrayNotify");
+
+                    // Read the data
+                    myRegistryKeyAsByte = (byte[])myKey.GetValue("IconStreams", new Byte[0]);
+
+                    // @@@@@@@@ Debug only
+                    FileStream outFile = new FileStream("c:\\trash\\NotifyIcon\\IconStreamsByteContent.bin", FileMode.Create);
+                    outFile.Write(myRegistryKeyAsByte, 0, myRegistryKeyAsByte.Length);
+                    outFile.Close();
+
+                    // @@@@@@@@ Debug only
+                    // Use rot-13 decryption and decrypt every byte that can be decrypted, and dump it again.
+                    byte[] myRegistryKeyAsByteCopy = new byte[myRegistryKeyAsByte.Length];
+                    myRegistryKeyAsByte.CopyTo(myRegistryKeyAsByteCopy, 0);  // make a copy
+
+                    Rot13DecodeInPlace(ref myRegistryKeyAsByteCopy);  // decode in place
+
+                    outFile = new FileStream("c:\\trash\\NotifyIcon\\IconStreamsByteContentTranslated.bin", FileMode.Create);
+                    outFile.Write(myRegistryKeyAsByteCopy, 0, myRegistryKeyAsByteCopy.Length);
+                    outFile.Close();
+
+
+
+                    // Convert the bytes to a string of hex values
+                    for (int i = 0; i < myRegistryKeyAsByte.Length; i++)
+                    {
+                        myHolderString = myRegistryKeyAsByte[i].ToString("X2");
+                        myRegistryKeyAsString += myHolderString;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+
+                // Get our application path including just the filename.
+                byte[] myTempAppPathAsByte = null;
+                myTempAppPathAsByte = encText.GetBytes(CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName);
+                byte[] myAppPathAsByte = new byte[myTempAppPathAsByte.Length * 2];
+                string myAppPathAsString = "";
+                try
+                {
+                    // Add in zeros for every other byte like the registry key has
+                    for (int i = 0; i < myAppPathAsByte.Length - 1; i++)
+                    {
+                        if (i % 2 == 0)
+                        {
+                            myAppPathAsByte[i] = myTempAppPathAsByte[Convert.ToInt32(i / 2)];
+                        }
+                        else
+                        {
+                            myAppPathAsByte[i] = 0;
+                        }
+                    }
+                    // Convert the bytes to a string of hex values
+                    for (int i = 0; i < myAppPathAsByte.Length; i++)
+                    {
+                        myHolderString = myAppPathAsByte[i].ToString("X2");
+                        myAppPathAsString += myHolderString;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+
+                // Hunt for the application path inside the registry key
+                long myPosition = myRegistryKeyAsString.IndexOf(myAppPathAsString) - 1;
+
+                if (myPosition > 0)
+                {
+                    // We found our startup path so make our change to the byte 20 before the start of the path
+                    // I believe this is the right byte to change from manually setting a icon.  I exported out the TrayIcon 
+                    // key, changed the value, rebooted, and expored it out again and this byte was the only thing to change
+                    myRegistryKeyAsByte[Convert.ToInt32(myPosition / 2 - 20)] = WhenToShow;
+
+                    // Write the modified key back to the registry
+                    myKey.SetValue("IconStreams", myRegistryKeyAsByte);
+
+                    //// Now crash explorer.  Thats right....explorer keeps this information in memory and reads it at startup and writes it at shutdown
+                    //// so the only way to actaully change these values is to write to the registry then crash explorer so it can't overwrite what
+                    //// we did.  It will then poll our information when it starts back up.  First look for explorer in memory:
+                    //Process ExplorerProcess = null;
+                    //foreach (Process p in Process.GetProcesses())
+                    //{
+                    //    if (p.ProcessName.ToString() == "explorer")
+                    //    {
+                    //        ExplorerProcess = p;
+                    //        break; // TODO: might not be correct. Was : Exit For
+                    //    }
+                    //    else
+                    //    {
+                    //        ExplorerProcess = null;
+                    //    }
+                    //}
+                    //// If we found it then we kill it, it will restart itself
+                    //if ((ExplorerProcess != null))
+                    //{
+                    //    ExplorerProcess.Kill();
+                    //    System.Threading.Thread.Sleep(2000);
+                    //}
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
+
+        }
+
+        private static void WriteBinaryDataForRegKey(RegistryKey myKey, string subKey, string filePrefix)
+        {
+            byte[] myRegistryKeyAsByte = null;
+
+            // Read the data
+            myRegistryKeyAsByte = (byte[])myKey.GetValue(subKey, new Byte[0]);
+
+            // Use rot-13 decryption and decrypt every byte that can be decrypted, and dump it again.
+            byte[] myRegistryKeyAsByteCopy = new byte[myRegistryKeyAsByte.Length];
+            myRegistryKeyAsByte.CopyTo(myRegistryKeyAsByteCopy, 0);  // make a copy
+
+            Rot13DecodeInPlace(ref myRegistryKeyAsByteCopy);  // decode in place
+
+            FileStream outFile = new FileStream("c:\\trash\\NotifyIcon\\" + filePrefix + "_" + subKey + ".bin", FileMode.Create);
+            outFile.Write(myRegistryKeyAsByteCopy, 0, myRegistryKeyAsByteCopy.Length);
+            outFile.Close();
+        }
+
+        private static void Rot13DecodeInPlace(ref byte[] a)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                byte b = a[i];
+                char c = (char)b;
+                if (c >= 'A' && c <= 'M')
+                    a[i] = (byte)(b + 13);
+                else if (c >= 'N' && c <= 'Z')
+                    a[i] = (byte)(b - 13);
+                else if (c >= 'a' && c <= 'm')
+                    a[i] = (byte)(b + 13);
+                else if (c >= 'n' && c <= 'z')
+                    a[i] = (byte)(b - 13);
+                else a[i] = b;
+            }
+        } 
 
     }
 }

@@ -18,7 +18,7 @@
     xmlns:parentNS="clr-namespace:win_client.Views"
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
-    mc:Ignorable="d" d:DesignWidth="573" d:DesignHeight="315"
+    mc:Ignorable="d" d:DesignWidth="458" d:DesignHeight="300"
     DataContext="{Binding FramePreferencesNetworkViewModel, Source={StaticResource Locator}}" 
     WindowTitle="Cloud Network Preferences"
     Name="FramePreferencesNetworkRoot">
@@ -52,14 +52,14 @@
         <Grid Grid.Row="1" Grid.Column="1" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="53*"/>
-                <ColumnDefinition Width="13*"/>
+                <ColumnDefinition Width="22"/>
                 <ColumnDefinition Width="125*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="10"/>
-                <RowDefinition Height="112*"/>
-                <RowDefinition Height="61*"/>
-                <RowDefinition Height="50*"/>
+                <RowDefinition Height="100"/>
+                <RowDefinition Height="32"/>
+                <RowDefinition Height="32"/>
                 <RowDefinition Height="82"/>
             </Grid.RowDefinitions>
 

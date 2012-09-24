@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CloudApiPrivate.Model.Settings;
-using System.Diagnostics;
+using CloudApiPrivate.Common;
 
 namespace ShowCloudFolder
 {
@@ -26,13 +26,7 @@ namespace ShowCloudFolder
             if (!String.IsNullOrWhiteSpace(cloudFolderPath))
             {
                 // Launch the process
-                System.Diagnostics.Process process = new System.Diagnostics.Process();
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.FileName = @"explorer";
-                process.StartInfo.Arguments = cloudFolderPath;
-                process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                process.Start();
+                CLShortcuts.LaunchExplorerToFolder(Settings.Instance.CloudFolderPath);
             }
         }
     }

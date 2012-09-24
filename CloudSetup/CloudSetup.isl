@@ -347,6 +347,7 @@
 		<row><td>BadgeNET.Primary_output</td><td>{F9A20767-A22D-4D83-A21A-B3FA86EDFA95}</td><td>INSTALLDIR</td><td>2</td><td/><td>badgenet.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td>{84489268-EDF1-4D66-9B57-F8AED3BEC035}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapiprivate.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSdkPublic.Primary_output</td><td>{967E051F-636C-4A43-BCCE-FE9EDD2DA5CE}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsdkpublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>CloudSendTo.Primary_output</td><td>{6AA194B5-728C-4238-AC8C-AE7EF0287F60}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsendto.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudUpdater.exe</td><td>{1E65DA1C-18C7-4BB7-AED6-473C7B9753CA}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudupdater.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td>{0D8DF327-F492-416E-9D7A-45516132482A}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.abstractions.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td>{45AB52EC-5E33-4DF5-9D14-F444FA8E02A4}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.implementors.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1938,6 +1939,7 @@
 		<row><td>AlwaysInstall</td><td>BadgeNET.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudApiPrivate.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudSdkPublic.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>CloudSendTo.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudUpdater.exe</td></row>
 		<row><td>AlwaysInstall</td><td>Dialog.Abstractions.Wpf.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>Dialog.Implementors.Wpf.Primary_output</td></row>
@@ -2012,6 +2014,7 @@
 		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\WyUpdater\wyUpdate\client.wyc</td><td>1</td><td/></row>
 		<row><td>cloudapiprivate.primary_outp</td><td>CloudApiPrivate.Primary_output</td><td>CloudApiPrivate.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPrivate&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudsdkpublic.primary_outpu</td><td>CloudSdkPublic.Primary_output</td><td>CloudSdkPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSdkPublic&gt;|Built</td><td>3</td><td/></row>
+		<row><td>cloudsendto.primary_output</td><td>CloudSendTo.Primary_output</td><td>CloudSendTo.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSendTo&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudupdater.exe</td><td>CloudUpdater.exe</td><td>CLOUDU~1.EXE|CloudUpdater.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\CloudUpdater.exe</td><td>1</td><td/></row>
 		<row><td>dialog.abstractions.wpf.prim</td><td>Dialog.Abstractions.Wpf.Primary_output</td><td>Dialog.Abstractions.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Abstractions.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>dialog.implementors.wpf.prim</td><td>Dialog.Implementors.Wpf.Primary_output</td><td>Dialog.Implementors.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Implementors.Wpf&gt;|Built</td><td>3</td><td/></row>
@@ -2323,6 +2326,7 @@
 		<row><td>BadgeNET.Primary_output</td><td/><td/><td>_68A1F3C3_1D5C_4F81_B265_5C456D2987FE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td/><td/><td>_6027BBEB_0CBE_4E7D_B0B7_579A78009BD1_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSdkPublic.Primary_output</td><td/><td/><td>_2D07A2D1_ED2E_4198_8D5D_80C0A5671F51_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>CloudSendTo.Primary_output</td><td/><td/><td>_8C137BC7_C97F_4636_A1F0_1A2ADCBC28A8_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudUpdater.exe</td><td/><td/><td>_9D933A0F_642B_465A_8E23_986B9BFB96A9_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td/><td/><td>_20049C24_C097_4693_B36E_AE931F83388C_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td/><td/><td>_03BAA0A3_E5E9_4BAE_A8DC_7916EB10CC2F_FILTER</td><td/><td/><td/><td/></row>
@@ -2692,6 +2696,7 @@
 		<row><td>BadgeNET</td><td>BadgeNET\BadgeNET.csproj</td><td/><td>2</td></row>
 		<row><td>CloudApiPrivate</td><td>CloudApiPrivate\CloudApiPrivate.csproj</td><td/><td>2</td></row>
 		<row><td>CloudSdkPublic</td><td>CloudApiPublic\CloudSdkPublic.csproj</td><td/><td>2</td></row>
+		<row><td>CloudSendTo</td><td>CloudSendTo\CloudSendTo.csproj</td><td/><td>2</td></row>
 		<row><td>CommonFilesFolder</td><td/><td/><td>1</td></row>
 		<row><td>Dialog.Abstractions.Wpf</td><td>Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj</td><td/><td>2</td></row>
 		<row><td>Dialog.Implementors.Wpf</td><td>Dialog.Implementors.Wpf\Dialog.Implementors.Wpf.csproj</td><td/><td>2</td></row>
@@ -4926,7 +4931,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISComments</col>
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
-		<row><td>NewShortcut1</td><td>SendToFolder</td><td>##ID_STRING8##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[INSTALLDIR]CloudCopy.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut1</td><td>SendToFolder</td><td>##ID_STRING8##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[INSTALLDIR]CloudSendTo.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut2</td><td>cloud</td><td>##ID_STRING9##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[INSTALLDIR]ShowCloudFolder.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>UNINST_Uninstall_Cloud</td><td>cloud</td><td>UNINST|Uninstall Cloud</td><td>NewComponent1</td><td>[SystemFolder]msiexec.exe</td><td>/x {5BEB6668-C562-480D-ADAB-BDCCC7A9CD02}</td><td/><td/><td>UNINST_Uninstall_C_13DC8BF1E345480593F92A818D2CADC9.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
