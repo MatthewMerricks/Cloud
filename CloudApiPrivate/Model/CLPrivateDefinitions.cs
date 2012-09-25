@@ -22,8 +22,8 @@ namespace CloudApiPrivate.Model
         public const string CloudFolderShortcutFilename = "Show Cloud folder";
         public const string CloudIndexDatabaseLocation = "\\Cloud\\IndexDB.sdf";
         public const string CloudFolderInProgramFiles = "\\Cloud.com\\Cloud";
-        public const string CloudSupportFolderInProgramFiles = "\\CloudSupport";
         public const string ShowCloudFolderProgramFilenameOnly = "ShowCloudFolder";
+        public const string CloudFolderInProgramFilesCommon = "\\Cloud.com\\Cloud";
 
 
         // General constants

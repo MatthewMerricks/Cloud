@@ -61,7 +61,7 @@ namespace CloudSendTo
 
             SafeFileHandle clientPipeHandle = null;
 	        int createRetryCount = 3;
-            string cloudExeFile = CLShortcuts.GetProgramFilesFolderPathForBitness() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe";
+            string cloudExeFile = CLShortcuts.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe";
 	
 	        try
 	        {

@@ -6,9 +6,10 @@
    '  Copyright (c) Cloud.com. All rights reserved.
    '
 
-   ' Parameter: The program files path for this platform.  e.g., C:\Program Files (x86)
+   ' Parameter: The program files path for the 32-bit files.  e.g., C:\Program Files (x86) for 64-bit platform.
+   ' Parameter: The program files path for the 64-bit files.  e.g., C:\Program Files for 64-bit platform.
    ' Parameter: The Explorer.exe path.  e.g., c:\Windows
-   ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:5 //Nologo "<path to this CloudClean.vbs file>" "C:\Program Files (x86)" "c:\Windows"
+   ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:5 //Nologo "<path to this CloudClean.vbs file>" "C:\Program Files (x86)" "c:\Program Files" "c:\Windows"
    
    Option Explicit
 
@@ -97,41 +98,54 @@
          WriteLog("CloudClean: Constructor entry.")
          ' Don't run if we don't have the necessary parameters
          WriteLog("CloudClean: Arg count: " & wscript.Arguments.Count)
-         If wscript.Arguments.Count < 2 Then
+         If wscript.Arguments.Count < 3 Then
             WriteLog("CloudClean: ERROR: Wrong arguments.")
             Exit Sub
          End If
 
          ' Allocate the objects we will need
-         Dim sProgramFilesDirPath
-         Dim sProgramFilesCloudDirPath
-         Dim sProgramFilesCloudComDirPath
-         Dim sProgramFilesCloudSupportDirPath
+         Dim sProgramFilesPath
+         Dim sProgramFilesAlternatePath
+         Dim sProgramFilesCloudPath
+         Dim sProgramFilesCloudComPath
+		 Dim sCommonFilesCloudPath
+		 Dim sCommonFilesCloudComPath
+		 Dim sCommonFilesCloudAlternatePath
+		 Dim sCommonFilesCloudComAlternatePath
          Dim sTempFolderPath
-         Dim folderSupport
-         Dim folderSupportFiles
+         Dim folderCommon
+         Dim folderCommonFiles
          Dim folderCloud
          Dim folderCloudFiles
          Dim folderCloudCom
          Dim folderCloudComFiles
-         Dim objFSO
-         Dim objMOS
          Dim i
+		 Dim weAreDone
 
          ' Determine the program files directory to use
-         sExplorerPath = wscript.Arguments(1)
-         sProgramFilesDirPath = wscript.Arguments(0)
-         sProgramFilesCloudDirPath = sProgramFilesDirPath & "\Cloud.com\Cloud"
-         sProgramFilesCloudComDirPath = sProgramFilesDirPath & "\Cloud.com"
-         sProgramFilesCloudSupportDirPath = sProgramFilesCloudDirPath & "\CloudSupport"
+         sProgramFilesPath = wscript.Arguments(0)
+		 sProgramFilesAlternatePath = wscript.Arguments(1)
+         sExplorerPath = wscript.Arguments(2)
+         sProgramFilesCloudPath = sProgramFilesPath & "\Cloud.com\Cloud"
+         sProgramFilesCloudComPath = sProgramFilesPath & "\Cloud.com"
+		 sCommonFilesCloudPath = sProgramFilesPath + "\Common Files\Cloud.com\Cloud"
+		 sCommonFilesCloudComPath = sProgramFilesPath + "\Common Files\Cloud.com"
+		 sCommonFilesCloudAlternatePath = sProgramFilesAlternatePath + "\Common Files\Cloud.com\Cloud"
+		 sCommonFilesCloudComAlternatePath = sProgramFilesAlternatePath + "\Common Files\Cloud.com"
+
          ' Get the user's temp directory path
          sTempFolderPath = filesys.GetSpecialFolder(2)
 
          WriteLog "CloudClean: Explorer path:" & sExplorerPath
-         WriteLog "CloudClean: sProgramFilesDirPath: " & sProgramFilesDirPath
-         WriteLog "CloudClean: sProgramFilesCloudDirPath: " & sProgramFilesCloudDirPath
-         WriteLog "CloudClean: sProgramFilesCloudComDirPath: " & sProgramFilesCloudComDirPath
-         WriteLog "CloudClean: sProgramFilesCloudSupportDirPath: " & sProgramFilesCloudSupportDirPath
+         WriteLog "CloudClean: sProgramFilesPath: " & sProgramFilesPath
+         WriteLog "CloudClean: sProgramFilesAlternatePath: " & sProgramFilesAlternatePath
+         WriteLog "CloudClean: sProgramFilesCloudPath: " & sProgramFilesCloudPath
+         WriteLog "CloudClean: sProgramFilesCloudComPath: " & sProgramFilesCloudComPath
+		 Writelog "CloudClean: sCommonFilesCloudPath: " & sCommonFilesCloudPath
+		 Writelog "CloudClean: sCommonFilesCloudComPath: " & sCommonFilesCloudComPath
+		 Writelog "CloudClean: sCommonFilesCloudAlternatePath: " & sCommonFilesCloudAlternatePath
+		 Writelog "CloudClean: sCommonFilesCloudComAlternatePath: " & sCommonFilesCloudComAlternatePath
+
          WriteLog "CloudClean: sTempFolderPath: " & sTempFolderPath
 
          ' Loop trying to complete normally
@@ -158,78 +172,146 @@
               WriteLog "CloudClean: Explorer exited."
             End If
 
-
-            ' Delete BadgeCom.dll if it is present.
-            If filesys.FileExists(sProgramFilesCloudSupportDirPath & "\BadgeCom.dll") Then
-               WriteLog "CloudClean: Delete file: " & sProgramFilesCloudSupportDirPath & "\BadgeCom.dll"
-               filesys.DeleteFile sProgramFilesCloudSupportDirPath & "\BadgeCom.dll", True
+            ' Delete the alternate BadgeCom.dll if it is present.
+            If filesys.FileExists(sCommonFilesCloudAlternatePath & "\BadgeCom.dll") Then
+               WriteLog "CloudClean: Delete file: " & sCommonFilesCloudAlternatePath & "\BadgeCom.dll"
+               filesys.DeleteFile sCommonFilesCloudAlternatePath & "\BadgeCom.dll", True
             End If
             
             ' Deleting folders will fail if it is our current directory.  Change to the user's Temp directory to avoid this problem.
             WriteLog "CloudClean: Change to the temp directory: " & sTempFolderPath
             objShell.CurrentDirectory = sTempFolderPath
 
-            ' Attempt to delete all files in CloudSupport
-            WriteLog "CloudClean: Does CloudSupport folder exist?"
-            If filesys.FolderExists(sProgramFilesCloudSupportDirPath & "\") Then
-               WriteLog "CloudClean: Check for files in CloudSupport folder."
-               set folderSupport = filesys.GetFolder(sProgramFilesCloudSupportDirPath & "\")
-               Set folderSupportFiles = folderSupport.Files
-               If folderSupportFiles.Count > 0 Then
-                  WriteLog "CloudClean: Delete all files in : " & sProgramFilesCloudSupportDirPath
-                  filesys.DeleteFile sProgramFilesCloudSupportDirPath & "\*.*", True
+            ' Attempt to delete all files in the Common Files Cloud folder
+            WriteLog "CloudClean: Does Common Files folder exist?"
+            If filesys.FolderExists(sCommonFilesCloudPath & "\") Then
+               WriteLog "CloudClean: Check for files in Common Files folder."
+               set folderCommon = filesys.GetFolder(sCommonFilesCloudPath & "\")
+               Set folderCommonFiles = folderCommon.Files
+               If folderCommonFiles.Count > 0 Then
+                  WriteLog "CloudClean: Delete all files in : " & sCommonFilesCloudPath
+                  filesys.DeleteFile sCommonFilesCloudPath & "\*.*", True
                End If
             End If
 
-            ' If the CloudSupport directory is empty now, delete the directory itself
-            WriteLog "CloudClean: Does CloudSupport folder exist? (2)."
-            If filesys.FolderExists(sProgramFilesCloudSupportDirPath & "\") Then
-               WriteLog "CloudClean: Check for files in CloudSupport folder (2)."
-               set folderSupport = filesys.GetFolder(sProgramFilesCloudSupportDirPath & "\")
-               Set folderSupportFiles = folderSupport.Files
-               If folderSupportFiles.Count = 0 Then
-                  WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudSupportDirPath & "\"
-                  filesys.DeleteFolder sProgramFilesCloudSupportDirPath, True
+            ' If the Common Files Cloud directory is empty now, delete the directory itself
+            WriteLog "CloudClean: Does Common Files Cloud folder exist? (2)."
+            If filesys.FolderExists(sCommonFilesCloudPath & "\") Then
+               WriteLog "CloudClean: Check for files in Common Files folder (2)."
+               set folderCommon = filesys.GetFolder(sCommonFilesCloudPath & "\")
+               Set folderCommonFiles = folderCommon.Files
+               If folderCommonFiles.Count = 0 Then
+                  WriteLog "CloudClean: Delete folder: " & sCommonFilesCloudPath & "\"
+                  filesys.DeleteFolder sCommonFilesCloudPath, True
                End If
             End If 
 
-            ' Delete the trace.log file
+            ' If the Common Files Cloud.com directory is empty now, delete the directory itself
+            WriteLog "CloudClean: Does Common Files Cloud.com folder exist? (2)."
+            If filesys.FolderExists(sCommonFilesCloudComPath & "\") Then
+               WriteLog "CloudClean: Check for files in Common Files Cloud.com folder (2)."
+               set folderCommon = filesys.GetFolder(sCommonFilesCloudComPath & "\")
+               Set folderCommonFiles = folderCommon.Files
+               If folderCommonFiles.Count = 0 Then
+                  WriteLog "CloudClean: Delete folder: " & sCommonFilesCloudComPath & "\"
+                  filesys.DeleteFolder sCommonFilesCloudComPath, True
+               End If
+            End If 
+
+			' Now delete everything in the alternate common directory
+            ' Attempt to delete all files in the alternate Common Files Cloud folder
+            WriteLog "CloudClean: Does Common Files folder exist?"
+            If filesys.FolderExists(sCommonFilesCloudAlternatePath & "\") Then
+               WriteLog "CloudClean: Check for files in alternate Common Files folder."
+               set folderCommon = filesys.GetFolder(sCommonFilesCloudAlternatePath & "\")
+               Set folderCommonFiles = folderCommon.Files
+               If folderCommonFiles.Count > 0 Then
+                  WriteLog "CloudClean: Delete all files in : " & sCommonFilesCloudAlternatePath
+                  filesys.DeleteFile sCommonFilesCloudAlternatePath & "\*.*", True
+               End If
+            End If
+
+            ' If the alternate Common Files Cloud directory is empty now, delete the directory itself
+            WriteLog "CloudClean: Does the alternate Common Files folder exist? (2)."
+            If filesys.FolderExists(sCommonFilesCloudAlternatePath & "\") Then
+               WriteLog "CloudClean: Check for files in the alternate Common Files folder (2)."
+               set folderCommon = filesys.GetFolder(sCommonFilesCloudAlternatePath & "\")
+               Set folderCommonFiles = folderCommon.Files
+               If folderCommonFiles.Count = 0 Then
+                  WriteLog "CloudClean: Delete folder: " & sCommonFilesCloudAlternatePath & "\"
+                  filesys.DeleteFolder sCommonFilesCloudAlternatePath, True
+               End If
+            End If 
+
+            ' If the alternate Common Files Cloud.com directory is empty now, delete the directory itself
+            WriteLog "CloudClean: Does the alternate Common Files Cloud.com folder exist? (2)."
+            If filesys.FolderExists(sCommonFilesCloudComAlternatePath & "\") Then
+               WriteLog "CloudClean: Check for files in the alternate Common Files Cloud.com folder (2)."
+               set folderCommon = filesys.GetFolder(sCommonFilesCloudComAlternatePath & "\")
+               Set folderCommonFiles = folderCommon.Files
+               If folderCommonFiles.Count = 0 Then
+                  WriteLog "CloudClean: Delete folder: " & sCommonFilesCloudComAlternatePath & "\"
+                  filesys.DeleteFolder sCommonFilesCloudComAlternatePath, True
+               End If
+            End If 
+
+            ' Delete the trace.log file in the Program Files Cloud directory
             WriteLog "CloudClean: Check for Trace.log file."
-            If filesys.FileExists(sProgramFilesCloudDirPath + "\trace.log") Then
-               WriteLog "CloudClean: Delete file: " & sProgramFilesCloudDirPath & "\trace.log"
-               filesys.DeleteFile sProgramFilesCloudDirPath + "\trace.log", True
+            If filesys.FileExists(sProgramFilesCloudPath + "\trace.log") Then
+               WriteLog "CloudClean: Delete file: " & sProgramFilesCloudPath & "\trace.log"
+               filesys.DeleteFile sProgramFilesCloudPath + "\trace.log", True
             End If
 
             ' If the Cloud directory is empty
             WriteLog "CloudClean: Does Cloud directory exist?"
-            If filesys.FolderExists(sProgramFilesCloudDirPath & "\") Then
+            If filesys.FolderExists(sProgramFilesCloudPath & "\") Then
                WriteLog "CloudClean: Check for files in the Cloud directory."
-               set folderCloud = filesys.GetFolder(sProgramFilesCloudDirPath & "\")
+               set folderCloud = filesys.GetFolder(sProgramFilesCloudPath & "\")
                Set folderCloudFiles = folderCloud.Files
                If folderCloudFiles.Count = 0 Then
-                  WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudDirPath & "\"
-                  filesys.DeleteFolder sProgramFilesCloudDirPath, True
+                  WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudPath & "\"
+                  filesys.DeleteFolder sProgramFilesCloudPath, True
                End If
             End If
 
             ' If the Cloud.Com directory is empty
             WriteLog "CloudClean: Does Cloud.com directory exist?"
-            If filesys.FolderExists(sProgramFilesCloudComDirPath & "\") Then
+            If filesys.FolderExists(sProgramFilesCloudComPath & "\") Then
                WriteLog "CloudClean: Check for files in the Cloud.com directory."
-               set folderCloudCom = filesys.GetFolder(sProgramFilesCloudComDirPath & "\")
+               set folderCloudCom = filesys.GetFolder(sProgramFilesCloudComPath & "\")
                Set folderCloudComFiles = folderCloudCom.Files
                If folderCloudComFiles.Count = 0 Then
-                  WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudComDirPath & "\"
-                  filesys.DeleteFolder sProgramFilesCloudComDirPath, True
+                  WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudComPath & "\"
+                  filesys.DeleteFolder sProgramFilesCloudComPath, True
                End If
             End If
 
-            ' If the Cloud.com directory does not exist
-            WriteLog "CloudClean: Does Cloud.com directory exist (2)?"
-            If Not filesys.FolderExists(sProgramFilesCloudComDirPath & "\") Then
-               WriteLog "CloudClean: Exit the loop."
-               Exit For
+            ' Check to see if we were successful at deleting the Program Files Cloud.com directory does not exist
+			weAreDone = true
+            WriteLog "CloudClean: Does Program Files Cloud.com directory exist (2)?"
+            If filesys.FolderExists(sProgramFilesCloudComPath & "\") Then
+               WriteLog "CloudClean: The program files Cloud.com folder still exists: " & sProgramFilesCloudComPath
+			   weAreDone = false
             End If 
+
+            ' Check to see if we were successful at deleting the Common Files Cloud.com directory does not exist
+            WriteLog "CloudClean: Does Common Files Cloud.com directory exist (2)?"
+            If filesys.FolderExists(sCommonFilesCloudComPath & "\") Then
+               WriteLog "CloudClean: The common files Cloud.com folder still exists: " & sCommonFilesCloudComPath
+			   weAreDone = false
+            End If 
+
+            ' Check to see if we were successful at deleting the Alternate Common Files Cloud.com directory does not exist
+            WriteLog "CloudClean: Does Alternate Common Files Cloud.com directory exist (2)?"
+            If filesys.FolderExists(sCommonFilesCloudComAlternatePath & "\") Then
+               WriteLog "CloudClean: The alternate common files Cloud.com folder still exists: " & sCommonFilesCloudComAlternatePath
+			   weAreDone = false
+            End If 
+
+			' Exit the loop if we are done
+			if weAreDone then
+			  Exit For
+			end if
          Next
 
          ' Start Explorer
@@ -239,8 +321,8 @@
          shouldExplorerBeStarted = False
 
          ' Free resources
-         set folderSupport = Nothing
-         Set folderSupportFiles = Nothing
+         set folderCommon = Nothing
+         Set folderCommonFiles = Nothing
          set folderCloud = Nothing
          Set folderCloudFiles = Nothing
          set folderCloudCom = Nothing
