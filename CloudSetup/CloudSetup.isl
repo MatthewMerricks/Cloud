@@ -384,9 +384,9 @@
 		<row><td>System.Windows.Interactivity.dll</td><td>{A183DAD8-B99C-4E2A-8A9C-A5A9184A1389}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.windows.interactivity</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>WPFToolkit.Extended.dll</td><td>{5459704B-7E50-496C-B92F-3623B0F4BAEC}</td><td>INSTALLDIR</td><td>2</td><td/><td>wpftoolkit.extended.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>WebSocket4Net.dll</td><td>{4A24ACD6-31D2-416F-9AD6-76C8093D14D8}</td><td>INSTALLDIR</td><td>2</td><td/><td>websocket4net.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>atl100.dll</td><td>{1094F249-49C3-4E9A-A63D-7BF73D5EB304}</td><td>INSTALLDIR</td><td>2</td><td/><td>atl100.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>msvcp100.dll</td><td>{B38A8478-F946-4AF7-A2C9-E059FD243018}</td><td>INSTALLDIR</td><td>2</td><td/><td>msvcp100.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>msvcr100.dll</td><td>{01BC8504-99E8-4A48-A903-80873F034551}</td><td>INSTALLDIR</td><td>2</td><td/><td>msvcr100.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>atl100.dll2</td><td>{7FCBBACD-8BCD-42D8-B679-7070C3CE7650}</td><td>AMD64</td><td>2</td><td/><td>atl100.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcp100.dll2</td><td>{70F6D14C-FD42-4A16-8CEE-8D51D56B1498}</td><td>AMD64</td><td>2</td><td/><td>msvcp100.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcr100.dll2</td><td>{CFA1D1CE-12DC-4043-8492-CFE1BA1978AC}</td><td>AMD64</td><td>2</td><td/><td>msvcr100.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceca40.dll</td><td>{B6B913E0-DC6A-48CA-8C84-7638653FC16D}</td><td>AMD64</td><td>2</td><td/><td>sqlceca40.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceca40.dll1</td><td>{B9BAFE08-1C42-4B85-913A-071AB758FFB7}</td><td>X86</td><td>2</td><td/><td>sqlceca40.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlcecompact40.dll</td><td>{DF7B362A-1444-4721-8E8B-DFC68A5474C9}</td><td>AMD64</td><td>2</td><td/><td>sqlcecompact40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1982,9 +1982,9 @@
 		<row><td>AlwaysInstall</td><td>System.Windows.Interactivity.dll</td></row>
 		<row><td>AlwaysInstall</td><td>WPFToolkit.Extended.dll</td></row>
 		<row><td>AlwaysInstall</td><td>WebSocket4Net.dll</td></row>
-		<row><td>AlwaysInstall</td><td>atl100.dll</td></row>
-		<row><td>AlwaysInstall</td><td>msvcp100.dll</td></row>
-		<row><td>AlwaysInstall</td><td>msvcr100.dll</td></row>
+		<row><td>AlwaysInstall</td><td>atl100.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>msvcp100.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>msvcr100.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceca40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceca40.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>sqlcecompact40.dll</td></row>
@@ -2012,7 +2012,7 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
-		<row><td>atl100.dll</td><td>atl100.dll</td><td>atl100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\atl100.dll</td><td>1</td><td/></row>
+		<row><td>atl100.dll2</td><td>atl100.dll2</td><td>atl100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\atl100.dll</td><td>1</td><td/></row>
 		<row><td>automaticupdaterwpf.dll</td><td>AutomaticUpdaterWPF.dll</td><td>AUTOMA~1.DLL|AutomaticUpdaterWPF.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\AutomaticUpdaterWPF.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll</td><td>BadgeCOM.dll</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\Release\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x64\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
@@ -2036,8 +2036,8 @@
 		<row><td>microsoft.practices.servicel</td><td>Microsoft.Practices.ServiceLocation.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.Practices.ServiceLocation.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest</td><td>ISX_DEFAULTCOMPONENT4</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest1</td><td>ISX_DEFAULTCOMPONENT5</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
-		<row><td>msvcp100.dll</td><td>msvcp100.dll</td><td>msvcp100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcp100.dll</td><td>1</td><td/></row>
-		<row><td>msvcr100.dll</td><td>msvcr100.dll</td><td>msvcr100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcr100.dll</td><td>1</td><td/></row>
+		<row><td>msvcp100.dll2</td><td>msvcp100.dll2</td><td>msvcp100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcp100.dll</td><td>1</td><td/></row>
+		<row><td>msvcr100.dll2</td><td>msvcr100.dll2</td><td>msvcr100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcr100.dll</td><td>1</td><td/></row>
 		<row><td>newtonsoft.json.dll</td><td>Newtonsoft.Json.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
 		<row><td>ookii.dialogs.wpfminustaskdi</td><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>OOKIID~1.DLL|Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
@@ -2370,9 +2370,9 @@
 		<row><td>System.Windows.Interactivity.dll</td><td/><td/><td>_ED77A1E5_89F5_4D16_92E3_713C0CD15CB2_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>WPFToolkit.Extended.dll</td><td/><td/><td>_963BCA02_BF6A_4A38_8149_5400A0AE986F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>WebSocket4Net.dll</td><td/><td/><td>_12DFD945_CA1A_4110_9D63_E160321DD1DD_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>atl100.dll</td><td/><td/><td>_0DCC8B9B_0B13_4F59_A5E0_D78298D58768_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>msvcp100.dll</td><td/><td/><td>_E164DC66_44FA_40CE_8BB2_7FE418DC4B96_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>msvcr100.dll</td><td/><td/><td>_F8C395B4_5D80_4448_8027_37168A9F3E4C_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>atl100.dll2</td><td/><td/><td>_6389B203_A2EA_4818_B5DA_538784F6845C_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>msvcp100.dll2</td><td/><td/><td>_B518C44B_47B8_4891_8C04_29536B55D80D_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>msvcr100.dll2</td><td/><td/><td>_64AEC124_D68C_4849_83A0_06F55D5A448A_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceca40.dll</td><td/><td/><td>_AAFD70F4_2184_405B_814A_8AEC3E8C1996_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceca40.dll1</td><td/><td/><td>_15B4040A_4EE1_48CB_978F_6C9DE854D437_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlcecompact40.dll</td><td/><td/><td>_4C8059BE_C8A2_4F65_B4F9_931EF0231377_FILTER</td><td/><td/><td/><td/></row>
