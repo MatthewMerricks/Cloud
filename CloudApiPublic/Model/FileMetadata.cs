@@ -168,7 +168,10 @@ namespace CloudApiPublic.Model
             // Now we have 1 bit from IsFolder
             // Bits filled up to bit 1 in first byte of return
 
-            byte[] lastTimeBytes = BitConverter.GetBytes(obj.LastTime.Ticks);
+            // now use fast-moving seconds instead of ticks since we are dropping subseconds in communication
+            long lastTimeTicksToSeconds = obj.LastTime.Ticks / 10000000L; // 10000000 is the number of ticks in a second
+
+            byte[] lastTimeBytes = BitConverter.GetBytes(lastTimeTicksToSeconds);
             // Take 7 bits from last byte of LastTime by bitwise and of binary 01111111
             // Shift those 7 bits left by 1 and bitwise or it to the first return byte
             returnBytes[0] |= (byte)((lastTimeBytes[BitConverter.IsLittleEndian ? 0 : 7] & 0x7F) << 1);
@@ -188,7 +191,10 @@ namespace CloudApiPublic.Model
             // Now we have 10 bits from LastTime
             // Bits filled up to bit 3 in second byte of return
 
-            byte[] creationTimeBytes = BitConverter.GetBytes(obj.CreationTime.Ticks);
+            // now use fast-moving seconds instead of ticks since we are dropping subseconds in communication
+            long creationTimeTicksToSeconds = obj.CreationTime.Ticks / 10000000L; // 10000000 is the number of ticks in a second
+
+            byte[] creationTimeBytes = BitConverter.GetBytes(creationTimeTicksToSeconds);
             // Take 5 bits from last byte of CreationType by bitwise and of binary 00011111
             // Shift those bits left by 3 and bitwise or it to the second return byte
             returnBytes[1] |= (byte)((creationTimeBytes[BitConverter.IsLittleEndian ? 0 : 7] & 0x1F) << 3);

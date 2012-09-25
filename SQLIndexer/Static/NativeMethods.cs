@@ -5,9 +5,10 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using Microsoft.Win32.SafeHandles;
+using SQLIndexer.Model;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -16,7 +17,9 @@ namespace SQLIndexer.Static
 {
     internal static class NativeMethods
     {
+        #region find file
         public const int MAX_PATH = 260;
+        public const uint MaxDWORD = 4294967295;
 
         /// <summary>
         /// Win32 FILETIME structure.  The win32 documentation says this:
@@ -67,6 +70,44 @@ namespace SQLIndexer.Static
         [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern SafeSearchHandle FindFirstFile(string lpFileName, out WIN32_FIND_DATA lpFindData);
 
+        #region find first file extended
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern SafeSearchHandle FindFirstFileEx(
+            string lpFileName,
+            FINDEX_INFO_LEVELS fInfoLevelId,
+            out WIN32_FIND_DATA lpFindFileData,
+            FINDEX_SEARCH_OPS fSearchOp,
+            IntPtr lpSearchFilter,
+            FINDEX_ADDITIONAL_FLAGS dwAdditionalFlags);
+
+        public enum FINDEX_INFO_LEVELS : int
+        {
+            FindExInfoStandard = 0,
+            /// <summary>
+            /// Not supported until Windows 7
+            /// </summary>
+            FindExInfoBasic = 1
+        }
+
+        public enum FINDEX_SEARCH_OPS : int
+        {
+            FindExSearchNameMatch = 0,
+            FindExSearchLimitToDirectories = 1,
+            /// <summary>
+            /// Not supported anywhere
+            /// </summary>
+            FindExSearchLimitToDevices = 2
+        }
+
+        [Flags]
+        public enum FINDEX_ADDITIONAL_FLAGS : int
+        {
+            None = 0x00,
+            FIND_FIRST_EX_CASE_SENSITIVE = 0x01,
+            FIND_FIRST_EX_LARGE_FETCH = 0x02
+        }
+        #endregion
+
         /// <summary>
         /// Continues a file search from a previous call to the FindFirstFile or FindFirstFileEx function.
         /// </summary>
@@ -93,19 +134,6 @@ namespace SQLIndexer.Static
         /// <see cref="http://msdn.microsoft.com/en-us/library/aa364413%28VS.85%29.aspx"/>
         [DllImport("kernel32", SetLastError = true)]
         public static extern bool FindClose(IntPtr hFindFile);
-
-        /// <summary>
-        /// Class to encapsulate a seach handle returned from FindFirstFile.  Using a wrapper
-        /// like this ensures that the handle is properly cleaned up with FindClose.
-        /// </summary>
-        public class SafeSearchHandle : SafeHandleZeroOrMinusOneIsInvalid
-        {
-            public SafeSearchHandle() : base(true) { }
-
-            protected override bool ReleaseHandle()
-            {
-                return FindClose(base.handle);
-            }
-        }
+        #endregion
     }
 }

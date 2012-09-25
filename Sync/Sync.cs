@@ -21,6 +21,8 @@ using CloudApiPublic.Support;
 using FileMonitor;
 using BadgeNET;
 using System.Threading;
+using System.Security.Cryptography;
+using Sync.Static;
 
 namespace Sync
 {
@@ -54,15 +56,15 @@ namespace Sync
             }
         }
         private static ProcessingQueuesTimer _failureTimer = null;
-        private static object failureTimerLocker = new object();
+        private static readonly object failureTimerLocker = new object();
 
         // private queue for failures;
         // lock on failureTimer.TimerRunningLocker for all access
-        private static Queue<FileChange> FailedChangesQueue = new Queue<FileChange>();
+        private static readonly Queue<FileChange> FailedChangesQueue = new Queue<FileChange>();
 
         private static bool TempDownloadsCleaned = false;
-        private static object TempDownloadsCleanedLocker = new object();
-        private static HashSet<Guid> TempDownloads = new HashSet<Guid>();
+        private static readonly object TempDownloadsCleanedLocker = new object();
+        private static readonly Dictionary<long, List<KeyValuePair<Guid, byte[]>>> TempDownloads = new Dictionary<long, List<KeyValuePair<Guid, byte[]>>>();
         private static string TempDownloadsFolder = null;
 
         private static readonly CancellationTokenSource FullShutdownToken = new CancellationTokenSource();
@@ -315,7 +317,7 @@ namespace Sync
                                 {
                                     // If file name is not queued for download,
                                     // Then it is old and can be deleted
-                                    if (!TempDownloads.Contains(tempGuid))
+                                    if (!TempDownloads.Values.Any(currentTempDownload => currentTempDownload.Any(currentInnerTempDownload => currentInnerTempDownload.Key == tempGuid)))
                                     {
                                         try
                                         {
@@ -359,7 +361,7 @@ namespace Sync
                     {
                         ((KeyValuePair<bool, FileChange>[])initialErrors)[initialErrorIndex] = new KeyValuePair<bool, FileChange>(true, FailedChangesQueue.Dequeue());
                     }
-                    
+
                     if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
                         Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.Value));
@@ -417,49 +419,49 @@ namespace Sync
                 HashSet<long> preprocessedEventIds = new HashSet<long>();
                 // function which reinserts dependencies into topLevelChanges in sorted order and returns true for reprocessing
                 Func<bool> reprocessForDependencies = () =>
+                {
+                    if (thingsThatWereDependenciesToQueue != null)
                     {
-                        if (thingsThatWereDependenciesToQueue != null)
+                        List<FileChange> uploadDependenciesWithoutStreams = new List<FileChange>();
+
+                        foreach (FileChange currentDependency in thingsThatWereDependenciesToQueue)
                         {
-                            List<FileChange> uploadDependenciesWithoutStreams = new List<FileChange>();
-
-                            foreach (FileChange currentDependency in thingsThatWereDependenciesToQueue)
+                            if (currentDependency.EventId == 0)
                             {
-                                if (currentDependency.EventId == 0)
-                                {
-                                    throw new ArgumentException("Cannot communicate FileChange without EventId");
-                                }
-
-                                // these conditions ensure that no file uploads without FileStreams are processed in the current batch
-                                if (currentDependency.Metadata == null
-                                    || currentDependency.Metadata.HashableProperties.IsFolder
-                                    || currentDependency.Type == FileChangeType.Deleted
-                                    || currentDependency.Type == FileChangeType.Renamed
-                                    || currentDependency.Direction == SyncDirection.From)
-                                {
-                                    errorsToQueue.Add(new KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>(new KeyValuePair<bool,FileChange>(true, currentDependency), null));
-                                }
-                                else
-                                {
-                                    uploadDependenciesWithoutStreams.Add(currentDependency);
-                                }
+                                throw new ArgumentException("Cannot communicate FileChange without EventId");
                             }
 
-                            if (Enumerable.SequenceEqual(thingsThatWereDependenciesToQueue, uploadDependenciesWithoutStreams))
+                            // these conditions ensure that no file uploads without FileStreams are processed in the current batch
+                            if (currentDependency.Metadata == null
+                                || currentDependency.Metadata.HashableProperties.IsFolder
+                                || currentDependency.Type == FileChangeType.Deleted
+                                || currentDependency.Type == FileChangeType.Renamed
+                                || currentDependency.Direction == SyncDirection.From)
                             {
-                                return false;
+                                errorsToQueue.Add(new KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>(new KeyValuePair<bool, FileChange>(true, currentDependency), null));
                             }
-
-                            outputChanges = outputChanges
-                                .Except(preprocessedEvents)
-                                .Concat(thingsThatWereDependenciesToQueue
-                                    .Except(uploadDependenciesWithoutStreams)
-                                    .Select(currentDependencyToQueue => new KeyValuePair<FileChange, FileStream>(currentDependencyToQueue, null)));
-
-                            thingsThatWereDependenciesToQueue = uploadDependenciesWithoutStreams;
-                            return true;
+                            else
+                            {
+                                uploadDependenciesWithoutStreams.Add(currentDependency);
+                            }
                         }
-                        return false;
-                    };
+
+                        if (Enumerable.SequenceEqual(thingsThatWereDependenciesToQueue, uploadDependenciesWithoutStreams))
+                        {
+                            return false;
+                        }
+
+                        outputChanges = outputChanges
+                            .Except(preprocessedEvents)
+                            .Concat(thingsThatWereDependenciesToQueue
+                                .Except(uploadDependenciesWithoutStreams)
+                                .Select(currentDependencyToQueue => new KeyValuePair<FileChange, FileStream>(currentDependencyToQueue, null)));
+
+                        thingsThatWereDependenciesToQueue = uploadDependenciesWithoutStreams;
+                        return true;
+                    }
+                    return false;
+                };
 
                 // after each time reprocessForDependencies runs,
                 // outputChanges will then equal all of the FileChanges it used to contain except for FileChanges which were previously preprocessed;
@@ -543,27 +545,27 @@ namespace Sync
                                     KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>> nonNullTask = (KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>)asyncTask;
 
                                     nonNullTask.Value.ContinueWith(completeState =>
+                                    {
+                                        Monitor.Enter(FullShutdownToken);
+                                        try
                                         {
-                                            Monitor.Enter(FullShutdownToken);
-                                            try
+                                            if (FullShutdownToken.Token.IsCancellationRequested)
                                             {
-                                                if (FullShutdownToken.Token.IsCancellationRequested)
-                                                {
-                                                    return;
-                                                }
+                                                return;
                                             }
-                                            finally
-                                            {
-                                                Monitor.Exit(FullShutdownToken);
-                                            }
+                                        }
+                                        finally
+                                        {
+                                            Monitor.Exit(FullShutdownToken);
+                                        }
 
-                                            CLError sqlCompleteError = completeState.Result.Value(completeState.Result.Key);
-                                            if (sqlCompleteError != null)
-                                            {
-                                                sqlCompleteError.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                                            }
+                                        CLError sqlCompleteError = completeState.Result.Value(completeState.Result.Key);
+                                        if (sqlCompleteError != null)
+                                        {
+                                            sqlCompleteError.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                                        }
 
-                                        }, TaskContinuationOptions.NotOnFaulted);
+                                    }, TaskContinuationOptions.NotOnFaulted);
 
                                     lock (FileChange.UpDownEventLocker)
                                     {
@@ -597,7 +599,7 @@ namespace Sync
                     }
                 }
                 while (reprocessForDependencies());
-                
+
                 if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
                     Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
@@ -622,7 +624,7 @@ namespace Sync
 
                 RequeueFailures(new List<KeyValuePair<KeyValuePair<bool, FileChange>, FileStream>>(errorsToRequeue),
                     successfulEventIds, addChangesToProcessingQueue, mergeToSql, toReturn);
-                
+
                 if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
                     Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.Key.Value));
@@ -666,7 +668,7 @@ namespace Sync
                 else
                 {
                     syncStatus = "Sync Run communication complete";
-                    
+
                     if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
                         Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.Value));
@@ -739,7 +741,7 @@ namespace Sync
                         {
                             dequeuedFailures[currentQueueIndex] = FailedChangesQueue.Dequeue();
                         }
-                        
+
                         if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
                             Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
@@ -802,7 +804,7 @@ namespace Sync
                                         outputChanges = outputChanges.Where(outputChange => !thingsThatWereDependenciesToQueue.Contains(outputChange.Key));
                                     }
                                 }
-                                
+
                                 if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                 {
                                     Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.Key));
@@ -968,16 +970,16 @@ namespace Sync
                         try
                         {
                             asyncTask.Value.Value.ContinueWith(eventCompletion =>
+                            {
+                                if (!eventCompletion.IsFaulted)
                                 {
-                                    if (!eventCompletion.IsFaulted)
+                                    CLError sqlCompleteError = eventCompletion.Result.Value(eventCompletion.Result.Key);
+                                    if (sqlCompleteError != null)
                                     {
-                                        CLError sqlCompleteError = eventCompletion.Result.Value(eventCompletion.Result.Key);
-                                        if (sqlCompleteError != null)
-                                        {
-                                            sqlCompleteError.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                                        }
+                                        sqlCompleteError.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
                                     }
-                                });
+                                }
+                            });
 
                             lock (FileChange.UpDownEventLocker)
                             {
@@ -1236,12 +1238,56 @@ namespace Sync
                         && (toComplete.Key.Type == FileChangeType.Created
                             || toComplete.Key.Type == FileChangeType.Modified))
                     {
-                        immediateSuccessEventId = null;
-                        asyncTask = new KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>(SyncDirection.From,
-                            new Task<KeyValuePair<long, Func<long, CLError>>>(downloadState =>
+                        bool fileMatches = false;
+
+                        byte[] toCompleteBytes = null;
+                        if (toComplete.Key.GetMD5Bytes(out toCompleteBytes) == null)
+                        {
+                            try
+                            {
+                                string toCompletePath = toComplete.Key.NewPath.ToString();
+                                FileInfo existingInfo = new FileInfo(toCompletePath);
+                                if (existingInfo.Exists
+                                    && existingInfo.Length == (toComplete.Key.Metadata.HashableProperties.Size ?? -1))
+                                {
+                                    using (FileStream existingStream = new FileStream(toCompletePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                    {
+                                        MD5 md5Hasher = MD5.Create();
+
+                                        byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                                        int fileReadBytes;
+
+                                        while ((fileReadBytes = existingStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                                        {
+                                            md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                        }
+
+                                        md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+
+                                        fileMatches = NativeMethods.memcmp(toCompleteBytes, md5Hasher.Hash, new UIntPtr((uint)toCompleteBytes.Length)) == 0;
+                                    }
+                                }
+                            }
+                            catch
+                            {
+                            }
+                        }
+
+                        if (fileMatches)
+                        {
+                            immediateSuccessEventId = toComplete.Key.EventId;
+                            asyncTask = null;
+                        }
+                        else
+                        {
+                            immediateSuccessEventId = null;
+                            asyncTask = new KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>(SyncDirection.From,
+                                new Task<KeyValuePair<long, Func<long, CLError>>>(downloadState =>
                                 {
                                     ProcessingQueuesTimer storeFailureTimer = null;
                                     FileChange storeFileChange = null;
+                                    Nullable<Guid> newTempFile = null;
+                                    string tempFolderString = null;
                                     Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> stateMergeToSql = null;
                                     try
                                     {
@@ -1265,7 +1311,7 @@ namespace Sync
                                         }
 
                                         stateMergeToSql = castState.mergeToSql;
-                                        
+
                                         // attempt to check these two references first so that the failure can be added to the queue if exceptions occur later:
                                         // the failure timer and the failed FileChange
                                         if (castState.FailureTimer == null)
@@ -1279,14 +1325,12 @@ namespace Sync
                                         }
                                         storeFileChange = castState.FileToDownload;
 
-                                        if (castState.TempDownloads == null)
-                                        {
-                                            throw new NullReferenceException("DownloadTaskState must contain TempDownloads");
-                                        }
                                         if (castState.GetTempFolder == null)
                                         {
                                             throw new NullReferenceException("DownloadTaskState must contain GetTempFolder");
                                         }
+                                        tempFolderString = castState.GetTempFolder();
+
                                         if (castState.ApplySyncFromChange == null)
                                         {
                                             throw new NullReferenceException("DownloadTaskState must contain ApplySyncFromChange");
@@ -1296,6 +1340,39 @@ namespace Sync
                                             throw new NullReferenceException("DownloadTaskState must contain CompleteSingleEvent");
                                         }
 
+                                        string responseBody = null;
+                                        lock (TempDownloads)
+                                        {
+                                            List<KeyValuePair<Guid, byte[]>> tempDownloadsInSize;
+                                            if (TempDownloads.TryGetValue((long)storeFileChange.Metadata.HashableProperties.Size,
+                                                out tempDownloadsInSize))
+                                            {
+                                                foreach (KeyValuePair<Guid, byte[]> currentTempDownload in tempDownloadsInSize)
+                                                {
+                                                    if (NativeMethods.memcmp(castState.MD5, currentTempDownload.Value, new UIntPtr((uint)castState.MD5.Length)) == 0)
+                                                    {
+                                                        newTempFile = currentTempDownload.Key;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (newTempFile != null)
+                                        {
+                                            string newTempFileString = tempFolderString + "\\" + ((Guid)newTempFile).ToString("N");
+
+                                            MoveCompletedDownload(castState.ApplySyncFromChange,
+                                                newTempFileString,
+                                                storeFileChange,
+                                                castState.AddChangesToProcessingQueue,
+                                                ref responseBody,
+                                                castState.FailureTimer,
+                                                (Guid)newTempFile);
+
+                                            return new KeyValuePair<long, Func<long, CLError>>(storeFileChange.EventId, castState.CompleteSingleEvent);
+                                        }
+                                        
                                         string requestBody;
                                         using (MemoryStream ms = new MemoryStream())
                                         {
@@ -1359,7 +1436,6 @@ namespace Sync
 
                                         try
                                         {
-                                            string responseBody = null;
                                             try
                                             {
                                                 if (downloadResponse.StatusCode != HttpStatusCode.OK)
@@ -1387,9 +1463,23 @@ namespace Sync
                                                 {
                                                     responseBody = "---Incomplete file download---";
 
-                                                    Guid newTempFile = Guid.NewGuid();
-                                                    castState.TempDownloads.Add(newTempFile);
-                                                    string newTempFileString = castState.GetTempFolder() + "\\" + newTempFile.ToString("N");
+                                                    newTempFile = Guid.NewGuid();
+                                                    lock (TempDownloads)
+                                                    {
+                                                        if (TempDownloads.ContainsKey((long)storeFileChange.Metadata.HashableProperties.Size))
+                                                        {
+                                                            TempDownloads[(long)storeFileChange.Metadata.HashableProperties.Size].Add(new KeyValuePair<Guid, byte[]>((Guid)newTempFile, castState.MD5));
+                                                        }
+                                                        else
+                                                        {
+                                                            TempDownloads.Add((long)storeFileChange.Metadata.HashableProperties.Size,
+                                                                new List<KeyValuePair<Guid, byte[]>>(new KeyValuePair<Guid, byte[]>[]
+                                                                {
+                                                                    new KeyValuePair<Guid, byte[]>((Guid)newTempFile, castState.MD5)
+                                                                }));
+                                                        }
+                                                    }
+                                                    string newTempFileString = tempFolderString + "\\" + ((Guid)newTempFile).ToString("N");
 
                                                     using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
                                                     {
@@ -1418,75 +1508,19 @@ namespace Sync
                                                         }
                                                     }
 
-                                                    File.SetCreationTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.CreationTime);
-                                                    File.SetLastAccessTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
-                                                    File.SetLastWriteTimeUtc(newTempFileString, toComplete.Key.Metadata.HashableProperties.LastTime);
+                                                    File.SetCreationTimeUtc(newTempFileString, storeFileChange.Metadata.HashableProperties.CreationTime);
+                                                    File.SetLastAccessTimeUtc(newTempFileString, storeFileChange.Metadata.HashableProperties.LastTime);
+                                                    File.SetLastWriteTimeUtc(newTempFileString, storeFileChange.Metadata.HashableProperties.LastTime);
 
-                                                    CLError applyError;
-                                                    lock (FileChange.UpDownEventLocker)
-                                                    {
-                                                        applyError = applySyncFromChange(new FileChange()
-                                                        {
-                                                            Direction = SyncDirection.From,
-                                                            DoNotAddToSQLIndex = true,
-                                                            Metadata = toComplete.Key.Metadata,
-                                                            NewPath = toComplete.Key.NewPath,
-                                                            OldPath = newTempFileString,
-                                                            Type = FileChangeType.Renamed
-                                                        });
-                                                    }
-                                                    if (applyError != null)
-                                                    {
-                                                        try
-                                                        {
-                                                            File.Delete(newTempFileString);
-                                                        }
-                                                        catch (Exception ex)
-                                                        {
-                                                            throw new AggregateException("applySyncFromChange returned error and failed to delete temp download file", new Exception[] { applyError.GrabFirstException(), ex });
-                                                        }
-                                                        throw applyError.GrabFirstException();
-                                                    }
-                                                    else
-                                                    {
-                                                        if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                                                        {
-                                                            Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { storeFileChange });
-                                                        }
+                                                    MoveCompletedDownload(castState.ApplySyncFromChange,
+                                                        newTempFileString,
+                                                        storeFileChange,
+                                                        castState.AddChangesToProcessingQueue,
+                                                        ref responseBody,
+                                                        castState.FailureTimer,
+                                                        (Guid)newTempFile);
 
-                                                        castState.TempDownloads.Remove(newTempFile);
-                                                        responseBody = "---Completed file download---";
-
-                                                        FileChangeWithDependencies toCompleteWithDependencies = toComplete.Key as FileChangeWithDependencies;
-                                                        if (toCompleteWithDependencies != null
-                                                            && toCompleteWithDependencies.DependenciesCount > 0)
-                                                        {
-                                                            GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
-                                                            CLError err = castState.AddChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, true, errList);
-                                                            if (errList.Value != null)
-                                                            {
-                                                                bool atLeastOneFailureAdded = false;
-
-                                                                foreach (FileChange currentError in errList.Value)
-                                                                {
-                                                                    FailedChangesQueue.Enqueue(currentError);
-
-                                                                    atLeastOneFailureAdded = true;
-                                                                }
-
-                                                                if (atLeastOneFailureAdded)
-                                                                {
-                                                                    castState.FailureTimer.StartTimerIfNotRunning();
-                                                                }
-                                                            }
-                                                            if (err != null)
-                                                            {
-                                                                err.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                                                            }
-                                                        }
-
-                                                        return new KeyValuePair<long, Func<long, CLError>>(toComplete.Key.EventId, castState.CompleteSingleEvent);
-                                                    }
+                                                    return new KeyValuePair<long, Func<long, CLError>>(storeFileChange.EventId, castState.CompleteSingleEvent);
                                                 }
                                             }
                                             finally
@@ -1523,37 +1557,71 @@ namespace Sync
                                             Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (storeFileChange == null ? null : new FileChange[] { storeFileChange }));
                                         }
 
-                                        ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, ProcessingQueuesTimer>> wrappedEx = new ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, ProcessingQueuesTimer>>((exceptionState, exceptions) =>
+                                        ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<KeyValuePair<string, Nullable<Guid>>, ProcessingQueuesTimer>>> wrappedEx = new ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<KeyValuePair<string, Nullable<Guid>>, ProcessingQueuesTimer>>>((exceptionState, exceptions) =>
+                                        {
+                                            try
                                             {
-                                                try
+                                                if (exceptionState.Key.Key == null)
                                                 {
-                                                    if (exceptionState.Key.Key == null)
-                                                    {
-                                                        throw new NullReferenceException("exceptionState's FileChange cannot be null");
-                                                    }
-                                                    if (exceptionState.Value == null)
-                                                    {
-                                                        throw new NullReferenceException("exceptionState's ProcessingQueuesTimer cannot be null");
-                                                    }
+                                                    throw new NullReferenceException("exceptionState's FileChange cannot be null");
+                                                }
+                                                if (exceptionState.Value.Value == null)
+                                                {
+                                                    throw new NullReferenceException("exceptionState's ProcessingQueuesTimer cannot be null");
+                                                }
 
-                                                    if (ContinueToRetry(exceptionState.Key.Value, exceptionState.Key.Key, false))
+                                                if (ContinueToRetry(exceptionState.Key.Value, exceptionState.Key.Key, false))
+                                                {
+                                                    lock (exceptionState.Value.Value.TimerRunningLocker)
                                                     {
-                                                        lock (exceptionState.Value.TimerRunningLocker)
+                                                        FailedChangesQueue.Enqueue(exceptionState.Key.Key);
+
+                                                        exceptionState.Value.Value.StartTimerIfNotRunning();
+                                                    }
+                                                }
+                                                // If failed out and no more retries, delete any temp download
+                                                else
+                                                {
+                                                    try
+                                                    {
+                                                        if (exceptionState.Value.Value != null
+                                                            && exceptionState.Key.Key != null
+                                                            && !string.IsNullOrWhiteSpace(exceptionState.Value.Key.Key))
                                                         {
-                                                            FailedChangesQueue.Enqueue(exceptionState.Key.Key);
+                                                            lock (TempDownloads)
+                                                            {
+                                                                List<KeyValuePair<Guid, byte[]>> errorTemp;
+                                                                if (TempDownloads.TryGetValue((long)exceptionState.Key.Key.Metadata.HashableProperties.Size, out errorTemp))
+                                                                {
+                                                                    foreach (KeyValuePair<Guid, byte[]> matchedErrorTemp in errorTemp.Where(currentError => currentError.Key == (Guid)exceptionState.Value.Key.Value))
+                                                                    {
+                                                                        File.Delete(exceptionState.Value.Key.Key + "\\" + ((Guid)newTempFile).ToString("N"));
 
-                                                            exceptionState.Value.StartTimerIfNotRunning();
+                                                                        errorTemp.Remove(matchedErrorTemp);
+                                                                        if (errorTemp.Count == 0)
+                                                                        {
+                                                                            TempDownloads.Remove((long)exceptionState.Key.Key.Metadata.HashableProperties.Size);
+                                                                        }
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
+                                                    catch
+                                                    {
+                                                    }
                                                 }
-                                                catch (Exception innerEx)
-                                                {
-                                                    ((CLError)innerEx).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                                                }
-                                            },
-                                            new KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, ProcessingQueuesTimer>(new KeyValuePair<FileChange,Func<IEnumerable<KeyValuePair<FileChange,FileChange>>,bool,CLError>>(toComplete.Key,
+                                            }
+                                            catch (Exception innerEx)
+                                            {
+                                                ((CLError)innerEx).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                                            }
+                                        },
+                                            new KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<KeyValuePair<string, Nullable<Guid>>, ProcessingQueuesTimer>>(new KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>(storeFileChange,
                                                     stateMergeToSql),
-                                                storeFailureTimer),
+                                                new KeyValuePair<KeyValuePair<string,Guid?>,ProcessingQueuesTimer>(new KeyValuePair<string,Guid?>(tempFolderString, newTempFile),
+                                                    storeFailureTimer)),
                                             "Error in download Task, see inner exception",
                                             ex);
                                         throw wrappedEx;
@@ -1569,17 +1637,18 @@ namespace Sync
                                         }
                                     }
                                 },
-                            new DownloadTaskState()
-                            {
-                                FileToDownload = toComplete.Key,
-                                TempDownloads = TempDownloads,
-                                GetTempFolder = () => TempDownloadsFolder,
-                                ApplySyncFromChange = applySyncFromChange,
-                                CompleteSingleEvent = completeSingleEvent,
-                                FailureTimer = failureTimer,
-                                AddChangesToProcessingQueue = AddChangesToProcessingQueue,
-                                mergeToSql = mergeToSql
-                            }));
+                                new DownloadTaskState()
+                                {
+                                    FileToDownload = toComplete.Key,
+                                    MD5 = toCompleteBytes,
+                                    GetTempFolder = () => TempDownloadsFolder,
+                                    ApplySyncFromChange = applySyncFromChange,
+                                    CompleteSingleEvent = completeSingleEvent,
+                                    FailureTimer = failureTimer,
+                                    AddChangesToProcessingQueue = AddChangesToProcessingQueue,
+                                    mergeToSql = mergeToSql
+                                }));
+                        }
                     }
                     else
                     {
@@ -1871,46 +1940,46 @@ namespace Sync
                             catch (Exception ex)
                             {
                                 ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<ProcessingQueuesTimer, FileStream>>> wrappedEx = new ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<ProcessingQueuesTimer, FileStream>>>((exceptionState, exceptions) =>
+                                {
+                                    try
                                     {
-                                        try
+                                        if (exceptionState.Value.Value != null)
                                         {
-                                            if (exceptionState.Value.Value != null)
+                                            try
                                             {
-                                                try
-                                                {
-                                                    exceptionState.Value.Value.Dispose();
-                                                }
-                                                catch
-                                                {
-                                                }
+                                                exceptionState.Value.Value.Dispose();
                                             }
-                                            if (exceptionState.Key.Key == null)
+                                            catch
                                             {
-                                                throw new NullReferenceException("exceptionState's FileChange cannot be null");
-                                            }
-                                            if (exceptionState.Value.Key == null)
-                                            {
-                                                throw new NullReferenceException("exceptionState's ProcessingQueuesTimer cannot be null");
-                                            }
-
-                                            if (ContinueToRetry(exceptionState.Key.Value, exceptionState.Key.Key, false))
-                                            {
-                                                lock (exceptionState.Value.Key.TimerRunningLocker)
-                                                {
-                                                    FailedChangesQueue.Enqueue(exceptionState.Key.Key);
-
-                                                    exceptionState.Value.Key.StartTimerIfNotRunning();
-                                                }
                                             }
                                         }
-                                        catch (Exception innerEx)
+                                        if (exceptionState.Key.Key == null)
                                         {
-                                            ((CLError)innerEx).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                                            throw new NullReferenceException("exceptionState's FileChange cannot be null");
                                         }
-                                    },
-                                    new KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<ProcessingQueuesTimer, FileStream>>(new KeyValuePair<FileChange,Func<IEnumerable<KeyValuePair<FileChange,FileChange>>,bool,CLError>>(toComplete.Key,
+                                        if (exceptionState.Value.Key == null)
+                                        {
+                                            throw new NullReferenceException("exceptionState's ProcessingQueuesTimer cannot be null");
+                                        }
+
+                                        if (ContinueToRetry(exceptionState.Key.Value, exceptionState.Key.Key, false))
+                                        {
+                                            lock (exceptionState.Value.Key.TimerRunningLocker)
+                                            {
+                                                FailedChangesQueue.Enqueue(exceptionState.Key.Key);
+
+                                                exceptionState.Value.Key.StartTimerIfNotRunning();
+                                            }
+                                        }
+                                    }
+                                    catch (Exception innerEx)
+                                    {
+                                        ((CLError)innerEx).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                                    }
+                                },
+                                    new KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<ProcessingQueuesTimer, FileStream>>(new KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>(toComplete.Key,
                                             stateMergeToSql),
-                                        new KeyValuePair<ProcessingQueuesTimer,FileStream>(storeFailureTimer, storeFileStream)),
+                                        new KeyValuePair<ProcessingQueuesTimer, FileStream>(storeFailureTimer, storeFileStream)),
                                     "Error in upload Task, see inner exception",
                                     ex);
                                 throw wrappedEx;
@@ -1948,7 +2017,7 @@ namespace Sync
         private class DownloadTaskState
         {
             public FileChange FileToDownload { get; set; }
-            public HashSet<Guid> TempDownloads { get; set; }
+            public byte[] MD5 { get; set; }
             public Func<string> GetTempFolder { get; set; }
             public Func<FileChange, CLError> ApplySyncFromChange { get; set; }
             public Func<long, CLError> CompleteSingleEvent { get; set; }
@@ -1964,6 +2033,93 @@ namespace Sync
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue { get; set; }
             public Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql { get; set; }
+        }
+
+        private static void MoveCompletedDownload(Func<FileChange, CLError> applySyncFromChange,
+            string newTempFileString,
+            FileChange completedDownload,
+            Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> addChangesToProcessingQueue,
+            ref string responseBody,
+            ProcessingQueuesTimer failureTimer,
+            Guid newTempFile)
+        {
+            CLError applyError;
+            lock (FileChange.UpDownEventLocker)
+            {
+                applyError = applySyncFromChange(new FileChange()
+                {
+                    Direction = SyncDirection.From,
+                    DoNotAddToSQLIndex = true,
+                    Metadata = completedDownload.Metadata,
+                    NewPath = completedDownload.NewPath,
+                    OldPath = newTempFileString,
+                    Type = FileChangeType.Renamed
+                });
+            }
+            if (applyError != null)
+            {
+                throw applyError.GrabFirstException();
+            }
+            else
+            {
+                if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                {
+                    Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
+                }
+
+                lock (TempDownloads)
+                {
+                    List<KeyValuePair<Guid, byte[]>> foundSize;
+                    if (TempDownloads.TryGetValue((long)completedDownload.Metadata.HashableProperties.Size, out foundSize))
+                    {
+                        foreach (KeyValuePair<Guid, byte[]> tempDownloadsInSize in foundSize.ToArray())
+                        {
+                            if (tempDownloadsInSize.Key == newTempFile)
+                            {
+                                foundSize.Remove(tempDownloadsInSize);
+                                break;
+                            }
+                        }
+
+                        if (foundSize.Count == 0)
+                        {
+                            TempDownloads.Remove((long)completedDownload.Metadata.HashableProperties.Size);
+                        }
+                    }
+                }
+                responseBody = "---Completed file download---";
+
+                FileChangeWithDependencies toCompleteWithDependencies = completedDownload as FileChangeWithDependencies;
+                if (toCompleteWithDependencies != null
+                    && toCompleteWithDependencies.DependenciesCount > 0)
+                {
+                    GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
+                    CLError err = addChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, true, errList);
+                    if (errList.Value != null)
+                    {
+                        bool atLeastOneFailureAdded = false;
+
+                        lock (failureTimer)
+                        {
+                            foreach (FileChange currentError in errList.Value)
+                            {
+                                FailedChangesQueue.Enqueue(currentError);
+
+                                atLeastOneFailureAdded = true;
+                            }
+
+                            if (atLeastOneFailureAdded)
+                            {
+                                failureTimer.StartTimerIfNotRunning();
+                            }
+                        }
+                    }
+                    if (err != null)
+                    {
+                        err.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                    }
+                }
+            }
         }
 
         private static Exception CommunicateWithServer(IEnumerable<KeyValuePair<FileChange, FileStream>> toCommunicate,
@@ -1999,7 +2155,7 @@ namespace Sync
                 }
 
                 KeyValuePair<FileChange, FileStream>[] communicationArray = (toCommunicate ?? Enumerable.Empty<KeyValuePair<FileChange, FileStream>>()).ToArray();
-                
+
                 FilePathDictionary<FileChange> failuresDict = null;
                 Func<FilePathDictionary<FileChange>> getFailuresDict = () =>
                 {
@@ -2024,26 +2180,26 @@ namespace Sync
 
                 FilePathDictionary<FileChange> runningUpDownChangesDict = null;
                 Func<FilePathDictionary<FileChange>> getRunningUpDownChangesDict = () =>
+                {
+                    if (runningUpDownChangesDict == null)
                     {
-                        if (runningUpDownChangesDict == null)
-                        {
-                            List<FileChange> runningUpDownChanges = new List<FileChange>();
-                            FileChange.RunUnDownEvent(new FileChange.UpDownEventArgs(currentUpDown =>
-                                runningUpDownChanges.Add(currentUpDown)));
+                        List<FileChange> runningUpDownChanges = new List<FileChange>();
+                        FileChange.RunUnDownEvent(new FileChange.UpDownEventArgs(currentUpDown =>
+                            runningUpDownChanges.Add(currentUpDown)));
 
-                            CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize(getCloudRoot(),
-                                out runningUpDownChangesDict);
-                            if (createUpDownDictError != null)
-                            {
-                                throw new AggregateException("Error creating upDownDict", createUpDownDictError.GrabExceptions());
-                            }
-                            foreach (FileChange currentUpDownChange in runningUpDownChanges)
-                            {
-                                runningUpDownChangesDict[currentUpDownChange.NewPath] = currentUpDownChange;
-                            }
+                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize(getCloudRoot(),
+                            out runningUpDownChangesDict);
+                        if (createUpDownDictError != null)
+                        {
+                            throw new AggregateException("Error creating upDownDict", createUpDownDictError.GrabExceptions());
                         }
-                        return runningUpDownChangesDict;
-                    };
+                        foreach (FileChange currentUpDownChange in runningUpDownChanges)
+                        {
+                            runningUpDownChangesDict[currentUpDownChange.NewPath] = currentUpDownChange;
+                        }
+                    }
+                    return runningUpDownChangesDict;
+                };
 
                 string syncString;
                 if ((syncString = (getLastSyncId() ?? CLDefinitions.CLDefaultSyncID)) == CLDefinitions.CLDefaultSyncID)
@@ -2210,21 +2366,21 @@ namespace Sync
                     //     (notifies calling method to run MergeToSQL with the updates)
 
                     Func<bool, FileChangeType, FilePath, string> getArgumentException = (isFolder, changeType, targetPath) =>
-                        {
-                            throw new ArgumentException("Invalid combination: " +
-                                (isFolder ? "Folder" : (targetPath == null ? "File" : "Shortcut")) +
-                                " " + changeType.ToString());
-                        };
+                    {
+                        throw new ArgumentException("Invalid combination: " +
+                            (isFolder ? "Folder" : (targetPath == null ? "File" : "Shortcut")) +
+                            " " + changeType.ToString());
+                    };
 
                     Func<long, long> ensureNonZeroEventId = toCheck =>
+                    {
+                        if (toCheck == 0)
                         {
-                            if (toCheck == 0)
-                            {
-                                throw new ArgumentException("Cannot communicate FileChange without EventId");
-                            }
-                            return toCheck;
-                        };
-                    
+                            throw new ArgumentException("Cannot communicate FileChange without EventId");
+                        }
+                        return toCheck;
+                    };
+
                     JsonContracts.To deserializedResponse = null;
 
                     int totalBatches = (int)Math.Ceiling(((double)communicationArray.Length) / ((double)CLDefinitions.SyncConstantsMaximumSyncToEvents));
@@ -2247,7 +2403,7 @@ namespace Sync
                             Monitor.Exit(FullShutdownToken);
                         }
 
-                        KeyValuePair<FileChange, FileStream>[] currentBatch = new KeyValuePair<FileChange,FileStream>[batchNumber == totalBatches - 1
+                        KeyValuePair<FileChange, FileStream>[] currentBatch = new KeyValuePair<FileChange, FileStream>[batchNumber == totalBatches - 1
                             ? communicationArray.Length % CLDefinitions.SyncConstantsMaximumSyncToEvents
                             : CLDefinitions.SyncConstantsMaximumSyncToEvents];
                         Array.Copy(sourceArray: communicationArray,
@@ -2255,7 +2411,7 @@ namespace Sync
                             destinationArray: currentBatch,
                             destinationIndex: 0,
                             length: currentBatch.Length);
-                        
+
                         long lastEventId = currentBatch.OrderByDescending(currentEvent => ensureNonZeroEventId(currentEvent.Key.EventId)).First().Key.EventId;
 
                         JsonContracts.To syncTo = new JsonContracts.To()
@@ -2543,7 +2699,7 @@ namespace Sync
 
                     Dictionary<long, KeyValuePair<bool, FileChange>[]> completedChangesList = new Dictionary<long, KeyValuePair<bool, FileChange>[]>();
                     Dictionary<long, List<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>> incompleteChangesList = new Dictionary<long, List<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>>();
-                    Dictionary<long, KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]> changesInErrorList = new Dictionary<long,KeyValuePair<bool,KeyValuePair<FileChange,KeyValuePair<FileStream,Exception>>>[]>();
+                    Dictionary<long, KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]> changesInErrorList = new Dictionary<long, KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>[]>();
                     HashSet<FileStream> completedStreams = new HashSet<FileStream>();
                     for (int currentEventIndex = 0; currentEventIndex < deserializedResponse.Events.Length; currentEventIndex++)
                     {
@@ -2573,17 +2729,17 @@ namespace Sync
                             try
                             {
                                 currentChange = CreateFileChangeFromBaseChangePlusHash(new FileChange()
-                                    {
-                                        Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To),
-                                        EventId = currentEvent.Header.EventId ?? 0,
-                                        NewPath = getCloudRoot() + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'),
-                                        OldPath = (currentEvent.Metadata.RelativeFromPath == null
-                                            ? null
-                                            : getCloudRoot() + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
-                                        Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action)
-                                    },
+                                {
+                                    Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To),
+                                    EventId = currentEvent.Header.EventId ?? 0,
+                                    NewPath = getCloudRoot() + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'),
+                                    OldPath = (currentEvent.Metadata.RelativeFromPath == null
+                                        ? null
+                                        : getCloudRoot() + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
+                                    Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action)
+                                },
                                     currentEvent.Metadata.Hash);
-                                
+
                                 Nullable<KeyValuePair<FileChange, FileStream>> matchedChange = (currentChange.EventId == 0
                                     ? (Nullable<KeyValuePair<FileChange, FileStream>>)null
                                     : toCommunicate.FirstOrDefault(currentToCommunicate => currentToCommunicate.Key.EventId == currentChange.EventId));
@@ -2595,17 +2751,17 @@ namespace Sync
                                 }
 
                                 currentChange.Metadata = new FileMetadata(matchedChange == null ? null : ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.RevisionChanger)
-                                    {
-                                        HashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action),
-                                            currentEvent.Metadata.ModifiedDate,
-                                            currentEvent.Metadata.CreatedDate,
-                                            currentEvent.Metadata.Size),
-                                        LinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
-                                            ? null
-                                            : getCloudRoot() + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\")),
-                                        Revision = currentEvent.Metadata.Revision,
-                                        StorageKey = currentEvent.Metadata.StorageKey
-                                    };
+                                {
+                                    HashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action),
+                                        currentEvent.Metadata.ModifiedDate,
+                                        currentEvent.Metadata.CreatedDate,
+                                        currentEvent.Metadata.Size),
+                                    LinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
+                                        ? null
+                                        : getCloudRoot() + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\")),
+                                    Revision = currentEvent.Metadata.Revision,
+                                    StorageKey = currentEvent.Metadata.StorageKey
+                                };
 
                                 if (matchedChange != null)
                                 {
@@ -2672,13 +2828,13 @@ namespace Sync
                                     {
                                         originalMetadata = ((KeyValuePair<FileChange, FileStream>)matchedChange).Key;
                                     }
-                                    
+
                                     currentChange.Metadata = originalMetadata.Metadata;
                                 }
 
                                 bool sameCreationTime = false;
                                 bool sameLastTime = false;
-                                
+
                                 bool metadataIsDifferent = (matchedChange == null)
                                     || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Type != currentChange.Type
                                     || ((KeyValuePair<FileChange, FileStream>)matchedChange).Key.Metadata.HashableProperties.IsFolder != currentChange.Metadata.HashableProperties.IsFolder
@@ -2737,23 +2893,23 @@ namespace Sync
                                 }
 
                                 Action addToIncompleteChanges = () =>
+                                {
+                                    KeyValuePair<bool, KeyValuePair<FileChange, FileStream>> addChange = new KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>(metadataIsDifferent,
+                                            new KeyValuePair<FileChange, FileStream>(currentChange,
+                                                currentStream));
+                                    if (incompleteChangesList.ContainsKey(currentChange.EventId))
                                     {
-                                        KeyValuePair<bool, KeyValuePair<FileChange, FileStream>> addChange = new KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>(metadataIsDifferent,
-                                                new KeyValuePair<FileChange, FileStream>(currentChange,
-                                                    currentStream));
-                                        if (incompleteChangesList.ContainsKey(currentChange.EventId))
-                                        {
-                                            incompleteChangesList[currentChange.EventId].Add(addChange);
-                                        }
-                                        else
-                                        {
-                                            incompleteChangesList.Add(currentChange.EventId,
-                                                new List<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>(new KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>[]
+                                        incompleteChangesList[currentChange.EventId].Add(addChange);
+                                    }
+                                    else
+                                    {
+                                        incompleteChangesList.Add(currentChange.EventId,
+                                            new List<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>(new KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>[]
                                                 {
                                                     addChange
                                                 }));
-                                        }
-                                    };
+                                    }
+                                };
 
                                 switch (currentChange.Direction)
                                 {
@@ -2846,69 +3002,69 @@ namespace Sync
                                                 try
                                                 {
                                                     Func<string, string, KeyValuePair<bool, string>> getNextName = (extension, mainName) =>
+                                                    {
+                                                        if (mainName.Length > 0
+                                                            && mainName[mainName.Length - 1] == ')')
                                                         {
-                                                            if (mainName.Length > 0
-                                                                && mainName[mainName.Length - 1] == ')')
+                                                            int numDigits = 0;
+                                                            while (mainName.Length > numDigits + 2
+                                                                && numDigits < 11)
                                                             {
-                                                                int numDigits = 0;
-                                                                while (mainName.Length > numDigits + 2
-                                                                    && numDigits < 11)
+                                                                if (char.IsDigit(mainName[mainName.Length - 2 - numDigits]))
                                                                 {
-                                                                    if (char.IsDigit(mainName[mainName.Length - 2 - numDigits]))
+                                                                    numDigits++;
+                                                                }
+                                                                else if (numDigits > 0
+                                                                    && mainName[mainName.Length - 2 - numDigits] == '('
+                                                                    && mainName[mainName.Length - 3 - numDigits] == ' ')
+                                                                {
+                                                                    string numPortion = mainName.Substring(mainName.Length - 1 - numDigits, numDigits);
+                                                                    int numPortionParsed;
+                                                                    if (int.TryParse(numPortion, out numPortionParsed)
+                                                                        && numPortionParsed != int.MaxValue)
                                                                     {
-                                                                        numDigits++;
+                                                                        mainName = mainName.Substring(0, mainName.Length - 3 - numDigits);
                                                                     }
-                                                                    else if (numDigits > 0
-                                                                        && mainName[mainName.Length - 2 - numDigits] == '('
-                                                                        && mainName[mainName.Length - 3 - numDigits] == ' ')
-                                                                    {
-                                                                        string numPortion = mainName.Substring(mainName.Length - 1 - numDigits, numDigits);
-                                                                        int numPortionParsed;
-                                                                        if (int.TryParse(numPortion, out numPortionParsed)
-                                                                            && numPortionParsed != int.MaxValue)
-                                                                        {
-                                                                            mainName = mainName.Substring(0, mainName.Length - 3 - numDigits);
-                                                                        }
 
-                                                                        break;
-                                                                    }
-                                                                    else
+                                                                    break;
+                                                                }
+                                                                else
+                                                                {
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        int highestNumFound = 0;
+                                                        foreach (string currentSibling in Directory.EnumerateFiles(originalConflictPath.Parent.ToString()))
+                                                        {
+                                                            if (currentSibling.Equals(mainName + extension, StringComparison.InvariantCultureIgnoreCase))
+                                                            {
+                                                                if (highestNumFound == 0)
+                                                                {
+                                                                    highestNumFound = 1;
+                                                                }
+                                                            }
+                                                            else if (currentSibling.StartsWith(mainName + " (", StringComparison.InvariantCultureIgnoreCase)
+                                                                && currentSibling.EndsWith(")" + extension, StringComparison.InvariantCultureIgnoreCase))
+                                                            {
+                                                                string siblingNumberPortion = currentSibling.Substring(mainName.Length + 2,
+                                                                    currentSibling.Length - mainName.Length - extension.Length - 3);
+                                                                int siblingNumberParsed;
+                                                                if (int.TryParse(siblingNumberPortion, out siblingNumberParsed))
+                                                                {
+                                                                    if (siblingNumberParsed > highestNumFound)
                                                                     {
-                                                                        break;
+                                                                        highestNumFound = siblingNumberParsed;
                                                                     }
                                                                 }
                                                             }
+                                                        }
 
-                                                            int highestNumFound = 0;
-                                                            foreach (string currentSibling in Directory.EnumerateFiles(originalConflictPath.Parent.ToString()))
-                                                            {
-                                                                if (currentSibling.Equals(mainName + extension, StringComparison.InvariantCultureIgnoreCase))
-                                                                {
-                                                                    if (highestNumFound == 0)
-                                                                    {
-                                                                        highestNumFound = 1;
-                                                                    }
-                                                                }
-                                                                else if (currentSibling.StartsWith(mainName + " (", StringComparison.InvariantCultureIgnoreCase)
-                                                                    && currentSibling.EndsWith(")" + extension, StringComparison.InvariantCultureIgnoreCase))
-                                                                {
-                                                                    string siblingNumberPortion = currentSibling.Substring(mainName.Length + 2,
-                                                                        currentSibling.Length - mainName.Length - extension.Length - 3);
-                                                                    int siblingNumberParsed;
-                                                                    if (int.TryParse(siblingNumberPortion, out siblingNumberParsed))
-                                                                    {
-                                                                        if (siblingNumberParsed > highestNumFound)
-                                                                        {
-                                                                            highestNumFound = siblingNumberParsed;
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
+                                                        return new KeyValuePair<bool, string>(highestNumFound == int.MaxValue,
+                                                            mainName + " (" + (highestNumFound == int.MaxValue ? highestNumFound : highestNumFound + 1).ToString() + ")");
+                                                    };
 
-                                                            return new KeyValuePair<bool, string>(highestNumFound == int.MaxValue,
-                                                                mainName + " (" + (highestNumFound == int.MaxValue ? highestNumFound : highestNumFound + 1).ToString() + ")");
-                                                        };
-                                                    
                                                     string findMainName;
                                                     string findExtension;
 
