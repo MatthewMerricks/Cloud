@@ -38,6 +38,9 @@
   <PropertyGroup>
     <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Configuration.Install" />
@@ -54,6 +57,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="app.manifest" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Artwork\cloud.ico" />

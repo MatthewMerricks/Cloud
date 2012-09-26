@@ -9,6 +9,7 @@ using System;
 using CloudApiPublic.Support;
 using System.Resources;
 using CloudApiPublic.Resources;
+using CloudApiPublic.Static;
 
 namespace CloudApiPublic.Model
 {
@@ -36,6 +37,11 @@ namespace CloudApiPublic.Model
         {
             string osType = OSInfo.Name + " " + OSInfo.Edition + " " + OSInfo.Bits.ToString() + " " +  Resources.Resources.OsBits;
             return osType;
+        }
+
+        public string OSPlatform()
+        {
+            return CLDevices.GetComputerType().ToString();
         }
 
         public string OSVersion()
