@@ -297,6 +297,7 @@ namespace CloudApiPrivate
                                     castState.Client.DefaultRequestHeaders,
                                     castState.Message.Headers,
                                     castState.Message.Content,
+                                    null,
                                     castState.TraceExcludeAuthorization);
                             }
 
@@ -313,6 +314,7 @@ namespace CloudApiPrivate
                                     null,
                                     castState.Response.Headers,
                                     castState.Response.Content,
+                                    (int)castState.Response.StatusCode,
                                     castState.TraceExcludeAuthorization);
                             }
                         }
@@ -585,6 +587,7 @@ namespace CloudApiPrivate
                                     castState.Client.DefaultRequestHeaders,
                                     castState.Message.Headers,
                                     castState.Message.Content,
+                                    null,
                                     castState.TraceExcludeAuthorization);
                             }
 
@@ -602,6 +605,7 @@ namespace CloudApiPrivate
                                     null,
                                     castState.Response.Headers,
                                     castState.Response.Content,
+                                    (int)castState.Response.StatusCode,
                                     castState.TraceExcludeAuthorization);
                             }
                         }

@@ -23,7 +23,7 @@ namespace CloudApiPublic.Static
     public static class Trace
     {
         #region public methods
-        public static void LogCommunication(string traceLocation, string UserDeviceId, string UniqueUserId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, string UniqueUserId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
         {
             string bodyString = null;
             if (traceEnabled
@@ -39,10 +39,23 @@ namespace CloudApiPublic.Static
                 {
                 }
             }
-            LogCommunication(traceLocation, UserDeviceId, UniqueUserId, Direction, DomainAndMethodUri, traceEnabled, headers, bodyString, excludeAuthorization, hostHeader, contentLengthHeader, expectHeader, connectionHeader);
+            LogCommunication(traceLocation,
+                UserDeviceId,
+                UniqueUserId,
+                Direction,
+                DomainAndMethodUri,
+                traceEnabled,
+                headers,
+                bodyString,
+                statusCode,
+                excludeAuthorization,
+                hostHeader,
+                contentLengthHeader,
+                expectHeader,
+                connectionHeader);
         }
 
-        public static void LogCommunication(string traceLocation, string UserDeviceId, string UniqueUserId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, string body = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, string UniqueUserId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
         {
             if (traceEnabled
                 && !string.IsNullOrWhiteSpace(UserDeviceId)
@@ -78,6 +91,7 @@ namespace CloudApiPublic.Static
                                     .Where(currentCustomHeader => currentCustomHeader != null)
                                     .Select(currentCustomHeader => (KeyValuePair<string, string>)currentCustomHeader))),
                         body,
+                        statusCode,
                         excludeAuthorization);
                 }
                 catch
@@ -86,7 +100,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static void LogCommunication(string traceLocation, string UserDeviceId, string UniqueUserId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, HttpHeaders defaultHeaders = null, HttpHeaders messageHeaders = null, HttpContent body = null, bool excludeAuthorization = true)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, string UniqueUserId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, HttpHeaders defaultHeaders = null, HttpHeaders messageHeaders = null, HttpContent body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
         {
             if (traceEnabled
                 && !string.IsNullOrWhiteSpace(DomainAndMethodUri))
@@ -873,6 +887,7 @@ namespace CloudApiPublic.Static
                         (body == null
                             ? null
                             : body.ReadAsString()),
+                        statusCode,
                         excludeAuthorization);
                 }
                 catch
@@ -988,7 +1003,7 @@ namespace CloudApiPublic.Static
 
         #region private methods
         // the calling method should wrap this private helper in a try/catch
-        private static void LogCommunication(string traceLocation, string UserDeviceId, string UniqueUserId, CommunicationEntryDirection Direction, string DomainAndMethodUri, IEnumerable<KeyValuePair<string, string>> headers = null, string body = null, bool excludeAuthorization = true)
+        private static void LogCommunication(string traceLocation, string UserDeviceId, string UniqueUserId, CommunicationEntryDirection Direction, string DomainAndMethodUri, IEnumerable<KeyValuePair<string, string>> headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
         {
             if (!string.IsNullOrEmpty(body)
                 && excludeAuthorization)
@@ -1025,7 +1040,11 @@ namespace CloudApiPublic.Static
                             Key = currentHeader.Key,
                             Value = currentHeader.Value
                         }).ToArray()),
-                Body = body
+                Body = body,
+                StatusCodeSpecified = statusCode != null,
+                StatusCode = (statusCode == null
+                    ? Helpers.DefaultForType<int>()
+                    : (int)statusCode)
             };
 
             WriteLogEntry(newEntry, traceLocation, UserDeviceId, UniqueUserId);

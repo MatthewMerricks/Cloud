@@ -191,6 +191,7 @@ namespace CloudApiPrivate.Model
                     client.DefaultRequestHeaders,
                     null,
                     (Settings.Settings.Instance.TraceExcludeAuthorization ? (new StringContent(authorizationExcludedBody, Encoding.UTF8)) : content),
+                    null,
                     Settings.Settings.Instance.TraceExcludeAuthorization);
             }
 
@@ -262,6 +263,7 @@ namespace CloudApiPrivate.Model
                                 true,
                                 exceptionResponse.Headers,
                                 exceptionBody,
+                                (int)exceptionResponse.StatusCode,
                                 Settings.Settings.Instance.TraceExcludeAuthorization);
                         }
 
@@ -302,6 +304,7 @@ namespace CloudApiPrivate.Model
                             null,
                             result.Headers,
                             result.Content,
+                            (int)result.StatusCode,
                             Settings.Settings.Instance.TraceExcludeAuthorization);
                     }
 
@@ -525,6 +528,7 @@ namespace CloudApiPrivate.Model
                     client.DefaultRequestHeaders,
                     null,
                     (Settings.Settings.Instance.TraceExcludeAuthorization ? (new StringContent(authorizationExcludedBody, Encoding.UTF8)) : content),
+                    null,
                     Settings.Settings.Instance.TraceExcludeAuthorization);
             }
 
@@ -596,6 +600,7 @@ namespace CloudApiPrivate.Model
                                 true,
                                 exceptionResponse.Headers,
                                 exceptionBody,
+                                (int)exceptionResponse.StatusCode,
                                 Settings.Settings.Instance.TraceExcludeAuthorization);
                         }
 
@@ -636,6 +641,7 @@ namespace CloudApiPrivate.Model
                             null,
                             result.Headers,
                             result.Content,
+                            (int)result.StatusCode,
                             Settings.Settings.Instance.TraceExcludeAuthorization);
                     }
 
@@ -848,6 +854,7 @@ namespace CloudApiPrivate.Model
                         client.DefaultRequestHeaders,
                         null,
                         content,
+                        null,
                         Settings.Settings.Instance.TraceExcludeAuthorization);
                 }
 
@@ -919,6 +926,7 @@ namespace CloudApiPrivate.Model
                                     true,
                                     exceptionResponse.Headers,
                                     exceptionBody,
+                                    (int)exceptionResponse.StatusCode,
                                     Settings.Settings.Instance.TraceExcludeAuthorization);
                             }
 
@@ -959,6 +967,7 @@ namespace CloudApiPrivate.Model
                                 null,
                                 result.Headers,
                                 result.Content,
+                                (int)result.StatusCode,
                                 Settings.Settings.Instance.TraceExcludeAuthorization);
                         }
 

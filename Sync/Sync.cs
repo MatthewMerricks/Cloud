@@ -1408,6 +1408,7 @@ namespace Sync
                                                 true,
                                                 downloadRequest.Headers,
                                                 requestBody,
+                                                null,
                                                 Settings.Instance.TraceExcludeAuthorization,
                                                 downloadRequest.Host,
                                                 downloadRequest.ContentLength.ToString(),
@@ -1535,6 +1536,7 @@ namespace Sync
                                                         true,
                                                         downloadResponse.Headers,
                                                         responseBody,
+                                                        (int)downloadResponse.StatusCode,
                                                         Settings.Instance.TraceExcludeAuthorization);
                                                 }
                                             }
@@ -1777,6 +1779,7 @@ namespace Sync
                                             true,
                                             uploadRequest.Headers,
                                             "---File upload started---",
+                                            null,
                                             Settings.Instance.TraceExcludeAuthorization,
                                             uploadRequest.Host,
                                             uploadRequest.ContentLength.ToString(),
@@ -1912,6 +1915,7 @@ namespace Sync
                                                     true,
                                                     uploadResponse.Headers,
                                                     responseBody,
+                                                    (int)uploadResponse.StatusCode,
                                                     Settings.Instance.TraceExcludeAuthorization);
                                             }
                                         }
@@ -2241,6 +2245,7 @@ namespace Sync
                             true,
                             purgeRequest.Headers,
                             requestBody,
+                            null,
                             Settings.Instance.TraceExcludeAuthorization,
                             purgeRequest.Host,
                             purgeRequest.ContentLength.ToString(),
@@ -2288,6 +2293,7 @@ namespace Sync
                                         true,
                                         purgeResponse.Headers,
                                         purgeResponseStream,
+                                        (int)purgeResponse.StatusCode,
                                         Settings.Instance.TraceExcludeAuthorization);
                                 }
 
@@ -2528,6 +2534,7 @@ namespace Sync
                                 true,
                                 toRequest.Headers,
                                 requestBody,
+                                null,
                                 Settings.Instance.TraceExcludeAuthorization,
                                 toRequest.Host,
                                 toRequest.ContentLength.ToString(),
@@ -2575,6 +2582,7 @@ namespace Sync
                                             true,
                                             toResponse.Headers,
                                             toResponseStream,
+                                            (int)toResponse.StatusCode,
                                             Settings.Instance.TraceExcludeAuthorization);
                                     }
 
@@ -3348,6 +3356,7 @@ namespace Sync
                                 true,
                                 pushRequest.Headers,
                                 requestBody,
+                                null,
                                 Settings.Instance.TraceExcludeAuthorization,
                                 pushRequest.Host,
                                 pushRequest.ContentLength.ToString(),
@@ -3395,6 +3404,7 @@ namespace Sync
                                             true,
                                             pushResponse.Headers,
                                             pushResponseStream,
+                                            (int)pushResponse.StatusCode,
                                             Settings.Instance.TraceExcludeAuthorization);
                                     }
 

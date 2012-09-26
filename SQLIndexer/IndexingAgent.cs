@@ -1977,15 +1977,17 @@ namespace SQLIndexer
                 // Define DirectoryInfo at current path which will be traversed
                 DirectoryInfo indexRootPath = new DirectoryInfo(indexedPath);
 
+                // RecurseIndexDirectory both adds the new changes to the list that are found on disc
+                // and returns a list of all paths traversed for comparison to the existing index
+                string[] recursedIndexes = RecurseIndexDirectory(changeList,
+                    indexPaths,
+                    this.RemoveEventById,
+                    indexedPath).ToArray();
+
                 // Loop through the paths that previously existed in the index, but were not found when traversing the indexed path
                 foreach (string deletedPath in
                     indexPaths.Select(currentIndex => currentIndex.Key.ToString())
-                        // RecurseIndexDirectory both adds the new changes to the list that are found on disc
-                        // and returns a list of all paths traversed for comparison to the existing index
-                        .Except(RecurseIndexDirectory(changeList,
-                                indexPaths,
-                                this.RemoveEventById,
-                                indexedPath),
+                        .Except(recursedIndexes,
                             StringComparer.InvariantCulture))
                 {
                     // For the path that existed previously in the index but is no longer found on disc, process as a deletion
@@ -2129,7 +2131,7 @@ namespace SQLIndexer
                     uncoveredChanges.Remove(currentFilePathObject);
 
                     // Add file path to traversed output list
-                    filePathsFound.Add(currentDirectoryFullPath);
+                    filePathsFound.Add(currentFileFullPath);
                     // Find file properties
                     FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(false,
                         (currentFile.LastWriteTime == null ? (Nullable<DateTime>)null : ((DateTime)currentFile.LastWriteTime).DropSubSeconds()),

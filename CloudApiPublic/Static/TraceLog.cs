@@ -644,6 +644,10 @@ namespace CloudApiPublic.Static
 
         private string bodyField;
 
+        private int statusCodeField;
+
+        private bool statusCodeFieldSpecified;
+
         /// <remarks/>
         public CommunicationEntryDirection Direction
         {
@@ -694,6 +698,33 @@ namespace CloudApiPublic.Static
             set
             {
                 this.bodyField = value;
+            }
+        }
+
+        /// <remarks/>
+        public int StatusCode
+        {
+            get
+            {
+                return this.statusCodeField;
+            }
+            set
+            {
+                this.statusCodeField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool StatusCodeSpecified
+        {
+            get
+            {
+                return this.statusCodeFieldSpecified;
+            }
+            set
+            {
+                this.statusCodeFieldSpecified = value;
             }
         }
     }
