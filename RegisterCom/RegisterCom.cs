@@ -213,7 +213,7 @@ namespace RegisterCom
                 {
                     // Copy msvc100.dll
                     string pathSystem32Msvcp100 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "msvcp100.dll");
-                    string pathMsvcp100 = Path.Combine(Path.Combine(firstArg, "amd64"), "msvcp100.dll");
+                    string pathMsvcp100 = Path.Combine(firstArg, "msvcp100Copy.dll");
                     try
                     {
                         if (!File.Exists(pathSystem32Msvcp100))
@@ -233,7 +233,7 @@ namespace RegisterCom
 
                     // Copy msvcr100.dll
                     string pathSystem32Msvcr100 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "msvcr100.dll");
-                    string pathMsvcr100 = Path.Combine(Path.Combine(firstArg, "amd64"), "msvcr100.dll");
+                    string pathMsvcr100 = Path.Combine(firstArg, "msvcr100Copy.dll");
                     try
                     {
                         if (!File.Exists(pathSystem32Msvcr100))
@@ -253,7 +253,7 @@ namespace RegisterCom
 
                     // Copy atl100.dll
                     string pathSystem32Atl100 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "atl100.dll");
-                    string pathAtl100 = Path.Combine(Path.Combine(firstArg, "amd64"), "atl100.dll");
+                    string pathAtl100 = Path.Combine(firstArg, "atl100Copy.dll");
                     try
                     {
                         if (!File.Exists(pathSystem32Atl100))

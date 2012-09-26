@@ -14,6 +14,7 @@ using win_client.Common;
 using BadgeNET;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
+using CloudApiPrivate.Static;
 using CloudApiPublic.Support;
 using CloudApiPublic.Static;
 using System.Windows.Media.Imaging;

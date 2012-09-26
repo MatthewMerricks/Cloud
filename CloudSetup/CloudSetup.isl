@@ -384,9 +384,11 @@
 		<row><td>System.Windows.Interactivity.dll</td><td>{A183DAD8-B99C-4E2A-8A9C-A5A9184A1389}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.windows.interactivity</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>WPFToolkit.Extended.dll</td><td>{5459704B-7E50-496C-B92F-3623B0F4BAEC}</td><td>INSTALLDIR</td><td>2</td><td/><td>wpftoolkit.extended.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>WebSocket4Net.dll</td><td>{4A24ACD6-31D2-416F-9AD6-76C8093D14D8}</td><td>INSTALLDIR</td><td>2</td><td/><td>websocket4net.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>atl100.dll2</td><td>{7FCBBACD-8BCD-42D8-B679-7070C3CE7650}</td><td>AMD64</td><td>2</td><td/><td>atl100.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>msvcp100.dll2</td><td>{70F6D14C-FD42-4A16-8CEE-8D51D56B1498}</td><td>AMD64</td><td>2</td><td/><td>msvcp100.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>msvcr100.dll2</td><td>{CFA1D1CE-12DC-4043-8492-CFE1BA1978AC}</td><td>AMD64</td><td>2</td><td/><td>msvcr100.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>atl100Copy.dll</td><td>{99AE4416-07A8-491A-8B83-158C5EECB7DC}</td><td>INSTALLDIR</td><td>2</td><td/><td>atl100copy.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcp100Copy.dll</td><td>{2E526FF1-23DB-4FEA-9503-3135ECF1F383}</td><td>INSTALLDIR</td><td>2</td><td/><td>msvcp100copy.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcr100Copy.dll</td><td>{B1CF659B-9B37-4206-9932-F04F29300278}</td><td>INSTALLDIR</td><td>2</td><td/><td>msvcr100copy.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcr90.dll</td><td>{35A7FEA4-D3EE-4E06-9846-F1C90A3D4399}</td><td>MICROSOFT.VC90.CRT1</td><td>2</td><td/><td>msvcr90.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcr90.dll1</td><td>{CD1FD4D1-5F8D-4B05-949C-ACD5FDE407A7}</td><td>MICROSOFT.VC90.CRT</td><td>2</td><td/><td>msvcr90.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceca40.dll</td><td>{B6B913E0-DC6A-48CA-8C84-7638653FC16D}</td><td>AMD64</td><td>2</td><td/><td>sqlceca40.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceca40.dll1</td><td>{B9BAFE08-1C42-4B85-913A-071AB758FFB7}</td><td>X86</td><td>2</td><td/><td>sqlceca40.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlcecompact40.dll</td><td>{DF7B362A-1444-4721-8E8B-DFC68A5474C9}</td><td>AMD64</td><td>2</td><td/><td>sqlcecompact40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -994,7 +996,7 @@
 		<row><td>InstallChangeFolder</td><td>OK</td><td>EndDialog</td><td>Return</td><td>1</td><td>3</td></row>
 		<row><td>InstallChangeFolder</td><td>OK</td><td>SetTargetPath</td><td>[_BrowseProperty]</td><td>1</td><td>2</td></row>
 		<row><td>InstallChangeFolder</td><td>Up</td><td>DirectoryListUp</td><td>0</td><td>1</td><td>0</td></row>
-		<row><td>InstallWelcome</td><td>Back</td><td>NewDialog</td><td>SplashBitmap</td><td>Display_IsBitmapDlg</td><td>0</td></row>
+		<row><td>InstallWelcome</td><td>Back</td><td>NewDialog</td><td>SplashBitmap</td><td>NOT Installed</td><td>0</td></row>
 		<row><td>InstallWelcome</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
 		<row><td>InstallWelcome</td><td>Next</td><td>NewDialog</td><td>ReadyToInstall</td><td>1</td><td>0</td></row>
 		<row><td>LicenseAgreement</td><td>Back</td><td>NewDialog</td><td>InstallWelcome</td><td>1</td><td>0</td></row>
@@ -1982,9 +1984,11 @@
 		<row><td>AlwaysInstall</td><td>System.Windows.Interactivity.dll</td></row>
 		<row><td>AlwaysInstall</td><td>WPFToolkit.Extended.dll</td></row>
 		<row><td>AlwaysInstall</td><td>WebSocket4Net.dll</td></row>
-		<row><td>AlwaysInstall</td><td>atl100.dll2</td></row>
-		<row><td>AlwaysInstall</td><td>msvcp100.dll2</td></row>
-		<row><td>AlwaysInstall</td><td>msvcr100.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>atl100Copy.dll</td></row>
+		<row><td>AlwaysInstall</td><td>msvcp100Copy.dll</td></row>
+		<row><td>AlwaysInstall</td><td>msvcr100Copy.dll</td></row>
+		<row><td>AlwaysInstall</td><td>msvcr90.dll</td></row>
+		<row><td>AlwaysInstall</td><td>msvcr90.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceca40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceca40.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>sqlcecompact40.dll</td></row>
@@ -2012,7 +2016,7 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
-		<row><td>atl100.dll2</td><td>atl100.dll2</td><td>atl100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\atl100.dll</td><td>1</td><td/></row>
+		<row><td>atl100copy.dll</td><td>atl100Copy.dll</td><td>ATL100~1.DLL|atl100Copy.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\atl100Copy.dll</td><td>1</td><td/></row>
 		<row><td>automaticupdaterwpf.dll</td><td>AutomaticUpdaterWPF.dll</td><td>AUTOMA~1.DLL|AutomaticUpdaterWPF.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\AutomaticUpdaterWPF.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll</td><td>BadgeCOM.dll</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\Release\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x64\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
@@ -2036,14 +2040,16 @@
 		<row><td>microsoft.practices.servicel</td><td>Microsoft.Practices.ServiceLocation.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.Practices.ServiceLocation.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest</td><td>ISX_DEFAULTCOMPONENT4</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest1</td><td>ISX_DEFAULTCOMPONENT5</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
-		<row><td>msvcp100.dll2</td><td>msvcp100.dll2</td><td>msvcp100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcp100.dll</td><td>1</td><td/></row>
-		<row><td>msvcr100.dll2</td><td>msvcr100.dll2</td><td>msvcr100.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcr100.dll</td><td>1</td><td/></row>
+		<row><td>msvcp100copy.dll</td><td>msvcp100Copy.dll</td><td>MSVCP1~1.DLL|msvcp100Copy.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcp100Copy.dll</td><td>1</td><td/></row>
+		<row><td>msvcr100copy.dll</td><td>msvcr100Copy.dll</td><td>MSVCR1~1.DLL|msvcr100Copy.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcr100Copy.dll</td><td>1</td><td/></row>
+		<row><td>msvcr90.dll</td><td>msvcr90.dll</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
+		<row><td>msvcr90.dll1</td><td>msvcr90.dll1</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
 		<row><td>newtonsoft.json.dll</td><td>Newtonsoft.Json.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
 		<row><td>ookii.dialogs.wpfminustaskdi</td><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>OOKIID~1.DLL|Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt1</td><td>ISX_DEFAULTCOMPONENT5</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>regid.2000_12.com.cloud_clou</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
-		<row><td>regid.2000_12.com.cloud_clou1</td><td>ISO19770_SystemTag</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Source\Projects\win-client\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
+		<row><td>regid.2000_12.com.cloud_clou1</td><td>ISO19770_SystemTag</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
 		<row><td>registercom.exe</td><td>RegisterCom.exe</td><td>REGIST~1.EXE|RegisterCom.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe</td><td>1</td><td/></row>
 		<row><td>registercom.exe.config</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGIST~1.CON|RegisterCom.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe.config</td><td>1</td><td/></row>
 		<row><td>showcloudfolder.primary_outp</td><td>ShowCloudFolder.Primary_output</td><td>ShowCloudFolder.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ShowCloudFolder&gt;|Built</td><td>3</td><td/></row>
@@ -2370,9 +2376,11 @@
 		<row><td>System.Windows.Interactivity.dll</td><td/><td/><td>_ED77A1E5_89F5_4D16_92E3_713C0CD15CB2_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>WPFToolkit.Extended.dll</td><td/><td/><td>_963BCA02_BF6A_4A38_8149_5400A0AE986F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>WebSocket4Net.dll</td><td/><td/><td>_12DFD945_CA1A_4110_9D63_E160321DD1DD_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>atl100.dll2</td><td/><td/><td>_6389B203_A2EA_4818_B5DA_538784F6845C_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>msvcp100.dll2</td><td/><td/><td>_B518C44B_47B8_4891_8C04_29536B55D80D_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>msvcr100.dll2</td><td/><td/><td>_64AEC124_D68C_4849_83A0_06F55D5A448A_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>atl100Copy.dll</td><td/><td/><td>_34BE90F1_BF9A_4376_9295_F643753DCC06_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>msvcp100Copy.dll</td><td/><td/><td>_6F257357_840B_4152_9648_CE0CADA461CA_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>msvcr100Copy.dll</td><td/><td/><td>_267F20FF_FE3C_4BD6_8B26_EDA7C866B5E7_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>msvcr90.dll</td><td/><td/><td>_C5EE7311_B1F3_4655_8027_8A24462A15B0_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>msvcr90.dll1</td><td/><td/><td>_148D4873_B847_4C5B_93A3_7439D485AAA0_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceca40.dll</td><td/><td/><td>_AAFD70F4_2184_405B_814A_8AEC3E8C1996_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceca40.dll1</td><td/><td/><td>_15B4040A_4EE1_48CB_978F_6C9DE854D437_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlcecompact40.dll</td><td/><td/><td>_4C8059BE_C8A2_4F65_B4F9_931EF0231377_FILTER</td><td/><td/><td/><td/></row>
@@ -2487,7 +2495,6 @@
 		<col key="yes" def="s38">Feature_</col>
 		<col key="yes" def="s255">ISMergeModule_</col>
 		<col key="yes" def="i2">Language_</col>
-		<row><td>AlwaysInstall</td><td>Microsoft_VC90_CRT_x86.C8AE193F_7C6D_330A_93C7_EBBC23C30DBF</td><td>0</td></row>
 	</table>
 
 	<table name="ISFeatureSetupPrerequisites">
@@ -2610,7 +2617,6 @@
 		<col def="s255">Name</col>
 		<col def="S255">Destination</col>
 		<col def="I4">ISAttributes</col>
-		<row><td>Microsoft_VC90_CRT_x86.C8AE193F_7C6D_330A_93C7_EBBC23C30DBF</td><td>0</td><td>Visual C++ 9.0 CRT (x86) WinSXS MSM</td><td/><td/></row>
 	</table>
 
 	<table name="ISMergeModuleCfgValues">
@@ -4134,6 +4140,7 @@
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>1411410125</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>1411410125</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td>http://www.Cloud.com</td><td>0</td><td/><td>-601850870</td></row>
+		<row><td>ID_STRING10</td><td>1033</td><td>STARTC~1|Start Cloud</td><td>0</td><td/><td>-727702583</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>1948295243</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>Product Support Department</td><td>0</td><td/><td>1411427021</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>www.Cloud.com</td><td>0</td><td/><td>1948295243</td></row>
@@ -4319,7 +4326,7 @@
 		<row><td>PublishProduct</td><td/><td>6400</td><td>PublishProduct</td><td/></row>
 		<row><td>RMCCPSearch</td><td>Not CCP_SUCCESS And CCP_TEST</td><td>600</td><td>RMCCPSearch</td><td/></row>
 		<row><td>RegisterClassInfo</td><td/><td>4600</td><td>RegisterClassInfo</td><td/></row>
-		<row><td>RegisterComObjects</td><td>Not Installed</td><td>6405</td><td/><td/></row>
+		<row><td>RegisterComObjects</td><td>Not Installed</td><td>6401</td><td/><td/></row>
 		<row><td>RegisterComPlus</td><td/><td>5700</td><td>RegisterComPlus</td><td/></row>
 		<row><td>RegisterExtensionInfo</td><td/><td>4700</td><td>RegisterExtensionInfo</td><td/></row>
 		<row><td>RegisterFonts</td><td/><td>5300</td><td>RegisterFonts</td><td/></row>
@@ -4349,7 +4356,7 @@
 		<row><td>UnpublishComponents</td><td/><td>1700</td><td>UnpublishComponents</td><td/></row>
 		<row><td>UnpublishFeatures</td><td/><td>1800</td><td>UnpublishFeatures</td><td/></row>
 		<row><td>UnregisterClassInfo</td><td/><td>2700</td><td>UnregisterClassInfo</td><td/></row>
-		<row><td>UnregisterComObjects</td><td>REMOVE="ALL"</td><td>6402</td><td/><td/></row>
+		<row><td>UnregisterComObjects</td><td>REMOVE="ALL"</td><td>6405</td><td/><td/></row>
 		<row><td>UnregisterComPlus</td><td/><td>2100</td><td>UnregisterComPlus</td><td/></row>
 		<row><td>UnregisterExtensionInfo</td><td/><td>2800</td><td>UnregisterExtensionInfo</td><td/></row>
 		<row><td>UnregisterFonts</td><td/><td>2500</td><td>UnregisterFonts</td><td/></row>
@@ -4419,7 +4426,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>FileCost</td><td/><td>900</td><td>FileCost</td><td/></row>
 		<row><td>FindRelatedProducts</td><td/><td>430</td><td>FindRelatedProducts</td><td/></row>
 		<row><td>ISPreventDowngrade</td><td>ISFOUNDNEWERPRODUCTVERSION</td><td>450</td><td>ISPreventDowngrade</td><td/></row>
-		<row><td>InstallWelcome</td><td>Not Installed</td><td>1210</td><td>InstallWelcome</td><td/></row>
+		<row><td>InstallWelcome</td><td>Not UITEST And Not Installed</td><td>1110</td><td/><td/></row>
 		<row><td>IsolateComponents</td><td/><td>950</td><td>IsolateComponents</td><td/></row>
 		<row><td>LaunchConditions</td><td>Not Installed</td><td>410</td><td>LaunchConditions</td><td/></row>
 		<row><td>MaintenanceWelcome</td><td>Installed And Not RESUME And Not Preselected And Not PATCH</td><td>1230</td><td>MaintenanceWelcome</td><td/></row>
@@ -4852,6 +4859,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
 		<row><td>NewShortcut2</td><td>ISX_DEFAULTCOMPONENT1</td><td/><td>cloud</td><td>2</td></row>
+		<row><td>NewShortcut3</td><td>win_client.Primary_output</td><td/><td>cloud</td><td>2</td></row>
 		<row><td>UNINST_Uninstall_Cloud</td><td>NewComponent1</td><td/><td>cloud</td><td>2</td></row>
 	</table>
 
@@ -4940,6 +4948,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="I4">ISAttributes</col>
 		<row><td>NewShortcut1</td><td>SendToFolder</td><td>##ID_STRING8##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[INSTALLDIR]CloudSendTo.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut2</td><td>cloud</td><td>##ID_STRING9##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[INSTALLDIR]ShowCloudFolder.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut3</td><td>cloud</td><td>##ID_STRING10##</td><td>win_client.Primary_output</td><td>AlwaysInstall</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>UNINST_Uninstall_Cloud</td><td>cloud</td><td>UNINST|Uninstall Cloud</td><td>NewComponent1</td><td>[SystemFolder]msiexec.exe</td><td>/x {5BEB6668-C562-480D-ADAB-BDCCC7A9CD02}</td><td/><td/><td>UNINST_Uninstall_C_13DC8BF1E345480593F92A818D2CADC9.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
