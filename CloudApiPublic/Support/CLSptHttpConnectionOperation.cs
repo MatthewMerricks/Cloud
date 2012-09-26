@@ -350,6 +350,7 @@ namespace CloudApiPublic.Support
                                         _client.DefaultRequestHeaders,
                                         _operationRequest.Headers,
                                         _operationRequest.Content,
+                                        null,
                                         (bool)this.TraceExcludeAuthorization);
                                 }
                             }
@@ -388,7 +389,8 @@ namespace CloudApiPublic.Support
                                                     true,
                                                     null,
                                                     response.Headers,
-                                                    response.Content);
+                                                    response.Content,
+                                                    (int)response.StatusCode);
                                             }
                                             else
                                             {
@@ -401,6 +403,7 @@ namespace CloudApiPublic.Support
                                                     null,
                                                     response.Headers,
                                                     response.Content,
+                                                    (int)response.StatusCode,
                                                     (bool)taskState.TraceExcludeAuthorization);
                                             }
                                         }
@@ -475,6 +478,7 @@ namespace CloudApiPublic.Support
                                                         castState.Client.DefaultRequestHeaders,
                                                         castState.Message.Headers,
                                                         castState.Message.Content,
+                                                        null,
                                                         (bool)castState.TraceExcludeAuthorization);
                                                 }
                                             }
@@ -494,7 +498,8 @@ namespace CloudApiPublic.Support
                                                         true,
                                                         null,
                                                         response.Headers,
-                                                        response.Content);
+                                                        response.Content,
+                                                        (int)response.StatusCode);
                                                 }
                                                 else
                                                 {
@@ -507,6 +512,7 @@ namespace CloudApiPublic.Support
                                                         null,
                                                         response.Headers,
                                                         response.Content,
+                                                        (int)response.StatusCode,
                                                         (bool)castState.TraceExcludeAuthorization);
                                                 }
                                             }

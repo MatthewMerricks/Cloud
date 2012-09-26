@@ -175,10 +175,13 @@ namespace CloudApiPublic.Support
 
             lock (DelayQueue)
             {
-                if (!startedDelay)
+                lock (this)
                 {
-                    // inactive delay error
-                    throw new Exception("Delay not already started");
+                    if (!startedDelay)
+                    {
+                        // inactive delay error
+                        throw new Exception("Delay not already started");
+                    }
                 }
 
                 if (!DelayCompleted)
@@ -277,16 +280,13 @@ namespace CloudApiPublic.Support
         // Standard IDisposable implementation based on MSDN System.IDisposable
         private void Dispose(bool disposing)
         {
+            // lock on current object for changing DelayCompleted so it cannot be stopped/started simultaneously
             lock (this)
             {
                 if (!DelayCompleted)
                 {
-                    // lock on current object for changing DelayCompleted so it cannot be stopped/started simultaneously
-                    lock (this)
-                    {
-                        // set delay completed so processing will not fire
-                        DelayCompleted = true;
-                    }
+                    // set delay completed so processing will not fire
+                    DelayCompleted = true;
 
                     // Dispose local unmanaged resources last
                 }

@@ -139,6 +139,7 @@ namespace win_client.Services.Notification
                         true,
                         null,
                         (string)null,
+                        null,
                         Settings.Instance.TraceExcludeAuthorization);
                 }
 
@@ -197,6 +198,7 @@ namespace win_client.Services.Notification
                         true,
                         null,
                         e.Message,
+                        null, //<-- actually this is the valid response, but push doesn't exactly give a 200 that I can detect
                         Settings.Instance.TraceExcludeAuthorization);
                 }
 
