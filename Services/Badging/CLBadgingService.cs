@@ -58,11 +58,20 @@ namespace win_client.Services.Badging
         {
             bool isBadgingInitialized;
             CLError badgingInitializedError = IconOverlay.IsBadgingInitialized(out isBadgingInitialized);
-            // error not handled above
-            if(!isBadgingInitialized)
+            if (badgingInitializedError != null)
             {
-                CLError initializeError = IconOverlay.Initialize(Settings.Instance.CloudFolderPath);
-                // error not handled above
+                _trace.writeToLog(1, String.Format("CLBadgingServices: BeginBadgingServices: ERROR: From IconOverlay.IsBadingInitialized. Msg: <{0}>. Code: {1}.", badgingInitializedError.errorDescription, badgingInitializedError.errorCode));
+            }
+            else
+            {
+                if (!isBadgingInitialized)
+                {
+                    CLError initializeError = IconOverlay.Initialize(Settings.Instance.CloudFolderPath);
+                    if (initializeError != null)
+                    {
+                        _trace.writeToLog(1, String.Format("CLBadgingServices: BeginBadgingServices: ERROR: From IconOverlay.Initialize. Msg: <{0}>. Code: {1}.", initializeError.errorDescription, initializeError.errorCode));
+                    }
+                }
             }
         }
 

@@ -18,6 +18,7 @@ using Hardcodet.Wpf.TaskbarNotification;
 using win_client.Common;
 using win_client.Services.Notification;
 using win_client.ViewModels;
+using System.Threading;
 
 namespace win_client.Services.UiActivity
 {
@@ -70,11 +71,25 @@ namespace win_client.Services.UiActivity
         /// </summary>
         public void BeginUIActivityService()
         {
-            // Start a timer for testing.
-            _pollTimer = new System.Threading.Timer((s) => { TimerFiredCallback(); }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(1));
+            try
+            {
+                // Start a timer for testing.
+                _pollTimer = new System.Threading.Timer((s) =>
+                {
+                    TimerFiredCallback();
+                    if (_timerTestCount > 25)
+                    {
+                        _pollTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    }
+                }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(1));
 
-            PageInvisibleViewModel vmPageInvisible = SimpleIoc.Default.GetInstance<PageInvisibleViewModel>();
-            vmPageInvisible.TaskbarIconVisibility = System.Windows.Visibility.Visible;
+                PageInvisibleViewModel vmPageInvisible = SimpleIoc.Default.GetInstance<PageInvisibleViewModel>();
+                vmPageInvisible.TaskbarIconVisibility = System.Windows.Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, String.Format("CLUIActivityService: BeginUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message));
+            }
         }
 
         /// <summary>
@@ -110,13 +125,21 @@ namespace win_client.Services.UiActivity
             if (_timerTestCount == 25)
             {
                 // Put up a growl notification.  It will automatically fade.
+                
                 System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
-                    _trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test growl notification from the system tray.");
-                    var window = SimpleIoc.Default.GetInstance<FancyBalloon>();
-                    window.BalloonText = "Hello Cloud!";
-                    CLGrowlNotification growlInfo = new CLGrowlNotification(window, System.Windows.Controls.Primitives.PopupAnimation.Slide, 2500);
-                    CLAppMessages.Message_GrowlSystemTrayNotification.Send(growlInfo);
+                    try
+                    {
+                        _trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test growl notification from the system tray.");
+                        var window = SimpleIoc.Default.GetInstance<FancyBalloon>();
+                        window.BalloonText = "Hello Cloud!";
+                        CLGrowlNotification growlInfo = new CLGrowlNotification(window, System.Windows.Controls.Primitives.PopupAnimation.Slide, 2500);
+                        CLAppMessages.Message_GrowlSystemTrayNotification.Send(growlInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        _trace.writeToLog(1, String.Format("CLUIActivityService: TimerFiredCallback: ERROR. Exception.  Msg: <{0}>.", ex.Message));
+                    }
                 }));
             }
         }

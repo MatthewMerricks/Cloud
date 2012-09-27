@@ -805,6 +805,11 @@ namespace CloudApiPrivate.Model.Settings
             _errorLogLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
                 "\\Cloud\\ErrorLog";
             _traceType = 0;
+
+            //TODO: Remove this setting before release.  This forces trace to be on (causing a performance issue).
+            _logErrors = 1;
+            _traceType = (int)TraceType.Communication;
+
             // _traceType of zero implies the following:
             //_traceExcludeAuthorization = 1;
             _traceLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +

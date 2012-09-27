@@ -26,8 +26,8 @@ namespace CloudApiPublic.Support
         //Restore to turn on trace@@@@@@private static int _maxPriority = 10;  // set this to the highest priority to log
         //Restore to turn off trace@@@@@@private static int _maxPriority = -1;  // set this to the highest priority to log
         private static int _maxPriority = 10;  // set this to the highest priority to log
-        private static string _logDir = @"c:\Trash\Trace";
-        private static string _logFile = string.Format(@"\Trace-{0:yyyy-MM-dd}.txt", DateTime.Now);
+        private static string _logDir = null;
+        private static string _logFile = null;
 
         /// <summary>
         /// Private constructor to prevent instance creation
@@ -47,7 +47,9 @@ namespace CloudApiPublic.Support
                     if (_instance == null)
                     {
                         _instance = new CLTrace();
-                        Directory.CreateDirectory(_logDir);
+                        _logDir = Path.GetTempPath();
+                        _logFile = string.Format(@"\Trace-{0:yyyy-MM-dd}.txt", DateTime.Now);
+                        //Directory.CreateDirectory(_logDir);
                     }
                 }
                 return _instance;

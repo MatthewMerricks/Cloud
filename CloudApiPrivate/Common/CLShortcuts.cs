@@ -668,7 +668,15 @@ namespace CloudApiPrivate.Common
             if (IntPtr.Size == 4)
             {
                 // 32-bit 
-                return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                // XP seems to return an empty string for the ProgramFilesX86 special folder.
+                string path = null;
+                path = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                if (String.IsNullOrWhiteSpace(path))
+                {
+                    path = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                    return path;
+                }
+                return path;
             }
             else
             {
@@ -698,7 +706,15 @@ namespace CloudApiPrivate.Common
             if (IntPtr.Size == 4)
             {
                 // 32-bit 
-                return Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86);
+                // XP seems to return an empty string for the CommonProgramFilesX86 special folder.
+                string path = null;
+                path = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86);
+                if (String.IsNullOrWhiteSpace(path))
+                {
+                    path = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+                    return path;
+                }
+                return path;
             }
             else
             {

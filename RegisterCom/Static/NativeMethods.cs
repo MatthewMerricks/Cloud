@@ -19,7 +19,7 @@ namespace RegisterCom.Static
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         internal static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr LoadLibrary(string lpFileName);
 
         [DllImport("kernel32.dll", SetLastError = true)]

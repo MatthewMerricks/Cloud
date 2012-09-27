@@ -98,41 +98,41 @@ namespace win_client.Services.FileSystemMonitoring
                 IndexingAgent.GetMetadataByPathAndRevision,
                 () => Settings.Instance.DeviceName,
                 () => IndexingAgent.CELocker);
-            if (monitorToSet != null)
+
+            if (fileMonitorCreationError != null)
             {
-                this.MonitorAgent = monitorToSet;
-
-                CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(monitorToSet, monitorToSet.PushNotification);
-            }
-
-            // Todo: handle file monitor creation error
-
-            MonitorStatus returnStatus;
-            CLError fileMonitorStartError = MonitorAgent.Start(out returnStatus);
-
-            // Todo: handle file monitor start error
-
-            CLError indexerStartError = IndexingAgent.StartInitialIndexing(MonitorAgent.BeginProcessing,
-                MonitorAgent.GetCurrentPath);
-
-            // Todo: handle indexer start error
-
-#if TRASH
-            CLError error = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath, out _agent, CLSyncService.Instance.SyncFromFileSystemMonitorWithGroupedUserEventsCallback);
-            if (error != null)
-            {
-                _trace.writeToLog(1, "Error initializing the file system monitor. Description: {0}. Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, String.Format("CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Creating the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorCreationError.errorDescription, fileMonitorCreationError.errorCode));
             }
             else
             {
-                MonitorStatus status;
-                error = _agent.Start(out status);
-                if (error != null)
+                if (monitorToSet != null)
                 {
-                    _trace.writeToLog(1, "Error starting the file system monitor. Description: {0}. Code: {1}.", error.errorDescription, error.errorCode);
+                    try
+                    {
+                        this.MonitorAgent = monitorToSet;
+
+                        CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(monitorToSet, monitorToSet.PushNotification);
+
+                        MonitorStatus returnStatus;
+                        CLError fileMonitorStartError = MonitorAgent.Start(out returnStatus);
+                        if (fileMonitorStartError != null)
+                        {
+                            _trace.writeToLog(1, String.Format("CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, fileMonitorStartError.errorCode));
+                        }
+
+                        CLError indexerStartError = IndexingAgent.StartInitialIndexing(MonitorAgent.BeginProcessing,
+                            MonitorAgent.GetCurrentPath);
+                        if (indexerStartError != null)
+                        {
+                            _trace.writeToLog(1, String.Format("CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the indexer.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, indexerStartError.errorCode));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _trace.writeToLog(1, String.Format("CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                    }
                 }
             }
-#endif  // TRASH
         }
 
         /// <summary>
