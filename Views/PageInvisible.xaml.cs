@@ -249,7 +249,7 @@ namespace win_client.Views
             {
                 // Get the target rectangle.  The current window is way off-screen, so we can't use
                 // its coordinates.  Get the coordinates from Settings.
-                NativeMethods.WINDOWPLACEMENT windowPlacement = new NativeMethods.WINDOWPLACEMENT();
+                WINDOWPLACEMENT windowPlacement = new WINDOWPLACEMENT();
                 System.Drawing.Rectangle pageRect = new System.Drawing.Rectangle(200, 200, 640, 480);  // default location
                 bool rc = WindowPlacement.ExtractWindowPlacementInfo(Settings.Instance.MainWindowPlacement, ref windowPlacement);
                 if (rc)

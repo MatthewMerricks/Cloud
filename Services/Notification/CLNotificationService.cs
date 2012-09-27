@@ -186,7 +186,7 @@ namespace win_client.Services.Notification
 
             public void OnConnectionReceived(object sender, MessageReceivedEventArgs e)
             {
-                _trace.writeToLog(1, "CLNotificationService: OnConnectionReceived: Received msg: <{0}.", e.Message);
+                _trace.writeToLog(1, "CLNotificationService: OnConnectionReceived: Received msg: <{0}>.", e.Message);
 
                 if ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
@@ -202,12 +202,19 @@ namespace win_client.Services.Notification
                         Settings.Instance.TraceExcludeAuthorization);
                 }
 
-                JsonNotificationResponse parsedResponse = StaticSync.ParseNotificationResponse(e.Message);
-                if (parsedResponse == null
-                    || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
-                    || parsedResponse.Author != Helpers.GetComputerFriendlyName())
+                try
                 {
-                    CLAppMessages.Message_DidReceivePushNotificationFromServer.Send(e.Message);
+                    JsonNotificationResponse parsedResponse = StaticSync.ParseNotificationResponse(e.Message);
+                    if (parsedResponse == null
+                        || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
+                        || parsedResponse.Author != Helpers.GetComputerFriendlyName())
+                    {
+                        CLAppMessages.Message_DidReceivePushNotificationFromServer.Send(e.Message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _trace.writeToLog(1, String.Format("CLNotificationService: OnConnectionReceived: ERROR: Exception.  Msg: <{0}>.", ex.Message));
                 }
             }
         }

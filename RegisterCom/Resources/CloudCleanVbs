@@ -26,6 +26,7 @@
    Dim sExplorerPath
    Dim logFileFullPath
    Dim sScriptFile
+   Dim g_sFolderPath 
    
    Set filesys = wscript.CreateObject("Scripting.FileSystemObject") 
    Set objShell = wscript.createObject("wscript.shell") 
@@ -90,6 +91,37 @@
       Next
       'WriteLog "CloudClean: KillExplorer: Exit."
    End Sub
+
+   ' Delete a folder and handle any exception.
+   Class TryDeleteFolder
+		' Constructor
+		Private Sub Class_Initialize
+            WriteLog "CloudClean: TryDeleteFolder: Constructor entry.  Delete folder at path: <" & g_sFolderPath & ">." 
+            filesys.DeleteFolder g_sFolderPath, True
+		End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
+			' Catch
+			Select Case Err.Number
+				Case Else WriteLog "CloudClean: TryDeleteFolder: Unhandled error " & Err.Number & " occurred."
+			End Select
+		Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
+			' Finally
+			WriteLog "CloudClean: TryDeleteFolder: Exiting constructor."
+		End Sub 
+	End Class    
+
+	' Delete a folder with retry
+	Sub DeleteFolderWithRetry(folderPath)
+		Dim index
+		WriteLog "CloudClean: DeleteFolderWithRetry: Delete folder at path: <" & folderPath & ">." 
+		for index = 1 to 3
+			g_sFolderPath = folderPath
+			With New TryDeleteFolder : End With
+			if Err.Number = 0 then
+				exit for
+			end if
+			WScript.Sleep 100
+		Next
+	End Sub
 
    '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
    ' Try pattern
@@ -202,7 +234,7 @@
                Set folderCommonFiles = folderCommon.Files
                If folderCommonFiles.Count = 0 Then
                   WriteLog "CloudClean: Delete folder: " & sCommonFilesCloudPath & "\"
-                  filesys.DeleteFolder sCommonFilesCloudPath, True
+                  DeleteFolderWithRetry sCommonFilesCloudPath
                End If
             End If 
 
@@ -214,7 +246,7 @@
                Set folderCommonFiles = folderCommon.Files
                If folderCommonFiles.Count = 0 Then
                   WriteLog "CloudClean: Delete folder: " & sCommonFilesCloudComPath & "\"
-                  filesys.DeleteFolder sCommonFilesCloudComPath, True
+                  DeleteFolderWithRetry sCommonFilesCloudComPath
                End If
             End If 
 
@@ -239,7 +271,7 @@
                Set folderCommonFiles = folderCommon.Files
                If folderCommonFiles.Count = 0 Then
                   WriteLog "CloudClean: Delete folder: " & sCommonFilesCloudAlternatePath & "\"
-                  filesys.DeleteFolder sCommonFilesCloudAlternatePath, True
+                  DeleteFolderWithRetry sCommonFilesCloudAlternatePath
                End If
             End If 
 
@@ -251,7 +283,7 @@
                Set folderCommonFiles = folderCommon.Files
                If folderCommonFiles.Count = 0 Then
                   WriteLog "CloudClean: Delete folder: " & sCommonFilesCloudComAlternatePath & "\"
-                  filesys.DeleteFolder sCommonFilesCloudComAlternatePath, True
+                  DeleteFolderWithRetry sCommonFilesCloudComAlternatePath
                End If
             End If 
 
@@ -270,7 +302,7 @@
                Set folderCloudFiles = folderCloud.Files
                If folderCloudFiles.Count = 0 Then
                   WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudPath & "\"
-                  filesys.DeleteFolder sProgramFilesCloudPath, True
+                  DeleteFolderWithRetry sProgramFilesCloudPath
                End If
             End If
 
@@ -282,7 +314,7 @@
                Set folderCloudComFiles = folderCloudCom.Files
                If folderCloudComFiles.Count = 0 Then
                   WriteLog "CloudClean: Delete folder: " & sProgramFilesCloudComPath & "\"
-                  filesys.DeleteFolder sProgramFilesCloudComPath, True
+                  DeleteFolderWithRetry sProgramFilesCloudComPath
                End If
             End If
 

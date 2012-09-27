@@ -191,6 +191,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Model\IOnNavigated.cs" />
+    <Compile Include="Model\POINT.cs" />
+    <Compile Include="Model\RECT.cs" />
+    <Compile Include="Model\WINDOWPLACEMENT.cs" />
     <Compile Include="NavigationWindow.xaml.cs">
       <DependentUpon>NavigationWindow.xaml</DependentUpon>
     </Compile>

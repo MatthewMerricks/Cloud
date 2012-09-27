@@ -17,13 +17,14 @@ using CloudApiPublic.Model;
 using CloudApiPublic.Support;
 using win_client.Static;
 using System.Windows.Interop;
+using win_client.Model;
 
 namespace win_client.Common
 {
     public static class WindowPlacement
     {
         private static Encoding encoding = new UTF8Encoding();
-        private static XmlSerializer serializer = new XmlSerializer(typeof(NativeMethods.WINDOWPLACEMENT));
+        private static XmlSerializer serializer = new XmlSerializer(typeof(WINDOWPLACEMENT));
         private static CLTrace _trace = CLTrace.Instance;
 
         private const int SW_SHOWNORMAL = 1;
@@ -35,31 +36,31 @@ namespace win_client.Common
         /// <param name="placementXml">The XML string.</param>
         /// <param name="windowPlacement">The output WINDOWPLACEMENT structure.</param>
         /// <returns>bool: true: Success.</returns>
-        internal static bool ExtractWindowPlacementInfo(string placementXml, ref NativeMethods.WINDOWPLACEMENT placement)
+        internal static bool ExtractWindowPlacementInfo(string placementXml, ref WINDOWPLACEMENT placement)
         {
-            if (string.IsNullOrEmpty(placementXml))
-            {
-                _trace.writeToLog(1, "CLWindowPlacement: ExtractWindowPlacementInfo: ERROR: placementXML is null.");
-                return false;
-            }
-
-            byte[] xmlBytes = encoding.GetBytes(placementXml);
-
             try
             {
-                using (MemoryStream memoryStream = new MemoryStream(xmlBytes))
+                if (string.IsNullOrEmpty(placementXml))
                 {
-                    placement = (NativeMethods.WINDOWPLACEMENT)serializer.Deserialize(memoryStream);
+                    _trace.writeToLog(1, "CLWindowPlacement: ExtractWindowPlacementInfo: ERROR: placementXML is null.");
+                    return false;
                 }
 
-                placement.length = Marshal.SizeOf(typeof(NativeMethods.WINDOWPLACEMENT));
+                byte[] xmlBytes = encoding.GetBytes(placementXml);
+
+                using (MemoryStream memoryStream = new MemoryStream(xmlBytes))
+                {
+                    placement = (WINDOWPLACEMENT)serializer.Deserialize(memoryStream);
+                }
+
+                placement.length = Marshal.SizeOf(typeof(WINDOWPLACEMENT));
                 placement.flags = 0;
                 placement.showCmd = (placement.showCmd == SW_SHOWMINIMIZED ? SW_SHOWNORMAL : placement.showCmd);
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
                 // Parsing placement XML failed. Fail silently.
-                CLError error = null;
+                CLError error = ex;
                 _trace.writeToLog(1, "CLWindowPlacement: ExtractWindowPlacementInfo: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
                 return false;
             }
@@ -74,7 +75,7 @@ namespace win_client.Common
         /// <param name="placementXml">The XML string.</param>
         public static void SetPlacement(IntPtr windowHandle, string placementXml)
         {
-            NativeMethods.WINDOWPLACEMENT placement = new NativeMethods.WINDOWPLACEMENT();
+            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
             bool rc = ExtractWindowPlacementInfo(placementXml, ref placement);
             if (!rc)
             {
@@ -96,7 +97,7 @@ namespace win_client.Common
 
         public static string GetPlacement(IntPtr windowHandle)
         {
-            NativeMethods.WINDOWPLACEMENT placement = new NativeMethods.WINDOWPLACEMENT();
+            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
             NativeMethods.GetWindowPlacement(windowHandle, out placement);
 
             using (MemoryStream memoryStream = new MemoryStream())

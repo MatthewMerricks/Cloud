@@ -765,9 +765,6 @@ namespace win_client.AppDelegate
             // if ([[CLSettings sharedSettings] completedSetup]) {
             if (Settings.Instance.CompletedSetup)
             {
-                //TODO: Remove this setting before release.  This forces trace to be on (causing a performance issue).
-                Settings.Instance.TraceType = TraceType.Communication;
-
                 // setupNeeded = NO;
                 setupNeeded = false;
 
