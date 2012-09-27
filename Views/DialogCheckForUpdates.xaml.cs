@@ -26,6 +26,8 @@ using Xceed.Wpf.Toolkit;
 using CleanShutdown.Messaging;
 using System.Windows.Threading;
 using CloudApiPrivate.Model.Settings;
+using CleanShutdown.Helpers;
+using CloudApiPublic.Support;
 
 namespace win_client.Views
 {
@@ -33,6 +35,8 @@ namespace win_client.Views
     {
         private DispatcherTimer _timer;
         private bool _isVisible = false;
+        private bool _isShuttingDown = false;
+        private static CLTrace _trace = CLTrace.Instance;
 
         public DialogCheckForUpdates()
         {
@@ -47,6 +51,7 @@ namespace win_client.Views
         void DialogCheckForUpdates_Loaded(object sender, RoutedEventArgs e)
         {
             // Register for messages
+            _trace.writeToLog(9, "DialogCheckForUpdates: DialogCheckForUpdates_Loaded: Entry.");
             Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
                 this,
                 message =>
@@ -77,6 +82,7 @@ namespace win_client.Views
             this.ctlAutoUpdate.UpToDate += ctlAutoUpdate_UpToDate;
             this.ctlAutoUpdate.KeepHidden = true;
             this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.Automatic;
+            this.ctlAutoUpdate.CloseAppNow += ctlAutoUpdate_CloseAppNow;
 
             // Check first.
             this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
@@ -87,6 +93,19 @@ namespace win_client.Views
             _timer.Interval = TimeSpan.FromSeconds(1.0);
             _timer.Tick += _timer_Tick;
             _timer.Start();
+        }
+
+        /// <summary>
+        /// The user clicked Install Now.  The AutomaticUpdater is asking us to close.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void ctlAutoUpdate_CloseAppNow(object sender, EventArgs e)
+        {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_CloseAppNow: Shutdown now.");
+            _isShuttingDown = true;
+            ShutdownService.OverrideShutdownProtection();       // go down immediately
+            ShutdownService.RequestShutdown();
         }
 
         /// <summary>
@@ -147,6 +166,7 @@ namespace win_client.Views
             _isVisible = true;
 
             // Set the status to something known at first.  We will force a check which should update the status pretty quickly.
+            _trace.writeToLog(9, "DialogCheckForUpdates: OnMessage_DialogCheckForUpdates_ShouldCheckForUpdates: Entry.");
             this.tblkStatus.Text = "Checking for updates...";
 
             // Record the time of the last update check
@@ -159,67 +179,81 @@ namespace win_client.Views
         void ctlAutoUpdate_UpToDate(object sender, wyDay.Controls.SuccessArgs e)
         {
             // Set the status
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_UpToDate: Entry.");
             this.tblkStatus.Text = "You are currently running the latest version of Cloud.";
         }
 
         void ctlAutoUpdate_UpdateSuccessful(object sender, wyDay.Controls.SuccessArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_UpdateSuccessful: Entry.");
         }
 
         void ctlAutoUpdate_UpdateFailed(object sender, wyDay.Controls.FailArgs e)
         {
             // Set the status
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_UpdateFailed: Entry.");
             this.tblkStatus.Text = "The update failed:\n" + e.ErrorTitle + "\n" + e.ErrorMessage;
         }
 
         void ctlAutoUpdate_UpdateAvailable(object sender, EventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_UpdateAvailable: Entry.");
         }
 
         void ctlAutoUpdate_Loaded(object sender, RoutedEventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_Loaded: Entry.");
         }
 
         void ctlAutoUpdate_DownloadingOrExtractingFailed(object sender, wyDay.Controls.FailArgs e)
         {
             // Set the status
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_DownloadingOrExtractingFailed: Entry.");
             this.tblkStatus.Text = "The download or extraction failed:\n" + e.ErrorTitle + "\n" + e.ErrorMessage;
         }
 
         void ctlAutoUpdate_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_DataContextChanged: Entry.");
         }
 
         void ctlAutoUpdate_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_ContextMenuOpening: Entry.");
         }
 
         void ctlAutoUpdate_ContextMenuClosing(object sender, ContextMenuEventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_ContextMenuClosing: Entry.");
         }
 
         void ctlAutoUpdate_ClosingAborted(object sender, EventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_ClosingAborted: Entry.");
         }
 
         void ctlAutoUpdate_CheckingFailed(object sender, wyDay.Controls.FailArgs e)
         {
             // Set the status
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_CheckingFailed: Entry.");
             this.tblkStatus.Text = "The check for update failed:\n" + e.ErrorTitle + "\n" + e.ErrorMessage;
         }
 
         void ctlAutoUpdate_Cancelled(object sender, EventArgs e)
         {
             // Set the status
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_Cancelled: Entry.");
             this.tblkStatus.Text = "The check for update was cancelled.";
         }
 
         void ctlAutoUpdate_BeforeDownloading(object sender, wyDay.Controls.BeforeArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_BeforeDownloading: Entry.");
         }
 
         void ctlAutoUpdate_BeforeChecking(object sender, wyDay.Controls.BeforeArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_BeforeChecking: Entry.");
         }
 
         /// <summary>
@@ -227,6 +261,7 @@ namespace win_client.Views
         /// </summary>
         void DialogCheckForUpdates_Unloaded(object sender, RoutedEventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: DialogCheckForUpdates_Unloaded: Entry.");
             base.Close();
 
             // Unregister for messages
@@ -239,15 +274,27 @@ namespace win_client.Views
         /// </summary>
         private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
         {
+            // Allow the shutdown if we requested it.
+            _trace.writeToLog(9, "DialogCheckForUpdates: OnConfirmShutdownMessage: Entry.");
+            if (_isShuttingDown)
+            {
+                _trace.writeToLog(9, "DialogCheckForUpdates: OnConfirmShutdownMessage: Allow the shutdown.");
+                message.Execute(false);      // false == allow the shutdown
+                return;
+            }
+            
+            // Handle the preferences case.
             if (_isVisible)
             {
                 if (message.Notification == Notifications.ConfirmShutdown)
                 {
+                    _trace.writeToLog(9, "DialogCheckForUpdates: OnConfirmShutdownMessage: Abort shutdown.");
                     message.Execute(true);      // true == abort shutdown
                 }
 
                 if (message.Notification == Notifications.QueryModalDialogsActive)
                 {
+                    _trace.writeToLog(9, "DialogCheckForUpdates: OnConfirmShutdownMessage: Abort shutdown(2).");
                     message.Execute(true);      // a modal dialog is active
                 }
             }
@@ -255,6 +302,7 @@ namespace win_client.Views
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: OKButton_Click: Entry.");
             this.tblkStatus.Text = "";
             this.Left = Int32.MaxValue;
             this.Top = Int32.MaxValue;
@@ -265,6 +313,7 @@ namespace win_client.Views
         private void ButtonCheckNow_Click(object sender, RoutedEventArgs e)
         {
             // Set the status to something known at first.  We will force a check which should update the status pretty quickly.
+            _trace.writeToLog(9, "DialogCheckForUpdates: ButtonCheckNow_Click: Entry.");
             this.tblkStatus.Text = "Checking for updates...";
 
             // Record the time of the last update check
@@ -283,11 +332,13 @@ namespace win_client.Views
 
         private void ButtonInstallNow_Click(object sender, RoutedEventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ButtonInstallNow_Click: Entry.");
             this.ctlAutoUpdate.InstallNow();
         }
 
         private void DialogCheckForUpdates_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            _trace.writeToLog(9, "DialogCheckForUpdates: DialogCheckForUpdates_Closing: Entry.");
             this.tblkStatus.Text = "";
             this.Left = Int32.MaxValue;
             this.Top = Int32.MaxValue;

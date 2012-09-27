@@ -81,7 +81,7 @@
                 </Button>
 
                 <Button x:Name="cmdInstallNow" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"  Click="ButtonCheckNow_Click" IsCancel="True" IsDefault="True" 
+                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"  Click="ButtonInstallNow_Click" IsCancel="True" IsDefault="True" 
                         TabIndex="2" Margin="15,0,0,0" ToolTip="Click to install the update now.  This will close and reopen Cloud.">
                     <AccessText Text="_Install Now"/>
                 </Button>
