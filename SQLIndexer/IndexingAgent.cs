@@ -1206,12 +1206,14 @@ namespace SQLIndexer
                                         objectsToUpdate.Add(previousEvent.FileSystemObject);
                                     }
                                     previousEvent.PreviousPath = oldPath;
+
+                                    eventsToUpdate.Add(previousEvent);
                                 }
-                                eventsToUpdate.Add(previousEvent);
                             }
                         }
 
-                        bool atLeastOneServerLinked = false;
+                        //// what was this for?
+                        //bool atLeastOneServerLinked = false;
 
                         // Loop through modified set of sync states (including new changes) and add the matching database objects
                         foreach (KeyValuePair<FilePath, Tuple<long, Nullable<long>, FileMetadata>> newSyncState in newSyncStates)
@@ -1245,7 +1247,8 @@ namespace SQLIndexer
                             // If the file/folder path is remapped on the server, add the file/folder object for the server-mapped state
                             if (serverRemappedPaths.ContainsKey(newPathString))
                             {
-                                atLeastOneServerLinked = true;
+                                //// what was this for?
+                                //atLeastOneServerLinked = true;
 
                                 objectsToUpdate.Add(new FileSystemObject()
                                 {

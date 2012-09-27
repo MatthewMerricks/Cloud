@@ -22,12 +22,9 @@ namespace win_client
 {
     public sealed partial class App : Application
     {
-
         static App()
         {
-
             DispatcherHelper.Initialize();
-
         }
 
         protected override void OnStartup(StartupEventArgs e)

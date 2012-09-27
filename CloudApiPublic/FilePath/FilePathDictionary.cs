@@ -498,13 +498,23 @@ namespace CloudApiPublic.Model
                     }
                     else if (innerFolders.ContainsKey(key))
                     {
-                        if (innerFolders[key].CurrentValue != null
+                        FilePathDictionary<T> innerFolder = innerFolders[key];
+
+                        if (innerFolder.CurrentValue != null
                             && value == null)
                         {
+                            innerFolder._count--;
                             _count--;
                         }
 
-                        innerFolders[key][null] = value;
+                        if (innerFolder.CurrentValue == null
+                            && value != null)
+                        {
+                            innerFolder._count++;
+                            _count++;
+                        }
+
+                        innerFolder.CurrentValue = value;
                     }
                     else
                     {

@@ -318,8 +318,15 @@ namespace CloudApiPublic.Support
 
                     LinkedListNode<Tuple<DelayProcessable<T>, Action<T, object, int>, object, int, Action<CLError, T, object, int>>> currentToCheck = DelayQueue.First;
 
+                    if (currentToCheck == null)
+                    {
+                        TimeReaderRunning = false;
+                        return;
+                    }
+
                     while (currentToCheck != null)
                     {
+
                         if (latestTimeAllowed.CompareTo(currentToCheck.Value.Item1.StartedProcessingTime) < 0)
                         {
                             break;

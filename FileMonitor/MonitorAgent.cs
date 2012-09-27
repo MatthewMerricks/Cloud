@@ -1649,6 +1649,8 @@ namespace FileMonitor
 
                         // create watcher for all files and folders that aren't renamed at current path
                         FileWatcher = new FileSystemWatcher(CurrentFolderPath);
+                        // increase watcher buffer to maximum
+                        FileWatcher.InternalBufferSize = ushort.MaxValue;
                         // include recursive subdirectories
                         FileWatcher.IncludeSubdirectories = true;
                         // set changes to monitor (all but DirectoryName)
@@ -1669,6 +1671,8 @@ namespace FileMonitor
 
                         // create watcher for folders that are renamed at the current path
                         FolderWatcher = new FileSystemWatcher(CurrentFolderPath);
+                        // increase watcher buffer to maximum
+                        FolderWatcher.InternalBufferSize = ushort.MaxValue;
                         // include recursive subdirectories
                         FolderWatcher.IncludeSubdirectories = true;
                         // set changes to monitor (only DirectoryName)
@@ -1866,6 +1870,9 @@ namespace FileMonitor
             watcher_Changed(sender, e, false);
         }
 
+        private readonly Queue<KeyValuePair<FileSystemEventArgs, bool>> watcher_ChangedQueue = new Queue<KeyValuePair<FileSystemEventArgs,bool>>();
+        private bool watcher_ChangedQueueProcessing = false;
+
         /// <summary>
         /// Combined EventHandler for file and folder changes
         /// </summary>
@@ -1874,39 +1881,99 @@ namespace FileMonitor
         /// <param name="folderOnly">Value of folder-specificity from routed event</param>
         private void watcher_Changed(object sender, FileSystemEventArgs e, bool folderOnly)
         {
-            // Enter read lock of CurrentFolderPath (doesn't lock other threads unless lock is entered for write on rare condition of path changing)
-            CurrentFolderPathLocker.EnterReadLock();
-            try
+            lock (watcher_ChangedQueue)
             {
-                // rebuild filePath from current root path and the relative path portion of the change event
-                string newPath = CurrentFolderPath + e.FullPath.Substring(InitialFolderPath.Length);
-                // previous path for renames only
-                string oldPath;
-                // set previous path only if change is a rename
-                if ((e.ChangeType & WatcherChangeTypes.Renamed) == WatcherChangeTypes.Renamed)
+                if (watcher_ChangedQueueProcessing)
                 {
-                    // cast args to the appropriate type containing previous path
-                    RenamedEventArgs renamedArgs = (RenamedEventArgs)e;
-                    // rebuild oldPath from current root path and the relative path portion of the change event;
-                    // should not be a problem pulling the relative path out of the renamed args 'OldFullPath' when the
-                    // file was moved from a directory outside the monitored root because move events don't come across as 'Renamed'
-                    oldPath = CurrentFolderPath + renamedArgs.OldFullPath.Substring(InitialFolderPath.Length);
+                    watcher_ChangedQueue.Enqueue(new KeyValuePair<FileSystemEventArgs, bool>(e, folderOnly));
                 }
                 else
                 {
-                    // no old path for Created/Deleted/Modified events
-                    oldPath = null;
+                    watcher_ChangedQueueProcessing = true;
+                    ThreadPool.UnsafeQueueUserWorkItem(ProcessWatcher_ChangedQueue, new KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>(this,
+                        new KeyValuePair<FileSystemEventArgs, bool>(e, folderOnly)));
                 }
-                // Processes the file system event against the file data and current file index
-                CheckMetadataAgainstFile(newPath, oldPath, e.ChangeType, folderOnly);
             }
-            catch
+        }
+
+        /// <summary>
+        /// Refactored processing logic for watcher_Changed eventhandler so it can process on a seperate reader thread (thus clearing out the FileSystemWatcher buffer quicker)
+        /// </summary>
+        /// <param name="sender">Contains the MonitorAgent, the FileSystemEventArgs of the initial change, and a bool for whether the initial change was from FolderWatcher (as opposed to FileWatcher)</param>
+        private static void ProcessWatcher_ChangedQueue(object sender)
+        {
+            Nullable<KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>> castSender = sender as Nullable<KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>>;
+            if (castSender == null)
             {
+                MessageBox.Show("Error starting Cloud, ProcessWatcher_ChangedQueue sender is not of type KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>");
             }
-            finally
+            else
             {
-                // Exit read lock of CurrentFolderPath
-                CurrentFolderPathLocker.ExitReadLock();
+                MonitorAgent currentAgent = ((KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>)castSender).Key;
+
+                KeyValuePair<FileSystemEventArgs, bool> currentToProcess = ((KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>)castSender).Value;
+
+                Func<bool> continueProcessing = () =>
+                    {
+                        lock (currentAgent)
+                        {
+                            if (currentAgent.Disposed)
+                            {
+                                return false;
+                            }
+                        }
+
+                        lock (currentAgent.watcher_ChangedQueue)
+                        {
+                            if (currentAgent.watcher_ChangedQueue.Count == 0)
+                            {
+                                return currentAgent.watcher_ChangedQueueProcessing = false;
+                            }
+                            else
+                            {
+                                currentToProcess = currentAgent.watcher_ChangedQueue.Dequeue();
+                                return true;
+                            }
+                        }
+                    };
+
+                do
+                {
+                    // Enter read lock of CurrentFolderPath (doesn't lock other threads unless lock is entered for write on rare condition of path changing)
+                    currentAgent.CurrentFolderPathLocker.EnterReadLock();
+                    try
+                    {
+                        // rebuild filePath from current root path and the relative path portion of the change event
+                        string newPath = currentAgent.CurrentFolderPath + currentToProcess.Key.FullPath.Substring(currentAgent.InitialFolderPath.Length);
+                        // previous path for renames only
+                        string oldPath;
+                        // set previous path only if change is a rename
+                        if ((currentToProcess.Key.ChangeType & WatcherChangeTypes.Renamed) == WatcherChangeTypes.Renamed)
+                        {
+                            // cast args to the appropriate type containing previous path
+                            RenamedEventArgs renamedArgs = (RenamedEventArgs)currentToProcess.Key;
+                            // rebuild oldPath from current root path and the relative path portion of the change event;
+                            // should not be a problem pulling the relative path out of the renamed args 'OldFullPath' when the
+                            // file was moved from a directory outside the monitored root because move events don't come across as 'Renamed'
+                            oldPath = currentAgent.CurrentFolderPath + renamedArgs.OldFullPath.Substring(currentAgent.InitialFolderPath.Length);
+                        }
+                        else
+                        {
+                            // no old path for Created/Deleted/Modified events
+                            oldPath = null;
+                        }
+                        // Processes the file system event against the file data and current file index
+                        currentAgent.CheckMetadataAgainstFile(newPath, oldPath, currentToProcess.Key.ChangeType, currentToProcess.Value);
+                    }
+                    catch
+                    {
+                    }
+                    finally
+                    {
+                        // Exit read lock of CurrentFolderPath
+                        currentAgent.CurrentFolderPathLocker.ExitReadLock();
+                    }
+                } while (continueProcessing());
             }
         }
 
