@@ -523,18 +523,24 @@ namespace CloudApiPublic.Model
                         {
                             if (innerFolders.ContainsKey(recurseParent))
                             {
+                                FilePathDictionary<T> recurseParentDictionary = innerFolders[recurseParent];;
                                 if (value == null)
                                 {
-                                    int previousCount = innerFolders[recurseParent].Count;
-                                    innerFolders[recurseParent][key] = value;
-                                    if (innerFolders[recurseParent].Count < previousCount)
+                                    int previousCount = recurseParentDictionary.Count;
+                                    recurseParentDictionary[key] = value;
+                                    if (recurseParentDictionary.Count < previousCount)
                                     {
                                         _count--;
                                     }
                                 }
                                 else
                                 {
-                                    innerFolders[recurseParent][key] = value;
+                                    int previousCount = recurseParentDictionary.Count;
+                                    recurseParentDictionary[key] = value;
+                                    if (recurseParentDictionary.Count > previousCount)
+                                    {
+                                        _count++;
+                                    }
                                 }
                                 break;
                             }

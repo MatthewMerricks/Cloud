@@ -96,18 +96,18 @@ namespace SQLIndexer.Model
                         {
                             toReturn.Add(new FindFileResult()
                             {
-                                CreationTime = (fileData.ftCreationTime.dwHighDateTime == (uint)0
+                                CreationTime = ((fileData.ftCreationTime.dwHighDateTime == (uint)0
                                         && fileData.ftCreationTime.dwLowDateTime == (uint)0)
                                     ? (Nullable<DateTime>)null
-                                    : DateTime.FromFileTimeUtc(((long)fileData.ftCreationTime.dwHighDateTime * (long)uint.MaxValue) + (long)fileData.ftCreationTime.dwLowDateTime),
+                                    : DateTime.FromFileTimeUtc((long)(((ulong)fileData.ftCreationTime.dwHighDateTime << 32) + fileData.ftCreationTime.dwLowDateTime))),
                                 LastWriteTime = (fileData.ftLastWriteTime.dwHighDateTime == (uint)0
                                         && fileData.ftLastWriteTime.dwLowDateTime == (uint)0)
                                     ? (Nullable<DateTime>)null
-                                    : DateTime.FromFileTimeUtc(((long)fileData.ftLastWriteTime.dwHighDateTime * (long)uint.MaxValue) + (long)fileData.ftLastWriteTime.dwLowDateTime),
+                                    : DateTime.FromFileTimeUtc((long)(((ulong)fileData.ftLastWriteTime.dwHighDateTime << 32) + fileData.ftLastWriteTime.dwLowDateTime)),
                                 Name = fileData.cFileName,
                                 Size = ((fileData.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory
                                     ? (Nullable<long>)null
-                                    : ((long)fileData.nFileSizeHigh * (long)uint.MaxValue) + (long)fileData.nFileSizeLow),
+                                    : (long)(((ulong)fileData.nFileSizeHigh << 32) + fileData.nFileSizeLow)),
                                 Parent = searchParent
                             });
                         }
@@ -161,18 +161,18 @@ namespace SQLIndexer.Model
                 {
                     toReturn = new FindFileResult()
                         {
-                            CreationTime = (fileData.ftCreationTime.dwHighDateTime == (uint)0
-                                    && fileData.ftCreationTime.dwLowDateTime == (uint)0)
-                                ? (Nullable<DateTime>)null
-                                : DateTime.FromFileTimeUtc(((long)fileData.ftCreationTime.dwHighDateTime * (long)uint.MaxValue) + (long)fileData.ftCreationTime.dwLowDateTime),
-                            LastWriteTime = (fileData.ftLastWriteTime.dwHighDateTime == (uint)0
+                            CreationTime = ((fileData.ftCreationTime.dwHighDateTime == (uint)0
+                                        && fileData.ftCreationTime.dwLowDateTime == (uint)0)
+                                    ? (Nullable<DateTime>)null
+                                    : DateTime.FromFileTimeUtc((long)(((ulong)fileData.ftCreationTime.dwHighDateTime << 32) + fileData.ftCreationTime.dwLowDateTime))),
+                            LastWriteTime = ((fileData.ftLastWriteTime.dwHighDateTime == (uint)0
                                     && fileData.ftLastWriteTime.dwLowDateTime == (uint)0)
                                 ? (Nullable<DateTime>)null
-                                : DateTime.FromFileTimeUtc(((long)fileData.ftLastWriteTime.dwHighDateTime * (long)uint.MaxValue) + (long)fileData.ftLastWriteTime.dwLowDateTime),
+                                : DateTime.FromFileTimeUtc((long)(((ulong)fileData.ftLastWriteTime.dwHighDateTime << 32) + fileData.ftLastWriteTime.dwLowDateTime))),
                             Name = fileData.cFileName,
                             Size = ((fileData.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory
                                 ? (Nullable<long>)null
-                                : ((long)fileData.nFileSizeHigh * (long)uint.MaxValue) + (long)fileData.nFileSizeLow),
+                                : (long)(((ulong)fileData.nFileSizeHigh << 32) + fileData.nFileSizeLow)),
                             Children = ((fileData.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory
                                 ? new List<FindFileResult>(0)
                                 : null)

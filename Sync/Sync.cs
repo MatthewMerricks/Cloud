@@ -1393,6 +1393,7 @@ namespace Sync
                                         downloadRequest.Headers[CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersionHeaderName] = CloudApiPrivate.Model.CLPrivateDefinitions.CLClientVersion;
                                         downloadRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(Settings.Instance.Akey);
                                         downloadRequest.SendChunked = false;
+                                        downloadRequest.KeepAlive = false;
                                         downloadRequest.Timeout = HttpTimeoutMilliseconds;
                                         downloadRequest.ContentType = CLDefinitions.HeaderAppendContentTypeJson;
                                         downloadRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding;
