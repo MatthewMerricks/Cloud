@@ -162,9 +162,9 @@ namespace SQLIndexer.Model
                     toReturn = new FindFileResult()
                         {
                             CreationTime = ((fileData.ftCreationTime.dwHighDateTime == (uint)0
-                                        && fileData.ftCreationTime.dwLowDateTime == (uint)0)
-                                    ? (Nullable<DateTime>)null
-                                    : DateTime.FromFileTimeUtc((long)(((ulong)fileData.ftCreationTime.dwHighDateTime << 32) + fileData.ftCreationTime.dwLowDateTime))),
+                                    && fileData.ftCreationTime.dwLowDateTime == (uint)0)
+                                ? (Nullable<DateTime>)null
+                                : DateTime.FromFileTimeUtc((long)(((ulong)fileData.ftCreationTime.dwHighDateTime << 32) + fileData.ftCreationTime.dwLowDateTime))),
                             LastWriteTime = ((fileData.ftLastWriteTime.dwHighDateTime == (uint)0
                                     && fileData.ftLastWriteTime.dwLowDateTime == (uint)0)
                                 ? (Nullable<DateTime>)null

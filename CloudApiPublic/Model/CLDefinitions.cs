@@ -171,7 +171,12 @@ namespace CloudApiPublic.Model
             CLEventTypeRenameFile,
             CLEventTypeRenameLink,
             CLEventTypeRenameFolder,
-            CLEventTypeRenameRange
+            CLEventTypeRenameRange,
+
+            CLEventTypeMoveFile,
+            CLEventTypeMoveLink,
+            CLEventTypeMoveFolder,
+            CLEventTypeMoveRange
         };
 
         public static readonly string[] SyncHeaderIsFolders =

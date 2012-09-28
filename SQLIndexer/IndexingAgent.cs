@@ -436,11 +436,9 @@ namespace SQLIndexer
                                 "WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter.ToString() + " " +
                                 "AND [FileSystemObjects].[PathChecksum] = " + pathCRC.ToString() + " " +
                                 (revision == null
-                                    ? "AND [FileSystemObjects].[RevisionIsNull] = 1"
-                                    : "AND [FileSystemObjects].[RevisionIsNull] = 0 " +
-                                        "AND LOWER([FileSystemObjects].[Revision]) = '" + revision.Replace("'", "''").ToLowerInvariant() + "'"))
-                            .Where(parent => parent.Path == path) // run in memory since Path field is not indexable
-                            .SingleOrDefault();
+                                    ? "AND [FileSystemObjects].[Revision] IS NULL "
+                                    : "AND [FileSystemObjects].[Revision] = '" + revision.Replace("'", "''").ToLowerInvariant() + "'"))
+                            .SingleOrDefault(parent => parent.Path == path); // run in memory since Path field is not indexable
 
                         if (foundSync != null)
                         {
