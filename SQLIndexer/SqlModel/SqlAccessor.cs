@@ -97,7 +97,7 @@ namespace SQLIndexer.SqlModel
         /// <param name="select">Select statement</param>
         /// <param name="includes">List of joined children with dot syntax for multiple levels deep</param>
         /// <returns>Yield-returned converted database results as current generic type</returns>
-        public static IEnumerable<T> SelectResultSet(SqlCeConnection connection, string select, IEnumerable<string> includes = null)
+        public static IEnumerable<T> SelectResultSet(SqlCeConnection connection, string select, IEnumerable<string> includes = null, SqlCeTransaction transaction = null)
         {
             if (connection.State != System.Data.ConnectionState.Open)
             {
@@ -114,6 +114,11 @@ namespace SQLIndexer.SqlModel
             {
                 // set command to run as select statement
                 selectCommand.CommandText = select;
+
+                if (transaction != null)
+                {
+                    selectCommand.Transaction = transaction;
+                }
 
                 // execute select command as a reader
                 SqlCeDataReader selectResult = selectCommand.ExecuteReader(CommandBehavior.SingleResult);
@@ -150,7 +155,7 @@ namespace SQLIndexer.SqlModel
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="toInsert">Generic typed objects to insert</param>
-        public static void InsertRows(SqlCeConnection connection, IEnumerable<T> toInsert, bool identityInsert = false)
+        public static void InsertRows(SqlCeConnection connection, IEnumerable<T> toInsert, bool identityInsert = false, SqlCeTransaction transaction = null)
         {
             if (connection.State != ConnectionState.Open)
             {
@@ -170,7 +175,7 @@ namespace SQLIndexer.SqlModel
                 string selectTopZero;
 
                 // Fill in the 'columns' group fields
-                FindInsertColumns(connection, insertTableName, out columns, out identities, out selectTopZero);
+                FindInsertColumns(connection, insertTableName, out columns, out identities, out selectTopZero, transaction);
 
                 // Store whether more than one row is set for insert, defaulting with false
                 bool foundMultiple = false;
@@ -217,11 +222,19 @@ namespace SQLIndexer.SqlModel
                             identityOnCommand = connection.CreateCommand();
 
                             identityOnCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] ON";
+
+                            if (transaction != null)
+                            {
+                                identityOnCommand.Transaction = transaction;
+                            }
+
                             identityOnCommand.ExecuteNonQuery();
                         }
 
                         // Create a new SQL Compact Bulk Inserter, preserving null values
-                        using (SqlCeBulkCopy bulkCopy = new SqlCeBulkCopy(connection, SqlCeBulkCopyOptions.KeepNulls))
+                        using (SqlCeBulkCopy bulkCopy = (transaction == null
+                            ? new SqlCeBulkCopy(connection, SqlCeBulkCopyOptions.KeepNulls)
+                            : new SqlCeBulkCopy(connection, SqlCeBulkCopyOptions.KeepNulls, transaction)))
                         {
                             // Create a new DataTable to hold all the columns and rows to add
                             DataTable insertTable = new DataTable();
@@ -263,6 +276,12 @@ namespace SQLIndexer.SqlModel
                             identityOffCommand = connection.CreateCommand();
 
                             identityOffCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] OFF";
+
+                            if (transaction != null)
+                            {
+                                identityOffCommand.Transaction = transaction;
+                            }
+
                             identityOffCommand.ExecuteNonQuery();
                         }
                     }
@@ -292,6 +311,12 @@ namespace SQLIndexer.SqlModel
                             identityOnCommand = connection.CreateCommand();
 
                             identityOnCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] ON";
+
+                            if (transaction != null)
+                            {
+                                identityOnCommand.Transaction = transaction;
+                            }
+
                             identityOnCommand.ExecuteNonQuery();
                         }
 
@@ -301,6 +326,11 @@ namespace SQLIndexer.SqlModel
                         {
                             // set the select statement with a zero row query on the current table
                             singleCommand.CommandText = selectTopZero;
+
+                            if (transaction != null)
+                            {
+                                singleCommand.Transaction = transaction;
+                            }
 
                             // execute a result set (empty) for the current table as updatable
                             SqlCeResultSet singleResult = singleCommand.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable);
@@ -340,6 +370,20 @@ namespace SQLIndexer.SqlModel
                         {
                             singleCommand.Dispose();
                         }
+
+                        if (identityInsert)
+                        {
+                            identityOffCommand = connection.CreateCommand();
+
+                            identityOffCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] OFF";
+
+                            if (transaction != null)
+                            {
+                                identityOffCommand.Transaction = transaction;
+                            }
+
+                            identityOffCommand.ExecuteNonQuery();
+                        }
                     }
                     finally
                     {
@@ -363,10 +407,10 @@ namespace SQLIndexer.SqlModel
         /// <param name="connection">Database connection</param>
         /// <param name="toInsert">Object to insert into database</param>
         /// <returns>Returns the identity of the inserted row</returns>
-        public static TKey InsertRow<TKey>(SqlCeConnection connection, T toInsert)
+        public static TKey InsertRow<TKey>(SqlCeConnection connection, T toInsert, bool identityInsert = false, SqlCeTransaction transaction = null)
         {
             // Call to InsertRows which actually does the database insert
-            InsertRows(connection, new T[] { toInsert });
+            InsertRows(connection, new T[] { toInsert }, identityInsert, transaction);
 
             // Create a command for selecting the identity
             SqlCeCommand identityCommand = connection.CreateCommand();
@@ -374,6 +418,11 @@ namespace SQLIndexer.SqlModel
             {
                 // Set the command text to return the identity
                 identityCommand.CommandText = "SELECT @@IDENTITY";
+
+                if (transaction != null)
+                {
+                    identityCommand.Transaction = transaction;
+                }
 
                 // Run the identity selection command, convert the result to the generic type, and return it
                 return Helpers.ConvertTo<TKey>(identityCommand.ExecuteScalar());
@@ -389,10 +438,10 @@ namespace SQLIndexer.SqlModel
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="toInsert">Object to insert into database</param>
-        public static void InsertRow(SqlCeConnection connection, T toInsert)
+        public static void InsertRow(SqlCeConnection connection, T toInsert, bool identityInsert = false, SqlCeTransaction transaction = null)
         {
             // Call to InsertRows which actually does the database insert
-            InsertRows(connection, new T[] { toInsert });
+            InsertRows(connection, new T[] { toInsert }, identityInsert, transaction);
         }
 
         /// <summary>
@@ -474,10 +523,10 @@ namespace SQLIndexer.SqlModel
         /// <param name="searchCaseSensitive">Whether to search the row's primary key via a case-sensitive search</param>
         /// <param name="updateCaseSensitive">Whether to check for a column's difference to update by case-sensitive comparison</param>
         /// <returns>Returns whether the row was found to be updated</returns>
-        public static bool UpdateRow(SqlCeConnection connection, T toUpdate, bool searchCaseSensitive = true, bool updateCaseSensitive = true)
+        public static bool UpdateRow(SqlCeConnection connection, T toUpdate, bool searchCaseSensitive = true, bool updateCaseSensitive = true, SqlCeTransaction transaction = null)
         {
             IEnumerable<int> unableToFindIndexes;
-            UpdateRows(connection, new T[] { toUpdate }, out unableToFindIndexes, searchCaseSensitive, updateCaseSensitive);
+            UpdateRows(connection, new T[] { toUpdate }, out unableToFindIndexes, searchCaseSensitive, updateCaseSensitive, transaction);
             return !(unableToFindIndexes ?? Enumerable.Empty<int>()).Any();
         }
 
@@ -489,7 +538,7 @@ namespace SQLIndexer.SqlModel
         /// <param name="unableToFindIndexes">(output) List of indexes that were not found to update correlating to the index in the list of objects to update</param>
         /// <param name="searchCaseSensitive">Whether to search the row's primary key via a case-sensitive search</param>
         /// <param name="updateCaseSensitive">Whether to check for a column's difference to update by case-sensitive comparison</param>
-        public static void UpdateRows(SqlCeConnection connection, IEnumerable<T> toUpdate, out IEnumerable<int> unableToFindIndexes, bool searchCaseSensitive = true, bool updateCaseSensitive = true)
+        public static void UpdateRows(SqlCeConnection connection, IEnumerable<T> toUpdate, out IEnumerable<int> unableToFindIndexes, bool searchCaseSensitive = true, bool updateCaseSensitive = true, SqlCeTransaction transaction = null)
         {
             if (connection.State != ConnectionState.Open)
             {
@@ -514,14 +563,14 @@ namespace SQLIndexer.SqlModel
             string selectTopZero;
 
             // Fill in the 'columns' group fields
-            FindInsertColumns(connection, updateTableName, out columns, out identities, out selectTopZero);
+            FindInsertColumns(connection, updateTableName, out columns, out identities, out selectTopZero, transaction);
 
             // build an array of the types of properties which will be checked for update
             Type[] valueTypes = columns.Select(currentValue => currentValue.Value.PropertyType).ToArray();
 
             // get the primary key name and the properties which will retrieve values for the primary key search
             string primaryKeyName;
-            PropertyInfo[] keyValues = GetPrimaryKeyColumnValues(connection, updateTableName, out primaryKeyName);
+            PropertyInfo[] keyValues = GetPrimaryKeyColumnValues(connection, updateTableName, out primaryKeyName, transaction);
 
             // start a new list to store indexes which were not found to update
             List<int> unableToFindList = new List<int>();
@@ -535,6 +584,11 @@ namespace SQLIndexer.SqlModel
                 retrieveExisting.CommandText = updateTableName;
                 // provide the primary key index name for searching
                 retrieveExisting.IndexName = primaryKeyName;
+
+                if (transaction != null)
+                {
+                    retrieveExisting.Transaction = transaction;
+                }
 
                 // retrieve a result set to allow primary key searching and updates
                 using (SqlCeResultSet retrievedExisting = retrieveExisting.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable
@@ -694,10 +748,10 @@ namespace SQLIndexer.SqlModel
         /// <param name="toDelete">Object to delete from database</param>
         /// <param name="caseSensitive">Whether the primary key will be searched as case-sensitive</param>
         /// <returns>Returns whether the row was deleted</returns>
-        public static bool DeleteRow(SqlCeConnection connection, T toDelete, bool caseSensitive = true)
+        public static bool DeleteRow(SqlCeConnection connection, T toDelete, bool caseSensitive = true, SqlCeTransaction transaction = null)
         {
             IEnumerable<int> unableToFindIndexes;
-            DeleteRows(connection, new T[] { toDelete }, out unableToFindIndexes, caseSensitive);
+            DeleteRows(connection, new T[] { toDelete }, out unableToFindIndexes, caseSensitive, transaction);
             return !(unableToFindIndexes ?? Enumerable.Empty<int>()).Any();
         }
 
@@ -708,7 +762,7 @@ namespace SQLIndexer.SqlModel
         /// <param name="toDelete">List of objects to delete</param>
         /// <param name="unableToFindIndexes">(output) List of indexes that were not found to delete correlating to the index in the list of objects to delete</param>
         /// <param name="caseSensitive">Whether the primary key will be searched as case-sensitive</param>
-        public static void DeleteRows(SqlCeConnection connection, IEnumerable<T> toDelete, out IEnumerable<int> unableToFindIndexes, bool caseSensitive = true)
+        public static void DeleteRows(SqlCeConnection connection, IEnumerable<T> toDelete, out IEnumerable<int> unableToFindIndexes, bool caseSensitive = true, SqlCeTransaction transaction = null)
         {
             if (connection.State != ConnectionState.Open)
             {
@@ -733,11 +787,11 @@ namespace SQLIndexer.SqlModel
             string selectTopZero;
 
             // Fill in the 'columns' group fields
-            FindInsertColumns(connection, deleteTableName, out columns, out identities, out selectTopZero);
+            FindInsertColumns(connection, deleteTableName, out columns, out identities, out selectTopZero, transaction);
 
             // Get the primary key name and PropertyInfoes for accesing the primary key values from current generic typed objects
             string primaryKeyName;
-            PropertyInfo[] keyValues = GetPrimaryKeyColumnValues(connection, deleteTableName, out primaryKeyName);
+            PropertyInfo[] keyValues = GetPrimaryKeyColumnValues(connection, deleteTableName, out primaryKeyName, transaction);
 
             // Create the list for indexes that were unable to be found to delete
             List<int> unableToFindList = new List<int>();
@@ -751,6 +805,11 @@ namespace SQLIndexer.SqlModel
                 retrieveExisting.CommandText = deleteTableName;
                 // Set the index as the primary key index for searching rows
                 retrieveExisting.IndexName = primaryKeyName;
+
+                if (transaction != null)
+                {
+                    retrieveExisting.Transaction = transaction;
+                }
 
                 // Retrieve an updatable result set to search for rows to delete
                 using (SqlCeResultSet retrievedExisting = retrieveExisting.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable
@@ -803,7 +862,7 @@ namespace SQLIndexer.SqlModel
 
         #region private static methods
         // Get and sets as necessary, the fields in the 'primary key' group for the primary key index name and property infoes to access primary key values in current generic typed objects
-        private static PropertyInfo[] GetPrimaryKeyColumnValues(SqlCeConnection connection, string tableName, out string primaryKeyName)
+        private static PropertyInfo[] GetPrimaryKeyColumnValues(SqlCeConnection connection, string tableName, out string primaryKeyName, SqlCeTransaction transaction)
         {
             // Lock for getting/setting fields in the 'primary key' group
             lock (PrimaryKeyOrdinalsLocker)
@@ -823,6 +882,11 @@ namespace SQLIndexer.SqlModel
                             "FROM [INFORMATION_SCHEMA].[INDEXES] " +
                             "WHERE [INFORMATION_SCHEMA].[INDEXES].[TABLE_NAME] = '" + tableName.Replace("'", "''") + "' " +
                             "AND [INFORMATION_SCHEMA].[INDEXES].[PRIMARY_KEY] = 1";
+
+                        if (transaction != null)
+                        {
+                            ordinalCommand.Transaction = transaction;
+                        }
 
                         // Execute the result set for finding the primary key name and columns for the current table
                         SqlCeResultSet ordinals = ordinalCommand.ExecuteResultSet(ResultSetOptions.Insensitive | ResultSetOptions.Scrollable);
@@ -1230,7 +1294,7 @@ namespace SQLIndexer.SqlModel
 
         // Gets and sets as necessary, lists of the updatable columns and corresponding PropertyInfoes to access the values in the current generic typed objects;
         // also creates a select statement that pulls zero rows with all the columns for the current table
-        private static void FindInsertColumns(SqlCeConnection connection, string TableName, out KeyValuePair<string, PropertyInfo>[] columns, out KeyValuePair<string, PropertyInfo>[] identities, out string selectTopZero)
+        private static void FindInsertColumns(SqlCeConnection connection, string TableName, out KeyValuePair<string, PropertyInfo>[] columns, out KeyValuePair<string, PropertyInfo>[] identities, out string selectTopZero, SqlCeTransaction transaction)
         {
             if (connection.State != ConnectionState.Open)
             {
@@ -1256,6 +1320,11 @@ namespace SQLIndexer.SqlModel
                             "FROM [INFORMATION_SCHEMA].[COLUMNS] " +
                             "WHERE [INFORMATION_SCHEMA].[COLUMNS].[TABLE_NAME] = '" + TableName.Replace("'", "''") + "' " +
                             "AND [INFORMATION_SCHEMA].[COLUMNS].[AUTOINC_SEED] IS NOT NULL";
+
+                        if (transaction != null)
+                        {
+                            identityCommand.Transaction = transaction;
+                        }
                         
                         // Create a result set of the selected column names of identity columns
                         SqlCeResultSet identitySet = identityCommand.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Insensitive);
