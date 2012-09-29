@@ -30,3 +30,5 @@ _ReSharper*/
 Generated Files/
 *.ipch
 [Cc]loud[Ss]etup/[Cc]loud[Ss]etup/[Ee]xpress/
+WyUpdater/*
+!WyUpdater/
