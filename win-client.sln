@@ -895,6 +895,7 @@ Global
 		{83CA3DB8-0155-4F9E-8DDA-35AA9098E7A8}.Release|Any CPU.ActiveCfg = SingleImage
 		{83CA3DB8-0155-4F9E-8DDA-35AA9098E7A8}.Release|Any CPU.Build.0 = SingleImage
 		{83CA3DB8-0155-4F9E-8DDA-35AA9098E7A8}.Release|Mixed Platforms.ActiveCfg = SingleImage
+		{83CA3DB8-0155-4F9E-8DDA-35AA9098E7A8}.Release|Mixed Platforms.Build.0 = SingleImage
 		{83CA3DB8-0155-4F9E-8DDA-35AA9098E7A8}.Release|Win32.ActiveCfg = SingleImage
 		{83CA3DB8-0155-4F9E-8DDA-35AA9098E7A8}.Release|Win32.Build.0 = SingleImage
 		{83CA3DB8-0155-4F9E-8DDA-35AA9098E7A8}.Release|x64.ActiveCfg = SingleImage

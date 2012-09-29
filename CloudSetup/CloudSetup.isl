@@ -2999,9 +2999,9 @@
 		<row><td>_07D4F9FD_FAA1_4415_BCE9_0B49B0383AA9_</td><td>Windows Installer 4.5 for Windows XP SP2 and later (x86).prq</td><td>0</td><td/><td/></row>
 		<row><td>_3764EFE1_7F0A_41EE_81BF_967338173235_</td><td>Windows Installer 4.5 for Windows Vista (x86).prq</td><td>1</td><td/><td/></row>
 		<row><td>_4E9C4BB6_C189_4F15_8A72_44DFDD5469EA_</td><td>Microsoft .NET Framework 4.0 Client (Web Download).prq</td><td>2</td><td/><td/></row>
+		<row><td>_545DAFFF_9726_4FDC_AC49_2DC9FC16361F_</td><td>Windows Installer 3.1 for Windows XP (x64).prq</td><td/><td/><td/></row>
 		<row><td>_5DC295EB_A61B_40B1_8185_F68111CABA8A_</td><td>Windows Installer 4.5 Update for Windows Server 2003 SP2 and later (x86).prq</td><td>3</td><td/><td/></row>
 		<row><td>_6F3F81F6_EFC7_4D85_84CB_DC638475E70E_</td><td>Windows Installer 4.5 for Windows Server 2003 SP1 and later (x86).prq</td><td>4</td><td/><td/></row>
-		<row><td>_A0ABFB6A_CF81_464D_9A94_82C16B0711A1_</td><td>Windows Installer 3.1 for Windows XP (x64).prq</td><td>5</td><td/><td/></row>
 		<row><td>_BFBC4CE1_BCD1_470B_9738_F43DD4F7CF21_</td><td>Windows Installer 4.5 Update for Windows XP SP3 and later (x86).prq</td><td>6</td><td/><td/></row>
 		<row><td>_BFE9F574_56AE_4D7A_BEE6_5DE9A5E0E641_</td><td>Windows Installer 4.5 for Windows Server 2008 (x86).prq</td><td>7</td><td/><td/></row>
 	</table>
