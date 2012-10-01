@@ -28,6 +28,8 @@ using System.Windows.Threading;
 using CloudApiPrivate.Model.Settings;
 using CleanShutdown.Helpers;
 using CloudApiPublic.Support;
+using CloudApiPrivate.Common;
+using System.Diagnostics;
 
 namespace win_client.Views
 {
@@ -333,7 +335,91 @@ namespace win_client.Views
         private void ButtonInstallNow_Click(object sender, RoutedEventArgs e)
         {
             _trace.writeToLog(9, "DialogCheckForUpdates: ButtonInstallNow_Click: Entry.");
-            this.ctlAutoUpdate.InstallNow();
+
+            //TODO: Design changed to use a .vbs script (below).this.ctlAutoUpdate.InstallNow();
+
+            // Asynchronously launch another process running a VBScript which will:
+            //   o Wait for Cloud.exe to exit.  Just continue if it takes too long.
+            //   o Kill Explorer if it is running, and wait for it to completely exit.  Just continue if it takes too long.
+            //   o Launch another process with CloudUpdater.exe, which will perform the update (or not).
+            //   o Restart Explorer and wait for its process to appear.
+            //   o Wait for Explorer to be ready (how? Start with a time delay)
+            //   o Re-launch Cloud.exe
+            // Exit this instance Cloud.exe as quickly as possible, with no chance of the user stopping it.
+            StartCloudUpdaterAndExitNow();
+        }
+
+        /// <summary>
+        // Asynchronously launch another process running a VBScript which will:
+        ///   o Wait for Cloud.exe to exit.  Just continue if it takes too long.
+        ///   o Kill Explorer if it is running, and wait for it to completely exit.  Just continue if it takes too long.
+        ///   o Launch another process with CloudUpdater.exe, which will perform the update (or not).
+        ///   o Restart Explorer and wait for its process to appear.
+        ///   o Wait for Explorer to be ready (how? Start with a time delay)
+        ///   o Re-launch Cloud.exe
+        /// Exit this instance Cloud.exe as quickly as possible, with no chance of the user stopping it.
+        /// </summary>
+        private void StartCloudUpdaterAndExitNow()
+        {
+            try
+            {
+                // Stream the CloudClean.vbs file out to the user's temp directory
+                // Locate the user's temp directory.
+                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Entry.");
+                string userTempDirectory = System.IO.Path.GetTempPath();
+                string vbsPath = userTempDirectory + "\\CloudInstallUpdate.vbs";
+
+                // Get the assembly containing the .vbs resource.
+                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Get the assembly containing the .vbs resource.");
+                System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(global::win_client.Views.DialogCheckForUpdates));
+                if (storeAssembly == null)
+                {
+                    _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: storeAssembly null.");
+                    return;
+                }
+
+                // Stream the CloudClean.vbs file out to the temp directory
+                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Call WriteResourceFileToFilesystemFile.");
+                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudCleanVbs", vbsPath);
+                if (rc != 0)
+                {
+                    _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100));
+                    return;
+                }
+
+                // Now we will create a new process to run the VBScript file.
+                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Build the paths for launching the VBScript file.");
+                string systemFolderPath = CLShortcuts.Get32BitSystemFolderPath();
+                string cscriptPath = systemFolderPath + "\\cscript.exe";
+                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Cscript executable path: <{0}>.", cscriptPath));
+
+                string parm1Path = CLShortcuts.Get32BitProgramFilesFolderPath();
+                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Parm 1: <{0}>.", parm1Path));
+
+                string parm2Path = CLShortcuts.Get64BitProgramFilesFolderPath();
+                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Parm 2: <{0}>.", parm2Path));
+
+                string parm3Path = Environment.GetEnvironmentVariable("SystemRoot");
+                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: FinalizeUninstall: Parm 3: <{0}>.", parm3Path));
+
+                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""" + @" """ + parm1Path + @""" """ + parm2Path + @""" """ + parm3Path + @"""";
+                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
+
+                // Launch the process
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.FileName = cscriptPath;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.Arguments = argumentsString;
+                Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: Exception. Msg: {0}.", ex.Message));
+            }
+
+            _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Exit successfully.");
         }
 
         private void DialogCheckForUpdates_Closing(object sender, System.ComponentModel.CancelEventArgs e)

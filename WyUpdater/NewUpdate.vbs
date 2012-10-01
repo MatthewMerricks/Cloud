@@ -1,5 +1,5 @@
     option explicit
-    'x  NewUpdate.vbs
+    '  NewUpdate.vbs
     '  Cloud Windows
     '
     '  Created by BobS.
@@ -9,10 +9,14 @@
     '
     ' Parameters: none
     '
-    ' NOTE: Requirements:
-    '  o Add the directory containing this script file to your path.
-    '  o Add the wyBuild directory to your path.
-    '  o Create an environment variable (WINCLIENTPATH) to point to your win-client directory.  e.g.: set WINCLIENTPATH=c:\source\projects\win-client
+    ' SETUP:
+    '  o Add the directory containing this script file to your path.  This file resides in the win-client\WyUpdater directory.
+    '  o Add an environment variable (WINCLIENTPATH) to point to your win-client directory.  e.g.: set WINCLIENTPATH=c:\source\projects\win-client
+    '  o Add an environment variable (WINCLIENTFTPROOTPATH) to provide the root directory of your local FTP root directory.  e.g.: set WINCLIENTFTPROOTPATH=c:\FtpRoot
+    '  o Set the *.vbs file type association to use the program c:\windows\system32\cscript.exe.
+    '
+    ' USAGE:
+    '  In a command window, type "NewUpdate".
  
     ' Constants  
     Const ForReading = 1
@@ -25,6 +29,22 @@
     Dim logFileFullPath
     Dim objFileSys
     Dim objShell
+    Dim programFilesX86Path
+    Dim programFilesPath
+    Dim commonProgramFilesX86Path
+    Dim commonProgramFilesPath
+    Dim programFilesX86CloudPath
+    Dim commonProgramFilesX86CloudPath
+    Dim commonProgramFilesCloudPath
+    Dim winClientPath
+    Dim wyUpdaterPath
+    Dim wyUpdaterProgramFilesPath
+    Dim wyUpdaterCommonFiles32BitPath
+    Dim wyUpdaterCommonFiles64BitPath
+    Dim wyBuildPath
+    Dim version
+    Dim versionUnderscore
+    Dim ftpRootPath
    
     ' Trace function
     Sub WriteLog(LogMessage)
@@ -262,6 +282,8 @@
      Function fnDebug(txt) 
         WriteLog("NewUpdate: MultiLineInput: " & txt)
      End Function 
+
+    
     ' @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     
     Class NewUpdate
@@ -269,21 +291,6 @@
         Private Sub Class_Initialize
             Dim userResponse
             Dim userTextInput
-            Dim version
-            Dim versionUnderscore
-            Dim programFilesX86Path
-            Dim programFilesPath
-            Dim commonProgramFilesX86Path
-            Dim commonProgramFilesPath
-            Dim programFilesX86CloudPath
-            Dim commonProgramFilesX86CloudPath
-            Dim commonProgramFilesCloudPath
-            Dim winClientPath
-            Dim wyUpdaterPath
-            Dim wyUpdaterProgramFilesPath
-            Dim wyUpdaterCommonFiles32BitPath
-            Dim wyUpdaterCommonFiles64BitPath
-            Dim wyBuildPath
             Dim tempDir
             Dim tempDir2
             Dim changes
@@ -291,7 +298,7 @@
             Dim newVersion
             
             WriteLog("NewUpdate: Main: Constructor entry.")
-            
+
             ' Set the directories
             programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES(X86)%")
             WriteLog("NewUpdate: Main: programFilesX86Path: " & programFilesX86Path)
@@ -326,13 +333,22 @@
             end if
             WriteLog("NewUpdate: Main: winClientPath: " & winClientPath)
             
-            wyUpdaterPath = winClientPath & "\WyUpdater"
+            ' check for the WINCLIENTFTPURL environment variable
+            ftpRootPath = objShell.ExpandEnvironmentStrings("%WINCLIENTFTPROOTPATH%")
+            if ftpRootPath = "%WINCLIENTFTPROOTPATH%" then
+                call MsgBox("Please specify the 'WINCLIENTFTPROOTPATH' environment variable.  e.g.: 'set WINCLIENTFTPROOTPATH=c:\FtpRoot.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at enter version.  Exit code 2.")
+                exit sub
+            end if
+            WriteLog("NewUpdate: Main: ftpRootPath: " & ftpRootPath)
             
+            wyUpdaterPath = winClientPath & "\WyUpdater"
+
             ' Enter the build number
             userTextInput = InputBox("Enter the version number in the format '1.2.3.4'.", "Version?", "")
             if userTextInput = "" then
-                WriteLog("NewUpdate: Main: Cancel at enter version.  Exit code 2.")
-                call MsgBox("ERROR: Code 2.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at enter version.  Exit code 3.")
+                call MsgBox("ERROR: Code 3.", vbOk, "Error!")
                 exit sub
             end if
             version = userTextInput
@@ -349,12 +365,16 @@
             end if
             version = userTextInput
             WriteLog("NewUpdate: Main: Build number: " + version)
+
+            ' Convert the version string into underscores.  e.g.: 1_2_3_4
+            versionUnderscore = Replace(version, ".", "_", 1, -1)
+            WriteLog "NewUpdate: Main: versionUnderscore: " & versionUnderscore
             
             ' Uninstall Cloud
             userResponse = MsgBox("Uninstall Cloud from the Start menu.", vbOkCancel, "Uninstall")
             if userResponse = vbCancel then
-                WriteLog("NewUpdate: Main: Cancel at Uninstall Cloud.  Exit code 3.")
-                call MsgBox("ERROR: Code 3.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at Uninstall Cloud.  Exit code 4.")
+                call MsgBox("ERROR: Code 4.", vbOk, "Error!")
                 exit sub
             end if
             WriteLog("NewUpdate: Main: Uninstalled.")
@@ -362,8 +382,8 @@
             ' Change the version of win-client in Visual Studio
             userResponse = MsgBox("Change the version of win-client in Visual Studio to: '" + version + "'.", vbOkCancel, "Change Version")
             if userResponse = vbCancel then
-                WriteLog("NewUpdate: Main: Cancel at version change.  Exit code 4.")
-                call MsgBox("ERROR: Code 4.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at version change.  Exit code 5.")
+                call MsgBox("ERROR: Code 5.", vbOk, "Error!")
                 exit sub
             end if
             WriteLog("NewUpdate: Main: Version changed.")
@@ -371,8 +391,8 @@
             ' Re-Build configuration 'Release64'
             userResponse = MsgBox("Change the configuration to 'Release64' and Rebuild Solution.", vbOkCancel, "Rebuild Release64")
             if userResponse = vbCancel then
-                WriteLog("NewUpdate: Main: Cancel at rebuild Release64.  Exit code 5.")
-                call MsgBox("ERROR: Code 5.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at rebuild Release64.  Exit code 6.")
+                call MsgBox("ERROR: Code 6.", vbOk, "Error!")
                 exit sub
             end if
             WriteLog("NewUpdate: Main: Release64 rebuilt.")
@@ -380,8 +400,8 @@
             ' Re-Build configuration 'Release'
             userResponse = MsgBox("Change the configuration to 'Release' and Rebuild Solution.", vbOkCancel, "Rebuild Release")
             if userResponse = vbCancel then
-                WriteLog("NewUpdate: Main: Cancel at rebuild Release.  Exit code 6.")
-                call MsgBox("ERROR: Code 6.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at rebuild Release.  Exit code 7.")
+                call MsgBox("ERROR: Code 7.", vbOk, "Error!")
                 exit sub
             end if
             WriteLog("NewUpdate: Main: Release rebuilt.")
@@ -389,8 +409,8 @@
             ' Install the new build.
             userResponse = MsgBox("Run CloudSetup.exe from '.\win-client\CloudSetup\CloudSetup\Express\SingleImage\DiskImages\DISK1' to install Cloud.", vbOkCancel, "Install")
             if userResponse = vbCancel then
-                WriteLog("NewUpdate: Main: Cancel at install.  Exit code 7.")
-                call MsgBox("ERROR: Code 7.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at install.  Exit code 8.")
+                call MsgBox("ERROR: Code 8.", vbOk, "Error!")
                 exit sub
             end if
             WriteLog("NewUpdate: Main: Installed.")
@@ -407,10 +427,6 @@
                objFileSys.DeleteFile programFilesX86CloudPath & "\client.wyc", True
             End If
             
-            ' Convert the version string into underscores.  e.g.: 1_2_3_4
-            versionUnderscore = Replace(version, ".", "_", 1, -1)
-            WriteLog "NewUpdate: Main: versionUnderscore: " & versionUnderscore
-
             ' Make the new WyUpdate directories.  First the DownloadVersion1_1_1_1 folder
             tempDir = wyUpdaterPath & "\DownloadVersion" & versionUnderscore
             WriteLog "NewUpdate: Main: Make directory: " & tempDir
@@ -482,16 +498,16 @@
             WriteLog "NewUpdate: Main: Call wyBuild to build the version."
             returnCode =  objshell.Run("""" & wyBuildPath & "\wyBuild.cmd.exe"" """ & wyUpdaterPath & "\Cloud.wyp"" /bwu /bu -add=""" & wyUpdaterPath & "\TempAddVersion.xml""", 0, true)
             if returnCode <> 0 then
-                WriteLog "NewUpdate: Main: ERROR: from wyBuild: " & returnCode & ". Exiting with code 8."
-                call MsgBox("ERROR: Code 8.", vbOk, "Error!")
+                WriteLog "NewUpdate: Main: ERROR: from wyBuild: " & returnCode & ". Exiting with code 9."
+                call MsgBox("ERROR: Code 9.", vbOk, "Error!")
                 exit sub
             end if
             
             ' Tell the user that we are done building the update.
             userResponse = MsgBox("wyBuilt version " & version & ".", vbOkCancel, "Build Complete!")
             if userResponse = vbCancel then
-                WriteLog("NewUpdate: Main: Cancel at build with client.wyc complete.  Exit code 9.")
-                call MsgBox("ERROR: Code 9.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at build with client.wyc complete.  Exit code 10.")
+                call MsgBox("ERROR: Code 10.", vbOk, "Error!")
                 exit sub
             end if
             WriteLog("NewUpdate: Main: wyBuild completed to produce client.wyc.")
@@ -505,8 +521,8 @@
             ' Tell the user to build with the new client.wyc file.
             userResponse = MsgBox("In Visual Studio, select the Release configuration and BUILD.  NOT Rebuild.", vbOkCancel, "Build Release")
             if userResponse = vbCancel then
-                WriteLog("NewUpdate: Main: Cancel at Uninstall Cloud.  Exit code 10.")
-                call MsgBox("ERROR: Code 10.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at Uninstall Cloud.  Exit code 11.")
+                call MsgBox("ERROR: Code 11.", vbOk, "Error!")
                 exit sub
             end if
             WriteLog("NewUpdate: Main: VS build completed.")
@@ -514,8 +530,8 @@
             ' Tell the user to uninstall from the Start menu.
             userResponse = MsgBox("Please use the Start menu to uninstall Cloud.", vbOk, "Please Uninstall")
             if userResponse = vbCancel then
-                WriteLog("NewUpdate: Main: Cancel at uninstall after building with client.wyc.  Exit code 11.")
-                call MsgBox("ERROR: Code 11.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at uninstall after building with client.wyc.  Exit code 12.")
+                call MsgBox("ERROR: Code 12.", vbOk, "Error!")
                 exit sub
             end if
             WriteLog("NewUpdate: Main: Uninstalled after building with client.wyc.")
@@ -523,8 +539,8 @@
             ' Tell the user to reinstall from the Start menu.
             userResponse = MsgBox("Run CloudSetup.exe from '.\win-client\CloudSetup\CloudSetup\Express\SingleImage\DiskImages\DISK1' to install Cloud.", vbOkCancel, "Install")
             if userResponse = vbCancel then
-                WriteLog("NewUpdate: Main: Cancel at install after building with client.wyc.  Exit code 12.")
-                call MsgBox("ERROR: Code 12.", vbOk, "Error!")
+                WriteLog("NewUpdate: Main: Cancel at install after building with client.wyc.  Exit code 13.")
+                call MsgBox("ERROR: Code 13.", vbOk, "Error!")
                 exit sub
             end if
             WriteLog("NewUpdate: Main: Installed after building with client.wyc.")
@@ -541,7 +557,7 @@
             ' Copy the Download files to the WyUpdater DownloadVersion1_1_1_1 directory
             tempDir = winClientPath & "\CloudSetup\CloudSetup\Express\SingleImage\DiskImages\DISK1"
             tempDir2 = wyUpdaterPath & "\DownloadVersion" & versionUnderscore
-            WriteLog "NewUpdate: Main: Copy Cloud X86 common files dir: <" & tempDir & "> to WyUpdater DownloadVersion dir: <" & tempDir2 & ">."
+            WriteLog "NewUpdate: Main: Copy the download files from dir: <" & tempDir & "> to WyUpdater DownloadVersion dir: <" & tempDir2 & ">."
             objFileSys.CopyFile tempDir & "\*.*" , tempDir2 & "\" , OverwriteExisting
             
             ' Tell the user to change the CloudSetup.exe Resources.
@@ -554,19 +570,30 @@
             end if
             WriteLog("NewUpdate: Main: Resource Hacker complete.")
             
-            ' Upload all of the download and update files...
-            
-            
-            
-            
-            
+            ' Copy the files to the localhost ftp root directory.  Start with CloudSetup.exe to the root.
+            tempDir = wyUpdaterPath & "\DownloadVersion" & versionUnderscore & "\CloudSetup.exe"
+            tempDir2 = ftpRootPath & "\"
+            'If objFileSys.FileExists(tempDir2) Then
+            '   WriteLog "NewUpdate: Main: Delete file: " & tempDir2
+            '   objFileSys.DeleteFile tempDir2, True
+            'End If
+            WriteLog "NewUpdate: Main: Copy CloudSetup.exe from: <" & tempDir & "> to the FtpRoot at: <" & tempDir2 & ">."
+            objFileSys.CopyFile tempDir, tempDir2, OverwriteExisting
+
+            ' Copy the updates folder to the ftp root directory.
+            tempDir = wyUpdaterPath & "\Updates"
+            tempDir2 = ftpRootPath & "\updates"
+            WriteLog "NewUpdate: Main: Copy updates dir: <" & tempDir & "> to FtpRoot dir: <" & tempDir2 & ">."
+            objFileSys.CopyFolder tempDir, tempDir2, OverwriteExisting
+
+            call MsgBox("Done!  Normal completion.", vbOk, "Done!")
             
         End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
             ' Catch
-            WriteLog("NewUpdate: Main: Unhandled error " & Err.Number & " occurred.")
+            WriteLog("NewUpdate: Main: Catch: Unhandled error " & Err.Number & " occurred.")
         Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
             ' Finally
-            Call MsgBox("NewUpdate: Main: Done.", vbOk, "Done")
+            Call MsgBox("NewUpdate: Main: Finally: Done.", vbOk, "Done")
             WriteLog("NewUpdate: Main: Exiting constructor (finally).")
        End Sub 
     End Class    

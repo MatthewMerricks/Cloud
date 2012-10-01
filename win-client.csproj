@@ -201,11 +201,6 @@
     <Compile Include="CleanShutdown\NotificationMessageFunc.cs" />
     <Compile Include="CleanShutdown\NotificationMessageWithCallback.cs" />
     <Compile Include="CleanShutdown\Notifications.cs" />
-    <Compile Include="Resources\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Resources\Resources.fr1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -488,7 +483,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <Content Include="amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest">
@@ -510,6 +504,7 @@
     <None Include="packages.config" />
     <None Include="win-client_TemporaryKey.pfx" />
     <None Include="WinClientCertificate.pfx" />
+    <None Include="Resources\CloudInstallUpdate" />
     <Content Include="x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -734,7 +729,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(ProjectDir)3rdParty\bin\$(ConfigurationName)\CloudUpdater.exe $(ProjectDir)$(OutDir)</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\Build\MSBuild.Community.Tasks.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

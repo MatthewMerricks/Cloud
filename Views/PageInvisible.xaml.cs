@@ -97,7 +97,7 @@ namespace win_client.Views
                     // system tray icon.  PagePreferences was already loaded, and maybe the 2nd double-click tried to navigate a 2nd time???
                     if (this.NavigationService != null)
                     {
-                        _trace.writeToLog(9, String.Format("PageInvisible: OnLoadedCallback: Navigate to {0}.", uri.AbsolutePath));
+                        _trace.writeToLog(9, String.Format("PageInvisible: OnLoadedCallback: Navigate to {0}.", uri.ToString()));
                         this.NavigationService.Navigate(uri, UriKind.Relative);
                     }
                 });

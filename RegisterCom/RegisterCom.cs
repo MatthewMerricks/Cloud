@@ -576,7 +576,7 @@ namespace RegisterCom
                 }
 
                 // Stream the CloudClean.vbs file out to the temp directory
-                _trace.writeToLog(1, "RegisterCom: Call WriteResourceFileToFilesystemFile.");
+                _trace.writeToLog(1, "RegisterCom: FinalizeUninstall: Call WriteResourceFileToFilesystemFile.");
                 int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudCleanVbs", vbsPath);
                 if (rc != 0)
                 {
