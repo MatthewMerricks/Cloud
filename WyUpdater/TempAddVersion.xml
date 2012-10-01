@@ -1,0 +1,2 @@
+<Versions><AddVersion overwrite="true"><Version>1.1.1.1</Version><Changes>Base
+version.</Changes><InheritPrevRegistry/><InheritPrevActions/><Files dir="basedir"><Folder source="C:\Program Files (x86)\Cloud.com\Cloud"/></Files><Files dir="commonfilesx86"><Folder source="C:\Program Files (x86)\Common Files\Cloud.com"/></Files><Files dir="commonfilesx64"><Folder source="C:\Program Files\Common Files\Cloud.com"/></Files></AddVersion></Versions>
