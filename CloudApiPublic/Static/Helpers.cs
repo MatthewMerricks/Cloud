@@ -343,23 +343,26 @@ namespace CloudApiPublic.Static
                 return;
             }
 
-            try
+            for (int retryCounter = numRetries - 1; retryCounter >= 0; retryCounter--)
             {
-                toRun();
-            }
-            catch
-            {
-                if (numRetries > 0)
+                try
                 {
-                    if (millisecondsBetweenRetries > 0)
+                    toRun();
+                    return;
+                }
+                catch
+                {
+                    if (retryCounter == 0)
+                    {
+                        if (throwExceptionOnFailure)
+                        {
+                            throw;
+                        }
+                    }
+                    else if (millisecondsBetweenRetries > 0)
                     {
                         Thread.Sleep(millisecondsBetweenRetries);
                     }
-                    RunActionWithRetries(toRun, throwExceptionOnFailure, numRetries - 1, millisecondsBetweenRetries);
-                }
-                else if (throwExceptionOnFailure)
-                {
-                    throw;
                 }
             }
         }

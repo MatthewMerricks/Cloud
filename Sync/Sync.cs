@@ -763,6 +763,21 @@ namespace Sync
                                     (thingsThatWereDependenciesToQueue ?? Enumerable.Empty<FileChange>())
                                     .Select(uploadFileWithoutStream => new KeyValuePair<FileChange, FileStream>(uploadFileWithoutStream, null)));
 
+                                #region debug code REMOVE THIS
+                                if (dequeuedFailures.Any(currentTopLevel => ((FileChangeWithDependencies)currentTopLevel).Dependencies.Contains(currentTopLevel)
+                                    || ((FileChangeWithDependencies)currentTopLevel).Dependencies.Any(currentInnerTop => ((FileChangeWithDependencies)currentInnerTop).Dependencies.Contains(currentInnerTop))))
+                                {
+                                    System.Windows.MessageBox.Show("Repeated structure dequeudFailures before dependencyAssignment");
+                                }
+                                if ((changesInError ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>())
+                                        .Select(currentChangeInError => currentChangeInError.Value.Key)
+                                        .Where(currentChangeInError => currentChangeInError != null).Any(currentTopLevel => ((FileChangeWithDependencies)currentTopLevel).Dependencies.Contains(currentTopLevel)
+                                    || ((FileChangeWithDependencies)currentTopLevel).Dependencies.Any(currentInnerTop => ((FileChangeWithDependencies)currentInnerTop).Dependencies.Contains(currentInnerTop))))
+                                {
+                                    System.Windows.MessageBox.Show("Repeated structure changesInError before dependencyAssignment");
+                                }
+                                #endregion
+
                                 CLError postCommunicationDependencyError = dependencyAssignment((incompleteChanges ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>())
                                         .Select(currentIncompleteChange => currentIncompleteChange.Value)
                                         .Concat(uploadFilesWithoutStreams),
@@ -807,6 +822,19 @@ namespace Sync
 
                                 if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                 {
+                                    #region debug code REMOVE THIS
+                                    if (outputChanges.Any(currentOutputChange => ((FileChangeWithDependencies)currentOutputChange.Key).Dependencies.Contains(currentOutputChange.Key)
+                                        || ((FileChangeWithDependencies)currentOutputChange.Key).Dependencies.Any(currentInnerOutput => ((FileChangeWithDependencies)currentInnerOutput).Dependencies.Contains(currentInnerOutput))))
+                                    {
+                                        System.Windows.MessageBox.Show("Repeated structure outputChanges after dependencyAssignment");
+                                    }
+                                    if (topLevelErrors.Any(currentTopLevel => ((FileChangeWithDependencies)currentTopLevel).Dependencies.Contains(currentTopLevel)
+                                        || ((FileChangeWithDependencies)currentTopLevel).Dependencies.Any(currentInnerTop => ((FileChangeWithDependencies)currentInnerTop).Dependencies.Contains(currentInnerTop))))
+                                    {
+                                        System.Windows.MessageBox.Show("Repeated structure topLevelErrors after dependencyAssignment");
+                                    }
+                                    #endregion
+
                                     Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.Key));
                                     Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
                                 }
@@ -3783,6 +3811,18 @@ namespace Sync
         }
         private static DataContractJsonSerializer _notificationResponseSerializer = null;
         private static readonly object NotificationResponseSerializerLocker = new object();
+        public static string NotificationResponseToJSON(JsonContracts.NotificationResponse notificationResponse)
+        {
+            using (MemoryStream stringStream = new MemoryStream())
+            {
+                NotificationResponseSerializer.WriteObject(stringStream, notificationResponse);
+                stringStream.Position = 0;
+                using (StreamReader stringReader = new StreamReader(stringStream))
+                {
+                    return stringReader.ReadToEnd();
+                }
+            }
+        }
         public static JsonContracts.NotificationResponse ParseNotificationResponse(string notificationResponse)
         {
             MemoryStream stringStream = null;

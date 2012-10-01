@@ -16,6 +16,10 @@ namespace CloudApiPublic.Model
 
         public const int AppVersion = 0;
 
+        public const int ManualPollingIterationsBeforeConnectingPush = 10;
+        public const double ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
+        public const int PushNotificationFaultLimitBeforeFallback = 5;
+
 #if PRODUCTION_BACKEND
 
         // Registration

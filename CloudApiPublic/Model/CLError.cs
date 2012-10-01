@@ -366,6 +366,10 @@ namespace CloudApiPublic.Model
                             // grab a writer for appending to the log in a auto-disposing context
                             using (StreamWriter logWriter = new StreamWriter(logStream))
                             {
+                                logWriter.WriteLine("Time: " + DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK")); // ISO 8601 (dropped seconds)
+                                logWriter.WriteLine("ProcessId: " + System.Diagnostics.Process.GetCurrentProcess().Id.ToString());
+                                logWriter.WriteLine("ThreadId: " + System.Threading.Thread.CurrentThread.ManagedThreadId.ToString());
+
                                 // for each custom error key status,
                                 // if the key/value pair exists in errorInfo then write them first to the log
                                 #region custom error key statuses
@@ -377,8 +381,6 @@ namespace CloudApiPublic.Model
 
                                 // write the message of this error to the log
                                 logWriter.WriteLine(this.errorDescription);
-
-
 
                                 // pull out the values from the errorInfo key/value pairs whose keys start with the exception name
                                 foreach (KeyValuePair<string, object> currentException in this.errorInfo

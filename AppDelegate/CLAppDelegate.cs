@@ -319,6 +319,14 @@ namespace win_client.AppDelegate
                     return;
                 }
 
+                //// Moved cleaning settings to before unlink because there if unlink succeeds on the server but we go down,
+                //// then we still have the AKey stored and it will be invalid; this risks leaving extra devices linked
+                ////
+                //// clean our settings
+                //[[CLSettings sharedSettings] resetSettings];
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Reset settings.");
+                Settings.Instance.resetSettings();
+
                 //CLRegistration *regstration = [[CLRegistration alloc] init];
                 //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
                 if (!String.IsNullOrEmpty(Settings.Instance.Akey))
@@ -353,11 +361,6 @@ namespace win_client.AppDelegate
                 // Remove the autostart of Cloud.exe
                 _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Remove the autostart of Cloud.exe.");
                 CLShortcuts.RemoveCloudAutostartShortcut();
-
-                //// clean our settings
-                //[[CLSettings sharedSettings] resetSettings];
-                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Reset settings.");
-                Settings.Instance.resetSettings();
 
                 //[[CLCoreDataController defaultController] removeCoreDataStore];
                 //TODO: Is SQLIndexer terminated properly?
