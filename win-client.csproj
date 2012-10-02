@@ -15,6 +15,10 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <Utf8Output>true</Utf8Output>
+    <ExpressionBlendVersion>4.0.20525.0</ExpressionBlendVersion>
+    <MSBuildCommunityTasksPath>$(SolutionDir)\Build</MSBuildCommunityTasksPath>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -27,12 +31,8 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <Utf8Output>true</Utf8Output>
-    <ExpressionBlendVersion>4.0.20525.0</ExpressionBlendVersion>
-    <MSBuildCommunityTasksPath>$(SolutionDir)\Build</MSBuildCommunityTasksPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -201,6 +201,11 @@
     <Compile Include="CleanShutdown\NotificationMessageFunc.cs" />
     <Compile Include="CleanShutdown\NotificationMessageWithCallback.cs" />
     <Compile Include="CleanShutdown\Notifications.cs" />
+    <Compile Include="Resources\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Resources\Resources.fr1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -484,6 +489,7 @@
     <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <Content Include="amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -504,7 +510,7 @@
     <None Include="packages.config" />
     <None Include="win-client_TemporaryKey.pfx" />
     <None Include="WinClientCertificate.pfx" />
-    <None Include="Resources\CloudInstallUpdate" />
+    <EmbeddedResource Include="Resources\CloudInstallUpdate" />
     <Content Include="x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -104,10 +104,10 @@ namespace win_client.Views
         /// <param name="e"></param>
         void ctlAutoUpdate_CloseAppNow(object sender, EventArgs e)
         {
-            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_CloseAppNow: Shutdown now.");
-            _isShuttingDown = true;
-            ShutdownService.OverrideShutdownProtection();       // go down immediately
-            ShutdownService.RequestShutdown();
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_CloseAppNow: Entry.");
+            //_isShuttingDown = true;
+            //ShutdownService.OverrideShutdownProtection();       // go down immediately
+            //ShutdownService.RequestShutdown();
         }
 
         /// <summary>
@@ -121,17 +121,20 @@ namespace win_client.Views
             if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall)
             {
                 // Enable the install button
+                _trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Install Now button.");
                 this.cmdCheckNow.Visibility = System.Windows.Visibility.Collapsed;
                 this.cmdInstallNow.Visibility = System.Windows.Visibility.Visible;
             }
             else
             {
                 // Check only.
+                _trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Check for Updates button.");
                 this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
                 this.cmdInstallNow.Visibility = System.Windows.Visibility.Collapsed;
             }
 
             // Display the current status
+            _trace.writeToLog(9, String.Format("DialogCheckForUpdates: _timer_Tick: UpdateStepOn: {0}.", this.ctlAutoUpdate.UpdateStepOn.ToString()));
             switch (this.ctlAutoUpdate.UpdateStepOn)
             {
                 case wyDay.Controls.UpdateStepOn.UpdateReadyToInstall:
@@ -314,6 +317,32 @@ namespace win_client.Views
 
         private void ButtonCheckNow_Click(object sender, RoutedEventArgs e)
         {
+            //@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@
+            // Stream the CloudInstallUpdate.vbs file out to the user's temp directory
+            // Locate the user's temp directory.
+            _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Entry.");
+            string userTempDirectory = System.IO.Path.GetTempPath();
+            string vbsPath = userTempDirectory + "\\CloudInstallUpdate.vbs";
+
+            // Get the assembly containing the .vbs resource.
+            _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Get the assembly containing the .vbs resource.");
+            System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(global::win_client.Views.DialogCheckForUpdates));
+            if (storeAssembly == null)
+            {
+                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: storeAssembly null.");
+                return;
+            }
+
+            // Stream the CloudInstallUpdate.vbs file out to the temp directory
+            _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Call WriteResourceFileToFilesystemFile.");
+            int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudInstallUpdate", vbsPath);
+            if (rc != 0)
+            {
+                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100));
+                return;
+            }
+            //@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@
+
             // Set the status to something known at first.  We will force a check which should update the status pretty quickly.
             _trace.writeToLog(9, "DialogCheckForUpdates: ButtonCheckNow_Click: Entry.");
             this.tblkStatus.Text = "Checking for updates...";
@@ -363,7 +392,7 @@ namespace win_client.Views
         {
             try
             {
-                // Stream the CloudClean.vbs file out to the user's temp directory
+                // Stream the CloudInstallUpdate.vbs file out to the user's temp directory
                 // Locate the user's temp directory.
                 _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Entry.");
                 string userTempDirectory = System.IO.Path.GetTempPath();
@@ -378,9 +407,9 @@ namespace win_client.Views
                     return;
                 }
 
-                // Stream the CloudClean.vbs file out to the temp directory
+                // Stream the CloudInstallUpdate.vbs file out to the temp directory
                 _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Call WriteResourceFileToFilesystemFile.");
-                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudCleanVbs", vbsPath);
+                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudInstallUpdate", vbsPath);
                 if (rc != 0)
                 {
                     _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100));
@@ -393,16 +422,7 @@ namespace win_client.Views
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
                 _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Cscript executable path: <{0}>.", cscriptPath));
 
-                string parm1Path = CLShortcuts.Get32BitProgramFilesFolderPath();
-                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Parm 1: <{0}>.", parm1Path));
-
-                string parm2Path = CLShortcuts.Get64BitProgramFilesFolderPath();
-                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Parm 2: <{0}>.", parm2Path));
-
-                string parm3Path = Environment.GetEnvironmentVariable("SystemRoot");
-                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: FinalizeUninstall: Parm 3: <{0}>.", parm3Path));
-
-                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""" + @" """ + parm1Path + @""" """ + parm2Path + @""" """ + parm3Path + @"""";
+                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""";
                 _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
 
                 // Launch the process
@@ -413,6 +433,12 @@ namespace win_client.Views
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = argumentsString;
                 Process.Start(startInfo);
+
+                // Now exit this app quickly
+                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Shut down now quickly.");
+                _isShuttingDown = true;
+                ShutdownService.OverrideShutdownProtection();       // go down immediately
+                ShutdownService.RequestShutdown();
             }
             catch (Exception ex)
             {

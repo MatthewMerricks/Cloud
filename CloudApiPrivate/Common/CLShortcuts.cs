@@ -171,7 +171,20 @@ namespace CloudApiPrivate.Common
                 _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: Entry: resource: {0}. targetFileFullPath: {1}.", resourceName, targetFileFullPath));
                 _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName(): <{0}>.", storeAssembly.GetName()));
                 _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName().Name: <{0}>.", storeAssembly.GetName() != null ? storeAssembly.GetName().Name : "ERROR: Not Set!"));
-                using (Stream txtStream = storeAssembly.GetManifestResourceStream(storeAssembly.GetName().Name + ".Resources." + resourceName))
+
+                Func<Assembly, string, Stream> findStreamIfNull = (assemblyToSearch, fileName) =>
+                    {
+                        string matchedName = assemblyToSearch.GetManifestResourceNames()
+                                .FirstOrDefault(currentResource => currentResource.EndsWith(fileName, StringComparison.InvariantCultureIgnoreCase));
+                        if (matchedName == null)
+                        {
+                            return null;
+                        }
+                        return assemblyToSearch.GetManifestResourceStream(matchedName);
+                    };
+
+                using (Stream txtStream = storeAssembly.GetManifestResourceStream(storeAssembly.GetName().Name + ".Resources." + resourceName)
+                    ?? findStreamIfNull(storeAssembly, resourceName))
                 {
                     if (txtStream == null)
                     {
