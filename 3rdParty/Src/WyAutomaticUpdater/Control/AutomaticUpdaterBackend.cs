@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using wyUpdate.Common;
@@ -192,6 +193,7 @@ namespace wyDay.Controls
             private set
             {
                 m_UpdateStepOn = value;
+                Trace.WriteLine(String.Format("AutomaticUpdater: BEUpdateStepOn: Entry. Set UpdateStepOn: {0}.", value));
 
                 // set the AutoUpdaterInfo property
                 if (value != UpdateStepOn.Checking
@@ -270,6 +272,7 @@ namespace wyDay.Controls
         /// </summary>
         ~AutomaticUpdaterBackend()
         {
+            Trace.WriteLine("AutomaticUpdater: BE~AutomaticUpdaterBackend: Entry.");
             Dispose(false);
         }
 
@@ -337,8 +340,12 @@ namespace wyDay.Controls
         /// </summary>
         public void InstallNow()
         {
+            Trace.WriteLine("AutomaticUpdater: BEInstallNow: Entry.");
             if (AutoUpdaterInfo == null)
+            {
+                Trace.WriteLine("AutomaticUpdater: BEInstallNow: ERROR.  AutoUpdater null.");
                 throw new FailedToInitializeException();
+            }
 
             // throw an exception when trying to Install when no update is ready
 
@@ -360,15 +367,18 @@ namespace wyDay.Controls
             if (UpdateStepOn == UpdateStepOn.UpdateAvailable)
             {
                 // begin downloading the update
+                Trace.WriteLine("AutomaticUpdater: BEInstallNow: Download the update.");
                 DownloadUpdate();
             }
             else if (UpdateStepOn == UpdateStepOn.UpdateDownloaded)
             {
+                Trace.WriteLine("AutomaticUpdater: BEInstallNow: Extract the update.");
                 ExtractUpdate();
             }
             else // UpdateReadyToInstall
             {
                 // begin installing the update
+                Trace.WriteLine("AutomaticUpdater: BEInstallNow: InstallPendingUpdate.");
                 InstallPendingUpdate();
             }
         }
@@ -378,6 +388,7 @@ namespace wyDay.Controls
         /// </summary>
         public void Cancel()
         {
+            Trace.WriteLine("AutomaticUpdater: BECancel: entry.");
             if (AutoUpdaterInfo == null)
                 throw new FailedToInitializeException();
 
@@ -404,12 +415,14 @@ namespace wyDay.Controls
         /// <returns>Returns true if checking has begun, false otherwise.</returns>
         public bool ForceCheckForUpdate(bool recheck)
         {
+            Trace.WriteLine(String.Format("AutomaticUpdater: BEForceCheckForUpdate: entry. recheck: {0}.", recheck));
             if (AutoUpdaterInfo == null)
                 throw new FailedToInitializeException();
 
             // if not already checking for updates then begin checking.
             if (UpdateStepOn == UpdateStepOn.Nothing || (recheck && UpdateStepOn == UpdateStepOn.UpdateAvailable))
             {
+                Trace.WriteLine("AutomaticUpdater: BEForceCheckForUpdate: Begin checking.");
                 BeforeArgs bArgs = new BeforeArgs();
 
                 if (BeforeChecking != null)
@@ -426,9 +439,15 @@ namespace wyDay.Controls
                 UpdateStepOn = UpdateStepOn.Checking;
 
                 if (recheck)
+                {
+                    Trace.WriteLine("AutomaticUpdater: BEForceCheckForUpdate: Call updateHelper.ForceRecheckForUpdate.");
                     updateHelper.ForceRecheckForUpdate();
+                }
                 else
+                {
+                    Trace.WriteLine("AutomaticUpdater: BEForceCheckForUpdate: Call updateHelper.CheckForUpdate.");
                     updateHelper.CheckForUpdate();
+                }
 
                 return true;
             }
@@ -442,12 +461,14 @@ namespace wyDay.Controls
         /// <returns>Returns true if checking has begun, false otherwise.</returns>
         public bool ForceCheckForUpdate()
         {
+            Trace.WriteLine("AutomaticUpdater: BEForceCheckForUpdate(2): Begin checking.");
             return ForceCheckForUpdate(false);
         }
 
         void InstallPendingUpdate()
         {
             // send the client the arguments that need to run on success and failure
+            Trace.WriteLine("AutomaticUpdater: BEInstallPendingUpdate: Entry.");
             if (ServiceName != null)
                 updateHelper.RestartInfo(ServiceName, AutoUpdaterInfo.AutoUpdateID, Arguments, true);
             else
@@ -456,6 +477,7 @@ namespace wyDay.Controls
 
         void DownloadUpdate()
         {
+            Trace.WriteLine("AutomaticUpdater: BEDownloadUpdate: Entry.");
             BeforeArgs bArgs = new BeforeArgs();
 
             if (BeforeDownloading != null)
@@ -472,11 +494,13 @@ namespace wyDay.Controls
             // show the 'working' animation
             UpdateStepOn = UpdateStepOn.DownloadingUpdate;
 
+            Trace.WriteLine("AutomaticUpdater: BEDownloadUpdate: Begin the download.");
             updateHelper.DownloadUpdate();
         }
 
         void ExtractUpdate()
         {
+            Trace.WriteLine("AutomaticUpdater: BEExtractUpdate: Entry.");
             BeforeArgs bArgs = new BeforeArgs();
 
             if (BeforeExtracting != null)
@@ -492,12 +516,14 @@ namespace wyDay.Controls
             UpdateStepOn = UpdateStepOn.ExtractingUpdate;
 
             // extract the update
+            Trace.WriteLine("AutomaticUpdater: BEExtractUpdate: Begin the extraction.");
             updateHelper.BeginExtraction();
         }
 
         void updateHelper_UpdateStepMismatch(object sender, Response respType, UpdateStep previousStep)
         {
             // we can't install right now
+            Trace.WriteLine("AutomaticUpdater: BEupdateHelper_UpdateStepMismatch: Entry.");
             if (previousStep == UpdateStep.RestartInfo)
             {
                 if (ClosingAborted != null)
@@ -509,12 +535,15 @@ namespace wyDay.Controls
                 switch (updateHelper.UpdateStep)
                 {
                     case UpdateStep.CheckForUpdate:
+                        Trace.WriteLine("AutomaticUpdater: BEupdateHelper_UpdateStepMismatch: Set UpdateStepOn.Checking.");
                         UpdateStepOn = UpdateStepOn.Checking;
                         break;
                     case UpdateStep.DownloadUpdate:
+                        Trace.WriteLine("AutomaticUpdater: BEupdateHelper_UpdateStepMismatch: Set UpdateStepOn.DownloadingUpdate.");
                         UpdateStepOn = UpdateStepOn.DownloadingUpdate;
                         break;
                     case UpdateStep.BeginExtraction:
+                        Trace.WriteLine("AutomaticUpdater: BEupdateHelper_UpdateStepMismatch: Set UpdateStepOn.BeginExtraction.");
                         UpdateStepOn = UpdateStepOn.ExtractingUpdate;
                         break;
                 }
@@ -528,6 +557,7 @@ namespace wyDay.Controls
         {
             // wyUpdate should only ever exit after success or failure
             // otherwise it is a premature exit (and needs to be treated as an error)
+            Trace.WriteLine("AutomaticUpdater: BEupdateHelper_PipeServerDisconnected: Entry.");
             if (UpdateStepOn == UpdateStepOn.Checking
                 || UpdateStepOn == UpdateStepOn.DownloadingUpdate
                 || UpdateStepOn == UpdateStepOn.ExtractingUpdate
@@ -543,6 +573,7 @@ namespace wyDay.Controls
 
         void updateHelper_ProgressChanged(object sender, UpdateHelperData e)
         {
+            Trace.WriteLine(String.Format("AutomaticUpdater: updateHelper_ProgressChanged: Entry. Response: {0}.", e.ResponseType.ToString()));
             switch (e.ResponseType)
             {
                 case Response.Failed:
@@ -563,11 +594,13 @@ namespace wyDay.Controls
                             // there's an update available
                             if (e.ExtraData.Count != 0)
                             {
+                                Trace.WriteLine("AutomaticUpdater: updateHelper_ProgressChanged: There is an update available.");
                                 version = e.ExtraData[0];
 
                                 // if there are changes, save them
                                 if (e.ExtraData.Count > 1)
                                 {
+                                    Trace.WriteLine("AutomaticUpdater: updateHelper_ProgressChanged: Save the changes.");
                                     changes = e.ExtraData[1];
                                     changesAreRTF = e.ExtraDataIsRTF[1];
                                 }
@@ -584,6 +617,7 @@ namespace wyDay.Controls
                                 // in from the AutoUpdaterInfo file) however,
                                 // wyUpdate reports your app has since been updated.
                                 // Thus we need to clear the saved info.
+                                Trace.WriteLine("AutomaticUpdater: updateHelper_ProgressChanged: Clear version details.");
                                 version = null;
                                 changes = null;
                                 changesAreRTF = false;
@@ -594,12 +628,14 @@ namespace wyDay.Controls
                             break;
                         case UpdateStep.DownloadUpdate:
 
+                            Trace.WriteLine("AutomaticUpdater: updateHelper_ProgressChanged: Set UpdateStepOn.UpdateDownloaded.");
                             UpdateStepOn = UpdateStepOn.UpdateDownloaded;
 
                             break;
                         case UpdateStep.RestartInfo:
 
                             // show client & send the "begin update" message
+                            Trace.WriteLine("AutomaticUpdater: updateHelper_ProgressChanged: Show the begin update message.");
                             updateHelper.InstallNow();
 
                             // close this application so it can be updated
@@ -628,6 +664,7 @@ namespace wyDay.Controls
         void StartNextStep(UpdateStep updateStepOn)
         {
             // begin the next step
+            Trace.WriteLine(String.Format("AutomaticUpdater: BEStartNextStep: Entry.  UpdateStepOn: {0}.", updateStepOn.ToString()));
             switch (updateStepOn)
             {
                 case UpdateStep.CheckForUpdate:
@@ -642,17 +679,20 @@ namespace wyDay.Controls
                             UpdateStepOn = UpdateStepOn.UpdateAvailable;
 
                             // begin downloading the update
+                            Trace.WriteLine("AutomaticUpdater: BEStartNextStep: Begin downloading.");
                             DownloadUpdate();
                         }
                         else
                         {
                             // show the update ready mark
+                            Trace.WriteLine("AutomaticUpdater: BEStartNextStep: Show update ready.");
                             UpdateReady();
                         }
                     }
                     else //no update
                     {
                         // tell the user they're using the latest version
+                        Trace.WriteLine("AutomaticUpdater: BEStartNextStep: Show already on latest version.");
                         AlreadyUpToDate();
                     }
 
@@ -660,6 +700,7 @@ namespace wyDay.Controls
                 case UpdateStep.DownloadUpdate:
 
                     // begin extraction
+                    Trace.WriteLine("AutomaticUpdater: BEStartNextStep: Begin extraction.");
                     if (internalUpdateType == UpdateType.Automatic)
                         ExtractUpdate();
                     else
@@ -669,6 +710,7 @@ namespace wyDay.Controls
                 case UpdateStep.BeginExtraction:
 
                     // inform the user that the update is ready to be installed
+                    Trace.WriteLine("AutomaticUpdater: BEStartNextStep: Show ready to install.");
                     UpdateReadyToInstall();
 
                     break;
@@ -761,6 +803,7 @@ namespace wyDay.Controls
         public void Initialize()
         {
             // read settings file for last check time
+            Trace.WriteLine("AutomaticUpdater: BEInitialize: Entry.");
             AutoUpdaterInfo = new AutoUpdaterInfo(m_GUID, null);
 
             // see if update is pending, if so force install
@@ -769,6 +812,7 @@ namespace wyDay.Controls
                 //TODO: test funky non-compliant state file
 
                 // then KillSelf&StartUpdater
+                Trace.WriteLine("AutomaticUpdater: BEInitialize: KillSelf&StartUpdater.");
                 ClosingForInstall = true;
 
                 // start the updater
@@ -781,6 +825,7 @@ namespace wyDay.Controls
         /// </summary>
         public void AppLoaded()
         {
+            Trace.WriteLine("AutomaticUpdater: BEAppLoaded: Entry.");
             if (AutoUpdaterInfo == null)
                 throw new FailedToInitializeException();
 
@@ -797,9 +842,11 @@ namespace wyDay.Controls
                 changes = AutoUpdaterInfo.ChangesInLatestVersion;
                 changesAreRTF = AutoUpdaterInfo.ChangesIsRTF;
 
+                Trace.WriteLine(String.Format("AutomaticUpdater: BEAppLoaded: UpdateStepOn: {0}.", UpdateStepOn.ToString()));
                 switch (UpdateStepOn)
                 {
                     case UpdateStepOn.UpdateAvailable:
+                        Trace.WriteLine("AutomaticUpdater: BEAppLoaded: UpdateAvailable.");               
                         if (internalUpdateType == UpdateType.CheckAndDownload || internalUpdateType == UpdateType.Automatic)
                             DownloadUpdate(); // begin downloading the update
                         else
@@ -808,10 +855,12 @@ namespace wyDay.Controls
                         break;
 
                     case UpdateStepOn.UpdateReadyToInstall:
+                        Trace.WriteLine("AutomaticUpdater: BEAppLoaded: UpdateReadyToInstall.");               
                         UpdateReadyToInstall();
                         break;
 
                     case UpdateStepOn.UpdateDownloaded:
+                        Trace.WriteLine("AutomaticUpdater: BEAppLoaded: UpdateDownloaded.");               
 
                         if (internalUpdateType == UpdateType.Automatic)
                             ExtractUpdate(); // begin extraction
@@ -823,11 +872,13 @@ namespace wyDay.Controls
             }
             else // UpdateStepOn == UpdateStepOn.Nothing
             {
+                Trace.WriteLine("AutomaticUpdater: BEAppLoaded: UpdateStepOn: Nothing.");
                 switch (AutoUpdaterInfo.AutoUpdaterStatus)
                 {
                     case AutoUpdaterStatus.UpdateSucceeded:
 
                         // set the version & changes
+                        Trace.WriteLine("AutomaticUpdater: BEAppLoaded: UpdateSucceeded.");
                         version = AutoUpdaterInfo.UpdateVersion;
                         changes = AutoUpdaterInfo.ChangesInLatestVersion;
                         changesAreRTF = AutoUpdaterInfo.ChangesIsRTF;
@@ -837,6 +888,7 @@ namespace wyDay.Controls
 
                         break;
                     case AutoUpdaterStatus.UpdateFailed:
+                        Trace.WriteLine("AutomaticUpdater: BEAppLoaded: UpdateFailed.");
 
                         if (UpdateFailed != null)
                             UpdateFailed(this, new FailArgs { ErrorTitle = AutoUpdaterInfo.ErrorTitle, ErrorMessage = AutoUpdaterInfo.ErrorMessage });

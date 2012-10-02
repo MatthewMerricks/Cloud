@@ -174,6 +174,7 @@ namespace wyDay.Controls
 
         bool StartClient()
         {
+            Trace.WriteLine("AutomaticUpdater: UpdateHelper: StartClient: Entry.");
             if (string.IsNullOrEmpty(m_CompleteWULoc))
                 throw new Exception("The CloudUpdater executable path supplied is not valid. Make sure CloudUpdater exists on disk.");
 
@@ -212,6 +213,7 @@ namespace wyDay.Controls
             if (!string.IsNullOrEmpty(ExtraArguments))
                 ClientProcess.StartInfo.Arguments += " " + ExtraArguments;
 
+            Trace.WriteLine("AutomaticUpdater: UpdateHelper: StartClient: Start the client proceess.");
             ClientProcess.Start();
 
             TryToConnectToPipe(pipeName);
@@ -222,6 +224,7 @@ namespace wyDay.Controls
         void TryToConnectToPipe(string pipename)
         {
             // try to connect to the pipe - bail out if it takes longer than 30 seconds
+            Trace.WriteLine("AutomaticUpdater: UpdateHelper: TryToConnectToPipe: Entry.");
             for (int retries = 0; !pipeClient.Connected && retries < 120; retries++)
             {
                 pipeClient.Connect(pipename);

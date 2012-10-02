@@ -124,6 +124,38 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to    &apos;
+        ///   &apos;  CloudInstallUpdate.vbs
+        ///   &apos;  Cloud Windows
+        ///   &apos;
+        ///   &apos;  Created by BobS.
+        ///   &apos;  Copyright (c) Cloud.com. All rights reserved.
+        ///   &apos;
+        ///
+        ///   &apos; Parameter: None
+        ///   &apos; Call as &quot;C:\Windows\SysWOW64\cscript.exe&quot; //B //T:5 //Nologo &quot;&lt;path to this CloudInstallUpdate.vbs file&gt;&quot;
+        ///   
+        ///   Option Explicit
+        ///
+        ///   Const ForReading = 1
+        ///   Const ForWriting = 2
+        ///   Const ForAppending = 8
+        ///   
+        ///   Dim objFileSys
+        ///   Dim objShell
+        /// 
+        ///   &apos; Global variables
+        ///   Dim shouldTrace
+        ///   Dim shouldExplorerBeStarted
+        ///   Dim  [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string CloudInstallUpdate {
+            get {
+                return ResourceManager.GetString("CloudInstallUpdate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error creating your account..
         /// </summary>
         public static string createNewAccountErrorHeader {

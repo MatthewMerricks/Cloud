@@ -113,14 +113,14 @@ namespace RegisterCom
             try
             {
                 _trace.writeToLog(1, "RegisterCom: Main program starting.");
-                _trace.writeToLog(1, String.Format("RegisterCom: Arg count: {0}.", args.Length));
+                _trace.writeToLog(1, String.Format("RegisterCom: Main: Arg count: {0}.", args.Length));
 
                 //TODO: Always pin the systray icon to the taskbar.  This is debug code.
                 //bool rcDebug = AlwaysShowNotifyIcon(WhenToShow: 16);
 
                 if (args.Length == 0)
                 {
-                    _trace.writeToLog(1, String.Format("RegisterCom: ERROR. No args.  Exit."));
+                    _trace.writeToLog(1, String.Format("RegisterCom: Main: ERROR. No args.  Exit."));
                     return 1;
                 }
 
@@ -144,13 +144,13 @@ namespace RegisterCom
                     }
                 }
 
-                _trace.writeToLog(1, String.Format("RegisterCom: First Arg: <{0}>.", firstArg));
+                _trace.writeToLog(1, String.Format("RegisterCom: Main: First Arg: <{0}>.", firstArg));
 
                 // Check for the uninstall option
                 if (args.Length > 0 && firstArg != null && firstArg.Equals("/u", StringComparison.InvariantCultureIgnoreCase))
                 {
                     // This is uninstall
-                    _trace.writeToLog(1, "RegisterCom: Call UninstallCOM.");
+                    _trace.writeToLog(1, "RegisterCom: Main: Call UninstallCOM.");
                     int rc = UninstallCOM();
                     return rc;
                 }
@@ -267,7 +267,7 @@ namespace RegisterCom
                 // Register BadgeCOM.dll in the ProgramFiles CommonFiles folder.
                 string pathUninstallFiles = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
 
-                _trace.writeToLog(1, String.Format("RegisterCom: Call RegisterAssembly. Path: <{0}>.", pathUninstallFiles));
+                _trace.writeToLog(1, String.Format("RegisterCom: Main: Call RegisterAssembly. Path: <{0}>.", pathUninstallFiles));
                 rcLocal = RegisterAssembly(pathUninstallFiles);
                 if (rcLocal != 0)
                 {
@@ -380,7 +380,7 @@ namespace RegisterCom
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("RegisterCom: Main: ERROR: Exception.  Msg: {0}.", ex.Message));
+                _trace.writeToLog(1, String.Format("RegisterCom: CopyFilesNeededForUninstall: ERROR: Exception.  Msg: {0}.", ex.Message));
                 return 200;
             }
 
@@ -576,7 +576,7 @@ namespace RegisterCom
                 }
 
                 // Stream the CloudClean.vbs file out to the temp directory
-                _trace.writeToLog(1, "RegisterCom: Call WriteResourceFileToFilesystemFile.");
+                _trace.writeToLog(1, "RegisterCom: FinalizeUninstall: Call WriteResourceFileToFilesystemFile.");
                 int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudCleanVbs", vbsPath);
                 if (rc != 0)
                 {

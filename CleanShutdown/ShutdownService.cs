@@ -34,6 +34,7 @@ namespace CleanShutdown.Helpers
     public static class ShutdownService
     {
         private static bool weAreReallyShuttingDown = false;
+        private static bool overrideShutdownProtection = false;
 
         /// <summary>
         /// Request shutdown.
@@ -41,8 +42,8 @@ namespace CleanShutdown.Helpers
         /// <returns>bool: true: Cancel the original Window.Closing event to prevent automatic window close.</returns>
         /// </summary>
         public static bool RequestShutdown()
-         {
-            var shouldAbortShutdown = false;
+        {
+            bool shouldAbortShutdown = false;
 
             // Short circuit shutdown loops
             if (weAreReallyShuttingDown)
@@ -50,9 +51,12 @@ namespace CleanShutdown.Helpers
                 return shouldAbortShutdown;
             }
 
-            Messenger.Default.Send(new CleanShutdown.Messaging.NotificationMessageAction<bool>(
+            if (!overrideShutdownProtection)
+            {
+                Messenger.Default.Send(new CleanShutdown.Messaging.NotificationMessageAction<bool>(
                                        Notifications.ConfirmShutdown,
                                        shouldAbort => shouldAbortShutdown |= shouldAbort));
+            }
 
             if (!shouldAbortShutdown)
             {
@@ -73,6 +77,14 @@ namespace CleanShutdown.Helpers
             }
 
             return shouldAbortShutdown;
+        }
+
+        /// <summary>
+        /// Call this to allow immediate shutdown.
+        /// </summary>
+        public static void OverrideShutdownProtection()
+        {
+            overrideShutdownProtection = true;
         }
     }
 }

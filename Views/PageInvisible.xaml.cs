@@ -60,7 +60,19 @@ namespace win_client.Views
         /// </summary>
         public PageInvisible()
         {
-            InitializeComponent();
+            try
+            {
+                _trace.writeToLog(9, "PageInvisible: PageInvisible: Entry. InitializeComponent.");
+                InitializeComponent();
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(9, String.Format("PageInvisible: PageInvisible: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
+                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
+                global::System.Windows.Application.Current.Shutdown(0);
+            }
 
             // Register event handlers
             Loaded += new RoutedEventHandler(OnLoadedCallback);
@@ -69,7 +81,6 @@ namespace win_client.Views
             // Pass the view's grid to the view model for the dialogs to use.
             PageInvisibleViewModel vm = (PageInvisibleViewModel)DataContext;
             vm.ViewGridContainer = LayoutRoot;
-
         }
 
         /// <summary>
@@ -78,6 +89,7 @@ namespace win_client.Views
         void OnLoadedCallback(object sender, RoutedEventArgs e)
         {
             // Register messages
+            _trace.writeToLog(9, "PageInvisible: OnLoadedCallback: Entry.");
             CLAppMessages.PageInvisible_NavigationRequest.Register(this,
                 (uri) =>
                 {
@@ -85,6 +97,7 @@ namespace win_client.Views
                     // system tray icon.  PagePreferences was already loaded, and maybe the 2nd double-click tried to navigate a 2nd time???
                     if (this.NavigationService != null)
                     {
+                        _trace.writeToLog(9, String.Format("PageInvisible: OnLoadedCallback: Navigate to {0}.", uri.ToString()));
                         this.NavigationService.Navigate(uri, UriKind.Relative);
                     }
                 });
@@ -109,6 +122,7 @@ namespace win_client.Views
         /// </summary>
         void OnUnloadedCallback(object sender, RoutedEventArgs e)
         {
+            _trace.writeToLog(9, "PageInvisible: OnUnloadedCallback: Entry.");
             Messenger.Default.Unregister(this);
         }
 
@@ -130,12 +144,15 @@ namespace win_client.Views
         void OnCLBalloonTooltipNotificationMessage(CLBalloonTooltipNotification tooltipInfo)
         {
             // Show this tooltip in the system tray.  It will automatically fade after several seconds.
-            if(tooltipInfo.CustomIcon != null)
+            _trace.writeToLog(9, "PageInvisible: OnCLBalloonTooltipNotificationMessage: Entry.");
+            if (tooltipInfo.CustomIcon != null)
             {
+                _trace.writeToLog(9, "PageInvisible: OnCLBalloonTooltipNotificationMessage: Show custom icon.");
                 tb.ShowBalloonTip(tooltipInfo.Title, tooltipInfo.Text, tooltipInfo.CustomIcon);
             }
             else
             {
+                _trace.writeToLog(9, "PageInvisible: OnCLBalloonTooltipNotificationMessage: Show normal icon.");
                 tb.ShowBalloonTip(tooltipInfo.Title, tooltipInfo.Text, tooltipInfo.IconType);
             }
         }
@@ -147,6 +164,7 @@ namespace win_client.Views
         void OnMessage_GrowlSystemTrayNotificationMessage(CLGrowlNotification growlInfo)
         {
             // Show this growl over the system tray.  It will automatically fade after several seconds.
+            _trace.writeToLog(9, "PageInvisible: OnMessage_GrowlSystemTrayNotificationMessage: Entry.");
             tb.ShowCustomBalloon(growlInfo.WpfControl, growlInfo.Animation, growlInfo.TimeoutMilliseconds);
         }
 
@@ -155,6 +173,7 @@ namespace win_client.Views
         /// </summary>
         private void OnPageInvisible_TriggerOutOfSystemTrayAnimation(Uri nextPage)
         {
+            _trace.writeToLog(9, "PageInvisible: OnPageInvisible_TriggerOutOfSystemTrayAnimation: Entry.");
             AnimateMainWindowFromSystemTray(nextPage);
         }
 
@@ -167,10 +186,12 @@ namespace win_client.Views
             try
             {
                 // Register to receive the ConfirmShutdown message
+                _trace.writeToLog(9, "PageInvisible: HandleNavigated: Entry.");
                 Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
                     this,
                     message =>
                     {
+                        _trace.writeToLog(9, "PageInvisible: HandleNavigated: Call OnConfirmShutdownMessage.");
                         OnConfirmShutdownMessage(message);
                     });
 
@@ -179,6 +200,7 @@ namespace win_client.Views
             }
             catch (Exception ex)
             {
+                _trace.writeToLog(9, String.Format("PageInvisible: HandleNavigated: ERROR: Exception.  Msg: <{0}>.", ex.Message));
                 return ex;
             }
             return null;
@@ -190,12 +212,15 @@ namespace win_client.Views
         private void AnimateMainWindowToSystemTray()
         {
             // Get the window that contains this page
+            _trace.writeToLog(9, "PageInvisible: AnimateMainWindowToSystemTray: Entry.");
             Window pageWindow = Window.GetWindow(this);
             if (pageWindow != null)
             {
                 // Save the current window placement.
+                _trace.writeToLog(9, "PageInvisible: AnimateMainWindowToSystemTray: Got pageWindow.");
                 if (pageWindow.WindowStyle != WindowStyle.None && pageWindow.Visibility == System.Windows.Visibility.Visible)
                 {
+                    _trace.writeToLog(9, "PageInvisible: AnimateMainWindowToSystemTray: Set placement from pageWindow.");
                     Settings.Instance.MainWindowPlacement = pageWindow.GetPlacement();
                 }
 
@@ -207,6 +232,7 @@ namespace win_client.Views
                 System.Drawing.Rectangle pageRect = new System.Drawing.Rectangle((int)pageWindow.Left, (int)pageWindow.Top, (int)pageWindow.Width, (int)pageWindow.Height);
 
                 // Hide the window.
+                _trace.writeToLog(9, "PageInvisible: AnimateMainWindowToSystemTray: Hide the main window.");
                 CLAppDelegate.HideMainWindow(Window.GetWindow(this));
 
                 // Start animating on a separate thread
@@ -217,10 +243,12 @@ namespace win_client.Views
                     // Perform the animation or not
                     if (startAnimation)
                     {
+                        _trace.writeToLog(9, "PageInvisible: AnimateMainWindowToSystemTray: Start animation to tray.");
                         AnimateWindow(ToTray: true, screenRect: screenRect, pageRect: pageRect);
                     }
 
                     // Put up a welcome balloon tooltip.
+                    _trace.writeToLog(9, "PageInvisible: AnimateMainWindowToSystemTray: Put up the welcom balloon.");
                     Dispatcher dispatcher = CLAppDelegate.Instance.MainDispatcher;
                     OnAnimateToSystemTrayCompleteDelegate del = OnAnimateToSystemTrayComplete;
                     CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Welcome to the Cloud!", "Check here for Cloud options.", BalloonIcon.Error, null);

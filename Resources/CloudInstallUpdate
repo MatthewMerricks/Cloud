@@ -1,0 +1,179 @@
+﻿   '
+   '  CloudInstallUpdate.vbs
+   '  Cloud Windows
+   '
+   '  Created by BobS.
+   '  Copyright (c) Cloud.com. All rights reserved.
+   '
+
+   ' Parameter: None
+   ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:5 //Nologo "<path to this CloudInstallUpdate.vbs file>"
+   
+   Option Explicit
+
+   Const ForReading = 1
+   Const ForWriting = 2
+   Const ForAppending = 8
+   
+   Dim objFileSys
+   Dim objShell
+ 
+   ' Global variables
+   Dim shouldTrace
+   Dim shouldExplorerBeStarted
+   Dim sExplorerPath
+   Dim logFileFullPath
+   Dim sScriptFile
+   Dim programFilesX86Path
+   Dim windowsPath
+   
+   Set objFileSys = wscript.CreateObject("Scripting.FileSystemObject") 
+   Set objShell = wscript.createObject("wscript.shell") 
+ 
+   shouldTrace = True
+   shouldExplorerBeStarted = False
+   logFileFullPath = objFileSys.GetSpecialFolder(2) & "\CloudTrace.log"
+   windowsPath = objShell.ExpandEnvironmentStrings("%windir%")
+   sExplorerPath = windowsPath & "\explorer.exe"
+   
+   ' Trace function
+   Sub WriteLog(LogMessage)
+      Dim objLogFile
+ 
+      If shouldTrace Then
+         wscript.echo Now() & ": " & LogMessage
+         Set objLogFile = objFileSys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
+         objLogFile.Writeline(Now() & ": " & LogMessage)
+         objLogFile.Close
+         set objLogFile = Nothing
+      End If
+   End Sub
+
+   ' Check to see if Explorer is running   
+   Function IsProcessRunning(processPath, processFileNameExt)
+      IsProcessRunning = False
+      Dim colProcesses
+      Dim refProcess
+      Dim objWMIService
+
+      WriteLog "CloudInstallUpdate: IsProcessRunning: Entry. processPath: " & processPath
+      Set objWMIService = GetObject("winmgmts:\\.\root\CIMV2") 
+      Set colProcesses = objWMIService.ExecQuery( "SELECT * FROM Win32_Process")
+
+      WriteLog "CloudInstallUpdate: IsProcessRunning: Loop through executing processes."
+      For Each refProcess In colProcesses
+         WriteLog "CloudInstallUpdate: IsProcessRunning: Process name <" & refProcess.Name & ">, ExecutablePath <" & refProcess.ExecutablePath & ">."
+         If UCase(refProcess.ExecutablePath) = UCase(processPath & "\" & processFileNameExt) And UCase(refProcess.Name) = UCase(processFileNameExt) Then
+            WriteLog "CloudInstallUpdate: IsProcessRunning: The process " & processFileNameExt & " is running."
+            IsProcessRunning = True
+            Exit For
+         End If
+      Next
+      WriteLog "CloudInstallUpdate: IsProcessRunning: Exit rc: " & IsProcessRunning
+   End Function
+
+   '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   ' Asynchronously launch another process running a VBScript which will:
+   '   o Wait for Cloud.exe to exit.  Just continue if it takes too long.
+   '   o Kill Explorer if it is running, and wait for it to completely exit.  Just continue if it takes too long.
+   '   o Launch another process with CloudUpdater.exe, which will perform the update (or not).
+   '   o Restart Explorer and wait for its process to appear.
+   '   o Wait for Explorer to be ready (how? Start with a time delay)
+   '   o Re-launch Cloud.exe
+   '
+   ' Try pattern
+   Class CloudInstallUpdate
+      Private Sub Class_Initialize
+         WriteLog("CloudInstallUpdate: Constructor entry.")
+
+		 Dim index
+
+         ' Determine the program files directory to use
+         programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES(X86)%")
+         WriteLog("NewUpdate: Main: programFilesX86Path: " & programFilesX86Path)
+
+		 ' Wait for Cloud.exe to exit.  Don't wait too long.
+		 index = 0
+         WriteLog("NewUpdate: Main: Wait for Cloud to exit.")
+		 Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "Cloud.exe")
+		     wscript.Sleep 500
+			 index = index + 1
+			 if index > 10 then			' 5 seconds
+	             WriteLog "CloudInstallUpdate: ERROR: Cloud did not exit.  Timed out."
+			     Exit Do
+			 end if
+		 Loop
+         WriteLog "CloudInstallUpdate: After wait for Cloud to exit."
+
+		 ' If Explorer is running, kill it (in case it wasn't killed before (as it should be by RegisterCom)).
+         WriteLog "CloudInstallUpdate: Check for Explorer running."
+         if IsProcessRunning(windowsPath, "explorer.exe") Then
+             WriteLog "CloudInstallUpdate: Kill Explorer."
+			 shouldExplorerBeStarted = true
+             objShell.Run "taskkill /f /im explorer.exe", 0, true
+              
+             ' Wait for Explorer to exit
+             WriteLog "CloudInstallUpdate: Wait for Explorer to exit."
+			 index = 0
+			 Do While IsProcessRunning(windowsPath, "explorer.exe")
+			     Wscript.Sleep 500
+				 index = index + 1
+				 if index > 10 then			' 5 seconds
+		             WriteLog "CloudInstallUpdate: ERROR: Explorer did not exit after killing it.  Timed out."
+				     Exit Do
+				 end if
+			 Loop
+         End If
+         WriteLog "CloudInstallUpdate: After wait for Explorer to exit."
+
+		 ' Launch CloudUpdater.exe and wait for it to exit.  Run it in a normal window.
+         WriteLog "CloudInstallUpdate: Launch CloudUpdater and wait. Command line: " & "<" & """" & programFilesX86Path & "\Cloud.com\Cloud\CloudUpdater.exe"" /skipinfo>"
+		 objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\CloudUpdater.exe"" /skipinfo", 1, true
+         WriteLog "CloudInstallUpdate: Back from CloudUpdater."
+
+		 ' Start Explorer
+         WriteLog "CloudInstallUpdate: Start Explorer: " & sExplorerPath
+         objShell.Run """" & sExplorerPath & """"
+         WriteLog "CloudInstallUpdate: After starting Explorer."
+         shouldExplorerBeStarted = False
+
+		 'TODO: We should wait until Explorer is ready to properly function, but no longer.  The following is a hack.
+         WriteLog "CloudInstallUpdate: Sleep waiting for Explorer to be ready."
+		 wscript.Sleep 5000
+
+		 'TODO: Launch Cloud.exe again, but don't wait around for it to start.
+         WriteLog "CloudInstallUpdate: Launch Cloud.exe."
+		 objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\Cloud.exe""", 1, false
+
+         WriteLog "CloudInstallUpdate: Exit normally"
+      End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
+          ' Catch
+          WriteLog("CloudInstallUpdate: Unhandled error " & Err.Number & " occurred.")
+      Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
+          ' Finally
+          WriteLog("CloudInstallUpdate: Exiting constructor (finally).")
+          if shouldExplorerBeStarted Then
+              WriteLog "CloudInstallUpdate: Start Explorer(2): " & sExplorerPath
+              objShell.Run """" & sExplorerPath & """"
+              WriteLog "CloudInstallUpdate: After starting Explorer(2)."
+          End If
+
+          ' Delete ourselves.  This is possible because VBS runs everything out of memory.
+          sScriptFile = Wscript.ScriptFullName
+          WriteLog "CloudInstallUpdate: CloudInstallUpdate.vbs full path: " & sScriptFIle
+          objFileSys.DeleteFile sScriptFile, True
+      End Sub 
+   End Class
+   
+   ' Drive the main program
+   WriteLog("CloudInstallUpdate: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+   WriteLog("CloudInstallUpdate: Drive the main program.")
+   With New CloudInstallUpdate : End With
+   WriteLog("CloudInstallUpdate: Exit 0.")
+   
+   ' No tracing after this
+   set objShell = Nothing
+   set objFileSys = Nothing
+   wscript.Quit 0
+
+

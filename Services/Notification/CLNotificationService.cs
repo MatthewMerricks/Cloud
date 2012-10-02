@@ -515,9 +515,9 @@ namespace win_client.Services.Notification
             // [self stopPoolingServices];
 
             // NSLog(@"%s - Connection to Push Notification Services Ended.", __FUNCTION__);
-            _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: Entry.");
+            try
             if (_serviceStarted)
-            {
+                {
                 if (pushConnected)
                 {
                     if (_connection != null)
