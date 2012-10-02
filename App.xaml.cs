@@ -41,17 +41,16 @@ namespace win_client
 
                         if ((loggingLevel & (int)TraceType.AddAuthorization) == (int)TraceType.AddAuthorization)
                         {
-                            setType &= ~TraceType.Communication;
-                            setType &= ~TraceType.AddAuthorization;
+                            setType |= TraceType.CommunicationIncludeAuthorization;
                         }
                         else if ((loggingLevel & (int)TraceType.Communication) == (int)TraceType.Communication)
                         {
-                            setType &= ~TraceType.Communication;
+                            setType |= TraceType.Communication;
                         }
 
                         if ((loggingLevel & (int)TraceType.FileChangeFlow) == (int)TraceType.FileChangeFlow)
                         {
-                            setType &= ~TraceType.FileChangeFlow;
+                            setType |= TraceType.FileChangeFlow;
                         }
 
                         Settings.Instance.TraceType = setType;
