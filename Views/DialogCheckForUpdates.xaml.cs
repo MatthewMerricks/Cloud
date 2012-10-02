@@ -317,32 +317,6 @@ namespace win_client.Views
 
         private void ButtonCheckNow_Click(object sender, RoutedEventArgs e)
         {
-            //@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@
-            // Stream the CloudInstallUpdate.vbs file out to the user's temp directory
-            // Locate the user's temp directory.
-            _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Entry.");
-            string userTempDirectory = System.IO.Path.GetTempPath();
-            string vbsPath = userTempDirectory + "\\CloudInstallUpdate.vbs";
-
-            // Get the assembly containing the .vbs resource.
-            _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Get the assembly containing the .vbs resource.");
-            System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(global::win_client.Views.DialogCheckForUpdates));
-            if (storeAssembly == null)
-            {
-                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: storeAssembly null.");
-                return;
-            }
-
-            // Stream the CloudInstallUpdate.vbs file out to the temp directory
-            _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Call WriteResourceFileToFilesystemFile.");
-            int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudInstallUpdate", vbsPath);
-            if (rc != 0)
-            {
-                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100));
-                return;
-            }
-            //@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@
-
             // Set the status to something known at first.  We will force a check which should update the status pretty quickly.
             _trace.writeToLog(9, "DialogCheckForUpdates: ButtonCheckNow_Click: Entry.");
             this.tblkStatus.Text = "Checking for updates...";

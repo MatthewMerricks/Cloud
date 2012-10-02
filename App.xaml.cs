@@ -19,6 +19,7 @@ using CloudApiPublic.Support;
 using CloudApiPublic.Static;
 using System.Windows.Media.Imaging;
 using System.IO;
+using win_client.Services.ServicesManager;
 
 namespace win_client
 {
@@ -151,11 +152,9 @@ namespace win_client
 
         private void Application_Exit(object sender, ExitEventArgs e) 
         { 
-            //TODO: Clean up...
+            //TODO: More cleanup??
             _trace.writeToLog(1, "App.xaml: Application_Exit: Entry.");
-            IconOverlay.Shutdown();
-            DelayProcessable<FileChange>.TerminateAllProcessing();
-            Sync.Sync.Shutdown();
+            CLServicesManager.Instance.StopCoreServices();
             _trace.writeToLog(1, "App.xaml: Application_Exit: Exit.");
         }
     }

@@ -140,10 +140,17 @@ namespace win_client.Services.FileSystemMonitoring
         /// </summary>
         public void EndFileSystemMonitoring()
         {
-            if (MonitorAgent != null)
+            try
             {
-                MonitorAgent.Dispose();
-                MonitorAgent = null;
+                if (MonitorAgent != null)
+                {
+                    MonitorAgent.Dispose();
+                    MonitorAgent = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, String.Format("CLFSMonitoringService: EndFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 

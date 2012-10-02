@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Design;
 using System.Drawing.Drawing2D;
@@ -1318,17 +1319,22 @@ namespace wyDay.Controls
         /// <returns>Returns true if checking has begun, false otherwise.</returns>
         public bool ForceCheckForUpdate(bool recheck)
         {
+            Trace.WriteLine(String.Format("AutomaticUpdater: ForceCheckForUpdate: Entry. recheck: {0}.", recheck));
             return ForceCheckForUpdate(recheck, false);
         }
 
         bool ForceCheckForUpdate(bool recheck, bool fromUI)
         {
             // if not already checking for updates then begin checking.
+            Trace.WriteLine(String.Format("AutomaticUpdater: ForceCheckForUpdate(2): Entry. recheck: {0}. fromUI: {1}. UpdateStepOn: {2}.", recheck, fromUI, UpdateStepOn.ToString()));
             if (UpdateStepOn == UpdateStepOn.Nothing || (recheck && UpdateStepOn == UpdateStepOn.UpdateAvailable))
             {
                 if (recheck || fromUI)
+                {
                     Visible = !KeepHidden;
+                }
 
+                Trace.WriteLine("AutomaticUpdater: ForceCheckForUpdate(2): Call backend ForceCheckForUpdate.");
                 return auBackend.ForceCheckForUpdate(recheck);
             }
 
@@ -1341,6 +1347,7 @@ namespace wyDay.Controls
         /// <returns>Returns true if checking has begun, false otherwise.</returns>
         public bool ForceCheckForUpdate()
         {
+            Trace.WriteLine("AutomaticUpdater: ForceCheckForUpdate(3): Entry. recheck: false. fromUI: false.");
             return ForceCheckForUpdate(false, false);
         }
 
@@ -1423,7 +1430,8 @@ namespace wyDay.Controls
 
         void SetUpdateStepOn(UpdateStepOn uso)
         {
-            switch(uso)
+            Trace.WriteLine(String.Format("AutomaticUpdater: SetUpdateStepOn: Entry.  UpdateStepOn: {0}.", uso.ToString()));
+            switch (uso)
             {
                 case UpdateStepOn.Checking:
                     Text = currentActionText = translation.Checking;
@@ -1492,6 +1500,7 @@ namespace wyDay.Controls
             if (DesignMode)
                 return;
 
+            Trace.WriteLine("AutomaticUpdater: ISupportInitialize.EndInit: Entry.");
             auBackend.Initialize();
 
             if (auBackend.ClosingForInstall)

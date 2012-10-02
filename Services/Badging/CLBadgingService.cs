@@ -80,7 +80,11 @@ namespace win_client.Services.Badging
         /// </summary>
         public void EndBadgingServices()
         {
-            IconOverlay.Shutdown();
+            CLError error = IconOverlay.Shutdown();
+            if (error != null)
+            {
+                _trace.writeToLog(1, String.Format("CLBadgingServices: EndBadgingServices: ERROR: From IconOverlay.Shutdonw. Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
+            }
         }
     }
 }

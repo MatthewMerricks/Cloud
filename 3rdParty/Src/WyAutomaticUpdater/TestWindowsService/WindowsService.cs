@@ -56,6 +56,7 @@ namespace WindowsService
 
         static void WriteToLog(string message, bool append)
         {
+            Trace.WriteLine(String.Format("AutomaticUpdater: BEWriteToLog: {0}.", message));
             using (StreamWriter outfile = new StreamWriter(@"C:\NETWinService.txt", append))
             {
                 outfile.WriteLine(message);

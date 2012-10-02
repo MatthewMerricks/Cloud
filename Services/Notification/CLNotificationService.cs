@@ -235,11 +235,18 @@ namespace win_client.Services.Notification
             // [self stopPoolingServices];
 
             // NSLog(@"%s - Connection to Push Notification Services Ended.", __FUNCTION__);
-            _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: Entry.");
-            if (ServiceStarted)
+            try
             {
-                _connection.Close();
-                _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: Entry.");
+                _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Entry.");
+                if (ServiceStarted)
+                {
+                    _connection.Close();
+                    _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Entry.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, String.Format("CLNotificationService: DisconnectPushNotificationServer: ERROR: Exception.  Msg: <{0}>.", ex.Message));
             }
         }
     }

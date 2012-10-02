@@ -15,6 +15,17 @@
     '  o Add an environment variable (WINCLIENTFTPROOTPATH) to provide the root directory of your local FTP root directory.  e.g.: set WINCLIENTFTPROOTPATH=c:\FtpRoot
     '  o Set the *.vbs file type association to use the program c:\windows\system32\cscript.exe.
     '
+    ' RECOMMENDED EXPLORER SETUP IN EXPLORER FAVORITES LIST (FOR WORKING WITH INSTALL/UNINSTALL/UPDATES):
+    '  o win-client, pointing to your win-client directory.  e.g., C:\Source\Projects\win-client
+    '  o WyUpdater, pointing to your WyUpdater directory in win-client.  e.g., C:\Source\Projects\win-client\WyUpdater
+    '  o DISK1, pointing to the CloudSetup output directory.  e.g., C:\Source\Projects\win-client\CloudSetup\CloudSetup\Express\SingleImage\DiskImages\DISK1
+    '  o Temp, pointing to your user's Temp directory.  Currently, the general UI and installation trace files are there:  e.g., C:\Users\robertste\AppData\Local\Temp
+    '  o Program Files (x86), pointing to your 32-bit Program Files directory.  e.g.: C:\Program Files (x86)
+    '  o Cloud, pointing to your Cloud installation directory.  e.g.: C:\Program Files (x86)\Cloud.com\Cloud
+    ' 
+    ' NOTES:
+    '  o All update builds must be performed on a 64-bit development machine.
+    '
     ' USAGE:
     '  In a command window, type "NewUpdate".
  
@@ -283,6 +294,27 @@
         WriteLog("NewUpdate: MultiLineInput: " & txt)
      End Function 
 
+    ' @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  GetCurrentBuildNumber() @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    Function GetCurrentBuildNumber()
+        WriteLog("NewUpdate: GetCurrentBuildNumber: Entry.")
+        Dim strComputer
+        Dim objWMIService
+        Dim colFolders
+        Dim objFolder
+
+        strComputer = "."
+        Set objWMIService = GetObject("winmgmts:" & "{impersonationLevel=impersonate}!\\" & strComputer & "\root\cimv2")
+
+        Set colFolders = objWMIService.ExecQuery("Select * from Win32_Directory where Name Like '" & wyUpdaterPath & "\\Version%'")
+        WriteLog("NewUpdate: GetCurrentBuildNumber: colFolders: " & colFolders)
+
+        For Each objFolder in colFolders
+            WriteLog("NewUpdate: GetCurrentBuildNumber: Name: " & objFolder.Name)
+        Next
+        GetCurrentBuildNumber = "1.1.1.42"
+    End Function
+    
+
     
     ' @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     
@@ -296,6 +328,7 @@
             Dim changes
             Dim returnCode
             Dim newVersion
+            Dim currentBuildNumber
             
             WriteLog("NewUpdate: Main: Constructor entry.")
 
@@ -343,6 +376,13 @@
             WriteLog("NewUpdate: Main: ftpRootPath: " & ftpRootPath)
             
             wyUpdaterPath = winClientPath & "\WyUpdater"
+
+            ' Determine the build number
+            'currentBuildNumber = GetCurrentBuildNumber()
+            'WriteLog("NewUpdate: Main: Current build is: " & currentBuildNumber)
+            '@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE
+            'wscript.Quit 0
+            '@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE
 
             ' Enter the build number
             userTextInput = InputBox("Enter the version number in the format '1.2.3.4'.", "Version?", "")

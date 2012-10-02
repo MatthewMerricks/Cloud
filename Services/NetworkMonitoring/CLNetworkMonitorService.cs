@@ -74,7 +74,14 @@ namespace win_client.Services.Badging
         /// </summary>
         public void EndNetworkMonitoring()
         {
-            HttpScheduler.DisposeBothSchedulers();
+            try
+            {
+                HttpScheduler.DisposeBothSchedulers();
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, String.Format("CLNetworkMonitorService: EndNetworkMonitoring: ERROR: Exception. Msg: <{0}>.", ex.Message));
+            }
         }
     }
 }

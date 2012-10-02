@@ -97,10 +97,17 @@ namespace win_client.Services.UiActivity
         /// </summary>
         public void EndUIActivityService()
         {
-            if (_pollTimer != null)
+            try
             {
-                _pollTimer.Dispose();
-                _pollTimer = null;
+                if (_pollTimer != null)
+                {
+                    _pollTimer.Dispose();
+                    _pollTimer = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, String.Format("CLUIActivityService: EndUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message));
             }
         }
 
