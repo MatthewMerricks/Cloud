@@ -28,7 +28,10 @@
     '
     ' USAGE:
     '  In a command window, type "NewUpdate".
- 
+    '
+    ' Change Activity:
+    '   10//03/2012: Bobs: Write the version to a text file in the WyUpdater folder.  LastNewVersionInstalled.txt.
+
     ' Constants  
     Const ForReading = 1
     Const ForWriting = 2
@@ -294,26 +297,6 @@
         WriteLog("NewUpdate: MultiLineInput: " & txt)
      End Function 
 
-    ' @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  GetCurrentBuildNumber() @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    Function GetCurrentBuildNumber()
-        WriteLog("NewUpdate: GetCurrentBuildNumber: Entry.")
-        Dim strComputer
-        Dim objWMIService
-        Dim colFolders
-        Dim objFolder
-
-        strComputer = "."
-        Set objWMIService = GetObject("winmgmts:" & "{impersonationLevel=impersonate}!\\" & strComputer & "\root\cimv2")
-
-        Set colFolders = objWMIService.ExecQuery("Select * from Win32_Directory where Name Like '" & wyUpdaterPath & "\\Version%'")
-        WriteLog("NewUpdate: GetCurrentBuildNumber: colFolders: " & colFolders)
-
-        For Each objFolder in colFolders
-            WriteLog("NewUpdate: GetCurrentBuildNumber: Name: " & objFolder.Name)
-        Next
-        GetCurrentBuildNumber = "1.1.1.42"
-    End Function
-    
 
     
     ' @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -328,7 +311,8 @@
             Dim changes
             Dim returnCode
             Dim newVersion
-            Dim currentBuildNumber
+            Dim objFileTxt
+            Dim lastNewVersionInstalled
             
             WriteLog("NewUpdate: Main: Constructor entry.")
 
@@ -376,16 +360,20 @@
             WriteLog("NewUpdate: Main: ftpRootPath: " & ftpRootPath)
             
             wyUpdaterPath = winClientPath & "\WyUpdater"
+            WriteLog("NewUpdate: Main: wyUpdaterPath: " & wyUpdaterPath)
 
             ' Determine the build number
-            'currentBuildNumber = GetCurrentBuildNumber()
-            'WriteLog("NewUpdate: Main: Current build is: " & currentBuildNumber)
-            '@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE
-            'wscript.Quit 0
-            '@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE
+            lastNewVersionInstalled = "None"
+            if (objFileSys.FileExists(wyUpdaterPath & "\LastNewVersionInstalled.txt")) then
+                Set objFileTxt = objFileSys.OpenTextFile(wyUpdaterPath & "\LastNewVersionInstalled.txt", ForReading, false) 
+                lastNewVersionInstalled = objFileTxt.ReadLine
+                objFileTxt.Close
+                Set objFileTxt = Nothing
+            end if
+            WriteLog("NewUpdate: Main: Last new version created: " & lastNewVersionInstalled)
 
             ' Enter the build number
-            userTextInput = InputBox("Enter the version number in the format '1.2.3.4'.", "Version?", "")
+            userTextInput = InputBox("Enter the version number in the format '1.2.3.4'.  Last version built: " & lastNewVersionInstalled, "Version?", "")
             if userTextInput = "" then
                 WriteLog("NewUpdate: Main: Cancel at enter version.  Exit code 3.")
                 call MsgBox("ERROR: Code 3.", vbOk, "Error!")
@@ -551,6 +539,15 @@
                 exit sub
             end if
             WriteLog("NewUpdate: Main: wyBuild completed to produce client.wyc.")
+
+            ' Copy the relevant .pdb files into the WyUpdater ProgramFiles directory
+            tempDir = winClientPath & "\bin\Release"
+            tempDir2 = wyUpdaterProgramFilesPath & "\Symbols"
+            If Not objFileSys.FolderExists(tempDir2) Then 
+                objFileSys.CreateFolder tempDir2
+            End If 
+            WriteLog "NewUpdate: Main: Copy .pdb files from: <" & tempDir & "> to WyUpdater dir: <" & tempDir2 & ">."
+            objFileSys.CopyFile tempDir & "\*.pdb" , tempDir2 & "\" , OverwriteExisting
             
             ' Copy the client.wyc file to the Update1_1_1_1 ProgramFiles directory.
             tempDir = wyUpdaterPath
@@ -626,8 +623,15 @@
             WriteLog "NewUpdate: Main: Copy updates dir: <" & tempDir & "> to FtpRoot dir: <" & tempDir2 & ">."
             objFileSys.CopyFolder tempDir, tempDir2, OverwriteExisting
 
+            ' Write the version just installed to a text file LastNewVersionInstalled.txt in the WyUpdater folder.
+            if newVersion then
+                Set objFileTxt = objFileSys.OpenTextFile(wyUpdaterPath & "\LastNewVersionInstalled.txt", ForWriting, True) 
+                objFileTxt.WriteLine(version)
+                objFileTxt.Close
+                set objFileTxt = Nothing
+            end if
+
             call MsgBox("Done!  Normal completion.", vbOk, "Done!")
-            
         End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
             ' Catch
             WriteLog("NewUpdate: Main: Catch: Unhandled error " & Err.Number & " occurred.")

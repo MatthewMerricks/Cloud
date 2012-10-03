@@ -72,6 +72,12 @@
       WriteLog "CloudInstallUpdate: IsProcessRunning: Exit rc: " & IsProcessRunning
    End Function
 
+   ' From http://csi-windows.com/toolkit/csi-getosbits
+   Function CSI_GetOSBits() 
+      CSI_GetOSBits = GetObject("winmgmts:root\cimv2:Win32_Processor='cpu0'").AddressWidth 
+   End Function
+
+
    '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
    ' Asynchronously launch another process running a VBScript which will:
    '   o Wait for Cloud.exe to exit.  Just continue if it takes too long.
@@ -89,8 +95,22 @@
 		 Dim index
 
          ' Determine the program files directory to use
-         programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES(X86)%")
+         WriteLog("CloudInstallUpdate: OS Platform: " & CSI_GetOsBits() & "-bits.".")
+		 if CSI_GetOsBits() = "32" then
+             programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES%")
+			 if programFilesX86Path = "%PROGRAMFILES%" then
+				 WriteLog("NewUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
+                 Exit Sub
+			 end if
+		 else
+             programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES(X86)%")
+			 if programFilesX86Path = "%PROGRAMFILES(X86)%" then
+				 WriteLog("NewUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
+                 Exit Sub
+			 end if
+		 end if
          WriteLog("NewUpdate: Main: programFilesX86Path: " & programFilesX86Path)
+		 wscript.Quit.0
 
 		 ' Wait for Cloud.exe to exit.  Don't wait too long.
 		 index = 0
