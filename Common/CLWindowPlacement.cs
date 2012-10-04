@@ -85,18 +85,6 @@ namespace win_client.Common
 
             try
             {
-                // Check for invalid fields
-                placement.maxPosition.X = (placement.maxPosition.X < 0) ? 0 : placement.maxPosition.X;
-                placement.maxPosition.Y = (placement.maxPosition.Y < 0) ? 0 : placement.maxPosition.Y;
-
-                placement.minPosition.X = (placement.minPosition.X < 0) ? 0 : placement.minPosition.X;
-                placement.minPosition.Y = (placement.minPosition.Y < 0) ? 0 : placement.minPosition.Y;
-
-                placement.normalPosition.left = (placement.normalPosition.left < 0) ? 0 : placement.normalPosition.left;
-                placement.normalPosition.top = (placement.normalPosition.top < 0) ? 0 : placement.normalPosition.top;
-                placement.normalPosition.right = (placement.normalPosition.right < 0) ? 0 : placement.normalPosition.right;
-                placement.normalPosition.bottom = (placement.normalPosition.bottom < 0) ? 0 : placement.normalPosition.bottom;
-
                 // Set the window placement
                 NativeMethods.SetWindowPlacement(windowHandle, ref placement);
             }

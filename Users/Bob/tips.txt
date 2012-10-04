@@ -4522,34 +4522,22 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - VBScript error handling: http://stackoverflow.com/questions/4999364/try-catch-end-try-in-vbscript
     - A way to do try/catch in VBScript: http://my.opera.com/Lee_Harvey/blog/2007/04/21/try-catch-finally-in-vbscript-sure
     - Try/catch technique works!
-            Class CheckExplorer
-               ' Constructor
-               Private Sub Class_Initialize
-                 wscript.echo("CloudSetup: CheckExplorer: Constructor entry.")
-                 Dim i
-                 wscript.echo("CloudSetup: CheckExplorer: After DIM.")
-                 i = i + 1
-                 wscript.echo("CloudSetup: CheckExplorer: After i + 1.")
-                 ' Cause error
-                 i = 65535 ^ 65535
-                 wscript.echo("CloudSetup: CheckExplorer: After error creation.")
-                 i = i + 2
-                 wscript.echo("CloudSetup: CheckExplorer: After i + 2.")
-                 i = i + 3
-                 wscript.echo("CloudSetup: CheckExplorer: After i + 3.")
-                 wscript.echo("CloudSetup: CheckExplorer: Should never get here.")
-               End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
-                  ' Catch
-                  Select Case Err.Number
-                     Case Else wscript.echo("CloudSetup: CheckExplorer: Unhandled error " & Err.Number & " occurred.")
-                  End Select
-               Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
-                  ' Finally
-                  wscript.echo("CloudSetup: CheckExplorer: Exiting constructor.")
-               End Sub 
-            End Class    
+	    Class FtpUpload
+		' Constructor
+		Private Sub Class_Initialize
+		    wscript.echo("FtpUpload: FtpUpload: Constructor entry.")
+		End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
+		    ' Catch
+		    Select Case Err.Number
+			Case Else wscript.echo("FtpUpload: Catch: Unhandled error " & Err.Number & " occurred.")
+		    End Select
+		Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
+		    ' Finally
+		    wscript.echo("FtpUpload: Finally: Exiting constructor.")
+		End Sub 
+	    End Class    
             ' Drive it
-            With New CheckExplorer : End With
+            With New FtpUpload : End With
     - Now a bigger time-waster: Running the script from the command prompt: The script dies and takes cmd.exe and vs.exe with it!!!!   Maybe I should reboot.
   o 9/16/12 Sun: (home)
     - 5:30 - 16:00
@@ -4817,6 +4805,72 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - rmtool.exe is the test tool for RM compliance: http://www.codeproject.com/Articles/20010/How-to-Develop-Restart-Manager-Aware-Application-T
     - Resource Manager only works on Visa and above.  On XP, all we can do is to kill the locking processes, or register a RunOnce action and perform a reboot.
     - Today was spent mostly on moving the work test environment for Update to my home computer.
+  o 9/30/12 Sun: (home)
+    - 6:30 - 15:30
+    - 18:30 - 20:15
+    - Creating an XML file in VBScript: http://technet.microsoft.com/en-us/magazine/2008.02.heyscriptingguy.aspx?pr=PuzzleAnswer
+    - XMLDOM SetAttribute: http://www.devguru.com/technologies/xmldom/quickref/element_setAttribute.html
+    - FTP via VBScript: http://www.tek-tips.com/viewthread.cfm?qid=1293398
+    - FTP commands:
+      . mput *: transfer files with wildcard
+      . lcd: change local directory
+      . cd: change remote directory
+      . mkdir: make remote directory
+      . rmdir: delete remote directory
+      . mdelete: delete remote files with wildcard
+      . http://www.nsftools.com/tips/MSFTP.htm#mput
+    - Automated most of the update prepration procedure.
+  o 10/1/12 Mon:
+    - 6:30 - 18:30
+    - Good driver for Windows FTP command: http://www.naterice.com/articles/51
+    - Documentation for InetCtls.Inet.1 (msinet.ocx):
+      . http://social.msdn.microsoft.com/Forums/en/refsourceserver/thread/d5bd1da1-6c3e-4b41-8409-2f49f2a47bd3
+      . http://officeone.mvps.org/vba/ftp_upload_file.html
+      . http://officeone.mvps.org/vba/ftp_download_file.html
+    - The update automation works!
+    - Now the updates are broken.  I fixed the CloudUpdater updates to work properly.  Now when CloudUpdater is not "self-updated", it doesn't copy itself
+      to the temp directory and relaunch itself, with the result that my code to kill explorer and wait for Cloud to exit is not invoked.
+    - Change the design of the "Install Now" function.  Launch a self-destructing .vbs script to wrap CloudUpdater.  It will wait for Cloud to exit,
+      kill Explorer, launch CloudUpdater, wait for it to complete, relaunch Cloud.exe, then destroy itself.  Call this script CloudInstallUpdate.vbs.
+    - I tested the CloudUpdater self update process with the linked cloud.wyc file.  I made CloudUpdater version 2.6.18.100 and 2.6.18.101.  Version 1.1.1.4 used
+      the former and version 1.1.1.5 used the latter.  I installed V1.1.1.4 and ran CloudUpdater (the V1.1.1.4 version).  The DbgView trace shows that
+      it did a self-update to the 2.6.18.101 version.
+    - I commented out the changes in CloudUpdater:Program.cs.
+    - Working on the new VBScript wrapper.
+  o 10/2/12 Tue:
+    - 7:30 - 18:45
+    - The CloudInstallUpdate.vbs has been tested standalone.  Testing with Cloud.
+    - Time waster:  The Check for Updates dialog "Install Now" button click does not work?????
+    - Great article on Embedded Resources: http://www.codeproject.com/Articles/3089/Understanding-Embedded-Resources-in-Visual-Studio
+    - The update process works well now.
+  o 10/3/12 Wed:
+    - 6:30 - 
+    - Reset all of the test updates (11 now), rebuild and test updating from version 1 to 2.  Then upload version 2 for Scott.  Have him
+      install that, then upload update 3 and have him test that.
+    - Areas of concentration:
+      . Desktop GUI features, server protocol
+      . Metro client
+      . Windows phone 8
+      . Sync and file system monitoring
+      . Unit and functional testing
+      . Close-down testing
+      . OS integration
+      . Install/Uninstall/Update/Deploy
+    - People:
+      . Person 1:
+        o Desktop GUI features, server protocol
+      . Person 2:
+        o Metro client
+        o Windows phone 8
+      . Person 3:
+        o Sync and file system monitoring
+        o Unit and functional testing
+      . Person 4:
+        o OS integration
+        o Install/Uninstall/Update/Deploy
+      . Person 5 (part time) and offshore:
+        o Close-down testing
+    - Working with Scott to test update on his Win32X86 system.
 
 
 
@@ -5366,7 +5420,8 @@ MORE GIT (3/7/12)
 
 WINDBG (8/30/12)
   - To debug CLR on an exeption:
-    . .load C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\SOS.dll
+    . .load C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\SOS.dll (x64)
+    . .load C:\Windows\Microsoft.NET\Framework\v4.0.30319\SOS.dll (x86)
     . sxe clr
     . sxe 0xe0434f4d  (breaks on first-chance exception)
     . From the menu, Debug, Restart, or if already loaded (g).
@@ -5379,6 +5434,23 @@ WINDBG (8/30/12)
   - That command is bp kernel32!LoadLibraryW ".echo *****;du dwo(esp+4);k;"
   - I ran regsvr32 under depends and got the following more-detailed error:
       00:00:00.297: GetProcAddress(0x000007FF58AF0000 [c:\windows\system32\MSCTFIME.IME], "ImeGetImeMenuItems") called from "c:\windows\system32\IMM32.DLL" at address 0x000007FF7D51030E and returned NULL. Error: The specified procedure could not be found (127).
+  - WinDbg .msi files are in: C:\Program Files\Microsoft SDKs\Windows\v7.1\Redist\Debugging Tools for Windows
+  - Fixing mismatched CLR/SOS versions: http://stackoverflow.com/questions/7093494/windbg-x64-cannot-debug-a-crash-dump-failed-to-load-data-access-dll/7874862#7874862
+  - ProcDump as JIT dumper:
+		Windows Registry Editor Version 5.00
+		[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug]
+		"Debugger"="\"c:\\dumps\\procdump.exe\" -ma %ld c:\\dumps"
+  - Cheat sheet: http://windbg.info/doc/1-common-cmds.html
+  - List modules with symbols: lml
+  - Symbol path: SRV*c:\symbols*http://msdl.microsoft.com/download/symbols
+  - Mismatched SOS and CLR dlls:
+    . Get sos, mscordacwks and clr dlls from the dump machine.
+    . Rename the mscordacwks.dll to mscordacwks_x86_x86_4.0.30319.269.dll (using the proper platform and version info)
+    . .exepath c:\trash\scott (path to the downloaded dlls)
+    . .load c:\trash\scott\sos.dll
+    . .cordll -ve -u -l ( for verbose load info)
+    . !clrstack (to test it)
+
 
 
   
@@ -5973,6 +6045,15 @@ TODO:
   x (9/27/12) Test on XP64.  Cloud already running.  OK button doesn't exit.
   x (9/27/12) Check startcoreservices CLErrors and log.
   x (9/27/12) Crash in CreateTaskbarIcon when constructing TaskbarIcon.
+  x (10/1/12) The InstallUpdates action is causing the "Do you wish to exit Cloud setup?" dialog.
+  x (10/1/12) Exception: Unable to start CLoud application.  The invocation of the constructor on type "Hardcodet.Wpf.TaskbarNotification.TaskbarIcon' the mathes the specified binding constraints threw an exception.
+  x (10/1/12) We need a local test download and update server.
+  x (10/1/12) The title of CloudUpdater.exe is "wyUpdate".
+  x (10/3/12) Automate the deployment of a new program updates.
+  x (10/3/12) Change the way the update works: Schedule a self-destructing .vbs to wait until Cloud.exe has exited, then the .vbs will call CloudUpdater with a command line to install the update.  When the .vbs is scheduled, exit Cloud.
+  x (10/3/12) Understand the wyBuild self update process.
+  x (10/3/12) CloudUpdater only copies itself to temp when it has to update itself.  Move the kill-explorer and test for Cloud.exe code to wrap where it actually performs the update.
+  x (10/3/12) If the user cancels an update in CloudUpdater, Cloud is not restarted.
   o Add ICleanup interface to all view models and call them when shutting down.  Note: Cleanup doesn't get called when the user clicks the 'X'????
   o The ViewModelLocator.Cleanup() function should call of the ViewModel.Cleanup functions.
   o Don't allow network or unmountable drives for the Cloud directory.
@@ -6076,8 +6157,7 @@ TODO:
       has changed on the target file.  BadgeNet should also run a clean thread to watch the shortcut dictionary.  It will verify that the shortcut exists, and
       that the shortcut still points to a file in the cloud directory.  If not, the entry is deleted or modified (if the cloud relative path has changed) in the shortcut directory.
   o Before release, make sure all trace is turned off or managed in some way.
-  o Vista: The taskbar show-cloud-folder icon is not showing.
-  o Automate the deployment of a new program update, with automatic increment of the build number.
+  o Vista, XP and Win7X86: The taskbar show-cloud-folder icon is not showing.
   o Test the actual upgrade to a new version (CloudUpdater and Cloud).
   o Change the update process to copy the entire CommonFiles\Cloud.com folder instead of just the files in Cloud.com\Cloud.
   o When preferences UI is running, the taskbar has two cloud icons that look the same.
@@ -6087,15 +6167,23 @@ TODO:
   o When using Autoupdater from Preferences, don't show DialogCheckForUpdates if there are changes to preferences.
   o Protect the DialogCheckForUpdates action with a dialog that indicates that Cloud (and possibly Explorer) will be closed.  Continue?  Yes, No.
   o CloudUpdater is not killing processes when asked to do so.  It just hangs.
-  o Change the way the update works: Schedule a self-destructing .vbs to wait until Cloud.exe has exited, then the .vbs will call CloudUpdater with a command line to install the update.  When the .vbs is scheduled, exit Cloud.
-  o The title of CloudUpdater.exe is "wyUpdate".
-  o We need a local test download and update server.
-  o The InstallUpdates action is causing the "Do you wish to exit Cloud setup?" dialog.
-  o Take out shell integration from RegisterCom.
-  o Exception: Unable to start CLoud application.  The invocation of the constructor on type "Hardcodet.Wpf.TaskbarNotification.TaskbarIcon' the mathes the specified binding constraints threw an exception.
+  o Take shell integration out of RegisterCom?.
   o Download, but don't allow install unless the user is an administrator.  Put up a message on Install Now.
   o Completely relogo CloudUpdater.exe.
   o Add our current version of wyBuild to git.
+  o Move trace to appdata cloud dir.
+  o Delete trace files older than 10 days.
+  o In CloudUpdater, find a better way to wait for Explorer to be fully operational after restart (rather than just sleeping an arbitrary amount of time).
+  o Don't automatically download program updates.  Let the user decide to do that.
+  o Implement Server Side Events.
+  o The AutoUpdater check for updates just shows "Checking..." many times, without completing the action and giving the user a result.
+  o Display current updater number in NewUpdate.vbs.
+  o Launch Explorer to the proper directory during the CloudInstallUpdate script.
+  o Installing registers BadgeCom.dll in win-client\Release??
+  o Growl when an update is available.
+  o Implement new status dialog.
+  o Implement Restart Manager in install/uninstall/update.
+
 
 
   

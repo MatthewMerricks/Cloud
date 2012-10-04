@@ -205,11 +205,29 @@ namespace win_client.AppDelegate
             }
 
             // Start a single instance of the updater window.
+            _trace.writeToLog(9, "CLAppDelegate: initAppDelegate: new DialogCheckForUpdates.");
             CheckForUpdatesWindow = new DialogCheckForUpdates();
+            CheckForUpdatesWindow.Width = 0;
+            CheckForUpdatesWindow.Height = 0;
+            CheckForUpdatesWindow.MinWidth = 0;
+            CheckForUpdatesWindow.MinHeight = 0;
             CheckForUpdatesWindow.Left = Int32.MaxValue;
             CheckForUpdatesWindow.Top = Int32.MaxValue;
             CheckForUpdatesWindow.ShowInTaskbar = false;
-            CheckForUpdatesWindow.Show();
+            CheckForUpdatesWindow.ShowActivated = false;
+            CheckForUpdatesWindow.Visibility = System.Windows.Visibility.Hidden;
+            CheckForUpdatesWindow.WindowStyle = WindowStyle.None;
+
+            //// Start a single instance of the updater window.
+            //_trace.writeToLog(9, "CLAppDelegate: initAppDelegate: new DialogCheckForUpdates.");
+            //CheckForUpdatesWindow = new DialogCheckForUpdates();
+            //_trace.writeToLog(9, "CLAppDelegate: initAppDelegate: After new DialogCheckForUpdates.");
+            //CheckForUpdatesWindow.Left = -10000;
+            //CheckForUpdatesWindow.Top = -10000;
+            //CheckForUpdatesWindow.ShowInTaskbar = false;
+            //_trace.writeToLog(9, "CLAppDelegate: initAppDelegate: Show DialogCheckForUpdates.");
+            //CheckForUpdatesWindow.Hide();
+            //_trace.writeToLog(9, "CLAppDelegate: initAppDelegate: After show DialogCheckForUpdates.");
 
             // Determine which window we will show on startup
             SetupCloudAppLaunchMode();
@@ -377,7 +395,7 @@ namespace win_client.AppDelegate
             catch (Exception ex)
             {
                 error = ex;
-                _trace.writeToLog(9, String.Format("CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
             }
             _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Exit.");
         }
@@ -1103,6 +1121,7 @@ namespace win_client.AppDelegate
                 // Save the current position of the window.
                 if (window.WindowStyle != WindowStyle.None && window.Visibility == Visibility.Visible)
                 {
+                    _trace.writeToLog(1, "CLAppDelegate: HideMainWindow: Set MainWindowPlacement. Coords: {0},{1},{2},{3}(LRWH). Title: {4}.", window.Left, window.Top, window.Width, window.Height, window.Title);
                     Settings.Instance.MainWindowPlacement = window.GetPlacement();
                 }
 

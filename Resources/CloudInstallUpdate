@@ -95,7 +95,7 @@
 		 Dim index
 
          ' Determine the program files directory to use
-         WriteLog("CloudInstallUpdate: OS Platform: " & CSI_GetOsBits() & "-bits.".")
+         WriteLog("CloudInstallUpdate: OS Platform: " & CSI_GetOsBits() & "-bits.")
 		 if CSI_GetOsBits() = "32" then
              programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES%")
 			 if programFilesX86Path = "%PROGRAMFILES%" then
@@ -110,7 +110,6 @@
 			 end if
 		 end if
          WriteLog("NewUpdate: Main: programFilesX86Path: " & programFilesX86Path)
-		 wscript.Quit.0
 
 		 ' Wait for Cloud.exe to exit.  Don't wait too long.
 		 index = 0

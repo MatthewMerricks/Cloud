@@ -115,8 +115,6 @@ namespace win_client
             _trace.writeToLog(1, "App.xaml: Application_Startup: Starting...");
             CLAppDelegate app = CLAppDelegate.Instance;                 // fire up the singleton
 
-            // 
-
             // Instantiate a new window
             MyNavigationWindow window = new MyNavigationWindow();
 
@@ -132,7 +130,7 @@ namespace win_client
 
             // If we are running PageInvisible as the first page in this NavigationWindow, set a flag
             // to prevent the animation of the window into the system tray.
-            _trace.writeToLog(1, String.Format("App.xaml: Application_Startup: Start window {0}.", window.Source.OriginalString));
+            _trace.writeToLog(1, "App.xaml: Application_Startup: Start window {0}.", window.Source.OriginalString);
             if (window.Source.OriginalString.Contains("PageInvisible"))
             {
                 window.firstMinimize = true;
@@ -153,6 +151,30 @@ namespace win_client
             _trace.writeToLog(1, "App.xaml: Application_Exit: Entry.");
             CLServicesManager.Instance.StopCoreServices();
             _trace.writeToLog(1, "App.xaml: Application_Exit: Exit.");
+        }
+
+        /// <summary>
+        /// Attempt to catch and trace all application unhandled exceptions.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Application_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            try
+            {
+                e.Handled = true;
+                _trace.writeToLog(1, "App.xaml: Application_DispatcherUnhandledException: ERROR: Exception: Msg: <{0}>.", e.Exception.Message);
+            }
+            catch
+            {
+                try
+                {
+                    _trace.writeToLog(1, "App.xaml: Application_DispatcherUnhandledException: ERROR: Exception within the exception.");
+                }
+                catch
+                {
+                }
+            }
         }
     }
 }

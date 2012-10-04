@@ -750,7 +750,11 @@ namespace CloudApiPrivate.Model.Settings
         private string _mainWindowPlacement;
         public String MainWindowPlacement
         {
-            get { return _mainWindowPlacement; }
+            get 
+            {
+                
+                return _mainWindowPlacement; 
+            }
             set
             {
                 _mainWindowPlacement = value;

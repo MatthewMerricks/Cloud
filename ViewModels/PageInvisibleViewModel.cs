@@ -301,7 +301,11 @@ namespace win_client.ViewModels
                                                 win.MinWidth = 640;
                                                 win.MinHeight = 480;
                                                 win.ShowInTaskbar = true;
+                                                win.ShowActivated = true;
+                                                win.Visibility = Visibility.Visible;
+                                                win.WindowStyle = WindowStyle.ThreeDBorderWindow;
                                                 win.SetPlacement(Settings.Instance.MainWindowPlacement);
+                                                _trace.writeToLog(9, "PageInvisibleViewModel: CheckFOrUpdatesCommand: Window coords: {0}, {1}, {2}, {3} (LTWH).", win.Left, win.Top, win.Width, win.Height);
                                                 win.Show();
                                                 win.Topmost = true;
                                                 win.Topmost = false;

@@ -17,6 +17,7 @@
              Startup="Application_Startup" 
              ShutdownMode="OnExplicitShutdown" 
              Exit="Application_Exit" 
+             DispatcherUnhandledException="Application_DispatcherUnhandledException"
              >
   <Application.Resources>
     <ResourceDictionary>

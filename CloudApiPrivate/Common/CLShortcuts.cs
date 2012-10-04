@@ -44,7 +44,7 @@ namespace CloudApiPrivate.Common
             try
             {
                 // Get the path to the user's Favorites folder.
-                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderToExplorerFavorites: Entry.  Target folder: <{0}>.", targetFolder));
+                _trace.writeToLog(9, "CLShortcuts: AddCloudFolderToExplorerFavorites: Entry.  Target folder: <{0}>.", targetFolder);
 
                 // Just exit if the cloud path is not valid
                 if (String.IsNullOrWhiteSpace(cloudFolderPath))
@@ -168,9 +168,9 @@ namespace CloudApiPrivate.Common
         {
             try
             {
-                _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: Entry: resource: {0}. targetFileFullPath: {1}.", resourceName, targetFileFullPath));
-                _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName(): <{0}>.", storeAssembly.GetName()));
-                _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName().Name: <{0}>.", storeAssembly.GetName() != null ? storeAssembly.GetName().Name : "ERROR: Not Set!"));
+                _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: Entry: resource: {0}. targetFileFullPath: {1}.", resourceName, targetFileFullPath);
+                _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName(): <{0}>.", storeAssembly.GetName());
+                _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName().Name: <{0}>.", storeAssembly.GetName() != null ? storeAssembly.GetName().Name : "ERROR: Not Set!");
 
                 Func<Assembly, string, Stream> findStreamIfNull = (assemblyToSearch, fileName) =>
                     {
@@ -216,7 +216,7 @@ namespace CloudApiPrivate.Common
 
                             while ((readAmount = txtReader.ReadBlock(streamBuffer, 0, 4096)) > 0)
                             {
-                                _trace.writeToLog(9, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: Write {0} bytes to the .vbs file.", readAmount));
+                                _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: Write {0} bytes to the .vbs file.", readAmount);
                                 tempStream.Write(streamBuffer, 0, readAmount);
                             }
 
@@ -239,7 +239,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 return 4;
             }
 
@@ -267,7 +267,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: RemoveCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: RemoveCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
             _trace.writeToLog(9, "CLShortcuts: RemoveCloudFolderShortcuts: Exit.");
         }
@@ -286,7 +286,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: AddCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: AddCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -303,7 +303,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: RemoveCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: RemoveCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -326,7 +326,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateAllShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: UpdateAllShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -353,7 +353,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldStartCloudAppWithSystem: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: UpdateShouldStartCloudAppWithSystem: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -385,7 +385,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderOnDesktop: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderOnDesktop: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -419,7 +419,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderInExplorerFavorites: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderInExplorerFavorites: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
         /// <summary>
@@ -450,7 +450,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderInInternetExplorerFavorites: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderInInternetExplorerFavorites: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -478,7 +478,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderOnTaskbar: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderOnTaskbar: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -506,7 +506,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldShowCloudFolderInStartMenu: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderInStartMenu: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -544,7 +544,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -574,7 +574,7 @@ namespace CloudApiPrivate.Common
 	        }
 	        catch (Exception ex)
 	        {
-                _trace.writeToLog(1, String.Format("CLShortcuts: ModifyShortcutTargetPath: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: ModifyShortcutTargetPath: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
         
@@ -589,7 +589,7 @@ namespace CloudApiPrivate.Common
             {
                 string userTempDirectory = Path.GetTempPath();
                 string vbsPath = userTempDirectory + "PinToTaskbar.vbs";
-                _trace.writeToLog(9, String.Format("CLShortcuts: AddCloudFolderShortcuts: Target location of .vbs file: <{0}>.", vbsPath));
+                _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Target location of .vbs file: <{0}>.", vbsPath);
 
                 // Get the assembly containing the .vbs resource.
                 _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Get the assembly containing the .vbs resource.");
@@ -613,30 +613,30 @@ namespace CloudApiPrivate.Common
                 _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Build the paths for launching the VBScript file.");
                 string systemFolderPath = Get32BitSystemFolderPath();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
-                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Cscript executable path: <{0}>.", cscriptPath));
+                _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Cscript executable path: <{0}>.", cscriptPath);
 
                 // Parm 1 should be the full path of the Program Files Cloud installation directory.
                 string parm1Path = Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles;
-                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 1: <{0}>.", parm1Path));
+                _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Parm 1: <{0}>.", parm1Path);
 
                 // Parm 2 should be the filename of the .exe or .lnk file that will be pinned to the taskbar (without the extension)
                 string parm2Path = CLPrivateDefinitions.ShowCloudFolderProgramFilenameOnly;
-                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 2: <{0}>.", parm2Path));
+                _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Parm 2: <{0}>.", parm2Path);
 
                 // Parm 3 should be the action ("P": Pin.  "U": Unpin)
                 string parm3 = shouldPin ? "P" : "U";
-                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 3: <{0}>.", parm3));
+                _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Parm 3: <{0}>.", parm3);
 
                 // Parm 4 should be the target ("T": Taskbar.  "S": Start menu)
                 string parm4 = shouldProcessTaskbar ? "T" : "S";
-                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 4: <{0}>.", parm4));
+                _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Parm 4: <{0}>.", parm4);
 
                 // Parm 5 should be whether the script self-destructs ("D": Self-destruct.  "R": Remain.  Don't delete. menu)
                 string parm5 = scriptShouldSelfDestruct ? "D" : "R";
-                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Parm 5: <{0}>.", parm5));
+                _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Parm 5: <{0}>.", parm5);
 
                 string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @""" """ + parm1Path + @""" """ + parm2Path + @""" " + parm3 + " " + parm4 + " " + parm5;
-                _trace.writeToLog(9, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
+                _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Launch the VBScript file.  Launch: <{0}>.", argumentsString);
 
                 // Launch the process to pin to the taskbar.
                 ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -655,7 +655,7 @@ namespace CloudApiPrivate.Common
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: PinShowCloudFolderToTaskbar: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLShortcuts: PinShowCloudFolderToTaskbar: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
             _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Exit.");
         }
@@ -759,19 +759,19 @@ namespace CloudApiPrivate.Common
         {
             try
             {
-                _trace.writeToLog(9, String.Format("CLShortcuts: StartBrowserToUrl: Entry. Url: <{0}>.", urlTarget));
+                _trace.writeToLog(9, "CLShortcuts: StartBrowserToUrl: Entry. Url: <{0}>.", urlTarget);
                 System.Diagnostics.Process.Start(urlTarget);
             }
             catch(System.ComponentModel.Win32Exception noBrowser)
             {
                 if (noBrowser.ErrorCode == -2147467259)
                 {
-                    _trace.writeToLog(1, String.Format("CLShortcuts: StartBrowserToUrl: ERROR: Exception.  Msg: <{0}>.", noBrowser.Message));
+                    _trace.writeToLog(1, "CLShortcuts: StartBrowserToUrl: ERROR: Exception.  Msg: <{0}>.", noBrowser.Message);
                 }
             }
             catch (System.Exception other)
             {
-                _trace.writeToLog(1, String.Format("CLShortcuts: StartBrowserToUrl: ERROR: Exception(2).  Msg: <{0}>.", other.Message));
+                _trace.writeToLog(1, "CLShortcuts: StartBrowserToUrl: ERROR: Exception(2).  Msg: <{0}>.", other.Message);
             }
         }
 

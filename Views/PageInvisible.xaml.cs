@@ -64,23 +64,24 @@ namespace win_client.Views
             {
                 _trace.writeToLog(9, "PageInvisible: PageInvisible: Entry. InitializeComponent.");
                 InitializeComponent();
+                _trace.writeToLog(9, "PageInvisible: PageInvisible: Back from InitializeComponent.");
+
+                // Register event handlers
+                Loaded += new RoutedEventHandler(OnLoadedCallback);
+                Unloaded += new RoutedEventHandler(OnUnloadedCallback);
+
+                // Pass the view's grid to the view model for the dialogs to use.
+                PageInvisibleViewModel vm = (PageInvisibleViewModel)DataContext;
+                vm.ViewGridContainer = LayoutRoot;
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(9, String.Format("PageInvisible: PageInvisible: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
+                _trace.writeToLog(9, "PageInvisible: PageInvisible: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
                 System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
                 global::System.Windows.Application.Current.Shutdown(0);
             }
-
-            // Register event handlers
-            Loaded += new RoutedEventHandler(OnLoadedCallback);
-            Unloaded += new RoutedEventHandler(OnUnloadedCallback);
-
-            // Pass the view's grid to the view model for the dialogs to use.
-            PageInvisibleViewModel vm = (PageInvisibleViewModel)DataContext;
-            vm.ViewGridContainer = LayoutRoot;
         }
 
         /// <summary>
@@ -97,7 +98,7 @@ namespace win_client.Views
                     // system tray icon.  PagePreferences was already loaded, and maybe the 2nd double-click tried to navigate a 2nd time???
                     if (this.NavigationService != null)
                     {
-                        _trace.writeToLog(9, String.Format("PageInvisible: OnLoadedCallback: Navigate to {0}.", uri.ToString()));
+                        _trace.writeToLog(9, "PageInvisible: OnLoadedCallback: Navigate to {0}.", uri.ToString());
                         this.NavigationService.Navigate(uri, UriKind.Relative);
                     }
                 });
@@ -200,7 +201,7 @@ namespace win_client.Views
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(9, String.Format("PageInvisible: HandleNavigated: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(9, "PageInvisible: HandleNavigated: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 return ex;
             }
             return null;
@@ -221,6 +222,7 @@ namespace win_client.Views
                 if (pageWindow.WindowStyle != WindowStyle.None && pageWindow.Visibility == System.Windows.Visibility.Visible)
                 {
                     _trace.writeToLog(9, "PageInvisible: AnimateMainWindowToSystemTray: Set placement from pageWindow.");
+                    _trace.writeToLog(1, "PageInvisible: AnimateMainWindowToSystemTray: Set MainWindowPlacement. Coords: {0},{1},{2},{3}(LRWH). Title: {4}.", pageWindow.Left, pageWindow.Top, pageWindow.Width, pageWindow.Height, pageWindow.Title);
                     Settings.Instance.MainWindowPlacement = pageWindow.GetPlacement();
                 }
 
@@ -340,18 +342,33 @@ namespace win_client.Views
         /// </summary>
         private void OnConfirmShutdownMessage(CleanShutdown.Messaging.NotificationMessageAction<bool> message)
         {
-            if (message.Notification == Notifications.ConfirmShutdown)
+            try
             {
-                // Ask the ViewModel if we should allow the window to close.
-                // This should not block.
-                PageInvisibleViewModel vm = (PageInvisibleViewModel)DataContext;
-                if (vm.WindowCloseRequested.CanExecute(null))
+                if (message.Notification == Notifications.ConfirmShutdown)
                 {
-                    vm.WindowCloseRequested.Execute(null);
-                }
+                    // Ask the ViewModel if we should allow the window to close.
+                    // This should not block.
+                    PageInvisibleViewModel vm = (PageInvisibleViewModel)DataContext;
+                    if (vm.WindowCloseRequested.CanExecute(null))
+                    {
+                        vm.WindowCloseRequested.Execute(null);
+                    }
 
-                // Get the answer and set the real event Cancel flag appropriately.
-                message.Execute(!vm.WindowCloseOk);      // true == abort shutdown
+                    // Get the answer and set the real event Cancel flag appropriately.
+                    message.Execute(!vm.WindowCloseOk);      // true == abort shutdown
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "PageInvisible: OnConfirmShutdownMessage: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+                try
+                {
+                    _trace.writeToLog(1, "PageInvisible: OnConfirmShutdownMessage: Allow the shutdown.");
+                    message.Execute(false);         // false == allow shutdown
+                }
+                catch
+                {
+                }
             }
         }
 
@@ -363,6 +380,7 @@ namespace win_client.Views
             try
             {
                 // We should not animate if we are already installed and just restarting the Cloud app.
+                _trace.writeToLog(9, "PageInvisible: AnimateWindow: Entry.");
                 bool isFirstTimePageInvisibleAtInit = false;
                 Messenger.Default.Send(new CleanShutdown.Messaging.NotificationMessageAction<bool>(
                               Notifications.QueryFirstPageInvisible,
@@ -375,16 +393,18 @@ namespace win_client.Views
 
                 // A user can enable/disable window animation by setting the the "MinAnimate" key under 
                 // HKeyCurrentUser\Control Panel\Desktop. This value need to be read inorder to set our Animation Falg.
+                _trace.writeToLog(9, "PageInvisible: AnimateWindow: Get the MinAnimate registry key.");
                 RegistryKey animationKey = Registry.CurrentUser.OpenSubKey("Control Panel\\Desktop\\WindowMetrics", true);
                 object animKeyValue = animationKey.GetValue("MinAnimate");
 
-                if (System.Convert.ToInt32(animKeyValue.ToString()) == 0)
+                if (animKeyValue != null && (System.Convert.ToInt32(animKeyValue.ToString()) == 0))
                 {
                     _trace.writeToLog(1, "PageInvisible: AnimateWindow: User has disabled window animation.");
                     return;
                 }
 
                 // figure out where the taskbar is (and consequently the tray)
+                _trace.writeToLog(9, "PageInvisible: AnimateWindow: Allocate the structures.");
                 System.Drawing.Point destPoint = default(System.Drawing.Point);
                 NativeMethods.APPBARDATA BarData = default(NativeMethods.APPBARDATA);
                 BarData.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(BarData);
@@ -431,6 +451,7 @@ namespace win_client.Views
                 double startWidth = pageRect.Width;
                 double startHeight = pageRect.Height;
                 double i = 0;
+                _trace.writeToLog(9, "PageInvisible: AnimateWindow: Start animating the window.");
                 for (i = a; ToTray ? i <= b : i >= b; i += s)
                 {
                     curPoint = new System.Drawing.Point(startPoint.X + (int)(i * dWidth), startPoint.Y + (int)(i * dHeight));

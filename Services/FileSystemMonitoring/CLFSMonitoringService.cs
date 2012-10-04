@@ -101,7 +101,7 @@ namespace win_client.Services.FileSystemMonitoring
 
             if (fileMonitorCreationError != null)
             {
-                _trace.writeToLog(1, String.Format("CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Creating the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorCreationError.errorDescription, fileMonitorCreationError.errorCode));
+                _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Creating the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorCreationError.errorDescription, fileMonitorCreationError.errorCode);
             }
             else
             {
@@ -117,19 +117,19 @@ namespace win_client.Services.FileSystemMonitoring
                         CLError fileMonitorStartError = MonitorAgent.Start(out returnStatus);
                         if (fileMonitorStartError != null)
                         {
-                            _trace.writeToLog(1, String.Format("CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, fileMonitorStartError.errorCode));
+                            _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, fileMonitorStartError.errorCode);
                         }
 
                         CLError indexerStartError = IndexingAgent.StartInitialIndexing(MonitorAgent.BeginProcessing,
                             MonitorAgent.GetCurrentPath);
                         if (indexerStartError != null)
                         {
-                            _trace.writeToLog(1, String.Format("CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the indexer.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, indexerStartError.errorCode));
+                            _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the indexer.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, indexerStartError.errorCode);
                         }
                     }
                     catch (Exception ex)
                     {
-                        _trace.writeToLog(1, String.Format("CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                        _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                     }
                 }
             }
@@ -150,7 +150,7 @@ namespace win_client.Services.FileSystemMonitoring
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLFSMonitoringService: EndFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 

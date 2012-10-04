@@ -433,6 +433,10 @@
                 exit sub
             end if
             WriteLog("NewUpdate: Main: Release rebuilt.")
+
+            ' Put up an Explorer window at the next action location.
+            objShell.Run "explorer.exe /e,""" & winClientPath & "\CloudSetup\CloudSetup\Express\SingleImage\DiskImages\DISK1"""
+            wscript.Sleep 5000
             
             ' Install the new build.
             userResponse = MsgBox("Run CloudSetup.exe from '.\win-client\CloudSetup\CloudSetup\Express\SingleImage\DiskImages\DISK1' to install Cloud.", vbOkCancel, "Install")
@@ -556,7 +560,7 @@
             objFileSys.CopyFile tempDir & "\WyUpdate\client.wyc", tempDir2 & "\" , OverwriteExisting
             
             ' Tell the user to build with the new client.wyc file.
-            userResponse = MsgBox("In Visual Studio, select the Release configuration and BUILD.  NOT Rebuild.", vbOkCancel, "Build Release")
+            userResponse = MsgBox("In Visual Studio, select the Release configuration and BUILD SOLUTION.  NOT Rebuild Solution.", vbOkCancel, "Build Release")
             if userResponse = vbCancel then
                 WriteLog("NewUpdate: Main: Cancel at Uninstall Cloud.  Exit code 11.")
                 call MsgBox("ERROR: Code 11.", vbOk, "Error!")
@@ -573,6 +577,10 @@
             end if
             WriteLog("NewUpdate: Main: Uninstalled after building with client.wyc.")
             
+            ' Put up an Explorer window at the next action location.
+            objShell.Run "explorer.exe /e,""" & winClientPath & "\CloudSetup\CloudSetup\Express\SingleImage\DiskImages\DISK1"""
+            wscript.Sleep 5000
+            
             ' Tell the user to reinstall from the Start menu.
             userResponse = MsgBox("Run CloudSetup.exe from '.\win-client\CloudSetup\CloudSetup\Express\SingleImage\DiskImages\DISK1' to install Cloud.", vbOkCancel, "Install")
             if userResponse = vbCancel then
@@ -581,6 +589,10 @@
                 exit sub
             end if
             WriteLog("NewUpdate: Main: Installed after building with client.wyc.")
+            
+            ' Put up an Explorer window at the next action location.
+            objShell.Run "explorer.exe /e,""" & programFilesX86CloudPath & """"
+            wscript.Sleep 5000
             
             ' Tell the user to check that client.wyc is the correct build in ProgramFiles.
             userResponse = MsgBox("Please check that the client.wyc is the correct file in " & programFilesX86CloudPath & ".", vbOkCancel, "Check client.wyc")
@@ -596,6 +608,10 @@
             tempDir2 = wyUpdaterPath & "\DownloadVersion" & versionUnderscore
             WriteLog "NewUpdate: Main: Copy the download files from dir: <" & tempDir & "> to WyUpdater DownloadVersion dir: <" & tempDir2 & ">."
             objFileSys.CopyFile tempDir & "\*.*" , tempDir2 & "\" , OverwriteExisting
+            
+            ' Put up an Explorer window at the next action location.
+            objShell.Run "explorer.exe /e,""" & wyUpdaterPath & "\DownloadVersion" & versionUnderscore & """"
+            wscript.Sleep 5000
             
             ' Tell the user to change the CloudSetup.exe Resources.
             tempDir2 = wyUpdaterPath & "\DownloadVersion" & versionUnderscore

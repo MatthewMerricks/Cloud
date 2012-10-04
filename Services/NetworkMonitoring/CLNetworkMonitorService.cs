@@ -80,7 +80,7 @@ namespace win_client.Services.Badging
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLNetworkMonitorService: EndNetworkMonitoring: ERROR: Exception. Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLNetworkMonitorService: EndNetworkMonitoring: ERROR: Exception. Msg: <{0}>.", ex.Message);
             }
         }
     }

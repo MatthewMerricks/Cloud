@@ -141,7 +141,7 @@ namespace win_client.Services.ServicesManager
                 }
                 catch (Exception ex)
                 {
-                    _trace.writeToLog(1, String.Format("CLServicesManager: StartCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message));
+                    _trace.writeToLog(1, "CLServicesManager: StartCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 }
             }
         }
@@ -176,7 +176,7 @@ namespace win_client.Services.ServicesManager
                 }
                 catch (Exception ex)
                 {
-                    _trace.writeToLog(1, String.Format("CLServicesManager: StopCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message));
+                    _trace.writeToLog(1, "CLServicesManager: StopCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 }
                 finally
                 {

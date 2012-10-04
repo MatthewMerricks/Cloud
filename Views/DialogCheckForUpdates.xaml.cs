@@ -30,6 +30,7 @@ using CleanShutdown.Helpers;
 using CloudApiPublic.Support;
 using CloudApiPrivate.Common;
 using System.Diagnostics;
+using CloudApiPublic.Model;
 
 namespace win_client.Views
 {
@@ -42,12 +43,25 @@ namespace win_client.Views
 
         public DialogCheckForUpdates()
         {
-            InitializeComponent();
+            try
+            {
+                _trace.writeToLog(9, "DialogCheckForUpdates: DialogCheckForUpdates constructor: Entry. Call InitializeComponent.");
+                InitializeComponent();
+                _trace.writeToLog(9, "DialogCheckForUpdates: DialogCheckForUpdates constructor: Back from InitializeComponent.");
 
-            Loaded +=DialogCheckForUpdates_Loaded;
-            Unloaded += DialogCheckForUpdates_Unloaded;
-            Closing += DialogCheckForUpdates_Closing;
-
+                Loaded += DialogCheckForUpdates_Loaded;
+                Unloaded += DialogCheckForUpdates_Unloaded;
+                Closing += DialogCheckForUpdates_Closing;
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(9, "DialogCheckForUpdates: DialogCheckForUpdates: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
+                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (DialogCheckForUpdates).  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
+                global::System.Windows.Application.Current.Shutdown(0);
+            }
+            _trace.writeToLog(9, "DialogCheckForUpdates: DialogCheckForUpdates constructor: Exit.");
         }
 
         void DialogCheckForUpdates_Loaded(object sender, RoutedEventArgs e)
@@ -67,8 +81,8 @@ namespace win_client.Views
             this.cmdOk.Focus();
 
             // Check for updates now.
-            this.ctlAutoUpdate.Visibility = System.Windows.Visibility.Hidden;
             this.ctlAutoUpdate.BeforeChecking += ctlAutoUpdate_BeforeChecking;
+            this.ctlAutoUpdate.BeforeInstalling += ctlAutoUpdate_BeforeInstalling;
             this.ctlAutoUpdate.BeforeDownloading += ctlAutoUpdate_BeforeDownloading;
             this.ctlAutoUpdate.Cancelled += ctlAutoUpdate_Cancelled;
             this.ctlAutoUpdate.CheckingFailed += ctlAutoUpdate_CheckingFailed;
@@ -82,9 +96,12 @@ namespace win_client.Views
             this.ctlAutoUpdate.UpdateFailed += ctlAutoUpdate_UpdateFailed;
             this.ctlAutoUpdate.UpdateSuccessful += ctlAutoUpdate_UpdateSuccessful;
             this.ctlAutoUpdate.UpToDate += ctlAutoUpdate_UpToDate;
-            this.ctlAutoUpdate.KeepHidden = true;
-            this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.Automatic;
             this.ctlAutoUpdate.CloseAppNow += ctlAutoUpdate_CloseAppNow;
+
+            this.ctlAutoUpdate.Visibility = System.Windows.Visibility.Hidden;
+            this.ctlAutoUpdate.KeepHidden = true;
+            this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.DoNothing;
+            this.ctlAutoUpdate.wyUpdateLocation = CLDefinitions.CLUpdaterRelativePath;
 
             // Check first.
             this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
@@ -95,6 +112,17 @@ namespace win_client.Views
             _timer.Interval = TimeSpan.FromSeconds(1.0);
             _timer.Tick += _timer_Tick;
             _timer.Start();
+        }
+
+        /// <summary>
+        /// The automatic updater is trying to install.  Prevent it.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void ctlAutoUpdate_BeforeInstalling(object sender, wyDay.Controls.BeforeArgs e)
+        {
+            _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_BeforeInstalling: Entry.  Cancel the installation.");
+            e.Cancel = true;
         }
 
         /// <summary>
@@ -121,20 +149,20 @@ namespace win_client.Views
             if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall)
             {
                 // Enable the install button
-                _trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Install Now button.");
+                //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Install Now button.");
                 this.cmdCheckNow.Visibility = System.Windows.Visibility.Collapsed;
                 this.cmdInstallNow.Visibility = System.Windows.Visibility.Visible;
             }
             else
             {
                 // Check only.
-                _trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Check for Updates button.");
+                //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Check for Updates button.");
                 this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
                 this.cmdInstallNow.Visibility = System.Windows.Visibility.Collapsed;
             }
 
             // Display the current status
-            _trace.writeToLog(9, String.Format("DialogCheckForUpdates: _timer_Tick: UpdateStepOn: {0}.", this.ctlAutoUpdate.UpdateStepOn.ToString()));
+            //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: UpdateStepOn: {0}.", this.ctlAutoUpdate.UpdateStepOn.ToString());
             switch (this.ctlAutoUpdate.UpdateStepOn)
             {
                 case wyDay.Controls.UpdateStepOn.UpdateReadyToInstall:
@@ -178,6 +206,7 @@ namespace win_client.Views
             Settings.Instance.DateWeLastCheckedForSoftwareUpdate = DateTime.Now;
 
             // Check for an update.
+            this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.Automatic;
             this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
         }
 
@@ -386,7 +415,7 @@ namespace win_client.Views
                 int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudInstallUpdate", vbsPath);
                 if (rc != 0)
                 {
-                    _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100));
+                    _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100);
                     return;
                 }
 
@@ -394,10 +423,10 @@ namespace win_client.Views
                 _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Build the paths for launching the VBScript file.");
                 string systemFolderPath = CLShortcuts.Get32BitSystemFolderPath();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
-                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Cscript executable path: <{0}>.", cscriptPath));
+                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Cscript executable path: <{0}>.", cscriptPath);
 
                 string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""";
-                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Launch the VBScript file.  Launch: <{0}>.", argumentsString));
+                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Launch the VBScript file.  Launch: <{0}>.", argumentsString);
 
                 // Launch the process
                 ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -416,7 +445,7 @@ namespace win_client.Views
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: Exception. Msg: {0}.", ex.Message));
+                _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: Exception. Msg: {0}.", ex.Message);
             }
 
             _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Exit successfully.");
@@ -426,8 +455,8 @@ namespace win_client.Views
         {
             _trace.writeToLog(9, "DialogCheckForUpdates: DialogCheckForUpdates_Closing: Entry.");
             this.tblkStatus.Text = "";
-            this.Left = Int32.MaxValue;
-            this.Top = Int32.MaxValue;
+            this.Left = -10000;
+            this.Top = -10000;
             this.ShowInTaskbar = false;
             _isVisible = false;
 

@@ -494,7 +494,7 @@ namespace win_client.Services.Notification
                 }
                 catch (Exception ex)
                 {
-                    _trace.writeToLog(1, String.Format("CLNotificationService: OnConnectionReceived: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                    _trace.writeToLog(1, "CLNotificationService: OnConnectionReceived: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 }
             }
         }
@@ -535,7 +535,7 @@ namespace win_client.Services.Notification
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLNotificationService: DisconnectPushNotificationServer: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
     }

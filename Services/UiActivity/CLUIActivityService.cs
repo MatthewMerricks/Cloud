@@ -88,7 +88,7 @@ namespace win_client.Services.UiActivity
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLUIActivityService: BeginUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLUIActivityService: BeginUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -107,7 +107,7 @@ namespace win_client.Services.UiActivity
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLUIActivityService: EndUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLUIActivityService: EndUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -147,14 +147,14 @@ namespace win_client.Services.UiActivity
                         }
                         catch (Exception ex)
                         {
-                            _trace.writeToLog(1, String.Format("CLUIActivityService: TimerFiredCallback: ERROR. Exception.  Msg: <{0}>.", ex.Message));
+                            _trace.writeToLog(1, "CLUIActivityService: TimerFiredCallback: ERROR. Exception.  Msg: <{0}>.", ex.Message);
                         }
                     }));
                 }
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, String.Format("CLUIActivityService: TimerFiredCallback: ERROR. Exception(2).  Msg: <{0}>.", ex.Message));
+                _trace.writeToLog(1, "CLUIActivityService: TimerFiredCallback: ERROR. Exception(2).  Msg: <{0}>.", ex.Message);
             }
         }
     }
