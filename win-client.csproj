@@ -179,6 +179,12 @@
     <Compile Include="Common\CLSecurePasswordBox.cs" />
     <Compile Include="CleanShutdown\ShutdownService.cs" />
     <Compile Include="Common\CLWindowPlacement.cs" />
+    <Compile Include="Common\ComparisonBinding.cs" />
+    <Compile Include="Converters\DoubleSecondsToDurationConverter.cs" />
+    <Compile Include="DebugMessageDisplay\DebugMessageDisplay.xaml.cs">
+      <DependentUpon>DebugMessageDisplay.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DebugMessageDisplay\DebugMessageDisplayBase.cs" />
     <Compile Include="DragDropServer\DragDropInterface.cs" />
     <Compile Include="DragDropServer\DragDropServer.cs" />
     <Compile Include="Model\CLPreferences.cs" />
@@ -340,6 +346,10 @@
     <Compile Include="Views\PageTour5.xaml.cs">
       <DependentUpon>PageTour5.xaml</DependentUpon>
     </Compile>
+    <Page Include="DebugMessageDisplay\DebugMessageDisplay.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="NavigationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

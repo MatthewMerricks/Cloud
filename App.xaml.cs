@@ -68,8 +68,6 @@ namespace win_client
         public App()
         { }
 
-        private ViewModelLocator _vm = new ViewModelLocator();
-
         private void Application_Startup(object sender, StartupEventArgs e) 
         {
             // Break into the assembler
@@ -102,6 +100,42 @@ namespace win_client
             window.Topmost = true;
             window.Show();
             window.Topmost = false;
+
+            #region debug code to test EventMessageReceiver REMOVE THIS
+            CloudApiPrivate.EventMessageReceiver.EventMessageReceiver messageRec = ((ViewModelLocator)Application.Current.Resources["Locator"]).EventMessageReceiver;
+            Window newGrowlDisplay = null;
+            Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input,
+                new System.Threading.ThreadStart(() =>
+                {
+                    newGrowlDisplay = new DebugMessageDisplay.DebugMessageDisplay();
+                    newGrowlDisplay.Show();
+                }));
+            //messageRec.PropertyChanged += (sender2, e2) =>
+            //    {
+            //        if (e2.PropertyName == "GrowlVisible")
+            //        {
+            //            if (messageRec.GrowlVisible
+            //                && newGrowlDisplay == null)
+            //            {
+            //            }
+            //        }
+            //    };
+            System.Threading.ThreadPool.QueueUserWorkItem(state =>
+                {
+                    System.Threading.Thread.Sleep(5000);
+                    CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(1);
+                    System.Threading.Thread.Sleep(1000);
+                    CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(2);
+                    System.Threading.Thread.Sleep(1000);
+                    CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(3);
+                    System.Threading.Thread.Sleep(1000);
+                    CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(4);
+                    System.Threading.Thread.Sleep(5000);
+                    CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(1);
+                    System.Threading.Thread.Sleep(1000);
+                    CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(0);
+                }, null);
+            #endregion
         }
 
         private void Application_Exit(object sender, ExitEventArgs e) 

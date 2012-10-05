@@ -42,11 +42,14 @@ namespace Sync.JsonContracts
             }
             set
             {
-                if (value == null)
+                if (string.IsNullOrWhiteSpace(value))
                 {
                     EventId = null;
                 }
-                EventId = long.Parse(value);
+                else
+                {
+                    EventId = long.Parse(value);
+                }
             }
         }
         public Nullable<long> EventId { get; set; }
