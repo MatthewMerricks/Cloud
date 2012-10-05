@@ -295,7 +295,7 @@ namespace win_client.ViewModels
                                             () =>
                                             {
                                                 // Check for updates
-                                                Window win = CLAppDelegate.Instance.CheckForUpdatesWindow;
+                                                DialogCheckForUpdates win = CLAppDelegate.Instance.CheckForUpdatesWindow;
                                                 win.MaxWidth = 640;
                                                 win.MaxHeight = 480;
                                                 win.MinWidth = 640;

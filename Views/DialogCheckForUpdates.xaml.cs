@@ -40,6 +40,7 @@ namespace win_client.Views
         private bool _isVisible = false;
         private bool _isShuttingDown = false;
         private static CLTrace _trace = CLTrace.Instance;
+        private DialogCheckForUpdatesViewModel _vm = null;
 
         public DialogCheckForUpdates()
         {
@@ -61,6 +62,8 @@ namespace win_client.Views
                 System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (DialogCheckForUpdates).  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
                 global::System.Windows.Application.Current.Shutdown(0);
             }
+
+            _vm = (DialogCheckForUpdatesViewModel)this.DataContext;
             _trace.writeToLog(9, "DialogCheckForUpdates: DialogCheckForUpdates constructor: Exit.");
         }
 
@@ -100,7 +103,7 @@ namespace win_client.Views
 
             this.ctlAutoUpdate.Visibility = System.Windows.Visibility.Hidden;
             this.ctlAutoUpdate.KeepHidden = true;
-            this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.DoNothing;
+            this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.CheckAndDownload;
             this.ctlAutoUpdate.wyUpdateLocation = CLDefinitions.CLUpdaterRelativePath;
 
             // Check first.
@@ -111,7 +114,6 @@ namespace win_client.Views
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1.0);
             _timer.Tick += _timer_Tick;
-            _timer.Start();
         }
 
         /// <summary>
@@ -145,48 +147,55 @@ namespace win_client.Views
         /// <param name="e"></param>
         void _timer_Tick(object sender, EventArgs e)
         {
-            // Enable or disable the install button
-            if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall)
+            lock (_timer)
             {
-                // Enable the install button
-                //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Install Now button.");
-                this.cmdCheckNow.Visibility = System.Windows.Visibility.Collapsed;
-                this.cmdInstallNow.Visibility = System.Windows.Visibility.Visible;
-            }
-            else
-            {
-                // Check only.
-                //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Check for Updates button.");
-                this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
-                this.cmdInstallNow.Visibility = System.Windows.Visibility.Collapsed;
-            }
+                // Enable or disable the install button
+                if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall)
+                {
+                    // Hide the busy indicator
+                    HideBusyIndicator();
 
-            // Display the current status
-            //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: UpdateStepOn: {0}.", this.ctlAutoUpdate.UpdateStepOn.ToString());
-            switch (this.ctlAutoUpdate.UpdateStepOn)
-            {
-                case wyDay.Controls.UpdateStepOn.UpdateReadyToInstall:
-                    this.tblkStatus.Text = String.Format("An update is ready to install.  The new update is version {0}.", this.ctlAutoUpdate.Version) +
-                                            "\nThe changes are:" +
-                                            String.Format("\n{0}", this.ctlAutoUpdate.Changes);
-                    break;
-                case wyDay.Controls.UpdateStepOn.UpdateDownloaded:
-                    this.tblkStatus.Text = "The available update has been downloaded.";
-                    break;
-                case wyDay.Controls.UpdateStepOn.UpdateAvailable:
-                    this.tblkStatus.Text = "An update is available.";
-                    break;
-                case wyDay.Controls.UpdateStepOn.Nothing:
-                    //this.tblkStatus.Text = "No Status.";
-                    break;
-                case wyDay.Controls.UpdateStepOn.ExtractingUpdate:
-                    this.tblkStatus.Text = "The available update has been downloaded and is being prepared.";
-                    break;
-                case wyDay.Controls.UpdateStepOn.DownloadingUpdate:
-                    this.tblkStatus.Text = "The available update is being downloaded.";
-                    break;
-                case wyDay.Controls.UpdateStepOn.Checking:
-                    break;
+                    // Enable the install button
+                    //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Install Now button.");
+                    this.cmdCheckNow.Visibility = System.Windows.Visibility.Collapsed;
+                    this.cmdInstallNow.Visibility = System.Windows.Visibility.Visible;
+                }
+                else
+                {
+                    // Check only.
+                    //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Check for Updates button.");
+                    this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
+                    this.cmdInstallNow.Visibility = System.Windows.Visibility.Collapsed;
+                }
+
+                // Display the current status
+                //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: UpdateStepOn: {0}.", this.ctlAutoUpdate.UpdateStepOn.ToString());
+                switch (this.ctlAutoUpdate.UpdateStepOn)
+                {
+                    case wyDay.Controls.UpdateStepOn.UpdateReadyToInstall:
+                        this.tblkStatus.Text = String.Format("An update is ready to install.  The new update is version {0}.", this.ctlAutoUpdate.Version) +
+                                                "\nThe changes are:" +
+                                                String.Format("\n{0}", this.ctlAutoUpdate.Changes);
+                        break;
+                    case wyDay.Controls.UpdateStepOn.UpdateDownloaded:
+                        this.tblkStatus.Text = "The available update has been downloaded.";
+                        break;
+                    case wyDay.Controls.UpdateStepOn.UpdateAvailable:
+                        this.tblkStatus.Text = "An update is available.";
+                        break;
+                    case wyDay.Controls.UpdateStepOn.Nothing:
+                        //this.tblkStatus.Text = "No Status.";
+                        break;
+                    case wyDay.Controls.UpdateStepOn.ExtractingUpdate:
+                        this.tblkStatus.Text = "The available update has been downloaded and is being prepared.";
+                        break;
+                    case wyDay.Controls.UpdateStepOn.DownloadingUpdate:
+                        this.tblkStatus.Text = "The available update is being downloaded.";
+                        break;
+                    case wyDay.Controls.UpdateStepOn.Checking:
+                        this.tblkStatus.Text = "Checking for updates...";
+                        break;
+                }
             }
         }
 
@@ -205,9 +214,12 @@ namespace win_client.Views
             // Record the time of the last update check
             Settings.Instance.DateWeLastCheckedForSoftwareUpdate = DateTime.Now;
 
+            // Show the busy indicator
+            ShowBusyIndicator("Checking for updates...");
+
             // Check for an update.
-            this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.Automatic;
             this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
+
         }
 
         void ctlAutoUpdate_UpToDate(object sender, wyDay.Controls.SuccessArgs e)
@@ -215,11 +227,17 @@ namespace win_client.Views
             // Set the status
             _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_UpToDate: Entry.");
             this.tblkStatus.Text = "You are currently running the latest version of Cloud.";
+            
+            // Hide the busy indicator
+            HideBusyIndicator();
         }
 
         void ctlAutoUpdate_UpdateSuccessful(object sender, wyDay.Controls.SuccessArgs e)
         {
             _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_UpdateSuccessful: Entry.");
+
+            // Hide the busy indicator
+            HideBusyIndicator();
         }
 
         void ctlAutoUpdate_UpdateFailed(object sender, wyDay.Controls.FailArgs e)
@@ -227,6 +245,9 @@ namespace win_client.Views
             // Set the status
             _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_UpdateFailed: Entry.");
             this.tblkStatus.Text = "The update failed:\n" + e.ErrorTitle + "\n" + e.ErrorMessage;
+
+            // Hide the busy indicator
+            HideBusyIndicator();
         }
 
         void ctlAutoUpdate_UpdateAvailable(object sender, EventArgs e)
@@ -237,6 +258,11 @@ namespace win_client.Views
         void ctlAutoUpdate_Loaded(object sender, RoutedEventArgs e)
         {
             _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_Loaded: Entry.");
+
+            // Show the busy indicator
+            ShowBusyIndicator("Checking for updates...");
+
+            this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
         }
 
         void ctlAutoUpdate_DownloadingOrExtractingFailed(object sender, wyDay.Controls.FailArgs e)
@@ -244,6 +270,9 @@ namespace win_client.Views
             // Set the status
             _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_DownloadingOrExtractingFailed: Entry.");
             this.tblkStatus.Text = "The download or extraction failed:\n" + e.ErrorTitle + "\n" + e.ErrorMessage;
+
+            // Hide the busy indicator
+            HideBusyIndicator();
         }
 
         void ctlAutoUpdate_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -271,6 +300,9 @@ namespace win_client.Views
             // Set the status
             _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_CheckingFailed: Entry.");
             this.tblkStatus.Text = "The check for update failed:\n" + e.ErrorTitle + "\n" + e.ErrorMessage;
+
+            // Hide the busy indicator
+            HideBusyIndicator();
         }
 
         void ctlAutoUpdate_Cancelled(object sender, EventArgs e)
@@ -278,6 +310,9 @@ namespace win_client.Views
             // Set the status
             _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_Cancelled: Entry.");
             this.tblkStatus.Text = "The check for update was cancelled.";
+
+            // Hide the busy indicator
+            HideBusyIndicator();
         }
 
         void ctlAutoUpdate_BeforeDownloading(object sender, wyDay.Controls.BeforeArgs e)
@@ -288,6 +323,7 @@ namespace win_client.Views
         void ctlAutoUpdate_BeforeChecking(object sender, wyDay.Controls.BeforeArgs e)
         {
             _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_BeforeChecking: Entry.");
+            this.tblkStatus.Text = "Checking for updates...";
         }
 
         /// <summary>
@@ -352,6 +388,9 @@ namespace win_client.Views
 
             // Record the time of the last update check
             Settings.Instance.DateWeLastCheckedForSoftwareUpdate = DateTime.Now;
+
+            // Show the busy indicator
+            ShowBusyIndicator("Checking for updates...");
 
             this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
         }
@@ -463,5 +502,41 @@ namespace win_client.Views
             e.Cancel = true;
         }
 
+        /// <summary>
+        /// Show the busy indicator while we talk with the server
+        /// </summary>
+        /// <param name="message">This is the message to display in the busy indicator.</param>
+        private void ShowBusyIndicator(string message)
+        {
+            if (_vm != null)
+            {
+                _vm.IsBusy = true;
+                _vm.BusyContent = message;
+            }
+
+            // Start the timer
+            lock (_timer)
+            {
+                _timer.Start();
+            }
+        }
+
+        /// <summary>
+        /// Hide the busy indicator
+        /// </summary>
+        /// <param name="message">This is the message to display in the busy indicator.</param>
+        private void HideBusyIndicator()
+        {
+            if (_vm != null)
+            {
+                _vm.IsBusy = false;
+            }
+
+            // Start the timer
+            lock (_timer)
+            {
+                _timer.Stop();
+            }
+        }
     }
 }

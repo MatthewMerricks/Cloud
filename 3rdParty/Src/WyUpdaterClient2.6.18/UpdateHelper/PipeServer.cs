@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Win32.SafeHandles;
+using System.Diagnostics;
 
 namespace wyUpdate
 {
@@ -141,6 +142,7 @@ namespace wyUpdate
             SECURITY_DESCRIPTOR sd = new SECURITY_DESCRIPTOR();
 
             // set the Security Descriptor to be completely permissive
+            Trace.WriteLine("CloudUpdater: ListenForClients: Entry.");
             InitializeSecurityDescriptor(ref sd, SECURITY_DESCRIPTOR_REVISION);
             SetSecurityDescriptorDacl(ref sd, true, IntPtr.Zero, false);
 
@@ -161,6 +163,7 @@ namespace wyUpdate
             while (true)
             {
                 // Creates an instance of a named pipe for one client
+                Trace.WriteLine(String.Format("CloudUpdater: PipeServer: ListenForClients: Create named pipe, name: {0}.", PipeName));
                 SafeFileHandle clientHandle =
                     CreateNamedPipe(
                         PipeName,
@@ -176,14 +179,19 @@ namespace wyUpdate
 
                 //could not create named pipe instance
                 if (clientHandle.IsInvalid)
+                {
+                    Trace.WriteLine("CloudUpdater: PipeServer: ListenForClients: Invalid pipe handle.");
                     continue;
+                }
 
+                Trace.WriteLine("CloudUpdater: PipeServer: ListenForClients: ConnectNamedPipe.");
                 int success = ConnectNamedPipe(clientHandle, IntPtr.Zero);
 
                 //could not connect client
                 if (success == 0)
                 {
                     // close the handle, and wait for the next client
+                    Trace.WriteLine("CloudUpdater: PipeServer: ListenForClients: ERROR: Could not connect.  Close the handle and wait for the next client..");
                     clientHandle.Close();
                     continue;
                 }
@@ -194,12 +202,16 @@ namespace wyUpdate
                                     };
 
                 lock (clients)
+                {
+                    Trace.WriteLine("CloudUpdater: PipeServer: ListenForClients: Add this client to the list.");
                     clients.Add(client);
+                }
 
                 Thread readThread = new Thread(Read)
                                         {
                                             IsBackground = true
                                         };
+                Trace.WriteLine("CloudUpdater: PipeServer: ListenForClients: Start the client thread.");
                 readThread.Start(client);
             }
 
@@ -210,6 +222,7 @@ namespace wyUpdate
 
         void Read(object clientObj)
         {
+            Trace.WriteLine("CloudUpdater: PipeServer: Read: Entry.");
             Client client = (Client)clientObj;
             client.stream = new FileStream(client.handle, FileAccess.ReadWrite, BUFFER_SIZE, true);
             byte[] buffer = new byte[BUFFER_SIZE];
@@ -227,7 +240,10 @@ namespace wyUpdate
 
                         // client has disconnected
                         if (totalSize == 0)
+                        {
+                            Trace.WriteLine("CloudUpdater: PipeServer: Read: Client has disconnected.");
                             break;
+                        }
 
                         totalSize = BitConverter.ToInt32(buffer, 0);
 
@@ -245,16 +261,23 @@ namespace wyUpdate
                     catch
                     {
                         //read error has occurred
+                        Trace.WriteLine("CloudUpdater: PipeServer: Read: ERROR: Exception.  Read error.");
                         break;
                     }
 
                     //client has disconnected
                     if (bytesRead == 0)
+                    {
+                        Trace.WriteLine("CloudUpdater: PipeServer: Read: ERROR: Client has disconnected.");
                         break;
+                    }
 
                     //fire message received event
                     if (MessageReceived != null)
+                    {
+                        Trace.WriteLine("CloudUpdater: PipeServer: Read: Message was received.");
                         MessageReceived(ms.ToArray());
+                    }
                 }
             }
 
@@ -264,6 +287,7 @@ namespace wyUpdate
             lock (clients)
             {
                 //clean up resources
+                Trace.WriteLine("CloudUpdater: PipeServer: Read: Clean up resources.");
                 DisconnectNamedPipe(client.handle);
                 client.stream.Close();
                 client.handle.Close();
@@ -273,7 +297,10 @@ namespace wyUpdate
 
             // invoke the event, a client disconnected
             if (ClientDisconnected != null)
+            {
+                Trace.WriteLine("CloudUpdater: PipeServer: Read: Invoke ClientDisconnected event.");
                 ClientDisconnected();
+            }
         }
 
         /// <summary>
@@ -282,6 +309,7 @@ namespace wyUpdate
         /// <param name="message">The message to send.</param>
         public void SendMessage(byte[] message)
         {
+            Trace.WriteLine("CloudUpdater: PipeServer: SendMessage: Entry.");
             lock (clients)
             {
                 //get the entire stream length
@@ -290,6 +318,7 @@ namespace wyUpdate
                 foreach (Client client in clients)
                 {
                     // length
+                    Trace.WriteLine("CloudUpdater: PipeServer: SendMessage: Write a message.");
                     client.stream.Write(messageLength, 0, 4);
 
                     // data

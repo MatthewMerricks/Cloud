@@ -35,7 +35,7 @@ namespace BadgeNET
                 if (UserState != null)
                 {
                     // expect exactly 20 bytes from client (packetId<10> + filepath byte length<10>)
-                    _trace.writeToLog(9, "IconOverlay: NamedPipeServerBadge. Data ready to read.");
+                    //_trace.writeToLog(9, "IconOverlay: NamedPipeServerBadge. Data ready to read.");
                     byte[] pipeBuffer = new byte[20];
                     // read from client into buffer
                     pipeStream.Read(pipeBuffer,
@@ -67,9 +67,9 @@ namespace BadgeNET
                         bool setOverlay;
 
                         // lock on internal list so it is not modified while being read
-                        _trace.writeToLog(9, "IconOverlay: NamedPipeServerBadge. Call ShouldIconBeBadged. Path: {0}, type: {1}.", filePath, UserState.BadgeType.ToString());
+                        //_trace.writeToLog(9, "IconOverlay: NamedPipeServerBadge. Call ShouldIconBeBadged. Path: {0}, type: {1}.", filePath, UserState.BadgeType.ToString());
                         setOverlay = UserState.ShouldIconBeBadged(UserState.BadgeType, filePath);
-                        _trace.writeToLog(9, "IconOverlay: NamedPipeServerBadge. Back from ShouldIconBeBadged. WillBadge: {0}.", setOverlay);
+                        //_trace.writeToLog(9, "IconOverlay: NamedPipeServerBadge. Back from ShouldIconBeBadged. WillBadge: {0}.", setOverlay);
 
                         // Send the result back to the client on the pipe.
                         pipeStream.WriteByte(setOverlay ? (byte) 1 : (byte) 0);
@@ -89,7 +89,7 @@ namespace BadgeNET
                 CLError error = ex;
                 _trace.writeToLog(1, "IconOverlay: NamedPipeServerBadge: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
-            _trace.writeToLog(9, "IconOverlay: NamedPipeServerBadge. Return.  Done processing this client communication.");
+            //_trace.writeToLog(9, "IconOverlay: NamedPipeServerBadge. Return.  Done processing this client communication.");
         }
     }
 }

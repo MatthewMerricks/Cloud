@@ -341,10 +341,10 @@ namespace wyDay.Controls
         }
 
         /// <summary>
-        /// Gets or sets the relative path to the wyUpdate (e.g. wyUpdate.exe  or  SubDir\\wyUpdate.exe)
+        /// Gets or sets the relative path to the CloudUpdater (e.g. CloudUpdater.exe  or  SubDir\\CloudUpdater.exe)
         /// </summary>
-        [Description("The relative path to the wyUpdate (e.g. wyUpdate.exe  or  SubDir\\wyUpdate.exe)"), 
-        DefaultValue("wyUpdate.exe"),
+        [Description("The relative path to the CloudUpdater (e.g. CloudUpdater.exe  or  SubDir\\CloudUpdater.exe)"),
+        DefaultValue("CloudUpdater.exe"),
         Category("Updater")]
         public string wyUpdateLocation
         {

@@ -57,7 +57,10 @@ namespace wyUpdate
 
                 // if the mainForm has been closed, return 0 (Note: we'll eventually need good return codes)
                 if (mainForm.IsDisposed)
+                {
+                    Trace.WriteLine("CloudUpdater: Main: Exit.  Main form disposed.");
                     return 0;
+                }
 
                 StringBuilder mutexName = new StringBuilder("Local\\CloudUpdater-" + mainForm.update.GUID);
 
@@ -76,12 +79,15 @@ namespace wyUpdate
                 {
                     Trace.WriteLine("CloudUpdater: Main: Call ApplicationRun.");
                     Application.Run(mainForm);
+                    Trace.WriteLine("CloudUpdater: Main: Back from ApplicationRun.");
 
                     mutex.ReleaseMutex();
                 }
                 else
                 {
+                    Trace.WriteLine("CloudUpdater: Main: Call FocusOtherProcess.");
                     FocusOtherProcess();
+                    Trace.WriteLine("CloudUpdater: Main: Back from  FocusOtherProcess.");
                 }
 
                 //// Make sure Explorer is running

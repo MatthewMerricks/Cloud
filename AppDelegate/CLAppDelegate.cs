@@ -77,7 +77,7 @@ namespace win_client.AppDelegate
 
 
         public Window AppMainWindow { get; set; }
-        public Window CheckForUpdatesWindow { get; set; }
+        public DialogCheckForUpdates CheckForUpdatesWindow { get; set; }
 
         private bool _isAlreadyRunning = false;
         public bool IsAlreadyRunning
@@ -217,17 +217,6 @@ namespace win_client.AppDelegate
             CheckForUpdatesWindow.ShowActivated = false;
             CheckForUpdatesWindow.Visibility = System.Windows.Visibility.Hidden;
             CheckForUpdatesWindow.WindowStyle = WindowStyle.None;
-
-            //// Start a single instance of the updater window.
-            //_trace.writeToLog(9, "CLAppDelegate: initAppDelegate: new DialogCheckForUpdates.");
-            //CheckForUpdatesWindow = new DialogCheckForUpdates();
-            //_trace.writeToLog(9, "CLAppDelegate: initAppDelegate: After new DialogCheckForUpdates.");
-            //CheckForUpdatesWindow.Left = -10000;
-            //CheckForUpdatesWindow.Top = -10000;
-            //CheckForUpdatesWindow.ShowInTaskbar = false;
-            //_trace.writeToLog(9, "CLAppDelegate: initAppDelegate: Show DialogCheckForUpdates.");
-            //CheckForUpdatesWindow.Hide();
-            //_trace.writeToLog(9, "CLAppDelegate: initAppDelegate: After show DialogCheckForUpdates.");
 
             // Determine which window we will show on startup
             SetupCloudAppLaunchMode();

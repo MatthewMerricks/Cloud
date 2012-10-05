@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows.Forms;
 using wyUpdate.Common;
+using System.Diagnostics;
 
 namespace wyDay.Controls
 {
@@ -163,6 +164,7 @@ namespace wyDay.Controls
             private set
             {
                 m_UpdateStepOn = value;
+                Trace.WriteLine(String.Format("AutoUpdater: AutomaticUpdaterBackend: UpdateStepOn: Set. UpdateStepOn: {0}.", m_UpdateStepOn.ToString()));
 
                 // set the AutoUpdaterInfo property
                 if (value != UpdateStepOn.Checking
@@ -212,7 +214,7 @@ namespace wyDay.Controls
         }
 
         /// <summary>
-        /// Gets or sets the relative path to the wyUpdate (e.g. wyUpdate.exe  or  SubDir\\wyUpdate.exe)
+        /// Gets or sets the relative path to the wyUpdate (e.g. CloudUpdater.exe  or  SubDir\\CloudUpdater.exe)
         /// </summary>
         public string wyUpdateLocation
         {
@@ -288,6 +290,7 @@ namespace wyDay.Controls
         /// </summary>
         public AutomaticUpdaterBackend()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AutomaticUpdaterBackend: Entry.");
             updateHelper.ProgressChanged += updateHelper_ProgressChanged;
             updateHelper.PipeServerDisconnected += updateHelper_PipeServerDisconnected;
             updateHelper.UpdateStepMismatch += updateHelper_UpdateStepMismatch;
@@ -309,6 +312,7 @@ namespace wyDay.Controls
         /// </summary>
         public void InstallNow()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: Entry.");
             if (AutoUpdaterInfo == null)
                 throw new FailedToInitializeException();
 
@@ -332,15 +336,18 @@ namespace wyDay.Controls
             if (UpdateStepOn == UpdateStepOn.UpdateAvailable)
             {
                 // begin downloading the update
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: Call DownloadUpdate.");
                 DownloadUpdate();
             }
             else if (UpdateStepOn == UpdateStepOn.UpdateDownloaded)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: Call ExtractUpdate.");
                 ExtractUpdate();
             }
             else // UpdateReadyToInstall
             {
                 // begin installing the update
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: Call InstallPendingUpdate.");
                 InstallPendingUpdate();
             }
         }
@@ -350,6 +357,7 @@ namespace wyDay.Controls
         /// </summary>
         public void Cancel()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: Cancel: Entry.");
             if (AutoUpdaterInfo == null)
                 throw new FailedToInitializeException();
 
@@ -358,7 +366,10 @@ namespace wyDay.Controls
             SetLastSuccessfulStep();
 
             if (Cancelled != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: Cancel: Call Cancelled.");
                 Cancelled(this, EventArgs.Empty);
+            }
         }
 
         void SetLastSuccessfulStep()

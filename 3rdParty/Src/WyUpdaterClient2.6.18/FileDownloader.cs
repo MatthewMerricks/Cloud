@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using wyUpdate.Common;
+using System.Diagnostics;
 
 namespace wyUpdate.Downloader
 {
@@ -56,6 +57,7 @@ namespace wyUpdate.Downloader
 
         public FileDownloader(List<string> urls, string downloadfolder)
         {
+            Trace.WriteLine("CloudUpdater: FileDownloader: FileDownloader: Entry.");
             urlList = urls;
             destFolder = downloadfolder;
 
@@ -69,14 +71,19 @@ namespace wyUpdate.Downloader
         void bw_DoWork(object sender, DoWorkEventArgs e)
         {
             // validate input
+            Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Entry.");
             if (urlList == null || urlList.Count == 0)
             {
                 if (string.IsNullOrEmpty(url))
                 {
                     //no sites specified, bail out
                     if (!bw.CancellationPending)
+                    {
+                        Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: ERROR. No download urls are specified.");
                         bw.ReportProgress(0, new object[] { -1, -1, string.Empty, ProgressStatus.Failure, new Exception("No download urls are specified.") });
+                    }
 
+                    Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Return.");
                     return;
                 }
 
@@ -112,6 +119,7 @@ namespace wyUpdate.Downloader
                 catch (Exception except)
                 {
                     ex = except;
+                    Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: bw_DoWork: ERROR. Exception.  Msg: <{0}>.", ex.Message));
 
                     if (!waitingForResponse)
                         allFailedWaitingForResponse = false;
@@ -120,6 +128,7 @@ namespace wyUpdate.Downloader
                 // If we got through that without an exception, we found a good url
                 if (ex == null || bw.CancellationPending)
                 {
+                    Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: break out.");
                     allFailedWaitingForResponse = false;
                     break;
                 }
@@ -133,6 +142,7 @@ namespace wyUpdate.Downloader
             */
             if (allFailedWaitingForResponse && WebRequest.DefaultWebProxy != null)
             {
+                Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Try the sites without a proxy.");
                 // try the sites again without a proxy
                 WebRequest.DefaultWebProxy = null;
 
@@ -148,11 +158,15 @@ namespace wyUpdate.Downloader
                     catch (Exception except)
                     {
                         ex = except;
+                        Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: bw_DoWork: ERROR. Exception(2).  Msg: <{0}>.", ex.Message));
                     }
 
                     // If we got through that without an exception, we found a good url
                     if (ex == null || bw.CancellationPending)
+                    {
+                        Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Break out.");
                         break;
+                    }
                 }
             }
 
@@ -161,6 +175,7 @@ namespace wyUpdate.Downloader
                 bw.ReportProgress(0, new object[] { -1, -1, string.Empty, ProgressStatus.Failure, ex });
             else
                 bw.ReportProgress(0, new object[] { -1, -1, string.Empty, ProgressStatus.Success, null });
+            Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Exit.");
         }
 
         void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -173,6 +188,7 @@ namespace wyUpdate.Downloader
 
         void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            Trace.WriteLine("CloudUpdater: FileDownloader: bw_RunWorkerCompleted: Entry.");
             bw.DoWork -= bw_DoWork;
             bw.ProgressChanged -= bw_ProgressChanged;
             bw.RunWorkerCompleted -= bw_RunWorkerCompleted;
@@ -199,6 +215,7 @@ namespace wyUpdate.Downloader
 
         public void Cancel()
         {
+            Trace.WriteLine("CloudUpdater: FileDownloader: Cancel: Entry.");
             bw.CancelAsync();
         }
 
@@ -209,6 +226,7 @@ namespace wyUpdate.Downloader
         public void Download()
         {
             // check if the PublicSignKey exists & the update isn't signed then just don't bother downloading
+            Trace.WriteLine("CloudUpdater: FileDownloader: Download: Entry.");
             if (PublicSignKey != null && SignedSHA1Hash == null)
             {
                 // unregister bw events
@@ -218,12 +236,16 @@ namespace wyUpdate.Downloader
                 ProgressChanged(-1, -1, string.Empty, ProgressStatus.Failure, new Exception("The update is not signed. All updates must be signed in order to be installed."));
             }
             else // start the download
+            {
+                Trace.WriteLine("CloudUpdater: FileDownloader: Download: Start the download.");
                 bw.RunWorkerAsync();
+            }
         }
 
         // Begin downloading the file at the specified url, and save it to the given folder.
         void BeginDownload()
         {
+            Trace.WriteLine("CloudUpdater: FileDownloader: BeginDownload: Entry.");
             DownloadData data = null;
             FileStream fs = null;
 
@@ -245,6 +267,7 @@ namespace wyUpdate.Downloader
                 if (!File.Exists(DownloadingTo))
                 {
                     // create the file
+                    Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: BeginDownload: Create the file: {0}.", DownloadingTo));
                     fs = File.Open(DownloadingTo, FileMode.Create, FileAccess.Write);
                 }
                 else
@@ -254,6 +277,7 @@ namespace wyUpdate.Downloader
                         GetAdler32(DownloadingTo);
 
                     // apend to an existing file (resume)
+                    Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: BeginDownload: Resume the file: {0}.", DownloadingTo));
                     fs = File.Open(DownloadingTo, FileMode.Append, FileAccess.Write);
                 }
 
@@ -313,10 +337,12 @@ namespace wyUpdate.Downloader
             }
             catch (UriFormatException e)
             {
+                Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: BeginDownload: ERROR: Exception: {0}.  Could not parse the URL.", e.Message));
                 throw new Exception(string.Format("Could not parse the URL \"{0}\" - it's either malformed or is an unknown protocol.", url), e);
             }
             catch (Exception e)
             {
+                Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: BeginDownload: ERROR: Exception(2): {0}.", e.Message));
                 if (string.IsNullOrEmpty(DownloadingTo))
                     throw new Exception(string.Format("Error trying to save file: {0}", e.Message), e);
                 else
@@ -373,17 +399,21 @@ namespace wyUpdate.Downloader
 
         void ValidateDownload()
         {
+            Trace.WriteLine("CloudUpdater: FileDownloader: ValidateDownload: Entry.");
             //if an Adler32 checksum is provided, check the file
             if (!bw.CancellationPending)
             {
+                Trace.WriteLine("CloudUpdater: FileDownloader: ValidateDownload: Cancel not pending.");
                 if (Adler32 != 0 && Adler32 != downloadedAdler32.Value)
                 {
                     // file failed to vaildate, throw an error
+                    Trace.WriteLine("CloudUpdater: FileDownloader: ValidateDownload: ERROR.  Throw.  Failed to validate.");
                     throw new Exception("The downloaded file \"" + Path.GetFileName(DownloadingTo) + "\" failed the Adler32 validation.");
                 }
 
                 if (PublicSignKey != null)
                 {
+                    Trace.WriteLine("CloudUpdater: FileDownloader: ValidateDownload: Signed.");
                     if (SignedSHA1Hash == null)
                         throw new Exception("The downloaded file \"" + Path.GetFileName(DownloadingTo) + "\" is not signed.");
 
@@ -412,6 +442,7 @@ namespace wyUpdate.Downloader
                     }
                     catch (Exception ex)
                     {
+                        Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: ValidateDownload: ERROR. Exception (3). Msg: {0}.", ex.Message));
                         string msg = "The downloaded file \"" + Path.GetFileName(DownloadingTo) +
                                            "\" failed the signature validation: " + ex.Message;
 
@@ -520,6 +551,7 @@ namespace wyUpdate.Downloader
 
         public static DownloadData Create(string url, string destFolder)
         {
+            Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: Create: Entry.  url: {0}. destFolder: {1}.", url, destFolder));
             DownloadData downloadData = new DownloadData();
             WebRequest req = GetRequest(url);
 
@@ -544,6 +576,7 @@ namespace wyUpdate.Downloader
             }
             catch (Exception e)
             {
+                Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: Create: ERROR. Exception. Msg: {0}.", e.Message));
                 throw new Exception(string.Format("Error downloading \"{0}\": {1}", url, e.Message), e);
             }
 
@@ -651,12 +684,14 @@ namespace wyUpdate.Downloader
                 }
             }
 
+            Trace.WriteLine("CloudUpdater: FileDownloader: Create: Return downloadData.");
             return downloadData;
         }
 
         // Checks whether a WebResponse is an error.
         static void ValidateResponse(WebResponse response, string url)
         {
+            Trace.WriteLine("CloudUpdater: FileDownloader: ValidateResponse: Entry.");
             if (response is HttpWebResponse)
             {
                 HttpWebResponse httpResponse = (HttpWebResponse)response;
@@ -664,6 +699,7 @@ namespace wyUpdate.Downloader
                 // If it's an HTML page, it's probably an error page.
                 if (httpResponse.StatusCode == HttpStatusCode.NotFound || httpResponse.ContentType.Contains("text/html"))
                 {
+                    Trace.WriteLine("CloudUpdater: FileDownloader: ValidateResponse: ERROR. Throw. Could not download.  A web page was returned.");
                     throw new Exception(
                         string.Format("Could not download \"{0}\" - a web page was returned from the web server.", url));
                 }
@@ -671,7 +707,10 @@ namespace wyUpdate.Downloader
             else if (response is FtpWebResponse)
             {
                 if (((FtpWebResponse)response).StatusCode == FtpStatusCode.ConnectionClosed)
+                {
+                    Trace.WriteLine("CloudUpdater: FileDownloader: ValidateResponse: ERROR. Throw. Could not download.  FTP closed connection.");
                     throw new Exception(string.Format("Could not download \"{0}\" - FTP server closed the connection.", url));
+                }
             }
             // FileWebResponse doesn't have a status code to check.
         }
@@ -694,6 +733,7 @@ namespace wyUpdate.Downloader
 
         static WebRequest GetRequest(string url)
         {
+            Trace.WriteLine("CloudUpdater: FileDownloader: GetRequest: Entry.");
             UriBuilder uri = new UriBuilder(url);
             bool hasCredentials = !string.IsNullOrEmpty(uri.UserName) && !string.IsNullOrEmpty(uri.Password);
             if (hasCredentials && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
@@ -721,6 +761,7 @@ namespace wyUpdate.Downloader
 
         public void Close()
         {
+            Trace.WriteLine("CloudUpdater: FileDownloader: Close: Entry.");
             response.Close();
         }
     }

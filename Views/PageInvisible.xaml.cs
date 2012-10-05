@@ -227,7 +227,9 @@ namespace win_client.Views
                 }
 
                 // get the screen dimensions
-                Screen currentScreen = Screen.FromHandle(new WindowInteropHelper(pageWindow).Handle);
+                WindowInteropHelper myWindow = new WindowInteropHelper(pageWindow);
+                myWindow.EnsureHandle();
+                Screen currentScreen = Screen.FromHandle(myWindow.Handle);
                 System.Drawing.Rectangle screenRect = currentScreen.Bounds;
 
                 // And the starting rectangle
@@ -297,7 +299,9 @@ namespace win_client.Views
                 pageWindow.Height = pageRect.Height;
 
                 // get the screen dimensions
-                Screen currentScreen = Screen.FromHandle(new WindowInteropHelper(pageWindow).Handle);
+                WindowInteropHelper myWindow = new WindowInteropHelper(pageWindow);
+                myWindow.EnsureHandle();
+                Screen currentScreen = Screen.FromHandle(myWindow.Handle);
                 System.Drawing.Rectangle screenRect = currentScreen.Bounds;
 
                 // Start animating on a separate thread

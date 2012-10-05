@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Ionic.Zip;
+using System.Diagnostics;
 
 namespace wyUpdate.Common
 {
@@ -117,6 +118,7 @@ namespace wyUpdate.Common
         //Open Pre-RC2  client files
         public void OpenObsoleteClientFile(string fileName)
         {
+            Trace.WriteLine(String.Format("CloudUpdater: ClientFile: OpenObsoleteClientFile: Entry.  fileName: {0}.", fileName));
             FileStream fs = null;
 
             try
@@ -125,6 +127,7 @@ namespace wyUpdate.Common
             }
             catch (Exception ex)
             {
+                Trace.WriteLine(String.Format("CloudUpdater: ClientFile: OpenObsoleteClientFile: ERROR. Exception.  Msg: {0}.", ex.Message));
                 if (fs != null)
                     fs.Close();
 
@@ -136,6 +139,7 @@ namespace wyUpdate.Common
             if (!ReadFiles.IsHeaderValid(fs, "IUCDFV2"))
             {
                 //free up the file so it can be deleted
+                Trace.WriteLine("CloudUpdater: ClientFile: OpenObsoleteClientFile: ERROR. Throw. client file has wrong ID.");
                 fs.Close();
 
                 throw new ArgumentException("The client file does not have the correct identifier - this is usually caused by file corruption. \n\nA possible solution is to replace the following file by reinstalling:\n\n" + fileName);
@@ -189,11 +193,13 @@ namespace wyUpdate.Common
             }
 
             fs.Close();
+            Trace.WriteLine("CloudUpdater: ClientFile: OpenObsoleteClientFile: Exit.");
         }
 #endif
 
         void LoadClientData(Stream ms, string updatePathVar, string customUrlArgs)
         {
+            Trace.WriteLine("CloudUpdater: ClientFile: LoadClientData: Entry.");
             ms.Position = 0;
 
             // Read back the file identification data, if any
@@ -202,6 +208,7 @@ namespace wyUpdate.Common
                 //free up the file so it can be deleted
                 ms.Close();
 
+                Trace.WriteLine("CloudUpdater: ClientFile: LoadClientData: ERROR.  Throw. Bad client file ID.");
                 throw new Exception("The client file does not have the correct identifier - this is usually caused by file corruption.");
             }
 
@@ -312,10 +319,12 @@ namespace wyUpdate.Common
             }
 
             ms.Close();
+            Trace.WriteLine("CloudUpdater: ClientFile: LoadClientData: Exit.");
         }
 
         public void LoadClientData(string filename)
         {
+            Trace.WriteLine("CloudUpdater: ClientFile: LoadClientData(2): Exit.");
             try
             {
                 using (Stream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
@@ -370,6 +379,7 @@ namespace wyUpdate.Common
 #else
         public void OpenClientFile(string m_Filename, ClientLanguage lang, string forcedCulture, string updatePathVar, string customUrlArgs)
         {
+            Trace.WriteLine(String.Format("CloudUpdater: ClientFile: OpenClientFile: Entry.  File: {0}.", m_Filename));
             using (ZipFile zip = ZipFile.Read(m_Filename))
             {
                 // load the client details (image filenames, languages, etc.)
@@ -461,6 +471,7 @@ namespace wyUpdate.Common
 #if !CLIENT_READER
         public void SaveClientFile(List<UpdateFile> files, string outputFilename)
         {
+            Trace.WriteLine(String.Format("CloudUpdater: ClientFile: SaveClientFile: Entry.  File: {0}.", outputFilename));
             try
             {
                 if (File.Exists(outputFilename))
@@ -494,12 +505,14 @@ namespace wyUpdate.Common
             catch (Exception ex)
             {
                 //send back the error message
+                Trace.WriteLine(String.Format("CloudUpdater: ClientFile: SaveClientFile: ERROR. Exception. Msg: {0}.", ex.Message));
                 throw new Exception(Path.GetFileName(outputFilename) + ". \r\n\r\n" + ex.Message);
             }
         }
 
         Stream SaveClientFile()
         {
+            Trace.WriteLine("CloudUpdater: ClientFile: SaveClientFile(2): Entry.");
             MemoryStream ms = new MemoryStream();
 
             try
@@ -586,6 +599,7 @@ namespace wyUpdate.Common
                 throw;
             }
 
+            Trace.WriteLine("CloudUpdater: ClientFile: SaveClientFile(2): Exit.");
             return ms;
         }
 #endif

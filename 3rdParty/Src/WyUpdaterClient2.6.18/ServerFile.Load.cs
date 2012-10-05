@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using Ionic.Zip;
+using System.Diagnostics;
 
 namespace wyUpdate.Common
 {
@@ -9,6 +10,7 @@ namespace wyUpdate.Common
     {
         public static ServerFile Load(string fileName, string updatePathVar, string customUrlArgs)
         {
+            Trace.WriteLine("CloudUpdater: ServerFile.Load: Load: Entry.");
             ServerFile serv = new ServerFile();
 
             byte[] fileIDBytes = new byte[7];
@@ -22,8 +24,9 @@ namespace wyUpdate.Common
                 // Read the first 7 bytes of identification data
                 fs.Read(fileIDBytes, 0, 7);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Trace.WriteLine(String.Format("CloudUpdater: ServerFile.Load: Load: ERROR.  Exception: Msg: <{0}>.", ex.Message));
                 if (fs != null)
                     fs.Close();
 
@@ -58,6 +61,7 @@ namespace wyUpdate.Common
             if (fileID != "IUSDFV2")
             {
                 //free up the file so it can be deleted
+                Trace.WriteLine("CloudUpdater: ServerFile.Load: Load: ERROR: Throw: The downloaded server file does not have the correct identifier. This is usually caused by file corruption.");
                 fs.Close();
                 throw new Exception("The downloaded server file does not have the correct identifier. This is usually caused by file corruption.");
             }
@@ -139,6 +143,7 @@ namespace wyUpdate.Common
 
             fs.Close();
 
+            Trace.WriteLine("CloudUpdater: ServerFile.Load: Load: Return.");
             return serv;
         }
 

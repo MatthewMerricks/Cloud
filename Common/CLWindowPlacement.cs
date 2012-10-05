@@ -56,6 +56,8 @@ namespace win_client.Common
                 placement.length = Marshal.SizeOf(typeof(WINDOWPLACEMENT));
                 placement.flags = 0;
                 placement.showCmd = (placement.showCmd == SW_SHOWMINIMIZED ? SW_SHOWNORMAL : placement.showCmd);
+                _trace.writeToLog(9, "CLWindowPlacement: ExtractWindowPlacementInfo: Coords: {0},{1},{2},{3}(LTRB).", placement.normalPosition.left, placement.normalPosition.top, placement.normalPosition.right, placement.normalPosition.bottom);
+                _trace.writeToLog(9, "CLWindowPlacement: ExtractWindowPlacementInfo: Length: {0}. flags: {2}. showCmd: {3}.", placement.length, placement.flags, placement.showCmd);
             }
             catch (Exception ex)
             {
@@ -86,6 +88,8 @@ namespace win_client.Common
             try
             {
                 // Set the window placement
+                _trace.writeToLog(9, "CLWindowPlacement: SetPlacement: Coords: {0},{1},{2},{3}(LTRB).", placement.normalPosition.left, placement.normalPosition.top, placement.normalPosition.right, placement.normalPosition.bottom);
+                _trace.writeToLog(9, "CLWindowPlacement: SetPlacement: Length: {0}. flags: {2}. showCmd: {3}.", placement.length, placement.flags, placement.showCmd);
                 NativeMethods.SetWindowPlacement(windowHandle, ref placement);
             }
             catch (Exception ex)
@@ -134,7 +138,9 @@ namespace win_client.Common
         /// <param name="placementXml">The serialized string containing the settings.</param>
         public static void SetPlacement(this Window window, string placementXml)
         {
-            WindowPlacement.SetPlacement(new WindowInteropHelper(window).Handle, placementXml);
+            WindowInteropHelper myWindow = new WindowInteropHelper(window);
+            myWindow.EnsureHandle();
+            WindowPlacement.SetPlacement(myWindow.Handle, placementXml);
         }
 
         /// <summary>

@@ -38,54 +38,56 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid x:Name="LayoutRoot">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="9*"/>
-            <ColumnDefinition Width="29*"/>
-            <ColumnDefinition Width="9*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="48"/>
-            <RowDefinition/>
-            <RowDefinition Height="33"/>
-            <RowDefinition Height="45"/>
-            <RowDefinition Height="15"/>
-        </Grid.RowDefinitions>
-        <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_bg_650x421.png"/>
-        </Grid.Background>
-        
-        <Controls:AutomaticUpdater x:Name="ctlAutoUpdate" HorizontalAlignment="Right" Height="100" VerticalAlignment="Center" Width="100" Grid.Row="1" Grid.Column="2" GUID="8CBDACFF-4ED9-4AF5-BCEC-4AA62F60DBB3" Margin="0,152,0,141" />
-
-        <Image Source="/Cloud;component/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" Grid.Row="1" Grid.Column="1" />
-        <TextBlock x:Name="tblkStatus" TextWrapping="Wrap" Foreground="Black" FontSize="14" TextAlignment="Left" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Grid.Row="1" Grid.Column="1" Margin="8" />
-        
-        <Grid Grid.Row="3" Grid.Column="1"  >
+    <extToolkit:BusyIndicator BusyContent="{Binding BusyContent, Mode=TwoWay}" IsBusy="{Binding IsBusy, Mode=TwoWay}" >
+        <Grid x:Name="LayoutRoot">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="63"/>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="22"/>
+                <ColumnDefinition Width="9*"/>
+                <ColumnDefinition Width="29*"/>
+                <ColumnDefinition Width="9*"/>
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48"/>
+                <RowDefinition/>
+                <RowDefinition Height="33"/>
+                <RowDefinition Height="45"/>
+                <RowDefinition Height="15"/>
+            </Grid.RowDefinitions>
+            <Grid.Background>
+                <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_bg_650x421.png"/>
+            </Grid.Background>
+        
+            <Controls:AutomaticUpdater x:Name="ctlAutoUpdate" HorizontalAlignment="Right" Height="100" VerticalAlignment="Center" Width="100" Grid.Row="1" Grid.Column="2" GUID="8CBDACFF-4ED9-4AF5-BCEC-4AA62F60DBB3" Margin="0,152,0,141" />
 
-            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1" >
-                <Button x:Name="cmdOk" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Click="OKButton_Click" IsCancel="True" IsDefault="True" 
-                        TabIndex="1" ToolTip="Click to continue.">
-                    <AccessText Text="_Done"/>
-                </Button>
+            <Image Source="/Cloud;component/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" Grid.Row="1" Grid.Column="1" />
+            <TextBlock x:Name="tblkStatus" TextWrapping="Wrap" Foreground="Black" FontSize="14" TextAlignment="Left" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Grid.Row="1" Grid.Column="1" Margin="8" />
+        
+            <Grid Grid.Row="3" Grid.Column="1"  >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="63"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="22"/>
+                </Grid.ColumnDefinitions>
 
-                <Button x:Name="cmdCheckNow" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"  Click="ButtonCheckNow_Click" IsCancel="True" IsDefault="True" 
-                        TabIndex="2" Margin="15,0,0,0" ToolTip="Click to check for updates.">
-                    <AccessText Text="_Check Now"/>
-                </Button>
+                <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Grid.Column="1" >
+                    <Button x:Name="cmdOk" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Click="OKButton_Click" IsCancel="True" IsDefault="True" 
+                            TabIndex="1" ToolTip="Click to continue.">
+                        <AccessText Text="_Done"/>
+                    </Button>
 
-                <Button x:Name="cmdInstallNow" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
-                        Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"  Click="ButtonInstallNow_Click" IsCancel="True" IsDefault="True" 
-                        TabIndex="2" Margin="15,0,0,0" ToolTip="Click to install the update now.  This will close and reopen Cloud.">
-                    <AccessText Text="_Install Now"/>
-                </Button>
-            </StackPanel>
+                    <Button x:Name="cmdCheckNow" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"  Click="ButtonCheckNow_Click" IsCancel="True" IsDefault="True" 
+                            TabIndex="2" Margin="15,0,0,0" ToolTip="Click to check for updates.">
+                        <AccessText Text="_Check Now"/>
+                    </Button>
+
+                    <Button x:Name="cmdInstallNow" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1"  Click="ButtonInstallNow_Click" IsCancel="True" IsDefault="True" 
+                            TabIndex="2" Margin="15,0,0,0" ToolTip="Click to install the update now.  This will close and reopen Cloud.">
+                        <AccessText Text="_Install Now"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Grid>
-    </Grid>
+    </extToolkit:BusyIndicator>
 </Window>

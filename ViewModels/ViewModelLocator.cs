@@ -90,7 +90,7 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogCloudMessageBoxView(), CLConstants.kDialogBox_CloudMessageBoxView, false);
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkProxies(), CLConstants.kDialogBox_PreferencesNetworkProxies, false);
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkBandwidth(), CLConstants.kDialogBox_PreferencesNetworkBandwidth, false);
-            SimpleIoc.Default.Register<IModalWindow>(() => new DialogCheckForUpdates(), CLConstants.kDialogBox_CheckForUpdates, false);
+            //&&&&SimpleIoc.Default.Register<IModalWindow>(() => new DialogCheckForUpdates(), CLConstants.kDialogBox_CheckForUpdates, false);
 
             // Modal dialog view models
             SimpleIoc.Default.Register<DialogCloudMessageBoxViewModel>();
@@ -425,19 +425,19 @@ namespace win_client.ViewModels
             }
         }
 
-        /// <summary>
-        /// Gets the DialogCheckForUpdates property.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
-            "CA1822:MarkMembersAsStatic",
-            Justification = "This non-static member is needed for data binding purposes.")]
-        public DialogCheckForUpdates DialogCheckForUpdates
-        {
-            get
-            {
-                return (DialogCheckForUpdates)ServiceLocator.Current.GetInstance<DialogCheckForUpdates>(CLConstants.kDialogBox_CheckForUpdates);
-            }
-        }
+        ///// <summary>
+        ///// Gets the DialogCheckForUpdates property.
+        ///// </summary>
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+        //    "CA1822:MarkMembersAsStatic",
+        //    Justification = "This non-static member is needed for data binding purposes.")]
+        //public DialogCheckForUpdates DialogCheckForUpdates
+        //{
+        //    get
+        //    {
+        //        return (DialogCheckForUpdates)ServiceLocator.Current.GetInstance<DialogCheckForUpdates>(CLConstants.kDialogBox_CheckForUpdates);
+        //    }
+        //}
 
         /// <summary>
         /// Gets the DialogCloudMessageBoxViewModel property.

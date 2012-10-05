@@ -173,7 +173,7 @@ namespace win_client.ViewModels
                     ?? (_framePreferencesGeneral_CheckForUpdatesCommand = new RelayCommand(
                                           () =>
                                           {
-                                              Window win = CLAppDelegate.Instance.CheckForUpdatesWindow;
+                                              DialogCheckForUpdates win = CLAppDelegate.Instance.CheckForUpdatesWindow;
                                               win.MaxWidth = 640;
                                               win.MaxHeight = 480;
                                               win.MinWidth = 640;

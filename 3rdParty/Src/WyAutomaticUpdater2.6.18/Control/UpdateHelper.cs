@@ -22,7 +22,7 @@ namespace wyDay.Controls
         Process ClientProcess;
 
         string m_CompleteWULoc;
-        string m_wyUpdateLocation = "wyUpdate.exe";
+        string m_wyUpdateLocation = "CloudUpdater.exe";
 
         public string wyUpdateLocation
         {
@@ -476,7 +476,7 @@ namespace wyDay.Controls
                 {
                     // inform the AutomaticUpdater that wyUpdate is no longer running
                     if (PipeServerDisconnected != null)
-                        PipeServerDisconnected(this, new UpdateHelperData(Response.Failed, UpdateStep, AUTranslation.C_PrematureExitTitle, "Failed to connect to the new version of wyUpdate.exe"));
+                        PipeServerDisconnected(this, new UpdateHelperData(Response.Failed, UpdateStep, AUTranslation.C_PrematureExitTitle, "Failed to connect to the new version of CloudUpdater.exe"));
                 }
 
                 TryToConnectToPipe(data.ExtraData[0]);
@@ -486,7 +486,7 @@ namespace wyDay.Controls
                 {
                     // inform the AutomaticUpdater that wyUpdate is no longer running
                     if (PipeServerDisconnected != null)
-                        PipeServerDisconnected(this, new UpdateHelperData(Response.Failed, UpdateStep, AUTranslation.C_PrematureExitTitle, "Failed to connect to the new version of wyUpdate.exe"));
+                        PipeServerDisconnected(this, new UpdateHelperData(Response.Failed, UpdateStep, AUTranslation.C_PrematureExitTitle, "Failed to connect to the new version of CloudUpdater.exe"));
                 }
 
                 // begin where we left off

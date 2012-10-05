@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Diagnostics;
 
 namespace wyUpdate.Common
 {
@@ -9,6 +10,7 @@ namespace wyUpdate.Common
         //Image (for pre- 1.0 RC2 wyUpdate Client files)
         public static Image ReadImage(Stream fs)
         {
+            Trace.WriteLine("CloudUpdater: ReadWriteFiles.Client: ReadImage: Entry.");
             byte[] tempLength = new byte[4];
 
             Image tempImg = null;
@@ -28,7 +30,10 @@ namespace wyUpdate.Common
                     tempImg = Image.FromStream(ms, true);
                 }
             }
-            catch (Exception) { return null; /* blank image */ }
+            catch (Exception) {
+                Trace.WriteLine("CloudUpdater: ReadWriteFiles.Client: ReadImage: ERROR. Exception.  Return blank image.");
+                return null; /* blank image */ 
+            }
 
             //copy the bitmap to be fully "in memory", so it's not referenced to the filestream 
             //(see http://support.microsoft.com/?id=814675 )
@@ -61,6 +66,7 @@ namespace wyUpdate.Common
             //destroy reference to the old bitmap
             tempBitmap.Dispose();
 
+            Trace.WriteLine("CloudUpdater: ReadWriteFiles.Client: ReadImage: Return bitmap.");
             return newBitmap;
         }
 

@@ -21,6 +21,7 @@ using CloudApiPublic.Model;
 using System.Windows;
 using System.Reflection;
 using CloudApiPrivate.Common;
+using CloudApiPublic.Support;
 
 namespace CloudApiPrivate.Model.Settings
 {
@@ -752,11 +753,12 @@ namespace CloudApiPrivate.Model.Settings
         {
             get 
             {
-                
+                _trace.writeToLog(9, "CLSettings: MainWindowPlacement.get: Return value: <{0}>.", _mainWindowPlacement);
                 return _mainWindowPlacement; 
             }
             set
             {
+                _trace.writeToLog(9, "CLSettings: MainWindowPlacement.set: Seet value: <{0}>.", value);
                 _mainWindowPlacement = value;
                 SettingsBase.Write<string>(kMainWindowPlacement, value);
             }
@@ -767,6 +769,8 @@ namespace CloudApiPrivate.Model.Settings
         /// </summary>
         private static Settings _instance = null;
         private static object InstanceLocker = new object();
+        private static CLTrace _trace = CLTrace.Instance;
+
 
         /// <summary>
         /// Access SiteStructure.Instance to get the singleton object.
@@ -782,6 +786,7 @@ namespace CloudApiPrivate.Model.Settings
                     {
                         _instance = new Settings();
                         _instance.loadSettings();
+                        _trace.writeToLog(9, "CLSettings: Instance: Settings loaded.");
                     }
                 }
                 return _instance;

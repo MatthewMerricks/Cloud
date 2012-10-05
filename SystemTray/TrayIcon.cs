@@ -69,6 +69,7 @@ namespace win_client.SystemTray.TrayIcon
 
             // Get handle of application window
             WindowInteropHelper helper = new WindowInteropHelper(mainWindow);
+            helper.EnsureHandle();
 #if DEBUG
             Debug.Assert(helper != null);
 #endif // #if DEBUG

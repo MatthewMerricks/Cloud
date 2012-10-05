@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Diagnostics;
 
 namespace wyDay.Controls
 {
@@ -17,6 +18,7 @@ namespace wyDay.Controls
     {
         static AutomaticUpdater()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: AutomaticUpdater: Entry.");
             DefaultStyleKeyProperty.OverrideMetadata(typeof(AutomaticUpdater), new FrameworkPropertyMetadata(typeof(AutomaticUpdater)));
 
             ForegroundProperty = TextElement.ForegroundProperty.AddOwner(typeof(AutomaticUpdater), new FrameworkPropertyMetadata(SystemColors.ControlTextBrush, FrameworkPropertyMetadataOptions.Inherits));
@@ -308,10 +310,10 @@ namespace wyDay.Controls
         }
 
         /// <summary>
-        /// Gets or sets the relative path to the wyUpdate (e.g. wyUpdate.exe  or  SubDir\\wyUpdate.exe)
+        /// Gets or sets the relative path to the wyUpdate (e.g. CloudUpdater.exe  or  SubDir\\CloudUpdater.exe)
         /// </summary>
-        [Description("The relative path to the wyUpdate (e.g. wyUpdate.exe  or  SubDir\\wyUpdate.exe)"),
-        DefaultValue("wyUpdate.exe"),
+        [Description("The relative path to the wyUpdate (e.g. CloudUpdater.exe  or  SubDir\\CloudUpdater.exe)"),
+        DefaultValue("CloudUpdater.exe"),
         Category("Updater")]
         public string wyUpdateLocation
         {
@@ -383,6 +385,7 @@ namespace wyDay.Controls
 
         public AutomaticUpdater()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: AutomaticUpdater(2): Entry.");
             Animate = true;
 
             // Create the interop host control.
@@ -454,13 +457,16 @@ namespace wyDay.Controls
             auBackend.UpdateStepMismatch += auBackend_UpdateStepMismatch;
 
             auBackend.CloseAppNow += auBackend_CloseAppNow;
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: AutomaticUpdater(2): Exit.");
         }
 
         void auBackend_CloseAppNow(object sender, EventArgs e)
         {
             // call this function from ownerForm's thread context
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_CloseAppNow: Entry.");
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_CloseAppNow: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new EventHandler(auBackend_CloseAppNow), null, e);
                 return;
             }
@@ -469,14 +475,19 @@ namespace wyDay.Controls
             if (CloseAppNow != null)
                 CloseAppNow(this, EventArgs.Empty);
             else
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_CloseAppNow: Shutdown.");
                 Application.Current.Shutdown();
+            }
         }
 
         void auBackend_UpToDate(object sender, SuccessArgs e)
         {
             // call this function from ownerForm's thread context
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpToDate: Entry.");
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpToDate: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new SuccessHandler(auBackend_UpToDate), null, e);
                 return;
             }
@@ -484,19 +495,27 @@ namespace wyDay.Controls
             Text = translation.AlreadyUpToDate;
 
             if (Visibility == Visibility.Visible)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpToDate: Call UpdateStepSuccessful.");
                 UpdateStepSuccessful(MenuType.AlreadyUpToDate);
+            }
 
             SetMenuText(translation.CheckForUpdatesMenu);
 
             if (UpToDate != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpToDate: Call UpToDate.");
                 UpToDate(this, e);
+            }
         }
 
         void auBackend_UpdateSuccessful(object sender, SuccessArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateSuccessful: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateSuccessful: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new SuccessHandler(auBackend_UpdateSuccessful), null, e);
                 return;
             }
@@ -508,14 +527,19 @@ namespace wyDay.Controls
             UpdateStepSuccessful(MenuType.UpdateSuccessful);
 
             if (UpdateSuccessful != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateSuccessful: Call UpdateSuccessful.");
                 UpdateSuccessful(this, e);
+            }
         }
 
         void auBackend_UpdateFailed(object sender, FailArgs e)
         {
             // call this function from ownerForm's thread context
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateFailed: Entry.");
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateFailed: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new FailHandler(auBackend_UpdateFailed), null, e);
                 return;
             }
@@ -531,14 +555,19 @@ namespace wyDay.Controls
             AnimateImage(Properties.Resources.cross, true);
 
             if (UpdateFailed != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateFailed: Call UpdateFailed.");
                 UpdateFailed(this, e);
+            }
         }
 
         void auBackend_UpdateAvailable(object sender, EventArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateAvailable: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateAvailable: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new EventHandler(auBackend_UpdateAvailable), null, e);
                 return;
             }
@@ -562,15 +591,20 @@ namespace wyDay.Controls
             SetMenuText(translation.DownloadUpdateMenu);
 
             if (UpdateAvailable != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateAvailable: Call UpdateAvailable.");
                 UpdateAvailable(this, e);
+            }
         }
 
         void auBackend_ReadyToBeInstalled(object sender, EventArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
-                ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new EventHandler(auBackend_ReadyToBeInstalled), null, e );
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Send to BE.");
+                ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new EventHandler(auBackend_ReadyToBeInstalled), null, e);
                 return;
             }
 
@@ -595,14 +629,19 @@ namespace wyDay.Controls
 
 
             if (ReadyToBeInstalled != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Call ReadyToBeInstalled.");
                 ReadyToBeInstalled(this, e);
+            }
         }
 
         void auBackend_Cancelled(object sender, EventArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_Cancelled: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_Cancelled: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new EventHandler(auBackend_Cancelled), null, e);
                 return;
             }
@@ -614,22 +653,30 @@ namespace wyDay.Controls
             SetMenuText(translation.CheckForUpdatesMenu);
 
             if (Cancelled != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_Cancelled: Call Cancelled.");
                 Cancelled(this, e);
+            }
         }
 
         void auBackend_BeforeChecking(object sender, BeforeArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeChecking: Entry.");
             // disable any scheduled checking
             tmrWaitBeforeCheck.Enabled = false;
 
             SetMenuText(translation.CancelCheckingMenu);
 
             if (BeforeChecking != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeChecking: Call BeforeChecking.");
                 BeforeChecking(this, e);
+            }
 
             if (e.Cancel)
             {
                 // close wyUpdate
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeChecking: Close CloudUpdater.");
                 auBackend.Cancel();
                 return;
             }
@@ -644,18 +691,26 @@ namespace wyDay.Controls
 
         void auBackend_BeforeDownloading(object sender, BeforeArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeDownloading: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeDownloading: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new BeforeHandler(auBackend_BeforeDownloading), null, e);
                 return;
             }
 
             if (BeforeDownloading != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeDownloading: Call BeforeDownloading.");
                 BeforeDownloading(this, e);
+            }
 
             if (e.Cancel)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeDownloading: Return.  Cancelled.");
                 return;
+            }
 
             SetMenuText(translation.CancelUpdatingMenu);
 
@@ -669,9 +724,11 @@ namespace wyDay.Controls
 
         void auBackend_BeforeExtracting(object sender, BeforeArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeExtracting: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeExtracting: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new BeforeHandler(auBackend_BeforeExtracting), null, e);
                 return;
             }
@@ -683,22 +740,29 @@ namespace wyDay.Controls
 
         void auBackend_BeforeInstalling(object sender, BeforeArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeInstalling: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeInstalling: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new BeforeHandler(auBackend_BeforeInstalling), null, e);
                 return;
             }
 
             if (BeforeInstalling != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_BeforeInstalling: Call BeforeInstalling.");
                 BeforeInstalling(this, e);
+            }
         }
 
         void auBackend_CheckingFailed(object sender, FailArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_CheckingFailed: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_CheckingFailed: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new FailHandler(auBackend_CheckingFailed), null, e);
                 return;
             }
@@ -708,14 +772,19 @@ namespace wyDay.Controls
             Text = translation.FailedToCheck;
 
             if (CheckingFailed != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_CheckingFailed: Call CheckingFailed.");
                 CheckingFailed(this, e);
+            }
         }
 
         void auBackend_DownloadingFailed(object sender, FailArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_DownloadingFailed: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_DownloadingFailed: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new FailHandler(auBackend_DownloadingFailed), null, e);
                 return;
             }
@@ -725,14 +794,19 @@ namespace wyDay.Controls
             Text = translation.FailedToDownload;
 
             if (DownloadingOrExtractingFailed != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_DownloadingFailed: Call DownloadingOrExtractingFailed.");
                 DownloadingOrExtractingFailed(this, e);
+            }
         }
 
         void auBackend_ExtractingFailed(object sender, FailArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ExtractingFailed: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ExtractingFailed: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new FailHandler(auBackend_ExtractingFailed), null, e);
                 return;
             }
@@ -742,13 +816,18 @@ namespace wyDay.Controls
             Text = translation.FailedToExtract;
 
             if (DownloadingOrExtractingFailed != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ExtractingFailed: Call DownloadingOrExtractingFailed.");
                 DownloadingOrExtractingFailed(this, e);
+            }
         }
 
         void UpdateStepFailed(FailArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: UpdateStepFailed: Entry.");
             if (e.wyUpdatePrematureExit)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: UpdateStepFailed: ERROR: Premature exit.");
                 e.ErrorTitle = translation.PrematureExitTitle;
 
                 // use the general "premature exit" message only when there's no other message present
@@ -761,6 +840,7 @@ namespace wyDay.Controls
             //only show the error if this is visible
             if (Visibility == Visibility.Visible)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: UpdateStepFailed: Show error.  Visible.");
                 CreateMenu(MenuType.Error);
                 AnimateImage(Properties.Resources.cross, true);
             }
@@ -788,9 +868,11 @@ namespace wyDay.Controls
 
         void auBackend_ClosingAborted(object sender, EventArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ClosingAborted: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ClosingAborted: Send to BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new EventHandler(auBackend_ClosingAborted), null, e);
                 return;
             }
@@ -798,19 +880,25 @@ namespace wyDay.Controls
             // we need to show the form (it was hidden in ISupport() )
             if (auBackend.ClosingForInstall)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ClosingAborted: ClosingForInstall.");
                 ownerForm.ShowInTaskbar = true;
                 ownerForm.WindowState = WindowState.Normal;
             }
 
             if (ClosingAborted != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ClosingAborted: Call ClosingAborted.");
                 ClosingAborted(this, EventArgs.Empty);
+            }
         }
 
         void auBackend_UpdateStepMismatch(object sender, EventArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateStepMismatch: Entry.");
             // call this function from ownerForm's thread context
             if (sender != null)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateStepMismatch: Send to the BE.");
                 ownerForm.Dispatcher.Invoke(DispatcherPriority.Normal, new EventHandler(auBackend_UpdateStepMismatch), null, e);
                 return;
             }
@@ -822,6 +910,7 @@ namespace wyDay.Controls
                 || auBackend.UpdateStepOn == UpdateStepOn.DownloadingUpdate
                 || auBackend.UpdateStepOn == UpdateStepOn.ExtractingUpdate)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_UpdateStepMismatch: Call UpdateProcessing.");
                 UpdateProcessing(false);
             }
         }
@@ -1052,6 +1141,7 @@ namespace wyDay.Controls
         /// </summary>
         public void InstallNow()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: InstallNow: Entry.");
             auBackend.InstallNow();
         }
 
@@ -1244,11 +1334,13 @@ namespace wyDay.Controls
         /// <returns>Returns true if checking has begun, false otherwise.</returns>
         public bool ForceCheckForUpdate(bool recheck)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: ForceCheckForUpdate: Entry.");
             return ForceCheckForUpdate(recheck, false);
         }
 
         bool ForceCheckForUpdate(bool recheck, bool fromUI)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: ForceCheckForUpdate(2): Entry.");
             // if not already checking for updates then begin checking.
             if (UpdateStepOn == UpdateStepOn.Nothing || (recheck && UpdateStepOn == UpdateStepOn.UpdateAvailable))
             {
@@ -1267,11 +1359,13 @@ namespace wyDay.Controls
         /// <returns>Returns true if checking has begun, false otherwise.</returns>
         public bool ForceCheckForUpdate()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: ForceCheckForUpdate(3): Entry.");
             return ForceCheckForUpdate(false, false);
         }
 
         void UpdateStepSuccessful(MenuType menuType)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: UpdateStepSuccessful: Entry.");
             // create the "hide" menu
             CreateMenu(menuType);
 
@@ -1289,6 +1383,7 @@ namespace wyDay.Controls
 
         void UpdateProcessing(bool forceShow)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: UpdateProcessing: Entry.");
             if (forceShow && !KeepHidden)
                 Visibility = Visibility.Visible;
 
@@ -1315,6 +1410,7 @@ namespace wyDay.Controls
 
         void SetUpdateStepOn(UpdateStepOn uso)
         {
+            Trace.WriteLine(String.Format("AutoUpdater: AutomaticUpdater: SetUpdateStepOn: Entry. UpdateStepOn: {0}.", uso.ToString()));
             switch (uso)
             {
                 case UpdateStepOn.Checking:
