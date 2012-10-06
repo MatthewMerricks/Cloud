@@ -10,7 +10,7 @@ namespace wyUpdate.Common
     {
         public static ServerFile Load(string fileName, string updatePathVar, string customUrlArgs)
         {
-            Trace.WriteLine("CloudUpdater: ServerFile.Load: Load: Entry.");
+            Trace.WriteLine(String.Format("CloudUpdater: ServerFile.Load: Load: Entry. fileName: {0}. updatePathVar: {1}. customUrlArgs: {2}.", fileName, updatePathVar, customUrlArgs));
             ServerFile serv = new ServerFile();
 
             byte[] fileIDBytes = new byte[7];

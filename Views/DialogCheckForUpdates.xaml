@@ -56,7 +56,7 @@
                 <ImageBrush Stretch="UniformToFill" ImageSource="/Cloud;component/Artwork/WinClient_Preferences_bg_650x421.png"/>
             </Grid.Background>
         
-            <Controls:AutomaticUpdater x:Name="ctlAutoUpdate" HorizontalAlignment="Right" Height="100" VerticalAlignment="Center" Width="100" Grid.Row="1" Grid.Column="2" GUID="8CBDACFF-4ED9-4AF5-BCEC-4AA62F60DBB3" Margin="0,152,0,141" />
+            <Controls:AutomaticUpdater x:Name="ctlAutoUpdate" HorizontalAlignment="Right" Height="100" VerticalAlignment="Center" Width="100" Grid.Row="1" Grid.Column="2" GUID="8CBDACFF-4ED9-4AF5-BCEC-4AA62F60DBB3" Margin="0,152,0,141" UpdateType="CheckAndDownload" />
 
             <Image Source="/Cloud;component/Artwork/WinClient_CloudSetup_Text_Container_573x315.png" Stretch="UniformToFill" Grid.Row="1" Grid.Column="1" />
             <TextBlock x:Name="tblkStatus" TextWrapping="Wrap" Foreground="Black" FontSize="14" TextAlignment="Left" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Grid.Row="1" Grid.Column="1" Margin="8" />

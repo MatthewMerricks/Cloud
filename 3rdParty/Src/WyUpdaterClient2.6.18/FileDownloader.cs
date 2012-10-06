@@ -88,14 +88,19 @@ namespace wyUpdate.Downloader
                 }
 
                 //single site specified, add it to the list
+                Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: bw_DoWork: Single site specified: {0}.", url.ToString()));
                 urlList = new List<string> { url };
             }
 
             // use the custom proxy if provided
             if (CustomProxy != null)
+            {
+                Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Custom proxy provided.");
                 WebRequest.DefaultWebProxy = CustomProxy;
+            }
             else
             {
+                Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Default proxy.");
                 IWebProxy proxy = WebRequest.GetSystemWebProxy();
 
                 if (proxy.Credentials == null)
@@ -109,6 +114,7 @@ namespace wyUpdate.Downloader
             Exception ex = null;
             foreach (string s in urlList)
             {
+                Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: bw_DoWork: Try site: {0}.", s));
                 ex = null;
                 try
                 {
@@ -128,7 +134,7 @@ namespace wyUpdate.Downloader
                 // If we got through that without an exception, we found a good url
                 if (ex == null || bw.CancellationPending)
                 {
-                    Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: break out.");
+                    Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Found a good url. Break out.");
                     allFailedWaitingForResponse = false;
                     break;
                 }
@@ -142,12 +148,13 @@ namespace wyUpdate.Downloader
             */
             if (allFailedWaitingForResponse && WebRequest.DefaultWebProxy != null)
             {
-                Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Try the sites without a proxy.");
+                Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: All sites failed.  Try the sites without a proxy.");
                 // try the sites again without a proxy
                 WebRequest.DefaultWebProxy = null;
 
                 foreach (string s in urlList)
                 {
+                    Trace.WriteLine(String.Format("CloudUpdater: FileDownloader: bw_DoWork: Try site: {0}..", s));
                     ex = null;
                     try
                     {
@@ -164,7 +171,7 @@ namespace wyUpdate.Downloader
                     // If we got through that without an exception, we found a good url
                     if (ex == null || bw.CancellationPending)
                     {
-                        Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Break out.");
+                        Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Found a good URL(2). Break out.");
                         break;
                     }
                 }
@@ -172,9 +179,13 @@ namespace wyUpdate.Downloader
 
             // Process complete (either successfully or failed), report back
             if (bw.CancellationPending || ex != null)
+            {
                 bw.ReportProgress(0, new object[] { -1, -1, string.Empty, ProgressStatus.Failure, ex });
+            }
             else
+            {
                 bw.ReportProgress(0, new object[] { -1, -1, string.Empty, ProgressStatus.Success, null });
+            }
             Trace.WriteLine("CloudUpdater: FileDownloader: bw_DoWork: Exit.");
         }
 

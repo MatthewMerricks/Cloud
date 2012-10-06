@@ -378,6 +378,10 @@ namespace win_client.Services.Notification
             lock (this)
             {
                 faultCount++;
+                if (faultCount >= CLDefinitions.PushNotificationFaultLimitBeforeFallback)
+                {
+                    doNotRestart = true;
+                }
 
                 if (urlReceiver != null)
                 {

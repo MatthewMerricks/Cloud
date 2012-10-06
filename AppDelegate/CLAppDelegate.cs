@@ -217,6 +217,7 @@ namespace win_client.AppDelegate
             CheckForUpdatesWindow.ShowActivated = false;
             CheckForUpdatesWindow.Visibility = System.Windows.Visibility.Hidden;
             CheckForUpdatesWindow.WindowStyle = WindowStyle.None;
+            CheckForUpdatesWindow.Show();
 
             // Determine which window we will show on startup
             SetupCloudAppLaunchMode();

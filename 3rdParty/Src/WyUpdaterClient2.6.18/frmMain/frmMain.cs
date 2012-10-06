@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using wyDay.Controls;
 using wyUpdate.Common;
 using wyUpdate.Downloader;
+using System.Diagnostics;
 
 namespace wyUpdate
 {
@@ -114,6 +115,7 @@ namespace wyUpdate
             // check if user is an admin for windows 2000+
             IsAdmin = VistaTools.IsUserAnAdmin();
 
+            Trace.WriteLine("CloudUpdater: FrmMain: frmMain: Entry.");
             InitializeComponent();
 
             //enable Lazy SSL for all downloads
@@ -152,6 +154,7 @@ namespace wyUpdate
                         {
                             //the user "elevated" as a non-admin user
                             //warn the user of their idiocy
+                            Trace.WriteLine("CloudUpdater: FrmMain: frmMain: ERROR: User must be an admin.");
                             error = clientLang.AdminError;
 
                             //set to false so new client won't be launched in frmMain_Load()
@@ -161,6 +164,7 @@ namespace wyUpdate
                         }
                         else
                         {
+                            Trace.WriteLine("CloudUpdater: FrmMain: frmMain: Don't need elevation.");
                             needElevation = false;
 
                             FileAttributes atr = File.GetAttributes(oldSelfLocation);
@@ -185,15 +189,22 @@ namespace wyUpdate
                 }
                 else // not self-updating
                 {
+                    Trace.WriteLine("CloudUpdater: FrmMain: frmMain: Not self-updating.");
                     ConfigureProxySettings();
                 }
 
                 //Load the client information
                 if (clientFileType == ClientFileType.PreRC2)
+                {
                     //TODO: wyUp 3.0: stop supporting old client files (barely anyone uses RC2).
+                    Trace.WriteLine("CloudUpdater: FrmMain: frmMain: Open obsolete client file.");
                     update.OpenObsoleteClientFile(clientFileLoc);
+                }
                 else
+                {
+                    Trace.WriteLine("CloudUpdater: FrmMain: frmMain: Open client file.");
                     update.OpenClientFile(clientFileLoc, clientLang, forcedLanguageCulture, updatePathVar, customUrlArgs);
+                }
 
                 clientLang.SetVariables(update.ProductName, update.InstalledVersion);
             }
@@ -203,6 +214,7 @@ namespace wyUpdate
 
                 error = "Client file failed to load. The client.wyc file might be corrupt.";
                 errorDetails = ex.Message;
+                Trace.WriteLine(String.Format("CloudUpdater: FrmMain: frmMain: ERROR: Exception: error: {0}. errorDetails: {1}.", error, errorDetails));
 
                 ShowFrame(Frame.Error);
                 return;
@@ -239,6 +251,7 @@ namespace wyUpdate
                 try
                 {
                     // create the temp folder where we'll store the updates long term
+                    Trace.WriteLine("CloudUpdater: FrmMain: frmMain: Auto update mode.");
                     if (tempDirectory == null)
                         tempDirectory = CreateAutoUpdateTempFolder();
                 }
@@ -246,6 +259,7 @@ namespace wyUpdate
                 {
                     error = clientLang.GeneralUpdateError;
                     errorDetails = "Failed to create the automatic updater temp folder: " + ex.Message;
+                    Trace.WriteLine(String.Format("CloudUpdater: FrmMain: frmMain: ERROR: Exception(2): error: {0}. errorDetails: {1}.", error, errorDetails));
 
                     ShowFrame(Frame.Error);
                     return;
@@ -254,11 +268,13 @@ namespace wyUpdate
                 try
                 {
                     // load the previous auto update state from "autoupdate"
+                    Trace.WriteLine("CloudUpdater: FrmMain: frmMain: Load auto update data.");
                     LoadAutoUpdateData();
                     ConfigureProxySettings();
                 }
                 catch
                 {
+                    Trace.WriteLine("CloudUpdater: FrmMain: frmMain: ERROR. Exception: set step to Checking.");
                     startStep = UpdateStepOn.Checking;
                 }
             }
@@ -267,6 +283,7 @@ namespace wyUpdate
                 try
                 {
                     // load the server file for MinClient needed details (i.e. failure case)
+                    Trace.WriteLine("CloudUpdater: FrmMain: frmMain: ERROR. Exception: FullUpdate.");
                     ServerFile = ServerFile.Load(serverFileLoc, updatePathVar, customUrlArgs);
 
                     //load the self-update server file
@@ -277,6 +294,7 @@ namespace wyUpdate
                 {
                     error = clientLang.ServerError;
                     errorDetails = ex.Message;
+                    Trace.WriteLine(String.Format("CloudUpdater: FrmMain: frmMain: ERROR: Exception(3): error: {0}. errorDetails: {1}.", error, errorDetails));
 
                     ShowFrame(Frame.Error);
                     return;
@@ -303,11 +321,13 @@ namespace wyUpdate
                 try
                 {
                     //load the server file (without filling the 'changes' box & without downloading the wyUpdate Server file)
+                    Trace.WriteLine("CloudUpdater: FrmMain: frmMain: ContinuingRegularUpdate.");
                     LoadServerFile(false);
                 }
                 catch (Exception ex)
                 {
                     error = clientLang.ServerError;
+                    Trace.WriteLine(String.Format("CloudUpdater: FrmMain: frmMain: ERROR: Exception(4): error: {0}. errorDetails: {1}.", error, errorDetails));
                     errorDetails = ex.Message;
 
                     ShowFrame(Frame.Error);
@@ -331,11 +351,15 @@ namespace wyUpdate
                 }
             }
             else if (!uninstalling)
+            {
+                Trace.WriteLine("CloudUpdater: FrmMain: frmMain: Set step to Checking (2).");
                 startStep = UpdateStepOn.Checking;
+            }
         }
 
         protected override void SetVisibleCore(bool value)
         {
+            Trace.WriteLine("CloudUpdater: FrmMain: SetVisibleCore: Entry.");
             base.SetVisibleCore(value);
 
             if (!_isApplicationRun)
@@ -357,6 +381,7 @@ namespace wyUpdate
                      * and there's a stalemate: wyUpdate is waiting for its first message, AutomaticUpdater
                      * is waiting for a progress report.
                      */
+                Trace.WriteLine("CloudUpdater: FrmMain: SetVisibleCore: Autoupdate mode.");
                 SetupAutoupdateMode();
             }
 
@@ -379,6 +404,7 @@ namespace wyUpdate
                 // either begin checking or load the step from the autoupdate file
                 try
                 {
+                    Trace.WriteLine("CloudUpdater: FrmMain: SetVisibleCore: Step != Nothing.");
                     PrepareStepOn(startStep);
 
                     // selfupdate & post-selfupdate installation
@@ -387,13 +413,18 @@ namespace wyUpdate
                 }
                 catch (Exception ex)
                 {
+                    Trace.WriteLine(String.Format("CloudUpdater: FrmMain: SetVisibleCore: ERROR: Exception: Msg: {0}.", ex.Message));
                     if (startStep != UpdateStepOn.Checking)
+                    {
+                        Trace.WriteLine("CloudUpdater: FrmMain: SetVisibleCore: Set start step to Checking.");
                         startStep = UpdateStepOn.Checking;
+                    }
                     else
                     {
                         // show the error screen
                         error = "Automatic update state failed to load.";
                         errorDetails = ex.Message;
+                        Trace.WriteLine(String.Format("CloudUpdater: FrmMain: SetVisibleCore: ERROR: Exception: error: {0}. errorDetails: {1}.", error, errorDetails));
 
                         ShowFrame(Frame.Error);
                         return;
@@ -401,6 +432,7 @@ namespace wyUpdate
 
                     try
                     {
+                        Trace.WriteLine("CloudUpdater: FrmMain: SetVisibleCore: Call PrepareStepOn.");
                         PrepareStepOn(startStep);
                     }
                     catch (Exception ex2)
@@ -408,6 +440,7 @@ namespace wyUpdate
                         // show the error screen
                         error = "Automatic update state failed to load.";
                         errorDetails = ex2.Message;
+                        Trace.WriteLine(String.Format("CloudUpdater: FrmMain: SetVisibleCore: ERROR: Exception(2): error: {0}. errorDetails: {1}.", error, errorDetails));
 
                         ShowFrame(Frame.Error);
                     }
@@ -418,9 +451,11 @@ namespace wyUpdate
 
         void ProcessArguments(Arguments commands)
         {
+            Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: Entry.");
             if (commands["supdf"] != null)
             {
                 //the client is in self update mode
+                Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: supdf not null.");
                 selfUpdateFileLoc = commands["supdf"];
 
                 // check if this instance is the "new self"
@@ -429,12 +464,14 @@ namespace wyUpdate
             }
             else
             {
+                Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: supdf null.");
                 forcedLanguageCulture = commands["forcelang"];
 
                 // automatic update mode
                 if (commands["autoupdate"] != null)
                 {
                     // the actual pipe will be created when OnHandleCreated is called
+                    Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: Is autoupdate mode.");
                     isAutoUpdateMode = true;
 
                     // check if this instance is the "new self"
@@ -444,12 +481,15 @@ namespace wyUpdate
                 else if (commands["uninstall"] != null)
                 {
                     // uninstall any newly created folders, files, or registry
+                    Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: Is uninstall mode.");
                     uninstalling = true;
                 }
                 else // standalone updater mode
                 {
+                    Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: Is standalone updater mode.");
                     if (commands["quickcheck"] != null)
                     {
+                        Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: Is quickcheck updater mode.");
                         WindowState = FormWindowState.Minimized;
                         ShowInTaskbar = false;
 
@@ -468,6 +508,7 @@ namespace wyUpdate
                     }
                     else if (commands["fromservice"] != null)
                     {
+                        Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: fromservice true.");
                         SkipUpdateInfo = true;
                         UpdatingFromService = true;
 
@@ -476,7 +517,10 @@ namespace wyUpdate
                     }
 
                     if (commands["skipinfo"] != null)
+                    {
+                        Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: skipinfo true.");
                         SkipUpdateInfo = true;
+                    }
 
                     StartOnErr = commands["startonerr"];
                     StartOnErrArgs = commands["startonerra"];
@@ -485,6 +529,7 @@ namespace wyUpdate
                 // client data file
                 if (commands["cdata"] != null)
                 {
+                    Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: cdata true.");
                     clientFileLoc = commands["cdata"];
 
                     if (clientFileLoc.EndsWith("iuc", StringComparison.OrdinalIgnoreCase))
@@ -496,6 +541,7 @@ namespace wyUpdate
                 }
                 else
                 {
+                    Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: cdata false.");
                     clientFileLoc = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "client.wyc");
                     clientFileType = ClientFileType.Final;
 
@@ -523,6 +569,7 @@ namespace wyUpdate
                     //if the specified directory exists, then set as directory
                     // also trim the trailing space
                     baseDirectory = commands["basedir"].TrimEnd();
+                    Trace.WriteLine(String.Format("CloudUpdater: FrmMain: ProcessArguments: baseDirectory: {0}.", baseDirectory));
                 }
 
                 // only generate a temp directory if we're not in AutoUpdate mode
@@ -530,6 +577,7 @@ namespace wyUpdate
                 {
                     // create "random" temp dir.
                     tempDirectory = Path.Combine(Path.GetTempPath(), @"w" + DateTime.Now.ToString("sff"));
+                    Trace.WriteLine(String.Format("CloudUpdater: FrmMain: ProcessArguments: Create random temp dir: {0}.", tempDirectory));
                     Directory.CreateDirectory(tempDirectory);
                 }
 
@@ -550,17 +598,20 @@ namespace wyUpdate
                 // only allow silent uninstalls 
                 if (uninstalling && commands["s"] != null)
                 {
+                    Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: Uninstalling and silent.");
                     isSilent = true;
 
                     WindowState = FormWindowState.Minimized;
                     ShowInTaskbar = false;
                 }
             }
+            Trace.WriteLine("CloudUpdater: FrmMain: ProcessArguments: exit.");
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
             // only warn if after the welcome page and not self updating/elevating
+            Trace.WriteLine("CloudUpdater: FrmMain: OnClosing: Entry.");
             if (needElevation
                 || SelfUpdateState == SelfUpdateState.WillUpdate
                 || SelfUpdateState == SelfUpdateState.FullUpdate
@@ -588,6 +639,7 @@ namespace wyUpdate
         protected override void OnClosed(EventArgs e)
         {
             //if not self updating, then delete temp files.
+            Trace.WriteLine("CloudUpdater: FrmMain: OnClosed: Entry.");
             if (!(needElevation || SelfUpdateState == SelfUpdateState.WillUpdate || SelfUpdateState == SelfUpdateState.FullUpdate || isAutoUpdateMode))
             {
                 RemoveTempDirectory();
@@ -617,6 +669,7 @@ namespace wyUpdate
         /// <summary>Configures the network access using the saved proxy settings.</summary>
         void ConfigureProxySettings()
         {
+            Trace.WriteLine("CloudUpdater: FrmMain: ConfigureProxySettings: Entry.");
             if (!string.IsNullOrEmpty(customProxyUrl))
             {
                 FileDownloader.CustomProxy = new WebProxy(customProxyUrl);

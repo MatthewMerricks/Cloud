@@ -14,6 +14,7 @@
    Const ForReading = 1
    Const ForWriting = 2
    Const ForAppending = 8
+   Const DeleteReadOnly = true
    
    Dim objFileSys
    Dim objShell
@@ -26,6 +27,8 @@
    Dim sScriptFile
    Dim programFilesX86Path
    Dim windowsPath
+   Dim cachePathWc
+   Dim cachePathWyUpdateAu
    
    Set objFileSys = wscript.CreateObject("Scripting.FileSystemObject") 
    Set objShell = wscript.createObject("wscript.shell") 
@@ -35,6 +38,8 @@
    logFileFullPath = objFileSys.GetSpecialFolder(2) & "\CloudTrace.log"
    windowsPath = objShell.ExpandEnvironmentStrings("%windir%")
    sExplorerPath = windowsPath & "\explorer.exe"
+   cachePathWc = objShell.ExpandEnvironmentStrings("%userprofile%") & "\wc"
+   cachePathWyUpdateAu = objShell.ExpandEnvironmentStrings("%appdata%") & "\wyUpdate AU"
    
    ' Trace function
    Sub WriteLog(LogMessage)
@@ -77,12 +82,39 @@
       CSI_GetOSBits = GetObject("winmgmts:root\cimv2:Win32_Processor='cpu0'").AddressWidth 
    End Function
 
+   '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  RECURSIVE DELETE FOLDER @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   Sub RecursiveDelete(ByVal strDirectory)
+       'On Error Resume Next
+       Dim objFolder, objSubFolder, objFile
+
+       WriteLog("CloudInstallUpdate: RecursiveDelete: Entry. Path: >" & strDirectory & ">.")
+       If Not objFileSys.FolderExists(strDirectory & "\") Then
+	       WriteLog("CloudInstallUpdate: RecursiveDelete: This folder does not exist.  Just return.")
+		   exit sub
+       End If 
+
+       Set objFolder = objFileSys.GetFolder(strDirectory)
+       WriteLog("CloudInstallUpdate: RecursiveDelete: Delete all files in the directory.  File count: " & objFolder.Files.Count & ".")
+       objFileSys.DeleteFile(strDirectory & "\*.*"), DeleteReadOnly
+
+	   ' Files are gone at this level, now delete all of the folders at this level.
+       WriteLog("CloudInstallUpdate: RecursiveDelete: Loop deleting folders.  Count: " & objFolder.SubFolders.Count & ".")
+       For Each objSubFolder In objFolder.SubFolders
+	       WriteLog("CloudInstallUpdate: RecursiveDelete: Delete SubFolder: <" & objSubFolder.Path & ">.")
+           RecursiveDelete objSubFolder.Path
+       Next
+
+	   ' Now delete this folder
+       WriteLog("CloudInstallUpdate: RecursiveDelete: Delete the folder at this level now: <" & strDirectory & ">.")
+       objFolder.Delete True
+   End Sub
 
    '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-   ' Asynchronously launch another process running a VBScript which will:
+   ' This process is launched by Cloud to run CloudUpdater.  It will:
    '   o Wait for Cloud.exe to exit.  Just continue if it takes too long.
    '   o Kill Explorer if it is running, and wait for it to completely exit.  Just continue if it takes too long.
-   '   o Launch another process with CloudUpdater.exe, which will perform the update (or not).
+   '   o Launch another process with CloudUpdater.exe, which will perform the update (or not), and wait for it to complete.
+   '   o Clear the CloudUpdater cache directories so Cloud:AutoUpdater will determine the proper update status.
    '   o Restart Explorer and wait for its process to appear.
    '   o Wait for Explorer to be ready (how? Start with a time delay)
    '   o Re-launch Cloud.exe
@@ -99,21 +131,25 @@
 		 if CSI_GetOsBits() = "32" then
              programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES%")
 			 if programFilesX86Path = "%PROGRAMFILES%" then
-				 WriteLog("NewUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
+				 WriteLog("CloudInstallUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
                  Exit Sub
 			 end if
 		 else
              programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES(X86)%")
 			 if programFilesX86Path = "%PROGRAMFILES(X86)%" then
-				 WriteLog("NewUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
+				 WriteLog("CloudInstallUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
                  Exit Sub
 			 end if
 		 end if
-         WriteLog("NewUpdate: Main: programFilesX86Path: " & programFilesX86Path)
+         WriteLog("CloudInstallUpdate: Main: programFilesX86Path: " & programFilesX86Path)
+         WriteLog("CloudInstallUpdate: Main: sExplorerPath: " & sExplorerPath)
+         WriteLog("CloudInstallUpdate: Main: windowsPath: " & windowsPath)
+         WriteLog("CloudInstallUpdate: Main: cachePathWc: " & cachePathWc)
+         WriteLog("CloudInstallUpdate: Main: cachePathWyUpdateAu: " & cachePathWyUpdateAu)
 
 		 ' Wait for Cloud.exe to exit.  Don't wait too long.
 		 index = 0
-         WriteLog("NewUpdate: Main: Wait for Cloud to exit.")
+         WriteLog("CloudInstallUpdate: Main: Wait for Cloud to exit.")
 		 Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "Cloud.exe")
 		     wscript.Sleep 500
 			 index = index + 1
@@ -149,6 +185,12 @@
          WriteLog "CloudInstallUpdate: Launch CloudUpdater and wait. Command line: " & "<" & """" & programFilesX86Path & "\Cloud.com\Cloud\CloudUpdater.exe"" /skipinfo>"
 		 objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\CloudUpdater.exe"" /skipinfo", 1, true
          WriteLog "CloudInstallUpdate: Back from CloudUpdater."
+
+		 ' Clear the CloudUpdater cache directories so Cloud:AutoUpdater will determine the proper update status.
+         WriteLog "CloudInstallUpdate: Recursively delete: <" & cachePathWc & ">."
+		 RecursiveDelete cachePathWc
+         WriteLog "CloudInstallUpdate: Recursively delete: <" & cachePathWyUpdateAu & ">."
+		 RecursiveDelete cachePathWyUpdateAu
 
 		 ' Start Explorer
          WriteLog "CloudInstallUpdate: Start Explorer: " & sExplorerPath

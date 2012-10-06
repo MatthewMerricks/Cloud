@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using wyDay.Controls;
 using wyUpdate.Common;
+using System.Diagnostics;
 
 namespace wyUpdate
 {
@@ -28,6 +29,7 @@ namespace wyUpdate
 
         void SetupAutoupdateMode()
         {
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: SetupAutoupdateMode: Entry.");
             updateHelper.SenderProcessClosed += UpdateHelper_SenderProcessClosed;
             updateHelper.RequestReceived += UpdateHelper_RequestReceived;
             updateHelper.StartPipeServer(this);
@@ -36,6 +38,7 @@ namespace wyUpdate
         /// <summary>This starts the PipeServer and waits for at least one "client" before delivering the error.</summary>
         void StartQuickAndDirtyAutoUpdateMode()
         {
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartQuickAndDirtyAutoUpdateMode: Entry.");
             updateHelper.StartPipeServer(this);
 
             // there must be at least one client running to receive this message
@@ -47,9 +50,13 @@ namespace wyUpdate
                 // something has gone wrong with the AutomaticUpdater control
                 // no point in waiting around any longer.
                 if (timeSpent == 30000)
+                {
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartQuickAndDirtyAutoUpdateMode: ERROR: Timeout.  Exit.");
                     break;
+                }
 
                 // wait 1/3 of a second
+                Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartQuickAndDirtyAutoUpdateMode: Sleep 300.");
                 timeSpent += 300;
                 Thread.Sleep(300);
             }
@@ -57,6 +64,7 @@ namespace wyUpdate
 
         void StartNewSelfAndClose()
         {
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartNewSelfAndClose: Entry.");
             bool checkForClients = false;
 
             // when this function is called in the constructor
@@ -64,6 +72,7 @@ namespace wyUpdate
             // then the pipeserver will not have yet been created
             if (!updateHelper.RunningServer)
             {
+                Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartNewSelfAndClose: PipeServer not running.  Start it.");
                 checkForClients = true;
                 updateHelper.StartPipeServer(this);
             }
@@ -96,11 +105,13 @@ namespace wyUpdate
                                                 }
                                         };
 
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartNewSelfAndClose: Start the client process.");
             clientProcess.Start();
 
             if (checkForClients)
             {
                 // there must be at least one client running to receive this message
+                Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartNewSelfAndClose: CheckForClients.");
                 int timeSpent = 0;
 
                 while (updateHelper.TotalConnectedClients == 0)
@@ -109,39 +120,52 @@ namespace wyUpdate
                     // something has gone wrong with the AutomaticUpdater control
                     // no point in waiting around any longer.
                     if (timeSpent == 30000)
+                    {
+                        Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartNewSelfAndClose: CheckForClients. ERROR: Timeout.  Break.");
                         break;
+                    }
 
                     // wait 1/3 of a second
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartNewSelfAndClose: CheckForClients. Wait 300.");
                     timeSpent += 300;
                     Thread.Sleep(300);
                 }
             }
 
             // tell all the clients that there's a new wyUpdate
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartNewSelfAndClose: CheckForClients. Tell the clients that there's a new CloudUpdater.");
             updateHelper.SendNewWyUpdate(UpdateHelperData.PipenameFromFilename(newSelfLocation), clientProcess.Id);
 
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: StartNewSelfAndClose: CheckForClients. Call CancelUpdate.");
             CancelUpdate(true);
         }
 
         void UpdateHelper_RequestReceived(object sender, UpdateAction a, UpdateStep s)
         {
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: Entry.");
             if (a == UpdateAction.Cancel)
             {
+                Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: Call CancelUpdate.");
                 CancelUpdate(true);
                 return;
             }
 
             // filter out-of-order requests (never assume the step 's' is coming in the correct order)
             if (FilterBadRequest(s))
+            {
+                Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: ERROR: Bad request filtered.  Exit.");
                 return;
+            }
 
             // set the current update step (ForceCheck == Check)
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: Check for updates.");
             autoUpdateStepProcessing = s == UpdateStep.ForceRecheckForUpdate ? UpdateStep.CheckForUpdate : s;
 
             switch (s)
             {
                 case UpdateStep.ForceRecheckForUpdate:
 
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: ForceRecheckForUpdates case.");
                     //TODO: perhaps delete old crufty files
 
                     // show the checking frame regardless of the current step
@@ -154,17 +178,20 @@ namespace wyUpdate
 
                 case UpdateStep.CheckForUpdate:
 
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: CheckForUpdates case.");
                     CheckForUpdate();
 
                     break;
                 case UpdateStep.DownloadUpdate:
 
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: DownloadUpdate case.");
                     ShowFrame(Frame.InstallUpdates);
                     DownloadUpdate();
 
                     break;
                 case UpdateStep.BeginExtraction:
 
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: BeginExtraction case.");
                     update.CurrentlyUpdating = UpdateOn.Extracting;
                     InstallUpdates(update.CurrentlyUpdating);
 
@@ -172,14 +199,17 @@ namespace wyUpdate
                 case UpdateStep.RestartInfo:
 
                     // send a success signal (with the Window Handle)
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: RestartInfo case.");
                     updateHelper.SendSuccess(autoUpdateStepProcessing, (int)Handle);
 
                     break;
                 case UpdateStep.Install:
 
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: Install case.");
                     if (!updateHelper.IsAService)
                     {
                         // show self & make topmost
+                        Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: Not a service.");
                         Visible = true;
                         TopMost = true;
                         TopMost = false;
@@ -188,6 +218,7 @@ namespace wyUpdate
                     if (needElevation)
                     {
                         // save the RestartInfo details (file to launch, where to save the update success details)
+                        Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: Need elevation.");
                         SaveAutoUpdateData(UpdateStepOn.UpdateReadyToInstall);
 
                         StartSelfElevated();
@@ -197,34 +228,43 @@ namespace wyUpdate
                     if (SelfUpdateState == SelfUpdateState.Extracted)
                     {
                         // install the self update
+                        Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: Install self update.");
                         update.CurrentlyUpdating = UpdateOn.InstallSelfUpdate;
                         InstallUpdates(update.CurrentlyUpdating);
                     }
                     else
                     {
                         // install the regular update
+                        Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: Install regular update.");
                         update.CurrentlyUpdating = UpdateOn.ClosingProcesses;
                         InstallUpdates(update.CurrentlyUpdating);
                     }
 
                     break;
             }
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_RequestReceived: Exit.");
         }
 
         void UpdateHelper_SenderProcessClosed(object sender, EventArgs e)
         {
             // close wyUpdate if we're not installing an update
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_SenderProcessClosed: Entry.");
             if (isAutoUpdateMode && !updateHelper.Installing)
             {
                 // if the restart info was already sent, then start installing
                 // otherwise, cancel the update
+                Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_SenderProcessClosed: Autoupdate mode and not installing.");
                 if (updateHelper.RestartInfoSent)
                 {
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_SenderProcessClosed: RestartInfoSent.  Call RequestReceived.");
                     updateHelper.Installing = true;
                     UpdateHelper_RequestReceived(null, UpdateAction.UpdateStep, UpdateStep.Install);
                 }
                 else
+                {
+                    Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: UpdateHelper_SenderProcessClosed: ERROR: Cancel update.");
                     CancelUpdate(true);
+                }
             }
         }
 
@@ -560,6 +600,7 @@ namespace wyUpdate
 
         void PrepareStepOn(UpdateStepOn step)
         {
+            Trace.WriteLine(String.Format("CloudUpdater: FrmMain.AutomaticUpdate: PrepareStepOn: Entry.  Step: {0}.", step.ToString()));
             switch (step)
             {
                 case UpdateStepOn.Checking:
@@ -597,6 +638,7 @@ namespace wyUpdate
 
                     if (File.Exists(updtDetailsFilename))
                     {
+                        Trace.WriteLine(String.Format("CloudUpdater: FrmMain.AutomaticUpdate: PrepareStepOn: Load update details file: {0}.", updtDetailsFilename));
                         updtDetails = UpdateDetails.Load(updtDetailsFilename);
                     }
                     else
@@ -619,13 +661,17 @@ namespace wyUpdate
                     break;
 
                 default:
-                    throw new Exception("Can't restore from this automatic update state: " + step);
+                    {
+                        Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: PrepareStepOn: ERROR: Default case. Can't restore from this AU update state.");
+                        throw new Exception("Can't restore from this automatic update state: " + step);
+                    }
             }
         }
 
 
         void SaveAutoUpdateData(UpdateStepOn updateStepOn)
         {
+            Trace.WriteLine(String.Format("CloudUpdater: FrmMain.AutomaticUpdate: SaveAutoUpdateData: Entry. Step on:.", updateStepOn.ToString()));
             using (FileStream fs = new FileStream(autoUpdateStateFile, FileMode.Create, FileAccess.Write))
             {
                 // Write any file-identification data you want to here
@@ -696,6 +742,7 @@ namespace wyUpdate
 
         void LoadAutoUpdateData()
         {
+            Trace.WriteLine("CloudUpdater: FrmMain.AutomaticUpdate: LoadAutoUpdateData: Entry.");
             autoUpdateStateFile = Path.Combine(tempDirectory, "autoupdate");
 
             using (FileStream fs = new FileStream(autoUpdateStateFile, FileMode.Open, FileAccess.Read))

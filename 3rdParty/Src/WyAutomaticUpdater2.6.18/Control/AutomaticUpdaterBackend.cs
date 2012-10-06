@@ -314,21 +314,36 @@ namespace wyDay.Controls
         {
             Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: Entry.");
             if (AutoUpdaterInfo == null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: ERROR: Throw. Failed to initialize.");
                 throw new FailedToInitializeException();
+            }
 
             // throw an exception when trying to Install when no update is ready
 
             if (UpdateStepOn == UpdateStepOn.Nothing)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: ERROR: Throw. There must be an update available before you can install it.");
                 throw new Exception("There must be an update available before you can install it.");
-            
+            }
+
             if (UpdateStepOn == UpdateStepOn.Checking)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: ERROR: Throw. The AutomaticUpdater must finish checking for updates before they can be installed.");
                 throw new Exception("The AutomaticUpdater must finish checking for updates before they can be installed.");
+            }
 
             if (UpdateStepOn == UpdateStepOn.DownloadingUpdate)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: ERROR: Throw. The update must be downloaded before you can install it.");
                 throw new Exception("The update must be downloaded before you can install it.");
+            }
 
             if (UpdateStepOn == UpdateStepOn.ExtractingUpdate)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallNow: ERROR: Throw. The update must finish extracting before you can install it.");
                 throw new Exception("The update must finish extracting before you can install it.");
+            }
 
             // set the internal update type to automatic so the user won't be prompted anymore
             internalUpdateType = UpdateType.Automatic;
@@ -387,20 +402,29 @@ namespace wyDay.Controls
         /// <returns>Returns true if checking has begun, false otherwise.</returns>
         public bool ForceCheckForUpdate(bool recheck)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate: Entry.");
             if (AutoUpdaterInfo == null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate: ERROR. Throw. Not initialized.");
                 throw new FailedToInitializeException();
+            }
 
             // if not already checking for updates then begin checking.
             if (UpdateStepOn == UpdateStepOn.Nothing || (recheck && UpdateStepOn == UpdateStepOn.UpdateAvailable))
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate: Check for update.");
                 BeforeArgs bArgs = new BeforeArgs();
 
                 if (BeforeChecking != null)
+                {
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate: Call BeforeChecking.");
                     BeforeChecking(this, bArgs);
+                }
 
                 if (bArgs.Cancel)
                 {
                     // close wyUpdate
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate: ERROR: Cancelled.");
                     updateHelper.Cancel();
                     return false;
                 }
@@ -409,13 +433,21 @@ namespace wyDay.Controls
                 UpdateStepOn = UpdateStepOn.Checking;
 
                 if (recheck)
+                {
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate: Call ForceRecheckForUpdate.");
                     updateHelper.ForceRecheckForUpdate();
+                }
                 else
+                {
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate: Call CheckForUpdate.");
                     updateHelper.CheckForUpdate();
+                }
 
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate: Return true.");
                 return true;
             }
 
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate: Return false.");
             return false;
         }
 
@@ -425,36 +457,51 @@ namespace wyDay.Controls
         /// <returns>Returns true if checking has begun, false otherwise.</returns>
         public bool ForceCheckForUpdate()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ForceCheckForUpdate(2): Entry.");
             return ForceCheckForUpdate(false);
         }
 
         void InstallPendingUpdate()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallPendingUpdate: Entry.");
             BeforeArgs bArgs = new BeforeArgs();
 
             if (BeforeInstalling != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallPendingUpdate: Call BeforeInstalling.");
                 BeforeInstalling(this, bArgs);
+            }
 
             // if the update is cancelled postpone the update until later
             if (bArgs.Cancel)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallPendingUpdate: ERROR: Cancelled.");
                 if (ClosingForInstall && ClosingAborted != null)
                 {
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallPendingUpdate: It's OK.  Closing should be allowed.");
                     ClosingAborted(this, EventArgs.Empty);
                     ClosingForInstall = false;
                 }
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallPendingUpdate: Return.");
                 return;
             }
 
             // send the client the arguments that need to run on success and failure
             if (ServiceName != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallPendingUpdate: Send the client arguments.");
                 updateHelper.RestartInfo(ServiceName, AutoUpdaterInfo.AutoUpdateID, Arguments, true);
+            }
             else
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: InstallPendingUpdate: Send the client arguments(2).");
                 updateHelper.RestartInfo(Application.ExecutablePath, AutoUpdaterInfo.AutoUpdateID, Arguments, false);
+            }
         }
 
         void DownloadUpdate()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: DownloadUpdate: Entry.");
             BeforeArgs bArgs = new BeforeArgs();
 
             if (BeforeDownloading != null)
@@ -463,6 +510,7 @@ namespace wyDay.Controls
             if (bArgs.Cancel)
             {
                 // close wyUpdate
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: DownloadUpdate: ERROR: Cancelled.");
                 updateHelper.Cancel();
                 return;
             }
@@ -471,19 +519,25 @@ namespace wyDay.Controls
             // show the 'working' animation
             UpdateStepOn = UpdateStepOn.DownloadingUpdate;
 
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: DownloadUpdate: Call DownloadUpdate.");
             updateHelper.DownloadUpdate();
         }
 
         void ExtractUpdate()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ExtractUpdate: Entry.");
             BeforeArgs bArgs = new BeforeArgs();
 
             if (BeforeExtracting != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ExtractUpdate: Call BeforeExtracting.");
                 BeforeExtracting(this, bArgs);
+            }
 
             if (bArgs.Cancel)
             {
                 // close wyUpdate
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ExtractUpdate: ERROR. Cancelled.");
                 updateHelper.Cancel();
                 return;
             }
@@ -491,42 +545,56 @@ namespace wyDay.Controls
             UpdateStepOn = UpdateStepOn.ExtractingUpdate;
 
             // extract the update
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: ExtractUpdate: Call BeginExtraction.");
             updateHelper.BeginExtraction();
         }
 
         void updateHelper_UpdateStepMismatch(object sender, Response respType, UpdateStep previousStep)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_UpdateStepMismatch: Entry.");
             // we can't install right now
             if (previousStep == UpdateStep.RestartInfo)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_UpdateStepMismatch: Previous step was RestartInfo.");
                 if (ClosingAborted != null)
+                {
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_UpdateStepMismatch: Closing being aborted.");
                     ClosingAborted(this, EventArgs.Empty);
+                }
 
                 ClosingForInstall = false;
             }
 
             if (respType == Response.Progress)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_UpdateStepMismatch: RespType is Progress.");
                 switch (updateHelper.UpdateStep)
                 {
                     case UpdateStep.CheckForUpdate:
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_UpdateStepMismatch: Set UpdateStepOn Checking.");    
                         UpdateStepOn = UpdateStepOn.Checking;
                         break;
                     case UpdateStep.DownloadUpdate:
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_UpdateStepMismatch: Set UpdateStepOn DownloadingUpdate.");    
                         UpdateStepOn = UpdateStepOn.DownloadingUpdate;
                         break;
                     case UpdateStep.BeginExtraction:
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_UpdateStepMismatch: Set UpdateStepOn ExtractingUpdate.");    
                         UpdateStepOn = UpdateStepOn.ExtractingUpdate;
                         break;
                 }
             }
 
             if (UpdateStepMismatch != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_UpdateStepMismatch: Call UpdateStepMismatch.");
                 UpdateStepMismatch(this, EventArgs.Empty);
+            }
         }
 
         void updateHelper_PipeServerDisconnected(object sender, UpdateHelperData e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_PipeServerDisconnected: Entry.");
             // wyUpdate should only ever exit after success or failure
             // otherwise it is a premature exit (and needs to be treated as an error)
             if (UpdateStepOn == UpdateStepOn.Checking
@@ -534,15 +602,21 @@ namespace wyDay.Controls
                 || UpdateStepOn == UpdateStepOn.ExtractingUpdate
                 || e.UpdateStep == UpdateStep.RestartInfo)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_PipeServerDisconnected: Checking OR DownloadingUpdate OR ExtractingUpdate OR RestartInfo.");
                 if (e.UpdateStep == UpdateStep.RestartInfo)
                 {
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_PipeServerDisconnected: RestartInfo.");
                     if (ClosingAborted != null)
+                    {
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_PipeServerDisconnected: ClosingAborted.");
                         ClosingAborted(this, EventArgs.Empty);
+                    }
 
                     ClosingForInstall = false;
                 }
 
                 // wyUpdate premature exit error
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_PipeServerDisconnected: Call UpdateStepFailed.");
                 UpdateStepFailed(UpdateStepOn, new FailArgs { wyUpdatePrematureExit = true, ErrorTitle = e.ExtraData[0], ErrorMessage = e.ExtraData[1] });
             }
         }
@@ -555,30 +629,36 @@ namespace wyDay.Controls
 
                     // show the error icon & menu
                     // and set last successful step
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: Call UpdateStepFailed.");
                     UpdateStepFailed(UpdateStepToUpdateStepOn(e.UpdateStep), new FailArgs { ErrorTitle = e.ExtraData[0], ErrorMessage = e.ExtraData[1] });
 
                     break;
                 case Response.Succeeded:
 
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: Response.Succeeded.");
                     switch (e.UpdateStep)
                     {
                         case UpdateStep.CheckForUpdate:
 
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: CheckForUpdate case.");
                             AutoUpdaterInfo.LastCheckedForUpdate = DateTime.Now;
 
                             // there's an update available
                             if (e.ExtraData.Count != 0)
                             {
+                                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: Update is available.");
                                 version = e.ExtraData[0];
 
                                 // if there are changes, save them
                                 if (e.ExtraData.Count > 1)
                                 {
+                                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: Save changes.");
                                     changes = e.ExtraData[1];
                                     changesAreRTF = e.ExtraDataIsRTF[1];
                                 }
 
                                 // save the changes to the AutoUpdateInfo file
+                                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: Really save changes.");
                                 AutoUpdaterInfo.UpdateVersion = version;
                                 AutoUpdaterInfo.ChangesInLatestVersion = changes;
                                 AutoUpdaterInfo.ChangesIsRTF = changesAreRTF;
@@ -590,6 +670,7 @@ namespace wyDay.Controls
                                 // in from the AutoUpdaterInfo file) however,
                                 // wyUpdate reports your app has since been updated.
                                 // Thus we need to clear the saved info.
+                                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: Clear saved version details.");
                                 version = null;
                                 changes = null;
                                 changesAreRTF = false;
@@ -600,30 +681,40 @@ namespace wyDay.Controls
                             break;
                         case UpdateStep.DownloadUpdate:
 
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: DownloadUpdate case.");
                             UpdateStepOn = UpdateStepOn.UpdateDownloaded;
 
                             break;
                         case UpdateStep.RestartInfo:
 
                             // show client & send the "begin update" message
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: RestartInfo case.");
                             updateHelper.InstallNow();
 
                             // close this application so it can be updated
                             // use either the custom handler or Environment.Exit();
                             if (CloseAppNow != null)
+                            {
+                                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: Call CloseAppNow.");
                                 CloseAppNow(this, EventArgs.Empty);
+                            }
                             else
+                            {
+                                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: EXIT APPLICATION.");
                                 Environment.Exit(0);
+                            }
 
                             return;
                     }
 
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: Call StartNextStep.");
                     StartNextStep(e.UpdateStep);
 
                     break;
                 case Response.Progress:
 
                     // call the progress changed event
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ProgressChanged: Progress case.");
                     if (ProgressChanged != null)
                         ProgressChanged(this, e.Progress);
 
@@ -633,41 +724,55 @@ namespace wyDay.Controls
 
         void updateHelper_ResendRestartInfo(object sender, EventArgs e)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ResendRestartInfo: Entry.");
             // send the client the arguments that need to run on success and failure
             if (ServiceName != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ResendRestartInfo: Send client the restart info.");
                 updateHelper.RestartInfo(ServiceName, AutoUpdaterInfo.AutoUpdateID, Arguments, true);
+            }
             else
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: updateHelper_ResendRestartInfo: Send client the restart info(2).");
                 updateHelper.RestartInfo(Application.ExecutablePath, AutoUpdaterInfo.AutoUpdateID, Arguments, false);
+            }
         }
 
         void StartNextStep(UpdateStep updateStepOn)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: Entry.");
             // begin the next step
             switch (updateStepOn)
             {
                 case UpdateStep.CheckForUpdate:
 
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: CheckForUpdate case.");
                     if (!string.IsNullOrEmpty(version))
                     {
                         // there's an update available
 
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: Update is available.");
                         if (internalUpdateType == UpdateType.CheckAndDownload
                             || internalUpdateType == UpdateType.Automatic)
                         {
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: Set UpdateStepOn to UpdateAvailable.");
                             UpdateStepOn = UpdateStepOn.UpdateAvailable;
 
                             // begin downloading the update
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: Call DownloadUpdate.");
                             DownloadUpdate();
                         }
                         else
                         {
                             // show the update ready mark
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: Call UpdateReady.");
                             UpdateReady();
                         }
                     }
                     else //no update
                     {
                         // tell the user they're using the latest version
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: Call AlreadyUpToDate.");
                         AlreadyUpToDate();
                     }
 
@@ -675,15 +780,23 @@ namespace wyDay.Controls
                 case UpdateStep.DownloadUpdate:
 
                     // begin extraction
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: DownloadUpdate case.");
                     if (internalUpdateType == UpdateType.Automatic)
+                    {
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: Call ExtractUpdate.");
                         ExtractUpdate();
+                    }
                     else
+                    {
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: Call UpdateReadyToExtract.");
                         UpdateReadyToExtract();
+                    }
 
                     break;
                 case UpdateStep.BeginExtraction:
 
                     // inform the user that the update is ready to be installed
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: StartNextStep: BeginExtraction case.");
                     UpdateReadyToInstall();
 
                     break;
@@ -692,79 +805,117 @@ namespace wyDay.Controls
 
         void UpdateReady()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateReady: Entry.");
             UpdateStepOn = UpdateStepOn.UpdateAvailable;
 
             if (UpdateAvailable != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateReady: Call UpdateAvailable.");
                 UpdateAvailable(this, EventArgs.Empty);
+            }
         }
 
         void UpdateReadyToExtract()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateReadyToExtract: Entry.");
             UpdateStepOn = UpdateStepOn.UpdateDownloaded;
 
             if (ReadyToBeInstalled != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateReadyToExtract: Call ReadyToBeInstalled.");
                 ReadyToBeInstalled(this, EventArgs.Empty);
+            }
         }
 
         void UpdateReadyToInstall()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateReadyToInstall: Entry.");
             UpdateStepOn = UpdateStepOn.UpdateReadyToInstall;
 
             if (ReadyToBeInstalled != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateReadyToInstall: Call ReadyToBeInstalled.");
                 ReadyToBeInstalled(this, EventArgs.Empty);
+            }
         }
 
         void AlreadyUpToDate()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AlreadyUpToDate: Entry.");
             UpdateStepOn = UpdateStepOn.Nothing;
 
             if (UpToDate != null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AlreadyUpToDate: Call UpToDate.");
                 UpToDate(this, new SuccessArgs { Version = version });
+            }
         }
 
         void UpdateStepFailed(UpdateStepOn us, FailArgs args)
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepFailed: Entry.");
             SetLastSuccessfulStep();
 
             switch (us)
             {
                 case UpdateStepOn.Checking:
 
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepFailed: Checking case.");
                     if (CheckingFailed != null)
+                    {
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepFailed: Call CheckingFailed.");
                         CheckingFailed(this, args);
+                    }
 
                     break;
                 case UpdateStepOn.DownloadingUpdate:
 
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepFailed: DownloadingUpdate case.");
                     if (DownloadingFailed != null)
+                    {
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepFailed: Call DownloadingFailed.");
                         DownloadingFailed(this, args);
+                    }
 
                     break;
                 case UpdateStepOn.ExtractingUpdate:
 
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepFailed: ExtractingUpdate case.");
                     if (ExtractingFailed != null)
+                    {
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepFailed: Call ExtractingFailes.");
                         ExtractingFailed(this, args);
+                    }
 
                     break;
                 default:
 
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepFailed: Default case.");
                     if (UpdateFailed != null)
+                    {
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepFailed: Call UpdateFailed.");
                         UpdateFailed(this, args);
+                    }
                     break;
             }
         }
 
         static UpdateStepOn UpdateStepToUpdateStepOn(UpdateStep us)
         {
-            switch(us)
+            Trace.WriteLine(String.Format("AutoUpdater: AutomaticUpdaterBackend: UpdateStepToUpdateStepOn: Entry.  Current step: {0}.", us));
+            switch (us)
             {
                 case UpdateStep.BeginExtraction:
+                    Trace.WriteLine(String.Format("AutoUpdater: AutomaticUpdaterBackend: UpdateStepToUpdateStepOn: Return step: {0}.", UpdateStepOn.ExtractingUpdate));
                     return UpdateStepOn.ExtractingUpdate;
                 case UpdateStep.CheckForUpdate:
+                    Trace.WriteLine(String.Format("AutoUpdater: AutomaticUpdaterBackend: UpdateStepToUpdateStepOn: Return step: {0}.", UpdateStepOn.Checking));
                     return UpdateStepOn.Checking;
                 case UpdateStep.DownloadUpdate:
+                    Trace.WriteLine(String.Format("AutoUpdater: AutomaticUpdaterBackend: UpdateStepToUpdateStepOn: Return step: {0}.", UpdateStepOn.DownloadingUpdate));
                     return UpdateStepOn.DownloadingUpdate;
                 default:
+                    Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: UpdateStepToUpdateStepOn: ERROR: Throw. UpdateStep not supported.");
                     throw new Exception("UpdateStep not supported");
             }
         }
@@ -776,11 +927,13 @@ namespace wyDay.Controls
         public void Initialize()
         {
             // read settings file for last check time
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: Initialize: Entry.");
             AutoUpdaterInfo = new AutoUpdaterInfo(m_GUID, null);
 
             // see if update is pending, if so force install
             if (AutoUpdaterInfo.UpdateStepOn == UpdateStepOn.UpdateReadyToInstall)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: Initialize: UpdateStepOn is UpdateReadyToInstall.");
                 //TODO: test funky non-compliant state file
 
                 // then KillSelf&StartUpdater
@@ -796,18 +949,26 @@ namespace wyDay.Controls
         /// </summary>
         public void AppLoaded()
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: Entry.");
             if (AutoUpdaterInfo == null)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: ERROR.  Throw. FailedToInitialize.");
                 throw new FailedToInitializeException();
+            }
 
             // if we want to kill ourself, then don't bother checking for updates
             if (ClosingForInstall)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: Return because ClosingForInstall.");
                 return;
+            }
 
             // get the current update step from the info file
             m_UpdateStepOn = AutoUpdaterInfo.UpdateStepOn;
 
             if (UpdateStepOn != UpdateStepOn.Nothing)
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: UpdateStepOn != Nothing.");
                 version = AutoUpdaterInfo.UpdateVersion;
                 changes = AutoUpdaterInfo.ChangesInLatestVersion;
                 changesAreRTF = AutoUpdaterInfo.ChangesIsRTF;
@@ -815,51 +976,76 @@ namespace wyDay.Controls
                 switch (UpdateStepOn)
                 {
                     case UpdateStepOn.UpdateAvailable:
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: UpdateStepOn UpdateAvailable.");
                         if (internalUpdateType == UpdateType.CheckAndDownload || internalUpdateType == UpdateType.Automatic)
+                        {
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: Call DownloadUpdate.");
                             DownloadUpdate(); // begin downloading the update
+                        }
                         else
+                        {
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: Call UpdateReady.");
                             UpdateReady();
+                        }
 
                         break;
 
                     case UpdateStepOn.UpdateReadyToInstall:
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: UpdateReadyToInstall case.");
                         UpdateReadyToInstall();
                         break;
 
                     case UpdateStepOn.UpdateDownloaded:
 
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: UpdateDownloaded case.");
                         if (internalUpdateType == UpdateType.Automatic)
+                        {
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: Call ExtractUpdate.");
                             ExtractUpdate(); // begin extraction
+                        }
                         else
+                        {
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: Call UpdateReadyToExtracte.");
                             UpdateReadyToExtract();
+                        }
 
                         break;
                 }
             }
             else // UpdateStepOn == UpdateStepOn.Nothing
             {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: UpdateStepOn is Nothing.");
                 switch (AutoUpdaterInfo.AutoUpdaterStatus)
                 {
                     case AutoUpdaterStatus.UpdateSucceeded:
 
                         // set the version & changes
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: UpdateSucceeded case.");
                         version = AutoUpdaterInfo.UpdateVersion;
                         changes = AutoUpdaterInfo.ChangesInLatestVersion;
                         changesAreRTF = AutoUpdaterInfo.ChangesIsRTF;
 
                         if (UpdateSuccessful != null)
+                        {
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: Call UpdateSuccessful.");
                             UpdateSuccessful(this, new SuccessArgs { Version = version });
+                        }
 
                         break;
                     case AutoUpdaterStatus.UpdateFailed:
 
+                        Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: UpdateFailed case.");
                         if (UpdateFailed != null)
+                        {
+                            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: Call UpdateFailed.");
                             UpdateFailed(this, new FailArgs { ErrorTitle = AutoUpdaterInfo.ErrorTitle, ErrorMessage = AutoUpdaterInfo.ErrorMessage });
+                        }
 
                         break;
                 }
 
                 // clear the changes and resave
+                Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: AppLoaded: Clear the changes and resave.");
                 AutoUpdaterInfo.ClearSuccessError();
                 AutoUpdaterInfo.Save();
             }
@@ -877,6 +1063,7 @@ namespace wyDay.Controls
         public FailedToInitializeException()
             : base("You must call the Initialize() function before you can use any other functions.")
         {
+            Trace.WriteLine("AutoUpdater: AutomaticUpdaterBackend: FailedToInitializeException: Entry.");
         }
     }
 }

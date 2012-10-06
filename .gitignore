@@ -1,7 +1,7 @@
 Thumbs.db
 *.obj
-*.exe
-*.pdb
+#*.exe
+#*.pdb
 *.user
 *.aps
 *.pch

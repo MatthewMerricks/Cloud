@@ -100,6 +100,7 @@ namespace win_client.Views
             this.ctlAutoUpdate.UpdateSuccessful += ctlAutoUpdate_UpdateSuccessful;
             this.ctlAutoUpdate.UpToDate += ctlAutoUpdate_UpToDate;
             this.ctlAutoUpdate.CloseAppNow += ctlAutoUpdate_CloseAppNow;
+            this.ctlAutoUpdate.ReadyToBeInstalled += ctlAutoUpdate_ReadyToBeInstalled;
 
             this.ctlAutoUpdate.Visibility = System.Windows.Visibility.Hidden;
             this.ctlAutoUpdate.KeepHidden = true;
@@ -128,6 +129,21 @@ namespace win_client.Views
         }
 
         /// <summary>
+        /// The update has been downloaded and extracted.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void ctlAutoUpdate_ReadyToBeInstalled(object sender, EventArgs e)
+        {
+            this.tblkStatus.Text = String.Format("An update is ready to install.  The new update is version {0}.", this.ctlAutoUpdate.Version) +
+                                    "\nThe changes are:" +
+                                    String.Format("\n{0}", this.ctlAutoUpdate.Changes);
+
+            // Hide the busy indicator
+            HideBusyIndicator();
+        }
+
+        /// <summary>
         /// The user clicked Install Now.  The AutomaticUpdater is asking us to close.
         /// </summary>
         /// <param name="sender"></param>
@@ -149,77 +165,59 @@ namespace win_client.Views
         {
             lock (_timer)
             {
-                // Enable or disable the install button
-                if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall)
-                {
-                    // Hide the busy indicator
-                    HideBusyIndicator();
-
-                    // Enable the install button
-                    //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Install Now button.");
-                    this.cmdCheckNow.Visibility = System.Windows.Visibility.Collapsed;
-                    this.cmdInstallNow.Visibility = System.Windows.Visibility.Visible;
-                }
-                else
-                {
-                    // Check only.
-                    //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Check for Updates button.");
-                    this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
-                    this.cmdInstallNow.Visibility = System.Windows.Visibility.Collapsed;
-                }
-
-                // Display the current status
-                //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: UpdateStepOn: {0}.", this.ctlAutoUpdate.UpdateStepOn.ToString());
-                switch (this.ctlAutoUpdate.UpdateStepOn)
-                {
-                    case wyDay.Controls.UpdateStepOn.UpdateReadyToInstall:
-                        this.tblkStatus.Text = String.Format("An update is ready to install.  The new update is version {0}.", this.ctlAutoUpdate.Version) +
-                                                "\nThe changes are:" +
-                                                String.Format("\n{0}", this.ctlAutoUpdate.Changes);
-                        break;
-                    case wyDay.Controls.UpdateStepOn.UpdateDownloaded:
-                        this.tblkStatus.Text = "The available update has been downloaded.";
-                        break;
-                    case wyDay.Controls.UpdateStepOn.UpdateAvailable:
-                        this.tblkStatus.Text = "An update is available.";
-                        break;
-                    case wyDay.Controls.UpdateStepOn.Nothing:
-                        //this.tblkStatus.Text = "No Status.";
-                        break;
-                    case wyDay.Controls.UpdateStepOn.ExtractingUpdate:
-                        this.tblkStatus.Text = "The available update has been downloaded and is being prepared.";
-                        break;
-                    case wyDay.Controls.UpdateStepOn.DownloadingUpdate:
-                        this.tblkStatus.Text = "The available update is being downloaded.";
-                        break;
-                    case wyDay.Controls.UpdateStepOn.Checking:
-                        this.tblkStatus.Text = "Checking for updates...";
-                        break;
-                }
+                UpdateUi();
             }
         }
 
         /// <summary>
-        /// The user clicked a "Check for Updates" button on the systray icon or on the FramePreferencesGeneral page.
+        /// Display the current status
         /// </summary>
-        /// <param name="obj"></param>
-        private void OnMessage_DialogCheckForUpdates_ShouldCheckForUpdates(string obj)
+        private void UpdateUi()
         {
-            _isVisible = true;
+            // Enable or disable the install button
+            _trace.writeToLog(9, "DialogCheckForUpdates: UpdateUi: Entry. UpdateStepOn: {0}.", this.ctlAutoUpdate.UpdateStepOn.ToString());
+            if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall
+                || this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateDownloaded)
+            {
+                // Enable the install button
+                //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Install Now button.");
+                this.cmdCheckNow.Visibility = System.Windows.Visibility.Collapsed;
+                this.cmdInstallNow.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                // Check only.
+                //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: Enable the Check for Updates button.");
+                this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;
+                this.cmdInstallNow.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
-            // Set the status to something known at first.  We will force a check which should update the status pretty quickly.
-            _trace.writeToLog(9, "DialogCheckForUpdates: OnMessage_DialogCheckForUpdates_ShouldCheckForUpdates: Entry.");
-            this.tblkStatus.Text = "Checking for updates...";
-
-            // Record the time of the last update check
-            Settings.Instance.DateWeLastCheckedForSoftwareUpdate = DateTime.Now;
-
-            // Show the busy indicator
-            ShowBusyIndicator("Checking for updates...");
-
-            // Check for an update.
-            this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
-
+            // Display the current status
+            //_trace.writeToLog(9, "DialogCheckForUpdates: _timer_Tick: UpdateStepOn: {0}.", this.ctlAutoUpdate.UpdateStepOn.ToString());
+            switch (this.ctlAutoUpdate.UpdateStepOn)
+            {
+                case wyDay.Controls.UpdateStepOn.UpdateReadyToInstall:
+                case wyDay.Controls.UpdateStepOn.UpdateDownloaded:
+                    this.tblkStatus.Text = String.Format("An update is ready to install.  The new update is version {0}.", this.ctlAutoUpdate.Version) +
+                                            "\nThe changes are:" +
+                                            String.Format("\n{0}", this.ctlAutoUpdate.Changes);
+                    break;
+                case wyDay.Controls.UpdateStepOn.UpdateAvailable:
+                    this.tblkStatus.Text = "An update is available.";
+                    break;
+                case wyDay.Controls.UpdateStepOn.Nothing:
+                    //this.tblkStatus.Text = "No Status.";
+                    break;
+                case wyDay.Controls.UpdateStepOn.ExtractingUpdate:
+                    this.tblkStatus.Text = "The available update has been downloaded and is being prepared.";
+                    break;
+                case wyDay.Controls.UpdateStepOn.DownloadingUpdate:
+                    this.tblkStatus.Text = "The available update is being downloaded.";
+                    break;
+                case wyDay.Controls.UpdateStepOn.Checking:
+                    this.tblkStatus.Text = "Checking for updates...";
+                    break;
+            }
         }
 
         void ctlAutoUpdate_UpToDate(object sender, wyDay.Controls.SuccessArgs e)
@@ -259,10 +257,7 @@ namespace win_client.Views
         {
             _trace.writeToLog(9, "DialogCheckForUpdates: ctlAutoUpdate_Loaded: Entry.");
 
-            // Show the busy indicator
-            ShowBusyIndicator("Checking for updates...");
-
-            this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
+            //this.ctlAutoUpdate.ForceCheckForUpdate(recheck: true);
         }
 
         void ctlAutoUpdate_DownloadingOrExtractingFailed(object sender, wyDay.Controls.FailArgs e)
@@ -380,6 +375,37 @@ namespace win_client.Views
             _isVisible = false;
         }
 
+        /// <summary>
+        /// The user clicked a "Check for Updates" button on the systray icon or on the FramePreferencesGeneral page.
+        /// </summary>
+        /// <param name="obj"></param>
+        private void OnMessage_DialogCheckForUpdates_ShouldCheckForUpdates(string obj)
+        {
+            _trace.writeToLog(9, "DialogCheckForUpdates: OnMessage_DialogCheckForUpdates_ShouldCheckForUpdates: Entry.");
+            _isVisible = true;
+
+            // Update the UI with the current AutoUpdater status.
+            UpdateUi();
+
+            // We may already have an update ready to install.  Set the proper button status.
+            if (this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateReadyToInstall
+                || this.ctlAutoUpdate.UpdateStepOn == wyDay.Controls.UpdateStepOn.UpdateDownloaded)
+            {
+                // We are ready to install an update.  Let the user take the action.  Do nothing here.
+            }
+            else
+            {
+                // Start a check automatically
+                _trace.writeToLog(9, "DialogCheckForUpdates: OnMessage_DialogCheckForUpdates_ShouldCheckForUpdates: Automatically click the Check Now button.");
+                ButtonCheckNow_Click(null, null);
+            }
+        }
+
+        /// <summary>
+        /// The user clicked the Check Now button.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ButtonCheckNow_Click(object sender, RoutedEventArgs e)
         {
             // Set the status to something known at first.  We will force a check which should update the status pretty quickly.
@@ -532,11 +558,14 @@ namespace win_client.Views
                 _vm.IsBusy = false;
             }
 
-            // Start the timer
+            // Stop the timer
             lock (_timer)
             {
                 _timer.Stop();
             }
+
+            // Display the current status.
+            UpdateUi();
         }
     }
 }

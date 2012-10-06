@@ -608,23 +608,33 @@ namespace wyDay.Controls
                 return;
             }
 
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Call CreateMenu.");
             CreateMenu(MenuType.InstallAndChanges);
 
             // UpdateDownloaded or UpdateReadyToInstall
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Call SetUpdateStepOn.");
             SetUpdateStepOn(auBackend.UpdateStepOn);
 
             if (!KeepHidden)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Set visible.");
                 Visibility = Visibility.Visible;
+            }
 
             // temporarily disable the collapse timer
             tmrCollapse.Enabled = false;
 
             // animate this open
             if (Animate)
+            {
+                Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Call BeginAniOpen.");
                 BeginAniOpen();
+            }
 
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Call AnimateImage.");
             AnimateImage(Properties.Resources.info, true);
 
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Call SetMenuText.");
             SetMenuText(translation.InstallUpdateMenu);
 
 
@@ -633,6 +643,7 @@ namespace wyDay.Controls
                 Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Call ReadyToBeInstalled.");
                 ReadyToBeInstalled(this, e);
             }
+            Trace.WriteLine("AutoUpdater: AutomaticUpdater: auBackend_ReadyToBeInstalled: Exit.");
         }
 
         void auBackend_Cancelled(object sender, EventArgs e)
