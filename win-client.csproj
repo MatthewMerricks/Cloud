@@ -105,6 +105,9 @@
     <Reference Include="Ookii.Dialogs.WpfMinusTaskDialog">
       <HintPath>3rdParty\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</HintPath>
     </Reference>
+    <Reference Include="RateBar">
+      <HintPath>3rdParty\bin\Release\RateBar.dll</HintPath>
+    </Reference>
     <Reference Include="SimpleJson">
       <HintPath>3rdParty\bin\Release\SimpleJson.dll</HintPath>
     </Reference>
@@ -182,6 +185,7 @@
     <Compile Include="DragDropServer\DragDropInterface.cs" />
     <Compile Include="DragDropServer\DragDropServer.cs" />
     <Compile Include="Model\CLPreferences.cs" />
+    <Compile Include="Model\CLStatusFileTransfer.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
     <Compile Include="Model\IDataService.cs" />
@@ -237,6 +241,7 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
+    <Compile Include="ViewModels\WindowSyncStatusViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesShortcutsViewModel.cs" />
     <Compile Include="ViewModels\DialogCheckForUpdatesViewModel.cs" />
     <Compile Include="ViewModels\PageTourAdvancedEndViewModel.cs" />
@@ -262,6 +267,9 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\WindowSyncStatus.xaml.cs">
+      <DependentUpon>WindowSyncStatus.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\FramePreferencesShortcuts.xaml.cs">
       <DependentUpon>FramePreferencesShortcuts.xaml</DependentUpon>
     </Compile>
@@ -369,6 +377,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\WindowSyncStatus.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

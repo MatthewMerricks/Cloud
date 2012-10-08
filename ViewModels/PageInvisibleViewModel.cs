@@ -315,6 +315,34 @@ namespace win_client.ViewModels
             }
         }
 
+        /// <summary>
+        /// The user clicked has selected a choice and will continue.
+        /// </summary>
+        private RelayCommand _SyncStatusCommand;
+        public RelayCommand SyncStatusCommand
+        {
+            get
+            {
+                return _SyncStatusCommand
+                    ?? (_SyncStatusCommand = new RelayCommand(
+                                            () =>
+                                            {
+                                                // Check for updates
+                                                WindowSyncStatus win = new WindowSyncStatus();
+                                                win.ShowInTaskbar = true;
+                                                win.ShowActivated = true;
+                                                win.Visibility = Visibility.Visible;
+                                                win.WindowStyle = WindowStyle.ThreeDBorderWindow;
+                                                win.SetPlacement(Settings.Instance.MainWindowPlacement);
+                                                _trace.writeToLog(9, "PageInvisibleViewModel: CheckFOrUpdatesCommand: Window coords: {0}, {1}, {2}, {3} (LTWH).", win.Left, win.Top, win.Width, win.Height);
+                                                win.Show();
+                                                win.Topmost = true;
+                                                win.Topmost = false;
+                                                win.Focus();
+                                            }));
+            }
+        }
+
 
         /// <summary>
         /// Gets the ExitApplicationCommand.

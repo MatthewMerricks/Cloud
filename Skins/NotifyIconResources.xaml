@@ -70,6 +70,12 @@
             </MenuItem.Icon>
         </MenuItem>
 
+        <MenuItem Header="{x:Static p:Resources.SystemTrayContextMenuSyncStatus}" Command="{Binding SyncStatusCommand, Mode=OneTime}" CommandParameter="{Binding}">
+            <MenuItem.Icon>
+                <Image Width="16" Height="16" Source="/Cloud;component/Artwork/AddNotifyIconSample.png" />
+            </MenuItem.Icon>
+        </MenuItem>
+
         <MenuItem Header="{x:Static p:Resources.SystemTrayContextMenuBrowseToCloudCom}" Command="{Binding BrowseToCloudComCommand, Mode=OneTime}" CommandParameter="{Binding}">
             <MenuItem.Icon>
                 <Image Width="16" Height="16" Source="/Cloud;component/Artwork/AddNotifyIconSample.png" />

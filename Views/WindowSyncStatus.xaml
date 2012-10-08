@@ -1,0 +1,103 @@
+﻿<!--
+//
+//  WindowSyncStatus.xaml
+//  Cloud Windows
+//
+//  Created by BobS.
+//  Copyright (c) Cloud.com. All rights reserved.
+ -->
+
+<Window 
+    x:Class="win_client.Views.WindowSyncStatus"                      
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:controls="http://schemas.xceed.com/wpf/xaml/toolkit"
+    xmlns:common="clr-namespace:win_client.Common"
+    xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"                      
+    xmlns:Controls="clr-namespace:wyDay.Controls;assembly=AutomaticUpdaterWPF" 
+    xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
+    xmlns:rate="clr-namespace:RateBar;assembly=RateBar"
+
+    DataContext="{Binding WindowSyncStatusViewModel, Source={StaticResource Locator}}" 
+    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+    Width="800" Height="600" MinWidth="800" MinHeight="600"
+    Title="{Binding WindowSyncStatus_Title, Mode=OneWay}" 
+    Icon="/Cloud;component/Artwork/cloud.ico"
+    >
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
+                <ResourceDictionary>
+                    <ControlTemplate x:Key="listBoxElementControlTemplate" TargetType="{x:Type ListBoxItem}">
+                        <Grid Background="#FFF2F4F5">
+                            <Border BorderBrush="Black" BorderThickness="1" />
+                            <StackPanel Orientation="Vertical" Margin="3,2,0,0">
+                                <TextBlock Text=".\MyDir\...\BigFile.bin" FontSize="8"/>
+                                <rate:RateGraph x:Name="rateGraph1" Height="20" Margin="3,1,3,0"/>
+                                <Grid Margin="0,1,0,1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Size: 1,245,345" FontSize="8" Margin="3,0,0,0"/>
+                                    <TextBlock Text="Time left: 14.21" FontSize="8" Grid.Column="1" HorizontalAlignment="Center" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Elapsed Time: 32.59" FontSize="8" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,3,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+                    </ControlTemplate>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid x:Name="LayoutRoot" Background="#FFEFF4F5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="13"/>
+            <RowDefinition Height="Auto" MinHeight="293"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title for Upload/Download Status section -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="File Upload Status" FontSize="8" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <TextBlock Text="File Download Status" FontSize="8" FontWeight="Bold" HorizontalAlignment="Center" Grid.Column="1"/>
+        </Grid>
+        
+        <!-- Upload/Download Status -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <ListBox ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+
+            </ListBox>
+            <ListBox Grid.Column="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+            </ListBox>
+        </Grid>
+    </Grid>
+</Window>

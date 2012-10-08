@@ -140,13 +140,13 @@ namespace win_client.Resources {
         ///   Const ForReading = 1
         ///   Const ForWriting = 2
         ///   Const ForAppending = 8
+        ///   Const DeleteReadOnly = true
         ///   
         ///   Dim objFileSys
         ///   Dim objShell
         /// 
         ///   &apos; Global variables
         ///   Dim shouldTrace
-        ///   Dim shouldExplorerBeStarted
         ///   Dim  [rest of string was truncated]&quot;;.
         /// </summary>
         public static string CloudInstallUpdate {
@@ -741,7 +741,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Browse to Cloud.com....
+        ///   Looks up a localized string similar to _Browse to Cloud.com....
         /// </summary>
         public static string SystemTrayContextMenuBrowseToCloudCom {
             get {
@@ -750,7 +750,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Check for updates.
+        ///   Looks up a localized string similar to _Check for updates.
         /// </summary>
         public static string SystemTrayContextMenuCheckForUpdates {
             get {
@@ -791,6 +791,15 @@ namespace win_client.Resources {
         public static string SystemTrayContextMenuShowCloudFolder {
             get {
                 return ResourceManager.GetString("SystemTrayContextMenuShowCloudFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show S_ync Status....
+        /// </summary>
+        public static string SystemTrayContextMenuSyncStatus {
+            get {
+                return ResourceManager.GetString("SystemTrayContextMenuSyncStatus", resourceCulture);
             }
         }
         

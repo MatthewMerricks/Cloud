@@ -81,6 +81,7 @@ namespace win_client.ViewModels
 
             // Window pages
             SimpleIoc.Default.Register<PageCloudFolderMissingViewModel>();
+            SimpleIoc.Default.Register<WindowSyncStatusViewModel>();
 
             // Modal dialog support
             SimpleIoc.Default.Register<IModalDialogService, ModalDialogService>();
@@ -90,7 +91,6 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogCloudMessageBoxView(), CLConstants.kDialogBox_CloudMessageBoxView, false);
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkProxies(), CLConstants.kDialogBox_PreferencesNetworkProxies, false);
             SimpleIoc.Default.Register<IModalWindow>(() => new DialogPreferencesNetworkBandwidth(), CLConstants.kDialogBox_PreferencesNetworkBandwidth, false);
-            //&&&&SimpleIoc.Default.Register<IModalWindow>(() => new DialogCheckForUpdates(), CLConstants.kDialogBox_CheckForUpdates, false);
 
             // Modal dialog view models
             SimpleIoc.Default.Register<DialogCloudMessageBoxViewModel>();
@@ -256,6 +256,22 @@ namespace win_client.ViewModels
                 return ServiceLocator.Current.GetInstance<PageCloudFolderMissingViewModel>();
             }
         }
+
+        /// <summary>
+        /// Gets the WindowSyncStatusViewModel property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public WindowSyncStatusViewModel WindowSyncStatusViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<WindowSyncStatusViewModel>();
+            }
+        }
+
+
 
         /// <summary>
         /// Gets the PageBadgeComInitializationErrorViewModel property.
@@ -424,20 +440,6 @@ namespace win_client.ViewModels
                 return (DialogPreferencesNetworkBandwidth)ServiceLocator.Current.GetInstance<DialogPreferencesNetworkBandwidth>(CLConstants.kDialogBox_PreferencesNetworkBandwidth);
             }
         }
-
-        ///// <summary>
-        ///// Gets the DialogCheckForUpdates property.
-        ///// </summary>
-        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
-        //    "CA1822:MarkMembersAsStatic",
-        //    Justification = "This non-static member is needed for data binding purposes.")]
-        //public DialogCheckForUpdates DialogCheckForUpdates
-        //{
-        //    get
-        //    {
-        //        return (DialogCheckForUpdates)ServiceLocator.Current.GetInstance<DialogCheckForUpdates>(CLConstants.kDialogBox_CheckForUpdates);
-        //    }
-        //}
 
         /// <summary>
         /// Gets the DialogCloudMessageBoxViewModel property.
