@@ -4,6 +4,7 @@
  * All code (c) Ian Wright. 
  */
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -22,6 +23,8 @@ namespace RateBar
         /// The polygon of points
         /// </summary>
         private Polygon polygon;
+        private List<Double[]> _savedRateChanges = new List<double[]>();         // RKS
+        private bool _isLoaded = false;                                          // RKS
 
         /// <summary>
         /// The list of points
@@ -46,29 +49,50 @@ namespace RateBar
 				// and another point which will be moved
 				this.ratePoints.Add(new Double[] { 0, 0 });
 				this.ratePoints.Add(new Double[] { 0, 0 });
+                this._isLoaded = true;
             };
 		}
 
         /// <inheritdoc />
         protected override void OnRateChanged(double oldValue, double newValue)
         {
+            if (!_isLoaded)
+            {
+                // The data objects are not allocated until the loaded event, but OnRateChanged fires early.  Save the event and replay later.
+                Double[] rateChangedEvent = new Double[] { oldValue, newValue };
+                _savedRateChanges.Add(rateChangedEvent);
+                return;
+            }
+
+            // Process any saved rate changes
+            foreach (Double[] rateChange in _savedRateChanges)
+            {
+                ProcessRateChangedEvent(rateChange[0], rateChange[1]);
+            }
+            _savedRateChanges.RemoveAll(select => { return true; });
+
+            ProcessRateChangedEvent(oldValue, newValue);
+        }
+
+        private void ProcessRateChangedEvent(double oldValue, double newValue)
+        {
             // Modify the Maximum if the Rate exceeds it
             if (newValue * 1.2 > this.RateMaximum)
                 this.RateMaximum = newValue * 1.2;
 
             // Move the existing point along the X-axis, this ensures our fill works correctly.
-			this.ratePoints[0] = new Double[] { this.Value, 0 };
+            this.ratePoints[0] = new Double[] { this.Value, 0 };
 
-			// Add on the new point
-			this.ratePoints.Add(new Double[] { this.Value, newValue });
+            // Add on the new point
+            this.ratePoints.Add(new Double[] { this.Value, newValue });
 
-			this.polygon.Points = new PointCollection(this.ratePoints.Select(dba =>
-				{
-					// Don't adjust the height for the line that runs alone the bottom
-					return new Point(CalculateX(dba[0]), CalculateY(dba[1]));
-				}).AsParallel());
+            this.polygon.Points = new PointCollection(this.ratePoints.Select(dba =>
+            {
+                // Don't adjust the height for the line that runs alone the bottom
+                return new Point(CalculateX(dba[0]), CalculateY(dba[1]));
+            }).AsParallel());
 
-			// Update the base rate
+            // Update the base rate
             base.OnRateChanged(oldValue, newValue);
         }
 

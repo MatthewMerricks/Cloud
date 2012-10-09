@@ -32,27 +32,6 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
-                <ResourceDictionary>
-                    <ControlTemplate x:Key="listBoxElementControlTemplate" TargetType="{x:Type ListBoxItem}">
-                        <Grid Background="#FFF2F4F5">
-                            <Border BorderBrush="Black" BorderThickness="1" />
-                            <StackPanel Orientation="Vertical" Margin="3,2,0,0">
-                                <TextBlock Text=".\MyDir\...\BigFile.bin" FontSize="8"/>
-                                <rate:RateGraph x:Name="rateGraph1" Height="20" Margin="3,1,3,0"/>
-                                <Grid Margin="0,1,0,1">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Size: 1,245,345" FontSize="8" Margin="3,0,0,0"/>
-                                    <TextBlock Text="Time left: 14.21" FontSize="8" Grid.Column="1" HorizontalAlignment="Center" Margin="0,0,3,0"/>
-                                    <TextBlock Text="Elapsed Time: 32.59" FontSize="8" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,3,0"/>
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
-                    </ControlTemplate>
-                </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
@@ -81,23 +60,55 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
-            <ListBox ScrollViewer.VerticalScrollBarVisibility="Auto">
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
+            
+            <ItemsControl ItemsSource="{Binding ListFilesUploading}" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Background="#FFF2F4F5">
+                            <Border BorderBrush="Black" BorderThickness="1" />
+                            <StackPanel Orientation="Vertical" Margin="3,2,0,0">
+                                <TextBlock Text="{Binding CloudRelativePath}" FontSize="8"/>
+                                <rate:RateGraph Height="20" Margin="3,1,3,0" Rate="{Binding DisplayRateAtCurrentSample}" Value="{Binding PercentComplete}" RateMaximum="100.0" Maximum="100.0" Minimum="0.0" /> 
+                                <Grid Margin="0,1,0,1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding DisplayFileSize}" FontSize="8" Margin="3,0,0,0"/>
+                                    <TextBlock Text="{Binding DisplayTimeLeft}" FontSize="8" Grid.Column="1" HorizontalAlignment="Center" Margin="0,0,3,0"/>
+                                    <TextBlock Text="{Binding DisplayElapsedTime}" FontSize="8" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,3,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-            </ListBox>
-            <ListBox Grid.Column="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
-                <ListBoxItem Template="{StaticResource listBoxElementControlTemplate}" Margin="0,2,0,0"/>
-            </ListBox>
+            <ItemsControl ItemsSource="{Binding ListFilesDownloading}" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.Column="1">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Background="#FFF2F4F5">
+                            <Border BorderBrush="Black" BorderThickness="1" />
+                            <StackPanel Orientation="Vertical" Margin="3,2,0,0">
+                                <TextBlock Text="{Binding CloudRelativePath}" FontSize="8"/>
+                                <rate:RateGraph Height="20" Margin="3,1,3,0" Rate="{Binding DisplayRateAtCurrentSample}" Value="{Binding PercentComplete}" RateMaximum="100.0" Maximum="100.0" Minimum="0.0" />
+                                <Grid Margin="0,1,0,1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding DisplayFileSize}" FontSize="8" Margin="3,0,0,0"/>
+                                    <TextBlock Text="{Binding DisplayTimeLeft}" FontSize="8" Grid.Column="1" HorizontalAlignment="Center" Margin="0,0,3,0"/>
+                                    <TextBlock Text="{Binding DisplayElapsedTime}" FontSize="8" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,3,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
         </Grid>
     </Grid>
 </Window>

@@ -4844,7 +4844,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Great article on Embedded Resources: http://www.codeproject.com/Articles/3089/Understanding-Embedded-Resources-in-Visual-Studio
     - The update process works well now.
   o 10/3/12 Wed:
-    - 6:30 - 
+    - 6:30 - 18:30
     - Reset all of the test updates (11 now), rebuild and test updating from version 1 to 2.  Then upload version 2 for Scott.  Have him
       install that, then upload update 3 and have him test that.
     - Areas of concentration:
@@ -4870,7 +4870,108 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
         o Install/Uninstall/Update/Deploy
       . Person 5 (part time) and offshore:
         o Close-down testing
-    - Working with Scott to test update on his Win32X86 system.
+    - Working with Scott to test update on his Win32X86 system.  I think I fixed a crash having to do with negative screen offsets.
+  o 10/4/12 Thu:
+    - 7:00 - 18:30
+    - I added some user experience enhancements to NewUpdate.vbs.  It's quicker now.
+    - Fixed the crash that Scott was seeing.
+    - I spent the rest of the day working on various update issues, testing it on a SkyNet Win7Sp1X86 machine.
+    - Current bug: The Check for Updates dialog doesn't appear the first time.  It is off screen.
+  o 10/5/12 Fri:
+    - 7:30 - 18:30
+    - SlickEdit: Set cursor undo: Command line: set-var def_undo_with_cursor (set value to 1)
+    - At uninstall, delete the following directories:
+	rmdir /s /q "%userprofile%\wc"
+	rmdir /s /q "%appdata%\wyUpdate AU"
+    - I spent the whole day testing update.  The current bug is in the Autoupdater.  It gets stuck after downloading an update.  Restarting cloud corrects the status and allows a normal update installation.
+      I added trace to CloudUpdater (dbgview).
+  o 10/6/12 Sat: (home)
+    - 5:30 - 16:45
+    - Adding trace to AutoUpdater.
+    - Configuring my home machine for the current test environment and fixing problems in git sync.
+    - Determine TCP ports open: netstat -anob
+    - After several hours of a time-waster, I finally got IIS to host the /clients/windows directory with HTTP.
+    - The update process finally works from Cloud!  The big time-waster was a redesign of the AutoUpdater Version 2.6.18 vs. 2.6.16.  The event names were changed, and some other things...
+      I also needed to clear the wyUpdate cache directories after running CloudUpdater.  AutoUpdater was still seeing an available update after the current update was actually installed.
+    - Progress bar XAML: http://www.c-sharpcorner.com/uploadfile/mahesh/wpf-progressbar/
+    - Progress bar styles and template (msdn): http://msdn.microsoft.com/en-us/library/ms750638.aspx
+    - Interesting progress and scroll bar templates: http://msdn.microsoft.com/en-us/magazine/cc163497.aspx
+    - Very interesting fancy download/upload progress bar with history, speed, etc: http://stackoverflow.com/questions/9978078/windows-8-fancy-progress-bars-via-c
+    - And his blog (Windows 8 style progress bar). (RateBar): http://stackoverflow.com/questions/9978078/windows-8-fancy-progress-bars-via-c
+    - Good tutorial on using templates with controls: http://www.devx.com/dotnet/Article/42304
+    - Control Template Round Button: http://www.codeproject.com/Articles/30994/Introduction-to-WPF-Templates
+    - Virtualizing ItemsPanel override: http://wpftutorial.net/listboxitemsarrange.html
+    - Using a grid as the panel for an ItemsControl: http://www.scottlogic.co.uk/blog/colin/2010/11/using-a-grid-as-the-panel-for-an-itemscontrol/
+    - Another grid in an ItemsPanel: https://rachel53461.wordpress.com/2011/09/17/wpf-itemscontrol-example/
+    - Use control templates everywhere?: http://nirajrules.wordpress.com/2009/03/08/controltemplate-vs-datatemplate-vs-hierarchicaldatatemplate-vs-itemspaneltemplate/
+    - "Whenever you want a control template to be assigned dynamically, you need DataTemplates along with a DataTemplateSelector.
+        For example, my grid control uses a datatemplate selector that looks at the type of cell (Text, Image, DropDown, CheckBox) and assigns the appropriate DataTemplate.
+        In cases where the control will never change, just use a controltemplate and be done with it"
+        http://social.msdn.microsoft.com/Forums/en-US/wpf/thread/d8f79b2b-c745-42bd-a821-db9ce0b5c2e9/
+    - Solar system listbox with canvas: http://www.zagstudio.com/blog/470
+    - Indirecting a style when using ItemsControl: http://www.sturmnet.org/blog/2007/03/31/wpf-bottom-dwelling-with-an-itemscontrol
+  o 10/8/12 Mon:
+    - 6:30 - 18:30
+    - I built two versions for Scott, tested them on SkyNet, and they worked for Scott!  Onto other things...
+    - The file upload/download prototype XAML is built.  The prototype ViewModel should test it and put it through simulated actions.  How to do that?
+      . The VM provides the two lists of CLStatusFileTransfer objects.
+      . The number and status of the items in the lists should be randomized.
+      . Creation timer:
+        o This timer will control the creation of items.
+	o On a timer tick:
+        o Disable the timer.
+	o At the end of processing below, choose a new duration for the next tick: 1 - 4 seconds.
+        o Randomly choose the direction (up/down)
+	o If the chosen list is full, exit.
+	o Randomly choose the file size (1 byte - 2 GB)
+	o Randomly choose the path from a list.
+	o Randomly generate the filename.ext.
+	o Build the full relative path + filename.ext
+	o Determine the bandwidth allocation for this object at this moment.  Save it in the object as the beginning bandwidth.
+	o Place the item on the list at the end (bottom of the view)
+      . Bandwidth timer (every 100 ms.)
+        o Choose an overall bandwidth up (randomly between 50% and 100% of the average historic bandwidth)
+        o Choose an overall bandwidth down (randomly between 50% and 100% of the average historic bandwidth)
+	o This bandwidth will be spread evenly over the active up/down objects.
+      . Upload/Download timer processing:
+        o Tick every 200 ms.
+	o Proccesses all objects on both lists.
+	o Any model data required will be stored in the CLStatusFileTransfer object and marked debug.
+	o If this object is complete, remove it from the list and dispose it.
+	o From the previous bandwidth allocated to this object, determine the bytes transferred in the last time slot.
+	o Adjust the object's properties by the amount transferred and the previous rate..
+	o Determine the rate from the current bandwidth at this moment and save it for next time.
+      . The progress bars show history of the download.  The rate is the vertical axis, and percent complete is the horizontal axis.  Both range from 0.0 to 1.0.
+      . What is the reference rate?
+      . We should keep an average aggregate upload and download rate in Settings.
+      . If a single upload is working, it should use the entire aggregate upload bandwidth.
+      . If two uploads are working, each should use half of the upload bandwidth, and so on...
+      . Since the instantaneous bandwidths go up and down, we should allow for individual readings over the maximum, so set the maximum at perhaps
+        80% of the vertical space.  That will allow 20% over the maximum.  If the rate calculates over that, just chop it off.
+      . So for an example, suppose we have 1024000 bits per second (1 Mb/s) aggregate upload bandwidth.
+      . And suppose we have 3 upload tasks.
+      . Then each should use 341333 bits per second.
+      . Divide bits per second by 10 (old ASCII fudge).
+      . So each upload should see 34133.3 bytes per second.
+      . The 80% (0.8) rate for each of the three upload displays would correspond to 34133.3 bytes per second.
+      . So the 1.0 rate would be that number divided by 0.8, or 42666.625 bytes per second.
+      . Anything over that should be chopped.
+      . If one of the threee uploads completes, the other two should share the whole bandwidth.  In that case we would have 512000 bits per second, 51200.0
+        bytes per second for the 0.8 rate, or 64000.0 bytes per second for the 1.0 rate.
+      . No.  That won't work.  As uploads come and go, the history would not be consistent.
+      . We should calculate these numbers as if we always had 6 going.
+      . If all six were going, each would use 1/6 of the total bandwidth.
+      . If three complete, we would expect the individual bandwidth of the remaining three uploads to double.
+    - Coding the above...
+  o 10/9/12 Tue:
+    - 6:30 - 
+    - How should the historic average be calculated??
+      . 
+
+
+
+      
+    
 
 
 
@@ -5229,6 +5330,41 @@ WYUPDATE PROCEDURES (9/26/12)
      o Change the script inside for assembly -> trustInfo -> security -> requestedPrivileges -> requestedExecutionLevel and change attribute "level" from "asInvoker" to "requireAdministrator" and then click Compile Script
    - Click File/Save and exit ResourceHacker.
    - Delete the CloudSetup_Original.exe file.
+
+WYAUTOMATICUPDATER INTEGRATE NEW RELEASE (10/4/12)
+  o Integrate 2.6.18 (10/4/12)
+  o Set the AutomaticUpdaterWPF4 project as the startup project.  Note the *WPF4, not *WPF.
+  o Change Properties/Application/Target framework to ".NET Framework 4 Client Profile".
+  o Change Properties/Application/Assembly Information file version to match the assembly version.
+  o Change Properties/Application/Icon: to cloud.ico.
+  o For debug configuration:
+    - Change Properties/Build/Output path: "..\..\..\bin\Debug\"
+  o For release configuration:
+    - Change Properties/Build/Output path: "..\..\..\bin\Release\"
+    - Change Properties/Build/XML documentation file:  "..\..\..\bin\Release\AutomaticUpdaterWPF.XML"
+  o Disable signing (Properties/Signing/Sign the assembly).
+  o Change all instances of "wyUpdate.exe" to "CloudUpdater.exe"
+
+WYUPDATE RESET TO BASE VERSION:
+  o Open wyBuild.
+  o Select the Update Information view.
+  o Position to the highest version tab.  Right-click and select "remove version".  Do this for highest version tab down to, but not including 
+    Version 1.1.1.1 to remove all of the versions.
+  o Select the version 1.1.1.1 tab.
+  o Select the Files & Folders view.
+  o Delete the folders under "Your program's folder", "Program files, Common FIles folder (32-bit)", and "Program files, Common Files folder (64-bit).
+  o Click File, Save.
+  o Exit wyBuild.
+  o In your FtpRoot directory:
+    - Delete all files under FtpRoot\updates.
+    - Delete file \CloudSetup.exe
+  o In the win-client\WyUpdater directory:
+    - Delete all directories "DownloadVersion*"
+    - Delete all directories "Version*"
+    - Delete the contents of the WyUpdater\updates directory.
+  o Run NewUpdate.vbs.
+  o Enter "1.1.1.1" for the version.
+  o Enter "No" to indicate that this is a replacement version.
 
 
 
@@ -6054,6 +6190,12 @@ TODO:
   x (10/3/12) Understand the wyBuild self update process.
   x (10/3/12) CloudUpdater only copies itself to temp when it has to update itself.  Move the kill-explorer and test for Cloud.exe code to wrap where it actually performs the update.
   x (10/3/12) If the user cancels an update in CloudUpdater, Cloud is not restarted.
+  x (10/4/12) Take out the negative offset code.  It causes the Check for Updates dialog to appear at startup.
+  x (10/4/12) An update is ready to install.  Click Install Now, but cripple CloudInstallUpdate.vbs to do nothing.  Or simply exit before clicking Install Now.
+              Restart cloud.  CloudUpdater runs, but finds Cloud.exe busy.  Click Close Process, and the update installs normally.  Cloud.exe should not be found busy.
+  x (10/4/12) Schedule an update and exit cloud.  Restart Cloud.  The installer will try to update cloud automatically with the ready update, but prevent it.  Uninstall Cloud.
+              Reinstall Cloud.  Run Cloud.  The PageHome screen appears, but the installer also appears trying to install an update.  Uninstall should clean any pending updates.
+  x (10/4/12) Uninstall Cloud with Cloud.exe still running.  Click Close Process.  An intermittent crash occurs.
   o Add ICleanup interface to all view models and call them when shutting down.  Note: Cleanup doesn't get called when the user clicks the 'X'????
   o The ViewModelLocator.Cleanup() function should call of the ViewModel.Cleanup functions.
   o Don't allow network or unmountable drives for the Cloud directory.
@@ -6183,6 +6325,11 @@ TODO:
   o Growl when an update is available.
   o Implement new status dialog.
   o Implement Restart Manager in install/uninstall/update.
+  o Use a BusyIndicator when the update dialog is checking for updates....
+  o Remove the systray cloud icon on context menu click of Check for Updates.
+  o Fix error in trace on shutdown: 01:02:39.568 PM_2648_1_CLModalErrorDialog: DisplayModalMessageBox:  Message: Are you sure you want to quit the Cloud.com application setup?.
+  o The CloudUpdater still installs a new version on startup, and still complains about Cloud.exe still running.
+  o Fix the Busy Indicator to use a converter to set Visibility to Collapsed in design mode.
 
 
 

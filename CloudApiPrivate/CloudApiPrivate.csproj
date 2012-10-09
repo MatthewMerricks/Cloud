@@ -72,6 +72,7 @@
     <Compile Include="Common\CLIniWriter.cs" />
     <Compile Include="Model\CLPrivateDefinitions.cs" />
     <Compile Include="Model\CLRegistration.cs" />
+    <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Model\Settings\CLSettings.cs" />
     <Compile Include="Model\Settings\WpfIsolatedStorageSettings.cs" />

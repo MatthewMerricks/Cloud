@@ -67,10 +67,21 @@ namespace win_client.Views
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Exit.");
         }
 
-        void WindowSyncStatus_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
         {
-            _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Closing: Entry.");
-            //TODO: Add code.
+            // Register for messages
+            _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
+
+            // Let the ViewModel know we are loaded
+            if (_vm != null)
+            {
+                _vm.OnViewLoaded();
+            }
+
+            // Give focus to the right button.
+            //TODO: The caller's should establish the focus position in a parameter.
+            //this.cmdOk.Focus();
+
         }
 
         void WindowSyncStatus_Unloaded(object sender, RoutedEventArgs e)
@@ -79,16 +90,12 @@ namespace win_client.Views
             //TODO: Add code.
         }
 
-        void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
+        void WindowSyncStatus_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            // Register for messages
-            _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
-
-            // Give focus to the right button.
-            //TODO: The caller's should establish the focus position in a parameter.
-            //this.cmdOk.Focus();
-
+            _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Closing: Entry.");
+            //TODO: Add code.
         }
+
 
     }
 }
