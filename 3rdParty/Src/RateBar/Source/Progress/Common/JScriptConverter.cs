@@ -92,7 +92,7 @@ namespace RateBar
             try
             {
 				object result = evaluator(parameter.ToString(), values);
-				Trace.WriteLine(result);
+				//Trace.WriteLine(result);
 				return result;
             }
             catch

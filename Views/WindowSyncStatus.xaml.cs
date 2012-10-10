@@ -31,6 +31,7 @@ using CloudApiPublic.Support;
 using CloudApiPrivate.Common;
 using System.Diagnostics;
 using CloudApiPublic.Model;
+using System.Collections.Specialized;
 
 namespace win_client.Views
 {
@@ -71,12 +72,6 @@ namespace win_client.Views
         {
             // Register for messages
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
-
-            // Let the ViewModel know we are loaded
-            if (_vm != null)
-            {
-                _vm.OnViewLoaded();
-            }
 
             // Give focus to the right button.
             //TODO: The caller's should establish the focus position in a parameter.

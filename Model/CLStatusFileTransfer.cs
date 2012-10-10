@@ -11,97 +11,60 @@ using System.Linq;
 using System.Text;
 using GalaSoft.MvvmLight;
 using CloudApiPrivate.Model;
+using System.Windows;
+using RateBar;
+using System.Windows.Data;
+using System.Linq.Expressions;
 
 namespace win_client.Model
 {
-    public sealed class CLStatusFileTransfer : NotifiableObject<CLStatusFileTransfer>
+    public sealed class CLStatusFileTransfer : CLStatusFileTransferBase<CLStatusFileTransfer>
     {
+        #region Public fields
+
+        public bool IsDirectionUpload = false;
+        public long FileSizeBytes = 0;
+        public DateTime StartTime = DateTime.MinValue;
+        public long SamplesTaken = 0;
+        public long CumulativeBytesTransferred = 0;
+        public DateTime CurrentSampleTime = DateTime.MinValue;
+        public Double TransferRateBytesPerSecondAtCurrentSample = 0d;
+        public bool IsComplete = false;
+
+        #endregion
+
         #region Fixed bindable properties
 
-        public bool IsDirectionUpload { get; set; }
-        public string CloudRelativePath { get; set; }
-        public long FileSizeBytes { get; set; }
-        public DateTime StartTime { get; set; }
-        
+        public override string CloudRelativePath { get; set; }
+
         #endregion
 
         #region Variable bindable properties
 
         /// <summary>
-        /// The <see cref="SamplesTaken" /> property's name.
+        /// Sets and gets the StatusGraph property.
+        /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
-        private long _samplesTaken = 0;
-        public long SamplesTaken
+        private RateGraph _statusGraph;
+        public override RateGraph StatusGraph
         {
-            get { return _samplesTaken; }
-            set
-            {
-                if (_samplesTaken == value) { return; }
-                _samplesTaken = value;
-                NotifyPropertyChanged(parent => parent.SamplesTaken);
-            }
+            get { return _statusGraph; }
         }
 
         /// <summary>
-        /// Sets and gets the CumulativeBytesTransfered property.
+        /// Sets and gets the Visibility property.
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
-        private long _cumulativeBytesTransfered = 0;
-        public long CumulativeBytesTransfered
+        public override Visibility Visibility
         {
-            get { return _cumulativeBytesTransfered; }
-            set
-            {
-                if (_cumulativeBytesTransfered != value)
-                {
-                    _cumulativeBytesTransfered = value;
-                    NotifyPropertyChanged(parent => parent.CumulativeBytesTransfered);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Sets and gets the CurrentSampleTime property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        private DateTime _currentSampleTime = DateTime.MinValue;
-        public DateTime CurrentSampleTime
-        {
-            get { return _currentSampleTime; }
-            set
-            {
-                if (_currentSampleTime != value)
-                {
-                    _currentSampleTime = value;
-                    NotifyPropertyChanged(parent => parent.CurrentSampleTime);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Sets and gets the TransferRateBytesPerSecondAtCurrentSample property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        private Double _transferRateBytesPerSecondAtCurrentSample = 0.0;
-        public Double TransferRateBytesPerSecondAtCurrentSample
-        {
-            get { return _transferRateBytesPerSecondAtCurrentSample; }
-            set
-            {
-                if (_transferRateBytesPerSecondAtCurrentSample != value)
-                {
-                    _transferRateBytesPerSecondAtCurrentSample = value;
-                    NotifyPropertyChanged(parent => parent.TransferRateBytesPerSecondAtCurrentSample);
-                }
-            }
+            get { return Visibility.Visible; }
         }
 
         /// <summary>
         /// Sets and gets the DisplayRateAtCurrentSample property.
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
-        private Double _displayRateAtCurrentSample = 0.0;
-        public Double DisplayRateAtCurrentSample
+        public override Double DisplayRateAtCurrentSample
         {
             get { return _displayRateAtCurrentSample; }
             set
@@ -113,13 +76,15 @@ namespace win_client.Model
                 }
             }
         }
+        private static string DisplayRateAtCurrentSampleName = ((MemberExpression)((Expression<Func<CLStatusFileTransfer, double>>)(parent => parent.DisplayRateAtCurrentSample)).Body).Member.Name;
+        private Double _displayRateAtCurrentSample = 0d;
 
         /// <summary>
         /// Sets and gets the PercentComplete property.
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
-        private Double _percentComplete = 0.0;
-        public Double PercentComplete
+        private Double _percentComplete = 0d;
+        public override Double PercentComplete
         {
             get { return _percentComplete; }
             set
@@ -133,29 +98,11 @@ namespace win_client.Model
         }
 
         /// <summary>
-        /// Sets and gets the IsComplete property.
-        /// Changes to that property's value raise the PropertyChanged event. 
-        /// </summary>
-        private bool _isComplete = false;
-        public bool IsComplete
-        {
-            get { return _isComplete; }
-            set
-            {
-                if (_isComplete != value)
-                {
-                    _isComplete = value;
-                    NotifyPropertyChanged(parent => parent.IsComplete);
-                }
-            }
-        }
-
-        /// <summary>
         /// Sets and gets the DisplayFileSize property.
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
         private string _displayFileSize = String.Empty;
-        public string DisplayFileSize
+        public override string DisplayFileSize
         {
             get { return _displayFileSize; }
             set
@@ -173,7 +120,7 @@ namespace win_client.Model
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
         private string _displayTimeLeft = String.Empty;
-        public string DisplayTimeLeft
+        public override string DisplayTimeLeft
         {
             get { return _displayTimeLeft; }
             set
@@ -191,7 +138,7 @@ namespace win_client.Model
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
         private string _displayElapsedTime = String.Empty;
-        public string DisplayElapsedTime
+        public override string DisplayElapsedTime
         {
             get { return _displayElapsedTime; }
             set
@@ -205,5 +152,30 @@ namespace win_client.Model
         }
 
         #endregion
+
+        public CLStatusFileTransfer()
+        {
+            _statusGraph = new RateGraph()
+            {
+                Height = 20,
+                Margin = new Thickness(3, 1, 3, 0),
+                RateMaximum = 1d,
+                RateMinimum = 0d,
+                Maximum = 1d,
+                Minimum = 0d
+            };
+
+            _statusGraph.SetBinding(RateGraph.RateProperty,
+                new Binding(DisplayRateAtCurrentSampleName)
+                {
+                    Source = this
+                });
+
+            _statusGraph.SetBinding(RateGraph.ValueProperty,
+                new Binding(PercentCompleteName)
+                {
+                    Source = this
+                });
+        }
     }
 }

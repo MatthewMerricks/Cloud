@@ -64,6 +64,7 @@
     <Compile Include="CLPrivateRestClient.cs" />
     <Compile Include="Common\CLCopyFiles.cs" />
     <Compile Include="Common\CLDeepCompare.cs" />
+    <Compile Include="Common\CLScrollHelper.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
     <Compile Include="Common\CLFileShortcuts.cs" />
     <Compile Include="Common\CLSecureString.cs" />

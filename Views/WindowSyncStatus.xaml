@@ -20,6 +20,7 @@
     xmlns:Controls="clr-namespace:wyDay.Controls;assembly=AutomaticUpdaterWPF" 
     xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
     xmlns:rate="clr-namespace:RateBar;assembly=RateBar"
+    xmlns:icHelper="clr-namespace:CloudApiPrivate.Common;assembly=CloudApiPrivate"
 
     DataContext="{Binding WindowSyncStatusViewModel, Source={StaticResource Locator}}" 
     mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
@@ -33,15 +34,44 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Cloud;component/Skins/MainSkin.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Data template for an upload/download graph -->
+            <DataTemplate x:Key="UploadDownloadTemplate">
+                <Grid Background="#FFF2F4F5" Visibility="{Binding Visibility}">
+                    <Border BorderBrush="Black" BorderThickness="1" />
+                    <StackPanel Orientation="Vertical" Margin="3,2,0,0">
+                        <TextBlock Text="{Binding CloudRelativePath}" FontSize="8"/>
+                        <ContentPresenter Height="20" Content="{Binding StatusGraph}" />
+                        <Grid Margin="0,1,0,1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding DisplayFileSize}" FontSize="8" Margin="3,0,0,0"/>
+                            <TextBlock Text="{Binding DisplayElapsedTime}" FontSize="8" Grid.Column="2" HorizontalAlignment="Center" Margin="0,0,3,0"/>
+                            <TextBlock Text="{Binding DisplayTimeLeft}" FontSize="8" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,3,0"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </DataTemplate>
+
+            <!-- Data template for a message list element -->
+            <DataTemplate x:Key="MessageListElementTemplate">
+                <Grid Background="#FFF2F4F5">
+                    <TextBlock Text="{Binding MessageText}" FontSize="12" />
+                </Grid>
+            </DataTemplate>
+
         </ResourceDictionary>
     </Window.Resources>
 
     <Grid x:Name="LayoutRoot" Background="#FFEFF4F5">
         <Grid.RowDefinitions>
             <RowDefinition Height="13"/>
-            <RowDefinition Height="Auto" MinHeight="293"/>
+            <RowDefinition Height="Auto" MinHeight="280"/>
             <RowDefinition Height="2*"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
 
         <!-- Title for Upload/Download Status section -->
@@ -60,55 +90,51 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
-            
-            <ItemsControl ItemsSource="{Binding ListFilesUploading}" ScrollViewer.VerticalScrollBarVisibility="Auto">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Background="#FFF2F4F5">
-                            <Border BorderBrush="Black" BorderThickness="1" />
-                            <StackPanel Orientation="Vertical" Margin="3,2,0,0">
-                                <TextBlock Text="{Binding CloudRelativePath}" FontSize="8"/>
-                                <rate:RateGraph Height="20" Margin="3,1,3,0" Rate="{Binding DisplayRateAtCurrentSample}" Value="{Binding PercentComplete}" RateMaximum="100.0" Maximum="100.0" Minimum="0.0" /> 
-                                <Grid Margin="0,1,0,1">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{Binding DisplayFileSize}" FontSize="8" Margin="3,0,0,0"/>
-                                    <TextBlock Text="{Binding DisplayTimeLeft}" FontSize="8" Grid.Column="1" HorizontalAlignment="Center" Margin="0,0,3,0"/>
-                                    <TextBlock Text="{Binding DisplayElapsedTime}" FontSize="8" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,3,0"/>
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
 
-            <ItemsControl ItemsSource="{Binding ListFilesDownloading}" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.Column="1">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Background="#FFF2F4F5">
-                            <Border BorderBrush="Black" BorderThickness="1" />
-                            <StackPanel Orientation="Vertical" Margin="3,2,0,0">
-                                <TextBlock Text="{Binding CloudRelativePath}" FontSize="8"/>
-                                <rate:RateGraph Height="20" Margin="3,1,3,0" Rate="{Binding DisplayRateAtCurrentSample}" Value="{Binding PercentComplete}" RateMaximum="100.0" Maximum="100.0" Minimum="0.0" />
-                                <Grid Margin="0,1,0,1">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{Binding DisplayFileSize}" FontSize="8" Margin="3,0,0,0"/>
-                                    <TextBlock Text="{Binding DisplayTimeLeft}" FontSize="8" Grid.Column="1" HorizontalAlignment="Center" Margin="0,0,3,0"/>
-                                    <TextBlock Text="{Binding DisplayElapsedTime}" FontSize="8" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,3,0"/>
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <!-- Upload stack -->
+            <ItemsControl ItemsSource="{Binding ListFilesUploading}" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemTemplate="{StaticResource UploadDownloadTemplate}" />
 
+            <!-- Download stack -->
+            <ItemsControl ItemsSource="{Binding ListFilesDownloading}" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.Column="1" ItemTemplate="{StaticResource UploadDownloadTemplate}" />
+
+        </Grid>
+
+        <!-- Message area -->
+        <Grid Grid.Row="2">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="icMessageList" ItemsSource="{Binding ListMessages}" ItemTemplate="{StaticResource MessageListElementTemplate}" Margin="3,3,3,3" 
+                               icHelper:ItemsControlHelper.ScrollToLastItem="True"  />
+                </ScrollViewer>
+            </Border>
+        </Grid>
+        
+        <Grid Grid.Row="3">
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
+                <Button x:Name="cmdDone" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}"
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Margin="20,0,0,0"
+                            Command="{Binding WindowSyncStatus_DoneCommand, Mode=OneTime}" TabIndex="0" IsDefault="True" ToolTip="Click to close this window.">
+                    <AccessText Text="_Done"/>
+                </Button>
+
+                <Button x:Name="cmdShowLog" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" IsCancel="True" 
+                            Command="{Binding WindowSyncStatus_ShowLogCommand, Mode=OneTime}" TabIndex="1" Margin="10,0,0,0" ToolTip="Click to show the message log.">
+                    <AccessText Text="..._Log" />
+                </Button>
+                
+                <Button x:Name="cmdSaveLog" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" IsCancel="True" 
+                            Command="{Binding WindowSyncStatus_SaveLogCommand, Mode=OneTime}" TabIndex="2" Margin="10,0,0,0" ToolTip="Click to save the message log.">
+                    <AccessText Text="..._Save Log" />
+                </Button>
+                
+                <Button x:Name="cmdShowErrorLog" HorizontalAlignment="Center" VerticalAlignment="Center" Width="90" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
+                            Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" IsCancel="True" 
+                            Command="{Binding WindowSyncStatus_ShowErrorLogCommand, Mode=OneTime}" TabIndex="3" Margin="10,0,0,0" ToolTip="Click to show the unresolved error log.">
+                    <AccessText Text="..._Error Log" />
+                </Button>
+            </StackPanel>
         </Grid>
     </Grid>
 </Window>

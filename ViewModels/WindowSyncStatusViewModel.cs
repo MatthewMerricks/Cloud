@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using System.Windows.Threading;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using CloudApiPrivate.Model;
 
 namespace win_client.ViewModels
 {
@@ -32,6 +34,7 @@ namespace win_client.ViewModels
         private DispatcherTimer _timerDebugObjectCreation = null;
         private DispatcherTimer _timerDebugBandwidthSetting = null;
         private DispatcherTimer _timerDebugProcessLists = null;
+        private DispatcherTimer _timerDebugCreateMessages = null;
         private Random _random = new Random();
         private Double _dblCurrentBandwidthBitsPerSecondUpload = 0.0;
         private Double _dblCurrentBandwidthBitsPerSecondDownload = 0.0;
@@ -40,9 +43,10 @@ namespace win_client.ViewModels
 
         private const Double _kPercentOfDisplayHeightRepresentingMaxBandwidth = 0.8;
         private const int _kBitsPerByteFudgeFactor = 10;
-        private const int _kTimerDebugObjectCreationBasePeriodMs = 1000;
+        private const int _kTimerDebugObjectCreationBasePeriodMs = 500;
         private const int _kTimerDebugBandwidthSettingBasePeriodMs = 100;
         private const int _kTimerDebugProcessListsBasePeriodMs = 200;
+        private const int _kTimerDebugCreateMessagesBasePeriodMs = 5000;
 
         private List<string> _pathList = new List<string>()
             {
@@ -63,32 +67,69 @@ namespace win_client.ViewModels
                 "\\CloudCode.cs",
             };
 
+        private List<string> _messageList = new List<string>()
+            {
+                "File \\Pictures\\abc.png downloaded.",
+                "File \\Documents\\MyStory.doc uploaded.",
+                "ERROR: Connection lost.",
+                "Connection restored.",
+                "Very long message. Very long message. Very long message. Very long message. Very long message. Very long message. Very long message. Very long message. Very long message."
+            };
+
         #endregion
 
-        #region Events from View
+        #region Constructor
 
-        public void OnViewLoaded()
+        public WindowSyncStatusViewModel()
         {
+            //TODO: Initialize the historic bandwidth
+
             // Prime the pump with the current transfer rate.
             OnTimerDebugBandwidthSetting_Tick(null, null);
 
             // Start the Object Creation timer
-            _timerDebugObjectCreation = new DispatcherTimer();
+            _timerDebugObjectCreation = new DispatcherTimer(DispatcherPriority.Input,
+                Application.Current.Dispatcher);
             _timerDebugObjectCreation.Interval = TimeSpan.FromMilliseconds(100);
             _timerDebugObjectCreation.Tick += OnTimerDebugObjectCreation_Tick;
             _timerDebugObjectCreation.Start();
 
             // Start the Bandwidth Setting timer
-            _timerDebugBandwidthSetting = new DispatcherTimer();
+            _timerDebugBandwidthSetting = new DispatcherTimer(DispatcherPriority.Input,
+                Application.Current.Dispatcher);
             _timerDebugBandwidthSetting.Interval = TimeSpan.FromMilliseconds(_kTimerDebugBandwidthSettingBasePeriodMs);
             _timerDebugBandwidthSetting.Tick += OnTimerDebugBandwidthSetting_Tick;
             _timerDebugBandwidthSetting.Start();
 
             // Start the list processing timer
-            _timerDebugProcessLists = new DispatcherTimer();
+            _timerDebugProcessLists = new DispatcherTimer(DispatcherPriority.Input,
+                Application.Current.Dispatcher);
             _timerDebugProcessLists.Interval = TimeSpan.FromMilliseconds(_kTimerDebugProcessListsBasePeriodMs);
             _timerDebugProcessLists.Tick += OnTimerDebugProcessLists_Tick;
             _timerDebugProcessLists.Start();
+
+            // Start the message creation timer
+            _timerDebugCreateMessages = new DispatcherTimer(DispatcherPriority.Input, Application.Current.Dispatcher);
+            _timerDebugCreateMessages.Interval = TimeSpan.FromMilliseconds(100);
+            _timerDebugCreateMessages.Tick += OnTimerDebugCreateMessages_Tick;
+            _timerDebugCreateMessages.Start();
+
+            // Allocate the fixed collections of upload and download objects (6 each)
+            ListFilesUploading = new ObservableCollection<object>();
+            ListFilesDownloading = new ObservableCollection<object>();
+            for (int i = 0; i < 6; i++)
+            {
+                _trace.writeToLog(9, "WindowSyncStatusViewModel: OnViewLoaded: Add upload list item: {0}.", i);
+                CLStatusFileTransferBlank objXfer = new CLStatusFileTransferBlank();
+                ListFilesUploading.Add(objXfer);
+
+                _trace.writeToLog(9, "WindowSyncStatusViewModel: OnViewLoaded: Add download list item: {0}.", i);
+                objXfer = new CLStatusFileTransferBlank();
+                ListFilesDownloading.Add(objXfer);
+            }
+
+            // Allocate the message list
+            ListMessages = new ObservableCollection<CLStatusMessage>();
         }
 
         #endregion
@@ -100,22 +141,22 @@ namespace win_client.ViewModels
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
         public const string ListFilesDownloadingPropertyName = "ListFilesDownloading";
-        private ObservableCollection<CLStatusFileTransfer> _listFilesDownloadingPropertyName = new ObservableCollection<CLStatusFileTransfer>();
-        public ObservableCollection<CLStatusFileTransfer> ListFilesDownloading
+        private ObservableCollection<object> _listFilesDownloading = null;
+        public ObservableCollection<object> ListFilesDownloading
         {
             get
             {
-                return _listFilesDownloadingPropertyName;
+                return _listFilesDownloading;
             }
 
             set
             {
-                if (_listFilesDownloadingPropertyName == value)
+                if (_listFilesDownloading == value)
                 {
                     return;
                 }
 
-                _listFilesDownloadingPropertyName = value;
+                _listFilesDownloading = value;
                 RaisePropertyChanged(ListFilesDownloadingPropertyName);
             }
         }
@@ -125,25 +166,49 @@ namespace win_client.ViewModels
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
         public const string ListFilesUploadingPropertyName = "ListFilesUploading";
-        private ObservableCollection<CLStatusFileTransfer> _listFilesUploadingPropertyName = new ObservableCollection<CLStatusFileTransfer>();
-        public ObservableCollection<CLStatusFileTransfer> ListFilesUploading
+        private ObservableCollection<object> _listFilesUploading = null;
+        public ObservableCollection<object> ListFilesUploading
         {
             get
             {
-                return _listFilesUploadingPropertyName;
+                return _listFilesUploading;
             }
 
             set
             {
-                if (_listFilesUploadingPropertyName == value)
+                if (_listFilesUploading == value)
                 {
                     return;
                 }
 
-                _listFilesUploadingPropertyName = value;
+                _listFilesUploading = value;
                 RaisePropertyChanged(ListFilesUploadingPropertyName);
             }
         }
+
+        /// <summary>
+        /// The <see cref="ListMessages" /> property's name.
+        /// </summary>
+        public ObservableCollection<CLStatusMessage> ListMessages
+        {
+            get
+            {
+                return _listMessages;
+            }
+
+            set
+            {
+                if (_listMessages == value)
+                {
+                    return;
+                }
+
+                _listMessages = value;
+                RaisePropertyChanged(ListMessagesPropertyName);
+            }
+        }
+        public const string ListMessagesPropertyName = "ListMessages";
+        private ObservableCollection<CLStatusMessage> _listMessages = null;
 
         /// <summary>
         /// The <see cref="WindowSyncStatus_Title" /> property's name.
@@ -186,50 +251,83 @@ namespace win_client.ViewModels
         {
 
             // Stop the timer while we process.
+            _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugObjectCreation_Tick: Entry.");
             _timerDebugObjectCreation.Stop();
 
             // Choose the direction (upload or download)
             bool isUpload = _random.NextDouble() > 0.5 ? true : false;
 
             // Generate a new upload or download only if the target list is not full.
-            ObservableCollection<CLStatusFileTransfer> targetList = isUpload ? ListFilesUploading : ListFilesDownloading;
+            ObservableCollection<object> targetList = isUpload ? ListFilesUploading : ListFilesDownloading;
             lock (targetList)
             {
-                if (targetList.Count <= 5)
+                _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugObjectCreation_Tick: Work on upload list: {0}. Currently active items: {1}.  Count: {2}.", isUpload, GetCurrentActiveCountInList(targetList), targetList.Count);
+                // Loop through the target list looking for an available spot.
+                for (int i = 0; i < targetList.Count; i++)
                 {
-                    // Choose a random file size between zero and 204800.
-                    long fileSize = (long)(_random.NextDouble() * 204800.0);
+                    _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugObjectCreation_Tick: Top of loop.  IsUpload: {0}. Index: {1}.", isUpload, i);
+                    if (targetList[i] is CLStatusFileTransferBlank)
+                    {
+                        // Make a new display object
+                        _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugObjectCreation_Tick: Create an item.  IsUpload: {0}. item: {1}.", isUpload, i);
+                        CLStatusFileTransfer objXfer = new CLStatusFileTransfer();
 
-                    // Build a random path and fileNameExt.
-                    int pathIndex = _random.Next(_pathList.Count);
-                    string path = _pathList[pathIndex];
-                    int fileNameExtIndex = _random.Next(_fileNameList.Count);
-                    string fileNameExt = _fileNameList[fileNameExtIndex];
-                    string fullPath = path + fileNameExt;
+                        // Choose a random file size between zero and 204800.
+                        long fileSize = (long)(_random.NextDouble() * 204800.0);
 
-                    // Get the current rates for this object
-                    Double dblCurrentDisplayRate;
-                    Double dblXferRateBytesPerSecond;
-                    GetCurrentTransferRates(isUpload, targetList, out dblCurrentDisplayRate, out dblXferRateBytesPerSecond);
+                        // Build a random path and fileNameExt.
+                        int pathIndex = _random.Next(_pathList.Count);
+                        string path = _pathList[pathIndex];
+                        int fileNameExtIndex = _random.Next(_fileNameList.Count);
+                        string fileNameExt = _fileNameList[fileNameExtIndex];
+                        string fullPath = path + fileNameExt;
 
-                    // Allocate a new object, set it up and add it to the list.
-                    CLStatusFileTransfer objXfer = new CLStatusFileTransfer();
-                    objXfer.IsDirectionUpload = isUpload;
-                    objXfer.CloudRelativePath = fullPath;
-                    objXfer.FileSizeBytes = fileSize;
-                    objXfer.SamplesTaken = 0;
-                    objXfer.CumulativeBytesTransfered = 0;
-                    objXfer.StartTime = DateTime.Now;
-                    objXfer.CurrentSampleTime = objXfer.StartTime;
-                    objXfer.TransferRateBytesPerSecondAtCurrentSample = dblXferRateBytesPerSecond;
-                    objXfer.DisplayRateAtCurrentSample = dblCurrentDisplayRate * 100;
-                    objXfer.PercentComplete = 0.0;
-                    objXfer.IsComplete = false;
-                    objXfer.DisplayElapsedTime = String.Empty;
-                    objXfer.DisplayTimeLeft = String.Empty;
-                    objXfer.DisplayFileSize = String.Empty;
-                    targetList.Add(objXfer);
+                        // Get the current rates for this object
+                        Double dblCurrentDisplayRate;
+                        Double dblXferRateBytesPerSecond;
+                        GetCurrentTransferRates(isUpload, targetList, GetCurrentActiveCountInList(targetList), out dblCurrentDisplayRate, out dblXferRateBytesPerSecond);
+
+                        // Allocate a new object, set it up and add it to the list.
+                        objXfer.IsDirectionUpload = isUpload;
+                        objXfer.CloudRelativePath = fullPath;
+                        objXfer.FileSizeBytes = fileSize;
+                        objXfer.SamplesTaken = 0;
+                        objXfer.CumulativeBytesTransferred = 0;
+                        objXfer.StartTime = DateTime.Now;
+                        objXfer.CurrentSampleTime = objXfer.StartTime;
+                        objXfer.TransferRateBytesPerSecondAtCurrentSample = dblXferRateBytesPerSecond;
+                        objXfer.DisplayRateAtCurrentSample = dblCurrentDisplayRate;
+                        objXfer.PercentComplete = 0.0;
+                        objXfer.IsComplete = false;
+                        objXfer.DisplayElapsedTime = String.Empty;
+                        objXfer.DisplayTimeLeft = String.Empty;
+                        objXfer.DisplayFileSize = String.Empty;
+
+                        _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugObjectCreation_Tick: IsUpload: {0}. Count {1}.", isUpload, targetList.Count);
+                        List<object> fileTransferBases = new List<object>((i == 0
+                                ? Enumerable.Empty<object>()
+                                //: targetList.Take(i - 1))
+                                : targetList.Take(i))
+                            .Concat(targetList.Skip(i + 1)));
+
+                        targetList.Clear();
+                        foreach (object toAdd in fileTransferBases.Take(i))
+                        {
+                            targetList.Add(toAdd);
+                        }
+                        targetList.Add(objXfer);
+                        foreach (object toAdd in fileTransferBases.Skip(i))
+                        {
+                            targetList.Add(toAdd);
+                        }
+                        _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugObjectCreation_Tick: IsUpload: {0}. CountAfter {1}.", isUpload, targetList.Count);
+
+                        // Break out.  Done now creating this transfer object.
+                        break;
+                    }
+                    _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugObjectCreation_Tick: After if.");
                 }
+                _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugObjectCreation_Tick: After loop.");
             }
 
             // Choose the time of the next creation tick
@@ -240,24 +338,65 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// Handle the creation of messages on a timer. 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnTimerDebugCreateMessages_Tick(object sender, EventArgs e)
+        {
+            // Stop the timer while we process.
+            _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugCreateMessages_Tick: Entry.");
+            _timerDebugCreateMessages.Stop();
+
+            CLStatusMessage newMessage = new CLStatusMessage();
+            int msgIndex = _random.Next(_messageList.Count);
+            newMessage.MessageText = _messageList[msgIndex];
+            ListMessages.Add(newMessage);
+
+            // Choose the time of the next creation tick
+            Double dblRandomMessageCreationTimerInterval = _random.NextDouble() * _kTimerDebugCreateMessagesBasePeriodMs;      // random number between 0 and base-period seconds.
+            _timerDebugCreateMessages.Interval = TimeSpan.FromMilliseconds(dblRandomMessageCreationTimerInterval);
+            _timerDebugCreateMessages.Start();
+        }
+
+        /// <summary>
+        /// Determine the count of the currently active transfer objects in a list.
+        /// </summary>
+        /// <param name="targetList">The target list.</param>
+        /// <returns></returns>
+        private int GetCurrentActiveCountInList(ObservableCollection<object> targetList)
+        {
+            int returnCount = 0;
+            for (int i = 0; i < targetList.Count; i++)
+            {
+                if (targetList[i] is CLStatusFileTransfer)
+                {
+                    returnCount++;
+                }
+            }
+            return returnCount;
+        }
+
+        /// <summary>
         /// Determine the current transfer rates for a transfer object
         /// </summary>
         /// <param name="isUpload">true: upload object</param>
         /// <param name="targetList">Upload or download list, depending on isUpload.  Assumed to be locked.</param>
+        /// <param name="countInTargetList">The count in the target list to use to apportion the bandwidth.</param>
         /// <param name="dblCurrentDisplayRate">Output object display rate (0.0 - 1.0)</param>
         /// <param name="dblXferRateBytesPerSecond">Output object transfer rate in bytes per second</param>
-        private void GetCurrentTransferRates(bool isUpload, ObservableCollection<CLStatusFileTransfer> targetList, out Double dblCurrentDisplayRate, out Double dblXferRateBytesPerSecond)
+        private void GetCurrentTransferRates(bool isUpload, ObservableCollection<object> targetList, int countInTargetList, out Double dblCurrentDisplayRate, out Double dblXferRateBytesPerSecond)
         {
             // Determine the bandwidth allocation for this object at this moment.
             Double dblAggregateCurrentBandwidthBitsPerSecond = isUpload ? _dblCurrentBandwidthBitsPerSecondUpload : _dblCurrentBandwidthBitsPerSecondDownload;
             Double dblAggregateHistoricBandwidthBitsPerSecond = isUpload ? _historicAverageBandwidthBitsPerSecondUpload : _historicAverageBandwidthBitsPerSecondDownload;
-            Double dblThisObjectCurrentBandwidthBitsPerSecond = dblAggregateCurrentBandwidthBitsPerSecond / (targetList.Count + 1);    // we haven't added this one to the count yet
-            Double dblThisObjectHistoricBandwidthBitsPerSecond = dblAggregateHistoricBandwidthBitsPerSecond / (targetList.Count + 1);    // we haven't added this one to the count yet
+            Double dblThisObjectCurrentBandwidthBitsPerSecond = dblAggregateCurrentBandwidthBitsPerSecond / countInTargetList;    // we haven't added this one to the count yet
+            Double dblThisObjectHistoricBandwidthBitsPerSecond = dblAggregateHistoricBandwidthBitsPerSecond / countInTargetList;    // we haven't added this one to the count yet
 
             // Determine the object's beginning rate to be displayed.  This is a number from 0.0 to 1.0.
             // This object will get a portion of the total bandwidth depending on how many transfers are currently in progress.
             // If this is the only active transfer object, it will get the total bandwidth.
-            // So, thisObjectBandwidthBitsPerSecond = dblAggregateCurrentBandwidthBitsPerSecond / (targetList.Count + 1).  // we haven't added this one yet
+            // So, thisObjectBandwidthBitsPerSecond = dblAggregateCurrentBandwidthBitsPerSecond / countInTargetList.
             // Now _kPercentOfDisplayHeightRepresentingMaxBandwidth represents the percent up the vertical display height (the display rate) that will
             // be the historical bandwidth in bits peer second for this object.  e.g., 80% or 0.8.  
             // So, if the current rate is equal to this object's historic rate allocation, the display rate would be _kPercentOfDisplayHeightRepresentingMaxBandwidth.
@@ -290,54 +429,62 @@ namespace win_client.ViewModels
             for (int listIndex = 0; listIndex < 2; listIndex++)
             {
                 // Choose the list.
-                ObservableCollection<CLStatusFileTransfer> targetList = listIndex == 0 ? ListFilesUploading : ListFilesDownloading;
+                ObservableCollection<object> targetList = listIndex == 0 ? ListFilesUploading : ListFilesDownloading;
 
                 // Process the list
                 lock (targetList)
                 {
-                    // First remove any completed uploads.
-                    for (int i = targetList.Count - 1; i > -1; i--)
+                    // First mark any completed uploads.
+                    for (int i = 0; i < targetList.Count; i++)
                     {
-                        if (targetList[i].IsComplete)
+                        if (targetList[i] is CLStatusFileTransfer
+                            && ((CLStatusFileTransfer)targetList[i]).IsComplete)
                         {
-                            targetList.RemoveAt(i);
+                            _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugProcessLists_Tick: Delete item at listIndex: {0}. item: {1}.", listIndex, i);
+                            targetList[i] = new CLStatusFileTransferBlank();
                         }
                     }
 
                     // Adjust the remaining active objects
-                    foreach (CLStatusFileTransfer objXfer in targetList)
+                    for (int i = 0; i < targetList.Count; i++)
                     {
-                        // Get the current rates for this object
-                        Double dblCurrentDisplayRate;
-                        Double dblXferRateBytesPerSecond;
-                        GetCurrentTransferRates(isUpload: true, targetList: targetList, dblCurrentDisplayRate: out dblCurrentDisplayRate, dblXferRateBytesPerSecond: out dblXferRateBytesPerSecond);
+                        CLStatusFileTransfer objXfer = targetList[i] as CLStatusFileTransfer;
+                        if (objXfer != null)
+                        {
+                            // Get the current rates for this object
+                            _trace.writeToLog(9, "WindowSyncStatusViewModel: OnTimerDebugProcessLists_Tick: Adjust listIndex: {0}. item: {1}.", listIndex, i);
+                            Double dblCurrentDisplayRate;
+                            Double dblXferRateBytesPerSecond;
+                            GetCurrentTransferRates(isUpload: true, targetList: targetList, countInTargetList: GetCurrentActiveCountInList(targetList), 
+                                                    dblCurrentDisplayRate: out dblCurrentDisplayRate, dblXferRateBytesPerSecond: out dblXferRateBytesPerSecond);
 
-                        objXfer.SamplesTaken++;
+                            objXfer.SamplesTaken++;
 
-                        DateTime currentTime = DateTime.Now;
-                        TimeSpan samplePeriodTimeSpan = currentTime - objXfer.CurrentSampleTime;    // time span of this sample period
-                        objXfer.CurrentSampleTime = currentTime;
+                            DateTime currentTime = DateTime.Now;
+                            TimeSpan samplePeriodTimeSpan = currentTime - objXfer.CurrentSampleTime;    // time span of this sample period
+                            objXfer.CurrentSampleTime = currentTime;
 
-                        // Calculate the bytes transferred in the sample period just past.
-                        long bytesPossibleToTransferInPeriod = (long)(dblXferRateBytesPerSecond * samplePeriodTimeSpan.TotalSeconds);
-                        long bytesTransferedInPeriod = Math.Min(objXfer.FileSizeBytes - objXfer.CumulativeBytesTransfered, bytesPossibleToTransferInPeriod);
-                        objXfer.CumulativeBytesTransfered += bytesTransferedInPeriod;
+                            // Calculate the bytes transferred in the sample period just past.
+                            long bytesPossibleToTransferInPeriod = (long)(dblXferRateBytesPerSecond * samplePeriodTimeSpan.TotalSeconds);
+                            long bytesTransferedInPeriod = Math.Min(objXfer.FileSizeBytes - objXfer.CumulativeBytesTransferred, bytesPossibleToTransferInPeriod);
+                            objXfer.CumulativeBytesTransferred += bytesTransferedInPeriod;
 
-                        objXfer.TransferRateBytesPerSecondAtCurrentSample = dblXferRateBytesPerSecond;
-                        objXfer.DisplayRateAtCurrentSample = dblCurrentDisplayRate * 100;
+                            objXfer.TransferRateBytesPerSecondAtCurrentSample = dblXferRateBytesPerSecond;
+                            objXfer.DisplayRateAtCurrentSample = dblCurrentDisplayRate;
 
-                        objXfer.PercentComplete = (objXfer.CumulativeBytesTransfered / objXfer.FileSizeBytes) * 100;
-                        objXfer.IsComplete = (objXfer.CumulativeBytesTransfered >= objXfer.FileSizeBytes);
+                            objXfer.PercentComplete = ((Double)objXfer.CumulativeBytesTransferred / (Double)objXfer.FileSizeBytes);
+                            objXfer.IsComplete = (objXfer.CumulativeBytesTransferred >= objXfer.FileSizeBytes);
 
-                        // Fill in the display strings.
-                        TimeSpan elapsedTime = objXfer.CurrentSampleTime - objXfer.StartTime;
-                        objXfer.DisplayElapsedTime = String.Format("Elapsed time: {0}:{1}", Math.Floor(elapsedTime.TotalMinutes), elapsedTime.Seconds);
+                            // Fill in the display strings.
+                            TimeSpan elapsedTime = objXfer.CurrentSampleTime - objXfer.StartTime;
+                            objXfer.DisplayElapsedTime = String.Format("Elapsed time: {0}:{1}", Math.Floor(elapsedTime.TotalMinutes), elapsedTime.Seconds.ToString("00"));
 
-                        int secondsLeft = (int)((objXfer.FileSizeBytes - objXfer.CumulativeBytesTransfered) / objXfer.TransferRateBytesPerSecondAtCurrentSample);
-                        TimeSpan timeLeft = new TimeSpan(0, 0, secondsLeft);
-                        objXfer.DisplayTimeLeft = String.Format("Time left: {0}:{1}", Math.Floor(elapsedTime.TotalMinutes), elapsedTime.Seconds);
+                            int secondsLeft = (int)Math.Ceiling(((objXfer.FileSizeBytes - objXfer.CumulativeBytesTransferred) / objXfer.TransferRateBytesPerSecondAtCurrentSample));
+                            TimeSpan timeLeft = new TimeSpan(0, 0, secondsLeft);
+                            objXfer.DisplayTimeLeft = String.Format("Time left: {0}:{1}", Math.Floor(timeLeft.TotalMinutes), timeLeft.Seconds.ToString("00"));
 
-                        objXfer.DisplayFileSize = String.Format("File size: {0:#,0}", objXfer.FileSizeBytes);
+                            objXfer.DisplayFileSize = String.Format("File size: {0:#,0}", objXfer.FileSizeBytes);
+                        }
                     }
                 }
             }
@@ -351,7 +498,27 @@ namespace win_client.ViewModels
         /// </summary>
         private bool OnClosing()
         {
-            // Clean-up logic here.
+            // Free the upload list.
+            if (ListFilesUploading != null)
+            {
+                ListFilesUploading.Clear();
+                ListFilesUploading = null;
+            }
+
+            // Free the download list.
+            if (ListFilesDownloading != null)
+            {
+                ListFilesDownloading.Clear();
+                ListFilesDownloading = null;
+            }
+
+            // Free the message list.
+            if (ListMessages != null)
+            {
+                ListMessages.Clear();
+                ListMessages = null;
+            }
+
             return false;                   // don't cancel the user's request to cancel
         }
 

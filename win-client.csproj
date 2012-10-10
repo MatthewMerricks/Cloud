@@ -186,6 +186,9 @@
     <Compile Include="DragDropServer\DragDropServer.cs" />
     <Compile Include="Model\CLPreferences.cs" />
     <Compile Include="Model\CLStatusFileTransfer.cs" />
+    <Compile Include="Model\CLStatusFileTransferBase.cs" />
+    <Compile Include="Model\CLStatusFileTransferBlank.cs" />
+    <Compile Include="Model\CLStatusMessage.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
     <Compile Include="Model\IDataService.cs" />

@@ -23,7 +23,7 @@ namespace RateBar
         /// The polygon of points
         /// </summary>
         private Polygon polygon;
-        private List<Double[]> _savedRateChanges = new List<double[]>();         // RKS
+        private Queue<double[]> _savedRateChanges = new Queue<double[]>();         // RKS
         private bool _isLoaded = false;                                          // RKS
 
         /// <summary>
@@ -43,13 +43,16 @@ namespace RateBar
 			// will be modified as we go along
             this.Loaded += (o, e) => 
             {
-                this.polygon = this.Template.FindName("graph", this) as Polygon;
-                
-				// Ensure we have the bottom left point of a graph to fill correctly
-				// and another point which will be moved
-				this.ratePoints.Add(new Double[] { 0, 0 });
-				this.ratePoints.Add(new Double[] { 0, 0 });
-                this._isLoaded = true;
+                if (!this._isLoaded)
+                {
+                    this.polygon = this.Template.FindName("graph", this) as Polygon;
+
+                    // Ensure we have the bottom left point of a graph to fill correctly
+                    // and another point which will be moved
+                    this.ratePoints.Add(new Double[] { 0, 0 });
+                    this.ratePoints.Add(new Double[] { 0, 0 });
+                    this._isLoaded = true;
+                }
             };
 		}
 
@@ -60,16 +63,16 @@ namespace RateBar
             {
                 // The data objects are not allocated until the loaded event, but OnRateChanged fires early.  Save the event and replay later.
                 Double[] rateChangedEvent = new Double[] { oldValue, newValue };
-                _savedRateChanges.Add(rateChangedEvent);
+                _savedRateChanges.Enqueue(rateChangedEvent);
                 return;
             }
 
             // Process any saved rate changes
-            foreach (Double[] rateChange in _savedRateChanges)
+            while (_savedRateChanges.Count > 0)
             {
-                ProcessRateChangedEvent(rateChange[0], rateChange[1]);
+                double[] retrieveSavedChange = _savedRateChanges.Dequeue();
+                ProcessRateChangedEvent(retrieveSavedChange[0], retrieveSavedChange[1]);
             }
-            _savedRateChanges.RemoveAll(select => { return true; });
 
             ProcessRateChangedEvent(oldValue, newValue);
         }
@@ -102,8 +105,9 @@ namespace RateBar
 		/// <param name="progressValue">The progress value to calculate the X point for</param>
 		private Double CalculateX(Double progressValue)
 		{
-			return progressValue / this.Maximum * this.Width;
-		}
+			//RKSreturn progressValue / this.Maximum * this.Width;
+            return progressValue / this.Maximum * this.ActualWidth;
+        }
 
 		/// <summary>
 		/// Returns the Y position of a point on the graph based on the rate value
@@ -112,12 +116,16 @@ namespace RateBar
 		private Double CalculateY(Double rateValue)
 		{
 			// Just return the height for 0 values to keep the graph on the baseline
-			if (rateValue == this.RateMinimum)
-				return this.Height;
+            if (rateValue == this.RateMinimum)
+            {
+                // RKS return this.Height;
+                return this.ActualHeight;
+            }
 
 			// The range that the graph is currently displaying
 			Double range = this.RateMaximum - this.RateMinimum;
-			return this.Height - ((this.Height / range) * rateValue);
-		}
+			//RKSreturn this.Height - ((this.Height / range) * rateValue);
+            return this.ActualHeight - ((this.ActualHeight / range) * rateValue);
+        }
 	}
 }

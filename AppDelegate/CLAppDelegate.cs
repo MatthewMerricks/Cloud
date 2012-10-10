@@ -769,7 +769,7 @@ namespace win_client.AppDelegate
             // // setup or not.
 
             // BOOL setupNeeded = YES;
-            // BOOL shouldStartCoreServices = YES;
+            // BOOL shouldStartCoreServices = YES; 
             bool setupNeeded = true;
             bool shouldStartCoreServices = true;
 

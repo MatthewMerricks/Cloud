@@ -15,7 +15,8 @@
                         <MultiBinding Converter="{StaticResource JScript}" ConverterParameter="values[0]/values[1]*values[2]">
                             <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Value"/>
                             <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Maximum"/>
-                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Width"/>
+                            <!--<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Width"/> RKS -->
+                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="ActualWidth"/>
                         </MultiBinding>
                     </Rectangle.Width>
                 </Rectangle>
@@ -25,16 +26,19 @@
                         <MultiBinding Converter="{StaticResource JScript}" ConverterParameter="(values[2]*0.8)/values[1]*values[0]">
                             <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Rate"/>
                             <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="RateMaximum"/>
-                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Height"/>
+                            <!--<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Height"/> RKS -->
+                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="ActualHeight"/>
                         </MultiBinding>
                     </Canvas.Bottom>
                 </Label>
-                <Line X1="0" X2="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}" Stroke="Black">
+                <!--<Line X1="0" X2="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}" Stroke="Black" > RKS -->
+                <Line X1="0" X2="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}" Stroke="Black" Visibility="Hidden">
                     <Canvas.Bottom>
                         <MultiBinding Converter="{StaticResource JScript}" ConverterParameter="(values[2]*0.8)/values[1]*values[0]">
                             <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Rate"/>
                             <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="RateMaximum"/>
-                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Height"/>
+                            <!--<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Height"/> RKS -->
+                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="ActualHeight"/>
                         </MultiBinding>
                     </Canvas.Bottom>
                 </Line>
