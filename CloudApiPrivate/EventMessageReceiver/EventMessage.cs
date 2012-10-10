@@ -18,23 +18,34 @@ namespace CloudApiPrivate.EventMessageReceiver
     public abstract class EventMessage : NotifiableObject<EventMessage>
     {
         #region constants
-        protected static readonly TimeSpan DefaultFadeInTime = TimeSpan.FromSeconds(20);
-        protected static readonly TimeSpan DefaultOpaqueTime = TimeSpan.FromSeconds(40);
+        protected static readonly TimeSpan DefaultFadeInTime = TimeSpan.FromSeconds(1);
+        protected static readonly TimeSpan DefaultOpaqueTime = TimeSpan.FromSeconds(4);
         protected static readonly TimeSpan DefaultFadeInPlusOpaqueTime = DefaultFadeInTime.Add(DefaultOpaqueTime);
-        protected static readonly TimeSpan DefaultFadeOutTime = TimeSpan.FromSeconds(20);
+        protected static readonly TimeSpan DefaultFadeOutTime = TimeSpan.FromSeconds(1);
         protected static readonly TimeSpan DefaultFullDisplayTimeIncludingFadings = DefaultFadeInPlusOpaqueTime.Add(DefaultFadeOutTime);
         #endregion
 
+        #region overridable properties
         public abstract EventMessageImage Image { get; }
         public abstract string Message { get; }
 
+        public virtual bool ShouldRemove
+        {
+            get
+            {
+                return DateTime.UtcNow.CompareTo(CompleteFadeOut) >= 0;
+            }
+        }
+        #endregion
+
+        #region remaining public properties
         public virtual DateTime FadeInCompletion
         {
             get
             {
                 return _fadeInCompletion;
             }
-            protected set
+            set
             {
                 if (value != _fadeInCompletion)
                 {
@@ -51,7 +62,7 @@ namespace CloudApiPrivate.EventMessageReceiver
             {
                 return _startFadeOut;
             }
-            protected set
+            set
             {
                 if (value != _startFadeOut)
                 {
@@ -68,7 +79,7 @@ namespace CloudApiPrivate.EventMessageReceiver
             {
                 return _completeFadeOut;
             }
-            protected set
+            set
             {
                 if (value != _completeFadeOut)
                 {
@@ -78,26 +89,52 @@ namespace CloudApiPrivate.EventMessageReceiver
             }
         }
         private DateTime _completeFadeOut;
+        #endregion
 
+        #region constructors
         protected EventMessage(Nullable<DateTime> fadeInCompletion = null,
             Nullable<DateTime> startFadeOut = null,
             Nullable<DateTime> completeFadeOut = null)
         {
-            SetFadingTimes(fadeInCompletion,
+            SetFadingTimesOnConstruction(fadeInCompletion,
                 startFadeOut,
                 completeFadeOut);
         }
 
-        protected void SetFadingTimes(Nullable<DateTime> fadeInCompletion = null,
-            Nullable<DateTime> startFadeOut = null,
-            Nullable<DateTime> completeFadeOut = null)
+        protected EventMessage(DateTime baseTime,
+            Nullable<TimeSpan> fadeInOffset = null,
+            Nullable<TimeSpan> startFadeOutOffset = null,
+            Nullable<TimeSpan> completeFadeOutOffset = null)
         {
-            Nullable<DateTime> utcTime = null;
-            Func<DateTime> GetAndSetUtcTime = () => (DateTime)(utcTime = utcTime ?? DateTime.UtcNow);
+            SetFadingTimesOnConstruction((fadeInOffset == null
+                    ? (Nullable<DateTime>)null
+                    : baseTime.Add((TimeSpan)fadeInOffset)),
+                (startFadeOutOffset == null
+                    ? (Nullable<DateTime>)null
+                    : baseTime.Add((TimeSpan)startFadeOutOffset)),
+                (completeFadeOutOffset == null
+                    ? (Nullable<DateTime>)null
+                    : baseTime.Add((TimeSpan)completeFadeOutOffset)),
+                () => baseTime);
+        }
+        #endregion
+
+        #region protected methods
+        protected void SetFadingTimesOnConstruction(Nullable<DateTime> fadeInCompletion = null,
+            Nullable<DateTime> startFadeOut = null,
+            Nullable<DateTime> completeFadeOut = null,
+            Func<DateTime> GetAndSetUtcTime = null)
+        {
+            if (GetAndSetUtcTime == null)
+            {
+                Nullable<DateTime> utcTime = null;
+                GetAndSetUtcTime = () => (DateTime)(utcTime = utcTime ?? DateTime.UtcNow);
+            }
 
             this._fadeInCompletion = fadeInCompletion ?? GetAndSetUtcTime().Add(DefaultFadeInTime);
             this._startFadeOut = startFadeOut ?? GetAndSetUtcTime().Add(DefaultFadeInPlusOpaqueTime);
             this._completeFadeOut = completeFadeOut ?? GetAndSetUtcTime().Add(DefaultFullDisplayTimeIncludingFadings);
         }
+        #endregion
     }
 }

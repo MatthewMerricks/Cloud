@@ -104,12 +104,30 @@ namespace win_client
             #region debug code to test EventMessageReceiver REMOVE THIS
             CloudApiPrivate.EventMessageReceiver.EventMessageReceiver messageRec = ((ViewModelLocator)Application.Current.Resources["Locator"]).EventMessageReceiver;
             Window newGrowlDisplay = null;
-            Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input,
-                new System.Threading.ThreadStart(() =>
+            messageRec.PropertyChanged += (sender2, e2) =>
                 {
-                    newGrowlDisplay = new DebugMessageDisplay.DebugMessageDisplay();
-                    newGrowlDisplay.Show();
-                }));
+                    if (e2.PropertyName == "GrowlVisible")
+                    {
+                        if (((CloudApiPrivate.EventMessageReceiver.EventMessageReceiver)sender2).GrowlVisible)
+                        {
+                            Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input,
+                                new System.Threading.ThreadStart(() =>
+                                {
+                                    newGrowlDisplay = new DebugMessageDisplay.DebugMessageDisplay();
+                                    newGrowlDisplay.Show();
+                                }));
+                        }
+                        else
+                        {
+                            Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input,
+                                new System.Threading.ThreadStart(() =>
+                                {
+                                    newGrowlDisplay.Close();
+                                }));
+                        }
+                    }
+                };
+
             //messageRec.PropertyChanged += (sender2, e2) =>
             //    {
             //        if (e2.PropertyName == "GrowlVisible")
@@ -130,10 +148,13 @@ namespace win_client
                     CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(3);
                     System.Threading.Thread.Sleep(1000);
                     CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(4);
-                    System.Threading.Thread.Sleep(5000);
+                    System.Threading.Thread.Sleep(4500);
                     CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(1);
-                    System.Threading.Thread.Sleep(1000);
-                    CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.SetDownloadingCount(0);
+
+                    System.Threading.Thread.Sleep(7000);
+                    CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.IncrementDownloadedCount();
+
+                    CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.DisplayErrorGrowl("My error");
                 }, null);
             #endregion
         }

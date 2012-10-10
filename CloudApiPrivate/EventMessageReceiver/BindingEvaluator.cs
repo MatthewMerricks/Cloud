@@ -17,8 +17,14 @@ namespace CloudApiPrivate.EventMessageReceiver
 {
     public class BindingEvaluator : DependencyObject
     {
+        public class Default
+        {
+            public static Default Instance = new Default();
+            private Default() { }
+        }
+
         public static readonly DependencyProperty ResultProperty = DependencyProperty.Register(
-            "Result", typeof(object), typeof(BindingEvaluator), new PropertyMetadata(ResultChanged));
+            "Result", typeof(object), typeof(BindingEvaluator), new PropertyMetadata(Default.Instance, ResultChanged));
 
         public static void ResultChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
@@ -28,7 +34,17 @@ namespace CloudApiPrivate.EventMessageReceiver
             }
         }
 
-        public object Result { get; set; }
+        public object Result
+        {
+            get
+            {
+                return (object)this.GetValue(ResultProperty);
+            }
+            set
+            {
+                this.SetValue(ResultProperty, value);
+            }
+        }
 
         private Action<DependencyPropertyChangedEventArgs> FireChanged;
 

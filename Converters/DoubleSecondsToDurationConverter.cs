@@ -23,7 +23,7 @@ namespace win_client.Converters
         {
             if (value == null)
             {
-                return null;
+                return Duration.Forever;
             }
 
             double castValue;
@@ -45,7 +45,7 @@ namespace win_client.Converters
 
                 if (!double.TryParse(valueString, out castValue))
                 {
-                    return null;
+                    return Duration.Forever;
                 }
             }
 
@@ -53,7 +53,7 @@ namespace win_client.Converters
                 || double.IsInfinity(castValue)
                 || castValue < 0)
             {
-                return null;
+                return Duration.Forever;
             }
 
             return new Duration(TimeSpan.FromSeconds(castValue));

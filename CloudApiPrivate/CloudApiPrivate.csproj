@@ -73,9 +73,14 @@
     <Compile Include="EventMessageReceiver\BindingAndTriggerValue.cs" />
     <Compile Include="EventMessageReceiver\BindingEvaluator.cs" />
     <Compile Include="EventMessageReceiver\DelayChangeObservableCollection.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadedMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\ErrorMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadedMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageReceiver.cs" />
-    <Compile Include="EventMessageReceiver\NotifiableObject.cs" />
+    <Compile Include="Model\NotifiableObject.cs" />
+    <Compile Include="EventMessageReceiver\RelayCommand.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadingMessage.cs" />
     <Compile Include="Model\CLPrivateDefinitions.cs" />
     <Compile Include="Model\CLRegistration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -93,7 +98,7 @@
     </Compile>
     <Compile Include="Static\CLExtensionMethods.cs" />
     <Compile Include="Static\CLFriendlyEnumValues.cs" />
-    <Compile Include="EventMessageReceiver\DownloadingMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadingMessage.cs" />
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\NativeMethods.cs" />
   </ItemGroup>

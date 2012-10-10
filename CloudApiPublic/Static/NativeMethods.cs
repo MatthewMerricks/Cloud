@@ -113,6 +113,19 @@ namespace CloudApiPublic.Static
         #endregion VERSIONS
         #endregion
 
+        #region client to screen
+        [StructLayout(LayoutKind.Sequential)]
+        public class POINT
+        {
+            public int x = 0;
+            public int y = 0;
+        }
+        [DllImport("user32.dll", EntryPoint = "ClientToScreen", SetLastError = true, ExactSpelling = true, CharSet = CharSet.Auto)]
+        public static extern int ClientToScreen(IntPtr hWnd, [In, Out] POINT pt);
 
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetCursorPos([Out] POINT lpPoint);
+        #endregion
     }
 }

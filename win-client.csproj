@@ -180,16 +180,20 @@
     <Compile Include="CleanShutdown\ShutdownService.cs" />
     <Compile Include="Common\CLWindowPlacement.cs" />
     <Compile Include="Common\ComparisonBinding.cs" />
+    <Compile Include="Converters\DebugConverter.cs" />
     <Compile Include="Converters\DoubleSecondsToDurationConverter.cs" />
+    <Compile Include="Converters\IconPathToImageSourceConverter.cs" />
     <Compile Include="DebugMessageDisplay\DebugMessageDisplay.xaml.cs">
       <DependentUpon>DebugMessageDisplay.xaml</DependentUpon>
     </Compile>
     <Compile Include="DebugMessageDisplay\DebugMessageDisplayBase.cs" />
+    <Compile Include="DebugMessageDisplay\MessageIconTemplateSelector.cs" />
     <Compile Include="DragDropServer\DragDropInterface.cs" />
     <Compile Include="DragDropServer\DragDropServer.cs" />
     <Compile Include="Model\CLPreferences.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
+    <Compile Include="Model\IconPath.cs" />
     <Compile Include="Model\IDataService.cs" />
     <Compile Include="Design\DesignDataService.cs" />
     <Compile Include="App.xaml.cs">
@@ -349,6 +353,10 @@
     <Page Include="DebugMessageDisplay\DebugMessageDisplay.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DebugMessageDisplay\MessageThemes.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="NavigationWindow.xaml">
       <SubType>Designer</SubType>
@@ -520,6 +528,10 @@
     <None Include="packages.config" />
     <None Include="win-client_TemporaryKey.pfx" />
     <None Include="WinClientCertificate.pfx" />
+    <Resource Include="BadgeCOM\Failed.ico" />
+    <Resource Include="BadgeCOM\Selective.ico" />
+    <Resource Include="BadgeCOM\Synced.ico" />
+    <Resource Include="BadgeCOM\Syncing.ico" />
     <Content Include="x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

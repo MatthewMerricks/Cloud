@@ -9,16 +9,12 @@
     xmlns:p="clr-namespace:win_client.Resources"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
->
-    <debugConverter:DebugConverter x:Key="DebugConverter" />
-    <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
+    mc:Ignorable="d">
 
     <LinearGradientBrush x:Key="MenuBackground" EndPoint="0.5,1" StartPoint="0.5,0">
         <GradientStop Color="#FFFFD892" Offset="1"/>
         <GradientStop Color="#FFFFF3DD" Offset="0.259"/>
     </LinearGradientBrush>
-
 
     <!-- 
     <Style TargetType="{x:Type ContextMenu}">

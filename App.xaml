@@ -22,9 +22,10 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Cloud;component/Skins/NotifyIconResources.xaml" />
+                <ResourceDictionary Source="/Cloud;component/DebugMessageDisplay/MessageThemes.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
-            <converters:DoubleSecondsToDurationConverter x:Key="DoubleSecondsToDurationConverter" />
+            <converters:DebugConverter x:Key="DebugConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
