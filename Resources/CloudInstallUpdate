@@ -54,7 +54,7 @@
       End If
    End Sub
 
-   ' Check to see if Explorer is running   
+   ' Check to see if a process is is running   
    Function IsProcessRunning(processPath, processFileNameExt)
       IsProcessRunning = False
       Dim colProcesses

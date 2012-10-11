@@ -390,39 +390,7 @@ namespace win_client.ViewModels
                             // The user said yes.  Tell the view to put up the folder browser so the user can select the new location.
                             _trace.writeToLog(9, "FramePreferencesAdvanced: OK to move cloud folder: User said yes.");
 
-                            // Actually move the Cloud folder and all its files.
-                            CLError error = null;
-                            Settings.Instance.MoveCloudDirectoryFromPath_toDestination(fromPath, toPath, out error);
-                            if (error == null)
-                            {
-                                // Save the new cloud folder path.
-                                Settings.Instance.updateCloudFolderPath(toPath, Settings.Instance.CloudFolderCreationTimeUtc);
-
-                                // Update visible path
-                                FramePreferencesAdvanced_CloudFolder = toPath;
-                            }
-                            else
-                            {
-                                // Display the error message.
-                                var dispatcher = CLAppDelegate.Instance.MainDispatcher;
-                                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
-                                {
-                                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                        errorMessage: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText,
-                                        title: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_Title,
-                                        headerText: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText,
-                                        rightButtonContent: Resources.Resources.generalOkButtonContent,
-                                        rightButtonIsDefault: true,
-                                        rightButtonIsCancel: true,
-                                        container: ViewGridContainer,
-                                        dialog: out _dialog,
-                                        actionOkButtonHandler:
-                                            returnedModalDialogViewModelInstance =>
-                                            {
-                                                // Do nothing here when the user clicks the OK button.  Leave the user on this same FramePreferencesAdvanced dialog.
-                                            });
-                                });
-                            }
+                            TestNewCloudFolderLocationAndPerformMoveIfNoError(fromPath, toPath);
                         }
                         else
                         {
@@ -430,6 +398,57 @@ namespace win_client.ViewModels
                         }
                     }
             );
+        }
+
+        /// <summary>
+        /// The user has said to move the cloud folder.  Test the target location to see that it
+        /// is not inside the existing cloud directory.  Also test the target location to see that
+        /// it is otherwise allowed as a cloud folder location.  If everything is OK, set a new Settings
+        /// flag to indicate that we are moving the cloud folder.  Also set a new Settings target
+        /// cloud folder path.  Then spin off a VBScript passing the current and target cloud folder paths
+        /// and immediately exit the application.  The Settings flag will prevent deletion of a virtually empty
+        /// cloud folder during shutdown.  The VBScript will wait for Cloud to exit, and kill it
+        /// if it takes too long.  Then the script will actually move the folder and restart Cloud.
+        /// Cloud will see the Settings flag on startup. It will move the Settings target cloud folder
+        /// path into the current path, and clear the Settings cloud folder move flag.
+        /// </summary>
+        /// <param name="fromPath"></param>
+        /// <param name="toPath"></param>
+        private void TestNewCloudFolderLocationAndPerformMoveIfNoError(string fromPath, string toPath)
+        {
+            // Actually move the Cloud folder and all its files.
+            CLError error = null;
+            Settings.Instance.MoveCloudDirectoryFromPath_toDestination(fromPath, toPath, out error);
+            if (error == null)
+            {
+                // Save the new cloud folder path.
+                Settings.Instance.updateCloudFolderPath(toPath, Settings.Instance.CloudFolderCreationTimeUtc);
+
+                // Update visible path
+                FramePreferencesAdvanced_CloudFolder = toPath;
+            }
+            else
+            {
+                // Display the error message.
+                var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                {
+                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                        errorMessage: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText,
+                        title: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_Title,
+                        headerText: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText,
+                        rightButtonContent: Resources.Resources.generalOkButtonContent,
+                        rightButtonIsDefault: true,
+                        rightButtonIsCancel: true,
+                        container: ViewGridContainer,
+                        dialog: out _dialog,
+                        actionOkButtonHandler:
+                            returnedModalDialogViewModelInstance =>
+                            {
+                                // Do nothing here when the user clicks the OK button.  Leave the user on this same FramePreferencesAdvanced dialog.
+                            });
+                });
+            }
         }
 
         #endregion

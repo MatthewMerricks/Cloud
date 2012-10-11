@@ -523,6 +523,7 @@
     <None Include="Artwork\SidebarCloud.icns" />
     <AppDesigner Include="Properties\" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\CloudRestart" />
     <None Include="win-client_TemporaryKey.pfx" />
     <None Include="WinClientCertificate.pfx" />
     <EmbeddedResource Include="Resources\CloudInstallUpdate" />

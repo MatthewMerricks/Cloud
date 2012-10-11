@@ -463,8 +463,8 @@ namespace win_client.Views
                 // Stream the CloudInstallUpdate.vbs file out to the user's temp directory
                 // Locate the user's temp directory.
                 _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Entry.");
-                string userTempDirectory = System.IO.Path.GetTempPath();
-                string vbsPath = userTempDirectory + "\\CloudInstallUpdate.vbs";
+                string userTempDirectory = System.IO.Path.GetTempPath(); 
+                string vbsPath = userTempDirectory + "CloudInstallUpdate.vbs";
 
                 // Get the assembly containing the .vbs resource.
                 _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Get the assembly containing the .vbs resource.");

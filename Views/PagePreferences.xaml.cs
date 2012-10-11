@@ -29,6 +29,7 @@ using System.Linq.Expressions;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using CleanShutdown.Messaging;
+using GalaSoft.MvvmLight.Command;
 
 namespace win_client.Views
 {
@@ -57,6 +58,27 @@ namespace win_client.Views
 
         #region Dependency Properties
 
+        public ICommand UnlinkCommand
+        {
+            get { return (ICommand)GetValue(UnlinkCommandProperty); }
+            set { SetValue(UnlinkCommandProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
+        // The big long member expression tree results in an automatically generated string "Preferences".
+        private static readonly string UnlinkCommandPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, ICommand>>)(parent => parent.UnlinkCommand)).Body).Member.Name;
+        public static readonly DependencyProperty UnlinkCommandProperty =
+            DependencyProperty.Register(UnlinkCommandPropertyName, typeof(ICommand), typeof(PagePreferences), new PropertyMetadata(new RelayCommand<object>(HandleUnlink)));
+
+        private static void HandleUnlink(object state)
+        {
+            PagePreferencesViewModel vm = ((ViewModelLocator)Application.Current.Resources["Locator"]).PagePreferencesViewModel;
+            if (vm != null)
+            {
+                // Invoke the ViewModel's Unlink action.
+                vm.UnlinkAction();
+            }
+        }
 
         public CLPreferences Preferences
         {

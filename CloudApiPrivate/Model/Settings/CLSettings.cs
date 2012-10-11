@@ -201,6 +201,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kShouldAddShowCloudFolderOnTaskbar = "should_add_show_cloud_folder_on_taskbar";
         public const string kShouldAddShowCloudFolderInStartMenu = "should_add_show_cloud_folder_in_start_menu";
         public const string kShouldAnimateToSystemTray = "should_animate_to_system_tray";
+        public const string kIsMovingCloudFolder = "moving_cloud_folder";
 
         /// <summary>
         /// The persistent settings properties.
@@ -255,6 +256,20 @@ namespace CloudApiPrivate.Model.Settings
                 }
                 _useColorIconForCloudFolder = value;
                 SettingsBase.Write<bool>(kUseColorIconForCloudFolder, value);
+            }
+        }
+
+        private bool _isMovingCloudFolder;
+        public bool IsMovingCloudFolder
+        {
+            get { return _isMovingCloudFolder; }
+            set
+            {
+                if (value != _isMovingCloudFolder)
+                {
+                    _isMovingCloudFolder = value;
+                    SettingsBase.Write<bool>(kIsMovingCloudFolder, value);
+                }
             }
         }
 
@@ -936,6 +951,12 @@ namespace CloudApiPrivate.Model.Settings
                 _useColorIconForCloudFolder = bTemp;
             }
 
+            isPresent = SettingsBase.ReadIfPresent<bool>(kIsMovingCloudFolder, out bTemp);
+            if (isPresent)
+            {
+                _isMovingCloudFolder = bTemp;
+            }
+            
             isPresent = SettingsBase.ReadIfPresent<int>(kCloudAppLanguage, out temp);
             if (isPresent)
             {

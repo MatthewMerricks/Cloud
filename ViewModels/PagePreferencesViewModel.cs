@@ -33,6 +33,7 @@ using System.Windows.Input;
 using CleanShutdown.Messaging;
 using CleanShutdown.Helpers;
 using CloudApiPrivate.Common;
+using System.Diagnostics;
 
 namespace win_client.ViewModels
 {  
@@ -470,7 +471,145 @@ namespace win_client.ViewModels
 
         #endregion
 
+        #region Public methods
+
+        /// <summary>
+        /// Invoked by the view when the inner Account ViewModel triggers a DependencyProperty action.
+        /// </summary>
+        public void UnlinkAction()
+        {
+            // If there are any changes to the preferences, warn the user.
+            if (!CLDeepCompare.IsEqual(_preferences, _originalPreferences))
+            {
+                // Tell the user that changes have been made to the preferences.  Please
+                // save or cancel your chages.
+                // Ask the user if it is OK to Unlink, then do it or not.
+                CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                    errorMessage: "Please save your changes or cancel them before unlinking.",
+                    title: "Cloud Information",
+                    headerText: "Preferences changed!",
+                    rightButtonContent: Resources.Resources.generalOkButtonContent,
+                    rightButtonIsDefault: true,
+                    rightButtonIsCancel: true,
+                    container: ViewGridContainer,
+                    dialog: out _dialog,
+                    actionOkButtonHandler:
+                      returnedViewModelInstance =>
+                      {
+                          // Do nothing here when the user clicks the OK button.
+                      }
+                );
+            }
+            else
+            {
+                // There are no changes to preferences.  Ask the user if it OK to unlink.
+                // Ask the user if it is OK to Unlink, then do it or not.
+                CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
+                    windowHeight: 250,
+                    leftButtonWidth: 75,
+                    rightButtonWidth: 75,
+                    title: Resources.Resources.FramePreferencesAccount_RemoveThisDevice,
+                    headerText: Resources.Resources.FramePreferencesAccount_UnlinkThisDevice,
+                    bodyText: Resources.Resources.FramePreferencesAccount_UnlinkThisDeviceBody,
+                    leftButtonContent: Resources.Resources.GeneralYesButtonContent,
+                    leftButtonIsDefault: false,
+                    leftButtonIsCancel: false,
+                    rightButtonContent: Resources.Resources.GeneralNoButtonContent,
+                    rightButtonIsDefault: true,
+                    rightButtonIsCancel: false,
+                    container: ViewGridContainer,
+                    dialog: out _dialog,
+                    actionResultHandler:
+                        returnedViewModelInstance =>
+                        {
+                            // Do nothing here when the user clicks the OK button.
+                            _trace.writeToLog(9, "PagePreferencesViewModel: Unlink device: Entry.");
+                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                            {
+                                // The user said yes.  Unlink this device.
+                                _trace.writeToLog(9, "FramePreferencesAccount: Unlink device: User said yes.");
+                                CLError error = null;
+                                CLAppDelegate.Instance.UnlinkFromCloudDotComSync(out error);
+                                //TODO: Handle any errors here.
+
+                                // Restart ourselves now
+                                RestartCloud();
+                            }
+                            else
+                            {
+                                // The user said no.  Do nothing.
+                            }
+                        }
+                );
+
+            }
+
+        }
+
+        #endregion
+
         #region Support Functions
+
+        /// <summary>
+        /// Restart Cloud by running a self-destructing VBScript that will wait for cloud to exit, kill it if it doesn't
+        /// exit quickly, and then restart Cloud (assuming Explorer is running).
+        /// </summary>
+        private void RestartCloud()
+        {
+            // Write the self-destructing script to the user's temp directory and launch it.
+            try
+            {
+                // Stream the CloudRestart.vbs file out to the user's temp directory
+                // Locate the user's temp directory.
+                _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Entry.");
+                string userTempDirectory = System.IO.Path.GetTempPath();
+                string vbsPath = userTempDirectory + "CloudRestart.vbs";
+
+                // Get the assembly containing the .vbs resource.
+                _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Get the assembly containing the .vbs resource.");
+                System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(global::win_client.ViewModels.PagePreferencesViewModel));
+                if (storeAssembly == null)
+                {
+                    _trace.writeToLog(1, "PagePreferencesViewModel: RestartCloud: ERROR: storeAssembly null.");
+                    return;
+                }
+
+                // Stream the CloudRestart.vbs file out to the temp directory
+                _trace.writeToLog(9, "PagePreferencesViewModel: StartCloudUpdaterAndExitNow: Call WriteResourceFileToFilesystemFile.");
+                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudRestart", vbsPath);
+                if (rc != 0)
+                {
+                    _trace.writeToLog(1, "PagePreferencesViewModel: RestartCloud: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100);
+                    return;
+                }
+
+                // Now we will create a new process to run the VBScript file.
+                _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Build the paths for launching the VBScript file.");
+                string systemFolderPath = CLShortcuts.Get32BitSystemFolderPath();
+                string cscriptPath = systemFolderPath + "\\cscript.exe";
+                _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Cscript executable path: <{0}>.", cscriptPath);
+
+                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @"""";
+                _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Launch the VBScript file.  Launch: <{0}>.", argumentsString);
+
+                // Launch the process
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.FileName = cscriptPath;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.Arguments = argumentsString;
+                Process.Start(startInfo);
+
+                // Exit the application.  If it hangs here, it will get killed!
+                _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Exit the application.");
+                CLAppDelegate.Instance.ExitApplication();
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "PagePreferencesViewModel: RestartCloud: ERROR: Exception. Msg: {0}.", ex.Message);
+            }
+        }
 
         /// <summary>
         /// Commit the changes to Settings and minimize to system tray.
