@@ -4964,10 +4964,21 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       . If three complete, we would expect the individual bandwidth of the remaining three uploads to double.
     - Coding the above...
   o 10/9/12 Tue:
-    - 6:30 - 
+    - 6:30 - 18:30
     - How should the historic average be calculated??
-      . 
-
+      . The samples should be fairly quick because this number can be changing rapidly.
+      . Sample only if there was at least one upload/download active for the entire sample period.
+      . Capture the number of bytes transfered during the sample period.
+      . The sample transfer rate is the number of bytes transfered divided by the sample period in seconds.
+      . Choose the sample period.  5 seconds?
+      . Keep a 50 period moving average in memory.
+      . Save the current average value to Settings at every sample.
+      . When starting up, start with the saved average as the first sample, and accumulate samples from there.
+      . If there are fewer than 50 periods in memory, calculate the average over the samples that we have.
+    - The file upload/download works somewhat with the test drivers, but the status bars don't move to the right.
+  o 10/10/12 Wed:
+    - 6:30 - 
+    - 
 
 
       
@@ -6330,6 +6341,8 @@ TODO:
   o Fix error in trace on shutdown: 01:02:39.568 PM_2648_1_CLModalErrorDialog: DisplayModalMessageBox:  Message: Are you sure you want to quit the Cloud.com application setup?.
   o The CloudUpdater still installs a new version on startup, and still complains about Cloud.exe still running.
   o Fix the Busy Indicator to use a converter to set Visibility to Collapsed in design mode.
+  o Change all MVVMLight RaisePropertyChanged to David's NotifyPropertyChanged.
+  o Add NotifyPropertyChanged snippet.
 
 
 

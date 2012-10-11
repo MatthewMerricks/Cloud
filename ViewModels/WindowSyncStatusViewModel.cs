@@ -238,6 +238,77 @@ namespace win_client.ViewModels
 
         #region Relay Commands
 
+        /// <summary>
+        /// Gets the WindowSyncStatus_DoneCommand.
+        /// </summary>
+        public ICommand WindowSyncStatus_DoneCommand
+        {
+            get
+            {
+                return _windowSyncStatus_DoneCommand
+                    ?? (_windowSyncStatus_DoneCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              CLAppMessages.Message_WindowSyncStatus_ShouldClose.Send(String.Empty);
+                                          }));
+            }
+        }
+        private ICommand _windowSyncStatus_DoneCommand;
+
+        /// <summary>
+        /// Gets the WindowSyncStatus_ShowLogCommand.
+        /// </summary>
+        public ICommand WindowSyncStatus_ShowLogCommand
+        {
+            get
+            {
+                return _windowSyncStatus_ShowLogCommand
+                    ?? (_windowSyncStatus_ShowLogCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              //TODO: Implement.
+                                              MessageBox.Show("Not implemented.", "Not Implemented!", MessageBoxButton.OK);
+                                          }));
+            }
+        }
+        private ICommand _windowSyncStatus_ShowLogCommand;
+
+        /// <summary>
+        /// Gets the WindowSyncStatus_SaveLogCommand.
+        /// </summary>
+        public ICommand WindowSyncStatus_SaveLogCommand
+        {
+            get
+            {
+                return _windowSyncStatus_SaveLogCommand
+                    ?? (_windowSyncStatus_SaveLogCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              //TODO: Implement.
+                                              MessageBox.Show("Not implemented.", "Not Implemented!", MessageBoxButton.OK);
+                                          }));
+            }
+        }
+        private ICommand _windowSyncStatus_SaveLogCommand;
+
+        /// <summary>
+        /// Gets the WindowSyncStatus_ShowErrorLogCommand.
+        /// </summary>
+        public ICommand WindowSyncStatus_ShowErrorLogCommand
+        {
+            get
+            {
+                return _windowSyncStatus_ShowErrorLogCommand
+                    ?? (_windowSyncStatus_ShowErrorLogCommand = new RelayCommand(
+                                          () =>
+                                          {
+                                              //TODO: Implement.
+                                              MessageBox.Show("Not implemented.", "Not Implemented!", MessageBoxButton.OK);
+                                          }));
+            }
+        }
+        private ICommand _windowSyncStatus_ShowErrorLogCommand;
+
         #endregion
 
         #region Methods
@@ -350,7 +421,7 @@ namespace win_client.ViewModels
 
             CLStatusMessage newMessage = new CLStatusMessage();
             int msgIndex = _random.Next(_messageList.Count);
-            newMessage.MessageText = _messageList[msgIndex];
+            newMessage.MessageText = DateTime.Now.ToString("G") + ": " + _messageList[msgIndex];
             ListMessages.Add(newMessage);
 
             // Choose the time of the next creation tick

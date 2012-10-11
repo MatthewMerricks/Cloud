@@ -49,6 +49,7 @@ namespace win_client.Common
             Message_PageFolderSelection_ShouldChooseCloudFolder,
             Message_PageSetupSelector_ShouldChooseCloudFolder,
             Message_DialogCheckForUpdates_ShouldCheckForUpdates,
+            Message_WindowSyncStatus_ShouldClose,
 #if TRASH
             Message_DragDropServer_ShouldShowSystrayDropWindow,
             Message_DragDropServer_ShouldHideSystrayDropWindow,
@@ -372,6 +373,19 @@ namespace win_client.Common
             public static void Register(object recipient, Action<string> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.Message_DialogCheckForUpdates_ShouldCheckForUpdates, action);
+            }
+        }
+
+        public static class Message_WindowSyncStatus_ShouldClose
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_WindowSyncStatus_ShouldClose);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_WindowSyncStatus_ShouldClose, action);
             }
         }
 

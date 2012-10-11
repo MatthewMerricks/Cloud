@@ -51,6 +51,9 @@ namespace win_client.Views
                 InitializeComponent();
                 _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Back from InitializeComponent.");
 
+                // Register for messages
+                CLAppMessages.Message_WindowSyncStatus_ShouldClose.Register(this, OnMessage_WindowSyncStatus_ShouldClose);
+
                 Loaded += WindowSyncStatus_Loaded;
                 Unloaded += WindowSyncStatus_Unloaded;
                 Closing += WindowSyncStatus_Closing;
@@ -68,27 +71,28 @@ namespace win_client.Views
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Exit.");
         }
 
+        private void OnMessage_WindowSyncStatus_ShouldClose(string obj)
+        {
+            this.Close();
+        }
+
         void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
         {
             // Register for messages
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
-
-            // Give focus to the right button.
-            //TODO: The caller's should establish the focus position in a parameter.
-            //this.cmdOk.Focus();
+            this.cmdDone.Focus();
 
         }
 
         void WindowSyncStatus_Unloaded(object sender, RoutedEventArgs e)
         {
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Unloaded: Entry.");
-            //TODO: Add code.
         }
 
         void WindowSyncStatus_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Closing: Entry.");
-            //TODO: Add code.
+            Messenger.Default.Unregister(this);
         }
 
 

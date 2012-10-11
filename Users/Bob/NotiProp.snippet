@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>notiprop</Title>
+      <Author>Bobs</Author>
+      <Description>
+      </Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>notiprop</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>PropertyName</ID>
+          <ToolTip>PropertyName</ToolTip>
+          <Default>PropertyName</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>Type</ID>
+          <ToolTip>Type</ToolTip>
+          <Default>Type</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>AttributeName</ID>
+          <ToolTip>AttributeName</ToolTip>
+          <Default>AttributeName</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>InitialValue</ID>
+          <ToolTip>InitialValue</ToolTip>
+          <Default>InitialValue</Default>
+          <Function>
+          </Function>
+        </Literal>
+      </Declarations>
+      <Code Language="csharp"><![CDATA[/// <summary>
+/// Sets and gets the $PropertyName$ property.
+/// Changes to that property's value raise the PropertyChanged event. 
+/// </summary>
+public $Type$ $PropertyName$ {
+    get {return $AttributeName$;}
+    set {
+        if ($AttributeName$ != value) {
+            $AttributeName$ = value;
+            NotifyPropertyChanged(parent => parent.$PropertyName$);
+        }
+    }
+}
+private $Type$ $AttributeName$ = $InitialValue$;
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
