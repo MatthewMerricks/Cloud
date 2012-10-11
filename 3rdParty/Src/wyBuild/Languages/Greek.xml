@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Greek</LangEn>
+	<Lang>Ελληνικά</Lang>
+	<Culture>el-GR</Culture>
+	<Buttons>
+		<Next>Επόμενο</Next>
+		<Update>Αναβάθμιση</Update>
+		<Finish>Τέλος</Finish>
+		<Cancel>Άκυρο</Cancel>
+		<ShowDetails>Εμφάνιση λεπτομερειών</ShowDetails>
+		<Close>Τερματισμός Διεργασίας</Close>
+		<CloseAll>Τερματισμός όλων των διεργασιών</CloseAll>
+		<CancelUpdate>Ακύρωση Αναβάθμισης</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Ακύρωση της αναβάθμισης;</Title>
+			<Content>Είστε σίγουροι ότι επιθυμείτε να εξέλθετε πριν ολοκληρωθεί η εγκατάσταση ;</Content>
+		</Cancel>
+		<Processes>
+			<Title>Τερματίστε τις διεργασίες …</Title>
+			<Content>Οι παρακάτω διεργασίες θα πρέπει να κλείσουν πριν προχωρήσει η αναβάθμιση. Επιλέξτε μία διεργασία και κάντε κλικ στο  „Τερματισμός Διεργασίας“.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Αρχεία σε χρήση ...</Title>
+			<Content>Τα ακόλουθα αρχεία είναι σε χρήση. Τα αρχεία αυτά πρέπει να κλείσουν πριν από την ενημέρωση μπορεί να συνεχιστεί.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>Το wyUpdate χρειάζεται δικαιώματα διαχειριστή για να αναβαθμίσει το %product%. Μπορείτε να το κάνετε αυτό με δύο τρόπους:
+
+1. Όταν σας ζητηθεί, δώστε το όνομα και τον κωδικό ενός Διαχειριστή του συστήματος.
+
+2. Στον Εξερευνητή των Windows, κάντε δεξί κλικ στο wyUpdate.exe και επιλέξτε „Εκτέλεση ως Διαχειριστής“</Admin>
+		<Download>Αποτυχία μεταφόρτωσης της αναβάθμισης.</Download>
+		<LogOff>Αναβάθμιση του %product%. Θα πρέπει να ακυρώσετε το wyUpdate πριν μπορέσετε να αποσυνδεθείτε.</LogOff>
+		<SelfUpdate>Η αναβαθμισμένη έκδοση αυτής τηε εφαρμογής η οποία απαιτείται για την αναβάθμιση του %product% απέτυχε να εγκατασταθεί.</SelfUpdate>
+		<ServFile>Αδύνατον να γίνει έλεγχος για ενημερώσεις, το αρχείο στον server ήταν αδύνατο να φορτωθεί.</ServFile>
+		<Update>Αποτυχία εγκατάστασης της αναβάθμισης.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Αναζήτηση για αναβαθμίσεις</Title>
+			<SubTitle>Το wyUpdate αναζητά αναβαθμίσεις.</SubTitle>
+			<Content>Το wyUpdate αναζητά αναβαθμίσεις για το %product%. Η διαδικασία αυτή μπορεί να διαρκέσει μερικά λεπτά</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Πληροφορίες Αναβάθμισης</Title>
+			<SubTitle>Αλλαγές στην τελευταία έκδοση του %product%.</SubTitle>
+			<Content>Η έκδοση του %product% που έχει εγκατασταθεί στον υπολογιστή είναι η %old_version%. Η τελευταία έκδοση είναι η %new_version%.  Παρακάτω ακολουθούν οι αλλαγές και οι βελτιώσεις της νέας έκδοσης:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Μεταφόρτωση και Εγκατάσταση ενημερώσεων</Title>
+			<SubTitle>Αναβάθμιση του %product% στην τελευταία έκδοση.</SubTitle>
+			<Content>Το wyUpdate μεταφορτώνει και εγκαθιστά αναβαθμίσεις για το %product%. Η διαδικασία μπορεί να διαρκέσει μερικά λεπτά.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Απεγκατάσταση αρχείων, φακέλλων και μητρώου</Title>
+			<SubTitle>Απεγκατάσταση αρχείων και μητρώου για το %product%</SubTitle>
+			<Content>Το wyUpdate απεγκαθιστά τα αρχεία και τα κλειδιά μητρώου που δημιουργήθηκαν κατά την εγκατάσταση του %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Επιτυχής Αναβάθμιση</Title>
+			<Content>Το %product% έχει επιτυχώς αναβαθμιστεί στην έκδοση %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Η τελευταία έκδοση είναι ήδη εγκατεστημένη</Title>
+			<Content>Το %product% είναι ενημερωμένο. Να θυμάστε να ελέγχετε συχνά για αναβαθμίσεις .</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Δεν υπάρχει αναβάθμιση στην τελευταία έκδοση</Title>
+			<Content>Υπάρχει μία νεότερη έκδοση του %product% (έκδοση %new_version%), αλλά δεν υπάρχει διαθέσιμη αναβάθμιση από την έκδοση που έχετε εγκατεστημένη (έκδοση %old_version%).</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Κάποιο λάθος συνέβη</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Μεταφόρτωση Αναβάθμισης</Download>
+		<DownloadSelfUpdate>Μεταφόρτωση του νέου προγράμματος wyUpdate</DownloadSelfUpdate>
+		<SelfUpdate>Αναβάθμιση του wyUpdate</SelfUpdate>
+		<Extract>Εξαγωγή Αρχείων</Extract>
+		<Processes>Κλείσιμο διεργασιών</Processes>
+		<PreExec>Εκτέλεση αρχείων</PreExec>
+		<Files>Αντιγραφή και αναβάθμιση αρχείων</Files>
+		<Registry>Αντιγραφή και αναβάθμιση του Μητρώου</Registry>
+		<Optimize>Βελτιστοποίηση και εκτέλεση αρχείων</Optimize>
+		<TempFiles>Αφαίρεση προσωρινών αρχείων</TempFiles>
+		<UninstallFiles>Απεγκατάσταση αρχείων και φακέλλων</UninstallFiles>
+		<UninstallReg>Απεγκατάσταση κλειδιών μητρώου</UninstallReg>
+		<RollingBackFiles>Τροχαίο αρχεία back</RollingBackFiles>
+		<RollingBackRegistry>Επαναφορά του μητρώου</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Κάντε κλικ στο „Αναβάθμιση“ για να ξεκινήσετε.</Update>
+		<Finish>Κάντε κλικ στο „Τέλος“ για να εξέλθετε.</Finish>
+	</Bottoms>
+</Translation>

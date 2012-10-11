@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Russian</LangEn>
+	<Lang>Русский</Lang>
+	<Culture>ru-RU</Culture>
+	<Buttons>
+		<Next>Далее</Next>
+		<Update>Обновить</Update>
+		<Finish>Завершить</Finish>
+		<Cancel>Отмена</Cancel>
+		<ShowDetails>Показать детали</ShowDetails>
+		<Close>Завершить процесс</Close>
+		<CloseAll>Завершить все процессы</CloseAll>
+		<CancelUpdate>Отменить обновление</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Отменить обновление?</Title>
+			<Content>Вы уверенн вы хотите выйти прежде чем обновление будет завершено?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Завершение процессов…</Title>
+			<Content>Следующие процессы должны быть завершены для продолжения обновления. Выберите процесс и щелкните «Завершить процесс».</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Файлы в использовании ...</Title>
+			<Content>Следующие файлы находятся в использовании. Эти файлы должны быть закрыты до обновления может быть продолжена.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate нужны права администратора чтобы обновить %product%. Вы можете сделать это двумя способами:
+
+1. Когда будет необходимо, введите имя и пароль администратора.
+
+2. В проводнике - щелкните правой кнопкой мыши на wyUpdate.exe и выберите «запустить от имени администратора»</Admin>
+		<Download>Невозможно загрузить обновление.</Download>
+		<LogOff>Обновление %product%. Вы должны отменить wyUpdate до того, как выйдете из системы.</LogOff>
+		<SelfUpdate>Невозможно установить новую версию клиента, необходимого для обновления %product%.</SelfUpdate>
+		<ServFile>Невозможно проверить обновления т.к.невозможно загрузить файл с сервера.</ServFile>
+		<Update>Невозможно установить обновление.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Поиск обновлений</Title>
+			<SubTitle>wyUpdate ищет обновления.</SubTitle>
+			<Content>wyUpdate ищет обновления для %product%. Этот процесс может занять несколько минут.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Данные об обновлении</Title>
+			<SubTitle>Изменения в самой последней версии %product%.</SubTitle>
+			<Content>Версия %product% установленного на этот компьютер %old_version%. Самая последняя версия %new_version%.  Ниже перечислены изменения и улучшения:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Загрузка и установка обновлений</Title>
+			<SubTitle>Обновление %product% до последней версии.</SubTitle>
+			<Content>wyUpdate будет загружать и  устанавливать обновления для %product%. Этот процесс может занять несколько минут.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Удаление файлов, папок, и записей реестра</Title>
+			<SubTitle>Удаление файлов и записей реестра %product%.</SubTitle>
+			<Content>wyUpdate деинсталлирует архивы и записи рестра, созданные при обновлениях %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Обновление завершено!</Title>
+			<Content>%product% успешно обновлен до версии %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Установлена самая последняя версия</Title>
+			<Content>%product% в настоящее время новейшая. Не забывайте проверять обновления время от времени.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Нет обновлений до последней версии</Title>
+			<Content>Есть новая версия %product% (версия %new_version%), но нет доступных обновлений до нее с версии, которая установлена у вас  (версия %old_version%).</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Произошла ошибка</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Загрузка обновления</Download>
+		<DownloadSelfUpdate>Загрузка нового клиента wyUpdate</DownloadSelfUpdate>
+		<SelfUpdate>Обновление клиента wyUpdate</SelfUpdate>
+		<Extract>Извлечение файлов</Extract>
+		<Processes>Завершение процессов</Processes>
+		<PreExec>Обработка файлов</PreExec>
+		<Files>Резервирование и обновление файлов</Files>
+		<Registry>Резервирование и обновление реестра</Registry>
+		<Optimize>Оптимизация и обработка файлов</Optimize>
+		<TempFiles>Удаление временных файлов</TempFiles>
+		<UninstallFiles>Удаление файлов и папок</UninstallFiles>
+		<UninstallReg>Удаление записей реестра</UninstallReg>
+		<RollingBackFiles>Откат файлы</RollingBackFiles>
+		<RollingBackRegistry>Откат реестра</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Щелкните «Обновить» для того чтобы начать.</Update>
+		<Finish>Щелкните «Завершить» для того чтобы выйти.</Finish>
+	</Bottoms>
+</Translation>

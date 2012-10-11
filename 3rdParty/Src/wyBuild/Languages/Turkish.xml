@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Turkish</LangEn>
+	<Lang>Türkçe</Lang>
+	<Culture>tr-TR</Culture>
+	<Buttons>
+		<Next>Sonraki</Next>
+		<Update>Güncelle</Update>
+		<Finish>Tamamlandı</Finish>
+		<Cancel>İptal</Cancel>
+		<ShowDetails>Ayrıntıları Göster</ShowDetails>
+		<Close>İşlemi Kapat</Close>
+		<CloseAll>Tüm İşlemleri Kapat</CloseAll>
+		<CancelUpdate>Güncelleme İptal</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Güncelleme İptal?</Title>
+			<Content>Güncelleme tamamlanmadan çıkmak istediğinize emin misiniz?</Content>
+		</Cancel>
+		<Processes>
+			<Title>İşlemleri kapat...</Title>
+			<Content>Güncellemenin devam edebilmesi için işlemlerin kapatılması gerekmektedir. Kapatılacak işlemi seçerek İşlemi Kapat'ı tıklayınız.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Dosya kullanımda...</Title>
+			<Content>Dosyalar kullanımda. Güncellemenin devam edebilmesi için bu dosyalar kapatılmalıdır.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>Güncelleme programı %product% güncellemelerini yükleyebilmek için yönetici haklarına gereksinim duyuyor. Yönetici hakları için iki yol bulunmaktadır:
+
+1. İstenildiğinde yönetici kullanıcı adını ve şifresini girmek.
+
+2. Windows Explorer içerisinde wyUpdate.exe dosyasını sağ tıklayarak "Yönetici olarak çalıştır" demek</Admin>
+		<Download>Güncelleme indirilirken hata oluştu</Download>
+		<LogOff>%product% güncelleniyor. Oturumu kapatmadan önce güncelleme programından güncelleme işlemini iptal etmelisiniz.</LogOff>
+		<SelfUpdate>%product% güncelleme hatası için güncelleme programının güncellenmiş haline ihtiyaç var.</SelfUpdate>
+		<ServFile>Sunucu dosyası yüklenemediğinden güncellemeler kontrol edilemiyor</ServFile>
+		<Update>Güncelleme yüklenirken hata oluştu</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Yeni güncellemeler aranıyor</Title>
+			<SubTitle>Güncelleme programı yeni güncellemeleri arıyor</SubTitle>
+			<Content>Güncelleme programı %product% için yeni güncellemeleri arıyor. Bu işlem birkaç dakika alabilir.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Güncelleme bilgileri</Title>
+			<SubTitle>%product% son sürümündeki değişiklikler.</SubTitle>
+			<Content>%product% programının bu bilgisayardaki sürümü %old_version%. Programın en son sürümü %new_version%. Sürümler arasındaki değişiklikler listesi:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Güncellemeler indiriliyor ve kuruluyor</Title>
+			<SubTitle>%product% son sürüme güncelleniyor.</SubTitle>
+			<Content>Güncelleme programı %product% için yeni güncellemeleri indiriyor ve kuruyor. Bu işlem birkaç dakika alabilir.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Dosyalar, klasörler ve kayıt defteri girdileri kaldırılıyor</Title>
+			<SubTitle>%product% için dosyalar ve kayıt defteri girdileri kaldırılıyor</SubTitle>
+			<Content>Güncelleme programı %product% güncellemeleri ile oluşturulan/uygulanan dosyaları ve kayıt defteri girdilerini  kaldırılıyor.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Güncelleme işlemi başarılı!</Title>
+			<Content>%product% başarılı bir şekilde %new_version% sürümüne güncellendi</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Zaten en son sürüm yüklü</Title>
+			<Content>%product% zaten güncel. Yeni güncellemeleri zaman zaman denetlemeyi unutmayınız.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Son sürüm için güncelleme yok</Title>
+			<Content>%product% için yeni sürüm var (sürüm %new_version%), ama şu an kullandığınız program için (sürüm %old_version%) güncelleme bulunmuyor.</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Bir hata oluştu</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Güncelleme indiriliyor</Download>
+		<DownloadSelfUpdate>Güncelleme programının yeni sürümü indiriliyor</DownloadSelfUpdate>
+		<SelfUpdate>Güncelleme programı güncelleniyor</SelfUpdate>
+		<Extract>Dosyalar çıkarılıyor</Extract>
+		<Processes>İşlem kapatılıyor</Processes>
+		<PreExec>Dosyalar çalıştırılıyor</PreExec>
+		<Files>Dosyalar yedeklenerek güncelleniyor</Files>
+		<Registry>Kayıt Defteri yedeklenerek güncelleniyor</Registry>
+		<Optimize>Dosyalar uygun hale getirilerek çalıştırılıyor</Optimize>
+		<TempFiles>Geçici dosyalar siliniyor</TempFiles>
+		<UninstallFiles>Dosyalar ve klasörler kaldırılıyor</UninstallFiles>
+		<UninstallReg>Kayıt defteri girdileri kaldırılıyor</UninstallReg>
+		<RollingBackFiles>Dosyalar geri alınıyor</RollingBackFiles>
+		<RollingBackRegistry>Kayıt defteri işlemleri geri alınıyor</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Başlamak için Güncelle'yi tıklayınız</Update>
+		<Finish>Çıkış için Tamamlandı'yı tıklayınız</Finish>
+	</Bottoms>
+</Translation>

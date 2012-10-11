@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Arabic</LangEn>
+	<Lang>العربية</Lang>
+	<Culture>ar-SA</Culture>
+	<Buttons>
+		<Next>التالي</Next>
+		<Update>تحديث</Update>
+		<Finish>إنهاء</Finish>
+		<Cancel>إلغاء الأمر</Cancel>
+		<ShowDetails>إظهار التفاصيل</ShowDetails>
+		<Close>إيقاف البرنامج</Close>
+		<CloseAll>إيقاف جميع البرامج</CloseAll>
+		<CancelUpdate>إلغاء التحديث</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>إلغاء التحديث؟</Title>
+			<Content>هل تريد بالتأكيد الإغلاق قبل إتمام التحديث؟</Content>
+		</Cancel>
+		<Processes>
+			<Title>إيقاف البرامج...</Title>
+			<Content>البرامج التالية يجب أن يتم إغلاقها قبل أن تستمر عملية التحديث. اختر برنامجاً و اضغط إغلاق البرنامج.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>الملفات قيد الاستخدام</Title>
+			<Content>الملفات التالية قيد الاستخدام. يجب إغلاق هذه الملفات قبل أن يستمر التحديث.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate بحاجة إلى صلاحيات إدارية لتحديث %product%. يمكنك القيام بذلك بإحدى طريقتين:
+
+1. عندما يطلب منك ذلك، أدخل اسم المستخدم و كلمة المرور لمدير.
+
+2. في متصفح ويندوز انقر بالزر الأيمن على wyUpdate.exe و اختر "تشغيل كمدير"</Admin>
+		<Download>فشل تحميل التحديث.</Download>
+		<LogOff>جاري تحديث %product%. عليك إيقاف wyUpdate قبل أن تتمكن من تسجيل الخروج.</LogOff>
+		<SelfUpdate>إن الإصدار المحدث من wyUpdate المطلوب لتحديث %product% فشل في التنصيب.</SelfUpdate>
+		<ServFile>غير قادر على البحث عن تحديثات، فشل تحميل ملف المخدم</ServFile>
+		<Update>فشل تنصيب التحديث</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>جاري البحث عن تحديثات</Title>
+			<SubTitle>wyUpdate يقوم بالبحث عن تحديثات.</SubTitle>
+			<Content>wyBuild يقوم بالبحث عن تحديثات لـ %product%. هذه العملية تستغرق بضعة دقائق.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>معلومات التحديث</Title>
+			<SubTitle>التغييرات في الإصدار الأخير من %product%.</SubTitle>
+			<Content>هذا الإصدار من %product% و الذي تم تنصيبه على هذا الحاسوب هو %old_version%. الإصدار الأخير هو %new_version%. في الأسفل قائمة بالتغييرات و التحسينات:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>جاري تحميل و تنصيب التحديثات</Title>
+			<SubTitle>جاري تحديث %product% للإصدار الأحدث.</SubTitle>
+			<Content>wyUpdate يقوم بتحميل و تنصيب التحديثات لـ %product%. هذه العملية قد تستغرق بضعة دقائق.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>جاري إلغاء تنصيب الملفات و المجلدات و قيم تسجيل النظام</Title>
+			<SubTitle>جاري إلغاء تنصيب الملفات و قيم تسجيل النظام الخاص بـ %product%.</SubTitle>
+			<Content>wyUpdate يقوم بإلغاء تنصيب الملفات  و قيم تسجيل النظام التي تم إنشاؤها عند تطبيق التحديثات على %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>تم التحديث بنجاح!</Title>
+			<Content>لقد تم تحديث %product% بنجاح للإصدار %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>الإصدار الأخير موجود مسبقاً</Title>
+			<Content>%product% يعمل حاليا بأحدث إصدار. تذكر أن تبحث عن تحديثات بشكل متكرر.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>لا توجد تحديثات للإصدار الأخير</Title>
+			<Content>يوجد إصدار أحدث لـ %product% ( الإصدار %new_version)، و لكن لا يوجد تحديث من الإصدار الذي تستخدمه حالياً ( الإصدار %old_version%).</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>حدث خطأ</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>جاري تحميل التحديث</Download>
+		<DownloadSelfUpdate>جاري تحميل wyUpdate جديد</DownloadSelfUpdate>
+		<SelfUpdate>جاري تحديث wyUpdate</SelfUpdate>
+		<Extract>جاري فك ضغط الملفات</Extract>
+		<Processes>جاري إغلاق العمليات</Processes>
+		<PreExec>جاري تنفيذ الملفات</PreExec>
+		<Files>جاري التخزين الاحتياطي للملفات و تحديثها</Files>
+		<Registry>جاري التخزين الاحتياطي لمسجل الويندوز و تحديثها</Registry>
+		<Optimize>جاري تحسين و تنفيذ الملفات</Optimize>
+		<TempFiles>جاري حذف الملفات المؤقتة</TempFiles>
+		<UninstallFiles>جاري إلغاء تنصيب الملفات و المجلدات</UninstallFiles>
+		<UninstallReg>إلغاء تنصيب قيم تسجيل النظام</UninstallReg>
+		<RollingBackFiles>جاري التراجع عن تحديث الملفات</RollingBackFiles>
+		<RollingBackRegistry>جاري التراجع عن تحديث مسجل الويندوز</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>إضغط تحديث للبدء</Update>
+		<Finish>إضغط إنهاء للخروج</Finish>
+	</Bottoms>
+</Translation>

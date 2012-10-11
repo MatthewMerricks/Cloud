@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Chinese</LangEn>
+	<Lang>中文</Lang>
+	<Culture>zh-CN</Culture>
+	<Buttons>
+		<Next>其次</Next>
+		<Update>更新</Update>
+		<Finish>完成</Finish>
+		<Cancel>取消</Cancel>
+		<ShowDetails>查看詳情</ShowDetails>
+		<Close>结束进程</Close>
+		<CloseAll>结束所有进程</CloseAll>
+		<CancelUpdate>取消更新</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>取消更新？</Title>
+			<Content>在更新是完全的之前，是否是退出？</Content>
+		</Cancel>
+		<Processes>
+			<Title>结束进程…</Title>
+			<Content>下列进程需要在更新之前结束可能继续。 选择一个进程并且点击‘结束进程’。</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>文件在使用中...</Title>
+			<Content>下面的文件都在使用。這些文件之前，必須關閉才能繼續更新。</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate需要管理权限更新%product%。 您能执行这一个二种方式：
+
+1. 当提示，输入管理员的用户名和口令。
+
+2. 在Windows Explorer用鼠标右键单击wyUpdate.exe并且点击“运行作为管理员”</Admin>
+		<Download>没能的更新下载。</Download>
+		<LogOff>更新%product%。 在您能注销之前，您必须取消wyUpdate。</LogOff>
+		<SelfUpdate>此客户机的更新版本要求更新没能的%product%安装。</SelfUpdate>
+		<ServFile>无法检查更新，服务器文件没有能装载。</ServFile>
+		<Update>没能的更新安装。</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>搜索更新</Title>
+			<SubTitle>wyUpdate搜索更新。</SubTitle>
+			<Content>wyUpdate搜索更新到%product%。 此进程可能需要几分钟。</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>更新信息</Title>
+			<SubTitle>在最新的版本的变化的%product%上。</SubTitle>
+			<Content>在此计算机安装的版本的%product%是%old_version%。 这个最新的版本是%new_version%。  如下所示更改和改善：</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>下载&amp;安装更新</Title>
+			<SubTitle>更新%product%到最新的版本。</SubTitle>
+			<Content>wyUpdate是下载和安装更新为%product%。 此进程可能需要几分钟。</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>卸载文件、文件夹和注册表</Title>
+			<SubTitle>卸载文件和注册表为%product%。</SubTitle>
+			<Content>wyUpdate卸载文件，并且注册表创建了更新什么时候被运用了到%product%。</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>更新成功!</Title>
+			<Content>%product%顺利地被更新了到第%new_version%版</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>已经安装的最新的版本</Title>
+			<Content>%product%当前最新。 切记频繁地检查新的更新。</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>没有更新到最新的版本</Title>
+			<Content>有一个新版本的%product% (第%new_version%版)，但是没有更新可得到从您当前安装了的版本(第%old_version%版)。</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>错误生成了</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>下载更新</Download>
+		<DownloadSelfUpdate>下载新的wyUpdate客户机</DownloadSelfUpdate>
+		<SelfUpdate>更新wyUpdate客户机</SelfUpdate>
+		<Extract>提取文件</Extract>
+		<Processes>闭合值的进程</Processes>
+		<PreExec>执行文件</PreExec>
+		<Files>支持和更新文件</Files>
+		<Registry>支持和更新注册表</Registry>
+		<Optimize>优选和执行文件</Optimize>
+		<TempFiles>去除临时文件</TempFiles>
+		<UninstallFiles>卸载文件&amp;文件夹</UninstallFiles>
+		<UninstallReg>卸载注册表</UninstallReg>
+		<RollingBackFiles>回滾文件</RollingBackFiles>
+		<RollingBackRegistry>回滾註冊表</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>点击“更新”开始。</Update>
+		<Finish>点击‘完成’退出。</Finish>
+	</Bottoms>
+</Translation>

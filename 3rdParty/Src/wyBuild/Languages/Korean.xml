@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Korean</LangEn>
+	<Lang>한국어</Lang>
+	<Culture>ko-KR</Culture>
+	<Buttons>
+		<Next>다음</Next>
+		<Update>업데이트</Update>
+		<Finish>마침</Finish>
+		<Cancel>취소</Cancel>
+		<ShowDetails>자세한 내용보기</ShowDetails>
+		<Close>닫기 프로세스</Close>
+		<CloseAll>모두 닫기 프로세스</CloseAll>
+		<CancelUpdate>취소 업데이트</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>업데이 트를 취소 하시겠습니까?</Title>
+			<Content>전에 업데이 트가 완료되면 당신이 종료 하시겠습니까?</Content>
+		</Cancel>
+		<Processes>
+			<Title>닫기 프로세스를 ...</Title>
+			<Content>다음과 같은 프로세스를 계속할 수있습니다 업데이 트하기 전에 종료해야합니다. 선택 프로세스 및 프로세스에서 닫기를 누릅니다.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>사용중인 파일 ...</Title>
+			<Content>다음 파일을 사용하고 있습니다. 이러한 파일은 업데이 트를 계속하기 전에 종료해야합니다.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate %product%를 업데이 트에 대한 관리자 권한이 필요합니다. 당신은이 두 가지 방법 중 하나를 할 수있습니다 :
+
+1. 메시지가 나타나면, 관리자의 사용자 이름과 비밀 번호를 입력하세요.
+
+2. Windows 탐색기에서 마우스 오른쪽 단추로 클릭합니다 wyUpdate.exe "관리자 권한으로 실행"</Admin>
+		<Download>업데이 트를 다운로드하지 못했습니다.</Download>
+		<LogOff>%product% 업데이트. 당신이 전에를 로그인할 수있습니다 wyUpdate 취소해야합니다.</LogOff>
+		<SelfUpdate>의 업데이트된 버전 %product%를 업데이 트하는 데 필요한 wyUpdate를 설치하지 못했습니다.</SelfUpdate>
+		<ServFile>업데이 트를 확인할 수없습니다, 서버에 파일을로드하지 못했습니다.</ServFile>
+		<Update>업데이 트를 설치하지 못했습니다.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>업데이 트를위한 검색</Title>
+			<SubTitle>wyUpdate 업데이 트를 검색합니다.</SubTitle>
+			<Content>wyUpdate %product%에 대한 업데이 트를 검색합니다. 이 프로세스는 몇 분 정도 걸릴 수있습니다.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>업데이트 정보</Title>
+			<SubTitle>%product%의 최신 버전에서 변경.</SubTitle>
+			<Content>%product%의 버전이 컴퓨터에 설치되어 %old_version%입니다. 최신 버전 %new_version%입니다. 아래는 변경 사항 및 개선 사항 위치 :</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>다운로드 및 업데이 트를 설치</Title>
+			<SubTitle>최신 버전으로 업데이 트 %product%.</SubTitle>
+			<Content>wyUpdate 다운로드 및 %product%에 대한 업데이 트를 설치할 수있습니다. 이 프로세스는 몇 분 정도 걸릴 수있습니다.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>제거 파일, 폴더 및 레지스트리</Title>
+			<SubTitle>제거 파일 및 %product%에 대한 레지스트리.</SubTitle>
+			<Content>wyUpdate 때 업데이 트 %product%로 적용됐다 만들어진 파일과 레지스트리를 제거합니다.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>업데이 트를 성공적으로!</Title>
+			<Content>%product%를 성공적으로 버전 %new_version%로 업데이 트되었습니다</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>최신 버전이 이미 설치되어</Title>
+			<Content>%product%가 현재 최대입니다 최신. 새로운 업데이 트를 자주 확인하도록하십시오.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>최신 버전으로 업데이트 없음</Title>
+			<Content>거기 %product% (버전 %new_version%)의 최신 버전은 아니지만 현재 (버전 %old_version%)가 설치되어 있어야 버전에서 제공하는 업데이 트됩니다.</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>오류가 발생했습니다</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>업데이트 다운로드</Download>
+		<DownloadSelfUpdate>새로운 wyUpdate 다운로드</DownloadSelfUpdate>
+		<SelfUpdate>wyUpdate 업데이트</SelfUpdate>
+		<Extract>파일 압축</Extract>
+		<Processes>닫기 프로세스</Processes>
+		<PreExec>파일 실행</PreExec>
+		<Files>백업 및 파일 업데이트</Files>
+		<Registry>백업 및 레지스트리 업데이트</Registry>
+		<Optimize>최적화 및 파일 실행</Optimize>
+		<TempFiles>임시 파일 제거</TempFiles>
+		<UninstallFiles>파일 및 폴더 제거</UninstallFiles>
+		<UninstallReg>레지스트리 제거</UninstallReg>
+		<RollingBackFiles>롤백 파일</RollingBackFiles>
+		<RollingBackRegistry>롤백 레지스트리</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>클릭하여 업데이 트를 시작합니다.</Update>
+		<Finish>종료하려면 마침을 클릭합니다.</Finish>
+	</Bottoms>
+</Translation>
