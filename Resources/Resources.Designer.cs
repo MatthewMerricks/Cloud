@@ -106,6 +106,15 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Documents.
+        /// </summary>
+        public static string CloudFolderDocumentsFolder {
+            get {
+                return ResourceManager.GetString("CloudFolderDocumentsFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pictures.
         /// </summary>
         public static string CloudFolderPicturesFolder {
@@ -115,11 +124,11 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Public.
+        ///   Looks up a localized string similar to Videos.
         /// </summary>
-        public static string CloudFolderPublicFolder {
+        public static string CloudFolderVideosFolder {
             get {
-                return ResourceManager.GetString("CloudFolderPublicFolder", resourceCulture);
+                return ResourceManager.GetString("CloudFolderVideosFolder", resourceCulture);
             }
         }
         
@@ -462,7 +471,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select..
+        ///   Looks up a localized string similar to Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select.  The folder must be located somewhere in your user home directory: {0}..
         /// </summary>
         public static string pageCloudFolderMissingFolderBrowserDescription {
             get {
@@ -534,7 +543,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There was an error moving your Cloud folder to the new location.   Your files remain in the existing Cloud folder location..
+        ///   Looks up a localized string similar to There was an error moving your Cloud folder to the new location.   Your files remain in the existing Cloud folder location.  Error number {0}..
         /// </summary>
         public static string PageFolderSelection_ErrorMovingCloudFolder_BodyText {
             get {

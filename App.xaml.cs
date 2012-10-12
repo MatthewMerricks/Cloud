@@ -76,6 +76,28 @@ namespace win_client
                 }
             }
 
+            // Change the Cloud folder location if we have just been restarted from the CloudMoveCloudFolder.vbs VBScript.
+            lock (Settings.Instance.MovingCloudFolderTargetPath)
+            {
+                if (Settings.Instance.IsMovingCloudFolder)
+                {
+                    try
+                    {
+                        // Get the directory creation time of the new cloud folder.
+                        DateTime creationTime = Directory.GetCreationTimeUtc(Settings.Instance.MovingCloudFolderTargetPath);
+
+                        // Update the cloud folder location.
+                        Settings.Instance.updateCloudFolderPath(Settings.Instance.MovingCloudFolderTargetPath, creationTime);
+                    }
+                    catch (Exception ex)
+                    {
+                        _trace.writeToLog(1, "App.xaml: OnStartup: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+                        MessageBox.Show(String.Format("Error starting the Cloud application. Startup exception: <{0}>.", ex.Message), "Oh Snap!", MessageBoxButton.OK);
+                        this.Shutdown(0);
+                    }
+                }
+            }
+
             base.OnStartup(e);
         }
 

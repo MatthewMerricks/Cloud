@@ -15,7 +15,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
+using System.IO;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 using GalaSoft.MvvmLight.Messaging;
@@ -49,7 +49,8 @@ namespace win_client.Views
         private void OnMessage_PageCloudFolderMissingShouldChooseCloudFolder(string obj)
         {
             VistaFolderBrowserDialog folderBrowser = new VistaFolderBrowserDialog();
-            folderBrowser.Description = win_client.Resources.Resources.pageCloudFolderMissingFolderBrowserDescription;
+            folderBrowser.Description = String.Format(win_client.Resources.Resources.pageCloudFolderMissingFolderBrowserDescription, 
+                                    Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
             folderBrowser.RootFolder = Environment.SpecialFolder.MyDocuments;  // no way to get to the user's home directory.  RootFolder is a SpecialFolder.
             folderBrowser.ShowNewFolderButton = true;
             bool? wasOkButtonClicked = folderBrowser.ShowDialog(Window.GetWindow(this));

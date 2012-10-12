@@ -575,7 +575,7 @@ namespace win_client.ViewModels
                 }
 
                 // Stream the CloudRestart.vbs file out to the temp directory
-                _trace.writeToLog(9, "PagePreferencesViewModel: StartCloudUpdaterAndExitNow: Call WriteResourceFileToFilesystemFile.");
+                _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Call WriteResourceFileToFilesystemFile.");
                 int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudRestart", vbsPath);
                 if (rc != 0)
                 {

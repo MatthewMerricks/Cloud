@@ -463,16 +463,17 @@ namespace win_client.AppDelegate
         {
             try
             {
-                // Only if the directory exists in the expected spot.
+                // Only if the directory exists in the expected spot, and only if we are not restarting to move the cloud folder.
                 bool otherFileExists = false;
-                if (Directory.Exists(Settings.Instance.CloudFolderPath))
+                if (!Settings.Instance.IsMovingCloudFolder && Directory.Exists(Settings.Instance.CloudFolderPath))
                 {
                     // Iterate through all of the files in the directory.  Stop if we get anything other than the
                     // Public and/or Pictures directory.
                     foreach (string entry in Directory.EnumerateFileSystemEntries(Settings.Instance.CloudFolderPath, "*.*", SearchOption.AllDirectories))
                     {
                         if (entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPicturesFolder, StringComparison.InvariantCulture)
-                               || entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPublicFolder, StringComparison.InvariantCulture))
+                               || entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderDocumentsFolder, StringComparison.InvariantCulture)
+                               || entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderVideosFolder, StringComparison.InvariantCulture))
                         {
                             continue;
                         }
@@ -934,7 +935,8 @@ namespace win_client.AppDelegate
 
             resultingPaths.RemoveAll(x => 
                 { return (x.LastPathComponent().Equals(Resources.Resources.CloudFolderPicturesFolder, StringComparison.InvariantCulture) 
-                        || x.LastPathComponent().Equals(Resources.Resources.CloudFolderPublicFolder, StringComparison.InvariantCulture)); 
+                        || x.LastPathComponent().Equals(Resources.Resources.CloudFolderDocumentsFolder, StringComparison.InvariantCulture) 
+                        || x.LastPathComponent().Equals(Resources.Resources.CloudFolderVideosFolder, StringComparison.InvariantCulture)); 
                 });
             string foundPath = null;
             if (resultingPaths.Count > 0)
