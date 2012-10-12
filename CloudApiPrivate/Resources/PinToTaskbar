@@ -12,7 +12,7 @@
 	' Parameter 3: "P": Pin.  "U": Unpin.
 	' Parameter 4: "T": Taskbar.  "S": Start menu.
 	' Parameter 5: "D": Self-destruct.  "S": Remain.  Don't delete the script.
-    ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Program Files (x86)\Cloud.com\Cloud" "ShowCloudFolder"
+    ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Program Files (x86)\Cloud.com\Cloud" "ShowCloudFolder" <P/U> <T/S> <D/S>
     
     Option Explicit 
 

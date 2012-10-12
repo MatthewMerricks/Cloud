@@ -1,13 +1,15 @@
 ﻿   '
-   '  CloudRestart.vbs
+   '  CloudMoveCloudFolder.vbs
    '  Cloud Windows
    '
    '  Created by BobS.
    '  Copyright (c) Cloud.com. All rights reserved.
    '
 
-   ' Parameter: None
-   ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:5 //Nologo "<path to this CloudRestart.vbs file>"
+   ' Parameters:
+   '    1: The full path of the existing Cloud folder
+   '    2: The full path of the target Cloud folder
+   ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:5 //Nologo "<path to this CloudMoveCloudFolder.vbs file>" "<fromCloudFolderPath>" "<toCloudFolderPath>"
    
    Option Explicit
 
@@ -27,6 +29,8 @@
    Dim sScriptFile
    Dim programFilesX86Path
    Dim windowsPath
+   Dim fromCloudFolderPath
+   Dim toCloudFolderPath
    
    Set objFileSys = wscript.CreateObject("Scripting.FileSystemObject") 
    Set objShell = wscript.createObject("wscript.shell") 
@@ -56,20 +60,20 @@
       Dim refProcess
       Dim objWMIService
 
-      WriteLog "CloudRestart: IsProcessRunning: Entry. processPath: " & processPath
+      WriteLog "CloudMoveCloudFolder: IsProcessRunning: Entry. processPath: " & processPath
       Set objWMIService = GetObject("winmgmts:\\.\root\CIMV2") 
       Set colProcesses = objWMIService.ExecQuery( "SELECT * FROM Win32_Process")
 
-      WriteLog "CloudRestart: IsProcessRunning: Loop through executing processes."
+      WriteLog "CloudMoveCloudFolder: IsProcessRunning: Loop through executing processes."
       For Each refProcess In colProcesses
-         WriteLog "CloudRestart: IsProcessRunning: Process name <" & refProcess.Name & ">, ExecutablePath <" & refProcess.ExecutablePath & ">."
+         WriteLog "CloudMoveCloudFolder: IsProcessRunning: Process name <" & refProcess.Name & ">, ExecutablePath <" & refProcess.ExecutablePath & ">."
          If UCase(refProcess.ExecutablePath) = UCase(processPath & "\" & processFileNameExt) And UCase(refProcess.Name) = UCase(processFileNameExt) Then
-            WriteLog "CloudRestart: IsProcessRunning: The process " & processFileNameExt & " is running."
+            WriteLog "CloudMoveCloudFolder: IsProcessRunning: The process " & processFileNameExt & " is running."
             IsProcessRunning = True
             Exit For
          End If
       Next
-      WriteLog "CloudRestart: IsProcessRunning: Exit rc: " & IsProcessRunning
+      WriteLog "CloudMoveCloudFolder: IsProcessRunning: Exit rc: " & IsProcessRunning
    End Function
 
    ' From http://csi-windows.com/toolkit/csi-getosbits
@@ -83,49 +87,62 @@
    '   o Re-launch Cloud.exe
    '
    ' Try pattern
-   Class CloudRestart
+   Class CloudMoveCloudFolder
       Private Sub Class_Initialize
-         WriteLog("CloudRestart: Constructor entry.")
+         WriteLog("CloudMoveCloudFolder: Constructor entry.")
 
 		 Dim index
          Dim index2
 
+         ' Don't run if we don't have the necessary parameters
+         WriteLog("CloudMoveCloudFolder: Arg count: " & wscript.Arguments.Count)
+         If wscript.Arguments.Count < 5 Then
+             WriteLog("CloudMoveCloudFolder: ERROR: Wrong arguments.")
+             Exit Sub
+         End If
+
+		 Set fromCloudFolderPath =  wscript.Arguments(0) 
+         WriteLog("CloudMoveCloudFolder: fromCloudFolderPath: " & fromCloudFolderPath)
+
+		 Set toCloudFolderPath =  wscript.Arguments(1) 
+         WriteLog("CloudMoveCloudFolder: toCloudFolderPath: " & toCloudFolderPath)
+
          ' Determine the program files directory to use
-         WriteLog("CloudRestart: OS Platform: " & CSI_GetOsBits() & "-bits.")
+         WriteLog("CloudMoveCloudFolder: OS Platform: " & CSI_GetOsBits() & "-bits.")
 		 if CSI_GetOsBits() = "32" then
              programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES%")
 			 if programFilesX86Path = "%PROGRAMFILES%" then
-				 WriteLog("CloudRestart: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
+				 WriteLog("CloudMoveCloudFolder: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
                  Exit Sub
 			 end if
 		 else
              programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES(X86)%")
 			 if programFilesX86Path = "%PROGRAMFILES(X86)%" then
-				 WriteLog("CloudRestart: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
+				 WriteLog("CloudMoveCloudFolder: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
                  Exit Sub
 			 end if
 		 end if
-         WriteLog("CloudRestart: Main: programFilesX86Path: " & programFilesX86Path)
-         WriteLog("CloudRestart: Main: windowsPath: " & windowsPath)
+         WriteLog("CloudMoveCloudFolder: Main: programFilesX86Path: " & programFilesX86Path)
+         WriteLog("CloudMoveCloudFolder: Main: windowsPath: " & windowsPath)
 
 		 ' Wait for Cloud.exe to exit.  Don't wait too long.
 		 index = 0
-         WriteLog("CloudRestart: Main: Wait for Cloud to exit.")
+         WriteLog("CloudMoveCloudFolder: Main: Wait for Cloud to exit.")
 		 Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "Cloud.exe")
 		     wscript.Sleep 500
 			 index = index + 1
 			 if index > 10 then			' 5 seconds
-	             WriteLog "CloudRestart: ERROR: Cloud did not exit.  Timed out.  Kill it now."
+	             WriteLog "CloudMoveCloudFolder: ERROR: Cloud did not exit.  Timed out.  Kill it now."
                  objShell.Run "taskkill /f /im cloud.exe", 0, true
 
                  ' Wait for Cloud to exit
-                 WriteLog "CloudRestart: Wait for Cloud to exit."
+                 WriteLog "CloudMoveCloudFolder: Wait for Cloud to exit."
 			     index2 = 0
 			     Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "cloud.exe")
                      Wscript.Sleep 500
                      index2 = index2 + 1
                      if index2 > 10 then			' 5 seconds
-                         WriteLog "CloudRestart: ERROR: Cloud did not exit after killing it.  Timed out."
+                         WriteLog "CloudMoveCloudFolder: ERROR: Cloud did not exit after killing it.  Timed out."
                          shouldCloudBeStarted = False
                          Exit Do
 				      end if
@@ -133,49 +150,52 @@
                  Exit Do
 			 end if
 		 Loop
-         WriteLog "CloudRestart: After wait for Cloud to exit."
+         WriteLog "CloudMoveCloudFolder: After wait for Cloud to exit."
+
+		 ' Actually move the Cloud folder now.
+		 objFileSys.MoveFolder fromCloudFolderPath toCloudFolderPath
 
          ' Don't restart Cloud if Explorer is not running.  Cloud depends on Explorer.
-         WriteLog "CloudRestart: Check for Explorer."
+         WriteLog "CloudMoveCloudFolder: Check for Explorer."
          if NOT IsProcessRunning(windowsPath, "explorer.exe") Then
-             WriteLog "CloudRestart: Explorer is running.  Don't start Cloud."
+             WriteLog "CloudMoveCloudFolder: Explorer is running.  Don't start Cloud."
              shouldCloudBeStarted = False
          End If
 
 		 ' Launch Cloud.exe again if we should.
          if shouldCloudBeStarted then
-             WriteLog "CloudRestart: Launch Cloud.exe."
+             WriteLog "CloudMoveCloudFolder: Launch Cloud.exe."
 		     objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\Cloud.exe""", 1, false
              shouldCloudBeStarted = False
          end if
 
-         WriteLog "CloudRestart: Exit normally"
+         WriteLog "CloudMoveCloudFolder: Exit normally"
       End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
           ' Catch
-          WriteLog("CloudRestart: Unhandled error " & Err.Number & " occurred.")
+          WriteLog("CloudMoveCloudFolder: Unhandled error " & Err.Number & " occurred.")
       Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
           ' Finally
-          WriteLog("CloudRestart: Exiting constructor (finally).")
+          WriteLog("CloudMoveCloudFolder: Exiting constructor (finally).")
 
 		  ' Restart Cloud.exe if we should
           if shouldCloudBeStarted Then
-              WriteLog "CloudRestart: Launch Cloud.exe."
+              WriteLog "CloudMoveCloudFolder: Launch Cloud.exe."
               objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\Cloud.exe""", 1, false
              shouldCloudBeStarted = False
           End If
 
           ' Delete ourselves.  This is possible because VBS runs everything out of memory.
           sScriptFile = Wscript.ScriptFullName
-          WriteLog "CloudRestart: CloudRestart.vbs full path: " & sScriptFIle
+          WriteLog "CloudMoveCloudFolder: CloudMoveCloudFolder.vbs full path: " & sScriptFIle
           objFileSys.DeleteFile sScriptFile, True
       End Sub 
    End Class
    
    ' Drive the main program
-   WriteLog("CloudRestart: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-   WriteLog("CloudRestart: Drive the main program.")
-   With New CloudRestart : End With
-   WriteLog("CloudRestart: Exit 0.")
+   WriteLog("CloudMoveCloudFolder: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+   WriteLog("CloudMoveCloudFolder: Drive the main program.")
+   With New CloudMoveCloudFolder : End With
+   WriteLog("CloudMoveCloudFolder: Exit 0.")
    
    ' No tracing after this
    set objShell = Nothing

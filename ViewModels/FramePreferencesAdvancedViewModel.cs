@@ -340,7 +340,11 @@ namespace win_client.ViewModels
                                                 // prompt to inform the user about what will happen.  We will create a folder named 'Cloud'
                                                 // inside the selected folder and move the existing Cloud folder and all of the files inside
                                                 // the existing Cloud folder into the new Cloud folder.
-                                                MoveCloudFolderWithUserInteraction(Settings.Instance.CloudFolderPath, path + "\\Cloud");
+                                                var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                                                {
+                                                    MoveCloudFolderWithUserInteraction(Settings.Instance.CloudFolderPath, path + "\\Cloud");
+                                                });
                                             }));
             }
         }
@@ -361,10 +365,11 @@ namespace win_client.ViewModels
             {
                 // This new cloud folder location is not valid.  Tell the user, and remain on the same dialog.
                 CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                    errorMessage: String.Format("The new location must be at or in your home directory ({0}, " +
-                            "and it can't be inside the existing cloud folder location {{1}).",
+                    errorMessage: String.Format("The new location must be at or in your home directory ({0}), " +
+                            "and you can't select the location containing the existing cloud folder location ({1}), " +
+                            "or any location at or inside the existing cloud folder location ({2}).",
                             Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)),
-                            fromPath),
+                            Path.GetDirectoryName(fromPath), fromPath),
                     title: "Oh Snap!",
                     headerText: "Selected folder location not valid.",
                     rightButtonContent: Resources.Resources.generalOkButtonContent,

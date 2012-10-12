@@ -202,7 +202,7 @@
          WriteLog "CloudInstallUpdate: Sleep waiting for Explorer to be ready."
 		 wscript.Sleep 5000
 
-		 'TODO: Launch Cloud.exe again, but don't wait around for it to start.
+		 ' Launch Cloud.exe again, but don't wait around for it to start.
          WriteLog "CloudInstallUpdate: Launch Cloud.exe."
 		 objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\Cloud.exe""", 1, false
 

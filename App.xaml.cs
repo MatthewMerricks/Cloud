@@ -83,11 +83,17 @@ namespace win_client
                 {
                     try
                     {
+                        // Clear the flag so we do this only once
+                        Settings.Instance.IsMovingCloudFolder = false;
+
                         // Get the directory creation time of the new cloud folder.
                         DateTime creationTime = Directory.GetCreationTimeUtc(Settings.Instance.MovingCloudFolderTargetPath);
 
                         // Update the cloud folder location.
                         Settings.Instance.updateCloudFolderPath(Settings.Instance.MovingCloudFolderTargetPath, creationTime);
+
+                        // Clear the target cloud folder location too.
+                        Settings.Instance.MovingCloudFolderTargetPath = String.Empty;
                     }
                     catch (Exception ex)
                     {
