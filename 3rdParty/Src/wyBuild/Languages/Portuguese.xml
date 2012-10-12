@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Portuguese</LangEn>
+	<Lang>Português</Lang>
+	<Culture>pt-PT</Culture>
+	<Buttons>
+		<Next>Seguinte</Next>
+		<Update>Actualizar</Update>
+		<Finish>Terminar</Finish>
+		<Cancel>Cancelar</Cancel>
+		<ShowDetails>Mostrar Detalhes</ShowDetails>
+		<Close>Fechar o processo</Close>
+		<CloseAll>Fechar todos os processos</CloseAll>
+		<CancelUpdate>Cancelar a actualização</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Cancelar a actualização?</Title>
+			<Content>Tem certeza que quer sair antes da actualização estar completa?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Fechar processos…</Title>
+			<Content>Os seguintes processos precisam de ser fechados antes da actualização poder continuar. Seleccionar o processo e clique em “fechar o processo”.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Ficheiros em uso...</Title>
+			<Content>Os seguintes ficheiros estão em uso. Estes ficheiros devem ser fechados para a actualização poder continuar.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate precisa privilégios de administrador para actualizar %product%. Pode fazer isso de uma de duas maneiras:
+
+1. Quando pedido, introduzir o nome de utilizador e a palavra chave do administrador.
+
+2. Clicar no botão do lado direito em wyUpdate.exe e escolher "Correr como administrador".</Admin>
+		<Download>Falhou a transferência da actualização.</Download>
+		<LogOff>Actualizando %product%. Deve cancelar o wyUpdate antes que possa finalizar a sessão.</LogOff>
+		<SelfUpdate>A versão actualizada do wyUpdate necessária para actualizar o %product% falhou a instalar.</SelfUpdate>
+		<ServFile>Incapaz de verificar se existem actualizações, falhou a carregar o ficheiro do servidor.</ServFile>
+		<Update>Falhou a instalar a actualização.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Procurando actualizações</Title>
+			<SubTitle>wyUpdate está procurando atualizações.</SubTitle>
+			<Content>wyUpdate está procurando atualizações de %product%. Este processo poderia demorar alguns minutos.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Informação da actualização</Title>
+			<SubTitle>Mudanças na ultima versão de %product%.</SubTitle>
+			<Content>A versão do %product% instalado neste computador é %old_version%. A ultima versão é %new_version%.  Estão listadas em baixo as mudanças e as melhorias:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Transferindo &amp; instalando actualizações</Title>
+			<SubTitle>Actualizando %product% para a ultima versão</SubTitle>
+			<Content>wyUpdate  está transferindo e instalando as actualizações para %product%. Este processo poderá tomar alguns minutos.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Desinstalando ficheiros, pastas e o registro</Title>
+			<SubTitle>Desinstalando ficheiros e o registro para %product%.</SubTitle>
+			<Content>wyUpdate está desinstalando ficheiros e o registro criado quando as actualizações foram aplicadas a %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Actualização bem sucedida!</Title>
+			<Content>%product% foi atualizado com sucesso à versão %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>A ultima versão já está instalada</Title>
+			<Content>%product% está atualizado. Verifique regularmente se existem novas actualizações.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Nenhuma atualização para a ultima versão</Title>
+			<Content>Existe uma nova versão de %product% (versão %new_version%), mas não existe nenhuma actualização disponível para a versão que tem instalado actualmente (versão %old_version%)</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Ocorreu um erro</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Transferindo a actualização</Download>
+		<DownloadSelfUpdate>Transferindo o novo wyUpdate</DownloadSelfUpdate>
+		<SelfUpdate>Atualizando o wyUpdate</SelfUpdate>
+		<Extract>Extraindo os ficheiros</Extract>
+		<Processes>Fechando processos</Processes>
+		<PreExec>Executando os ficheiros</PreExec>
+		<Files>Fazer backup e actualizando ficheiros</Files>
+		<Registry>Fazer backup e actualizando o registro</Registry>
+		<Optimize>Optimizando e executando ficheiros</Optimize>
+		<TempFiles>Removendo ficheiros temporários</TempFiles>
+		<UninstallFiles>Desinstalando ficheiros &amp; pastas</UninstallFiles>
+		<UninstallReg>Desinstalando o registro</UninstallReg>
+		<RollingBackFiles>Revertendo os ficheiros</RollingBackFiles>
+		<RollingBackRegistry>Revertendo o registo</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Clique em "Actualizar" para começar</Update>
+		<Finish>Clique em "Terminar" para acabar</Finish>
+	</Bottoms>
+</Translation>

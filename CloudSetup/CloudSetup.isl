@@ -342,8 +342,8 @@
 		<col def="S0">ISDotNetInstallerArgsUninstall</col>
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
 		<row><td>AutomaticUpdaterWPF.dll</td><td>{FE1F7E2A-260D-45C0-9F93-57BFEC15505B}</td><td>INSTALLDIR</td><td>2</td><td/><td>automaticupdaterwpf.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>BadgeCOM.dll</td><td>{893D7843-DB77-4282-B4EB-3C2A6DCBC332}</td><td>X86</td><td>2</td><td/><td>badgecom.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>BadgeCOM.dll1</td><td>{09F994D0-24E1-456A-AE45-7A72BC97519A}</td><td>AMD64</td><td>2</td><td/><td>badgecom.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOM.dll</td><td>{893D7843-DB77-4282-B4EB-3C2A6DCBC332}</td><td>X86</td><td>2</td><td/><td>badgecom.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOM.dll1</td><td>{09F994D0-24E1-456A-AE45-7A72BC97519A}</td><td>AMD64</td><td>2</td><td/><td>badgecom.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeNET.Primary_output</td><td>{F9A20767-A22D-4D83-A21A-B3FA86EDFA95}</td><td>INSTALLDIR</td><td>2</td><td/><td>badgenet.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td>{84489268-EDF1-4D66-9B57-F8AED3BEC035}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapiprivate.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSdkPublic.Primary_output</td><td>{967E051F-636C-4A43-BCCE-FE9EDD2DA5CE}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsdkpublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -371,7 +371,7 @@
 		<row><td>NewComponent1</td><td>{09834F2F-B737-48F3-9B88-83588AF22F4D}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Newtonsoft.Json.dll</td><td>{C2C45D4D-4CEC-4083-95FF-42D7EF8563FB}</td><td>INSTALLDIR</td><td>2</td><td/><td>newtonsoft.json.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>{227C8773-5E56-4DD1-9355-FEFA9C9DDF08}</td><td>INSTALLDIR</td><td>2</td><td/><td>ookii.dialogs.wpfminustaskdi</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>RegisterCom.exe</td><td>{4D0EC4AC-A399-4407-B146-8DB8570BD0F2}</td><td>INSTALLDIR</td><td>2</td><td/><td>registercom.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>RegisterCom.exe</td><td>{87594C89-C824-401E-A43F-5BD8595DF0A3}</td><td>INSTALLDIR</td><td>2</td><td/><td>registercom.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SQLIndexer.Primary_output</td><td>{34BABC21-57FF-4923-A46D-A7F33AB4CE4F}</td><td>INSTALLDIR</td><td>2</td><td/><td>sqlindexer.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ShowCloudFolder.Primary_output</td><td>{1459739C-3FD8-4ED9-A0D8-A2A64E61B8F5}</td><td>INSTALLDIR</td><td>2</td><td/><td>showcloudfolder.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SimpleJson.dll</td><td>{3A7C4C31-6BF3-4216-A74E-14365AB7A31F}</td><td>INSTALLDIR</td><td>2</td><td/><td>simplejson.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -2017,43 +2017,43 @@
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>atl100copy.dll</td><td>atl100Copy.dll</td><td>ATL100~1.DLL|atl100Copy.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\atl100Copy.dll</td><td>1</td><td/></row>
-		<row><td>automaticupdaterwpf.dll</td><td>AutomaticUpdaterWPF.dll</td><td>AUTOMA~1.DLL|AutomaticUpdaterWPF.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\AutomaticUpdaterWPF.dll</td><td>1</td><td/></row>
-		<row><td>badgecom.dll</td><td>BadgeCOM.dll</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\Release\BadgeCOM.dll</td><td>1</td><td/></row>
-		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x64\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
+		<row><td>automaticupdaterwpf.dll</td><td>AutomaticUpdaterWPF.dll</td><td>AUTOMA~1.DLL|AutomaticUpdaterWPF.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\AutomaticUpdaterWPF.dll</td><td>1</td><td/></row>
+		<row><td>badgecom.dll</td><td>BadgeCOM.dll</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\Release\BadgeCOM.dll</td><td>1</td><td/></row>
+		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\x64\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgenet.primary_output</td><td>BadgeNET.Primary_output</td><td>BadgeNET.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;BadgeNET&gt;|Built</td><td>3</td><td/></row>
 		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\WyUpdater\wyUpdate\client.wyc</td><td>1</td><td/></row>
 		<row><td>cloudapiprivate.primary_outp</td><td>CloudApiPrivate.Primary_output</td><td>CloudApiPrivate.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPrivate&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudsdkpublic.primary_outpu</td><td>CloudSdkPublic.Primary_output</td><td>CloudSdkPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSdkPublic&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudsendto.primary_output</td><td>CloudSendTo.Primary_output</td><td>CloudSendTo.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSendTo&gt;|Built</td><td>3</td><td/></row>
-		<row><td>cloudupdater.exe</td><td>CloudUpdater.exe</td><td>CLOUDU~1.EXE|CloudUpdater.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\CloudUpdater.exe</td><td>1</td><td/></row>
+		<row><td>cloudupdater.exe</td><td>CloudUpdater.exe</td><td>CLOUDU~1.EXE|CloudUpdater.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\CloudUpdater.exe</td><td>1</td><td/></row>
 		<row><td>dialog.abstractions.wpf.prim</td><td>Dialog.Abstractions.Wpf.Primary_output</td><td>Dialog.Abstractions.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Abstractions.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>dialog.implementors.wpf.prim</td><td>Dialog.Implementors.Wpf.Primary_output</td><td>Dialog.Implementors.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Implementors.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>erikej.sqlce40.dll</td><td>ErikEJ.SqlCe40.dll</td><td>ERIKEJ~1.DLL|ErikEJ.SqlCe40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</td><td>1</td><td/></row>
 		<row><td>filemonitor.primary_output</td><td>FileMonitor.Primary_output</td><td>FileMonitor.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;FileMonitor&gt;|Built</td><td>3</td><td/></row>
-		<row><td>galasoft.mvvmlight.extras.wp</td><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>GALASO~1.DLL|GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>1</td><td/></row>
-		<row><td>galasoft.mvvmlight.wpf4.dll</td><td>GalaSoft.MvvmLight.WPF4.dll</td><td>GALASO~1.DLL|GalaSoft.MvvmLight.WPF4.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\GalaSoft.MvvmLight.WPF4.dll</td><td>1</td><td/></row>
-		<row><td>hardcodet.wpf.taskbarnotific</td><td>Hardcodet.Wpf.TaskbarNotification.dll</td><td>HARDCO~1.DLL|Hardcodet.Wpf.TaskbarNotification.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Hardcodet.Wpf.TaskbarNotification.dll</td><td>1</td><td/></row>
-		<row><td>interop.iwshruntimelibrary.d</td><td>Interop.IWshRuntimeLibrary.dll</td><td>INTERO~1.DLL|Interop.IWshRuntimeLibrary.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Interop.IWshRuntimeLibrary.dll</td><td>1</td><td/></row>
+		<row><td>galasoft.mvvmlight.extras.wp</td><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>GALASO~1.DLL|GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>1</td><td/></row>
+		<row><td>galasoft.mvvmlight.wpf4.dll</td><td>GalaSoft.MvvmLight.WPF4.dll</td><td>GALASO~1.DLL|GalaSoft.MvvmLight.WPF4.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\GalaSoft.MvvmLight.WPF4.dll</td><td>1</td><td/></row>
+		<row><td>hardcodet.wpf.taskbarnotific</td><td>Hardcodet.Wpf.TaskbarNotification.dll</td><td>HARDCO~1.DLL|Hardcodet.Wpf.TaskbarNotification.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Hardcodet.Wpf.TaskbarNotification.dll</td><td>1</td><td/></row>
+		<row><td>interop.iwshruntimelibrary.d</td><td>Interop.IWshRuntimeLibrary.dll</td><td>INTERO~1.DLL|Interop.IWshRuntimeLibrary.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Interop.IWshRuntimeLibrary.dll</td><td>1</td><td/></row>
 		<row><td>interop.shell32.dll</td><td>Interop.Shell32.dll</td><td>INTERO~1.DLL|Interop.Shell32.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Interop.Shell32.dll</td><td>1</td><td/></row>
-		<row><td>microsoft.csharp.dll</td><td>Microsoft.CSharp.dll</td><td>MICROS~1.DLL|Microsoft.CSharp.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.CSharp.dll</td><td>1</td><td/></row>
-		<row><td>microsoft.net.http.dll</td><td>Microsoft.Net.Http.dll</td><td>MICROS~1.DLL|Microsoft.Net.Http.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.Net.Http.dll</td><td>1</td><td/></row>
-		<row><td>microsoft.practices.servicel</td><td>Microsoft.Practices.ServiceLocation.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Microsoft.Practices.ServiceLocation.dll</td><td>1</td><td/></row>
+		<row><td>microsoft.csharp.dll</td><td>Microsoft.CSharp.dll</td><td>MICROS~1.DLL|Microsoft.CSharp.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Microsoft.CSharp.dll</td><td>1</td><td/></row>
+		<row><td>microsoft.net.http.dll</td><td>Microsoft.Net.Http.dll</td><td>MICROS~1.DLL|Microsoft.Net.Http.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Microsoft.Net.Http.dll</td><td>1</td><td/></row>
+		<row><td>microsoft.practices.servicel</td><td>Microsoft.Practices.ServiceLocation.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest</td><td>ISX_DEFAULTCOMPONENT4</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest1</td><td>ISX_DEFAULTCOMPONENT5</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>msvcp100copy.dll</td><td>msvcp100Copy.dll</td><td>MSVCP1~1.DLL|msvcp100Copy.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcp100Copy.dll</td><td>1</td><td/></row>
 		<row><td>msvcr100copy.dll</td><td>msvcr100Copy.dll</td><td>MSVCR1~1.DLL|msvcr100Copy.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\msvcr100Copy.dll</td><td>1</td><td/></row>
 		<row><td>msvcr90.dll</td><td>msvcr90.dll</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
 		<row><td>msvcr90.dll1</td><td>msvcr90.dll1</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
-		<row><td>newtonsoft.json.dll</td><td>Newtonsoft.Json.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
-		<row><td>ookii.dialogs.wpfminustaskdi</td><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>OOKIID~1.DLL|Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>1</td><td/></row>
+		<row><td>newtonsoft.json.dll</td><td>Newtonsoft.Json.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
+		<row><td>ookii.dialogs.wpfminustaskdi</td><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>OOKIID~1.DLL|Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt1</td><td>ISX_DEFAULTCOMPONENT5</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>regid.2000_12.com.cloud_clou</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
-		<row><td>regid.2000_12.com.cloud_clou1</td><td>ISO19770_SystemTag</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
+		<row><td>regid.2000_12.com.cloud_clou1</td><td>ISO19770_SystemTag</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Source\Projects\win-client\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
 		<row><td>registercom.exe</td><td>RegisterCom.exe</td><td>REGIST~1.EXE|RegisterCom.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe</td><td>1</td><td/></row>
 		<row><td>registercom.exe.config</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGIST~1.CON|RegisterCom.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe.config</td><td>1</td><td/></row>
 		<row><td>showcloudfolder.primary_outp</td><td>ShowCloudFolder.Primary_output</td><td>ShowCloudFolder.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ShowCloudFolder&gt;|Built</td><td>3</td><td/></row>
-		<row><td>simplejson.dll</td><td>SimpleJson.dll</td><td>SIMPLE~1.DLL|SimpleJson.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SimpleJson.dll</td><td>1</td><td/></row>
+		<row><td>simplejson.dll</td><td>SimpleJson.dll</td><td>SIMPLE~1.DLL|SimpleJson.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SimpleJson.dll</td><td>1</td><td/></row>
 		<row><td>sqlceca40.dll</td><td>sqlceca40.dll</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlceca40.dll</td><td>1</td><td/></row>
 		<row><td>sqlceca40.dll1</td><td>sqlceca40.dll1</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlceca40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcecompact40.dll</td><td>sqlcecompact40.dll</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlcecompact40.dll</td><td>1</td><td/></row>
@@ -2067,16 +2067,16 @@
 		<row><td>sqlcese40.dll</td><td>sqlcese40.dll</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlcese40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcese40.dll1</td><td>sqlcese40.dll1</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlcese40.dll</td><td>1</td><td/></row>
 		<row><td>sqlindexer.primary_output</td><td>SQLIndexer.Primary_output</td><td>SQLIndexer.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;SQLIndexer&gt;|Built</td><td>3</td><td/></row>
-		<row><td>supersocket.clientengine.com</td><td>SuperSocket.ClientEngine.Common.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Common.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Common.dll</td><td>1</td><td/></row>
-		<row><td>supersocket.clientengine.cor</td><td>SuperSocket.ClientEngine.Core.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
-		<row><td>supersocket.clientengine.pro</td><td>SuperSocket.ClientEngine.Protocol.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Protocol.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\SuperSocket.ClientEngine.Protocol.dll</td><td>1</td><td/></row>
+		<row><td>supersocket.clientengine.com</td><td>SuperSocket.ClientEngine.Common.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Common.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll</td><td>1</td><td/></row>
+		<row><td>supersocket.clientengine.cor</td><td>SuperSocket.ClientEngine.Core.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
+		<row><td>supersocket.clientengine.pro</td><td>SuperSocket.ClientEngine.Protocol.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Protocol.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll</td><td>1</td><td/></row>
 		<row><td>sync.primary_output</td><td>Sync.Primary_output</td><td>Sync.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Sync&gt;|Built</td><td>3</td><td/></row>
-		<row><td>system.data.sqlserverce.dll</td><td>System.Data.SqlServerCe.dll</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
-		<row><td>system.data.sqlserverce.enti</td><td>System.Data.SqlServerCe.Entity.dll</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.Entity.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\System.Data.SqlServerCe.Entity.dll</td><td>1</td><td/></row>
-		<row><td>system.windows.interactivity</td><td>System.Windows.Interactivity.dll</td><td>SYSTEM~1.DLL|System.Windows.Interactivity.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\System.Windows.Interactivity.dll</td><td>1</td><td/></row>
-		<row><td>websocket4net.dll</td><td>WebSocket4Net.dll</td><td>WEBSOC~1.DLL|WebSocket4Net.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\WebSocket4Net.dll</td><td>1</td><td/></row>
+		<row><td>system.data.sqlserverce.dll</td><td>System.Data.SqlServerCe.dll</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
+		<row><td>system.data.sqlserverce.enti</td><td>System.Data.SqlServerCe.Entity.dll</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.Entity.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\System.Data.SqlServerCe.Entity.dll</td><td>1</td><td/></row>
+		<row><td>system.windows.interactivity</td><td>System.Windows.Interactivity.dll</td><td>SYSTEM~1.DLL|System.Windows.Interactivity.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\System.Windows.Interactivity.dll</td><td>1</td><td/></row>
+		<row><td>websocket4net.dll</td><td>WebSocket4Net.dll</td><td>WEBSOC~1.DLL|WebSocket4Net.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\WebSocket4Net.dll</td><td>1</td><td/></row>
 		<row><td>win_client.primary_output</td><td>win_client.Primary_output</td><td>win-client.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;win-client&gt;|Built</td><td>3</td><td/></row>
-		<row><td>wpftoolkit.extended.dll</td><td>WPFToolkit.Extended.dll</td><td>WPFTOO~1.DLL|WPFToolkit.Extended.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\WPFToolkit.Extended.dll</td><td>1</td><td/></row>
+		<row><td>wpftoolkit.extended.dll</td><td>WPFToolkit.Extended.dll</td><td>WPFTOO~1.DLL|WPFToolkit.Extended.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\WPFToolkit.Extended.dll</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -2363,7 +2363,7 @@
 		<row><td>NewComponent1</td><td/><td/><td>_2FA478B8_1D0A_4BD3_B0DA_9100F4B449D0_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Newtonsoft.Json.dll</td><td/><td/><td>_9E009E28_5A56_4E1F_AD85_D032308D48B4_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td/><td/><td>_B1B22F10_13DE_4A85_A01F_7F629E22E895_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>RegisterCom.exe</td><td/><td/><td>_67D98D99_7A4C_480E_A11B_B350FBA8E07E_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>RegisterCom.exe</td><td/><td/><td>_AE27194E_DE6A_4638_85D3_EAEF4BD96B1E_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SQLIndexer.Primary_output</td><td/><td/><td>_3682A8A1_3E56_400E_BE49_AF6A532811F4_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ShowCloudFolder.Primary_output</td><td/><td/><td>_72974E47_1F9D_44E6_A0BD_FAF16E7D7DF7_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.dll</td><td/><td/><td>_FA8E56BA_31C1_4CB7_85E2_E09A4E728EF8_FILTER</td><td/><td/><td/><td/></row>
@@ -2719,6 +2719,7 @@
 		<row><td>ISProjectDataFolder</td><td/><td/><td>1</td></row>
 		<row><td>ISProjectFolder</td><td/><td/><td>1</td></row>
 		<row><td>ProgramFilesFolder</td><td/><td/><td>1</td></row>
+		<row><td>RegisterCom</td><td>RegisterCom\RegisterCom.csproj</td><td/><td>2</td></row>
 		<row><td>SQLIndexer</td><td>SQLIndexer\SQLIndexer.csproj</td><td/><td>2</td></row>
 		<row><td>ShowCloudFolder</td><td>ShowCloudFolder\ShowCloudFolder.csproj</td><td/><td>2</td></row>
 		<row><td>Sync</td><td>Sync\Sync.csproj</td><td/><td>2</td></row>
@@ -2999,9 +3000,9 @@
 		<row><td>_07D4F9FD_FAA1_4415_BCE9_0B49B0383AA9_</td><td>Windows Installer 4.5 for Windows XP SP2 and later (x86).prq</td><td>0</td><td/><td/></row>
 		<row><td>_3764EFE1_7F0A_41EE_81BF_967338173235_</td><td>Windows Installer 4.5 for Windows Vista (x86).prq</td><td>1</td><td/><td/></row>
 		<row><td>_4E9C4BB6_C189_4F15_8A72_44DFDD5469EA_</td><td>Microsoft .NET Framework 4.0 Client (Web Download).prq</td><td>2</td><td/><td/></row>
+		<row><td>_545DAFFF_9726_4FDC_AC49_2DC9FC16361F_</td><td>Windows Installer 3.1 for Windows XP (x64).prq</td><td/><td/><td/></row>
 		<row><td>_5DC295EB_A61B_40B1_8185_F68111CABA8A_</td><td>Windows Installer 4.5 Update for Windows Server 2003 SP2 and later (x86).prq</td><td>3</td><td/><td/></row>
 		<row><td>_6F3F81F6_EFC7_4D85_84CB_DC638475E70E_</td><td>Windows Installer 4.5 for Windows Server 2003 SP1 and later (x86).prq</td><td>4</td><td/><td/></row>
-		<row><td>_A0ABFB6A_CF81_464D_9A94_82C16B0711A1_</td><td>Windows Installer 3.1 for Windows XP (x64).prq</td><td>5</td><td/><td/></row>
 		<row><td>_BFBC4CE1_BCD1_470B_9738_F43DD4F7CF21_</td><td>Windows Installer 4.5 Update for Windows XP SP3 and later (x86).prq</td><td>6</td><td/><td/></row>
 		<row><td>_BFE9F574_56AE_4D7A_BEE6_5DE9A5E0E641_</td><td>Windows Installer 4.5 for Windows Server 2008 (x86).prq</td><td>7</td><td/><td/></row>
 	</table>

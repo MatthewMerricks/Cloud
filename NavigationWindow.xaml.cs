@@ -29,6 +29,8 @@ using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
 using CleanShutdown.Messaging;
 using CloudApiPrivate.Model.Settings;
+using CloudApiPublic.Support;
+using CloudApiPublic.Model;
 
 namespace win_client
 {
@@ -41,6 +43,7 @@ namespace win_client
 
         private TrayIcon m_trayIcon;
         private bool disposed = false;
+        private CLTrace _trace = CLTrace.Instance;
 
         #endregion
 
@@ -55,19 +58,33 @@ namespace win_client
         /// </summary>
         public MyNavigationWindow()
         {
-            this.NavigationService.Navigated += NavigationService_Navigated;
-            this.NavigationService.Navigating += NavigationService_Navigating;
-            this.Closing += MyNavigationWindow_Closing;
+            try
+            {
+                this.NavigationService.Navigated += NavigationService_Navigated;
+                this.NavigationService.Navigating += NavigationService_Navigating;
+                this.Closing += MyNavigationWindow_Closing;
 
-            InitializeComponent();
+                _trace.writeToLog(9, "NavigationWindow: MyNavigationWindow constructor: Call InitializeComponent.");
+                InitializeComponent();
+                _trace.writeToLog(9, "NavigationWindow: MyNavigationWindow constructor: After InitializeComponent.");
 
-            // Register messages
-            Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
-                this,
-                message =>
-                {
-                    OnQueryNotificationMessageAction(message);
-                });
+                // Register messages
+                Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
+                    this,
+                    message =>
+                    {
+                        OnQueryNotificationMessageAction(message);
+                    });
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(9, "MyNavigationWindow: PageHome: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
+                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (MyNavigationWindow).  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
+                global::System.Windows.Application.Current.Shutdown(0);
+            }
+            _trace.writeToLog(9, "NavigationWindow: MyNavigationWindow constructor: Exit.");
         }
 
         #endregion
@@ -91,12 +108,14 @@ namespace win_client
         /// </summary>
         void MyNavigationWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            _trace.writeToLog(9, "NavigationWindow: MyNavigationWindow_Closingr: Entry.");
             e.Cancel = ShutdownService.RequestShutdown();
 
             // Save the position of the window if we will be shutting down, and if the window
             // is visible.
             if (!e.Cancel && this.WindowStyle != System.Windows.WindowStyle.None && this.Visibility == System.Windows.Visibility.Visible)
             {
+                _trace.writeToLog(1, "NavigationWindow: MyNavigationWindow_Closing: Set MainWindowPlacement. Coords: {0},{1},{2},{3}(LRWH). Title: {4}.", this.Left, this.Top, this.Width, this.Height, this.Title);
                 Settings.Instance.MainWindowPlacement = this.GetPlacement();
             }
         }

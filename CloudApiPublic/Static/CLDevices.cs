@@ -50,7 +50,7 @@ namespace CloudApiPublic.Static
 
                 foreach (var device in devices)
                 {
-                    _trace.writeToLog(1, string.Format("CLDevices: GetComputerType: Device pointing type: <{0}>.", device["PointingType"]));
+                    _trace.writeToLog(1, "CLDevices: GetComputerType: Device pointing type: <{0}>.", device["PointingType"]);
                     string touchpadType = device["PointingType"].ToString();
                     if (touchpadType == ((int)EnumTouchpadTypes.TouchpadTypeGlidePoint).ToString() || touchpadType == ((int)EnumTouchpadTypes.TouchpadTypeTrackPoint).ToString())
                     {
@@ -61,7 +61,7 @@ namespace CloudApiPublic.Static
 	        catch (Exception ex)
             {
                 CLError error = ex;
-                _trace.writeToLog(1, string.Format("CLDevices: GetComputerType: ERROR: Exception: Msg: <{0}>.  Code: {1}.", error.errorDescription, error.errorCode));
+                _trace.writeToLog(1, "CLDevices: GetComputerType: ERROR: Exception: Msg: <{0}>.  Code: {1}.", error.errorDescription, error.errorCode);
 	        }
 
             return returnType;

@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Serbian</LangEn>
+	<Lang>Srpski</Lang>
+	<Culture>sr-Latn-CS</Culture>
+	<Buttons>
+		<Next>Naredno</Next>
+		<Update>Nadogradi</Update>
+		<Finish>Kraj</Finish>
+		<Cancel>Poništi</Cancel>
+		<Close>Zatvori proces</Close>
+		<CloseAll>Zatvori sve procese</CloseAll>
+		<CancelUpdate>Poništi nadogradnju</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Ponistiti nadogradnju?</Title>
+			<Content>Da li ste sigurni da želite da napustite nadogradnju pre završetka?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Zatvaranje procesa...</Title>
+			<Content>Sledeći procesi se moraju zatvoriti pre nego što nadogradnja može da nastavi. Izaberite proces i kliknite na 'Zatvori proces'.</Content>
+		</Processes>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate-u su potrebne administratorske privilegije da nadogradi %product%. Ovo se može uraditi na dva načina: 
+
+1. Kada je potrebno, unesite administratorevo korisničko ime i lozinku. 
+
+2. U Windows Exploreru kliknite desnim tasterom miša na wyUpdate.exe, a zatim na "Pokreni kao Administrator"</Admin>
+		<Download>Nadogradnja nije uspela da snimi.</Download>
+		<SelfUpdate>Nadograđena verzija ovog klijenta, neophodna za nadogradnju %product%-a, nije uspešno instalirana.</SelfUpdate>
+		<ServFile>Nije moguće proveriti za nadogradnje. Fajl sa servera nije uspešno učitan.</ServFile>
+		<Update>Nadogradnja nije uspela da instalira.</Update>
+		<LogOff>Nadogradnja programa %product%. Morate iskljuciti wyUpdate, pre nego sto se odjavite.</LogOff>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Pretraga za nadogradnje</Title>
+			<SubTitle>wyUpdate pretražuje za nadogradnje.</SubTitle>
+			<Content>wyUpdate pretražuje nadogradnje za %product%. Ovaj postupak može da potraje i do nekoliko minuta.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Informacije nadogradnje</Title>
+			<SubTitle>Promene u poslednjoj verziji %product%-a.</SubTitle>
+			<Content>Verzija %product%-a koja je instalirana na ovom računaru je %old_version%, dok je najnovija verzija %new_version%. Ispod ćete pronaći promene i poboljšanja:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Snimanje i instalacija nadogradnji</Title>
+			<SubTitle>U toku je nadogradnja %product%-a u najnoviju verziju.</SubTitle>
+			<Content>wyUpdate snima i instalira nadogradnje za %product%. Ovaj postupak može da potraje i do nekoliko minuta.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Uklanjanje fajlova, foldera i redžistri unosa</Title>
+			<SubTitle>Uklanjanje fajlova i redžistri unosa za %product%.</SubTitle>
+			<Content>wyUpdate uklanja fajlove i redžistri unose napravljene kada su nadogradnje primenjene na %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Nadogradnja je uspela!</Title>
+			<Content>%product% je uspešno nadograđen na verziju %new_version%.</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Najnovija verzija je već instalirana</Title>
+			<Content>%product% je najnovija verzija. Ne zaboravite da često proveravate za nadogradnje.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Nema dostupnih nadogradnji </Title>
+			<Content>Postoji novija dostupna verzija programa %product% (verzija %new_version%), ali nema dostupnih nadogradnji u odnosu na verziju koju Vi imate instaliranu (verzija %old_version%)</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Dogodila se greška</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Snimanje nadogradnji</Download>
+		<DownloadSelfUpdate>Snimanje novog wyUpdate klijenta</DownloadSelfUpdate>
+		<SelfUpdate>Nadograđivanje wyUpdate klijenta</SelfUpdate>
+		<Extract>Izvlačenje fajlova</Extract>
+		<Processes>Zatvaranje procesa</Processes>
+		<PreExec>Pokretanje fajlova</PreExec>
+		<Files>Pravljenje rezervi i nadograđivanje fajlova</Files>
+		<Registry>Pravljenje rezervi i nadograđivanje redžistrija</Registry>
+		<Optimize>Optimizacija i pokretanje fajlova</Optimize>
+		<TempFiles>Uklanjanje privremenih fajlova</TempFiles>
+		<UninstallFiles>Uklanjanje fajlova i foldera</UninstallFiles>
+		<UninstallReg>Uklanjanje redžistri unosa</UninstallReg>
+	</Status>
+	<Bottoms>
+		<Update>Pritisnite 'Nadogradi' da započnete.</Update>
+		<Finish>Pritisnite 'Kraj' da završite.</Finish>
+	</Bottoms>
+</Translation>

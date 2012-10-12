@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>French (Canada)</LangEn>
+	<Lang>Français</Lang>
+	<Culture>fr-CA</Culture>
+	<Buttons>
+		<Next>Suivant</Next>
+		<Update>Mise à jour</Update>
+		<Finish>Terminer</Finish>
+		<Cancel>Annuler</Cancel>
+		<ShowDetails>Voir le détail</ShowDetails>
+		<Close>Fermeture du processus</Close>
+		<CloseAll>Fermeture de tous les processus</CloseAll>
+		<CancelUpdate>Annulation de la mise à jour</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Annuler la mise à jour?</Title>
+			<Content>Voulez-vous quitter avant que la mise à jour soit terminée?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Fermeture des applications</Title>
+			<Content>Les processus suivants doivent être fermés avant que la mise à jour puisse se poursuivre. Sélectionnez un processus et cliquez sur « Fermeture du processus ».</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Fichiers en cours d'utilisation...</Title>
+			<Content>Les fichiers suivants sont en cours d'utilisation. Ces fichiers doivent être fermés avant que la mise à jour puisse se poursuivre.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate a besoin de privilèges administratifs pour mettre à jour %product%. Vous pouvez les obtenir d'une des deux façons suivantes :
+
+1. À la demande de connexion, entrez le code d'utilisateur et le mot de passe d'un administrateur.
+
+2. Dans l'explorateur de Windows, affichez le menu contextuel de wyUpdate.exe et sélectionnez « Exécuter en tant qu'administrateur »</Admin>.
+		<Download>Le téléchargement de la mise à jour a échoué.</Download>
+		<LogOff>Mise à jour de %product%. Vous devez annuler la mise à jour de wyUpdate avant que vous puissiez fermer la session.</LogOff>
+		<SelfUpdate>La nouvelle version de wyUpdate requise pour mettre à jour %product% n'a pu être installée.</SelfUpdate>
+		<ServFile>Il est impossible de vérifier les mises à jour. Le chargement du ficher en provenance du serveur a échoué.</ServFile>
+		<Update>L'installation de la mise à jour a échoué.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Recherche des mises à jour</Title>
+			<SubTitle>wyUpdate recherche des mises à jour.</SubTitle>
+			<Content>wyUpdate recherche des mises à jour pour %product%. Ce processus peut prendre quelques minutes.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Renseignements sur la mise à jour</Title>
+			<SubTitle>Nouveautés de la dernière version de %product%.</SubTitle>
+			<Content>La version de %product% installée sur cet ordinateur est %old_version%. La dernière version est %new_version%. En voici les modifications et les améliorations :</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Téléchargement et installation des mises à jour</Title>
+			<SubTitle>Mise à jour de %product% à la dernière version.</SubTitle>
+			<Content>wyUpdate télécharge et installe des mises à jour pour %product%. Ce processus peut prendre quelques minutes.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Désinstallation des fichiers, des dossiers et du registre</Title>
+			<SubTitle>Désinstallation des fichiers et du registre pour %product%.</SubTitle>
+			<Content>wyUpdate désinstalle les fichiers et le registre créés lors des mises à jour de %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Mise à jour réussie!</Title>
+			<Content>%product% a été mis à jour à la version %new_version%.</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>La dernière version est déjà installée</Title>.
+			<Content>%product% est à jour. Veuillez vérifier les nouvelles mises à jour fréquemment.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Aucune mise à jour n'est disponible</Title>.
+			<Content>Il existe une nouvelle version de %product% (%new_version%), mais aucune mise à jour n'est disponible pour la version actuelle (%old_version%).</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Une erreur s'est produite</Title>.
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Téléchargement de la mise à jour</Download>
+		<DownloadSelfUpdate>Téléchargement de la nouvelle version de wyUpdate</DownloadSelfUpdate>
+		<SelfUpdate>Mise à jour de wyUpdate</SelfUpdate>
+		<Extract>Extraction des fichiers</Extract>
+		<Processes>Fermeture des processus</Processes>
+		<PreExec>Exécution des fichiers</PreExec>
+		<Files>Enregistrement et mise à jour des dossiers</Files>
+		<Registry>Enregistrement et mise à jour du registre</Registry>
+		<Optimize>Optimisation et exécution des fichiers</Optimize>
+		<TempFiles>Retrait des fichiers temporaires</TempFiles>
+		<UninstallFiles>Désinstallation des fichiers et des dossiers</UninstallFiles>
+		<UninstallReg>Désinstallation du registre</UninstallReg>
+		<RollingBackFiles>Retour aux fichiers originaux</RollingBackFiles>
+		<RollingBackRegistry>Retour au registre original</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Cliquez sur « Mise à jour » pour commencer.</Update>
+		<Finish>Cliquez sur « Terminer » pour quitter.</Finish>
+	</Bottoms>
+</Translation>

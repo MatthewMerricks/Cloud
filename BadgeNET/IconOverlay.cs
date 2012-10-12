@@ -436,7 +436,7 @@ namespace BadgeNET
         {
             try
             {
-                _trace.writeToLog(9, "IconOverlay: setBadgeType. Path: {0}, Type: {1}.", forFileAtPath.ToString(), type.Value.ToString());
+                //_trace.writeToLog(9, "IconOverlay: setBadgeType. Path: {0}, Type: {1}.", forFileAtPath.ToString(), type.Value.ToString());
                 return Instance.pSetBadgeType(forFileAtPath, type);
             }
             catch (Exception ex)
@@ -451,12 +451,12 @@ namespace BadgeNET
             try
             {
                 // ensure this is initialized
-                _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Path: {0}, Type: {1}.", filePath.ToString(), newType.Value.ToString());
+                //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Path: {0}, Type: {1}.", filePath.ToString(), newType.Value.ToString());
                 lock (this)
                 {
                     if (!isInitialized)
                     {
-                        _trace.writeToLog(9, "IconOverlay: pSetBadgeType. ERROR: THROW: Must be initialized before setting badges.");
+                        //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. ERROR: THROW: Must be initialized before setting badges.");
                         throw new Exception("IconOverlay must be initialized before setting badges");
                     }
                 }
@@ -465,7 +465,7 @@ namespace BadgeNET
                 lock (allBadges)
                 {
                     // newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
-                    _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Add this type to the dictionary.");
+                    //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Add this type to the dictionary.");
                     if (newType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
                     {
                         allBadges[filePath] = null;
@@ -481,20 +481,20 @@ namespace BadgeNET
                 while (node != null)
                 {
                     // Notify the file system that this icon needs to be updated.
-                    _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Notify Explorer for path {0}.", node.ToString());
+                    //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Notify Explorer for path {0}.", node.ToString());
                     NotifySystemForBadgeUpdate(node);
 
                     // Quit if we notified the Cloud directory root
                     if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
                     {
-                        _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Break.  At Cloud root.");
+                        //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Break.  At Cloud root.");
                         break;
                     }
 
                     // Chain up
                     node = node.Parent;
                 }
-                _trace.writeToLog(9, "IconOverlay: pSetBadgeType. Exit.");
+                //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Exit.");
             }
             catch (Exception ex)
             {
@@ -693,12 +693,12 @@ namespace BadgeNET
         /// <param name="filePath">Filepath for refresing single icon (case-sensitive)</param>
         private static void NotifySystemForBadgeUpdate(FilePath filePath = null)
         {
-            _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Entry.");
+            //_trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Entry.");
             if (filePath == null)
             {
                 //The following will refresh all icons, does not force OS to reload relevant COM objects
                 //    (for now I test after restarting explorer.exe)
-                _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Refresh all icons.");
+                //_trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Refresh all icons.");
                 NativeMethods.SHChangeNotify(NativeMethods.HChangeNotifyEventID.SHCNE_ASSOCCHANGED,
                     NativeMethods.HChangeNotifyFlags.SHCNF_IDLIST,
                     IntPtr.Zero,
@@ -707,7 +707,7 @@ namespace BadgeNET
             else
             {
                 //Instantiate IntPtr outside of try so it can be cleaned up
-                _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Notify for path: {0}.", filePath.ToString());
+                //_trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Notify for path: {0}.", filePath.ToString());
                 IntPtr filePtr = IntPtr.Zero;
                 try
                 {
@@ -717,7 +717,7 @@ namespace BadgeNET
                     filePtr = Marshal.StringToHGlobalAnsi(filePath.ToString());
 
                     //Notify that attributes have changed on the file at the path provided by the IntPtr (which updates its icon)
-                    _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Call SHChangeNotify.");
+                    //_trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Call SHChangeNotify.");
                     //SHChangeNotify(HChangeNotifyEventID.SHCNE_UPDATEITEM,
                     //    HChangeNotifyFlags.SHCNF_PATHA,
                     //    filePtr,
@@ -732,7 +732,7 @@ namespace BadgeNET
                     //If IntPtr was not zero, free its memory
                     if (filePtr.ToInt64() != 0L)
                     {
-                        _trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Free global memory.");
+                        //_trace.writeToLog(9, "IconOverlay: NotifySystemForBadgeUpdate. Free global memory.");
                         Marshal.FreeHGlobal(filePtr);
                     }
                 }
@@ -832,7 +832,7 @@ namespace BadgeNET
         {
             try
             {
-                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Entry.");
+                //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Entry.");
                 // Convert the badgetype and filepath to objects.
                 FilePath objFilePath = filePath;
                 GenericHolder<cloudAppIconBadgeType> objBadgeType = new GenericHolder<cloudAppIconBadgeType>(badgeType);
@@ -841,54 +841,54 @@ namespace BadgeNET
                 lock (allBadges)
                 {
                     // There will be no badge if the path doesn't contain Cloud root
-                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Locked.");
+                    //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Locked.");
                     if (objFilePath.Contains(filePathCloudDirectory))
                     {
                         // If the value at this path is set and it is our type, then badge.
-                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Contains Cloud root.");
+                        //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Contains Cloud root.");
                         GenericHolder<cloudAppIconBadgeType> tempBadgeType;
                         bool success = allBadges.TryGetValue(objFilePath, out tempBadgeType);
                         if (success)
                         {
                             bool rc = (tempBadgeType.Value == objBadgeType.Value);
-                            _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return: {0}.", rc);
+                            //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return: {0}.", rc);
                             return rc;
                         }
                         else
                         {
                             // If an item is marked selective, then none of its children (whole hierarchy of children) should be badged.
-                            _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. TryGetValue not successful.");
+                            //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. TryGetValue not successful.");
                             if (!FilePathComparer.Instance.Equals(objFilePath, filePathCloudDirectory))
                             {
                                 // Recurse through parents of this node up to and including the CloudPath.
-                                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Recurse thru parents.");
+                                //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Recurse thru parents.");
                                 FilePath node = objFilePath;
                                 while (node != null)
                                 {
                                     // Return false if the value of this node is not null, and is marked SyncSelective
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the type for path: {0}.", node.ToString());
+                                    //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the type for path: {0}.", node.ToString());
                                     success = allBadges.TryGetValue(node, out tempBadgeType);
                                     if (success && tempBadgeType != null)
                                     {
                                         // Got the badge type at this level.
-                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Got type {0}.", tempBadgeType.Value.ToString());
+                                        //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Got type {0}.", tempBadgeType.Value.ToString());
                                         if (tempBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSyncSelective)
                                         {
-                                            _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return false.");
+                                            //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return false.");
                                             return false;
                                         }
                                     }
 
                                     // Quit if we notified the Cloud directory root
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?");
+                                    //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?");
                                     if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
                                     {
-                                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node.");
+                                        //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node.");
                                         break;
                                     }
 
                                     // Chain up
-                                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Chain up.");
+                                    //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Chain up.");
                                     node = node.Parent;
                                 }
                             }
@@ -900,7 +900,7 @@ namespace BadgeNET
                     else
                     {
                         // This path is not in the Cloud folder.  Don't badge.
-                        _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Not in the Cloud folder.  Don't badge.");
+                        //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Not in the Cloud folder.  Don't badge.");
                         return false;
                     }
                 }
@@ -925,30 +925,30 @@ namespace BadgeNET
             try
             {
                 // Get the hierarchy of children of this node.
-                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the hierarchy for path: {0}.", objFilePath.ToString());
+                //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the hierarchy for path: {0}.", objFilePath.ToString());
                 FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
                 CLError error = AllBadges.GrabHierarchyForPath(objFilePath, out tree, suppressException: true);
                 if (error == null
                     && tree != null)
                 {
-                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal.");
+                    //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal.");
                     // Chase the children hierarchy using recursive postorder traversal to determine the desired badge type.
                     cloudAppIconBadgeType desiredBadgeType = GetDesiredBadgeTypeViaRecursivePostorderTraversal(tree);
                     bool rc = (badgeType == desiredBadgeType);
-                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(2): {0}.", rc);
+                    //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(2): {0}.", rc);
                     return rc;
                 }
                 else
                 {
                     bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
-                    _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(3): {0}.", rc);
+                    //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(3): {0}.", rc);
                     return rc;
                 }
             }
             catch
             {
                 bool rc = (badgeType == cloudAppIconBadgeType.cloudAppBadgeSynced);
-                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Return(4): {0}.", rc);
+                _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. ERROR: Exception. Return(4): {0}.", rc);
                 return rc;
             }
         }

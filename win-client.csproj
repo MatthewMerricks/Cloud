@@ -15,6 +15,10 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <Utf8Output>true</Utf8Output>
+    <ExpressionBlendVersion>4.0.20525.0</ExpressionBlendVersion>
+    <MSBuildCommunityTasksPath>$(SolutionDir)\Build</MSBuildCommunityTasksPath>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -27,12 +31,8 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <Utf8Output>true</Utf8Output>
-    <ExpressionBlendVersion>4.0.20525.0</ExpressionBlendVersion>
-    <MSBuildCommunityTasksPath>$(SolutionDir)\Build</MSBuildCommunityTasksPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -104,6 +104,9 @@
     </Reference>
     <Reference Include="Ookii.Dialogs.WpfMinusTaskDialog">
       <HintPath>3rdParty\bin\Release\Ookii.Dialogs.WpfMinusTaskDialog.dll</HintPath>
+    </Reference>
+    <Reference Include="RateBar">
+      <HintPath>3rdParty\bin\Release\RateBar.dll</HintPath>
     </Reference>
     <Reference Include="SimpleJson">
       <HintPath>3rdParty\bin\Release\SimpleJson.dll</HintPath>
@@ -194,6 +197,10 @@
     <Compile Include="Growl\GrowlBase.cs" />
     <Compile Include="Growl\GrowlScrollViewer.cs" />
     <Compile Include="Model\CLPreferences.cs" />
+    <Compile Include="Model\CLStatusFileTransfer.cs" />
+    <Compile Include="Model\CLStatusFileTransferBase.cs" />
+    <Compile Include="Model\CLStatusFileTransferBlank.cs" />
+    <Compile Include="Model\CLStatusMessage.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
     <Compile Include="Model\IconPath.cs" />
@@ -250,6 +257,7 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
+    <Compile Include="ViewModels\WindowSyncStatusViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesShortcutsViewModel.cs" />
     <Compile Include="ViewModels\DialogCheckForUpdatesViewModel.cs" />
     <Compile Include="ViewModels\PageTourAdvancedEndViewModel.cs" />
@@ -275,6 +283,9 @@
     <Compile Include="ViewModels\PageTourViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\WindowSyncStatus.xaml.cs">
+      <DependentUpon>WindowSyncStatus.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\FramePreferencesShortcuts.xaml.cs">
       <DependentUpon>FramePreferencesShortcuts.xaml</DependentUpon>
     </Compile>
@@ -390,6 +401,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\WindowSyncStatus.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -509,8 +524,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <Content Include="amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -529,12 +544,18 @@
     <None Include="Artwork\SidebarCloud.icns" />
     <AppDesigner Include="Properties\" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\CloudRestart" />
+    <EmbeddedResource Include="Resources\CloudMoveCloudFolder" />
     <None Include="win-client_TemporaryKey.pfx" />
     <None Include="WinClientCertificate.pfx" />
+<<<<<<< HEAD
     <Resource Include="BadgeCOM\Failed.ico" />
     <Resource Include="BadgeCOM\Selective.ico" />
     <Resource Include="BadgeCOM\Synced.ico" />
     <Resource Include="BadgeCOM\Syncing.ico" />
+=======
+    <EmbeddedResource Include="Resources\CloudInstallUpdate" />
+>>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
     <Content Include="x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -759,7 +780,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(ProjectDir)3rdParty\bin\$(ConfigurationName)\CloudUpdater.exe $(ProjectDir)$(OutDir)</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\Build\MSBuild.Community.Tasks.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

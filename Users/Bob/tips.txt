@@ -313,7 +313,6 @@ DATA_TYPE copyIconDataForURL(URL_TYPE URL)
   - Tutorial on how to code sign: http://os-tres.net/blog/2010/02/17/mac-os-x-and-task-for-pid-mach-call/
   - Great code signing guide: http://www.filibeto.org/unix/macos/lib/dev/documentation/Security/Conceptual/CodeSigningGuide/CodeSigningGuide.pdf
   - Interesting comment: "This is an intentional security feature in task_for_pid() and in ptrace() to preclude you using the debugger to debug a program with escalated privilege and thus access code, data, or interfaces which you would otherwise not be privileged to access or execute as a privileged user or group. ÊIt doesn't matter that the group is the same as gdb itself is running as, what matters is that the credential for that user has been adulterated away from the identity given to the system by DirectoryServices or whatever authentication database you are using to establish the credential in the first place. ÊCredentials are established by escalating privilege, setting up the credential, and dropping privilege. ÊIf you run a program that re-escalates privilege, unless it does the little dance to establish its rights to establish a new kernel credential authoritatively, privilege is revoked. ÊIn your case, your gdb is only sgid, so it's incapable of obtaining root privilege in order to become an authoritative source of credential information for the kernel. ÊThis is also generally why we ask people to rely on login as a gatekeeper, rather than writing their own credential establishing code."  From : http://lists.apple.com/archives/darwin-dev/2009/Jul/msg00015.html
-  - &&&&&&&&&&&&&&&&&&&&&&&&&&&&
   - (2/23/12) Requiring root privilege is OK.
   - Write a program that becomes a daemon with root privileges.
   - How to request root privileges in code: http://stackoverflow.com/questions/6659527/task-for-pid-always-returns-os-kern-failure-on-darwin-in-c
@@ -4523,34 +4522,22 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - VBScript error handling: http://stackoverflow.com/questions/4999364/try-catch-end-try-in-vbscript
     - A way to do try/catch in VBScript: http://my.opera.com/Lee_Harvey/blog/2007/04/21/try-catch-finally-in-vbscript-sure
     - Try/catch technique works!
-            Class CheckExplorer
-               ' Constructor
-               Private Sub Class_Initialize
-                 wscript.echo("CloudSetup: CheckExplorer: Constructor entry.")
-                 Dim i
-                 wscript.echo("CloudSetup: CheckExplorer: After DIM.")
-                 i = i + 1
-                 wscript.echo("CloudSetup: CheckExplorer: After i + 1.")
-                 ' Cause error
-                 i = 65535 ^ 65535
-                 wscript.echo("CloudSetup: CheckExplorer: After error creation.")
-                 i = i + 2
-                 wscript.echo("CloudSetup: CheckExplorer: After i + 2.")
-                 i = i + 3
-                 wscript.echo("CloudSetup: CheckExplorer: After i + 3.")
-                 wscript.echo("CloudSetup: CheckExplorer: Should never get here.")
-               End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
-                  ' Catch
-                  Select Case Err.Number
-                     Case Else wscript.echo("CloudSetup: CheckExplorer: Unhandled error " & Err.Number & " occurred.")
-                  End Select
-               Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
-                  ' Finally
-                  wscript.echo("CloudSetup: CheckExplorer: Exiting constructor.")
-               End Sub 
-            End Class    
+	    Class FtpUpload
+		' Constructor
+		Private Sub Class_Initialize
+		    wscript.echo("FtpUpload: FtpUpload: Constructor entry.")
+		End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
+		    ' Catch
+		    Select Case Err.Number
+			Case Else wscript.echo("FtpUpload: Catch: Unhandled error " & Err.Number & " occurred.")
+		    End Select
+		Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
+		    ' Finally
+		    wscript.echo("FtpUpload: Finally: Exiting constructor.")
+		End Sub 
+	    End Class    
             ' Drive it
-            With New CheckExplorer : End With
+            With New FtpUpload : End With
     - Now a bigger time-waster: Running the script from the command prompt: The script dies and takes cmd.exe and vs.exe with it!!!!   Maybe I should reboot.
   o 9/16/12 Sun: (home)
     - 5:30 - 16:00
@@ -4739,7 +4726,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Taskbar and NotifyIcon reference msdn: http://msdn.microsoft.com/en-us/library/windows/desktop/cc144179(v=vs.85).aspx
     - All six platforms now download, install, run, sync, badge and uninstall!  Pushed.
   o 9/27/12 Thu:
-    - 6:30 - 
+    - 6:30 - 18:30
     - Updating a locked DLL: 
 		If the file is in use, we copy the new file with a different name and load it (after we unregistered the old one). 
 		This makes the 2 dlls loadedm, but only the new one is in used until the next restart. In addition, 
@@ -4748,7 +4735,256 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Find processes locking a file: http://stackoverflow.com/questions/860656/how-does-one-figure-out-what-process-locked-a-file-using-c
     - Command line program to delete a non-module file locked by another process: http://www.codeguru.com/cpp/w-p/files/fileio/article.php/c1287/Deleting-Locked-Files.htm
     - Sample program (winNt): http://www.codeguru.com/cpp/w-p/system/processesmodules/article.php/c2827/Examine-Information-on-Windows-NT-System-Level-Primitives.htm
+    - Researched how to delete files locked by another process.
+    - Fixed a bug in DialogCheckForUpdates.xaml.  The  Install Now button was acting like the Check Now button.
+    - Working on getting the update to work within Cloud from the context menu shortcut.
+    - I need a local test HTTP download and update server.  I have been trying to use shortcuts, but that doesn't work...
+    - Installing local IIS for FTP access:
+      . Control Panel/Programs and Features.
+      . Turn Windows Features On or Off
+      . Make sure IIS is installed with FTP Server.
+      . It was on my Win7Sp1X64 machine.
+      . Windows search: type IIS and start the IIS Manager.
+      . Expand the left column.
+      . Expand "sites".
+      . Select "sites".
+      . Click "Add FTP Site in right panel.
+      . FTP site name: FtpTest.
+      . Physical path: C:\FtpRoot
+      . Click Next.
+      . Default except for No SSL.
+      . Click Next.
+      . Default except for: Check Anonymous, Allow access to "All Users", Permissions: Read/Write.
+      . Click Finish.
+      . In right panel, click Start if it is not already started.
+      . Open WyBuild, and our Cloud project.
+      . Select the Upload the Updates view.
+      . Click Add new site.
+    - I didn't get that working.  Apparently, FileZilla is already installed with a server at local host.  Check that out.
+    - Connect using user bobs, password simple bird.
+    - Added better exception handling for XAML load and parse issues in PageInvisible.  Issued a message to the user (ugly MessageBox) and exited the app.
+    - CloudUpdater needs to kill Explorer, wait for it to exit, continue to perform the update, then start Explorer, wait for its process to appear, then wait 2 seconds, then start Cloud again.
+  o 9/28/12 Fri:
+    - 7:30 - 16:00
+    - Restart manager C# example: http://msdn.microsoft.com/en-us/magazine/cc163450.aspx
+    - Using Restart Manager with a Secondary Installer: http://msdn.microsoft.com/en-us/library/windows/desktop/aa373682(v=vs.85).aspx
+    - How do I find out which process has a file open?: http://blogs.msdn.com/b/oldnewthing/archive/2012/02/17/10268840.aspx
+    - Restart Manager video: http://channel9.msdn.com/Blogs/DanielMoth/Restart-Manager-in-Vista-for-developers
+    - CloudUpdater(wyUpdate) kills a process by querying for its main window handle.  If it has one, it uses CloseMainWindow to close the app.  If not, it kills the app.
+    - The start of that code path is in frmProcesses.cs closeProc_Click and closeAll_Click.
+    - I need to be able to debug CloudUpdater in the mode that is is called when Cloud invokes it through AutoUpdater.  Try GFlags first.
+    - GFlags call VS debugger: C:\Windows\System32\vsjitdebugger.exe
+    - That works.  The autoupdater calls CloudUpdater.exe with arg "/autoupdate".
+    - frmMain:beginAutoUpdateInstallation
+    - CloudUpdater determines whether the current user needs to be elevated in permissions, and then regardless, copies itself to the temp directory and relaunches
+      itself with the elevated permissions.  That launch uses arguments "-supdf:\"" + <tempdir> + "\\selfUpdate.sup\""
+    - To pause wait for the debugger to be attached:
+		#if DEBUG
+			while (!Debugger.IsAttached)
+			{
+				Thread.Sleep(100);
+			}
+			Debugger.Break();
+		#endif  // DEBUG
+    - Another problem: The AutomaticUpdater code actively kills the client process if it doesn't open the pipe in time, so find the code that opens the pipe and
+      debug break after that.
+    - It looks like I should kill explorer before the code in frmMain.Updating.cs, line 461. (case UpdateOn.ClosingProcesses).
+    - The asynchronous update work is actually processed in InstallUpdate.cs.
+    - How should I make sure that Explorer is started again (in all exit cases)?
+    - UpdateHelper handles the pipe messages between AutomaticUpdater.dll and CloudUpdater.
+    - The wrapper around CloudUpdater works to shut down and restart Explorer.
+    - I also built a new wyBuild CloudUpdater project so we can use our own servers for the updater self-update.
+    - 4Kids dinner.
+  o 9/29/12 Sat: (home)
+    - 10:15 - 14:15
+    - The Restart Manager can be used to restart Explorer (hopefully in the same state): http://msdn.microsoft.com/en-us/library/windows/desktop/aa373524(v=vs.85).aspx
+    - InstallShield MSIRESTARTMANAGERSESSIONKEY: http://gunnalag.wordpress.com/2011/04/17/core-flexera-installshield-editor-default-properties-reference/
+    - Using Windows Installer with Restart Manager: http://msdn.microsoft.com/en-us/library/windows/desktop/aa372466(v=vs.85).aspx
+    - Custom actions should not attempt to shutdown or restart applications using the RmShutdown, RmGetList and RmRestart functions: http://msdn.microsoft.com/en-us/library/windows/desktop/aa372466(v=vs.85).aspx
+    - Sample Restart Manager code: http://www.codeproject.com/Articles/20010/How-to-Develop-Restart-Manager-Aware-Application-T
+    - rmtool.exe is the test tool for RM compliance: http://www.codeproject.com/Articles/20010/How-to-Develop-Restart-Manager-Aware-Application-T
+    - Resource Manager only works on Visa and above.  On XP, all we can do is to kill the locking processes, or register a RunOnce action and perform a reboot.
+    - Today was spent mostly on moving the work test environment for Update to my home computer.
+  o 9/30/12 Sun: (home)
+    - 6:30 - 15:30
+    - 18:30 - 20:15
+    - Creating an XML file in VBScript: http://technet.microsoft.com/en-us/magazine/2008.02.heyscriptingguy.aspx?pr=PuzzleAnswer
+    - XMLDOM SetAttribute: http://www.devguru.com/technologies/xmldom/quickref/element_setAttribute.html
+    - FTP via VBScript: http://www.tek-tips.com/viewthread.cfm?qid=1293398
+    - FTP commands:
+      . mput *: transfer files with wildcard
+      . lcd: change local directory
+      . cd: change remote directory
+      . mkdir: make remote directory
+      . rmdir: delete remote directory
+      . mdelete: delete remote files with wildcard
+      . http://www.nsftools.com/tips/MSFTP.htm#mput
+    - Automated most of the update prepration procedure.
+  o 10/1/12 Mon:
+    - 6:30 - 18:30
+    - Good driver for Windows FTP command: http://www.naterice.com/articles/51
+    - Documentation for InetCtls.Inet.1 (msinet.ocx):
+      . http://social.msdn.microsoft.com/Forums/en/refsourceserver/thread/d5bd1da1-6c3e-4b41-8409-2f49f2a47bd3
+      . http://officeone.mvps.org/vba/ftp_upload_file.html
+      . http://officeone.mvps.org/vba/ftp_download_file.html
+    - The update automation works!
+    - Now the updates are broken.  I fixed the CloudUpdater updates to work properly.  Now when CloudUpdater is not "self-updated", it doesn't copy itself
+      to the temp directory and relaunch itself, with the result that my code to kill explorer and wait for Cloud to exit is not invoked.
+    - Change the design of the "Install Now" function.  Launch a self-destructing .vbs script to wrap CloudUpdater.  It will wait for Cloud to exit,
+      kill Explorer, launch CloudUpdater, wait for it to complete, relaunch Cloud.exe, then destroy itself.  Call this script CloudInstallUpdate.vbs.
+    - I tested the CloudUpdater self update process with the linked cloud.wyc file.  I made CloudUpdater version 2.6.18.100 and 2.6.18.101.  Version 1.1.1.4 used
+      the former and version 1.1.1.5 used the latter.  I installed V1.1.1.4 and ran CloudUpdater (the V1.1.1.4 version).  The DbgView trace shows that
+      it did a self-update to the 2.6.18.101 version.
+    - I commented out the changes in CloudUpdater:Program.cs.
+    - Working on the new VBScript wrapper.
+  o 10/2/12 Tue:
+    - 7:30 - 18:45
+    - The CloudInstallUpdate.vbs has been tested standalone.  Testing with Cloud.
+    - Time waster:  The Check for Updates dialog "Install Now" button click does not work?????
+    - Great article on Embedded Resources: http://www.codeproject.com/Articles/3089/Understanding-Embedded-Resources-in-Visual-Studio
+    - The update process works well now.
+  o 10/3/12 Wed:
+    - 6:30 - 18:30
+    - Reset all of the test updates (11 now), rebuild and test updating from version 1 to 2.  Then upload version 2 for Scott.  Have him
+      install that, then upload update 3 and have him test that.
+    - Areas of concentration:
+      . Desktop GUI features, server protocol
+      . Metro client
+      . Windows phone 8
+      . Sync and file system monitoring
+      . Unit and functional testing
+      . Close-down testing
+      . OS integration
+      . Install/Uninstall/Update/Deploy
+    - People:
+      . Person 1:
+        o Desktop GUI features, server protocol
+      . Person 2:
+        o Metro client
+        o Windows phone 8
+      . Person 3:
+        o Sync and file system monitoring
+        o Unit and functional testing
+      . Person 4:
+        o OS integration
+        o Install/Uninstall/Update/Deploy
+      . Person 5 (part time) and offshore:
+        o Close-down testing
+    - Working with Scott to test update on his Win32X86 system.  I think I fixed a crash having to do with negative screen offsets.
+  o 10/4/12 Thu:
+    - 7:00 - 18:30
+    - I added some user experience enhancements to NewUpdate.vbs.  It's quicker now.
+    - Fixed the crash that Scott was seeing.
+    - I spent the rest of the day working on various update issues, testing it on a SkyNet Win7Sp1X86 machine.
+    - Current bug: The Check for Updates dialog doesn't appear the first time.  It is off screen.
+  o 10/5/12 Fri:
+    - 7:30 - 18:30
+    - SlickEdit: Set cursor undo: Command line: set-var def_undo_with_cursor (set value to 1)
+    - At uninstall, delete the following directories:
+	rmdir /s /q "%userprofile%\wc"
+	rmdir /s /q "%appdata%\wyUpdate AU"
+    - I spent the whole day testing update.  The current bug is in the Autoupdater.  It gets stuck after downloading an update.  Restarting cloud corrects the status and allows a normal update installation.
+      I added trace to CloudUpdater (dbgview).
+  o 10/6/12 Sat: (home)
+    - 5:30 - 16:45
+    - Adding trace to AutoUpdater.
+    - Configuring my home machine for the current test environment and fixing problems in git sync.
+    - Determine TCP ports open: netstat -anob
+    - After several hours of a time-waster, I finally got IIS to host the /clients/windows directory with HTTP.
+    - The update process finally works from Cloud!  The big time-waster was a redesign of the AutoUpdater Version 2.6.18 vs. 2.6.16.  The event names were changed, and some other things...
+      I also needed to clear the wyUpdate cache directories after running CloudUpdater.  AutoUpdater was still seeing an available update after the current update was actually installed.
+    - Progress bar XAML: http://www.c-sharpcorner.com/uploadfile/mahesh/wpf-progressbar/
+    - Progress bar styles and template (msdn): http://msdn.microsoft.com/en-us/library/ms750638.aspx
+    - Interesting progress and scroll bar templates: http://msdn.microsoft.com/en-us/magazine/cc163497.aspx
+    - Very interesting fancy download/upload progress bar with history, speed, etc: http://stackoverflow.com/questions/9978078/windows-8-fancy-progress-bars-via-c
+    - And his blog (Windows 8 style progress bar). (RateBar): http://stackoverflow.com/questions/9978078/windows-8-fancy-progress-bars-via-c
+    - Good tutorial on using templates with controls: http://www.devx.com/dotnet/Article/42304
+    - Control Template Round Button: http://www.codeproject.com/Articles/30994/Introduction-to-WPF-Templates
+    - Virtualizing ItemsPanel override: http://wpftutorial.net/listboxitemsarrange.html
+    - Using a grid as the panel for an ItemsControl: http://www.scottlogic.co.uk/blog/colin/2010/11/using-a-grid-as-the-panel-for-an-itemscontrol/
+    - Another grid in an ItemsPanel: https://rachel53461.wordpress.com/2011/09/17/wpf-itemscontrol-example/
+    - Use control templates everywhere?: http://nirajrules.wordpress.com/2009/03/08/controltemplate-vs-datatemplate-vs-hierarchicaldatatemplate-vs-itemspaneltemplate/
+    - "Whenever you want a control template to be assigned dynamically, you need DataTemplates along with a DataTemplateSelector.
+        For example, my grid control uses a datatemplate selector that looks at the type of cell (Text, Image, DropDown, CheckBox) and assigns the appropriate DataTemplate.
+        In cases where the control will never change, just use a controltemplate and be done with it"
+        http://social.msdn.microsoft.com/Forums/en-US/wpf/thread/d8f79b2b-c745-42bd-a821-db9ce0b5c2e9/
+    - Solar system listbox with canvas: http://www.zagstudio.com/blog/470
+    - Indirecting a style when using ItemsControl: http://www.sturmnet.org/blog/2007/03/31/wpf-bottom-dwelling-with-an-itemscontrol
+  o 10/8/12 Mon:
+    - 6:30 - 18:30
+    - I built two versions for Scott, tested them on SkyNet, and they worked for Scott!  Onto other things...
+    - The file upload/download prototype XAML is built.  The prototype ViewModel should test it and put it through simulated actions.  How to do that?
+      . The VM provides the two lists of CLStatusFileTransfer objects.
+      . The number and status of the items in the lists should be randomized.
+      . Creation timer:
+        o This timer will control the creation of items.
+	o On a timer tick:
+        o Disable the timer.
+	o At the end of processing below, choose a new duration for the next tick: 1 - 4 seconds.
+        o Randomly choose the direction (up/down)
+	o If the chosen list is full, exit.
+	o Randomly choose the file size (1 byte - 2 GB)
+	o Randomly choose the path from a list.
+	o Randomly generate the filename.ext.
+	o Build the full relative path + filename.ext
+	o Determine the bandwidth allocation for this object at this moment.  Save it in the object as the beginning bandwidth.
+	o Place the item on the list at the end (bottom of the view)
+      . Bandwidth timer (every 100 ms.)
+        o Choose an overall bandwidth up (randomly between 50% and 100% of the average historic bandwidth)
+        o Choose an overall bandwidth down (randomly between 50% and 100% of the average historic bandwidth)
+	o This bandwidth will be spread evenly over the active up/down objects.
+      . Upload/Download timer processing:
+        o Tick every 200 ms.
+	o Proccesses all objects on both lists.
+	o Any model data required will be stored in the CLStatusFileTransfer object and marked debug.
+	o If this object is complete, remove it from the list and dispose it.
+	o From the previous bandwidth allocated to this object, determine the bytes transferred in the last time slot.
+	o Adjust the object's properties by the amount transferred and the previous rate..
+	o Determine the rate from the current bandwidth at this moment and save it for next time.
+      . The progress bars show history of the download.  The rate is the vertical axis, and percent complete is the horizontal axis.  Both range from 0.0 to 1.0.
+      . What is the reference rate?
+      . We should keep an average aggregate upload and download rate in Settings.
+      . If a single upload is working, it should use the entire aggregate upload bandwidth.
+      . If two uploads are working, each should use half of the upload bandwidth, and so on...
+      . Since the instantaneous bandwidths go up and down, we should allow for individual readings over the maximum, so set the maximum at perhaps
+        80% of the vertical space.  That will allow 20% over the maximum.  If the rate calculates over that, just chop it off.
+      . So for an example, suppose we have 1024000 bits per second (1 Mb/s) aggregate upload bandwidth.
+      . And suppose we have 3 upload tasks.
+      . Then each should use 341333 bits per second.
+      . Divide bits per second by 10 (old ASCII fudge).
+      . So each upload should see 34133.3 bytes per second.
+      . The 80% (0.8) rate for each of the three upload displays would correspond to 34133.3 bytes per second.
+      . So the 1.0 rate would be that number divided by 0.8, or 42666.625 bytes per second.
+      . Anything over that should be chopped.
+      . If one of the threee uploads completes, the other two should share the whole bandwidth.  In that case we would have 512000 bits per second, 51200.0
+        bytes per second for the 0.8 rate, or 64000.0 bytes per second for the 1.0 rate.
+      . No.  That won't work.  As uploads come and go, the history would not be consistent.
+      . We should calculate these numbers as if we always had 6 going.
+      . If all six were going, each would use 1/6 of the total bandwidth.
+      . If three complete, we would expect the individual bandwidth of the remaining three uploads to double.
+    - Coding the above...
+  o 10/9/12 Tue:
+    - 6:30 - 18:30
+    - How should the historic average be calculated??
+      . The samples should be fairly quick because this number can be changing rapidly.
+      . Sample only if there was at least one upload/download active for the entire sample period.
+      . Capture the number of bytes transfered during the sample period.
+      . The sample transfer rate is the number of bytes transfered divided by the sample period in seconds.
+      . Choose the sample period.  5 seconds?
+      . Keep a 50 period moving average in memory.
+      . Save the current average value to Settings at every sample.
+      . When starting up, start with the saved average as the first sample, and accumulate samples from there.
+      . If there are fewer than 50 periods in memory, calculate the average over the samples that we have.
+    - The file upload/download works somewhat with the test drivers, but the status bars don't move to the right.
+  o 10/10/12 Wed:
+    - 6:30 - 
     - 
+
+
+      
+    
+
+
 
 
 
@@ -4905,7 +5141,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
   - (3/7/12) Running Windows under VmWare on the Mac: http://codebetter.com/petervanooijen/2011/08/11/running-visual-studio-and-resharper-on-a-mac/
 
 
-WYUPDATE PROCEDURES (8/13/12) 
+WYUPDATE PROCEDURES (9/26/12) 
  o Execute all of these procedures on a 64-bit development machine. 
  o Version info:
    . We will use the Microsoft .net version definition
@@ -5013,6 +5249,7 @@ WYUPDATE PROCEDURES (8/13/12)
    . Click the Download button and install Cloud.
    . Change to the c:\Program Files (x86)\Cloud.com\Cloud\ directory and run CloudUpdater.exe.  It should say the installation is current at version 1.1.1.1.
  o That completes the deployment of the base version.
+ o @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  o Now make a new version 1.1.1.2 following the procedure below:
    . Uninstall Cloud via the Start menu on the development machine.
    . Change the build number of Cloud.exe.  The new version will be 1.1.1.2.
@@ -5034,6 +5271,7 @@ WYUPDATE PROCEDURES (8/13/12)
      - C:\Program Files (x86)\Common Files\Cloud.com\Cloud\*.*  =====> C:\Source\Projects\win-client\WyUpdater\Version1_1_1_2\CommonFiles32Bit\
      - C:\Program Files\Common Files\Cloud.com\Cloud\*.*  =====> C:\Source\Projects\win-client\WyUpdater\Version1_1_1_2\CommonFiles64Bit\
    . Run WyBuild and select the Update Information view.  Make a new version 1.1.1.2 by clicking on the "new tab".  Enter info about the new changes in this version.
+   . In WyBuild, select the Files & Folders view.
    . In the C:\Source\Projects\win-client\WyUpdater\Version1_1_1_2\ProgramFiles\ folder, select all of the files and folders. Drag all the of the files to the WyBuild "Your program's folder".
      - Note: This doesn't copy the files.  It just makes a copy of the metadata which points to the original location of the files.
    . In the WyBuild Files & Folders view:
@@ -5042,11 +5280,10 @@ WYUPDATE PROCEDURES (8/13/12)
      - Right-click the new folder "Cloud.com".
      - Select New Folder.  Add folder "Cloud".
      - Perform the same above steps for the "Program files, Common Files folder (64-bit)" entry.
-   . In the C:\Source\Projects\win-client\WyUpdater\Version1_1_1_2\CommonFiles32Bit\ folder, select all of the files and drag them to WyBuild "Program files, Common Files folder (32-bit)\Cloud.com\Cloud".
    . In the C:\Source\Projects\win-client\WyUpdater\Version1_1_1_2\CommonFiles64Bit\ folder, select all of the files and drag them to WyBuild "Program files, Common Files folder (64-bit)\Cloud.com\Cloud".
    . Select the Build wyUpdate & Updates view.
    . Click Build wyUpdate.
-     - This will create two files.  Click "Open the containing folder" to see them.  These files will be added to the installer to save on the client.
+     - This will create two files.  Click "Open the containing folder" to see them.  One of the files will be added to the installer (later) to save on the client.
        o client.wyc
        o wyUpdate.exe (not used)
    . Click Build updates
@@ -5066,9 +5303,10 @@ WYUPDATE PROCEDURES (8/13/12)
        o Upload the files from win-client\WyUpdater\updates\ to the server updates directory.  "updates" must be lower case.
    . Click the Build wyUpdate and Updates view.  CLick the "Build wyUpdate: Open the containing folder..." link.
    . Copy the client.wyc file there to the C:\Source\Projects\win-client\WyUpdater\Version1_1_1_2\ProgramFiles\ folder.
+   . In WyBuild, click File/Save to save the project file.
    . Now, the client version file (client.wyc) must be made a part of the downloadable installation package:
      - Make sure that the win-client\WyUpdater\wyUpdate\ folder contains the proper client.wyc file for this version.
-     - In Visual Studio, select the "release" configuration and run "Build\Build Solution".  NOT "Rebuild Solution".  This should build only the CloudSetup project.
+     - NOTE: READ THIS ENTIRE LINE FIRST: In Visual Studio, select the "release" configuration and run "Build\Build Solution".  NOT "Rebuild Solution".  This should build only the CloudSetup project and include the client.wyc file.
      - Uninstall Cloud from the Start menu on the development machine.
      - Reinstall Cloud by running CloudSetup.exe from C:\Source\Projects\win-client\CloudSetup\CloudSetup\Express\SingleImage\DiskImages\DISK1\.  Don't launch the Cloud.exe program.
      - Check that the c:\Program Files (x86)\Cloud.com\Cloud\ directory now has the proper client.wyc file.
@@ -5098,10 +5336,46 @@ WYUPDATE PROCEDURES (8/13/12)
      o Right-click 0 and select Replace resource
      o Click Open file with new icon... and pick cloudForInstallShield.ico from Artwork then click Replace
    - Expand Version Info and go into 1	
-     o Change the script inside for lines LegalCopyright and OriginalFilename (use "Copyright (C) Cloud.com. All Rights Reserved." and "", respectively) and Compile Script
+     o Change the script inside for lines LegalCopyright and OriginalFilename (use "Copyright (C) Cloud.com. All Rights Reserved." and "", respectively) and then click Compile Script
    - Expand 24 and go into 1
-     o Change the script inside for assembly -> trustInfo -> security -> requestedPrivileges -> requestedExecutionLevel and change attribute "level" from "asInvoker" to "requireAdministrator" and Compile Script- File -> Save and you're done
-   - Delete CloudSetup_Original.exe.
+     o Change the script inside for assembly -> trustInfo -> security -> requestedPrivileges -> requestedExecutionLevel and change attribute "level" from "asInvoker" to "requireAdministrator" and then click Compile Script
+   - Click File/Save and exit ResourceHacker.
+   - Delete the CloudSetup_Original.exe file.
+
+WYAUTOMATICUPDATER INTEGRATE NEW RELEASE (10/4/12)
+  o Integrate 2.6.18 (10/4/12)
+  o Set the AutomaticUpdaterWPF4 project as the startup project.  Note the *WPF4, not *WPF.
+  o Change Properties/Application/Target framework to ".NET Framework 4 Client Profile".
+  o Change Properties/Application/Assembly Information file version to match the assembly version.
+  o Change Properties/Application/Icon: to cloud.ico.
+  o For debug configuration:
+    - Change Properties/Build/Output path: "..\..\..\bin\Debug\"
+  o For release configuration:
+    - Change Properties/Build/Output path: "..\..\..\bin\Release\"
+    - Change Properties/Build/XML documentation file:  "..\..\..\bin\Release\AutomaticUpdaterWPF.XML"
+  o Disable signing (Properties/Signing/Sign the assembly).
+  o Change all instances of "wyUpdate.exe" to "CloudUpdater.exe"
+
+WYUPDATE RESET TO BASE VERSION:
+  o Open wyBuild.
+  o Select the Update Information view.
+  o Position to the highest version tab.  Right-click and select "remove version".  Do this for highest version tab down to, but not including 
+    Version 1.1.1.1 to remove all of the versions.
+  o Select the version 1.1.1.1 tab.
+  o Select the Files & Folders view.
+  o Delete the folders under "Your program's folder", "Program files, Common FIles folder (32-bit)", and "Program files, Common Files folder (64-bit).
+  o Click File, Save.
+  o Exit wyBuild.
+  o In your FtpRoot directory:
+    - Delete all files under FtpRoot\updates.
+    - Delete file \CloudSetup.exe
+  o In the win-client\WyUpdater directory:
+    - Delete all directories "DownloadVersion*"
+    - Delete all directories "Version*"
+    - Delete the contents of the WyUpdater\updates directory.
+  o Run NewUpdate.vbs.
+  o Enter "1.1.1.1" for the version.
+  o Enter "No" to indicate that this is a replacement version.
 
 
 
@@ -5293,7 +5567,8 @@ MORE GIT (3/7/12)
 
 WINDBG (8/30/12)
   - To debug CLR on an exeption:
-    . .load C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\SOS.dll
+    . .load C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\SOS.dll (x64)
+    . .load C:\Windows\Microsoft.NET\Framework\v4.0.30319\SOS.dll (x86)
     . sxe clr
     . sxe 0xe0434f4d  (breaks on first-chance exception)
     . From the menu, Debug, Restart, or if already loaded (g).
@@ -5306,6 +5581,23 @@ WINDBG (8/30/12)
   - That command is bp kernel32!LoadLibraryW ".echo *****;du dwo(esp+4);k;"
   - I ran regsvr32 under depends and got the following more-detailed error:
       00:00:00.297: GetProcAddress(0x000007FF58AF0000 [c:\windows\system32\MSCTFIME.IME], "ImeGetImeMenuItems") called from "c:\windows\system32\IMM32.DLL" at address 0x000007FF7D51030E and returned NULL. Error: The specified procedure could not be found (127).
+  - WinDbg .msi files are in: C:\Program Files\Microsoft SDKs\Windows\v7.1\Redist\Debugging Tools for Windows
+  - Fixing mismatched CLR/SOS versions: http://stackoverflow.com/questions/7093494/windbg-x64-cannot-debug-a-crash-dump-failed-to-load-data-access-dll/7874862#7874862
+  - ProcDump as JIT dumper:
+		Windows Registry Editor Version 5.00
+		[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug]
+		"Debugger"="\"c:\\dumps\\procdump.exe\" -ma %ld c:\\dumps"
+  - Cheat sheet: http://windbg.info/doc/1-common-cmds.html
+  - List modules with symbols: lml
+  - Symbol path: SRV*c:\symbols*http://msdl.microsoft.com/download/symbols
+  - Mismatched SOS and CLR dlls:
+    . Get sos, mscordacwks and clr dlls from the dump machine.
+    . Rename the mscordacwks.dll to mscordacwks_x86_x86_4.0.30319.269.dll (using the proper platform and version info)
+    . .exepath c:\trash\scott (path to the downloaded dlls)
+    . .load c:\trash\scott\sos.dll
+    . .cordll -ve -u -l ( for verbose load info)
+    . !clrstack (to test it)
+
 
 
   
@@ -5889,6 +6181,32 @@ TODO:
   x (9/27/12) Handle exceptions when receiving push notifications, and everywhere else we talk to the server.
   x (9/27/12) Implement the new end point device type "os_platform".
   x (9/27/12) Rework the logging in RegisterCom to use the same log file as the .vbs scripts.
+  x (9/27/12) Add a users directory for git backup of info.
+  x (9/27/12) Execute and test the deployment process (again, and again, ....)
+  x (9/27/12) Installation support for all platforms.
+  x (9/27/12) Work with Brian to update all of the UI design assets.
+  x (9/27/12) Check for update fails.
+  x (9/27/12) InstallShield installation shows the default icon on the taskbar.
+  x (9/27/12) Check out the Dropbox Autoplay capability.
+  x (9/27/12) Make all of the RegisterCom installation and uninstallation modules trace to a file in the user's temp directory, and leave the file there for debugging problems in the field.
+  x (9/27/12) Test on XP64.  Cloud already running.  OK button doesn't exit.
+  x (9/27/12) Check startcoreservices CLErrors and log.
+  x (9/27/12) Crash in CreateTaskbarIcon when constructing TaskbarIcon.
+  x (10/1/12) The InstallUpdates action is causing the "Do you wish to exit Cloud setup?" dialog.
+  x (10/1/12) Exception: Unable to start CLoud application.  The invocation of the constructor on type "Hardcodet.Wpf.TaskbarNotification.TaskbarIcon' the mathes the specified binding constraints threw an exception.
+  x (10/1/12) We need a local test download and update server.
+  x (10/1/12) The title of CloudUpdater.exe is "wyUpdate".
+  x (10/3/12) Automate the deployment of a new program updates.
+  x (10/3/12) Change the way the update works: Schedule a self-destructing .vbs to wait until Cloud.exe has exited, then the .vbs will call CloudUpdater with a command line to install the update.  When the .vbs is scheduled, exit Cloud.
+  x (10/3/12) Understand the wyBuild self update process.
+  x (10/3/12) CloudUpdater only copies itself to temp when it has to update itself.  Move the kill-explorer and test for Cloud.exe code to wrap where it actually performs the update.
+  x (10/3/12) If the user cancels an update in CloudUpdater, Cloud is not restarted.
+  x (10/4/12) Take out the negative offset code.  It causes the Check for Updates dialog to appear at startup.
+  x (10/4/12) An update is ready to install.  Click Install Now, but cripple CloudInstallUpdate.vbs to do nothing.  Or simply exit before clicking Install Now.
+              Restart cloud.  CloudUpdater runs, but finds Cloud.exe busy.  Click Close Process, and the update installs normally.  Cloud.exe should not be found busy.
+  x (10/4/12) Schedule an update and exit cloud.  Restart Cloud.  The installer will try to update cloud automatically with the ready update, but prevent it.  Uninstall Cloud.
+              Reinstall Cloud.  Run Cloud.  The PageHome screen appears, but the installer also appears trying to install an update.  Uninstall should clean any pending updates.
+  x (10/4/12) Uninstall Cloud with Cloud.exe still running.  Click Close Process.  An intermittent crash occurs.
   o Add ICleanup interface to all view models and call them when shutting down.  Note: Cleanup doesn't get called when the user clicks the 'X'????
   o The ViewModelLocator.Cleanup() function should call of the ViewModel.Cleanup functions.
   o Don't allow network or unmountable drives for the Cloud directory.
@@ -5946,39 +6264,30 @@ TODO:
   o Restore open folders and positions on a restart of Explorer.
   o If in the cloud directory, change the context menu item to read "Share..."?
   o Open Explorer window in Favorites/Recent Places.  Two context menu items are added.  The first seems to trace through the shortcut.  The 2nd is the shortcut.
-  o Check startcoreservices CLErrors.
   . Remove dead CLSyncService code after the new sync works.
-  . Add a splash graphic while launching?
+  . Add a splash graphic while launching.
   o Implement status window.
-  . Test on XP64.  Cloud already running.  OK button doesn't exit.
   . Fix the badging trace definitions.
-  o Make all of the RegisterCom installation and uninstallation modules trace to a file in the user's temp directory, and leave the file there for debugging problems in the field.
   . Uninstall hung waiting for Cloud to exit (with the "Close application" option selected) (just once).
   . MsConfig shows the Cloud.exe startup manufacturer as "Unknown".
   o When changing the cloud folder icon preference warn the user that a restart of Explorer is required.  Close all Explorer windows.  Restart Explorer on OK.
   o Restarting Explorer loses the systray icon.  How do we get it back?  We need to watch the systray for the icon and put it back if it is missing.
   o The fancy slide-up notification window gets stuck and does not fade away.
-  o Check out the Dropbox Autoplay capability.
   o Add our shell extensions to the approved list.
   W Place the systray icon on the taskbar permanently.
-  o There are continual problems with processes other than Explorer placing a lock on BadgeCom.dll.  Then the uninstall fails.  Then a subsequent installation fails.
+  W There are continual problems with processes other than Explorer placing a lock on BadgeCom.dll.  Then the uninstall fails.  Then a subsequent installation fails.
   o Provide some dynamic way to turn trace on and off (special file in installation directory?)
 
-  o InstallShield installation shows the default icon on the taskbar.
   o Modify the InstallShield artwork.
   o Test uninstall with Cloud.exe running.
   o Preferences, Unlink, OK.  Sorry, your cloud program is already running.  Launch a VBScript self-destruct script to wait for Cloud to exit.  Kill Cloud after 3 seconds, then restart cloud and self-destruct.
   o Alt-tab shows an extra window "Check for Updates".
   o UI to request a resync operation.
   o Check the cloud directory location to make sure it is acceptable.
-  o Check for update fails.
   o Change the default badge state to "syncing".
-  W Work with Brian to update all of the UI design assets.
-  W Installation support for all platforms.
   o Set and check tab order on all frames and dialogs .
   o Make sure that the trace directory is not created in the release version.
   o Add keyboard accelerators for the email and password fields on PageHome.
-  o Execute and test the deployment process (again, and again, ....)
   o Change the icons in the context menu.
   o Apply Brian's specs to the XAML.
   o Fix the PreferencesAbout background to be continuous?
@@ -5986,7 +6295,6 @@ TODO:
   o On move folder, flag an operation to move it, then restart.  On restart, 1) Rename index for new path. (optimization)
   o On select new cloud folder, wipe index. Can do this for both cases.
   o Add Version.txt file with a fixed version format inside to identify the version installed.
-  o Add a users directory for git backup of info.
   o Programmatically locate all applications that have BadgeCom.dll locked.
   o On Win7Sp1X86, the installer unpacks and then minimizes to the taskbar.  The user has to restore it to start the installation.  InstallShield problem?
   o In BadgeCom, identify ignored file types and immediately return "no badge".
@@ -5996,9 +6304,46 @@ TODO:
       - System
       - Temporary
       - SqlIndexer/Static/NativeMethods.
+    . If file path is a shortcut, and if the target file is in the cloud folder, or is the cloud folder, then process the path as though it were the target path.
+    . BadgeCom should also send the shortcut path, and BadgeNet should keep a dictionary of the shortcuts for the purpose of notifying Explorer using the
+      shortcut path when the status
+      has changed on the target file.  BadgeNet should also run a clean thread to watch the shortcut dictionary.  It will verify that the shortcut exists, and
+      that the shortcut still points to a file in the cloud directory.  If not, the entry is deleted or modified (if the cloud relative path has changed) in the shortcut directory.
   o Before release, make sure all trace is turned off or managed in some way.
-  o Vista: The taskbar show-cloud-folder icon is not showing.
-  o Automate the deployment of a new program update, with automatic increment of the build number.
+  o Vista, XP and Win7X86: The taskbar show-cloud-folder icon is not showing.
+  o Test the actual upgrade to a new version (CloudUpdater and Cloud).
+  o Change the update process to copy the entire CommonFiles\Cloud.com folder instead of just the files in Cloud.com\Cloud.
+  o When preferences UI is running, the taskbar has two cloud icons that look the same.
+  o Store the device Udid received from the server in the link response.  That is the real Udid, not the GUID that we were generating???
+  o Implement the device list with automatic updates via push, and a refresh button.
+  o Win7Sp1x86: The taskbar icon doesn't appear.
+  o When using Autoupdater from Preferences, don't show DialogCheckForUpdates if there are changes to preferences.
+  o Protect the DialogCheckForUpdates action with a dialog that indicates that Cloud (and possibly Explorer) will be closed.  Continue?  Yes, No.
+  o CloudUpdater is not killing processes when asked to do so.  It just hangs.
+  o Take shell integration out of RegisterCom?.
+  o Download, but don't allow install unless the user is an administrator.  Put up a message on Install Now.
+  o Completely relogo CloudUpdater.exe.
+  o Add our current version of wyBuild to git.
+  o Move trace to appdata cloud dir.
+  o Delete trace files older than 10 days.
+  o In CloudUpdater, find a better way to wait for Explorer to be fully operational after restart (rather than just sleeping an arbitrary amount of time).
+  o Don't automatically download program updates.  Let the user decide to do that.
+  o Implement Server Side Events.
+  o The AutoUpdater check for updates just shows "Checking..." many times, without completing the action and giving the user a result.
+  o Display current updater number in NewUpdate.vbs.
+  o Launch Explorer to the proper directory during the CloudInstallUpdate script.
+  o Installing registers BadgeCom.dll in win-client\Release??
+  o Growl when an update is available.
+  o Implement new status dialog.
+  o Implement Restart Manager in install/uninstall/update.
+  o Use a BusyIndicator when the update dialog is checking for updates....
+  o Remove the systray cloud icon on context menu click of Check for Updates.
+  o Fix error in trace on shutdown: 01:02:39.568 PM_2648_1_CLModalErrorDialog: DisplayModalMessageBox:  Message: Are you sure you want to quit the Cloud.com application setup?.
+  o The CloudUpdater still installs a new version on startup, and still complains about Cloud.exe still running.
+  o Fix the Busy Indicator to use a converter to set Visibility to Collapsed in design mode.
+  o Change all MVVMLight RaisePropertyChanged to David's NotifyPropertyChanged.
+  o Add NotifyPropertyChanged snippet.
+
 
 
   

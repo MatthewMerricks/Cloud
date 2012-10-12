@@ -37,6 +37,9 @@ using System.Windows.Threading;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
 using CleanShutdown.Helpers;
+using System.IO;
+using CloudApiPrivate.Common;
+using System.Diagnostics;
 
 namespace win_client.ViewModels
 {
@@ -225,11 +228,11 @@ namespace win_client.ViewModels
                                                         returnedViewModelInstance =>
                                                         {
                                                             // Do nothing here when the user clicks the OK button.
-                                                            _trace.writeToLog(9, "FramePreferencesAdvanced: Move cloud folder: Entry.");
+                                                            _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: Move cloud folder: Entry.");
                                                             if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
                                                             {
                                                                 // The user said yes.  Tell the view to put up the folder browser so the user can select the new location.
-                                                                _trace.writeToLog(9, "FramePreferencesAdvanced: Move cloud folder: User said yes.");
+                                                                _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: Move cloud folder: User said yes.");
 
                                                                 // Display the Windows Forms folder selection
                                                                 // dialog.  Tell the view to put up the dialog.  If the user clicks cancel, 
@@ -337,7 +340,11 @@ namespace win_client.ViewModels
                                                 // prompt to inform the user about what will happen.  We will create a folder named 'Cloud'
                                                 // inside the selected folder and move the existing Cloud folder and all of the files inside
                                                 // the existing Cloud folder into the new Cloud folder.
-                                                MoveCloudFolderWithUserInteraction(Settings.Instance.CloudFolderPath, path + "\\Cloud");
+                                                var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+                                                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                                                {
+                                                    MoveCloudFolderWithUserInteraction(Settings.Instance.CloudFolderPath, path + "\\Cloud");
+                                                });
                                             }));
             }
         }
@@ -351,85 +358,213 @@ namespace win_client.ViewModels
         /// </summary>
         private void MoveCloudFolderWithUserInteraction(string fromPath, string toPath)
         {
-            // The user selected the new location to house the Cloud folder.  Put up another
-            // prompt to inform the user about what will happen.  We will create a folder named 'Cloud'
-            // inside the selected folder and move the existing Cloud folder and all of the files inside
-            // the existing Cloud folder into the new Cloud folder.
-            CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
-                windowHeight: 250,
-                leftButtonWidth: 75,
-                rightButtonWidth: 75,
-                title: Resources.Resources.FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title,
-                headerText: Resources.Resources.FramePreferencesAdvanced_NewCloudFolderSelectedAlert_HeaderText,
+            // The user selected the new location to house the Cloud folder.  Test this folder to make sure
+            // it can be used.  It must be in this user's home directory, and it must not be in or at the
+            // same location as the existing Cloud directory.
+            if (!CLCreateCloudFolder.IsNewCloudFolderLocationValid(fromPath, toPath))
+            {
+                // This new cloud folder location is not valid.  Tell the user, and remain on the same dialog.
+                CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                    errorMessage: String.Format("The new location must be at or in your home directory ({0}), " +
+                            "and you can't select the location containing the existing cloud folder location ({1}), " +
+                            "or any location at or inside the existing cloud folder location ({2}).",
+                            Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)),
+                            Path.GetDirectoryName(fromPath), fromPath),
+                    title: "Oh Snap!",
+                    headerText: "Selected folder location not valid.",
+                    rightButtonContent: Resources.Resources.generalOkButtonContent,
+                    rightButtonIsDefault: true,
+                    rightButtonIsCancel: true,
+                    container: ViewGridContainer,
+                    dialog: out _dialog,
+                    actionOkButtonHandler:
+                      returnedViewModelInstance =>
+                      {
+                          // Do nothing here when the user clicks the OK button.
+                      }
+                );
+            }
+            else
+            {
+                // The selected location is valid.
+                // Put up another prompt to inform the user about what will happen.  We will create a folder named 'Cloud'
+                // inside the selected folder and move the existing Cloud folder and all of the files inside
+                // the existing Cloud folder into the new Cloud folder.
+                CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
+                    windowHeight: 250,
+                    leftButtonWidth: 75,
+                    rightButtonWidth: 75,
+                    title: Resources.Resources.FramePreferencesAdvanced_NewCloudFolderSelectedAlert_Title,
+                    headerText: Resources.Resources.FramePreferencesAdvanced_NewCloudFolderSelectedAlert_HeaderText,
 
-                // The body text is formatted like this:
-                // "This will move your existing Cloud folder and all of the files inside it from the existing location:{0}{1}{2}{3}into the new folder:{4}{5}{6} "
-                bodyText: String.Format(Resources.Resources.FramePreferencesAdvanced_NewCloudFolderSelectedAlert_BodyText, 
-                            Environment.NewLine, 
-                            "\t",
-                            fromPath,
-                            Environment.NewLine,
-                            Environment.NewLine,
-                            "\t",
-                            toPath),
-                leftButtonContent: Resources.Resources.GeneralYesButtonContent,
-                leftButtonIsDefault: false,
-                leftButtonIsCancel: false,
-                rightButtonContent: Resources.Resources.GeneralNoButtonContent,
-                rightButtonIsDefault: true,
-                rightButtonIsCancel: false,
-                container: ViewGridContainer,
-                dialog: out _dialog,
-                actionResultHandler:
-                    returnedViewModelInstance =>
-                    {
-                        // Do nothing here when the user clicks the OK button.
-                        _trace.writeToLog(9, "FramePreferencesAdvanced: OK to move cloud folder?: Entry.");
-                        if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                    // The body text is formatted like this:
+                    // "This will move your existing Cloud folder and all of the files inside it from the existing location:{0}{1}{2}{3}into the new folder:{4}{5}{6} "
+                    bodyText: String.Format(Resources.Resources.FramePreferencesAdvanced_NewCloudFolderSelectedAlert_BodyText, 
+                                Environment.NewLine, 
+                                "\t",
+                                fromPath,
+                                Environment.NewLine,
+                                Environment.NewLine,
+                                "\t",
+                                toPath),
+                    leftButtonContent: Resources.Resources.GeneralYesButtonContent,
+                    leftButtonIsDefault: false,
+                    leftButtonIsCancel: false,
+                    rightButtonContent: Resources.Resources.GeneralNoButtonContent,
+                    rightButtonIsDefault: true,
+                    rightButtonIsCancel: false,
+                    container: ViewGridContainer,
+                    dialog: out _dialog,
+                    actionResultHandler:
+                        returnedViewModelInstance =>
                         {
-                            // The user said yes.  Tell the view to put up the folder browser so the user can select the new location.
-                            _trace.writeToLog(9, "FramePreferencesAdvanced: OK to move cloud folder: User said yes.");
-
-                            // Actually move the Cloud folder and all its files.
-                            CLError error = null;
-                            Settings.Instance.MoveCloudDirectoryFromPath_toDestination(fromPath, toPath, out error);
-                            if (error == null)
+                            // Do nothing here when the user clicks the OK button.
+                            _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: OK to move cloud folder?: Entry.");
+                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
                             {
-                                // Save the new cloud folder path.
-                                Settings.Instance.updateCloudFolderPath(toPath, Settings.Instance.CloudFolderCreationTimeUtc);
+                                // The user said yes.  Tell the view to put up the folder browser so the user can select the new location.
+                                _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: OK to move cloud folder: User said yes.");
 
-                                // Update visible path
-                                FramePreferencesAdvanced_CloudFolder = toPath;
+                                ScheduleCloudFolderMove(fromPath, toPath);
                             }
                             else
                             {
-                                // Display the error message.
-                                var dispatcher = CLAppDelegate.Instance.MainDispatcher;
-                                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
-                                {
-                                    CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                        errorMessage: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText,
-                                        title: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_Title,
-                                        headerText: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText,
-                                        rightButtonContent: Resources.Resources.generalOkButtonContent,
-                                        rightButtonIsDefault: true,
-                                        rightButtonIsCancel: true,
-                                        container: ViewGridContainer,
-                                        dialog: out _dialog,
-                                        actionOkButtonHandler:
-                                            returnedModalDialogViewModelInstance =>
-                                            {
-                                                // Do nothing here when the user clicks the OK button.  Leave the user on this same FramePreferencesAdvanced dialog.
-                                            });
-                                });
+                                // The user said no.  Do nothing.
                             }
                         }
-                        else
+                );
+            }
+        }
+
+        /// <summary>
+        /// The user has said to move the cloud folder, and the new folder location has been tested as valid.
+        /// Set a new Settings flag to indicate that we are moving the cloud folder.  Also set a new Settings target
+        /// cloud folder path.  Then spin off a VBScript passing the current and target cloud folder paths
+        /// and immediately exit the application.  The Settings flag will prevent deletion of a virtually empty
+        /// cloud folder during shutdown.  The VBScript will wait for Cloud to exit, and kill it
+        /// if it takes too long.  Then the script will actually move the folder and restart Cloud.
+        /// Cloud will see the Settings flag on startup. It will move the Settings target cloud folder
+        /// path into the current path, and clear the Settings cloud folder move flag so that action is taken only once.
+        /// </summary>
+        /// <param name="fromPath"></param>
+        /// <param name="toPath"></param>
+        private void ScheduleCloudFolderMove(string fromPath, string toPath)
+        {
+            // Prepare to execute the script.  If any error occurs, tell the user and don't move the Cloud directory.
+            // Write the self-destructing script to the user's temp directory and launch it.
+            int errorNumber = 0;
+            try
+            {
+                // Stream the CloudMoveCloudFolder.vbs file out to the user's temp directory
+                // Locate the user's temp directory.
+                _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Entry.");
+                string userTempDirectory = System.IO.Path.GetTempPath();
+                string vbsPath = userTempDirectory + "CloudMoveCloudFolder.vbs";
+
+                // Get the assembly containing the .vbs resource.
+                _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Get the assembly containing the .vbs resource.");
+                System.Reflection.Assembly storeAssembly = System.Reflection.Assembly.GetAssembly(typeof(global::win_client.ViewModels.FramePreferencesAdvancedViewModel));
+                if (storeAssembly == null)
+                {
+                    _trace.writeToLog(1, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: ERROR: storeAssembly null.");
+                    errorNumber = 1;
+                    throw new Exception("Error locating assembly");
+                }
+
+                // Stream the CloudMoveCloudFolder.vbs file out to the temp directory
+                _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Call WriteResourceFileToFilesystemFile.");
+                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudMoveCloudFolder", vbsPath);
+                if (rc != 0)
+                {
+                    _trace.writeToLog(1, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100);
+                    errorNumber = 2;
+                    throw new Exception("Error writing the script to the user temp directory");
+                }
+
+                // Now we will create a new process to run the VBScript file.
+                _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Build the paths for launching the VBScript file.");
+                string systemFolderPath = CLShortcuts.Get32BitSystemFolderPath();
+                string cscriptPath = systemFolderPath + "\\cscript.exe";
+                _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Cscript executable path: <{0}>.", cscriptPath);
+
+                string argumentsString = @" //B //T:30 //Nologo """ + vbsPath + @""" """ + fromPath + @""" """ + toPath + @"""";
+                _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Launch the VBScript file.  Launch: <{0}>.", argumentsString);
+
+                // Everything is prepared, and we are ready to launch the script process.  Change the settings in preparation for relaunch.
+                lock (Settings.Instance.MovingCloudFolderTargetPath)
+                {
+                    Settings.Instance.IsMovingCloudFolder = true;
+                    Settings.Instance.MovingCloudFolderTargetPath = toPath;
+                }
+
+                // Launch the process
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.FileName = cscriptPath;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.Arguments = argumentsString;
+                Process.Start(startInfo);
+
+                // Exit the application.  If it hangs here, it will get killed!
+                _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Exit the application.");
+                CLAppDelegate.Instance.ExitApplication();
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: ERROR: Exception. Msg: {0}.", ex.Message);
+
+                // Tell the user
+                CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+                    errorMessage: String.Format(Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText, errorNumber),
+                    title: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_Title,
+                    headerText: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText,
+                    rightButtonContent: Resources.Resources.generalOkButtonContent,
+                    rightButtonIsDefault: true,
+                    rightButtonIsCancel: true,
+                    container: ViewGridContainer,
+                    dialog: out _dialog,
+                    actionOkButtonHandler:
+                        returnedModalDialogViewModelInstance =>
                         {
-                            // The user said no.  Do nothing.
-                        }
-                    }
-            );
+                            // Do nothing here when the user clicks the OK button.  Leave the user on this same FramePreferencesAdvanced dialog.
+                        });
+            }
+
+
+            //// Actually move the Cloud folder and all its files.
+            //CLError error = null;
+            //Settings.Instance.MoveCloudDirectoryFromPath_toDestination(fromPath, toPath, out error);
+            //if (error == null)
+            //{
+            //    // Save the new cloud folder path.
+            //    Settings.Instance.updateCloudFolderPath(toPath, Settings.Instance.CloudFolderCreationTimeUtc);
+
+            //    // Update visible path
+            //    FramePreferencesAdvanced_CloudFolder = toPath;
+            //}
+            //else
+            //{
+            //    // Display the error message.
+            //    var dispatcher = CLAppDelegate.Instance.MainDispatcher;
+            //    dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+            //    {
+            //        CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
+            //            errorMessage: String.Format(Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_BodyText, errorNumber),
+            //            title: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_Title,
+            //            headerText: Resources.Resources.FramePreferencesAdvanced_ErrorMovingCloudFolder_HeaderText,
+            //            rightButtonContent: Resources.Resources.generalOkButtonContent,
+            //            rightButtonIsDefault: true,
+            //            rightButtonIsCancel: true,
+            //            container: ViewGridContainer,
+            //            dialog: out _dialog,
+            //            actionOkButtonHandler:
+            //                returnedModalDialogViewModelInstance =>
+            //                {
+            //                    // Do nothing here when the user clicks the OK button.  Leave the user on this same FramePreferencesAdvanced dialog.
+            //                });
+            //    });
+            //}
         }
 
         #endregion

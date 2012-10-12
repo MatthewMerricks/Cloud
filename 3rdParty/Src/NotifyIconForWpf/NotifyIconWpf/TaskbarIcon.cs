@@ -120,29 +120,29 @@ namespace Hardcodet.Wpf.TaskbarNotification
     /// </summary>
     public TaskbarIcon()
     {
-      //using dummy sink in design mode
-      messageSink = Util.IsDesignMode
-                        ? WindowMessageSink.CreateEmpty()
-                        : new WindowMessageSink(NotifyIconVersion.Win95);
+        //using dummy sink in design mode
+        messageSink = Util.IsDesignMode
+                            ? WindowMessageSink.CreateEmpty()
+                            : new WindowMessageSink(NotifyIconVersion.Win95);
 
-      //init icon data structure
-      iconData = NotifyIconData.CreateDefault(messageSink.MessageWindowHandle);
+        //init icon data structure
+        iconData = NotifyIconData.CreateDefault(messageSink.MessageWindowHandle);
 
-      //create the taskbar icon
-      CreateTaskbarIcon();
+        //create the taskbar icon
+        CreateTaskbarIcon();
 
-      //register event listeners
-      messageSink.MouseEventReceived += OnMouseEvent;
-      messageSink.TaskbarCreated += OnTaskbarCreated;
-      messageSink.ChangeToolTipStateRequest += OnToolTipChange;
-      messageSink.BallonToolTipChanged += OnBalloonToolTipChanged;
+        //register event listeners
+        messageSink.MouseEventReceived += OnMouseEvent;
+        messageSink.TaskbarCreated += OnTaskbarCreated;
+        messageSink.ChangeToolTipStateRequest += OnToolTipChange;
+        messageSink.BallonToolTipChanged += OnBalloonToolTipChanged;
 
-      //init single click / balloon timers
-      singleClickTimer = new Timer(DoSingleClickAction);
-      balloonCloseTimer = new Timer(CloseBalloonCallback);
+        //init single click / balloon timers
+        singleClickTimer = new Timer(DoSingleClickAction);
+        balloonCloseTimer = new Timer(CloseBalloonCallback);
 
-      //register listener in order to get notified when the application closes
-      if (Application.Current != null) Application.Current.Exit += OnExit;
+        //register listener in order to get notified when the application closes
+        if (Application.Current != null) Application.Current.Exit += OnExit;
     }
 
     #endregion

@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Persian</LangEn>
+	<Lang>Persian</Lang>
+	<Culture>fa.IR</Culture>
+	<Buttons>
+		<Next>بعدی</Next>
+		<Update>بروزرسانی</Update>
+		<Finish>پایان</Finish>
+		<Cancel>انصراف</Cancel>
+		<ShowDetails>نمایش جزئیات</ShowDetails>
+		<Close>بستن پردازش</Close>
+		<CloseAll>بستن همه پردازشها</CloseAll>
+		<CancelUpdate>انصراف از بروزرسانی</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>انصراف از بروزرسانی؟</Title>
+			<Content>آیا از خروج از برنامه پیش از تکمیل بروزرسانی اطمینان دارید؟</Content>
+		</Cancel>
+		<Processes>
+			<Title>بستن فرایندها ...</Title>
+			<Content>برنامه های زیر بایستی قبل از آغاز بروزرسانی بسته شوند. برنامه را از لیست انتخاب کرده و برروی دکمه بستن کلیک کنید.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>فایلهای در حال استفاده</Title>
+			<Content>فایلهای زیر در حال استفاده می باشند. این فایلها پیش از ادامه بروزرسانی بایستی بسته شوند.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>برنامه برای بروزرسانی نیز به دسترسی "مدیر سیستم" دارد. برای اینکار یکی از دو روش زیر را انجام دهید:
+
+1. زمانی که از شما برای دریافت شناسه کاربری سوال میگردد، شناسه و اسم رمز مدیر سیستم را وارد نمایید. (Administrator)
+2. در پنجره ویندوز روی برنامه بروز رسان کلیک راست کرده و گزینه:
+"Run as Administrator"
+را انتخاب کنید.</Admin>
+		<Download>بروزرسان دریافت نگردید.</Download>
+		<LogOff>بروزرسانی %product%.
+شما بایستی فرایند بروزرسانی را متوقف کنید، پیش از اینکه از ویندوز خارج شوید.</LogOff>
+		<SelfUpdate>برنامه بروزرسان نتوانست فایلها را بروز کند.</SelfUpdate>
+		<ServFile>برنامه قادر به ارتباط با سرور نیست</ServFile>
+		<Update>نصب برنامه جدید میسر نبود.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>جستجو برای بروزرسانی</Title>
+			<SubTitle>برنامه در حال جستجو برای بروزرسانی می باشد</SubTitle>
+			<Content>برنامه در حال جستجوی بروزرسانی برای نرم افزار  %product%. این فرایند میتواند زمان بر باشد</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>اطلاعات بروزرسانی</Title>
+			<SubTitle>آخرین تغییرات در نرم افزار  %product%.</SubTitle>
+			<Content>نسخه نرم افزار  %product% که برروی این دستگاه نصب شده  %old_version% می باشد. آخرین نسخه %new_version%.
+در قسمت زیر لیست آخرین تغییرات را میتوانید مشاهده نمایید.</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>دریافت و نصب تغییرات جدید</Title>
+			<SubTitle>بروز رسانی برنامه  %product% با آخرین تغییرات</SubTitle>
+			<Content>برنامه در حال دریافت آخرین تغییرات می باشد. فرایند زمان بر خواهد بود به نسبت حجم برنامه.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>حذف فایلها و تنظیمات</Title>
+			<SubTitle>حذف فایل و تنظیمات برنامه %product%.</SubTitle>
+			<Content>برنامه در حال حذف تنظیمات و فایلهایی می باشد که برروی نرم افزار %product%. اعمال شده بود.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>بروزرسانی با موفقیت انجام شد</Title>
+			<Content>%product% با موفقیت به نسخه %new_version% بروزرسانی شد.</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>شما در حال استفاده از آخرین نسخه می باشید.</Title>
+			<Content>%product% بروز است. به خاطر داشته باشید که به شکل دوره ای این فرایند را انجام دهید.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>فایل بروزرسانی وجود ندارد</Title>
+			<Content>نسخه جدید تری از %product% وجود دارد (نسخه %new_version%). اما بروزرسانی برای این نسخه شما وجود ندارد به علت قدیمی بودن (نسخه %old_version%)</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>خطایی رخ داده است.</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>دریافت فایلها</Download>
+		<DownloadSelfUpdate>دریافت برنامه جدید</DownloadSelfUpdate>
+		<SelfUpdate>برروزرسانی برنامه جدید</SelfUpdate>
+		<Extract>بازکردن فایلها</Extract>
+		<Processes>بستن پردازشها</Processes>
+		<PreExec>اجرای فایلها</PreExec>
+		<Files>پشتیبان گیری و بروزرسانی</Files>
+		<Registry>پشتیبان گیری و بروزرسانی تنظیمات ویندوز</Registry>
+		<Optimize>بهینه کردن و اجرای فایلها</Optimize>
+		<TempFiles>حذف فایلهای موقت</TempFiles>
+		<UninstallFiles>حذف فایلها و پوشه ها</UninstallFiles>
+		<UninstallReg>حذف تنظیمات ویندوز</UninstallReg>
+		<RollingBackFiles>بازگردان فایلها گذشته</RollingBackFiles>
+		<RollingBackRegistry>بازگردان تظنیمات گذشته ویندوز</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>برروی دکمه بروزرسانی برای آغاز کلیک کنید</Update>
+		<Finish>برای پایان کار روی دکمه پایان کلیک کنید</Finish>
+	</Bottoms>
+</Translation>

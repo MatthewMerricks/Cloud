@@ -58,6 +58,18 @@ namespace win_client.Views
 
         #region Dependency Properties
 
+        public ICommand UnlinkCommand
+        {
+            get { return (ICommand)GetValue(UnlinkCommandProperty); }
+            set { SetValue(UnlinkCommandProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
+        // The big long member expression tree results in an automatically generated string "Preferences".
+        private static readonly string UnlinkCommandPropertyName = ((MemberExpression)((Expression<Func<FramePreferencesAccount, ICommand>>)(parent => parent.UnlinkCommand)).Body).Member.Name;
+        public static readonly DependencyProperty UnlinkCommandProperty =
+            DependencyProperty.Register(UnlinkCommandPropertyName, typeof(ICommand), typeof(FramePreferencesAccount), new PropertyMetadata(null));
+
         public CLPreferences Preferences
         {
             get { return (CLPreferences)GetValue(PreferencesProperty); }
@@ -66,7 +78,7 @@ namespace win_client.Views
 
         // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
         // The big long member expression tree results in an automatically generated string "Preferences".  Better than hardcoding the string.
-        private static readonly string PreferencesPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name;
+        private static readonly string PreferencesPropertyName = ((MemberExpression)((Expression<Func<FramePreferencesAccount, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name;
         public static readonly DependencyProperty PreferencesProperty =
             DependencyProperty.Register(PreferencesPropertyName, typeof(CLPreferences), typeof(FramePreferencesAccount), new PropertyMetadata(null, OnPreferencesChanged));
         private static void OnPreferencesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { }
@@ -79,8 +91,8 @@ namespace win_client.Views
         }
 
         // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
-        // The big long member expression tree results in an automatically generated string "Preferences".
-        private static readonly string PageGridPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, Grid>>)(parent => parent.PageGrid)).Body).Member.Name;
+        // The big long member expression tree results in an automatically generated string "PageGrid".
+        private static readonly string PageGridPropertyName = ((MemberExpression)((Expression<Func<FramePreferencesAccount, Grid>>)(parent => parent.PageGrid)).Body).Member.Name;
         public static readonly DependencyProperty PageGridProperty =
             DependencyProperty.Register(PageGridPropertyName, typeof(Grid), typeof(FramePreferencesAccount), new PropertyMetadata(null, OnPageGridChanged));
         private static void OnPageGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { }
@@ -118,6 +130,14 @@ namespace win_client.Views
         {
             try
             {
+                this.SetBinding(UnlinkCommandProperty,
+                    new Binding()
+                    {
+                        Source = e.ExtraData,
+                        Path = new PropertyPath(UnlinkCommandPropertyName),
+                        Mode = BindingMode.OneWay
+                    });
+
                 this.SetBinding(PreferencesProperty,
                     new Binding()
                     {

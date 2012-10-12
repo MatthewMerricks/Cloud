@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Brazilian Portuguese</LangEn>
+	<Lang>Português do Brasil</Lang>
+	<Culture>pt-BR</Culture>
+	<Buttons>
+		<Next>Próximo</Next>
+		<Update>Atualizar</Update>
+		<Finish>Terminar</Finish>
+		<Cancel>Cancelar</Cancel>
+		<Close>Encerrar Processo</Close>
+		<CloseAll>Encerrar Todos os Processos</CloseAll>
+		<CancelUpdate>Cancelar a Atualização</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Cancelar a atualização?</Title>
+			<Content>Tem certeza de que quer sair antes que a atualização esteja completa?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Encerrar processos…</Title>
+			<Content>Os seguintes processos precisam ser encerrados antes da atualização. Selecione um processo e pressione Encerrar Processo.</Content>
+		</Processes>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate precisa de privilégios administrativos para atualizar %product%. Isso pode ser feito de duas maneiras:
+
+1. Quando solicitado, digitar o nome de administrador e a senha.
+
+2. No Windows Explorer clique com botão direito em wyUpdate.exe e escolha “Executar como administrador”</Admin>
+		<Download>Falha na transferência da atualização.</Download>
+		<SelfUpdate>Falha da instalação da versão atualizada deste cliente necessária para atualizar %product%.</SelfUpdate>
+		<ServFile>Incapaz de verificar atualizações, o arquivo do servidor não foi carregado.</ServFile>
+		<Update>Falha na instalação da atualização.</Update>
+		<LogOff>Atualizando %product%. Você deve cancelar o wyUpdate antes de desconectar-se.</LogOff>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Buscando atualizações</Title>
+			<SubTitle>wyUpdate está buscando atualizações.</SubTitle>
+			<Content>wyUpdate está buscando atualizações para %product%. Este processo pode levar alguns minutos.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Informação da atualização</Title>
+			<SubTitle>Mudanças na versão a mais recente de %product%.</SubTitle>
+			<Content>A versão de %product% instalada neste computador é %old_version%. A versão a mais recente é %new_version%.  Abaixo estão listadas as mudanças e as melhorias:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Baixando e instalando as atualizações</Title>
+			<SubTitle>Atualizando %product% para a versão a mais recente.</SubTitle>
+			<Content>wyUpdate está baixando e instalando as atualizações para %product%. Este processo pode levar alguns minutos.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Removendo arquivos, pastas e registro</Title>
+			<SubTitle>Removendo arquivos e registro de %product%.</SubTitle>
+			<Content>wyUpdate está removendo arquivos e registros criados nas atualizações de %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Atualização bem sucedida!</Title>
+			<Content>%product% foi atualizado com sucesso para a versão %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>A versão a mais recente já está instalada</Title>
+			<Content>%product% já está atualizado. Sempre verifique se há novas atualizações.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Nenhuma atualização para a versão mais recente</Title>
+			<Content>Há uma versão mais nova de %product% (versão %new_version%), mas nenhuma atualização disponível da versão que você tem instalada (versão %old_version%).</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Ocorreu um erro</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Baixando a atualização</Download>
+		<DownloadSelfUpdate>Baixando o novo cliente wyUpdate</DownloadSelfUpdate>
+		<SelfUpdate>Atualizando o cliente wyUpdate</SelfUpdate>
+		<Extract>Extraindo arquivos</Extract>
+		<Processes>Encerrando processos</Processes>
+		<PreExec>Executando arquivos</PreExec>
+		<Files>Fazendo backup e atualizando arquivos</Files>
+		<Registry>Fazendo backup e atualizando o registro</Registry>
+		<Optimize>Otimizando e executando arquivos</Optimize>
+		<TempFiles>Removendo arquivos temporários</TempFiles>
+		<UninstallFiles>Removendo arquivos e pastas</UninstallFiles>
+		<UninstallReg>Removendo o registro</UninstallReg>
+	</Status>
+	<Bottoms>
+		<Update>Pressione Atualizar para começar.</Update>
+		<Finish>Pressione Terminar para sair.</Finish>
+	</Bottoms>
+</Translation>

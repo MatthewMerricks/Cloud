@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Serbian Cyrillic</LangEn>
+	<Lang>Српски</Lang>
+	<Culture>sr-CYR</Culture>
+	<Buttons>
+		<Next>Даље</Next>
+		<Update>Ажурирај</Update>
+		<Finish>Заврши</Finish>
+		<Cancel>Поништи</Cancel>
+		<Close>Затвори процес</Close>
+		<CloseAll>Затвори све процесе</CloseAll>
+		<CancelUpdate>Поништи ажурирање</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Поништити ажурирање?</Title>
+			<Content>Сигурно желите да изађете пре него што се заврши ажурирање?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Затварање процеса...</Title>
+			<Content>Следећи процеси се морају затворити да би се наставило ажурирање. Одабрати процес и кликнути Затвори Процес.</Content>
+		</Processes>
+	</Dialogs>
+	<Errors>
+		<Admin>„wyUpdate“-у су потребне администраторске привилегије за ажурирање %product%-а. То можете урадити на два начина:
+
+1. Када је потребно, унети администраторево корисничко име и лозинку.
+
+2. У „Windows Explorer“-у урадите десни клик на wyUpdate.exe и затим „Покрени као администратор“</Admin>
+		<Download>Неуспешно преузимање ажурирања.</Download>
+		<LogOff>Ажурирање %product%-а. Требате поништити „wyUpdate“ пре него што можете да се одјавите.</LogOff>
+		<SelfUpdate>Надограђена верзија „wyUpdate“ потребна за ажурирање %product%-а није успела да инсталира.</SelfUpdate>
+		<ServFile>Није могуће да се провери ажурирање, датотека са сервера није учитана.</ServFile>
+		<Update>Неуспешна инсталација ажурирања.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Претрага за ажурирања</Title>
+			<SubTitle>„wyUpdate“ тражи ажурирања.</SubTitle>
+			<Content>„wyUpdate“ тражи ажурирања за  %product%. Овај поступак може да потраје неколико минута.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Информација ажурирања</Title>
+			<SubTitle>Промене у последњој верзији %product%-а.</SubTitle>
+			<Content>Инсталирана верзија %product%-а на овом рачунару је %old_version%. Последња верзија је %new_version%. Испод ћете наћи промене и побољшања:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Преузимање &amp; инсталирање ажурирања</Title>
+			<SubTitle>Ажурирање %product%-а на последњој верзији.</SubTitle>
+			<Content>„wyUpdate“ преузима и инсталира ажурирања за %product%. Овај поступак може да потраје неколико минута.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Уклањање датотека, фасцикла и регистра</Title>
+			<SubTitle>Уклањање датотека и регистра за %product%.</SubTitle>
+			<Content>„wyUpdate“ уклања датотеке и регистар креирани при ажурирање %product%-а.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Ажурирање је успело!</Title>
+			<Content>%product% је успешно ажуриран на верзију %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Последња верзија је већ инсталирана</Title>
+			<Content>%product% је већ најновија верзија. Не заборавите да често проверавате нова ажурирања.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Нема ажзурирања за последњу верзију</Title>
+			<Content>Има новија верзија %product%-а (верзија %new_version%), али нема доступног ажурирања за веч инсталирану верзију (верзија %old_version%).</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Догодила се грешка</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Преузимање ажурирања</Download>
+		<DownloadSelfUpdate>Преузимање новог „wyUpdate“-а</DownloadSelfUpdate>
+		<SelfUpdate>Ажурирање „wyUpdate“-а</SelfUpdate>
+		<Extract>Екстрактовање датотека</Extract>
+		<Processes>Затварање процеса</Processes>
+		<PreExec>Покретање датотека</PreExec>
+		<Files>Резервна копија и ажурирање датотека</Files>
+		<Registry>Резервна копија и ажурирање регистра</Registry>
+		<Optimize>Оптимизација и покретање датотека</Optimize>
+		<TempFiles>Уклањање привремених датотека</TempFiles>
+		<UninstallFiles>Уклањање датотека &amp; фасцикла</UninstallFiles>
+		<UninstallReg>Уклањање регистра</UninstallReg>
+	</Status>
+	<Bottoms>
+		<Update>Кликнути Ажурирај за почетак.</Update>
+		<Finish>Кликнути Заврши за излаз.</Finish>
+	</Bottoms>
+</Translation>

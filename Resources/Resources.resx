@@ -182,7 +182,7 @@
     <value>_Preferences...</value>
   </data>
   <data name="SystemTrayContextMenuCheckForUpdates" xml:space="preserve">
-    <value>Check for updates</value>
+    <value>_Check for updates</value>
   </data>
   <data name="loginErrorHeader" xml:space="preserve">
     <value>Error logging in.</value>
@@ -221,7 +221,7 @@
     <value>Cloud.com</value>
   </data>
   <data name="pageCloudFolderMissingFolderBrowserDescription" xml:space="preserve">
-    <value>Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select.</value>
+    <value>Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select.  The folder must be located somewhere in your user home directory: {0}.</value>
   </data>
   <data name="DialogPreferencesNetworkProxiesTitle" xml:space="preserve">
     <value>Cloud Network Proxy Server Preferences</value>
@@ -374,7 +374,7 @@
     <value>Change Cloud Folder Location?</value>
   </data>
   <data name="PageFolderSelection_ErrorMovingCloudFolder_BodyText" xml:space="preserve">
-    <value>There was an error moving your Cloud folder to the new location.   Your files remain in the existing Cloud folder location.</value>
+    <value>There was an error moving your Cloud folder to the new location.   Your files remain in the existing Cloud folder location.  Error number {0}.</value>
   </data>
   <data name="PageFolderSelection_ErrorMovingCloudFolder_HeaderText" xml:space="preserve">
     <value>Error while moving your Cloud folder.</value>
@@ -397,8 +397,8 @@
   <data name="CloudFolderPicturesFolder" xml:space="preserve">
     <value>Pictures</value>
   </data>
-  <data name="CloudFolderPublicFolder" xml:space="preserve">
-    <value>Public</value>
+  <data name="CloudFolderDocumentsFolder" xml:space="preserve">
+    <value>Documents</value>
   </data>
   <data name="pageCloudFolderMissingOkButtonLocateTooltip" xml:space="preserve">
     <value>Click to select the existing Cloud folder to use.</value>
@@ -416,6 +416,15 @@
     <value>_Shortcuts</value>
   </data>
   <data name="SystemTrayContextMenuBrowseToCloudCom" xml:space="preserve">
-    <value>Browse to Cloud.com...</value>
+    <value>_Browse to Cloud.com...</value>
+  </data>
+  <data name="CloudInstallUpdate" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>CloudInstallUpdate;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="SystemTrayContextMenuSyncStatus" xml:space="preserve">
+    <value>Show S_ync Status...</value>
+  </data>
+  <data name="CloudFolderVideosFolder" xml:space="preserve">
+    <value>Videos</value>
   </data>
 </root>

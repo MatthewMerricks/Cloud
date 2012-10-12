@@ -106,6 +106,15 @@ namespace win_client.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Documents.
+        /// </summary>
+        public static string CloudFolderDocumentsFolder {
+            get {
+                return ResourceManager.GetString("CloudFolderDocumentsFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pictures.
         /// </summary>
         public static string CloudFolderPicturesFolder {
@@ -115,11 +124,43 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Public.
+        ///   Looks up a localized string similar to Videos.
         /// </summary>
-        public static string CloudFolderPublicFolder {
+        public static string CloudFolderVideosFolder {
             get {
-                return ResourceManager.GetString("CloudFolderPublicFolder", resourceCulture);
+                return ResourceManager.GetString("CloudFolderVideosFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to    &apos;
+        ///   &apos;  CloudInstallUpdate.vbs
+        ///   &apos;  Cloud Windows
+        ///   &apos;
+        ///   &apos;  Created by BobS.
+        ///   &apos;  Copyright (c) Cloud.com. All rights reserved.
+        ///   &apos;
+        ///
+        ///   &apos; Parameter: None
+        ///   &apos; Call as &quot;C:\Windows\SysWOW64\cscript.exe&quot; //B //T:5 //Nologo &quot;&lt;path to this CloudInstallUpdate.vbs file&gt;&quot;
+        ///   
+        ///   Option Explicit
+        ///
+        ///   Const ForReading = 1
+        ///   Const ForWriting = 2
+        ///   Const ForAppending = 8
+        ///   Const DeleteReadOnly = true
+        ///   
+        ///   Dim objFileSys
+        ///   Dim objShell
+        /// 
+        ///   &apos; Global variables
+        ///   Dim shouldTrace
+        ///   Dim  [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string CloudInstallUpdate {
+            get {
+                return ResourceManager.GetString("CloudInstallUpdate", resourceCulture);
             }
         }
         
@@ -430,7 +471,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select..
+        ///   Looks up a localized string similar to Select the location for your Cloud folder.  A folder named Cloud will be created inside the folder you select.  The folder must be located somewhere in your user home directory: {0}..
         /// </summary>
         public static string pageCloudFolderMissingFolderBrowserDescription {
             get {
@@ -502,7 +543,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There was an error moving your Cloud folder to the new location.   Your files remain in the existing Cloud folder location..
+        ///   Looks up a localized string similar to There was an error moving your Cloud folder to the new location.   Your files remain in the existing Cloud folder location.  Error number {0}..
         /// </summary>
         public static string PageFolderSelection_ErrorMovingCloudFolder_BodyText {
             get {
@@ -709,7 +750,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Browse to Cloud.com....
+        ///   Looks up a localized string similar to _Browse to Cloud.com....
         /// </summary>
         public static string SystemTrayContextMenuBrowseToCloudCom {
             get {
@@ -718,7 +759,7 @@ namespace win_client.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Check for updates.
+        ///   Looks up a localized string similar to _Check for updates.
         /// </summary>
         public static string SystemTrayContextMenuCheckForUpdates {
             get {
@@ -759,6 +800,15 @@ namespace win_client.Resources {
         public static string SystemTrayContextMenuShowCloudFolder {
             get {
                 return ResourceManager.GetString("SystemTrayContextMenuShowCloudFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show S_ync Status....
+        /// </summary>
+        public static string SystemTrayContextMenuSyncStatus {
+            get {
+                return ResourceManager.GetString("SystemTrayContextMenuSyncStatus", resourceCulture);
             }
         }
         

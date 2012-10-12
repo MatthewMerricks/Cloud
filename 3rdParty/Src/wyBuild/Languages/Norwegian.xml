@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Norwegian</LangEn>
+	<Lang>Norsk</Lang>
+	<Culture>nb-NO</Culture>
+	<Buttons>
+		<Next>Neste</Next>
+		<Update>Oppdatér</Update>
+		<Finish>Utfør</Finish>
+		<Cancel>Avbryt</Cancel>
+		<ShowDetails>Vis detaljer</ShowDetails>
+		<Close>Lukk Prosess</Close>
+		<CloseAll>Lukk Alle Prosessene</CloseAll>
+		<CancelUpdate>Avbryt Oppdatering</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Avbryt oppdatering?</Title>
+			<Content>Er du sikker på at du vil avbryte før oppdateringen er gjennomført?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Avslutt prosess...</Title>
+			<Content>Følgende prosesser må lukkes før oppdateringen kan fortsette. Velg en prosess og klikk Lukk Prosess.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Filer i bruk ...</Title>
+			<Content>Følgende filer er i bruk. Disse filene må være lukket før oppdateringen kan fortsette.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate trenger administrative rettigheter for å oppdatere %product%. Du kan gjøre dette på en av tå måter:
+
+1. Når du blir forespurt, skriv inn administrators brukernavn og passord.
+
+2. I Windows Utforsker, høyre-klikk wyUpdate.exe og velg "Kjør som Administrator".</Admin>
+		<Download>Klarte ikke å laste ned oppdateringen.</Download>
+		<LogOff>Oppdaterer %product%. Du må avbryte wyUpdate før du kan logge av.</LogOff>
+		<SelfUpdate>Den oppdaterte versjonen av wyUpdate som er påkrevd for å oppdatere %product% feilet under installasjon.</SelfUpdate>
+		<ServFile>Klarer ikke å sjekke etter oppdateringer, klarte ikke å laste ned en fil fra serveren.</ServFile>
+		<Update>Klarte ikke å installere oppdateringen.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Søker etter oppdateringer</Title>
+			<SubTitle>wyUpdate søker etter oppdateringer.</SubTitle>
+			<Content>wyUpdate søker etter oppdateringer til %product%. Denne prosessen kan ta et par minutter.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Oppdaterings-informasjon</Title>
+			<SubTitle>Endringer i den siste versjonen av %product%.</SubTitle>
+			<Content>Versjonen av %product% som er installert på denne maskinen er %old_version%. Den siste versjonen er %new_version%. Under finner du en liste med endringene og forbedringene:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Laster ned og installerer oppdateringer</Title>
+			<SubTitle>Oppdaterer %product% til den siste versjonen.</SubTitle>
+			<Content>wyUpdate laster ned og installerer oppdateringer for %product%. Denne prosessen kan ta et par minutter.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Avinstallerer filer, kataloger og registeret</Title>
+			<SubTitle>Avinstallerer filer og register for %product%.</SubTitle>
+			<Content>wyUpdate avinstallerer filer og register som ble opprettet når oppdateringer ble gjort for %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Oppdatering fullført!</Title>
+			<Content>%product% har blitt oppdatert til versjon %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Siste versjon er allerede installert</Title>
+			<Content>%product% er oppdatert. Husk å sjekke etter oppdateringer jevnlig.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Ingen oppdatering til den siste versjonen</Title>
+			<Content>Det finnes en nyere versjon av %product% (versjon %new_version%), but ingen oppdatering finnes fra den versjonen du har installert (versjon %old_version%.)</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>En feil oppsto</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Laster ned oppdatering</Download>
+		<DownloadSelfUpdate>Laster ned ny wyUpdate</DownloadSelfUpdate>
+		<SelfUpdate>Oppdaterer wyUpdate</SelfUpdate>
+		<Extract>Pakker ut filer</Extract>
+		<Processes>Avslutter prosess</Processes>
+		<PreExec>Kjører filer</PreExec>
+		<Files>Sikkerhetskopierer og oppdaterer filer</Files>
+		<Registry>Sikkerhetskopierer og oppdaterer registeret</Registry>
+		<Optimize>Optimaliserer og kjører filer</Optimize>
+		<TempFiles>Fjerner midlertidige filer</TempFiles>
+		<UninstallFiles>Avinstallerer filer &amp; kataloger</UninstallFiles>
+		<UninstallReg>Avinstallerer register</UninstallReg>
+		<RollingBackFiles>Ruller tilbake filer</RollingBackFiles>
+		<RollingBackRegistry>Ruller tilbake registeret</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Klikk Oppdatér for å begynne.</Update>
+		<Finish>Klikk Utfør for å avslutte.</Finish>
+	</Bottoms>
+</Translation>

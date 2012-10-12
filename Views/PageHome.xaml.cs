@@ -25,6 +25,8 @@ using win_client.AppDelegate;
 using CloudApiPublic.Model;
 using win_client.Model;
 using CleanShutdown.Messaging;
+using CloudApiPublic.Support;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Views
 {
@@ -34,6 +36,7 @@ namespace win_client.Views
 
         private PageHomeViewModel _viewModel = null;
         private bool _isLoaded = false;
+        private CLTrace _trace = CLTrace.Instance;
 
         #endregion
 
@@ -42,15 +45,29 @@ namespace win_client.Views
         /// </summary>
         public PageHome()
         {
-            InitializeComponent();
+            try
+            {
+                _trace.writeToLog(9, "PageHome: PageHome constructor: Call InitializeComponent.");
+                InitializeComponent();
+                _trace.writeToLog(9, "PageHome: PageHome constructor: Back from InitializeComponent.");
 
-            // Register event handlers
-            Loaded += new RoutedEventHandler(PageHome_Loaded);
-            Unloaded += new RoutedEventHandler(PageHome_Unloaded);
+                // Register event handlers
+                Loaded += new RoutedEventHandler(PageHome_Loaded);
+                Unloaded += new RoutedEventHandler(PageHome_Unloaded);
 
-            // Pass the view's grid to the view model for the dialogs to use.
-            _viewModel = (PageHomeViewModel)DataContext;
-            _viewModel.ViewGridContainer = LayoutRoot;
+                // Pass the view's grid to the view model for the dialogs to use.
+                _viewModel = (PageHomeViewModel)DataContext;
+                _viewModel.ViewGridContainer = LayoutRoot;
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(9, "PageHome: PageHome: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
+                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (PageHome).  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
+                global::System.Windows.Application.Current.Shutdown(0);
+            }
+            _trace.writeToLog(9, "PageHome: PageHome constructor: Exit.");
         }
 
         #region "Event Handlers"

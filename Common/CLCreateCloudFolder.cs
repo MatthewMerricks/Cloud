@@ -24,17 +24,24 @@ namespace win_client.Common
 {
     public class CLCreateCloudFolder
     {
+        private static CLTrace _trace = CLTrace.Instance;
+
         /// <summary>
         /// Perform one-time installation (cloud folder, and any OS support)
         /// </summary>
         public static void CreateCloudFolder(string cloudFolderPath, out DateTime creationTime, out CLError error)
         {
             error = null;
-            CLTrace _trace = CLAppDelegate.Instance.GetTrace();
 
             try
             {
-                _trace.writeToLog(9, "CreateCloudFolder: Create cloud folder at <{0}>.", cloudFolderPath);
+                _trace.writeToLog(9, "CreateCloudFolder: Entry: Create cloud folder at <{0}>.", cloudFolderPath);
+
+                if (!IsPathInDirectory(cloudFolderPath, Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments))))
+                {
+                    throw new Exception(String.Format("The Cloud directory must be located somewhere in your user home directory ({0}).", 
+                                        Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments))));
+                }
 
                 if (!Directory.Exists(cloudFolderPath))
                 {
@@ -43,7 +50,8 @@ namespace win_client.Common
                     Directory.CreateDirectory(cloudFolderPath);
 
                     // The server does this now.
-                    //Directory.CreateDirectory(cloudFolderPath + "\\" + Resources.Resources.CloudFolderPublicFolder);
+                    //Directory.CreateDirectory(cloudFolderPath + "\\" + Resources.Resources.CloudFolderDocumentsFolder);
+                    //Directory.CreateDirectory(cloudFolderPath + "\\" + Resources.Resources.CloudFolderVideosFolder);
                     //Directory.CreateDirectory(cloudFolderPath + "\\" + Resources.Resources.CloudFolderPicturesFolder);
 
                     // Reset the index to a new clean sync point so it will scan this new folder.
@@ -102,6 +110,57 @@ namespace win_client.Common
                 creationTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
                 return;
             }
+        }
+
+
+        /// <summary>
+        /// Determine whether a path is the same as or contained in another directory.
+        /// </summary>
+        /// <param name="testPath">Does this test path exist at or in 'inPath'?</param>
+        /// <param name="inPath">The containing path.</param>
+        /// <returns></returns>
+        public static bool IsPathInDirectory(string testPath, string inPath)
+        {
+            FilePath fpTest = new FilePath(testPath);
+            return fpTest.FindOverlappingPath(inPath) != null;
+        }
+
+        /// <summary>
+        /// Tests whether a new cloud folder location is allowed.  It must be located in the user
+        /// home directory, and it must not be the same as or inside the current cloud folder path.
+        /// The target location must not exist and this user must have the proper rights to
+        /// create a folder there.  Test that by actually creating and deleting a directory at
+        /// the target location.
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsNewCloudFolderLocationValid(string existingCloudFolderPath, string newCloudFolderPath)
+        {
+            // The new path must be in the user home directory.
+            _trace.writeToLog(9, "CLCreateCloudFolder: IsNewCloudFolderLocationValid: Entry. existingPath: <{0}>. newPath: <{1}>.", existingCloudFolderPath, newCloudFolderPath);
+            if (!IsPathInDirectory(newCloudFolderPath, Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments))))
+            {
+                return false;
+            }
+
+            // The new path must not be at or in the existing path
+            if (IsPathInDirectory(newCloudFolderPath, existingCloudFolderPath))
+            {
+                return false;
+            }
+
+            // Test that we can actually create a folder at the target location.
+            try
+            {
+                Directory.CreateDirectory(newCloudFolderPath);
+                Directory.Delete(newCloudFolderPath);
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(9, "CLCreateCloudFolder: IsNewCloudFolderLocationValid: ERROR. Exception.  Msg: <{0}>.", ex.Message);
+                return false;
+            }
+
+            return true;
         }
     }
 }

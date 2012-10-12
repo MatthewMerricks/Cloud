@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Dutch</LangEn>
+	<Lang>Nederlands</Lang>
+	<Culture>nl-NL</Culture>
+	<Buttons>
+		<Next>Volgende</Next>
+		<Update>Bijwerken</Update>
+		<Finish>Sluiten</Finish>
+		<Cancel>Annuleer</Cancel>
+		<ShowDetails>Toon details</ShowDetails>
+		<Close>Sluit Proces</Close>
+		<CloseAll>Sluit Alle Processen</CloseAll>
+		<CancelUpdate>Annuleer Update</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Annuleer update?</Title>
+			<Content>Bent u zeker de bijwerkingen te annuleren?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Sluit processen…</Title>
+			<Content>De volgende processen moeten worden gesloten alvorens de bijwerkingen kan verdergaan. Selecteer een proces en klik sluiten Proces in taakbeheer.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Bestanden zijn momenteel in gebruik door een andere gebruiker ...</Title>
+			<Content>De volgende bestanden zijn in gebruik. Deze bestanden moeten worden gesloten voordat de update kan worden voortgezet.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>DcUpdater vergt administratieve voorrechten om %product% bij te werken. U kunt dit één van twee manieren doen:
+
+1. Wanneer ertoe aangezet, geef de gebruikersbenaming van een beheerder en wachtwoord in.
+
+2. In verkenner klik rechtermuisknop op wyUpdate.exe  en klikt Installeer als Beheerder.</Admin>
+		<Download>De update slaagde er niet in om te downloaden...</Download>
+		<LogOff>Het bijwerken van %product%. U moet annuleren wyUpdate alvorens u kunt het programma sluiten.</LogOff>
+		<SelfUpdate>De bijgewerkte versie van deze cliënt die moet om %product% bijwerken slaagde er niet in te installeren.</SelfUpdate>
+		<ServFile>Onbekwaam om updates te controleren, slaagde er niet in om het serverdossier te laden .</ServFile>
+		<Update>De update slaagde er niet in om te installeren...</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Het zoeken naar updates</Title>
+			<SubTitle>DcUpdater zoekt naar updates...</SubTitle>
+			<Content>DcUpdater zoekt naar updates van %product%. Dit proces kon een paar ogenblikken in beslag nemen.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>De Informatie van de update</Title>
+			<SubTitle>Veranderingen in de recentste versie van %product%.</SubTitle>
+			<Content>De versie van %product% geïnstalleerd op deze computer is %old_version%. De recentste versie is %new_version%.  Hieronder vermeld zijn de veranderingen en de verbeteringen aaangebracht door IT afdeling:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Het downloaden van &amp; het Installeren van updates</Title>
+			<SubTitle>Het bijwerken van %product% aan de recentste versie.</SubTitle>
+			<Content>DcUpdater download en installeert updates voor %product%. Dit proces kon een paar ogenblikken in beslag nemen.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>De desinstallatie van bestanden en registratie's</Title>
+			<SubTitle>De desinstallatie van bestanden en registratie's voor %product%.</SubTitle>
+			<Content>DcUpdater desinstalleert bestanden en de registratie die werden toegepast op %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Het programma %pruduct% is  succesvol bijgewerkt</Title>
+			<Content>%product% is met succes bijgewerkt aan versie %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Recentste reeds geïnstalleerdec versie</Title>
+			<Content>%product% is momenteel bijgewerkt. Herinner me om nieuwe updates vaak te controleren.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Geen update aan de recentste versie op dit ogenblik</Title>
+			<Content>Er zijn een nieuwere versie van %product% (versie %new_version%), maar geen update beschikbaar bij de versie u momenteel hebt geïnstalleerd (versie %old_version%).</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Een fout kwam voor</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Het downloaden van update</Download>
+		<DownloadSelfUpdate>Het downloaden van nieuwe %product%</DownloadSelfUpdate>
+		<SelfUpdate>Bijwerkende cliënt DcUpdater</SelfUpdate>
+		<Extract>Extracting van bestanden</Extract>
+		<Processes>Het sluiten van processen</Processes>
+		<PreExec>Het uitvoeren van bestanden</PreExec>
+		<Files>Supporting en updating van bestanden</Files>
+		<Registry>Supportive en update registraties</Registry>
+		<Optimize>Optimilaseer en exporting van bestanden</Optimize>
+		<TempFiles>Het verwijderen van tijdelijke bestanden</TempFiles>
+		<UninstallFiles>De desinstallatie van bestanden...</UninstallFiles>
+		<UninstallReg>De desinstallatie van registratie's...</UninstallReg>
+		<RollingBackFiles>Bestanden terugdraaien naar voorgaande versie</RollingBackFiles>
+		<RollingBackRegistry>Terugdraaien register</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Klik op bijwerken om te beginnen.</Update>
+		<Finish>Klik sluiten om weg te beeindigen.</Finish>
+	</Bottoms>
+</Translation>

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<Templates>
+	<Template>
+		<Name>Simple Blue</Name>
+		<SideImage>
+			<Filename>Side Images\sblue.png</Filename>
+		</SideImage>
+		<TopImage>
+			<Align>Fill</Align>
+			<Filename>Top Images\sblue.png</Filename>
+			<HeaderText>
+				<Indent>80</Indent>
+				<Color>White</Color>
+			</HeaderText>
+			<HideDiv />
+		</TopImage>
+	</Template>
+	<Template>
+		<Name>Microsoft Modern</Name>
+		<SideImage>
+			<Filename>Side Images\msmodern.png</Filename>
+		</SideImage>
+		<TopImage>
+			<Align>Left</Align>
+			<Filename>Top Images\msmodern.png</Filename>
+		</TopImage>
+	</Template>
+	<Template>
+		<Name>Microsoft Standard</Name>
+		<SideImage>
+			<Filename>Side Images\msstandard.png</Filename>
+		</SideImage>
+		<TopImage>
+			<Align>Left</Align>
+			<Filename>Top Images\msstandard.png</Filename>
+		</TopImage>
+	</Template>
+	<Template>
+		<Name>Orange</Name>
+		<SideImage>
+			<Filename>Side Images\orange.png</Filename>
+		</SideImage>
+		<TopImage>
+			<Align>Left</Align>
+			<Filename>Top Images\orange.png</Filename>
+		</TopImage>
+	</Template>
+</Templates>

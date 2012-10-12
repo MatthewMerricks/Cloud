@@ -21,6 +21,7 @@ using CloudApiPublic.Model;
 using System.Windows;
 using System.Reflection;
 using CloudApiPrivate.Common;
+using CloudApiPublic.Support;
 
 namespace CloudApiPrivate.Model.Settings
 {
@@ -200,6 +201,8 @@ namespace CloudApiPrivate.Model.Settings
         public const string kShouldAddShowCloudFolderOnTaskbar = "should_add_show_cloud_folder_on_taskbar";
         public const string kShouldAddShowCloudFolderInStartMenu = "should_add_show_cloud_folder_in_start_menu";
         public const string kShouldAnimateToSystemTray = "should_animate_to_system_tray";
+        public const string kIsMovingCloudFolder = "is_moving_cloud_folder";
+        public const string kMovingCloudFolderTargetPath = "moving_cloud_folder_target_path";
 
         /// <summary>
         /// The persistent settings properties.
@@ -254,6 +257,20 @@ namespace CloudApiPrivate.Model.Settings
                 }
                 _useColorIconForCloudFolder = value;
                 SettingsBase.Write<bool>(kUseColorIconForCloudFolder, value);
+            }
+        }
+
+        private bool _isMovingCloudFolder;
+        public bool IsMovingCloudFolder
+        {
+            get { return _isMovingCloudFolder; }
+            set
+            {
+                if (value != _isMovingCloudFolder)
+                {
+                    _isMovingCloudFolder = value;
+                    SettingsBase.Write<bool>(kIsMovingCloudFolder, value);
+                }
             }
         }
 
@@ -537,6 +554,17 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
+        private string _movingCloudFolderTargetPath;
+        public string MovingCloudFolderTargetPath
+        {
+            get { return _movingCloudFolderTargetPath; }
+            set
+            {
+                _movingCloudFolderTargetPath = value;
+                SettingsBase.Write<string>(kMovingCloudFolderTargetPath, value);
+            }
+        }
+
         private DateTime _cloudFolderCreationTimeUtc;
         public DateTime CloudFolderCreationTimeUtc
         {
@@ -750,9 +778,14 @@ namespace CloudApiPrivate.Model.Settings
         private string _mainWindowPlacement;
         public String MainWindowPlacement
         {
-            get { return _mainWindowPlacement; }
+            get 
+            {
+                _trace.writeToLog(9, "CLSettings: MainWindowPlacement.get: Return value: <{0}>.", _mainWindowPlacement);
+                return _mainWindowPlacement; 
+            }
             set
             {
+                _trace.writeToLog(9, "CLSettings: MainWindowPlacement.set: Seet value: <{0}>.", value);
                 _mainWindowPlacement = value;
                 SettingsBase.Write<string>(kMainWindowPlacement, value);
             }
@@ -763,6 +796,8 @@ namespace CloudApiPrivate.Model.Settings
         /// </summary>
         private static Settings _instance = null;
         private static object InstanceLocker = new object();
+        private static CLTrace _trace = CLTrace.Instance;
+
 
         /// <summary>
         /// Access SiteStructure.Instance to get the singleton object.
@@ -778,6 +813,7 @@ namespace CloudApiPrivate.Model.Settings
                     {
                         _instance = new Settings();
                         _instance.loadSettings();
+                        _trace.writeToLog(9, "CLSettings: Instance: Settings loaded.");
                     }
                 }
                 return _instance;
@@ -852,6 +888,7 @@ namespace CloudApiPrivate.Model.Settings
     
             // Advanced
             _cloudFolderPath = GetDefaultCloudFolderPath();
+            _movingCloudFolderTargetPath = String.Empty;
             _cloudFolderCreationTimeUtc = (DateTime)Helpers.DefaultForType(typeof(DateTime));
 
             // Index Services
@@ -927,6 +964,12 @@ namespace CloudApiPrivate.Model.Settings
                 _useColorIconForCloudFolder = bTemp;
             }
 
+            isPresent = SettingsBase.ReadIfPresent<bool>(kIsMovingCloudFolder, out bTemp);
+            if (isPresent)
+            {
+                _isMovingCloudFolder = bTemp;
+            }
+            
             isPresent = SettingsBase.ReadIfPresent<int>(kCloudAppLanguage, out temp);
             if (isPresent)
             {
@@ -1079,6 +1122,12 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _cloudFolderPath = tempString;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<string>(kMovingCloudFolderTargetPath, out tempString);
+            if (isPresent)
+            {
+                _movingCloudFolderTargetPath = tempString;
             }
 
             isPresent = SettingsBase.ReadIfPresent<DateTime>(kCloudFolderCreationTimeUtc, out tempDate);
@@ -1282,24 +1331,24 @@ namespace CloudApiPrivate.Model.Settings
             return folder;
         }
 
-        /// <summary>
-        /// Move the Cloud folder to a new location.
-        /// <param name="existingPath">The full path of the existing Cloud location.</param>
-        /// <param name="newPath">The full path of the new Cloud folder location</param>
-        /// <param name="error">A possible output error.</param>
-        /// </summary>
-        public void MoveCloudDirectoryFromPath_toDestination(string existingPath, string newPath, out CLError error)
-        {
-            error = null;
-            try
-            {
-                Directory.Move(existingPath, newPath);
-            }
-            catch (Exception ex)
-            {
-                error += ex;
-            }
-        }
+        ///// <summary>
+        ///// Move the Cloud folder to a new location.
+        ///// <param name="existingPath">The full path of the existing Cloud location.</param>
+        ///// <param name="newPath">The full path of the new Cloud folder location</param>
+        ///// <param name="error">A possible output error.</param>
+        ///// </summary>
+        //public void MoveCloudDirectoryFromPath_toDestination(string existingPath, string newPath, out CLError error)
+        //{
+        //    error = null;
+        //    try
+        //    {
+        //        Directory.Move(existingPath, newPath);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        error += ex;
+        //    }
+        //}
     }
 
     #endregion

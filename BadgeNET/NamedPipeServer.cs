@@ -28,16 +28,16 @@ namespace BadgeNET
         { 
             Exception e = null; 
             AutoResetEvent connectEvent = new AutoResetEvent(false);
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Call BeginWaitFroConnection.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Call BeginWaitFroConnection.");
             stream.BeginWaitForConnection(ar =>
             {
                 try 
                 {
-                    CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Test for cancelled.");
+                    //CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Test for cancelled.");
                     // Test to see if we were cancelled.  If so, the stream is already closed
                     if (userState.CheckRunning())
                     {
-                        CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Call EndWaitFroConnection.");
+                        //CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Call EndWaitFroConnection.");
                         stream.EndWaitForConnection(ar);
                     }
                 } 
@@ -47,15 +47,15 @@ namespace BadgeNET
                     e = er; 
                 }
 
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Set the connectEvent.");
+                //CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Set the connectEvent.");
                 connectEvent.Set(); 
             }, userState);
 
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Call WaitAny.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Call WaitAny.");
             if (WaitHandle.WaitAny(new WaitHandle[] { connectEvent, cancelEvent }) == 1)
             {
                 // The wait was cancelled.
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: The wait was cancelled.");
+                //CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: The wait was cancelled.");
                 stream.Close();
             }
 
@@ -64,7 +64,7 @@ namespace BadgeNET
                 CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Re-throw the exception.  Msg: {0}.", e.Message);
                 throw e; // rethrow exception 
             }
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Exit.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Exit.");
         }
     }
     #endregion
@@ -105,15 +105,15 @@ namespace BadgeNET
         /// </summary>
         private void ServerLoop()
         {
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Entry.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Entry.");
             while (CheckRunning())
             {
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Call ProcessNextClient.");
+                //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Call ProcessNextClient.");
                 ProcessNextClient();
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Back from ProcessNextClient.");
+                //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Back from ProcessNextClient.");
             }
 
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Signal Stop.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Signal Stop.");
             bool alreadyDisposed;
             lock (terminateHandleDisposedLocker)
             {
@@ -129,7 +129,7 @@ namespace BadgeNET
                 {
                 }
             }
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Exit thread.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Exit thread.");
         }
 
         
@@ -138,7 +138,7 @@ namespace BadgeNET
         /// </summary>
         public void Run()
         {
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: Run: Entry.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: Run: Entry.");
             _running = true;
             _resetEvent = new ManualResetEvent(false);
 
@@ -151,38 +151,38 @@ namespace BadgeNET
         /// </summary>
         public void Stop()
         {
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Entry.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Entry.");
             lock (_runningLocker)
             {
                 _running = false;
                 if (_resetEvent != null)
                 {
-                    CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Signal the WaitForConnection to exit.");
+                    //CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Signal the WaitForConnection to exit.");
                     _resetEvent.Set();                                          // let the WaitForConnection exit so the thread can stop
                     _resetEvent.Dispose();
                 }
             }
 
             // Wait for the server thread to exit, but not forever
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Wait for the server thread to exit.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Wait for the server thread to exit.");
             bool receivedSignal = _terminateHandle.WaitOne(150);           // Don't hang forever
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Back from wait for the server thread to exit.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Back from wait for the server thread to exit.");
             if (!receivedSignal)
             {
                 // Timed out.
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Thread timed out."); 
+                //CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Thread timed out."); 
             }
             lock (terminateHandleDisposedLocker)
             {
                 _terminateHandle.Dispose();
                 terminateHandleDisposedLocker.Value = true;
             }
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Exit.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: Stop: Exit.");
         }
 
         public void ProcessClientThread(object o)
         {
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessClientThread: Entry.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessClientThread: Entry.");
             NamedPipeServerStream pipeStream = (NamedPipeServerStream)o;
 
             // Handle the client communication here.
@@ -190,7 +190,7 @@ namespace BadgeNET
 
             pipeStream.Close();
             pipeStream.Dispose();
-            CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessClientThread: Exit thread.");
+            //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessClientThread: Exit thread.");
         }
 
         abstract public void ProcessClientCommunication(NamedPipeServerStream pipeStream, object userState);
@@ -199,18 +199,18 @@ namespace BadgeNET
         {
             try
             {
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Entry.");
+                //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Entry.");
                 NamedPipeServerStream pipeStream = new NamedPipeServerStream(PipeName, PipeDirection.InOut, 254, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: WAIT for the next client connection.");
+                //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: WAIT for the next client connection.");
 
                 lock(_runningLocker)
                 {
-                    CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Allocate _resetEvent.");
+                    //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Allocate _resetEvent.");
                     _resetEvent = new ManualResetEvent(false);          // used to exit the WaitForConnection on demand
                 }
 
                 pipeStream.WaitForConnectionEx(_resetEvent, this);
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Allocate Back from WaitForConnectionEx.");
+                //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Allocate Back from WaitForConnectionEx.");
 
                 lock(_runningLocker)
                 {
@@ -221,14 +221,14 @@ namespace BadgeNET
                     // Stop() may have caused the exit from WaitForConnectionEx.
                     if (!_running)
                     {
-                        CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Exit because the wait was cancelled.");
+                        //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Exit because the wait was cancelled.");
                         return;
                     }
                 }
 
                 
                 //Spawn a new thread for each request and continue waiting 
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Got a client connection.  Start a thread to process it.");
+                //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: Got a client connection.  Start a thread to process it.");
                 Thread t = new Thread(ProcessClientThread);
                 t.Start(pipeStream);
             }

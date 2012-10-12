@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Swedish</LangEn>
+	<Lang>Svenska</Lang>
+	<Culture>sv-SE</Culture>
+	<Buttons>
+		<Next>Nästa</Next>
+		<Update>Uppdatera</Update>
+		<Finish>Avsluta</Finish>
+		<Cancel>Avbryt</Cancel>
+		<ShowDetails>Visa detaljer</ShowDetails>
+		<Close>Stäng process</Close>
+		<CloseAll>Stäng alla processer</CloseAll>
+		<CancelUpdate>Avbryt uppdateringen</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Avbryt uppdateringen?</Title>
+			<Content>Är du säker på att du vill avsluta innan uppdateringen är färdig?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Stäng processer...</Title>
+			<Content>Följande processer behöver stängas innan uppdateringen kan fortsätta. Välj en process och klicka på Stäng process</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Filer som används ...</Title>
+			<Content>Följande filer används. Dessa filer måste vara stängda innan uppdateringen kan fortsätta.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate behöver administrativa behörigheter för att uppdatera %product%. Du kan göra detta på två sätt:
+
+1. Skriv in en administratörs användarnamn och lösenordet, när du efterfrågas detta.
+
+2. I Windows Explorer, höger-klicka på wyUpdate.exe och välj ”Kör som administratör”</Admin>
+		<Download>Misslyckades med att ladda ner uppdateringen</Download>
+		<LogOff>Uppdaterar %product%. Du måste avbryta wyUpdate innan du kan logga ut</LogOff>
+		<SelfUpdate>Den uppdaterade versionen av wyUpdate som krävs för att uppdatera %product% misslyckades att installeras</SelfUpdate>
+		<ServFile>Kunde inte kontrollera nya uppdateringar, misslyckades med att ladda filen från servern</ServFile>
+		<Update>Misslyckades med att installera uppdateringen</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Söker efter uppdateringar</Title>
+			<SubTitle>wyUpdate söker efter uppdateringar.</SubTitle>
+			<Content>wyUpdate söker efter uppdateringar till %product%. Denna åtgärd kan ta några minuter.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Information om uppdatering</Title>
+			<SubTitle>Ändringar i den senaste versionen av %product%.</SubTitle>
+			<Content>Versionen av %product% som är installerad på denna dator, är %old_version%. Den senaste versionen är %new_version%.  Se nedan för ändringarna och förbättringar:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Laddar ner och installerar uppdateringar</Title>
+			<SubTitle>Uppdaterar %product% till den senaste versionen.</SubTitle>
+			<Content>wyUpdate laddar ner och installerar uppdateringar för %product%. Denna åtgärd kan ta några minuter.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Ta bort filer, mappar och registerposter</Title>
+			<SubTitle>Ta bort mappar och registerposter för %product%.</SubTitle>
+			<Content>wyUpdate tar bort filer och registerposter som skapade när uppdateringen applicerades till %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Uppdatering lyckades!</Title>
+			<Content>%product% har uppdaterats till version %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Senaste versionen är redan installerad</Title>
+			<Content>%product% är aktuell. Kom ihåg att kontrollera efter nya uppdateringar regelbundet.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Ingen uppdatering till den senaste versionen</Title>
+			<Content>Det finns inte en nyare version av %product% (version %new_version%), men någon uppdatering från versionen som du har installerad (version %old_version%) till aktuellt version finns ej tillgänglig.</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Ett fel uppstod</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Laddar ner uppdatering</Download>
+		<DownloadSelfUpdate>Laddar ner en ny version av wyUpdate</DownloadSelfUpdate>
+		<SelfUpdate>Uppdaterar wyUpdate</SelfUpdate>
+		<Extract>Extraherar filer</Extract>
+		<Processes>Stänger processer</Processes>
+		<PreExec>Exekverar filer</PreExec>
+		<Files>Säkerhetskopierar och uppdaterar filer</Files>
+		<Registry>Säkerhetskopierar och uppdaterar registret</Registry>
+		<Optimize>Optimerar och exekverar filer</Optimize>
+		<TempFiles>Ta bort temporära filer</TempFiles>
+		<UninstallFiles>Ta bort filer och mappar</UninstallFiles>
+		<UninstallReg>Ta bort registrerposter</UninstallReg>
+		<RollingBackFiles>Återställer filer</RollingBackFiles>
+		<RollingBackRegistry>Återställer registret</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Klicka "Uppdatera" för att börja</Update>
+		<Finish>Klicka "Avsluta" för att avsluta</Finish>
+	</Bottoms>
+</Translation>

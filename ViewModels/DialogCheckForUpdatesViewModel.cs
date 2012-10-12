@@ -62,7 +62,7 @@ namespace win_client.ViewModels
         /// The <see cref="BusyContent" /> property's name.
         /// </summary>
         public const string BusyContentPropertyName = "BusyContent";
-        private string _busyContent = "Creating account...";
+        private string _busyContent = "";
         public string BusyContent
         {
             get

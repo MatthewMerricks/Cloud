@@ -77,7 +77,7 @@ namespace win_client.AppDelegate
 
 
         public Window AppMainWindow { get; set; }
-        public Window CheckForUpdatesWindow { get; set; }
+        public DialogCheckForUpdates CheckForUpdatesWindow { get; set; }
 
         private bool _isAlreadyRunning = false;
         public bool IsAlreadyRunning
@@ -205,10 +205,18 @@ namespace win_client.AppDelegate
             }
 
             // Start a single instance of the updater window.
+            _trace.writeToLog(9, "CLAppDelegate: initAppDelegate: new DialogCheckForUpdates.");
             CheckForUpdatesWindow = new DialogCheckForUpdates();
+            CheckForUpdatesWindow.Width = 0;
+            CheckForUpdatesWindow.Height = 0;
+            CheckForUpdatesWindow.MinWidth = 0;
+            CheckForUpdatesWindow.MinHeight = 0;
             CheckForUpdatesWindow.Left = Int32.MaxValue;
             CheckForUpdatesWindow.Top = Int32.MaxValue;
             CheckForUpdatesWindow.ShowInTaskbar = false;
+            CheckForUpdatesWindow.ShowActivated = false;
+            CheckForUpdatesWindow.Visibility = System.Windows.Visibility.Hidden;
+            CheckForUpdatesWindow.WindowStyle = WindowStyle.None;
             CheckForUpdatesWindow.Show();
 
             // Determine which window we will show on startup
@@ -377,7 +385,7 @@ namespace win_client.AppDelegate
             catch (Exception ex)
             {
                 error = ex;
-                _trace.writeToLog(9, String.Format("CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
             }
             _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Exit.");
         }
@@ -455,16 +463,17 @@ namespace win_client.AppDelegate
         {
             try
             {
-                // Only if the directory exists in the expected spot.
+                // Only if the directory exists in the expected spot, and only if we are not restarting to move the cloud folder.
                 bool otherFileExists = false;
-                if (Directory.Exists(Settings.Instance.CloudFolderPath))
+                if (!Settings.Instance.IsMovingCloudFolder && Directory.Exists(Settings.Instance.CloudFolderPath))
                 {
                     // Iterate through all of the files in the directory.  Stop if we get anything other than the
                     // Public and/or Pictures directory.
                     foreach (string entry in Directory.EnumerateFileSystemEntries(Settings.Instance.CloudFolderPath, "*.*", SearchOption.AllDirectories))
                     {
                         if (entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPicturesFolder, StringComparison.InvariantCulture)
-                               || entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderPublicFolder, StringComparison.InvariantCulture))
+                               || entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderDocumentsFolder, StringComparison.InvariantCulture)
+                               || entry.Equals(Settings.Instance.CloudFolderPath + "\\" + Resources.Resources.CloudFolderVideosFolder, StringComparison.InvariantCulture))
                         {
                             continue;
                         }
@@ -761,7 +770,7 @@ namespace win_client.AppDelegate
             // // setup or not.
 
             // BOOL setupNeeded = YES;
-            // BOOL shouldStartCoreServices = YES;
+            // BOOL shouldStartCoreServices = YES; 
             bool setupNeeded = true;
             bool shouldStartCoreServices = true;
 
@@ -926,7 +935,8 @@ namespace win_client.AppDelegate
 
             resultingPaths.RemoveAll(x => 
                 { return (x.LastPathComponent().Equals(Resources.Resources.CloudFolderPicturesFolder, StringComparison.InvariantCulture) 
-                        || x.LastPathComponent().Equals(Resources.Resources.CloudFolderPublicFolder, StringComparison.InvariantCulture)); 
+                        || x.LastPathComponent().Equals(Resources.Resources.CloudFolderDocumentsFolder, StringComparison.InvariantCulture) 
+                        || x.LastPathComponent().Equals(Resources.Resources.CloudFolderVideosFolder, StringComparison.InvariantCulture)); 
                 });
             string foundPath = null;
             if (resultingPaths.Count > 0)
@@ -1103,6 +1113,7 @@ namespace win_client.AppDelegate
                 // Save the current position of the window.
                 if (window.WindowStyle != WindowStyle.None && window.Visibility == Visibility.Visible)
                 {
+                    _trace.writeToLog(1, "CLAppDelegate: HideMainWindow: Set MainWindowPlacement. Coords: {0},{1},{2},{3}(LRWH). Title: {4}.", window.Left, window.Top, window.Width, window.Height, window.Title);
                     Settings.Instance.MainWindowPlacement = window.GetPlacement();
                 }
 

@@ -257,5 +257,8 @@ namespace CloudApiPublic.Model
 
         // Invalid SID or EID
         public const long CLDoNotSaveId = 1608198229012012;   // used with SyncTo and SyncFrom to represent sid and eid
+
+        // WyUpdate constants
+        public const string CLUpdaterRelativePath = "CloudUpdater.exe";
     }
 }

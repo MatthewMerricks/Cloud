@@ -34,6 +34,7 @@ namespace win_client.Services.ServicesManager
         private static object _instanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance;
         private static bool _coreServicesStarted = false;
+        private static object _coreServicesLocker = new object();
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -102,8 +103,9 @@ namespace win_client.Services.ServicesManager
             //    [[CLSyncService sharedService] beginSyncServices];
             //}
 
-            if (!_coreServicesStarted)
+            lock (_coreServicesLocker)
             {
+<<<<<<< HEAD
                 _coreServicesStarted = true;
 
                 // Initialize the growl service
@@ -122,25 +124,54 @@ namespace win_client.Services.ServicesManager
                 CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
                 CLCFMonitoringService.Instance.BeginCloudFolderMonitoring();
                 if (CLNetworkMonitorService.Instance.CloudReach)
+=======
+                try
+>>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
                 {
-                    // Outdated, Sync process replaced
-                    // -David
-                    //CLSyncService.Instance.BeginSyncServices();
-                }
-                if (CLNetworkMonitorService.Instance.CloudReach)
-                {
-                    CLNotificationService.Instance.ConnectPushNotificationServer();
-                }
-                //TODO: Enable to hook all user processes for the start of a drag/drop operation
-                //DragDropServer.DragDropServer.Instance.StartDragDropServer();
+                    if (!_coreServicesStarted)
+                    {
+                        _trace.writeToLog(1, "CLServicesManager: StartCoreServices: Starting.");
 
+                        // Update the shell integration shortcuts
+                        CLShortcuts.UpdateAllShortcuts(Settings.Instance.CloudFolderPath);
+
+                        // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
+                        // before the initial list is passed (via InitializeOrReplace)
+                        //TODO: Handle any CLErrors returned from these services.
+                        CLBadgingService.Instance.BeginBadgingServices();
+                        CLUIActivityService.Instance.BeginUIActivityService();
+                        CLIndexingService.Instance.StartIndexingService();
+                        CLNetworkMonitorService.Instance.BeginNetworkMonitoring();
+                        CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
+                        CLCFMonitoringService.Instance.BeginCloudFolderMonitoring();
+                        if (CLNetworkMonitorService.Instance.CloudReach)
+                        {
+                            // Outdated, Sync process replaced
+                            // -David
+                            //CLSyncService.Instance.BeginSyncServices();
+                        }
+                        if (CLNetworkMonitorService.Instance.CloudReach)
+                        {
+                            CLNotificationService.Instance.ConnectPushNotificationServer();
+                        }
+                        //TODO: Enable to hook all user processes for the start of a drag/drop operation
+                        //DragDropServer.DragDropServer.Instance.StartDragDropServer();
+
+                        _coreServicesStarted = true;            // at least we went through all of the startup functions.
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _trace.writeToLog(1, "CLServicesManager: StartCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                }
             }
         }
 
         public void StopCoreServices()
         {
-            if (_coreServicesStarted)
+            lock (_coreServicesLocker)
             {
+<<<<<<< HEAD
                 _coreServicesStarted = false;
                 CLUIActivityService.Instance.EndUIActivityService();
                 CLBadgingService.Instance.EndBadgingServices();
@@ -161,6 +192,40 @@ namespace win_client.Services.ServicesManager
                 // Outdated, Sync process replaced
                 // -David
                 //CLSyncService.Instance.StopSyncServices();
+=======
+                try
+                {
+                    if (_coreServicesStarted)
+                    {
+                        _trace.writeToLog(1, "CLServicesManager: StopCoreServices: Stop core services.");
+                        CLUIActivityService.Instance.EndUIActivityService();
+                        CLBadgingService.Instance.EndBadgingServices();
+
+                        //TODO: Enable to hook all user processes for the start of a drag/drop operation
+                        //DragDropServer.DragDropServer.Instance.StopDragDropServer();
+
+                        CLNotificationService.Instance.DisconnectPushNotificationServer();
+                        CLNetworkMonitorService.Instance.EndNetworkMonitoring();
+                        CLFSMonitoringService.Instance.EndFileSystemMonitoring();
+                        CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
+                        global::Sync.Sync.Shutdown();
+                        DelayProcessable<FileChange>.TerminateAllProcessing();
+
+
+                        // Outdated, Sync process replaced
+                        // -David
+                        //CLSyncService.Instance.StopSyncServices();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _trace.writeToLog(1, "CLServicesManager: StopCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                }
+                finally
+                {
+                    _coreServicesStarted = false;
+                }
+>>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
             }
         }
         public void StartSyncServices()

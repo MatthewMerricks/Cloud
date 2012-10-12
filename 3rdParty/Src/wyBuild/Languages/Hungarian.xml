@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Hungarian</LangEn>
+	<Lang>Magyar</Lang>
+	<Culture>hu-HU</Culture>
+	<Buttons>
+		<Next>Tovább</Next>
+		<Update>Frissítés</Update>
+		<Finish>Befejezés</Finish>
+		<Cancel>Mégse</Cancel>
+		<ShowDetails>Részletek</ShowDetails>
+		<Close>Folyamat bezására</Close>
+		<CloseAll>Összes folyamat bezárása</CloseAll>
+		<CancelUpdate>Frissítés megszakítása</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Biztosan megszakítja a frissítést?</Title>
+			<Content>Biztosan ki szeretne lépni, mielőtt a frissítések telepítése befejeződne?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Folyamatok leállítása...</Title>
+			<Content>A frissítés folytatása előtt az alábbi folyamatok bezárása szükséges. A bezáráshoz válassza ki a folyamatot, és kattintson a Folyamat bezárására.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Egyes fájlok használatban vannak...</Title>
+			<Content>Az alábbi fájlokat jelenleg más folyamatok használják. A telepítő csak ezen fájlok felszabadulása után folytatódhat.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>A wyUpdate alkalmazásnak adminisztrátori jogosultságokra van szüksége a(z) %product% frissítéséhez. Ezt kétféleképpen érheti el:
+
+1. Amikor szükséges, adja meg az adminisztrátori felhasználónevet és jelszót.
+
+2. A Windows intézőben kattintson az egér jobb gombjával az alkalmazás könyvtárában lévő wyUpdate.exe alkalmazásra, és kattintson a "Futtatás rendszergazdaként" parancsra.</Admin>
+		<Download>Hiba a frissítések letöltése közben.</Download>
+		<LogOff>A(z) %product% frissítése folyamatban van. A kijelentkezés előtt meg kell szakítania a folyamatot,</LogOff>
+		<SelfUpdate>A(z) %product% frissítéséhez a wyUpdate újabb verziója szükséges, de annak teleptésekor hiba lépett fel.</SelfUpdate>
+		<ServFile>Hiba a frissítések keresése közben, a szerver fájl nem tölthető be.</ServFile>
+		<Update>Hiba a frissítések telepítése közben.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Frissítések keresése</Title>
+			<SubTitle>A wyUpdate frissítéseket keres.</SubTitle>
+			<Content>A wyUpdate frissítéseket keres a(z) %product% alkalmazáshoz. Ez a folyamat eltarthat néhány percig.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Információk a frissítésről</Title>
+			<SubTitle>Változások a(z) %product% legújabb verziójában.</SubTitle>
+			<Content>A számítógépen a(z) %product% korábbi, %old_version% verziója található. A legújabb verzió %new_version%. Az alábbi lista foglalja össze a változásokat és fejlesztéseket.</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Frissítések letöltése és telepítése</Title>
+			<SubTitle>A(z) %product% frissítése a legújabb verzióra.</SubTitle>
+			<Content>A wyUpdate frissítéseket tölt le és telepít a(z) %product% alkalmazáshoz. Ez a folyamat eltarthat néhány percig.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Fájlok, könyvtárak és registry beállítások eltávolítása</Title>
+			<SubTitle>A(z) %product% alkalmazás fájljainak és registry beállításainak eltávolítása.</SubTitle>
+			<Content>A wyUpdate eltávolítja a fájlokat és registry beállításokat, amelyek a(z) %product% frissítései közben keletkeztek.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>A frissítés sikeresen befejeződött!</Title>
+			<Content>A(z) %product% sikeresen frissült a legújabb, %new_version% verzióra.</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>A legújabb vezrió már telepítve van.</Title>
+			<Content>A(z) %product% jelenleg naprakész. Ne felejtse el gyakran ellenőrizni a frissíthetőséget.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Nem érhető el a legújabb verzió</Title>
+			<Content>A(z) %product% alkalmazásnak van újabb (%new_version%) verziója, de nem érhető el a jelenleg telepített verzióhoz való frissítés. Keresse fel az alkalmazás weboldalát.</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Hiba a művelet során</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Frissítés letöltése</Download>
+		<DownloadSelfUpdate>Új wyUpdate letöltése</DownloadSelfUpdate>
+		<SelfUpdate>A wyUpdate frissítése</SelfUpdate>
+		<Extract>Fájlok kicsomagolása</Extract>
+		<Processes>Folyamatok leállítása</Processes>
+		<PreExec>Fájlok végrehajtása</PreExec>
+		<Files>Fájlok frissítése</Files>
+		<Registry>Registry frissítése</Registry>
+		<Optimize>Fájlok optimalizálása és végrehajtása</Optimize>
+		<TempFiles>Ideiglenes fájlok eltávolítása</TempFiles>
+		<UninstallFiles>Fájlok és könyvtárak eltávolítása</UninstallFiles>
+		<UninstallReg>Registry beállítások eltávolítása</UninstallReg>
+		<RollingBackFiles>Fájl módosítások visszavonása</RollingBackFiles>
+		<RollingBackRegistry>Registry módosítások visszavonása</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Kattintson a Frissítés gombra.</Update>
+		<Finish>Kattintson a Befejezés gombra.</Finish>
+	</Bottoms>
+</Translation>

@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>German</LangEn>
+	<Lang>Deutsch</Lang>
+	<Culture>de-DE</Culture>
+	<Buttons>
+		<Next>Weiter</Next>
+		<Update>Aktualisieren</Update>
+		<Finish>Fertigstellen</Finish>
+		<Cancel>Abbrechen</Cancel>
+		<ShowDetails>Details anzeigen</ShowDetails>
+		<Close>Prozess beenden</Close>
+		<CloseAll>Alle Prozesse beenden</CloseAll>
+		<CancelUpdate>Aktualisierung abbrechen</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Update abbrechen?</Title>
+			<Content>Sind Sie sicher, dass Sie das Programm beenden möchten, bevor das Update vollständig durchgeführt wurde?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Beende Prozesse...</Title>
+			<Content>Die folgenden Prozesse müssen beendet werden, bevor mit der Aktualisierung fortgefahren werden kann. Wählen Sie einen Prozess aus und klicken Sie auf Prozess beenden.</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Dateien in Verwendung...</Title>
+			<Content>Die folgenden Dateien sind in Verwendung. Diese Dateien müssen geschlossen werden, bevor die Aktualisierung fortfahren kann.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate benötigt Administrationsrechte, um %product% zu aktualisieren. Sie haben zwei Möglichkeiten, dies zu erreichen:
+
+1. Wenn Sie dazu aufgefordert werden, geben Sie den Benutzernamen und das Kennwort eines Administrators ein.
+
+2. Klicken Sie im Windows Explorer mit der rechten Maustaste auf wyUpdate.exe und wählen Sie "Als Administrator ausführen"</Admin>
+		<Download>Das Update konnte nicht heruntergeladen werden.</Download>
+		<LogOff>Aktualisiere %product%. Sie müssen wyUpdate abbrechen, bevor Sie sich abmelden können.</LogOff>
+		<SelfUpdate>Die aktualisierte wyUpdate-Version, die benötigt wird, um %product% zu aktualisieren, konnte nicht installiert werden.</SelfUpdate>
+		<ServFile>Prüfen nach Updates nicht möglich, die Serverdatei konnte nicht geladen werden.</ServFile>
+		<Update>Das Update konnte nicht installiert werden.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Suche nach Updates</Title>
+			<SubTitle>wyUpdate sucht nach Updates.</SubTitle>
+			<Content>wyUpdate sucht nach Updates für %product%. Dieser Vorgang kann einige Minuten dauern.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Update-Informationen</Title>
+			<SubTitle>Änderungen in der neusten Version von %product%.</SubTitle>
+			<Content>Die Version von %product% auf diesem Computer ist %old_version%. Die neuste Version ist %new_version%. Nachfolgend aufgelistet sind die Änderungen und Verbesserungen:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Herunterladen und Installieren der Updates</Title>
+			<SubTitle>Aktualisiere %product% auf die neuste Version.</SubTitle>
+			<Content>wyUpdate lädt Updates für %product% herunter und installiert diese. Dieser Vorgang kann einige Minuten dauern.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Dateien, Verzeichnisse und Registry-Einträge werden deinstalliert</Title>
+			<SubTitle>Dateien und Registry-Einträge von %product% werden deinstalliert.</SubTitle>
+			<Content>wyUpdate deinstalliert Dateien und Registry-Einträge, die während der Aktualisierung von %product% erstellt wurden.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Update erfolgreich!</Title>
+			<Content>%product% wurde erfolgreich auf Version %new_version% aktualisiert</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Neuste Version bereits installiert</Title>
+			<Content>%product% ist auf dem neusten Stand. Denken Sie daran, regelmäßig nach neuen Updates zu suchen.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Kein Update auf die neuste Version</Title>
+			<Content>Es ist eine neue Version für %product% verfügbar (Version %new_version%), aber ein Update von Ihrer derzeit installierten Version (Version %old_version%) ist nicht möglich.</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Ein Fehler ist aufgetreten</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Update wird heruntergeladen</Download>
+		<DownloadSelfUpdate>Neuer wyUpdate-Client wird heruntergeladen</DownloadSelfUpdate>
+		<SelfUpdate>wyUpdate wird aktualisiert</SelfUpdate>
+		<Extract>Dateien werden extrahiert</Extract>
+		<Processes>Prozesse werden beendet</Processes>
+		<PreExec>Dateien werden verarbeitet</PreExec>
+		<Files>Dateien werden gesichert und aktualisiert</Files>
+		<Registry>Registry-Einträge werden gesichert und aktualisiert</Registry>
+		<Optimize>Dateien werden optimiert und ausgeführt</Optimize>
+		<TempFiles>Temporäre Dateien werden gelöscht</TempFiles>
+		<UninstallFiles>Dateien und Verzeichnisse werden deinstalliert</UninstallFiles>
+		<UninstallReg>Registry-Einträge werden deinstalliert</UninstallReg>
+		<RollingBackFiles>Dateien werden zurückgesetzt</RollingBackFiles>
+		<RollingBackRegistry>Registry-Einträge werden zurückgesetzt</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Zum Starten auf Aktualisieren klicken.</Update>
+		<Finish>Zum Beenden auf Fertigstellen klicken.</Finish>
+	</Bottoms>
+</Translation>

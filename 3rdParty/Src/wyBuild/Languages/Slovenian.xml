@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Slovenian</LangEn>
+	<Lang>slovenščina</Lang>
+	<Culture>sl-SI</Culture>
+	<Buttons>
+		<Next>Naprej</Next>
+		<Update>Posodobi</Update>
+		<Finish>Zaključi</Finish>
+		<Cancel>Prekliči</Cancel>
+		<ShowDetails>Prikaži podrobnosti</ShowDetails>
+		<Close>Zaključi proces</Close>
+		<CloseAll>Zaključi vse procese</CloseAll>
+		<CancelUpdate>Prekliči Posodobitev</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Preklic posodabljanja?</Title>
+			<Content>Ali ste prepričani, da želite zaključiti aplikacijo preden je bila posodobitev končana?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Zapiranje procesov...</Title>
+			<Content>Naslednji procesi morajo biti zaključeni preden se posodobitev nadaljuje. Izberite proces in kliknite Zaključi proces</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Datoteke v rabi...</Title>
+			<Content>Naslednje datoteke so v rabi. Datoteke morajo biti zaprte pred nadaljevanjem posodobitve.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>wyUpdate potrebuje administratorske pravice za posodobitev aplikacije %product%. To lahko storite na dva načina:
+1. Ob pozivu vnesite administratorsko uporabniško ime in geslo.
+2. V Raziskovalcu kliknite z desnim gumbom na wyUpdate.exe in izberite možnost "Zaženi kot skrbnik" ("Run as Administrator")</Admin>
+		<Download>Napaka pri prenosu posodobitve.</Download>
+		<LogOff>Posodabljanje aplikacije %product%. Preklicati morate wyUpdate preden se odjavite.</LogOff>
+		<SelfUpdate>Posodobljene verzije wyUpdate zahtevane za posodobitev aplikacije %product% ni bilo mogoče namestiti.</SelfUpdate>
+		<ServFile>Napaka pri preverjanju posodobitev, datoteke na strežniku ni bilo mogoče naložiti.</ServFile>
+		<Update>Napaka pri namestitvi posodobitve.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Iskanje posodobitev</Title>
+			<SubTitle>wyUpdate išče posodobitve</SubTitle>
+			<Content>Iskanje posodobitev za %product%. To lahko traja nekaj minut.</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Nove spremembe</Title>
+			<SubTitle>Spremembe v najnovejši verziji %product%</SubTitle>
+			<Content>Na vašem računalniku je nameščena aplikacija %product% verzije %old_version%. Najnovejša verzija je %new_version%. Spodaj je prikazan seznam sprememb in izboljšav:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Prenos in namestitev posodobitev</Title>
+			<SubTitle>Posodabljanje %product% aplikacije.</SubTitle>
+			<Content>Prenos in namestitev posodobitev za %product%. To lahko traja nekaj minut.</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Odstranjevanje datotek, map in vnosov iz registra.</Title>
+			<SubTitle>Odstranjevanje datotek, map in vnosov iz registra za aplikacijo %product%.</SubTitle>
+			<Content>wyUpdate odstranjuje datoteke in vnose iz register kreirane pri posodabljanju aplikacije %product%.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Uspešna posodobitev!</Title>
+			<Content>%product% je bil uspešno nadgrajen na verzijo %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Nameščeno imate najnovejšo verzijo</Title>
+			<Content>%product% je trenutno ažuren. Poskrbite za pogosto preverjanje novih posodobitev.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Ni posodobitev za najnovejšo verzijo</Title>
+			<Content>Na voljo je nova verzija aplikacije %product% (verzija %new_version%) vendar posodobitev ni mogoča iz vaše verzije (verzija %old_version%).</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Prišlo je do napake</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Prenos posodobitev</Download>
+		<DownloadSelfUpdate>Prenos nove verzije wyUpdate</DownloadSelfUpdate>
+		<SelfUpdate>Posodabljanje wyUpdate</SelfUpdate>
+		<Extract>Ekstrakcija datotek</Extract>
+		<Processes>Zapiranje procesov</Processes>
+		<PreExec>Zagon datotek</PreExec>
+		<Files>Varnostno kopiranje in posodabljanje datotek</Files>
+		<Registry>Varnostno kopiranje in posodabljanje registra</Registry>
+		<Optimize>Optimizacija in zagon datotek</Optimize>
+		<TempFiles>Odstranjevanje začasnih datotek</TempFiles>
+		<UninstallFiles>Odstranjevanje datotek in map</UninstallFiles>
+		<UninstallReg>Odstranjevanje iz registra</UninstallReg>
+		<RollingBackFiles>Razveljavljanje datotek</RollingBackFiles>
+		<RollingBackRegistry>Razveljavljanje registra</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Kliknite Posodobi za začetek posodabljanja</Update>
+		<Finish>Kliknite Zaključi za izhod.</Finish>
+	</Bottoms>
+</Translation>

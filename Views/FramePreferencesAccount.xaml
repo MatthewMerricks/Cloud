@@ -12,7 +12,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:common="clr-namespace:CloudApiPrivate.Common;assembly=CloudApiPrivate"
     xmlns:commonClient="clr-namespace:win_client.Common"
     xmlns:parentNS="clr-namespace:win_client.Views"
@@ -91,7 +91,12 @@
 
             <Button x:Name="cmdUnlinkThisComputer" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="White" Template="{DynamicResource WinBtnStandard}" 
                         Height="26" Background="#FF9FCBE0" Foreground="Black" BorderThickness="1" Grid.Row="1" Width="Auto"
-                        Command="{Binding FramePreferencesAccount_UnlinkThisComputerCommand, Mode=OneTime}" ToolTip="Click to remove this computer from your Cloud account." >
+                        ToolTip="Click to remove this computer from your Cloud account.">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="Click">
+                        <i:InvokeCommandAction Command="{Binding UnlinkCommand, ElementName=FramePreferencesAccountRoot}" />
+                </i:EventTrigger>
+                </i:Interaction.Triggers>
                 <AccessText Text="_Unlink this computer..." Margin="10,0,10,0"/>
             </Button>
 

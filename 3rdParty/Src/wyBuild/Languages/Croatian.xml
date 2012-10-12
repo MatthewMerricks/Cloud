@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Translation>
+	<LangEn>Croatian</LangEn>
+	<Lang>Hrvatski</Lang>
+	<Culture>hr-HR</Culture>
+	<Buttons>
+		<Next>Nastavi</Next>
+		<Update>Nadogradi</Update>
+		<Finish>Završi</Finish>
+		<Cancel>Odustani</Cancel>
+		<ShowDetails>Prikaži detalje</ShowDetails>
+		<Close>Prekini proces</Close>
+		<CloseAll>Prekini sve procese</CloseAll>
+		<CancelUpdate>Otkaži nadogradnju</CancelUpdate>
+	</Buttons>
+	<Dialogs>
+		<Cancel>
+			<Title>Otkazati nadogradnju?</Title>
+			<Content>Da lis te sigurni da želite odustati prije završetka nadogradnje?</Content>
+		</Cancel>
+		<Processes>
+			<Title>Završavanje procesa...</Title>
+			<Content>Slijedeći procesi moraju biti završeni prije nastavka nadogradnje. Odaberite proces i klinite "Prekini proces"</Content>
+		</Processes>
+		<FilesInUse>
+			<Title>Datoteke u upotrebi...</Title>
+			<SubTitle>Ove datoteke su u upotrebi od strane slijedećih procesa:</SubTitle>
+			<Content>Slijedeće datoteke su u upotrebi. Navedene datoteke moraju biti zatvorene prije nastavka nadogradnje.</Content>
+		</FilesInUse>
+	</Dialogs>
+	<Errors>
+		<Admin>Potrebne su administratorske ovlasti za nadogradnju aplikacije %product%. Moguće su dvije opcije:
+
+1. Nakon upita OS-a upišite korisničko ime i zaporku
+
+2. Pomoću Windows Explorera pokrenite datoteku wyUpdate.exe and odaberite "Run as Administrator"</Admin>
+		<Download>Greška prilikom preuzimanja nadogradnje.</Download>
+		<LogOff>Nadogradnja aplikacije %product%.</LogOff>
+		<SelfUpdate>Potrebna je nova verzija wyUpdate aplikacije za nadogradnju %product% programa. Greška prilikom instalacije.</SelfUpdate>
+		<ServFile>Nadogradnje nisu dostupne. Ne mogu pristupiti datotekama na poslužitelju.</ServFile>
+		<Update>Greška prilikom instalacije nadogradnje.</Update>
+	</Errors>
+	<Screens>
+		<Checking>
+			<Title>Traženje nadogradnje</Title>
+			<SubTitle>Traženje nadogradnje</SubTitle>
+			<Content>Traženje nadogradnje za %product%... Može potrajati nekoliko minuta... Pričekajte</Content>
+		</Checking>
+		<UpdateInfo>
+			<Title>Informacije o nadogradnji</Title>
+			<SubTitle>Promjene u zadnjoj verziji %product%.</SubTitle>
+			<Content>Verzija %product% instalirana na računalu je %old_version%. Zadnja verzija je %new_version%. Dostupne su slijedeće nadogradnje:</Content>
+		</UpdateInfo>
+		<DownInstall>
+			<Title>Preuzimanje i instalacija nadogradnji</Title>
+			<SubTitle>Nadogradnja %product% na najnoviju verziju</SubTitle>
+			<Content>Traženje nadogradnje za %product%. Može potrajati nekoliko minuta... Pričekajte</Content>
+		</DownInstall>
+		<Uninstall>
+			<Title>Uklanjanje datoteka, mapa i registry zapisa</Title>
+			<SubTitle>Uklanjanje %product% datoteka, mapa i registry zapisa</SubTitle>
+			<Content>wyUpdate uklanja datoteke i registry zapise kreirane prilikom %product% nadogradnje.</Content>
+		</Uninstall>
+		<SuccessUpdate>
+			<Title>Nadogradnja je uspješno završena!</Title>
+			<Content>%product% je uspješno adograđen na verziju %new_version%</Content>
+		</SuccessUpdate>
+		<AlreadyLatest>
+			<Title>Zadnja verzija je već instalirana</Title>
+			<Content>Na računalu je već instalirana zadnja verzija %product%. Provjeravajte nove verzije učestalo.</Content>
+		</AlreadyLatest>
+		<NoUpdateToLatest>
+			<Title>Ne postoji nova verzija aplikacije</Title>
+			<Content>Postoji novija verzija aplikacije %product% (ver. %new_version%), međutim nadogradnja nije dostupna za verziju koju imate instaliranu (ver. %old_version%).</Content>
+		</NoUpdateToLatest>
+		<UpdateError>
+			<Title>Greška prilikom izvršavanja</Title>
+		</UpdateError>
+	</Screens>
+	<Status>
+		<Download>Preuzimanje nadogradnje</Download>
+		<DownloadSelfUpdate>Preuzimanje nove verzije sustava za nadogradnju</DownloadSelfUpdate>
+		<SelfUpdate>Nadogradnja sustava za nadogradnju</SelfUpdate>
+		<Extract>Ekstrakcija datoteka</Extract>
+		<Processes>Zatvaranje procesa</Processes>
+		<PreExec>Izvršavanje datoteka</PreExec>
+		<Files>Stavaranje rezervne kopije datoteka</Files>
+		<Registry>Stavaranje rezervne kopije registrya</Registry>
+		<Optimize>Optimizacija i izvršavanje datoteka</Optimize>
+		<TempFiles>Uklanjanje privremenih datoteka</TempFiles>
+		<UninstallFiles>Uklanjanje datoteka i mapa</UninstallFiles>
+		<UninstallReg>Uklanjanje registry zapisa</UninstallReg>
+		<RollingBackFiles>Rollback datoteka</RollingBackFiles>
+		<RollingBackRegistry>Rollback registrya</RollingBackRegistry>
+	</Status>
+	<Bottoms>
+		<Update>Kliknite gumb Nadogradi za početak</Update>
+		<Finish>Kliknite Završi za kraj</Finish>
+	</Bottoms>
+</Translation>

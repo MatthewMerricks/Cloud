@@ -1,7 +1,16 @@
+<<<<<<< HEAD
 ﻿C:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\Sample Project\obj\Debug\GeneratedInternalTypeHelper.g.i.cs
 
 FC:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\Sample Project\Showcase\NotifyIconResources.xaml;;
 FC:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\Sample Project\Tutorials\02 - ToolTips\UserControlToolTipWindow.xaml;;
 FC:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\Sample Project\Tutorials\06 - Commands\CommandWindow.xaml;;
 FC:\CloudCom\windows-client.git\windows-client\3rdParty\Src\NotifyIconForWpf\Sample Project\Showcase\ShowcaseWindow.xaml;;
+=======
+﻿C:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\Sample Project\obj\Debug\GeneratedInternalTypeHelper.g.i.cs
+
+FC:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\Sample Project\Showcase\NotifyIconResources.xaml;;
+FC:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\Sample Project\Tutorials\02 - ToolTips\UserControlToolTipWindow.xaml;;
+FC:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\Sample Project\Tutorials\06 - Commands\CommandWindow.xaml;;
+FC:\Source\Projects\win-client\3rdParty\Src\NotifyIconForWpf\Sample Project\Showcase\ShowcaseWindow.xaml;;
+>>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
 

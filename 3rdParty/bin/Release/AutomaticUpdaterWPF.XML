@@ -5,9 +5,7 @@
     </assembly>
     <members>
         <member name="T:wyDay.Controls.AutomaticUpdater">
-            <summary>
-            Represents the AutomaticUpdater control.
-            </summary>
+            <summary>Represents the AutomaticUpdater control.</summary>
         </member>
         <member name="M:wyDay.Controls.AutomaticUpdater.InstallNow">
             <summary>
@@ -33,69 +31,46 @@
             <returns>Returns true if checking has begun, false otherwise.</returns>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.BeforeChecking">
-            <summary>
-            Event is raised before the update checking begins.
-            </summary>
+            <summary>Event is raised before the update checking begins.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.BeforeDownloading">
-            <summary>
-            Event is raised before the downloading of the update begins.
-            </summary>
+            <summary>Event is raised before the downloading of the update begins.</summary>
+        </member>
+        <member name="E:wyDay.Controls.AutomaticUpdater.BeforeInstalling">
+            <summary>Event is raised before the installation of the update begins.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.Cancelled">
-            <summary>
-            Event is raised when checking or updating is cancelled.
-            </summary>
+            <summary>Event is raised when checking or updating is cancelled.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.CheckingFailed">
-            <summary>
-            Event is raised when the checking for updates fails.
-            </summary>
+            <summary>Event is raised when the checking for updates fails.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.CloseAppNow">
-            <summary>
-            Event is raised after you or your user invoked InstallNow(). You should close your app as quickly as possible (because wyUpdate will be waiting).
-            </summary>
+            <summary>Event is raised after you or your user invoked InstallNow(). You should close your app as quickly as possible (because wyUpdate will be waiting).</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.ClosingAborted">
-            <summary>
-            Event is raised when an update can't be installed and the closing is aborted.
-            </summary>
+            <summary>Event is raised when an update can't be installed and the closing is aborted.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.DownloadingOrExtractingFailed">
-            <summary>
-            Event is raised when the update fails to download or extract.
-            </summary>
+            <summary>Event is raised when the update fails to download or extract.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.ProgressChanged">
-            <summary>
-            Event is raised when the current update step progress changes.
-            </summary>
+            <summary>Event is raised when the current update step progress changes.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.ReadyToBeInstalled">
-            <summary>
-            Event is raised when the update is ready to be installed.
-            </summary>
+            <summary>Event is raised when the update is ready to be installed.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.UpdateAvailable">
-            <summary>
-            Event is raised when a new update is found.
-            </summary>
+            <summary>Event is raised when a new update is found.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.UpdateFailed">
-            <summary>
-            Event is raised when an update fails to install.
-            </summary>
+            <summary>Event is raised when an update fails to install.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.UpdateSuccessful">
-            <summary>
-            Event is raised when an update installs successfully.
-            </summary>
+            <summary>Event is raised when an update installs successfully.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdater.UpToDate">
-            <summary>
-            Event is raised when the latest version is already installed.
-            </summary>
+            <summary>Event is raised when the latest version is already installed.</summary>
         </member>
         <member name="P:wyDay.Controls.AutomaticUpdater.Animate">
             <summary>
@@ -174,9 +149,9 @@
             Gets or sets the arguments to pass to wyUpdate when it is started to check for updates.
             </summary>
         </member>
-        <member name="P:wyDay.Controls.AutomaticUpdater.CloudUpdaterLocation">
+        <member name="P:wyDay.Controls.AutomaticUpdater.wyUpdateLocation">
             <summary>
-            Gets or sets the relative path to the wyUpdate (e.g. wyUpdate.exe  or  SubDir\\wyUpdate.exe)
+            Gets or sets the relative path to the wyUpdate (e.g. CloudUpdater.exe  or  SubDir\\CloudUpdater.exe)
             </summary>
         </member>
         <member name="P:wyDay.Controls.AutomaticUpdater.Foreground">
@@ -185,30 +160,22 @@
             </summary>
         </member>
         <member name="T:wyDay.Controls.UpdateProgressChanged">
-            <summary>
-            Reports the progress in the current update step.
-            </summary>
+            <summary>Reports the progress in the current update step.</summary>
             <param name="sender">Sender</param>
             <param name="progress">Progress</param>
         </member>
         <member name="T:wyDay.Controls.BeforeHandler">
-            <summary>
-            Represents the method that will handle an event that is cancelable.
-            </summary>
+            <summary>Represents the method that will handle an event that is cancelable.</summary>
             <param name="sender">The source of the event.</param>
             <param name="e">A BeforeArgs that allows you to canel the step.</param>
         </member>
         <member name="T:wyDay.Controls.FailHandler">
-            <summary>
-            Represents the method that will handle a failure event.
-            </summary>
+            <summary>Represents the method that will handle a failure event.</summary>
             <param name="sender">The source of the event.</param>
             <param name="e">A FailArgs that contains the failure info.</param>
         </member>
         <member name="T:wyDay.Controls.SuccessHandler">
-            <summary>
-            Represents the method that will handle a success event.
-            </summary>
+            <summary>Represents the method that will handle a success event.</summary>
             <param name="sender">The source of the event.</param>
             <param name="e">A SuccessArgs that contains the success info.</param>
         </member>
@@ -237,7 +204,7 @@
             A more detailed description of the error.
             </summary>
         </member>
-        <member name="P:wyDay.Controls.FailArgs.CloudUpdaterPrematureExit">
+        <member name="P:wyDay.Controls.FailArgs.wyUpdatePrematureExit">
             <summary>
             wyUpdate closed before it should've.
             </summary>
@@ -319,84 +286,55 @@
             </summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.BeforeChecking">
-            <summary>
-            Event is raised before the update checking begins.
-            </summary>
+            <summary>Event is raised before the update checking begins.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.BeforeDownloading">
-            <summary>
-            Event is raised before the downloading of the update begins.
-            </summary>
+            <summary>Event is raised before the downloading of the update begins.</summary>
+        </member>
+        <member name="E:wyDay.Controls.AutomaticUpdaterBackend.BeforeInstalling">
+            <summary>Event is raised before the installation of the update begins.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.BeforeExtracting">
-            <summary>
-            Event is raised before the extracting of the update begins.
-            </summary>
+            <summary>Event is raised before the extracting of the update begins.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.Cancelled">
-            <summary>
-            Event is raised when checking or updating is cancelled.
-            </summary>
+            <summary>Event is raised when checking or updating is cancelled.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.CheckingFailed">
-            <summary>
-            Event is raised when the checking for updates fails.
-            </summary>
+            <summary>Event is raised when the checking for updates fails.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.CloseAppNow">
-            <summary>
-            Event is raised after you or your user invoked InstallNow(). You should close your app as quickly as possible (because wyUpdate will be waiting).
-            </summary>
+            <summary>Event is raised after you or your user invoked InstallNow(). You should close your app as quickly as possible (because wyUpdate will be waiting).</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.ClosingAborted">
-            <summary>
-            Event is raised when an update can't be installed and the closing is aborted.
-            </summary>
+            <summary>Event is raised when an update can't be installed and the closing is aborted.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.DownloadingFailed">
-            <summary>
-            Event is raised when the update fails to download.
-            </summary>
+            <summary>Event is raised when the update fails to download.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.ExtractingFailed">
-            <summary>
-            Event is raised when the update fails to extract.
-            </summary>
+            <summary>Event is raised when the update fails to extract.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.ProgressChanged">
-            <summary>
-            Event is raised when the current update step progress changes.
-            </summary>
+            <summary>Event is raised when the current update step progress changes.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.ReadyToBeInstalled">
-            <summary>
-            Event is raised when the update is ready to be installed.
-            </summary>
+            <summary>Event is raised when the update is ready to be installed.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.UpdateAvailable">
-            <summary>
-            Event is raised when a new update is found.
-            </summary>
+            <summary>Event is raised when a new update is found.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.UpdateFailed">
-            <summary>
-            Event is raised when an update fails to install.
-            </summary>
+            <summary>Event is raised when an update fails to install.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.UpdateSuccessful">
-            <summary>
-            Event is raised when an update installs successfully.
-            </summary>
+            <summary>Event is raised when an update installs successfully.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.UpToDate">
-            <summary>
-            Event is raised when the latest version is already installed.
-            </summary>
+            <summary>Event is raised when the latest version is already installed.</summary>
         </member>
         <member name="E:wyDay.Controls.AutomaticUpdaterBackend.UpdateStepMismatch">
-            <summary>
-            Event is raised when the update step that is supposed to be processed isn't the step that's processed.
-            </summary>
+            <summary>Event is raised when the update step that is supposed to be processed isn't the step that's processed.</summary>
         </member>
         <member name="P:wyDay.Controls.AutomaticUpdaterBackend.Arguments">
             <summary>
@@ -449,14 +387,14 @@
             Gets the version of the new update.
             </summary>
         </member>
-        <member name="P:wyDay.Controls.AutomaticUpdaterBackend.CloudUpdaterCommandline">
+        <member name="P:wyDay.Controls.AutomaticUpdaterBackend.wyUpdateCommandline">
             <summary>
             Gets or sets the arguments to pass to wyUpdate when it is started to check for updates.
             </summary>
         </member>
-        <member name="P:wyDay.Controls.AutomaticUpdaterBackend.CloudUpdaterLocation">
+        <member name="P:wyDay.Controls.AutomaticUpdaterBackend.wyUpdateLocation">
             <summary>
-            Gets or sets the relative path to the wyUpdate (e.g. wyUpdate.exe  or  SubDir\\wyUpdate.exe)
+            Gets or sets the relative path to the wyUpdate (e.g. CloudUpdater.exe  or  SubDir\\CloudUpdater.exe)
             </summary>
         </member>
         <member name="P:wyDay.Controls.AutomaticUpdaterBackend.ServiceName">

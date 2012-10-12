@@ -35,6 +35,8 @@ using System.Windows.Input;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
 using CleanShutdown.Helpers;
+using CloudApiPrivate.Common;
+using System.Diagnostics;
 
 namespace win_client.ViewModels
 {
@@ -53,15 +55,15 @@ namespace win_client.ViewModels
         #region Private Instance Variables
 
         private readonly IDataService _dataService;
-        private CLTrace _trace = CLTrace.Instance;
         private IModalWindow _dialog = null;        // for use with modal dialogs
+        private CLTrace _trace = CLTrace.Instance;
 
         #endregion
 
         #region Life Cycle
 
         /// <summary>
-        /// Initializes a new instance of the PageHomeViewModel class.
+        /// Initializes a new instance of the FramePreferencesAccountViewModel class.
         /// </summary>
         public FramePreferencesAccountViewModel(IDataService dataService)
         {
@@ -115,61 +117,6 @@ namespace win_client.ViewModels
         #endregion
       
         #region Relay Commands
-
-        /// <summary>
-        /// Gets the FramePreferencesAccount_UnlinkThisComputerCommand.
-        /// </summary>
-        private ICommand _framePreferencesAccount_UnlinkThisComputerCommand;
-        public ICommand FramePreferencesAccount_UnlinkThisComputerCommand
-        {
-            get
-            {
-                return _framePreferencesAccount_UnlinkThisComputerCommand
-                    ?? (_framePreferencesAccount_UnlinkThisComputerCommand = new RelayCommand(
-                                            () =>
-                                            {
-                                                // Ask the user if it is OK to Unlink, then do it or not.
-                                                CLModalMessageBoxDialogs.Instance.DisplayModalMessageBox(
-                                                    windowHeight: 250,
-                                                    leftButtonWidth: 75,
-                                                    rightButtonWidth: 75,
-                                                    title: Resources.Resources.FramePreferencesAccount_RemoveThisDevice,
-                                                    headerText: Resources.Resources.FramePreferencesAccount_UnlinkThisDevice,
-                                                    bodyText: Resources.Resources.FramePreferencesAccount_UnlinkThisDeviceBody,
-                                                    leftButtonContent: Resources.Resources.GeneralYesButtonContent,
-                                                    leftButtonIsDefault: false,
-                                                    leftButtonIsCancel: false,
-                                                    rightButtonContent: Resources.Resources.GeneralNoButtonContent,
-                                                    rightButtonIsDefault: true,
-                                                    rightButtonIsCancel: false,
-                                                    container: ViewGridContainer,
-                                                    dialog: out _dialog,
-                                                    actionResultHandler: 
-                                                        returnedViewModelInstance =>
-                                                        {
-                                                            // Do nothing here when the user clicks the OK button.
-                                                            _trace.writeToLog(9, "FramePreferencesAccount: Unlink device: Entry.");
-                                                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
-                                                            {
-                                                                // The user said yes.  Unlink this device.
-                                                                _trace.writeToLog(9, "FramePreferencesAccount: Unlink device: User said yes.");
-                                                                CLError error = null;
-                                                                CLAppDelegate.Instance.UnlinkFromCloudDotComSync(out error);
-                                                                //TODO: Handle any errors here.
-
-                                                                // Restart ourselves now
-                                                                System.Windows.Forms.Application.Restart();
-                                                                CLAppDelegate.Instance.ExitApplication();
-                                                            }
-                                                            else
-                                                            {
-                                                                // The user said no.  Do nothing.
-                                                            }
-                                                        }
-                                                );
-                                          }));
-            }
-        }
 
         /// <summary>
         /// Gets the FramePreferencesAccount_UnlinkThisComputerCommand.

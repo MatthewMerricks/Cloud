@@ -378,6 +378,10 @@ namespace win_client.Services.Notification
             lock (this)
             {
                 faultCount++;
+                if (faultCount >= CLDefinitions.PushNotificationFaultLimitBeforeFallback)
+                {
+                    doNotRestart = true;
+                }
 
                 if (urlReceiver != null)
                 {
@@ -494,7 +498,7 @@ namespace win_client.Services.Notification
                 }
                 catch (Exception ex)
                 {
-                    _trace.writeToLog(1, String.Format("CLNotificationService: OnConnectionReceived: ERROR: Exception.  Msg: <{0}>.", ex.Message));
+                    _trace.writeToLog(1, "CLNotificationService: OnConnectionReceived: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 }
             }
         }
@@ -515,21 +519,27 @@ namespace win_client.Services.Notification
             // [self stopPoolingServices];
 
             // NSLog(@"%s - Connection to Push Notification Services Ended.", __FUNCTION__);
-            _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: Entry.");
-            if (_serviceStarted)
+            try
             {
-                if (pushConnected)
+                if (_serviceStarted)
                 {
-                    if (_connection != null)
+                    if (pushConnected)
                     {
-                        CleanWebSocketAndRestart(_connection, true);
-                        _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: Cleaned WebSocket.");
+                        if (_connection != null)
+                        {
+                            CleanWebSocketAndRestart(_connection, true);
+                            _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: Cleaned WebSocket.");
+                        }
+                    }
+                    else
+                    {
+                        _serviceStarted = false;
                     }
                 }
-                else
-                {
-                    _serviceStarted = false;
-                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
     }

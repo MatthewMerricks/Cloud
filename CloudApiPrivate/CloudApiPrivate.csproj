@@ -64,6 +64,7 @@
     <Compile Include="CLPrivateRestClient.cs" />
     <Compile Include="Common\CLCopyFiles.cs" />
     <Compile Include="Common\CLDeepCompare.cs" />
+    <Compile Include="Common\CLScrollHelper.cs" />
     <Compile Include="Common\CLSecurePasswordBox.cs" />
     <Compile Include="Common\CLFileShortcuts.cs" />
     <Compile Include="Common\CLSecureString.cs" />
@@ -83,6 +84,7 @@
     <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadingMessage.cs" />
     <Compile Include="Model\CLPrivateDefinitions.cs" />
     <Compile Include="Model\CLRegistration.cs" />
+    <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Model\Settings\CLSettings.cs" />
     <Compile Include="Model\Settings\WpfIsolatedStorageSettings.cs" />

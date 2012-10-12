@@ -66,7 +66,7 @@ namespace win_client.Views
 
         // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
         // The big long member expression tree results in an automatically generated string "Preferences".  Better than hardcoding the string.
-        private static readonly string PreferencesPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name;
+        private static readonly string PreferencesPropertyName = ((MemberExpression)((Expression<Func<FramePreferencesNetwork, CLPreferences>>)(parent => parent.Preferences)).Body).Member.Name;
         public static readonly DependencyProperty PreferencesProperty =
             DependencyProperty.Register(PreferencesPropertyName, typeof(CLPreferences), typeof(FramePreferencesNetwork), new PropertyMetadata(null, OnPreferencesChanged));
         private static void OnPreferencesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { }
@@ -80,7 +80,7 @@ namespace win_client.Views
 
         // Using a DependencyProperty as the backing store for Preferences.  This enables animation, styling, binding, etc...
         // The big long member expression tree results in an automatically generated string "Preferences".
-        private static readonly string PageGridPropertyName = ((MemberExpression)((Expression<Func<PagePreferences, Grid>>)(parent => parent.PageGrid)).Body).Member.Name;
+        private static readonly string PageGridPropertyName = ((MemberExpression)((Expression<Func<FramePreferencesNetwork, Grid>>)(parent => parent.PageGrid)).Body).Member.Name;
         public static readonly DependencyProperty PageGridProperty =
             DependencyProperty.Register(PageGridPropertyName, typeof(Grid), typeof(FramePreferencesNetwork), new PropertyMetadata(null, OnPageGridChanged));
         private static void OnPageGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { }

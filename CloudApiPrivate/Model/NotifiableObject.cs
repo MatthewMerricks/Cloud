@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿//
 //  NotifiableObject.cs
 //  Cloud Windows
@@ -45,4 +46,53 @@ namespace CloudApiPrivate.Model
         }
         #endregion
     }
+=======
+﻿//
+//  NotifiableObject.cs
+//  Cloud Windows
+//
+//  Created by DavidBruck
+//  Copyright (c) Cloud.com. All rights reserved.
+//
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+
+namespace CloudApiPrivate.Model
+{
+    public abstract class NotifiableObject<T> : INotifyPropertyChanged where T : NotifiableObject<T>
+    {
+        #region INotifyPropertyChanged member
+        public event PropertyChangedEventHandler PropertyChanged;
+        #endregion
+
+        #region private methods
+        protected void NotifyPropertyChanged(Expression<Func<T, object>> notifyExpression)
+        {
+            if (PropertyChanged != null
+                && notifyExpression != null)
+            {
+                MemberExpression notifyMember = notifyExpression.Body as MemberExpression;
+                if (notifyMember == null)
+                {
+                    UnaryExpression notifyConvert = notifyExpression.Body as UnaryExpression;
+                    if (notifyConvert != null)
+                    {
+                        notifyMember = notifyConvert.Operand as MemberExpression;
+                    }
+                }
+
+                if (notifyMember != null)
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs(notifyMember.Member.Name));
+                }
+            }
+        }
+        #endregion
+    }
+>>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
 }

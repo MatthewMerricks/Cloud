@@ -56,8 +56,10 @@ namespace win_client.Common
                 placement.length = Marshal.SizeOf(typeof(WINDOWPLACEMENT));
                 placement.flags = 0;
                 placement.showCmd = (placement.showCmd == SW_SHOWMINIMIZED ? SW_SHOWNORMAL : placement.showCmd);
+                _trace.writeToLog(9, "CLWindowPlacement: ExtractWindowPlacementInfo: Coords: {0},{1},{2},{3}(LTRB).", placement.normalPosition.left, placement.normalPosition.top, placement.normalPosition.right, placement.normalPosition.bottom);
+                _trace.writeToLog(9, "CLWindowPlacement: ExtractWindowPlacementInfo: Length: {0}. flags: {2}. showCmd: {3}.", placement.length, placement.flags, placement.showCmd);
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
                 // Parsing placement XML failed. Fail silently.
                 CLError error = ex;
@@ -85,29 +87,41 @@ namespace win_client.Common
 
             try
             {
+                // Set the window placement
+                _trace.writeToLog(9, "CLWindowPlacement: SetPlacement: Coords: {0},{1},{2},{3}(LTRB).", placement.normalPosition.left, placement.normalPosition.top, placement.normalPosition.right, placement.normalPosition.bottom);
+                _trace.writeToLog(9, "CLWindowPlacement: SetPlacement: Length: {0}. flags: {2}. showCmd: {3}.", placement.length, placement.flags, placement.showCmd);
                 NativeMethods.SetWindowPlacement(windowHandle, ref placement);
             }
-            catch (InvalidOperationException)
+            catch (Exception ex)
             {
                 // Parsing placement XML failed. Fail silently.
-                CLError error = null;
+                CLError error = ex;
                 _trace.writeToLog(1, "CLWindowPlacement: SetPlacement: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
 
         public static string GetPlacement(IntPtr windowHandle)
         {
-            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
-            NativeMethods.GetWindowPlacement(windowHandle, out placement);
-
-            using (MemoryStream memoryStream = new MemoryStream())
+            try
             {
-                using (XmlTextWriter xmlTextWriter = new XmlTextWriter(memoryStream, Encoding.UTF8))
+                WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
+                NativeMethods.GetWindowPlacement(windowHandle, out placement);
+
+                using (MemoryStream memoryStream = new MemoryStream())
                 {
-                    serializer.Serialize(xmlTextWriter, placement);
-                    byte[] xmlBytes = memoryStream.ToArray();
-                    return encoding.GetString(xmlBytes);
+                    using (XmlTextWriter xmlTextWriter = new XmlTextWriter(memoryStream, Encoding.UTF8))
+                    {
+                        serializer.Serialize(xmlTextWriter, placement);
+                        byte[] xmlBytes = memoryStream.ToArray();
+                        return encoding.GetString(xmlBytes);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                _trace.writeToLog(1, "CLWindowPlacement: GetPlacement: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
+                return String.Empty;
             }
         }
 
@@ -124,7 +138,9 @@ namespace win_client.Common
         /// <param name="placementXml">The serialized string containing the settings.</param>
         public static void SetPlacement(this Window window, string placementXml)
         {
-            WindowPlacement.SetPlacement(new WindowInteropHelper(window).Handle, placementXml);
+            WindowInteropHelper myWindow = new WindowInteropHelper(window);
+            myWindow.EnsureHandle();
+            WindowPlacement.SetPlacement(myWindow.Handle, placementXml);
         }
 
         /// <summary>
