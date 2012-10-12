@@ -927,8 +927,9 @@ namespace BadgeNET
                 // Get the hierarchy of children of this node.
                 _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the hierarchy for path: {0}.", objFilePath.ToString());
                 FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
-                CLError error = AllBadges.GrabHierarchyForPath(objFilePath, out tree);
-                if (error == null)
+                CLError error = AllBadges.GrabHierarchyForPath(objFilePath, out tree, suppressException: true);
+                if (error == null
+                    && tree != null)
                 {
                     _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal.");
                     // Chase the children hierarchy using recursive postorder traversal to determine the desired badge type.

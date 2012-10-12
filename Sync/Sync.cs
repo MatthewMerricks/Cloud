@@ -23,6 +23,7 @@ using BadgeNET;
 using System.Threading;
 using System.Security.Cryptography;
 using Sync.Static;
+using CloudApiPrivate.EventMessageReceiver;
 
 namespace Sync
 {
@@ -495,7 +496,8 @@ namespace Sync
                         if (topLevelChange.Key.EventId > 0
                             && !preprocessedEventIds.Contains(topLevelChange.Key.EventId)
                             && (topLevelChange.Key.Direction == SyncDirection.From
-                                || (topLevelChange.Key.Metadata != null
+                                || ((topLevelChange.Key.Type == FileChangeType.Created || topLevelChange.Key.Type == FileChangeType.Modified)
+                                    && topLevelChange.Key.Metadata != null
                                     && !string.IsNullOrWhiteSpace(topLevelChange.Key.Metadata.StorageKey))))
                         {
                             preprocessedEvents.Add(topLevelChange);
@@ -997,6 +999,64 @@ namespace Sync
                     {
                         try
                         {
+                            switch (asyncTask.Value.Key)
+                            {
+                                case SyncDirection.From:
+                                // direction for downloads
+                                    asyncTask.Value.Value.ContinueWith(eventCompletion =>
+                                        {
+                                            if (!eventCompletion.IsFaulted)
+                                            {
+                                                EventMessageReceiver.IncrementDownloadedCount();
+                                            }
+                                        });
+                                    break;
+
+                                case SyncDirection.To:
+                                // direction for uploads
+                                    asyncTask.Value.Value.ContinueWith(eventCompletion =>
+                                        {
+                                            if (!eventCompletion.IsFaulted)
+                                            {
+                                                EventMessageReceiver.IncrementUploadedCount();
+                                            }
+                                        });
+                                    break;
+
+                                default:
+                                    // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                                    throw new NotSupportedException("Unknown SyncDirection: " + asyncTask.Value.ToString());
+                            }
+
+                            switch (asyncTask.Value.Key)
+                            {
+                                case SyncDirection.From:
+                                // direction for downloads
+                                    asyncTask.Value.Value.ContinueWith(eventCompletion =>
+                                    {
+                                        if (!eventCompletion.IsFaulted)
+                                        {
+                                            EventMessageReceiver.IncrementDownloadedCount();
+                                        }
+                                    });
+                                    break;
+
+                                case SyncDirection.To:
+                                // direction for uploads
+                                    asyncTask.Value.Value.ContinueWith(eventCompletion =>
+                                    {
+                                        if (!eventCompletion.IsFaulted)
+                                        {
+                                            EventMessageReceiver.IncrementUploadedCount();
+                                        }
+                                    });
+                                    break;
+
+                                default:
+                                    // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                                    throw new NotSupportedException("Unknown SyncDirection: " + asyncTask.Value.ToString());
+                            }
+
                             asyncTask.Value.Value.ContinueWith(eventCompletion =>
                             {
                                 if (!eventCompletion.IsFaulted)
@@ -1601,6 +1661,15 @@ namespace Sync
                                                     throw new NullReferenceException("exceptionState's ProcessingQueuesTimer cannot be null");
                                                 }
 
+                                                string growlErrorMessage = "An error occurred downloading " +
+                                                    exceptionState.Key.Key.NewPath.ToString() + ": " +
+
+                                                    ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message))
+                                                        ? ((exceptions.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.Message))
+                                                            ? exceptions.Message
+                                                            : exceptions.InnerException.Message)
+                                                        : exceptions.InnerException.InnerException.Message);
+
                                                 if (ContinueToRetry(exceptionState.Key.Value, exceptionState.Key.Key, false))
                                                 {
                                                     lock (exceptionState.Value.Value.TimerRunningLocker)
@@ -1609,6 +1678,8 @@ namespace Sync
 
                                                         exceptionState.Value.Value.StartTimerIfNotRunning();
                                                     }
+
+                                                    growlErrorMessage += "; Retrying";
                                                 }
                                                 // If failed out and no more retries, delete any temp download
                                                 else
@@ -1643,6 +1714,8 @@ namespace Sync
                                                     {
                                                     }
                                                 }
+
+                                                EventMessageReceiver.DisplayErrorGrowl(growlErrorMessage);
                                             }
                                             catch (Exception innerEx)
                                             {
@@ -1651,7 +1724,7 @@ namespace Sync
                                         },
                                             new KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<KeyValuePair<string, Nullable<Guid>>, ProcessingQueuesTimer>>(new KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>(storeFileChange,
                                                     stateMergeToSql),
-                                                new KeyValuePair<KeyValuePair<string,Guid?>,ProcessingQueuesTimer>(new KeyValuePair<string,Guid?>(tempFolderString, newTempFile),
+                                                new KeyValuePair<KeyValuePair<string, Nullable<Guid>>,ProcessingQueuesTimer>(new KeyValuePair<string, Nullable<Guid>>(tempFolderString, newTempFile),
                                                     storeFailureTimer)),
                                             "Error in download Task, see inner exception",
                                             ex);
@@ -1995,6 +2068,15 @@ namespace Sync
                                             throw new NullReferenceException("exceptionState's ProcessingQueuesTimer cannot be null");
                                         }
 
+                                        string growlErrorMessage = "An error occurred uploading " +
+                                            exceptionState.Key.Key.NewPath.ToString() + ": " +
+
+                                            ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message))
+                                                ? ((exceptions.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.Message))
+                                                    ? exceptions.Message
+                                                    : exceptions.InnerException.Message)
+                                                : exceptions.InnerException.InnerException.Message);
+
                                         if (ContinueToRetry(exceptionState.Key.Value, exceptionState.Key.Key, false))
                                         {
                                             lock (exceptionState.Value.Key.TimerRunningLocker)
@@ -2003,7 +2085,11 @@ namespace Sync
 
                                                 exceptionState.Value.Key.StartTimerIfNotRunning();
                                             }
+
+                                            growlErrorMessage += "; Retrying";
                                         }
+
+                                        EventMessageReceiver.DisplayErrorGrowl(growlErrorMessage);
                                     }
                                     catch (Exception innerEx)
                                     {

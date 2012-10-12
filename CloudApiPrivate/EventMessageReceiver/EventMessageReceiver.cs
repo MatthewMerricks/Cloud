@@ -22,7 +22,7 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPrivate.EventMessageReceiver
 {
-    public sealed class EventMessageReceiver : NotifiableObject<EventMessageReceiver>
+    public sealed class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IDisposable
     {
         private const int MessageTimerDelayMilliseconds = 250;
         private const int GrowlProcessMouseCheckerMilliseconds = 250;
@@ -138,6 +138,16 @@ namespace CloudApiPrivate.EventMessageReceiver
         }
         private ICommand _clickedGrowlCommand = null;
 
+        public ICommand ClosedGrowlCommand
+        {
+            get
+            {
+                return (_closedGrowlCommand = _closedGrowlCommand
+                    ?? new RelayCommand<object>(ClosedGrowl));
+            }
+        }
+        private ICommand _closedGrowlCommand = null;
+
         public ICommand MouseEnteredGrowlCommand
         {
             get
@@ -147,8 +157,6 @@ namespace CloudApiPrivate.EventMessageReceiver
             }
         }
         private ICommand _mouseEnteredGrowlCommand = null;
-
-        public int testValue { get; set; }
         #endregion
 
         #region private fields
@@ -165,6 +173,9 @@ namespace CloudApiPrivate.EventMessageReceiver
         private readonly GenericHolder<bool> growlCapturedMouse = new GenericHolder<bool>(false);
         private bool keepGrowlOpaque = false;
         #endregion
+
+        private bool isDisposed = false;
+
         #endregion
 
         private EventMessageReceiver() { }
@@ -295,10 +306,60 @@ namespace CloudApiPrivate.EventMessageReceiver
         }
         #endregion
 
+        #region IDisposable members
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        ~EventMessageReceiver()
+        {
+            Dispose(false);
+        }
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+
         #region private methods
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        private void Dispose(bool disposing)
+        {
+            // lock on instance locker for changing EventMessageReceiver so it cannot be stopped/started simultaneously
+            lock (InstanceLocker)
+            {
+                if (!isDisposed)
+                {
+                    // set delay completed so processing will not fire
+                    isDisposed = true;
+
+                    // Dispose local unmanaged resources last
+                }
+            }
+        }
+
         private void ClickedGrowl(object state)
         {
-            MessageBox.Show("ClickedGrowl");
+            ClosedGrowl(state);
+
+            MessageBox.Show("Need to open status window here");
+        }
+
+        private void ClosedGrowl(object state)
+        {
+            lock (GrowlMessages)
+            lock (growlCapturedMouse)
+            {
+                GrowlVisible = false;
+                DateTime closeTime = DateTime.UtcNow;
+
+                foreach (EventMessage currentGrowl in GrowlMessages)
+                {
+                    currentGrowl.CompleteFadeOut = currentGrowl.StartFadeOut = currentGrowl.FadeInCompletion = closeTime;
+                }
+
+                keepGrowlOpaque = false;
+                growlCapturedMouse.Value = false;
+            }
         }
 
         #region detecting when mouse is over the growl
@@ -377,8 +438,26 @@ namespace CloudApiPrivate.EventMessageReceiver
             }
             else
             {
+                EventMessageReceiver thisReceiver = Instance;
+
                 while (true)
                 {
+                    lock (thisReceiver)
+                    {
+                        if (thisReceiver.isDisposed)
+                        {
+                            return;
+                        }
+                    }
+
+                    lock (thisReceiver.growlCapturedMouse)
+                    {
+                        if (!thisReceiver.growlCapturedMouse.Value)
+                        {
+                            return;
+                        }
+                    }
+
                     GenericHolder<bool> stopProcessing = new GenericHolder<bool>(false);
 
                     lock (stopProcessing)
@@ -392,7 +471,6 @@ namespace CloudApiPrivate.EventMessageReceiver
                                 }
                                 else
                                 {
-                                    EventMessageReceiver thisReceiver = Instance;
 
                                     lock (thisReceiver.growlCapturedMouse)
                                     {
@@ -497,6 +575,14 @@ namespace CloudApiPrivate.EventMessageReceiver
             }
             else
             {
+                lock (this)
+                {
+                    if (isDisposed)
+                    {
+                        return;
+                    }
+                }
+
                 lock (GrowlMessages)
                 {
                     GrowlMessages.LockCollectionChanged();
@@ -682,6 +768,14 @@ namespace CloudApiPrivate.EventMessageReceiver
             }
             else
             {
+                lock (this)
+                {
+                    if (isDisposed)
+                    {
+                        return;
+                    }
+                }
+
                 EventMessage[] toRemoveArray;
                 if (toRemove != null
                     && (toRemoveArray = toRemove.ToArray()).Length > 0)
@@ -729,6 +823,14 @@ namespace CloudApiPrivate.EventMessageReceiver
 
                 while (foundMessage)
                 {
+                    lock (currentReceiver)
+                    {
+                        if (currentReceiver.isDisposed)
+                        {
+                            return;
+                        }
+                    }
+
                     bool skipCalculate;
                     lock (currentReceiver.growlCapturedMouse)
                     {

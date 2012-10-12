@@ -180,16 +180,19 @@
     <Compile Include="CleanShutdown\ShutdownService.cs" />
     <Compile Include="Common\CLWindowPlacement.cs" />
     <Compile Include="Common\ComparisonBinding.cs" />
+    <Compile Include="Common\HandlingEventTrigger.cs" />
     <Compile Include="Converters\DebugConverter.cs" />
     <Compile Include="Converters\DoubleSecondsToDurationConverter.cs" />
     <Compile Include="Converters\IconPathToImageSourceConverter.cs" />
-    <Compile Include="DebugMessageDisplay\DebugMessageDisplay.xaml.cs">
-      <DependentUpon>DebugMessageDisplay.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DebugMessageDisplay\DebugMessageDisplayBase.cs" />
-    <Compile Include="DebugMessageDisplay\MessageIconTemplateSelector.cs" />
+    <Compile Include="Growl\GrowlScrollContentPresenterMouseLeftDownBehavior.cs" />
+    <Compile Include="Growl\MessageIconTemplateSelector.cs" />
     <Compile Include="DragDropServer\DragDropInterface.cs" />
     <Compile Include="DragDropServer\DragDropServer.cs" />
+    <Compile Include="Growl\Growl.xaml.cs">
+      <DependentUpon>Growl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Growl\GrowlBase.cs" />
+    <Compile Include="Growl\GrowlScrollViewer.cs" />
     <Compile Include="Model\CLPreferences.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
@@ -350,13 +353,13 @@
     <Compile Include="Views\PageTour5.xaml.cs">
       <DependentUpon>PageTour5.xaml</DependentUpon>
     </Compile>
-    <Page Include="DebugMessageDisplay\DebugMessageDisplay.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="Growl\MessageThemes.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
-    <Page Include="DebugMessageDisplay\MessageThemes.xaml">
-      <Generator>MSBuild:Compile</Generator>
+    <Page Include="Growl\Growl.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="NavigationWindow.xaml">
       <SubType>Designer</SubType>

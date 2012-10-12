@@ -1,0 +1,177 @@
+﻿<!--
+//
+//  Growl.xaml
+//  Cloud Windows
+//
+//  Created by DavidBruck
+//  Copyright (c) Cloud.com. All rights reserved.
+//
+    -->
+<growl:GrowlBase x:Class="win_client.Growl.Growl"
+                 xmlns:growl="clr-namespace:win_client.Growl"
+                 xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:receiver="clr-namespace:CloudApiPrivate.EventMessageReceiver;assembly=CloudApiPrivate"
+                 xmlns:common="clr-namespace:win_client.Common"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 mc:Ignorable="d"
+                 Opacity="0"
+                 x:Name="thisGrowl"
+                 MinHeight="100"
+                 Width="220"
+                 d:DesignHeight="300" d:DesignWidth="300">
+    <growl:GrowlBase.Triggers>
+        <EventTrigger RoutedEvent="growl:GrowlBase.TurnOpaqueChanged">
+            <EventTrigger.Actions>
+                <BeginStoryboard Name="TurnOpaqueStoryboard">
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                         To="1"
+                                         Duration="{Binding EventMessageReceiver.SecondsTillFadeIn, Source={StaticResource Locator}, Converter={StaticResource DoubleSecondsToDurationConverter}}" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger.Actions>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="growl:GrowlBase.StopTurningOpaqueChanged">
+            <EventTrigger.Actions>
+                <RemoveStoryboard BeginStoryboardName="TurnOpaqueStoryboard" />
+            </EventTrigger.Actions>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="growl:GrowlBase.StayOpaqueChanged">
+            <EventTrigger.Actions>
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                         To="1"
+                                         Duration="0:0:0" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger.Actions>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="growl:GrowlBase.TurnTranslucentChanged">
+            <EventTrigger.Actions>
+                <BeginStoryboard Name="TurnTranslucentStoryboard">
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                         To="0"
+                                         Duration="{Binding EventMessageReceiver.SeondsTillFadeIn, Source={StaticResource Locator}, Converter={StaticResource DoubleSecondsToDurationConverter}}" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger.Actions>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="growl:GrowlBase.StopTurningTranslucentChanged">
+            <EventTrigger.Actions>
+                <RemoveStoryboard BeginStoryboardName="TurnTranslucentStoryboard" />
+            </EventTrigger.Actions>
+        </EventTrigger>
+    </growl:GrowlBase.Triggers>
+    <growl:GrowlBase.TurnOpaqueBinding>
+        <receiver:BindingAndTriggerValue>
+            <receiver:BindingAndTriggerValue.Binding>
+                <common:ComparisonBinding NonRelativeSource="{StaticResource Locator}"
+                                          Path="EventMessageReceiver.SecondsTillFadeIn"
+                                          Operator="GT"
+                                          Comparand="0" />
+            </receiver:BindingAndTriggerValue.Binding>
+        </receiver:BindingAndTriggerValue>
+    </growl:GrowlBase.TurnOpaqueBinding>
+    <growl:GrowlBase.StopTurningOpaqueBinding>
+        <receiver:BindingAndTriggerValue Binding="{Binding EventMessageReceiver.SecondsTillFadeIn, Source={StaticResource Locator}}" Value="{StaticResource ZeroDouble}" />
+    </growl:GrowlBase.StopTurningOpaqueBinding>
+    <growl:GrowlBase.StayOpaqueBinding>
+        <receiver:BindingAndTriggerValue>
+            <receiver:BindingAndTriggerValue.Binding>
+                <common:ComparisonBinding NonRelativeSource="{StaticResource Locator}"
+                                          Path="EventMessageReceiver.SecondsTillStartFadeOut"
+                                          Operator="GT"
+                                          Comparand="0" />
+            </receiver:BindingAndTriggerValue.Binding>
+        </receiver:BindingAndTriggerValue>
+    </growl:GrowlBase.StayOpaqueBinding>
+    <growl:GrowlBase.TurnTranslucentBinding>
+        <receiver:BindingAndTriggerValue>
+            <receiver:BindingAndTriggerValue.Binding>
+                <common:ComparisonBinding NonRelativeSource="{StaticResource Locator}"
+                                          Path="EventMessageReceiver.SecondsTillCompleteFadeOut"
+                                          Operator="GT"
+                                          Comparand="0" />
+            </receiver:BindingAndTriggerValue.Binding>
+        </receiver:BindingAndTriggerValue>
+    </growl:GrowlBase.TurnTranslucentBinding>
+    <growl:GrowlBase.StopTurningTranslucentBinding>
+        <receiver:BindingAndTriggerValue Binding="{Binding EventMessageReceiver.SecondsTillCompleteFadeOut, Source={StaticResource Locator}}" Value="{StaticResource ZeroDouble}" />
+    </growl:GrowlBase.StopTurningTranslucentBinding>
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="MouseDown">
+            <i:InvokeCommandAction Command="{Binding EventMessageReceiver.ClickedGrowlCommand, Source={StaticResource Locator}}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="MouseEnter">
+            <i:InvokeCommandAction Command="{Binding EventMessageReceiver.MouseEnteredGrowlCommand, Source={StaticResource Locator}}"
+                                   CommandParameter="{Binding ElementName=thisGrowl}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Border CornerRadius="15"
+            BorderThickness="1"
+            BorderBrush="#FF997137"
+            Margin="5">
+        <Border.Background>
+            <LinearGradientBrush EndPoint="0.5,1"
+                                 StartPoint="0.5,0">
+                <GradientStop Color="#FF4B4B4B"
+                              Offset="0" />
+                <GradientStop Color="#FF8F8F8F"
+                              Offset="1" />
+            </LinearGradientBrush>
+        </Border.Background>
+        <StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Image Source="pack://application:,,,/Cloud;component/Artwork/cl_icon.png"
+                       Stretch="Fill"
+                       Height="40"
+                       Width="40"
+                       Margin="3,3,3,0" />
+                <TextBlock Text="Cloud Messages" VerticalAlignment="Center" FontWeight="Bold" FontSize="18" Foreground="#FFECAD25" />
+                <Image Source="pack://application:,,,/Cloud;component/Artwork/cancelFocus.png"
+                       Margin="2,0,0,0" Width="20" Height="20">
+                    <i:Interaction.Triggers>
+                        <common:HandlingEventTrigger EventName="MouseDown">
+                            <i:InvokeCommandAction Command="{Binding EventMessageReceiver.ClosedGrowlCommand, Source={StaticResource Locator}}" />
+                        </common:HandlingEventTrigger>
+                    </i:Interaction.Triggers>
+                </Image>
+            </StackPanel>
+            <growl:GrowlScrollViewer VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Disabled"
+                                     MaxHeight="300"
+                                     Style="{StaticResource GrowlScrollViewer}"
+                                     MouseLeftButtonDownCommand="{Binding EventMessageReceiver.ClickedGrowlCommand, Source={StaticResource Locator}}"
+                                     Margin="0,0,0,8">
+                <ItemsControl ItemsSource="{Binding EventMessageReceiver.GrowlMessages, Source={StaticResource Locator}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter Height="20"
+                                                  Width="20"
+                                                  Content="{Binding Image}"
+                                                  ContentTemplateSelector="{StaticResource MessageIconTemplateSelector}"
+                                                  Margin="5,0" />
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding Message}"
+                                           Foreground="#FFECAD25"
+                                           FontSize="14"
+                                           TextWrapping="Wrap" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </growl:GrowlScrollViewer>
+        </StackPanel>
+    </Border>
+</growl:GrowlBase>

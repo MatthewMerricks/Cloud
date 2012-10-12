@@ -179,7 +179,7 @@ namespace CloudApiPublic.Model
         /// <param name="key">Key to search</param>
         /// <param name="outputNode">Outputs heirarchical structure of the highest node and its recursive children</param>
         /// <returns>Returns an error that occurred retrieving the heirarchical structure, if any</returns>
-        public CLError GrabHierarchyForPath(FilePath key, out FilePathHierarchicalNode<T> outputNode)
+        public CLError GrabHierarchyForPath(FilePath key, out FilePathHierarchicalNode<T> outputNode, bool suppressException = false)
         {
             try
             {
@@ -208,6 +208,15 @@ namespace CloudApiPublic.Model
                             if (grabRecursionError != null)
                             {
                                 throw grabRecursionError.GrabFirstException();
+                            }
+                            else if (innerFolderNode == null)
+                            {
+                                if (suppressException)
+                                {
+                                    outputNode = null;
+                                    return null;
+                                }
+                                throw new NullReferenceException("Recursive call to GrabHierarchyForPath output null innerFolderNode");
                             }
 
                             // if the inner folder has a value,
@@ -295,6 +304,11 @@ namespace CloudApiPublic.Model
                         // then throw the not found exception
                         if (recursePath == null)
                         {
+                            if (suppressException)
+                            {
+                                outputNode = null;
+                                return null;
+                            }
                             throw getKeyNotFound();
                         }
                         // else if inner folders did contain a recursed parent of the key,
@@ -313,6 +327,11 @@ namespace CloudApiPublic.Model
                     // then throw the not found exception
                     else
                     {
+                        if (suppressException)
+                        {
+                            outputNode = null;
+                            return null;
+                        }
                         throw getKeyNotFound();
                     }
                 }
@@ -1349,7 +1368,8 @@ namespace CloudApiPublic.Model
             {
                 foreach (FilePathDictionary<T> currentInnerFolder in innerFolders.Values)
                 {
-                    if (currentInnerFolder.CurrentValue != null)
+                    if (currentInnerFolder.CurrentValue != null
+                        && recursiveDeleteCallback != null)
                     {
                         recursiveDeleteCallback(currentInnerFolder.CurrentFilePath, currentInnerFolder.CurrentValue, changeRoot);
                     }

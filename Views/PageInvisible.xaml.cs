@@ -146,8 +146,23 @@ namespace win_client.Views
         /// </summary>
         void OnMessage_GrowlSystemTrayNotificationMessage(CLGrowlNotification growlInfo)
         {
-            // Show this growl over the system tray.  It will automatically fade after several seconds.
-            tb.ShowCustomBalloon(growlInfo.WpfControl, growlInfo.Animation, growlInfo.TimeoutMilliseconds);
+            // Prebind the close event on the growl to close the balloon
+            growlInfo.NeedsClose += (sender, e) =>
+                {
+                    if (tb.CustomBalloon.Child == ((CLGrowlNotification)sender).WpfControl)
+                    {
+                        tb.CloseBalloon();
+                    }
+                };
+
+            lock (growlInfo)
+            {
+                if (!growlInfo.WasClosed)
+                {
+                    // Show this growl over the system tray.  It will automatically fade after several seconds.
+                    tb.ShowCustomBalloon(growlInfo.WpfControl, growlInfo.Animation, growlInfo.TimeoutMilliseconds);
+                }
+            }
         }
 
         /// <summary>

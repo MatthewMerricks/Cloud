@@ -1987,13 +1987,31 @@ namespace SQLIndexer
         /// <param name="indexCompletionCallback">Callback should be the BeginProcessing method of the FileMonitor to forward the initial index</param>
         private void BuildIndex(Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>> indexCompletionCallback)
         {
+            FilePath baseComparePath = indexedPath;
+
             // Create the initial index dictionary, throwing any exceptions that occurred in the process
             FilePathDictionary<FileMetadata> indexPaths;
-            CLError indexPathCreationError = FilePathDictionary<FileMetadata>.CreateAndInitialize(indexedPath,
+            CLError indexPathCreationError = FilePathDictionary<FileMetadata>.CreateAndInitialize(baseComparePath,
                 out indexPaths);
             if (indexPathCreationError != null)
             {
                 throw indexPathCreationError.GrabFirstException();
+            }
+
+            FilePathDictionary<FileMetadata> combinedIndexPlusChanges;
+            CLError combinedIndexCreationError = FilePathDictionary<FileMetadata>.CreateAndInitialize(baseComparePath,
+                out combinedIndexPlusChanges);
+            if (combinedIndexCreationError != null)
+            {
+                throw combinedIndexCreationError.GrabFirstException();
+            }
+
+            FilePathDictionary<GenericHolder<bool>> pathDeletions;
+            CLError pathDeletionsCreationError = FilePathDictionary<GenericHolder<bool>>.CreateAndInitialize(baseComparePath,
+                out pathDeletions);
+            if (pathDeletionsCreationError != null)
+            {
+                throw pathDeletionsCreationError.GrabFirstException();
             }
 
             using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
@@ -2031,8 +2049,7 @@ namespace SQLIndexer
                         "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter.ToString()))
                     {
                         // Add the previous sync state to the initial index
-                        indexPaths.Add(currentSyncState.Path,
-                            new FileMetadata()
+                        FileMetadata currentToAdd = new FileMetadata()
                             {
                                 HashableProperties = new FileMetadataHashableProperties(currentSyncState.IsFolder,
                                     currentSyncState.LastTime,
@@ -2041,7 +2058,10 @@ namespace SQLIndexer
                                 LinkTargetPath = currentSyncState.TargetPath,
                                 Revision = currentSyncState.Revision,
                                 StorageKey = currentSyncState.StorageKey
-                            });
+                            };
+
+                        indexPaths.Add(currentSyncState.Path, currentToAdd);
+                        combinedIndexPlusChanges.Add(currentSyncState.Path, currentToAdd);
                     }
                 }
 
@@ -2061,11 +2081,8 @@ namespace SQLIndexer
                             FileSystemObject.Name
                         }))
                     {
-
                         // Add database event to list of changes
-						changeList.Add(new FileChange()
-                        {
-                            Metadata = new FileMetadata()
+                        FileMetadata changeMetadata = new FileMetadata()
                             {
                                 HashableProperties = new FileMetadataHashableProperties(currentEvent.FileSystemObject.IsFolder,
                                     currentEvent.FileSystemObject.LastTime,
@@ -2074,13 +2091,73 @@ namespace SQLIndexer
                                 LinkTargetPath = currentEvent.FileSystemObject.TargetPath,
                                 Revision = currentEvent.FileSystemObject.Revision,
                                 StorageKey = currentEvent.FileSystemObject.StorageKey
-                            },
-                            NewPath = currentEvent.FileSystemObject.Path,
-                            OldPath = currentEvent.PreviousPath,
+                            };
+
+                        FilePath pathObject = currentEvent.FileSystemObject.Path;
+                        FilePath oldPathObject = currentEvent.PreviousPath;
+
+						changeList.Add(new FileChange()
+                        {
+                            Metadata = changeMetadata,
+                            NewPath = pathObject,
+                            OldPath = oldPathObject,
                             Type = changeEnums[currentEvent.FileChangeTypeEnumId],
                             DoNotAddToSQLIndex = true,
                             EventId = currentEvent.EventId
                         });
+
+                        switch (changeEnums[currentEvent.FileChangeTypeEnumId])
+                        {
+                            case FileChangeType.Modified:
+                            case FileChangeType.Created:
+                                combinedIndexPlusChanges[pathObject] = changeMetadata;
+
+                                GenericHolder<bool> reverseDeletion;
+                                if (pathDeletions.TryGetValue(pathObject, out reverseDeletion))
+                                {
+                                    reverseDeletion.Value = false;
+                                }
+                                break;
+                            case FileChangeType.Deleted:
+                                if (combinedIndexPlusChanges.Remove(pathObject))
+                                {
+                                    pathDeletions.Remove(pathObject);
+                                    pathDeletions.Add(pathObject, new GenericHolder<bool>(true));
+                                }
+                                break;
+                            case FileChangeType.Renamed:
+                                if (combinedIndexPlusChanges.ContainsKey(oldPathObject))
+                                {
+                                    FilePathHierarchicalNode<FileMetadata> newRename;
+                                    CLError hierarchyError = combinedIndexPlusChanges.GrabHierarchyForPath(pathObject, out newRename, true);
+                                    if (hierarchyError == null
+                                        && newRename == null)
+                                    {
+                                        combinedIndexPlusChanges.Rename(oldPathObject, pathObject);
+                                        combinedIndexPlusChanges[pathObject] = changeMetadata;
+
+                                        FilePathHierarchicalNode<GenericHolder<bool>> newDeletion;
+                                        CLError deletionHierarchyError = pathDeletions.GrabHierarchyForPath(pathObject, out newDeletion, true);
+
+                                        if (deletionHierarchyError == null
+                                            && newDeletion == null)
+                                        {
+                                            GenericHolder<bool> previousDeletion;
+                                            if (pathDeletions.TryGetValue(oldPathObject, out previousDeletion))
+                                            {
+                                                previousDeletion.Value = false;
+                                            }
+                                            else
+                                            {
+                                                pathDeletions.Add(oldPathObject, new GenericHolder<bool>(false));
+                                            }
+
+                                            pathDeletions.Rename(oldPathObject, pathObject);
+                                        }
+                                    }
+                                }
+                                break;
+                        }
                     }
                 }
 
@@ -2091,8 +2168,12 @@ namespace SQLIndexer
                 // and returns a list of all paths traversed for comparison to the existing index
                 string[] recursedIndexes = RecurseIndexDirectory(changeList,
                     indexPaths,
+                    combinedIndexPlusChanges,
                     this.RemoveEventById,
                     indexedPath).ToArray();
+
+                // Define a list to store indexes that previously existed in the last index, but were not found upon reindexing
+                List<FileChange> possibleDeletions = new List<FileChange>();
 
                 // Loop through the paths that previously existed in the index, but were not found when traversing the indexed path
                 foreach (string deletedPath in
@@ -2101,12 +2182,38 @@ namespace SQLIndexer
                             StringComparer.InvariantCulture))
                 {
                     // For the path that existed previously in the index but is no longer found on disc, process as a deletion
-                    changeList.Add(new FileChange()
+                    FilePath deletedPathObject = deletedPath;
+                    possibleDeletions.Add(new FileChange()
                     {
                         NewPath = deletedPath,
                         Type = FileChangeType.Deleted,
                         Metadata = indexPaths[deletedPath]
                     });
+                    pathDeletions.Remove(deletedPath);
+                    pathDeletions.Add(deletedPath, new GenericHolder<bool>(true));
+                }
+
+                // Only add possible deletion if a parent wasn't already marked as deleted
+                foreach (FileChange possibleDeletion in possibleDeletions)
+                {
+                    bool foundDeletedParent = false;
+                    FilePath levelToCheck = possibleDeletion.NewPath;
+                    while (levelToCheck.Contains(baseComparePath))
+                    {
+                        GenericHolder<bool> parentDeletion;
+                        if (pathDeletions.TryGetValue(levelToCheck, out parentDeletion)
+                            && parentDeletion.Value)
+                        {
+                            foundDeletedParent = true;
+                            break;
+                        }
+
+                        levelToCheck = levelToCheck.Parent;
+                    }
+                    if (!foundDeletedParent)
+                    {
+                        changeList.Add(possibleDeletion);
+                    }
                 }
 
                 // Callback on initial index completion
@@ -2126,10 +2233,11 @@ namespace SQLIndexer
         /// <param name="changeList">List of FileChanges to add/update with new changes</param>
         /// <param name="currentDirectory">Current directory to scan</param>
         /// <param name="indexPaths">Initial index</param>
+        /// <param name="combinedIndexPlusChanges">Initial index plus all previous FileChanges in database and changes made up through current reindexing</param>
         /// <param name="AddEventCallback">Callback to fire if a database event needs to be added</param>
         /// <param name="uncoveredChanges">Optional list of changes which no longer have a corresponding local path, only set when self-recursing</param>
         /// <returns>Returns the list of paths traversed</returns>
-        private static IEnumerable<string> RecurseIndexDirectory(List<FileChange> changeList, FilePathDictionary<FileMetadata> indexPaths, Func<long, CLError> RemoveEventCallback, string currentDirectoryFullPath, FindFileResult currentDirectory = null, Dictionary<FilePath, LinkedList<FileChange>> uncoveredChanges = null)
+        private static IEnumerable<string> RecurseIndexDirectory(List<FileChange> changeList, FilePathDictionary<FileMetadata> indexPaths, FilePathDictionary<FileMetadata> combinedIndexPlusChanges, Func<long, CLError> RemoveEventCallback, string currentDirectoryFullPath, FindFileResult currentDirectory = null, Dictionary<FilePath, LinkedList<FileChange>> uncoveredChanges = null)
         {
             // Store whether the current method call is outermost or a recursion,
             // only the outermost method call has a null uncoveredChanges parameter
@@ -2170,8 +2278,8 @@ namespace SQLIndexer
                     (FileAttributes.Hidden// ignore hidden files
                         | FileAttributes.Offline// ignore offline files (data is not available on them)
                         | FileAttributes.System// ignore system files
-                        | FileAttributes.Temporary),
-                    out rootNotFound);// ignore temporary files
+                        | FileAttributes.Temporary),// ignore temporary files
+                    out rootNotFound);
 
                 if (rootNotFound)
                 {
@@ -2203,28 +2311,33 @@ namespace SQLIndexer
                         (subDirectory.LastWriteTime == null ? (Nullable<DateTime>)null : ((DateTime)subDirectory.LastWriteTime).DropSubSeconds()),
                         (subDirectory.CreationTime == null ? (Nullable<DateTime>)null : ((DateTime)subDirectory.CreationTime).DropSubSeconds()),
                         null);
-                    // Grab the last event that matches the current directory path, if any
-                    FileChange existingEvent = changeList.LastOrDefault(currentChange => FilePathComparer.Instance.Equals(currentChange.NewPath, subDirectoryPathObject));
-                    // If there is no existing event, the directory has to be checked for changes
-                    if (existingEvent == null)
+
+                    // Grab the last metadata that matches the current directory path, if any
+                    FilePathHierarchicalNode<FileMetadata> existingHierarchy;
+                    CLError hierarchyError = combinedIndexPlusChanges.GrabHierarchyForPath(subDirectoryPathObject, out existingHierarchy, true);
+                    // If there is no existing event, a directory was added
+                    if (hierarchyError == null
+                        && existingHierarchy == null)
                     {
-                        // If the index did not include the current subdirectory, it needs to be added as a creation
-                        if (!indexPaths.ContainsKey(subDirectoryPathObject))
-                        {
-                            changeList.Add(new FileChange()
+                        FileMetadata newDirectoryMetadata = new FileMetadata()
                             {
-                                NewPath = subDirectoryPathObject,
-                                Type = FileChangeType.Created,
-                                Metadata = new FileMetadata()
-                                {
-                                    HashableProperties = compareProperties
-                                }
-                            });
-                        }
+                                HashableProperties = compareProperties
+                            };
+
+                        changeList.Add(new FileChange()
+                        {
+                            NewPath = subDirectoryPathObject,
+                            Type = FileChangeType.Created,
+                            Metadata = newDirectoryMetadata
+                        });
+
+                        combinedIndexPlusChanges.Add(subDirectoryPathObject, newDirectoryMetadata);
                     }
+
                     // Add the inner paths to the output list by recursing (which will also process inner changes)
                     filePathsFound.AddRange(RecurseIndexDirectory(changeList,
                         indexPaths,
+                        combinedIndexPlusChanges,
                         RemoveEventCallback,
                         subDirectoryFullPath,
                         subDirectory,
@@ -2247,54 +2360,51 @@ namespace SQLIndexer
                         (currentFile.LastWriteTime == null ? (Nullable<DateTime>)null : ((DateTime)currentFile.LastWriteTime).DropSubSeconds()),
                         (currentFile.CreationTime == null ? (Nullable<DateTime>)null : ((DateTime)currentFile.CreationTime).DropSubSeconds()),
                         currentFile.Size);
-                    // Find the latest change at the current file path, if any exist
-                    FileChange existingEvent = changeList.LastOrDefault(currentChange => FilePathComparer.Instance.Equals(currentChange.NewPath, currentFilePathObject));
+
+                    // Grab the last metadata that matches the current file path, if any
+                    FileMetadata existingFileMetadata;
                     // If a change does not already exist for the current file path,
                     // check if file has changed since last index to process changes
-                    if (existingEvent == null)
+                    if (combinedIndexPlusChanges.TryGetValue(currentFilePathObject, out existingFileMetadata))
                     {
-                        // If the index already contained a file at the current path,
-                        // then check if a file modification needs to be processed
-                        if (indexPaths.ContainsKey(currentFilePathObject))
+                        // If the file has changed (different metadata), then process a file modification change
+                        if (!fileComparer.Equals(compareProperties, existingFileMetadata.HashableProperties))
                         {
-                            FileMetadata existingIndexPath = indexPaths[currentFilePathObject];
-
-                            // If the file has changed (different metadata), then process a file modification change
-                            if (!fileComparer.Equals(compareProperties, existingIndexPath.HashableProperties))
-                            {
-                                changeList.Add(new FileChange()
+                            FileMetadata modifiedMetadata = new FileMetadata()
                                 {
-                                    NewPath = currentFilePathObject,
-                                    Type = FileChangeType.Modified,
-                                    Metadata = new FileMetadata()
-                                    {
-                                        HashableProperties = compareProperties,
-                                        LinkTargetPath = existingIndexPath.LinkTargetPath,//Todo: needs to check again for new target path
-                                        Revision = existingIndexPath.Revision,
-                                        StorageKey = existingIndexPath.StorageKey
-                                    }
-                                });
-                            }
-                        }
-                        // else if index doesn't contain the current path, then the file has been created
-                        else
-                        {
+                                    HashableProperties = compareProperties,
+                                    LinkTargetPath = existingFileMetadata.LinkTargetPath,//Todo: needs to check again for new target path
+                                    Revision = existingFileMetadata.Revision,
+                                    StorageKey = existingFileMetadata.StorageKey
+                                };
+
                             changeList.Add(new FileChange()
                             {
                                 NewPath = currentFilePathObject,
-                                Type = FileChangeType.Created,
-                                Metadata = new FileMetadata()
-                                {
-                                    HashableProperties = compareProperties
-                                }
+                                Type = FileChangeType.Modified,
+                                Metadata = modifiedMetadata
                             });
+
+                            combinedIndexPlusChanges[currentFilePathObject] = modifiedMetadata;
                         }
                     }
-                    // else if a change exists at the current file path and the file has changed
-                    else if (!fileComparer.Equals(compareProperties, existingEvent.Metadata.HashableProperties))
+                    // else if index doesn't contain the current path, then the file has been created
+                    else
                     {
-                        // mark that SQL can be updated again with the changes to the metadata
-                        existingEvent.DoNotAddToSQLIndex = false;
+                        FileMetadata fileCreatedMetadata = new FileMetadata()
+                            {
+                                HashableProperties = compareProperties//,
+                                //LinkTargetPath = //Todo: needs to read target path
+                            };
+
+                        changeList.Add(new FileChange()
+                        {
+                            NewPath = currentFilePathObject,
+                            Type = FileChangeType.Created,
+                            Metadata = fileCreatedMetadata
+                        });
+
+                        combinedIndexPlusChanges.Add(currentFilePathObject, fileCreatedMetadata);
                     }
                 }
             }

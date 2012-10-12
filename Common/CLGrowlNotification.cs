@@ -23,6 +23,7 @@ namespace win_client.Common
         public UIElement WpfControl;
         public PopupAnimation Animation;
         public int? TimeoutMilliseconds;
+        public bool WasClosed { get; private set; }
 
         public CLGrowlNotification()
         {
@@ -35,5 +36,22 @@ namespace win_client.Common
             Animation = animation;
             TimeoutMilliseconds = timeoutMilliseconds;
         }
+
+        public void TriggerClose()
+        {
+            lock (this)
+            {
+                if (!WasClosed)
+                {
+                    if (NeedsClose != null)
+                    {
+                        NeedsClose(this, EventArgs.Empty);
+                    }
+                    WasClosed = true;
+                }
+            }
+        }
+
+        public event EventHandler NeedsClose;
     }
 }

@@ -106,6 +106,9 @@ namespace win_client.Services.ServicesManager
             {
                 _coreServicesStarted = true;
 
+                // Initialize the growl service
+                Growl.Growl.StartGrowlService();
+
                 // Update the shell integration shortcuts
                 CLShortcuts.UpdateAllShortcuts(Settings.Instance.CloudFolderPath);
 
@@ -151,6 +154,9 @@ namespace win_client.Services.ServicesManager
                 CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
                 DelayProcessable<FileChange>.TerminateAllProcessing();
                 global::Sync.Sync.Shutdown();
+
+                // Stop the growl service
+                Growl.Growl.ShutdownGrowlService();
 
                 // Outdated, Sync process replaced
                 // -David

@@ -73,15 +73,15 @@ namespace win_client.Services.UiActivity
         {
             try
             {
-                // Start a timer for testing.
-                _pollTimer = new System.Threading.Timer((s) =>
-                {
-                    TimerFiredCallback();
-                    if (_timerTestCount > 25)
-                    {
-                        _pollTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                    }
-                }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(1));
+                //// Start a timer for testing.
+                //_pollTimer = new System.Threading.Timer((s) =>
+                //{
+                //    TimerFiredCallback();
+                //    if (_timerTestCount > 25)
+                //    {
+                //        _pollTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                //    }
+                //}, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(1));
 
                 PageInvisibleViewModel vmPageInvisible = SimpleIoc.Default.GetInstance<PageInvisibleViewModel>();
                 vmPageInvisible.TaskbarIconVisibility = System.Windows.Visibility.Visible;
@@ -104,44 +104,23 @@ namespace win_client.Services.UiActivity
             }
         }
 
-        /// <summary>
-        /// Test timer callback
-        /// </summary>
-        public void TimerFiredCallback()
-        {
-            // One second timer tick...
-            ++_timerTestCount;
-            if (_timerTestCount == 5)
-            {
-                System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                {
-                    // Put up a test balloon tooltip.  It will automatically fade.
-                    //_trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test balloon from the system tray.");
-                    //CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
-                    //CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Send(tooltipInfo);
-                }));
-            }
-
-            if (_timerTestCount == 25)
-            {
-                // Put up a growl notification.  It will automatically fade.
-                
-                System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                {
-                    try
-                    {
-                        _trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test growl notification from the system tray.");
-                        var window = SimpleIoc.Default.GetInstance<FancyBalloon>();
-                        window.BalloonText = "Hello Cloud!";
-                        CLGrowlNotification growlInfo = new CLGrowlNotification(window, System.Windows.Controls.Primitives.PopupAnimation.Slide, 2500);
-                        CLAppMessages.Message_GrowlSystemTrayNotification.Send(growlInfo);
-                    }
-                    catch (Exception ex)
-                    {
-                        _trace.writeToLog(1, String.Format("CLUIActivityService: TimerFiredCallback: ERROR. Exception.  Msg: <{0}>.", ex.Message));
-                    }
-                }));
-            }
-        }
+        ///// <summary>
+        ///// Test timer callback
+        ///// </summary>
+        //public void TimerFiredCallback()
+        //{
+        //    // One second timer tick...
+        //    ++_timerTestCount;
+        //    if (_timerTestCount == 5)
+        //    {
+        //        System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+        //        {
+        //            // Put up a test balloon tooltip.  It will automatically fade.
+        //            //_trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test balloon from the system tray.");
+        //            //CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
+        //            //CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Send(tooltipInfo);
+        //        }));
+        //    }
+        //}
     }
 }

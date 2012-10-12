@@ -16,6 +16,7 @@ using System.Windows;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
+using CloudApiPrivate.EventMessageReceiver;
 
 namespace Sync
 {
@@ -412,6 +413,7 @@ namespace Sync
         private readonly object TaskQueueLocker = new object();
         // define the current number of simultaneously processing tasks, defaulting to zero before the first Tasks queue
         private int runningTaskCount = 0;
+        private int inlineExecutingCount = 0;
 
         // returns tasks which have yet to start processing from TaskQueue
         protected override IEnumerable<Task> GetScheduledTasks()
@@ -430,6 +432,23 @@ namespace Sync
         {
             lock (TaskQueueLocker)
             {
+                switch (Direction)
+                {
+                    case SyncDirection.From:
+                    // direction for downloads
+                        EventMessageReceiver.SetDownloadingCount((uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1));
+                        break;
+
+                    case SyncDirection.To:
+                    // direction for uploads
+                        EventMessageReceiver.SetUploadingCount((uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1));
+                        break;
+
+                    default:
+                        // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                        throw new NotSupportedException("Unknown SyncDirection: " + Direction.ToString());
+                }
+
                 if (runningTaskCount < MaximumConcurrencyLevel)
                 {
                     runningTaskCount++;
@@ -457,15 +476,39 @@ namespace Sync
             {
                 KeyValuePair<HttpScheduler, Task> nonNullState = (KeyValuePair<HttpScheduler, Task>)castState;
 
+                Action<HttpScheduler> setCount = scheduler =>
+                    {
+                        uint taskCount;
+                        lock (scheduler.TaskQueueLocker)
+                        {
+                            taskCount = (uint)(scheduler.TaskQueue.Count + scheduler.runningTaskCount + scheduler.inlineExecutingCount - 1);
+                        }
+
+                        switch (scheduler.Direction)
+                        {
+                            case SyncDirection.From:
+                                // direction for downloads
+                                EventMessageReceiver.SetDownloadingCount(taskCount);
+                                break;
+
+                            case SyncDirection.To:
+                                // direction for uploads
+                                EventMessageReceiver.SetUploadingCount(taskCount);
+                                break;
+
+                            default:
+                                // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                                throw new NotSupportedException("Unknown SyncDirection: " + scheduler.Direction.ToString());
+                        }
+                    };
+
                 // if the provided userstate contains a Task to start with,
                 // then try to execute that task immediately
                 if (nonNullState.Value != null)
                 {
                     nonNullState.Key.TryExecuteTask(nonNullState.Value);
-                    //if (nonNullState.Value.IsFaulted)
-                    //{
-                    //    LogException(nonNullState.Key.Direction, nonNullState.Value.Exception);
-                    //}
+
+                    setCount(nonNullState.Key);
                 }
 
                 // define function to check if a given direction's HttpScheduler is disposed
@@ -510,10 +553,8 @@ namespace Sync
 
                     // run the dequeued Task
                     nonNullState.Key.TryExecuteTask(toRun);
-                    //if (toRun.IsFaulted)
-                    //{
-                    //    LogException(nonNullState.Key.Direction, toRun.Exception);
-                    //}
+
+                    setCount(nonNullState.Key);
                 }
             }
         }
@@ -548,12 +589,48 @@ namespace Sync
         // Runs a task synchronously, removing it from the queue as necessary
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
+            // run under lock of TaskQueueLocker
+            Action<HttpScheduler> setCount = scheduler =>
+            {
+                uint taskCount = (uint)(scheduler.TaskQueue.Count + scheduler.runningTaskCount + scheduler.inlineExecutingCount);
+
+                switch (scheduler.Direction)
+                {
+                    case SyncDirection.From:
+                    // direction for downloads
+                        EventMessageReceiver.SetDownloadingCount(taskCount);
+                        break;
+
+                    case SyncDirection.To:
+                    // direction for uploads
+                        EventMessageReceiver.SetUploadingCount(taskCount);
+                        break;
+
+                    default:
+                        // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                        throw new NotSupportedException("Unknown SyncDirection: " + scheduler.Direction.ToString());
+                }
+            };
+
             if (taskWasPreviouslyQueued)
             {
                 TryDequeue(task);
             }
 
+            lock (TaskQueueLocker)
+            {
+                inlineExecutingCount++;
+                setCount(this);
+            }
+
             bool executed = base.TryExecuteTask(task);
+
+            lock (TaskQueueLocker)
+            {
+                inlineExecutingCount--;
+                setCount(this);
+            }
+
             // log the exception synchronously since the task fired synchronously
             if (executed
                 && task.IsFaulted)
