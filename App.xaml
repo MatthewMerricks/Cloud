@@ -13,28 +13,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:win_client.ViewModels"
-<<<<<<< HEAD
-             xmlns:converters="clr-namespace:win_client.Converters"
-             mc:Ignorable="d"
-             Startup="Application_Startup"
-             ShutdownMode="OnExplicitShutdown"
-             Exit="Application_Exit">
-    <Application.Resources>
-        <ResourceDictionary>
-            <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
-            <converters:DebugConverter x:Key="DebugConverter" />
-            <ResourceDictionary.MergedDictionaries>
-=======
              mc:Ignorable="d" 
              Startup="Application_Startup" 
              ShutdownMode="OnExplicitShutdown" 
              Exit="Application_Exit" 
              DispatcherUnhandledException="Application_DispatcherUnhandledException"
-             >
-  <Application.Resources>
-    <ResourceDictionary>
-      <ResourceDictionary.MergedDictionaries>
->>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
+             xmlns:converters="clr-namespace:win_client.Converters">
+    <Application.Resources>
+        <ResourceDictionary>
+            <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
+            <converters:DebugConverter x:Key="DebugConverter" />
+            <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Cloud;component/Skins/NotifyIconResources.xaml" />
                 <ResourceDictionary Source="/Cloud;component/Growl/MessageThemes.xaml" />
             </ResourceDictionary.MergedDictionaries>

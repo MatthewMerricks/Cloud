@@ -111,72 +111,51 @@ namespace win_client.Services.UiActivity
             }
         }
 
-<<<<<<< HEAD
         ///// <summary>
         ///// Test timer callback
         ///// </summary>
         //public void TimerFiredCallback()
         //{
-        //    // One second timer tick...
-        //    ++_timerTestCount;
-        //    if (_timerTestCount == 5)
+        //    try
         //    {
-        //        System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+        //        // One second timer tick...
+        //        ++_timerTestCount;
+        //        if (_timerTestCount == 5)
         //        {
-        //            // Put up a test balloon tooltip.  It will automatically fade.
-        //            //_trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test balloon from the system tray.");
-        //            //CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
-        //            //CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Send(tooltipInfo);
-        //        }));
+        //            System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+        //            {
+        //                // Put up a test balloon tooltip.  It will automatically fade.
+        //                //_trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test balloon from the system tray.");
+        //                //CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
+        //                //CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Send(tooltipInfo);
+        //            }));
+        //        }
+
+        //        if (_timerTestCount == 25)
+        //        {
+        //            // Put up a growl notification.  It will automatically fade.
+                
+        //            System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+        //            {
+        //                try
+        //                {
+        //                    _trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test growl notification from the system tray.");
+        //                    var window = SimpleIoc.Default.GetInstance<FancyBalloon>();
+        //                    window.BalloonText = "Hello Cloud!";
+        //                    CLGrowlNotification growlInfo = new CLGrowlNotification(window, System.Windows.Controls.Primitives.PopupAnimation.Slide, 2500);
+        //                    CLAppMessages.Message_GrowlSystemTrayNotification.Send(growlInfo);
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    _trace.writeToLog(1, "CLUIActivityService: TimerFiredCallback: ERROR. Exception.  Msg: <{0}>.", ex.Message);
+        //                }
+        //            }));
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _trace.writeToLog(1, "CLUIActivityService: TimerFiredCallback: ERROR. Exception(2).  Msg: <{0}>.", ex.Message);
         //    }
         //}
-=======
-        /// <summary>
-        /// Test timer callback
-        /// </summary>
-        public void TimerFiredCallback()
-        {
-            try
-            {
-                // One second timer tick...
-                ++_timerTestCount;
-                if (_timerTestCount == 5)
-                {
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                    {
-                        // Put up a test balloon tooltip.  It will automatically fade.
-                        //_trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test balloon from the system tray.");
-                        //CLBalloonTooltipNotification tooltipInfo = new CLBalloonTooltipNotification("Test Title!", "This is the notification body text.", BalloonIcon.Error, null);
-                        //CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Send(tooltipInfo);
-                    }));
-                }
-
-                if (_timerTestCount == 25)
-                {
-                    // Put up a growl notification.  It will automatically fade.
-                
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                    {
-                        try
-                        {
-                            _trace.writeToLog(9, "CLUIActivityService: TimerFiredCallback: Put up a test growl notification from the system tray.");
-                            var window = SimpleIoc.Default.GetInstance<FancyBalloon>();
-                            window.BalloonText = "Hello Cloud!";
-                            CLGrowlNotification growlInfo = new CLGrowlNotification(window, System.Windows.Controls.Primitives.PopupAnimation.Slide, 2500);
-                            CLAppMessages.Message_GrowlSystemTrayNotification.Send(growlInfo);
-                        }
-                        catch (Exception ex)
-                        {
-                            _trace.writeToLog(1, "CLUIActivityService: TimerFiredCallback: ERROR. Exception.  Msg: <{0}>.", ex.Message);
-                        }
-                    }));
-                }
-            }
-            catch (Exception ex)
-            {
-                _trace.writeToLog(1, "CLUIActivityService: TimerFiredCallback: ERROR. Exception(2).  Msg: <{0}>.", ex.Message);
-            }
-        }
->>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
     }
 }

@@ -164,7 +164,8 @@ namespace win_client.Views
         /// </summary>
         void OnMessage_GrowlSystemTrayNotificationMessage(CLGrowlNotification growlInfo)
         {
-<<<<<<< HEAD
+            _trace.writeToLog(9, "PageInvisible: OnMessage_GrowlSystemTrayNotificationMessage: Entry.");
+
             // Prebind the close event on the growl to close the balloon
             growlInfo.NeedsClose += (sender, e) =>
                 {
@@ -182,11 +183,6 @@ namespace win_client.Views
                     tb.ShowCustomBalloon(growlInfo.WpfControl, growlInfo.Animation, growlInfo.TimeoutMilliseconds);
                 }
             }
-=======
-            // Show this growl over the system tray.  It will automatically fade after several seconds.
-            _trace.writeToLog(9, "PageInvisible: OnMessage_GrowlSystemTrayNotificationMessage: Entry.");
-            tb.ShowCustomBalloon(growlInfo.WpfControl, growlInfo.Animation, growlInfo.TimeoutMilliseconds);
->>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
         }
 
         /// <summary>

@@ -105,32 +105,14 @@ namespace win_client.Services.ServicesManager
 
             lock (_coreServicesLocker)
             {
-<<<<<<< HEAD
-                _coreServicesStarted = true;
-
-                // Initialize the growl service
-                Growl.Growl.StartGrowlService();
-
-                // Update the shell integration shortcuts
-                CLShortcuts.UpdateAllShortcuts(Settings.Instance.CloudFolderPath);
-
-                // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
-                // before the initial list is passed (via InitializeOrReplace)
-                //TODO: Handle any CLErrors returned from these services.
-                CLBadgingService.Instance.BeginBadgingServices();
-                CLUIActivityService.Instance.BeginUIActivityService(); 
-                CLIndexingService.Instance.StartIndexingService();
-                CLNetworkMonitorService.Instance.BeginNetworkMonitoring();
-                CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
-                CLCFMonitoringService.Instance.BeginCloudFolderMonitoring();
-                if (CLNetworkMonitorService.Instance.CloudReach)
-=======
                 try
->>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
                 {
                     if (!_coreServicesStarted)
                     {
                         _trace.writeToLog(1, "CLServicesManager: StartCoreServices: Starting.");
+
+                        // Initialize the growl service
+                        Growl.Growl.StartGrowlService();
 
                         // Update the shell integration shortcuts
                         CLShortcuts.UpdateAllShortcuts(Settings.Instance.CloudFolderPath);
@@ -171,28 +153,6 @@ namespace win_client.Services.ServicesManager
         {
             lock (_coreServicesLocker)
             {
-<<<<<<< HEAD
-                _coreServicesStarted = false;
-                CLUIActivityService.Instance.EndUIActivityService();
-                CLBadgingService.Instance.EndBadgingServices();
-
-                //TODO: Enable to hook all user processes for the start of a drag/drop operation
-                //DragDropServer.DragDropServer.Instance.StopDragDropServer();
-
-                CLNotificationService.Instance.DisconnectPushNotificationServer();
-                CLNetworkMonitorService.Instance.EndNetworkMonitoring();
-                CLFSMonitoringService.Instance.EndFileSystemMonitoring();
-                CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
-                DelayProcessable<FileChange>.TerminateAllProcessing();
-                global::Sync.Sync.Shutdown();
-
-                // Stop the growl service
-                Growl.Growl.ShutdownGrowlService();
-
-                // Outdated, Sync process replaced
-                // -David
-                //CLSyncService.Instance.StopSyncServices();
-=======
                 try
                 {
                     if (_coreServicesStarted)
@@ -210,7 +170,9 @@ namespace win_client.Services.ServicesManager
                         CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
                         global::Sync.Sync.Shutdown();
                         DelayProcessable<FileChange>.TerminateAllProcessing();
-
+                        
+                        // Stop the growl service
+                        Growl.Growl.ShutdownGrowlService();
 
                         // Outdated, Sync process replaced
                         // -David
@@ -225,7 +187,6 @@ namespace win_client.Services.ServicesManager
                 {
                     _coreServicesStarted = false;
                 }
->>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
             }
         }
         public void StartSyncServices()
