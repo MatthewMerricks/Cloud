@@ -542,7 +542,7 @@ namespace win_client.Services.Notification
                     JsonNotificationResponse parsedResponse = StaticSync.ParseNotificationResponse(e.Message);
                     if (parsedResponse == null
                         || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
-                        || parsedResponse.Author != Helpers.GetComputerFriendlyName())
+                        || parsedResponse.Author.ToUpper() != Settings.Instance.Udid.ToUpper())
                     {
                         _trace.writeToLog(9, "CLNotificationService: OnConnectionReceived: Send DidReceivePushNotificationFromServer.");
                         CLAppMessages.Message_DidReceivePushNotificationFromServer.Send(e.Message);

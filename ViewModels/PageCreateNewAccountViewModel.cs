@@ -507,10 +507,11 @@ namespace win_client.ViewModels
         
                 // Save the information we have received.
                 string akey = clRegistration.Token;
+                string udid = clRegistration.Udid;
                 string uuid = clRegistration.Uuid;
                 string devn = clRegistration.LinkedDeviceName;
                 CLAccount acct = clRegistration.LinkedAccount;
-                saveAccountInformationWithAccount(acct, devn, uuid, akey);
+                saveAccountInformationWithAccount(acct, devn, uuid, akey, udid);
 
                 // Navigate to the SelectStorage page.
                 Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
@@ -541,14 +542,14 @@ namespace win_client.ViewModels
         /// <summary>
         /// Save the registration information to persistent settings.
         /// </summary>
-        private void saveAccountInformationWithAccount(CLAccount account, string deviceName, string uuid, string akey)
+        private void saveAccountInformationWithAccount(CLAccount account, string deviceName, string uuid, string akey, string udid)
         {
             string userName = account.FullName + String.Format(@" ({0})", account.UserName);
             Dictionary<string, object> accountDict = new Dictionary<string,object>();
             accountDict.Add(Settings.kUserName, userName);
             accountDict.Add(Settings.kDeviceName, deviceName);
             accountDict.Add(Settings.kAKey, akey);
-            accountDict.Add(Settings.kUdidRegistered, @"1");
+            accountDict.Add(Settings.kUdid, udid);
             accountDict.Add(Settings.kUuid, uuid);
             Settings.Instance.saveAccountSettings(accountDict);
         }
