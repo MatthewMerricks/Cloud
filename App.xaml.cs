@@ -20,6 +20,9 @@ using CloudApiPublic.Static;
 using System.Windows.Media.Imaging;
 using System.IO;
 using win_client.Services.ServicesManager;
+using win_client.Services.FileSystemMonitoring;
+using System.Diagnostics;
+using System.Threading;
 
 namespace win_client
 {
@@ -84,6 +87,7 @@ namespace win_client
                     try
                     {
                         // Clear the flag so we do this only once
+                        _trace.writeToLog(9, "App.xaml: OnStartup: Moving the cloud folder on restart.");
                         Settings.Instance.IsMovingCloudFolder = false;
 
                         // Get the directory creation time of the new cloud folder.
@@ -94,6 +98,11 @@ namespace win_client
 
                         // Clear the target cloud folder location too.
                         Settings.Instance.MovingCloudFolderTargetPath = String.Empty;
+
+                        // Wipe the index to cause a re-index.
+                        _trace.writeToLog(9, "App.xaml: OnStartup: Wipe the index to cause a re-index.");
+                        long syncCounter;
+                        CLFSMonitoringService.Instance.IndexingAgent.RecordCompletedSync(null, new long[0], out syncCounter, Settings.Instance.CloudFolderPath);
                     }
                     catch (Exception ex)
                     {
