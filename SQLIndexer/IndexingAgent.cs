@@ -603,7 +603,8 @@ namespace SQLIndexer
                             ? null
                             : newEvent.OldPath.ToString()),
                         GroupId = eventGroup,
-                        GroupOrder = eventCounter
+                        GroupOrder = eventCounter,
+                        SyncFrom = (newEvent.Direction == SyncDirection.From)
                     });
                 }
 
@@ -1435,12 +1436,55 @@ namespace SQLIndexer
                 {
                     using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
                     {
-                        SqlAccessor<Sync>.InsertRow(indexDB,
-                            new Sync()
+                        indexDB.Open();
+
+                        using (SqlCeTransaction indexTransaction = indexDB.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                        {
+                            // It does not matter functionally if there was an error deleting an event (it may be orphaned without causing a problem),
+                            // so we delete events outside of the main transaction which can be allowed to fail
+                            IEnumerable<Event> deleteEvents;
+                                IEnumerable<int> unableToFindIndexes;
+
+                            try
                             {
-                                SyncId = IdForEmptySync,
-                                RootPath = newRootPath
-                            });
+                                IEnumerable<FileSystemObject> pendingToDelete = SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
+                                    "SELECT " + SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                                        SqlAccessor<Event>.GetSelectColumns("Event") + " " +
+                                        "FROM [FileSystemObjects] " +
+                                        "LEFT OUTER JOIN [Events] ON [FileSystemObjects].[EventId] = [Events].[EventId] " +
+                                        "WHERE  [FileSystemObjects].[SyncCounter] IS NULL ",
+                                    new string[] { "Event" },
+                                    indexTransaction);
+
+                                SqlAccessor<FileSystemObject>.DeleteRows(indexDB,
+                                    pendingToDelete,
+                                    out unableToFindIndexes,
+                                    transaction: indexTransaction);
+
+                                deleteEvents = pendingToDelete.Where(toDelete => toDelete.EventId != null)
+                                    .Select(toDelete => toDelete.Event);
+
+                                SqlAccessor<Sync>.InsertRow(indexDB,
+                                    new Sync()
+                                    {
+                                        SyncId = IdForEmptySync,
+                                        RootPath = newRootPath
+                                    },
+                                    transaction: indexTransaction);
+
+                                indexTransaction.Commit(CommitMode.Immediate);
+                            }
+                            catch
+                            {
+                                indexTransaction.Rollback();
+
+                                throw;
+                            }
+
+                            SqlAccessor<Event>.DeleteRows(indexDB,
+                                deleteEvents,
+                                out unableToFindIndexes);
+                        }
                     }
                 }
                 finally

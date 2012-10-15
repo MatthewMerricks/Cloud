@@ -548,14 +548,11 @@
     <EmbeddedResource Include="Resources\CloudMoveCloudFolder" />
     <None Include="win-client_TemporaryKey.pfx" />
     <None Include="WinClientCertificate.pfx" />
-<<<<<<< HEAD
     <Resource Include="BadgeCOM\Failed.ico" />
     <Resource Include="BadgeCOM\Selective.ico" />
     <Resource Include="BadgeCOM\Synced.ico" />
     <Resource Include="BadgeCOM\Syncing.ico" />
-=======
     <EmbeddedResource Include="Resources\CloudInstallUpdate" />
->>>>>>> bf0ce3b7a6ea952ba8c1f7006db9983174421d00
     <Content Include="x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
