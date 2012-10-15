@@ -41,6 +41,8 @@ namespace win_client.Services.Notification
         private WebSocket _connection = null;
         private MessageReceiver urlReceiver = null;
 
+        private const int MillisecondManualPollingInterval = 10000;
+
         // True: the push notification service has been started.
         private bool _serviceStarted;
         public bool ServiceStarted
@@ -123,10 +125,12 @@ namespace win_client.Services.Notification
             // self.serviceStarted = YES;
             //&&&&
 
+            _trace.writeToLog(9, "CLNotificationService: ConnectPushNotificationServer: Entry.");
             bool fallbackToManualPolling = false;
 
             if (faultCount >= CLDefinitions.PushNotificationFaultLimitBeforeFallback)
             {
+                _trace.writeToLog(9, "CLNotificationService: ConnectPushNotificationServer: Set fallbackToManualPolling.");
                 fallbackToManualPolling = true;
             }
             else
@@ -135,7 +139,7 @@ namespace win_client.Services.Notification
                 try
                 {
                     string url = String.Format("{0}?channel=/channel_{1}&sender={2}", CLDefinitions.CLNotificationServerURL, Settings.Instance.Uuid, Settings.Instance.Udid);
-                    _trace.writeToLog(1, "CLNotificationService: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>.", url);
+                    _trace.writeToLog(9, "CLNotificationService: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>.", url);
 
                     //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on Settings.Instance.TraceExcludeAuthorization !!
                     if ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication)
@@ -224,28 +228,36 @@ namespace win_client.Services.Notification
 
             if (fallbackToManualPolling)
             {
+                _trace.writeToLog(9, "CLNotificationService: ConnectPushNotificationServer: Queue FallbackToManualPolling.");
                 ThreadPool.UnsafeQueueUserWorkItem(FallbackToManualPolling, this);
             }
         }
 
         private static void FallbackToManualPolling(object state)
         {
+            _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: Entry.");
             CLNotificationService castState = state as CLNotificationService;
 
             if (castState != null)
             {
+                _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: Set faultCount to zero.");
                 castState.faultCount = 0;
             }
+
+            bool manualPollSuccessful = false;
 
             bool servicesStartedSet = false;
             for (int manualPollingIteration = CLDefinitions.ManualPollingIterationsBeforeConnectingPush - 1; manualPollingIteration >= 0; manualPollingIteration--)
             {
+                _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: Top of manualPollingIteration loop.");
                 if (!servicesStartedSet)
                 {
+                    _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: !servicesStartedSet.");
                     if (castState != null)
                     {
                         lock (castState)
                         {
+                            _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: Set _serviceStarted.");
                             castState._serviceStarted = true;
                         }
                     }
@@ -254,13 +266,17 @@ namespace win_client.Services.Notification
                 else if (castState != null
                     && !castState._serviceStarted)
                 {
+                    _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: Return.");
                     return;
                 }
 
                 CLError storeManualPollingError = null;
                 try
                 {
+                    _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: Call PerformManualPoll.");
                     PerformManualPoll();
+
+                    manualPollSuccessful = true;
                 }
                 catch (Exception ex)
                 {
@@ -273,14 +289,17 @@ namespace win_client.Services.Notification
                 {
                     try
                     {
+                        _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: manualPollingIteration is zero.");
                         castState.ConnectPushNotificationServer();
                     }
                     catch (Exception innerEx)
                     {
+                        _trace.writeToLog(1, "CLNotificationService: FallbackToManualPolling: ERROR: Exception.  Msg: <{0}>.", innerEx.Message);
                         if (castState != null)
                         {
                             lock (castState)
                             {
+                                _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: Reset _serviceStarted.");
                                 castState._serviceStarted = false;
                             }
                         }
@@ -289,9 +308,11 @@ namespace win_client.Services.Notification
 
                         CLError error = innerEx;
                         _trace.writeToLog(1, "CLNotificationService: FallbackToManualPolling: ERROR: Exception occurred during manual polling. Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-                        if (storeManualPollingError != null)
+                        if (!manualPollSuccessful
+                            && storeManualPollingError != null)
                         {
                             // Force logging errors in the serious case where a message had to be displayed
+                            _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: Put up an ugly MessageBox to the user.");
                             forceErrors = true;
                             if (!Settings.Instance.LogErrors)
                             {
@@ -305,17 +326,25 @@ namespace win_client.Services.Notification
                         }
                         else
                         {
+                            manualPollSuccessful = false;
                             manualPollingIteration = CLDefinitions.ManualPollingIterationsBeforeConnectingPush - 1;
+                            _trace.writeToLog(9, "CLNotificationService: FallbackToManualPolling: Decremented manualPollingIteration count: {0}.", manualPollingIteration);
+                            Thread.Sleep(MillisecondManualPollingInterval);
                         }
 
                         error.LogErrors(Settings.Instance.ErrorLogLocation, forceErrors || Settings.Instance.LogErrors);
                     }
+                }
+                else
+                {
+                    Thread.Sleep(MillisecondManualPollingInterval);
                 }
             }
         }
 
         private static void PerformManualPoll()
         {
+            _trace.writeToLog(9, "CLNotificationService: PerformManualPoll: Send manual poll message.");
             CLAppMessages.Message_DidReceivePushNotificationFromServer.Send(StaticSync.NotificationResponseToJSON(new JsonNotificationResponse()
                 {
                     Body = CLDefinitions.CLNotificationTypeNew
@@ -324,7 +353,7 @@ namespace win_client.Services.Notification
 
         private void OnConnectionOpened(object sender, EventArgs e)
         {
-            _trace.writeToLog(1, "CLNotificationService: OnConnectionError: Connection opened.");
+            _trace.writeToLog(9, "CLNotificationService: OnConnectionOpened: Connection opened.  Set faultCount to zero.");
             faultCount = 0;
         }
 
@@ -333,6 +362,7 @@ namespace win_client.Services.Notification
             bool forceErrors = false;
             try
             {
+                _trace.writeToLog(1, "CLNotificationService: OnConnectionError: Connection error.  Set faultCount to zero.");
                 CleanWebSocketAndRestart((WebSocket)sender);
             }
             catch (Exception ex)
@@ -355,10 +385,9 @@ namespace win_client.Services.Notification
 
         private void OnConnectionClosed(object sender, EventArgs e)
         {
-            _trace.writeToLog(1, "CLNotificationService: OnConnectionClosed: Entry.");
-
             try
             {
+                _trace.writeToLog(9, "CLNotificationService: OnConnectionClosed: Entry. Call CleanWebSocketAndRestart.");
                 CleanWebSocketAndRestart((WebSocket)sender);
             }
             catch (Exception ex)
@@ -378,8 +407,10 @@ namespace win_client.Services.Notification
             lock (this)
             {
                 faultCount++;
+                _trace.writeToLog(9, "CLNotificationService: CleanWebSocketAndRestart: Entry. doNotRestart: {0}. faultCount: {1}.", doNotRestart, faultCount);
                 if (faultCount >= CLDefinitions.PushNotificationFaultLimitBeforeFallback)
                 {
+                    _trace.writeToLog(1, "CLNotificationService: CleanWebSocketAndRestart: Set doNotRestart.");
                     doNotRestart = true;
                 }
 
@@ -387,64 +418,84 @@ namespace win_client.Services.Notification
                 {
                     try
                     {
+                        _trace.writeToLog(9, "CLNotificationService: CleanWebSocketAndRestart: Remove OnConnectionReceived.");
                         sender.MessageReceived -= urlReceiver.OnConnectionReceived;
                         urlReceiver = null;
                     }
                     catch
                     {
+                        _trace.writeToLog(1, "CLNotificationService: CleanWebSocketAndRestart: ERROR: Exception.");
                     }
                 }
 
                 try
                 {
+                    _trace.writeToLog(9, "CLNotificationService: CleanWebSocketAndRestart: Removed OnConnectionClosed.");
                     sender.Closed -= OnConnectionClosed;
                 }
                 catch
                 {
+                    _trace.writeToLog(1, "CLNotificationService: CleanWebSocketAndRestart: ERROR: Exception(2).");
                 }
 
                 try
                 {
+                    _trace.writeToLog(9, "CLNotificationService: CleanWebSocketAndRestart: Remove OnConnectionError.");
                     sender.Error -= OnConnectionError;
                 }
                 catch
                 {
+                    _trace.writeToLog(1, "CLNotificationService: CleanWebSocketAndRestart: ERROR: Exception(3).");
                 }
 
                 try
                 {
+                    _trace.writeToLog(9, "CLNotificationService: CleanWebSocketAndRestart: Remove OnConnectionOpened.");
                     sender.Opened -= OnConnectionOpened;
                 }
                 catch
                 {
+                    _trace.writeToLog(1, "CLNotificationService: CleanWebSocketAndRestart: ERROR: Exception(4).");
                 }
 
                 try
                 {
+                    _trace.writeToLog(9, "CLNotificationService: CleanWebSocketAndRestart: Close Sender.");
                     sender.Close();
                 }
                 catch
                 {
+                    _trace.writeToLog(1, "CLNotificationService: CleanWebSocketAndRestart: ERROR: Exception(5).");
                 }
 
                 try
                 {
+                    _trace.writeToLog(9, "CLNotificationService: CleanWebSocketAndRestart: Set pushConnected and _serviceStarted false.");
                     pushConnected = false;
                     _serviceStarted = false;
                     if (_connection != null
                         && _connection == sender)
                     {
+                        _trace.writeToLog(9, "CLNotificationService: CleanWebSocketAndRestart: Set _connection null.");
                         _connection = null;
                     }
                 }
                 catch
                 {
+                    _trace.writeToLog(1, "CLNotificationService: CleanWebSocketAndRestart: ERROR: Exception(6).");
                 }
 
-                if (!doNotRestart)
+                if (doNotRestart)
+                {
+                    _trace.writeToLog(1, "CLNotificationService: CleanWebSocketAndRestart: doNotRestart (FallbackToManualPolling)");
+
+                    ThreadPool.UnsafeQueueUserWorkItem(FallbackToManualPolling, this);
+                }
+                else
                 {
                     try
                     {
+                        _trace.writeToLog(9, "CLNotificationService: CleanWebSocketAndRestart: Attempt restart.  Call ConnectPushNotificationServer.");
                         ConnectPushNotificationServer();
                     }
                     catch (Exception ex)
@@ -493,6 +544,7 @@ namespace win_client.Services.Notification
                         || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
                         || parsedResponse.Author != Helpers.GetComputerFriendlyName())
                     {
+                        _trace.writeToLog(9, "CLNotificationService: OnConnectionReceived: Send DidReceivePushNotificationFromServer.");
                         CLAppMessages.Message_DidReceivePushNotificationFromServer.Send(e.Message);
                     }
                 }
@@ -521,18 +573,23 @@ namespace win_client.Services.Notification
             // NSLog(@"%s - Connection to Push Notification Services Ended.", __FUNCTION__);
             try
             {
+                _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Entry.");
                 if (_serviceStarted)
                 {
+                    _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Service started.");
                     if (pushConnected)
                     {
+                        _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Push connected.");
                         if (_connection != null)
                         {
+                            _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Call CleanWebSocketAndRestart.");
                             CleanWebSocketAndRestart(_connection, true);
-                            _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: Cleaned WebSocket.");
+                            _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: After call to CleanWebSocketAndRestart.");
                         }
                     }
                     else
                     {
+                        _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Clear _serviceStarted.");
                         _serviceStarted = false;
                     }
                 }

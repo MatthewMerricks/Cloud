@@ -1,0 +1,1855 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Ookii.Dialogs.WpfMinusTaskDialog</name>
+    </assembly>
+    <members>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.AnimationResource">
+            <summary>
+            Represents an animation for the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog"/> loaded from a Win32 resource.
+            </summary>
+            <threadsafety instance="false" static="true"/>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.AnimationResource.#ctor(System.String,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.AnimationResource"/> class.
+            </summary>
+            <param name="resourceFile">The file containing the animation resource.</param>
+            <param name="resourceId">The resource ID of the animation resource.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="resourceFile"/> is <see langword="null"/>.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.AnimationResource.GetShellAnimation(Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation)">
+            <summary>
+            Gets a default animation from shell32.dll.
+            </summary>
+            <param name="animation">The animation to get.</param>
+            <returns>An instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.AnimationResource"/> class representing the specified animation.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">The <paramref name="animation"/> parameter was not a value defined in the
+            <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation"/> enumeration.</exception>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.AnimationResource.ResourceFile">
+            <summary>
+            Gets the name of the file containing the animation resource.
+            </summary>
+            <value>
+            The name of the file containing the animation resource. This is typically a DLL or EXE file.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.AnimationResource.ResourceId">
+            <summary>
+            Gets the ID of the animation resource.
+            </summary>
+            <value>
+            The ID of the animation resource.
+            </value>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.ButtonType">
+            <summary>
+            Represents the type of a task dialog button.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ButtonType.Custom">
+            <summary>
+            The button is a custom button.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ButtonType.Ok">
+            <summary>
+            The button is the common OK button.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ButtonType.Yes">
+            <summary>
+            The button is the common Yes button.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ButtonType.No">
+            <summary>
+            The button is the common No button.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ButtonType.Cancel">
+            <summary>
+            The button is the common Cancel button.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ButtonType.Retry">
+            <summary>
+            The button is the common Retry button.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ButtonType.Close">
+            <summary>
+            The button is the common Close button.
+            </summary>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog">
+            <summary>
+            Represents a dialog box that allows the user to enter generic credentials.
+            </summary>
+            <remarks>
+            <para>
+              This class is meant for generic credentials; it does not provide access to all the functionality
+              of the Windows CredUI API. Features such as Windows domain credentials or alternative security
+              providers (e.g. smartcards or biometric devices) are not supported.
+            </para>
+            <para>
+              The <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog"/> class provides methods for storing and retrieving credentials,
+              and also manages automatic persistence of credentials by using the "Save password" checkbox on
+              the credentials dialog. To specify the target for which the credentials should be saved, set the
+              <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target"/> property.
+            </para>
+            <note>
+              This class requires Windows XP or later.
+            </note>
+            </remarks>
+            <threadsafety instance="false" static="true"/>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog"/> class.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.#ctor(System.ComponentModel.IContainer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog"/> class with the specified container.
+            </summary>
+            <param name="container">The <see cref="T:System.ComponentModel.IContainer"/> to add the component to.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowDialog">
+            <summary>
+            Shows the credentials dialog as a modal dialog.
+            </summary>
+            <returns><see langword="true"/> if the user clicked OK; otherwise, <see langword="false"/>.</returns>
+            <remarks>
+            <para>
+              The credentials dialog will not be shown if one of the following conditions holds:
+            </para>
+            <list type="bullet">
+              <item>
+                <description>
+                  <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UseApplicationInstanceCredentialCache"/> is <see langword="true"/> and the application instance
+                  credential cache contains credentials for the specified <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target"/>, even if <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowUIForSavedCredentials"/>
+                  is <see langword="true"/>.
+                </description>
+              </item>
+              <item>
+                <description>
+                  <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowSaveCheckBox"/> is <see langword="true"/>, <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowUIForSavedCredentials"/> is <see langword="false"/>, and the operating system credential store
+                  for the current user contains credentials for the specified <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target"/>.
+                </description>
+              </item>
+            </list>
+            <para>
+              In these cases, the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Credentials"/>, <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UserName"/> and <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Password"/> properties will
+              be set to the saved credentials and this function returns immediately, returning <see langword="true"/>.
+            </para>
+            <para>
+              If the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowSaveCheckBox"/> property is <see langword="true"/>, you should call <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ConfirmCredentials(System.Boolean)"/>
+              after validating if the provided credentials are correct.
+            </para>
+            </remarks>
+            <exception cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException">An error occurred while showing the credentials dialog.</exception>
+            <exception cref="T:System.InvalidOperationException"><see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target"/> is an empty string ("").</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowDialog(System.Windows.Window)">
+            <summary>
+            Shows the credentials dialog as a modal dialog with the specified owner.
+            </summary>
+            <param name="owner">The <see cref="T:System.Windows.Window"/> that owns the credentials dialog.</param>
+            <returns><see langword="true"/> if the user clicked OK; otherwise, <see langword="false"/>.</returns>
+            <remarks>
+            <para>
+              The credentials dialog will not be shown if one of the following conditions holds:
+            </para>
+            <list type="bullet">
+              <item>
+                <description>
+                  <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UseApplicationInstanceCredentialCache"/> is <see langword="true"/> and the application instance
+                  credential cache contains credentials for the specified <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target"/>, even if <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowUIForSavedCredentials"/>
+                  is <see langword="true"/>.
+                </description>
+              </item>
+              <item>
+                <description>
+                  <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowSaveCheckBox"/> is <see langword="true"/>, <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowUIForSavedCredentials"/> is <see langword="false"/>, and the operating system credential store
+                  for the current user contains credentials for the specified <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target"/>.
+                </description>
+              </item>
+            </list>
+            <para>
+              In these cases, the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Credentials"/>, <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UserName"/> and <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Password"/> properties will
+              be set to the saved credentials and this function returns immediately, returning <see langword="true"/>.
+            </para>
+            <para>
+              If the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowSaveCheckBox"/> property is <see langword="true"/>, you should call <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ConfirmCredentials(System.Boolean)"/>
+              after validating if the provided credentials are correct.
+            </para>
+            </remarks>
+            <exception cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException">An error occurred while showing the credentials dialog.</exception>
+            <exception cref="T:System.InvalidOperationException"><see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target"/> is an empty string ("").</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ConfirmCredentials(System.Boolean)">
+            <summary>
+            Confirms the validity of the credential provided by the user.
+            </summary>
+            <param name="confirm"><see langword="true"/> if the credentials that were specified on the dialog are valid; otherwise, <see langword="false"/>.</param>
+            <remarks>
+            Call this function after calling <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowDialog"/> when <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowSaveCheckBox"/> is <see langword="true"/>.
+            Only when this function is called with <paramref name="confirm"/> set to <see langword="true"/> will the credentials be
+            saved in the credentials store and/or the application instance credential cache.
+            </remarks>
+            <exception cref="T:System.InvalidOperationException"><see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowDialog"/> was not called, or the user did not click OK, or <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowSaveCheckBox"/> was <see langword="false"/>
+            at the call, or the value of <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target"/> or <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.IsSaveChecked"/>
+            was changed after the call.</exception>
+            <exception cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException">There was an error saving the credentials.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.StoreCredential(System.String,System.Net.NetworkCredential)">
+            <summary>
+            Stores the specified credentials in the operating system's credential store for the currently logged on user.
+            </summary>
+            <param name="target">The target name for the credentials.</param>
+            <param name="credential">The credentials to store.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para>
+              <paramref name="target"/> is <see langword="null"/>.
+            </para>
+            <para>
+              -or-
+            </para>
+            <para>
+              <paramref name="credential"/> is <see langword="null"/>.
+            </para>
+            </exception>
+            <exception cref="T:System.ArgumentException"><paramref name="target"/> is an empty string ("").</exception>
+            <exception cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException">An error occurred storing the credentials.</exception>
+            <remarks>
+            <note>
+              The <see cref="P:System.Net.NetworkCredential.Domain"/> property is ignored and will not be stored, even if it is
+              not <see langword="null"/>.
+            </note>
+            <para>
+              If the credential manager already contains credentials for the specified <paramref name="target"/>, they
+              will be overwritten; this can even overwrite credentials that were stored by another application. Therefore 
+              it is strongly recommended that you prefix the target name to ensure uniqueness, e.g. using the
+              form "Company_ApplicationName_www.example.com".
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.RetrieveCredential(System.String)">
+            <summary>
+            Retrieves credentials for the specified target from the operating system's credential store for the current user.
+            </summary>
+            <param name="target">The target name for the credentials.</param>
+            <returns>The credentials if they were found; otherwise, <see langword="null"/>.</returns>
+            <remarks>
+            <para>
+              If the requested credential was not originally stored using the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog"/> class (but e.g. by 
+              another application), the password may not be decoded correctly.
+            </para>
+            <para>
+              This function does not check the application instance credential cache for the credentials; for that you can use
+              the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.RetrieveCredentialFromApplicationInstanceCache(System.String)"/> function.
+            </para>
+            </remarks>
+            <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="target"/> is an empty string ("").</exception>
+            <exception cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException">An error occurred retrieving the credentials.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.RetrieveCredentialFromApplicationInstanceCache(System.String)">
+            <summary>
+            Tries to get the credentials for the specified target from the application instance credential cache.
+            </summary>
+            <param name="target">The target for the credentials, typically a server name.</param>
+            <returns>The credentials that were found in the application instance cache; otherwise, <see langword="null"/>.</returns>
+            <remarks>
+            <para>
+              This function will only check the the application instance credential cache; the operating system's credential store
+              is not checked. To retrieve credentials from the operating system's store, use <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.RetrieveCredential(System.String)"/>.
+            </para>
+            </remarks>
+            <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="target"/> is an empty string ("").</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.DeleteCredential(System.String)">
+            <summary>
+            Deletes the credentials for the specified target.
+            </summary>
+            <param name="target">The name of the target for which to delete the credentials.</param>
+            <returns><see langword="true"/> if the credential was deleted from either the application instance cache or
+            the operating system's store; <see langword="false"/> if no credentials for the specified target could be found
+            in either store.</returns>
+            <remarks>
+            <para>
+              The credentials for the specified target will be removed from the application instance credential cache
+              and the operating system's credential store.
+            </para>
+            </remarks>
+            <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="target"/> is an empty string ("").</exception>
+            <exception cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException">An error occurred deleting the credentials from the operating system's credential store.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.OnUserNameChanged(System.EventArgs)">
+            <summary>
+            Raises the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UserNameChanged"/> event.
+            </summary>
+            <param name="e">The <see cref="T:System.EventArgs"/> containing data for the event.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.OnPasswordChanged(System.EventArgs)">
+            <summary>
+            Raises the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.PasswordChanged"/> event.
+            </summary>
+            <param name="e">The <see cref="T:System.EventArgs"/> containing data for the event.</param>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Dispose(System.Boolean)">
+            <summary> 
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing"><see langword="true"/> if managed resources should be disposed; otherwise, <see langword="false"/>.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="E:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UserNameChanged">
+            <summary>
+            Event raised when the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UserName"/> property changes.
+            </summary>
+        </member>
+        <member name="E:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.PasswordChanged">
+            <summary>
+            Event raised when the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Password"/> property changes.
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UseApplicationInstanceCredentialCache">
+            <summary>
+            Gets or sets whether to use the application instance credential cache.
+            </summary>
+            <value>
+            <see langword="true"/> when credentials are saved in the application instance cache; <see langref="false"/> if they are not.
+            The default value is <see langword="false"/>.
+            </value>
+            <remarks>
+            <para>
+              The application instance credential cache stores credentials in memory while an application is running. When the
+              application exits, this cache is not persisted.
+            </para>
+            <para>
+              When the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UseApplicationInstanceCredentialCache"/> property is set to <see langword="true"/>, credentials that
+              are confirmed with <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ConfirmCredentials(System.Boolean)"/> when the user checked the "save password" option will be stored
+              in the application instance cache as well as the operating system credential store.
+            </para>
+            <para>
+              When <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowDialog"/> is called, and credentials for the specified <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target"/> are already present in
+              the application instance cache, the dialog will not be shown and the cached credentials are returned, even if
+              <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowUIForSavedCredentials"/> is <see langword="true"/>.
+            </para>
+            <para>
+              The application instance credential cache allows you to prevent prompting the user again for the lifetime of the
+              application if the "save password" checkbox was checked, but when the application is restarted you can prompt again
+              (initializing the dialog with the saved credentials). To get this behaviour, the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowUIForSavedCredentials"/>
+              property must be set to <see langword="true"/>.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.IsSaveChecked">
+            <summary>
+            Gets or sets whether the "save password" checkbox is checked.
+            </summary>
+            <value>
+            <see langword="true" /> if the "save password" is checked; otherwise, <see langword="false" />.
+            The default value is <see langword="false" />.
+            </value>
+            <remarks>
+            The value of this property is only valid if the dialog box is displayed with a save checkbox.
+            Set this property before showing the dialog to determine the initial checked value of the save checkbox.
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Password">
+            <summary>
+            Gets the password the user entered in the dialog.
+            </summary>
+            <value>
+            The password entered in the password field of the credentials dialog.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Credentials">
+            <summary>
+            Gets the user-specified user name and password in a <see cref="T:System.Net.NetworkCredential"/> object.
+            </summary>
+            <value>
+            A <see cref="T:System.Net.NetworkCredential"/> instance containing the user name and password specified on the dialog.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UserName">
+            <summary>
+            Gets the user name the user entered in the dialog.
+            </summary>
+            <value>
+            The user name entered in the user name field of the credentials dialog.
+            The default value is an empty string ("").
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Target">
+            <summary>
+            Gets or sets the target for the credentials, typically a server name.
+            </summary>
+            <value>
+            The target for the credentials. The default value is an empty string ("").
+            </value>
+            <remarks>
+            Credentials are stored on a per user, not on a per application basis. To ensure that credentials stored by different 
+            applications do not conflict, you should prefix the target with an application-specific identifer, e.g. 
+            "Company_Application_target".
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.WindowTitle">
+            <summary>
+            Gets or sets the title of the credentials dialog.
+            </summary>
+            <value>
+            The title of the credentials dialog. The default value is an empty string ("").
+            </value>
+            <remarks>
+            <para>
+              This property is not used on Windows Vista and newer versions of windows; the window title will always be "Windows Security"
+              in that case.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.MainInstruction">
+            <summary>
+            Gets or sets a brief message to display in the dialog box.
+            </summary>
+            <value>
+            A brief message that will be displayed in the dialog box. The default value is an empty string ("").
+            </value>
+            <remarks>
+            <para>
+              On Windows Vista and newer versions of Windows, this text is displayed using a different style to set it apart
+              from the other text. In the default style, this text is a slightly larger and colored blue. The style is identical
+              to the main instruction of a task dialog.
+            </para>
+            <para>
+              On Windows XP, this text is not distinguished from other text. It's display mode depends on the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.DownlevelTextMode"/>
+              property.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Content">
+            <summary>
+            Gets or sets additional text to display in the dialog.
+            </summary>
+            <value>
+            Additional text to display in the dialog. The default value is an empty string ("").
+            </value>
+            <remarks>
+            <para>
+              On Windows Vista and newer versions of Windows, this text is placed below the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.MainInstruction"/> text.
+            </para>
+            <para>
+              On Windows XP, how and if this text is displayed depends on the value of the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.DownlevelTextMode"/>
+              property.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.DownlevelTextMode">
+            <summary>
+            Gets or sets a value that indicates how the text of the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.MainInstruction"/> and <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Content"/> properties
+            is displayed on Windows XP.
+            </summary>
+            <value>
+            One of the values of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.DownlevelTextMode"/> enumeration. The default value is
+            <see cref="F:Ookii.Dialogs.WpfMinusTaskDialog.DownlevelTextMode.MainInstructionAndContent"/>.
+            </value>
+            <remarks>
+            <para>
+              Windows XP does not support the distinct visual style of the main instruction, so there is no visual difference between the
+              text of the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.MainInstruction"/> and <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Content"/> properties. Depending
+              on your requirements, you may wish to hide either the main instruction or the content text.
+            </para>
+            <para>
+              This property has no effect on Windows Vista and newer versions of Windows.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowSaveCheckBox">
+            <summary>
+            Gets or sets a value that indicates whether a check box is shown on the dialog that allows the user to choose whether to save
+            the credentials or not.
+            </summary>
+            <value>
+            <see langword="true"/> when the "save password" checkbox is shown on the credentials dialog; otherwise, <see langword="false"/>.
+            The default value is <see langword="false"/>.
+            </value>
+            <remarks>
+            When this property is set to <see langword="true"/>, you must call the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ConfirmCredentials(System.Boolean)"/> method to save the
+            credentials. When this property is set to <see langword="false"/>, the credentials will never be saved, and you should not call
+            the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ConfirmCredentials(System.Boolean)"/> method.
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowUIForSavedCredentials">
+            <summary>
+            Gets or sets a value that indicates whether the dialog should be displayed even when saved credentials exist for the 
+            specified target.
+            </summary>
+            <value>
+            <see langword="true"/> if the dialog is displayed even when saved credentials exist; otherwise, <see langword="false"/>.
+            The default value is <see langword="false"/>.
+            </value>
+            <remarks>
+            <para>
+              This property applies only when the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowSaveCheckBox"/> property is <see langword="true"/>.
+            </para>
+            <para>
+              Note that even if this property is <see langword="true"/>, if the proper credentials exist in the 
+              application instance credentials cache the dialog will not be displayed.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.IsStoredCredential">
+            <summary>
+            Gets a value that indicates whether the current credentials were retrieved from a credential store.
+            </summary>
+            <value>
+            <see langword="true"/> if the current credentials returned by the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.UserName"/>, <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Password"/>,
+            and <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Credentials"/> properties were retrieved from either the application instance credential cache
+            or the operating system's credential store; otherwise, <see langword="false"/>.
+            </value>
+            <remarks>
+            <para>
+              You can use this property to determine if the credentials dialog was shown after a call to <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowDialog"/>.
+              If the dialog was shown, this property will be <see langword="false"/>; if the credentials were retrieved from the
+              application instance cache or the credential store and the dialog was not shown it will be <see langword="true"/>.
+            </para>
+            <para>
+              If the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.ShowUIForSavedCredentials"/> property is set to <see langword="true"/>, and the dialog is shown
+              but populated with stored credentials, this property will still return <see langword="false"/>.
+            </para>
+            </remarks>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException">
+            <summary>
+            The exception that is thrown when an error occurs getting credentials.
+            </summary>
+            <threadsafety instance="false" static="true" />
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException"/> class.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException"/> class with the specified error. 
+            </summary>
+            <param name="error">The Win32 error code associated with this exception.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException"/> class with a specified error message.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException.#ctor(System.Int32,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException"/> class with the specified error and the specified detailed description.
+            </summary>
+            <param name="error">The Win32 error code associated with this exception.</param>
+            <param name="message">A detailed description of the error.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">A reference to the inner exception that is the cause of the current exception.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.CredentialException"/> class with serialized data.
+            </summary>
+            <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
+            <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext"/> that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.DownlevelTextMode">
+            <summary>
+            An enumeration that displays how the text in the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.MainInstruction"/> and <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Content"/>
+            properties is displayed on a credential dialog in Windows XP.
+            </summary>
+            <remarks>
+            <para>
+              Windows XP does not support the distinct visual style of the main instruction, so there is no visual difference between the
+              text of the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.MainInstruction"/> and <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Content"/> properties. Depending
+              on the scenario, you may wish to hide either the main instruction or the content text.
+            </para>
+            </remarks>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.DownlevelTextMode.MainInstructionAndContent">
+            <summary>
+            The text of the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.MainInstruction"/> and <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Content"/> properties is
+            concatenated together, separated by an empty line.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.DownlevelTextMode.MainInstructionOnly">
+            <summary>
+            Only the text of the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.MainInstruction"/> property is shown.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.DownlevelTextMode.ContentOnly">
+            <summary>
+            Only the text of the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.CredentialDialog.Content"/> property is shown.
+            </summary>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.ExpandButtonClickedEventArgs">
+            <summary>
+            Provides data for the <see cref="!:TaskDialog.ExpandButtonClicked"/> event.
+            </summary>
+            <threadsafety instance="false" static="true"/>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ExpandButtonClickedEventArgs.#ctor(System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ExpandButtonClickedEventArgs"/> class with the specified expanded state.
+            </summary>
+            <param name="expanded"><see langword="true"/> if the the expanded content on the dialog is shown; otherwise, <see langword="false"/>.</param>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ExpandButtonClickedEventArgs.Expanded">
+            <summary>
+            Gets a value that indicates if the expanded content on the dialog is shown.
+            </summary>
+            <value><see langword="true" /> if the expanded content on the dialog is shown; otherwise, <see langword="false" />.</value>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.HyperlinkClickedEventArgs">
+            <summary>
+            Class that provides data for the <see cref="!:TaskDialog.HyperlinkClicked"/> event.
+            </summary>
+            <threadsafety instance="false" static="true"/>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.HyperlinkClickedEventArgs.#ctor(System.String)">
+            <summary>
+            Creates a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.HyperlinkClickedEventArgs"/> class with the specified URL.
+            </summary>
+            <param name="href">The URL of the hyperlink.</param>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.HyperlinkClickedEventArgs.Href">
+            <summary>
+            Gets the URL of the hyperlink that was clicked.
+            </summary>
+            <value>
+            The value of the href attribute of the hyperlink.
+            </value>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.Interop.IMalloc">
+            <summary>
+            C# definition of the IMalloc interface.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.Interop.IMalloc.Alloc(System.UInt32)">
+            <summary>
+            Allocate a block of memory
+            </summary>
+            <param name="cb">Size, in bytes, of the memory block to be allocated.</param>
+            <returns>a pointer to the allocated memory block.</returns>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.Interop.IMalloc.Realloc(System.IntPtr,System.UInt32)">
+            <summary>
+            Changes the size of a previously allocated memory block.
+            </summary>
+            <param name="pv">Pointer to the memory block to be reallocated</param>
+            <param name="cb">Size of the memory block, in bytes, to be reallocated.</param>
+            <returns>reallocated memory block</returns>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.Interop.IMalloc.Free(System.IntPtr)">
+            <summary>
+            Free a previously allocated block of memory.
+            </summary>
+            <param name="pv">Pointer to the memory block to be freed.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.Interop.IMalloc.GetSize(System.IntPtr)">
+            <summary>
+            This method returns the size, in bytes, of a memory block previously allocated with IMalloc::Alloc or IMalloc::Realloc.
+            </summary>
+            <param name="pv">Pointer to the memory block for which the size is requested</param>
+            <returns>The size of the allocated memory block in bytes.</returns>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.Interop.IMalloc.DidAlloc(System.IntPtr)">
+            <summary>
+            This method determines whether this allocator was used to allocate the specified block of memory.
+            </summary>
+            <param name="pv">Pointer to the memory block</param>
+            <returns>
+            1 - allocated 
+            0 - not allocated by this IMalloc Instance.
+            -1 if DidAlloc is unable to determine whether or not it allocated the memory block.
+            </returns>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.Interop.IMalloc.HeapMinimize">
+            <summary>
+            Minimizes the heap by releasing unused memory to the operating system.
+            </summary>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarState">
+            <summary>
+            Represents the state of the progress bar on the task dialog.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarState.Normal">
+            <summary>
+            Normal state.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarState.Error">
+            <summary>
+            Error state
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarState.Paused">
+            <summary>
+            Paused state
+            </summary>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle">
+            <summary>
+            Indicates the type of progress on a task dialog.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle.None">
+            <summary>
+            No progress bar is displayed on the dialog.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle.ProgressBar">
+            <summary>
+            A regular progress bar is displayed on the dialog.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle.MarqueeProgressBar">
+            <summary>
+            A marquee progress bar is displayed on the dialog. Use this value for operations
+            that cannot report concrete progress information.
+            </summary>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog">
+            <summary>
+            Represents a dialog that can be used to report progress to the user.
+            </summary>
+            <remarks>
+            <para>
+              This class provides a wrapper for the native Windows IProgressDialog API.
+            </para>
+            <para>
+              The <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog"/> class requires Windows 2000, Windows Me, or newer versions of Windows.
+            </para>
+            </remarks>
+            <threadsafety static="true" instance="false"/>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog"/> class.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.#ctor(System.ComponentModel.IContainer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog"/> class, adding it to the specified container.
+            </summary>
+            <param name="container">The <see cref="T:System.ComponentModel.IContainer"/> to which the component should be added.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show">
+            <summary>
+            Displays the progress dialog as a modeless dialog.
+            </summary>
+            <remarks>
+            <para>
+              This function will not block the parent window and will return immediately.
+            </para>
+            <para>
+              Although this function returns immediately, you cannot use the UI thread to do any processing. The dialog
+              will not function correctly unless the UI thread continues to handle window messages, so that thread may
+              not be blocked by some other activity. All processing related to the progress dialog must be done in
+              the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler.
+            </para>
+            </remarks>
+            <exception cref="T:System.InvalidOperationException">The animation specified in the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Animation"/> property
+            could not be loaded.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show(System.Object)">
+            <summary>
+            Displays the progress dialog as a modeless dialog.
+            </summary>
+            <param name="argument">A parameter for use by the background operation to be executed in the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler.</param>
+            <remarks>
+            <para>
+              This function will not block the parent window and return immediately.
+            </para>
+            <para>
+              Although this function returns immediately, you cannot use the UI thread to do any processing. The dialog
+              will not function correctly unless the UI thread continues to handle window messages, so that thread may
+              not be blocked by some other activity. All processing related to the progress dialog must be done in
+              the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler.
+            </para>
+            </remarks>
+            <exception cref="T:System.InvalidOperationException">The animation specified in the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Animation"/> property
+            could not be loaded.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog">
+            <summary>
+            Displays the progress dialog as a modal dialog.
+            </summary>
+            <remarks>
+            <para>
+              The ShowDialog function for most .Net dialogs will not return until the dialog is closed. However,
+              the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog"/> function for the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog"/> class will return immediately.
+              The parent window will be disabled as with all modal dialogs.
+            </para>
+            <para>
+              Although this function returns immediately, you cannot use the UI thread to do any processing. The dialog
+              will not function correctly unless the UI thread continues to handle window messages, so that thread may
+              not be blocked by some other activity. All processing related to the progress dialog must be done in
+              the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler.
+            </para>
+            <para>
+              The progress dialog's window will appear in the taskbar. This behaviour is also contrary to most .Net dialogs,
+              but is part of the underlying native progress dialog API so cannot be avoided.
+            </para>
+            <para>
+              When possible, it is recommended that you use a modeless dialog using the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> function.
+            </para>
+            </remarks>
+            <exception cref="T:System.InvalidOperationException">The animation specified in the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Animation"/> property
+            could not be loaded.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog(System.Windows.Window)">
+            <summary>
+            Displays the progress dialog as a modal dialog.
+            </summary>
+            <param name="owner">The window that owns the dialog.</param>
+            <remarks>
+            <para>
+              The ShowDialog function for most .Net dialogs will not return until the dialog is closed. However,
+              the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog"/> function for the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog"/> class will return immediately.
+              The parent window will be disabled as with all modal dialogs.
+            </para>
+            <para>
+              Although this function returns immediately, you cannot use the UI thread to do any processing. The dialog
+              will not function correctly unless the UI thread continues to handle window messages, so that thread may
+              not be blocked by some other activity. All processing related to the progress dialog must be done in
+              the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler.
+            </para>
+            <para>
+              The progress dialog's window will appear in the taskbar. This behaviour is also contrary to most .Net dialogs,
+              but is part of the underlying native progress dialog API so cannot be avoided.
+            </para>
+            <para>
+              When possible, it is recommended that you use a modeless dialog using the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> function.
+            </para>
+            </remarks>
+            <exception cref="T:System.InvalidOperationException">The animation specified in the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Animation"/> property
+            could not be loaded, or the operation is already running.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog(System.Windows.Window,System.Object)">
+            <summary>
+            Displays the progress dialog as a modal dialog.
+            </summary>
+            <param name="owner">The window that owns the dialog.</param>
+            <param name="argument">A parameter for use by the background operation to be executed in the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler.</param>
+            <remarks>
+            <para>
+              The ShowDialog function for most .Net dialogs will not return until the dialog is closed. However,
+              the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog"/> function for the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog"/> class will return immediately.
+              The parent window will be disabled as with all modal dialogs.
+            </para>
+            <para>
+              Although this function returns immediately, you cannot use the UI thread to do any processing. The dialog
+              will not function correctly unless the UI thread continues to handle window messages, so that thread may
+              not be blocked by some other activity. All processing related to the progress dialog must be done in
+              the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler.
+            </para>
+            <para>
+              The progress dialog's window will appear in the taskbar. This behaviour is also contrary to most .Net dialogs,
+              but is part of the underlying native progress dialog API so cannot be avoided.
+            </para>
+            <para>
+              When possible, it is recommended that you use a modeless dialog using the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> function.
+            </para>
+            </remarks>
+            <exception cref="T:System.InvalidOperationException">The animation specified in the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Animation"/> property
+            could not be loaded, or the operation is already running.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ReportProgress(System.Int32)">
+            <summary>
+            Updates the dialog's progress bar.
+            </summary>
+            <param name="percentProgress">The percentage, from 0 to 100, of the operation that is complete.</param>
+            <remarks>
+            <para>
+              Call this method from the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler if you want to report progress.
+            </para>
+            <para>
+              This method has no effect is <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ProgressBarStyle"/> is <see cref="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle.MarqueeProgressBar"/>
+              or <see cref="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle.None"/>.
+            </para>
+            </remarks>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="percentProgress"/> is out of range.</exception>
+            <exception cref="T:System.InvalidOperationException">The progress dialog is not currently being displayed.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ReportProgress(System.Int32,System.String,System.String)">
+            <summary>
+            Updates the dialog's progress bar.
+            </summary>
+            <param name="percentProgress">The percentage, from 0 to 100, of the operation that is complete.</param>
+            <param name="text">The new value of the progress dialog's primary text message, or <see langword="null"/> to leave the value unchanged.</param>
+            <param name="description">The new value of the progress dialog's additional description message, or <see langword="null"/> to leave the value unchanged.</param>
+            <remarks>Call this method from the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler if you want to report progress.</remarks>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="percentProgress"/> is out of range.</exception>
+            <exception cref="T:System.InvalidOperationException">The progress dialog is not currently being displayed.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ReportProgress(System.Int32,System.String,System.String,System.Object)">
+            <summary>
+            Updates the dialog's progress bar.
+            </summary>
+            <param name="percentProgress">The percentage, from 0 to 100, of the operation that is complete.</param>
+            <param name="text">The new value of the progress dialog's primary text message, or <see langword="null"/> to leave the value unchanged.</param>
+            <param name="description">The new value of the progress dialog's additional description message, or <see langword="null"/> to leave the value unchanged.</param>
+            <param name="userState">A state object that will be passed to the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ProgressChanged"/> event handler.</param>
+            <remarks>Call this method from the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event handler if you want to report progress.</remarks>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="percentProgress"/> is out of range.</exception>
+            <exception cref="T:System.InvalidOperationException">The progress dialog is not currently being displayed.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.OnDoWork(System.ComponentModel.DoWorkEventArgs)">
+            <summary>
+            Raises the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event.
+            </summary>
+            <param name="e">The <see cref="T:System.ComponentModel.DoWorkEventArgs"/> containing data for the event.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.OnRunWorkerCompleted(System.ComponentModel.RunWorkerCompletedEventArgs)">
+            <summary>
+            Raises the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.RunWorkerCompleted"/> event.
+            </summary>
+            <param name="e">The <see cref="T:System.EventArgs"/> containing data for the event.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.OnProgressChanged(System.ComponentModel.ProgressChangedEventArgs)">
+            <summary>
+            Raises the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ProgressChanged"/> event.
+            </summary>
+            <param name="e">The <see cref="T:System.ComponentModel.ProgressChangedEventArgs"/> containing data for the event.</param>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Dispose(System.Boolean)">
+            <summary> 
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing"><see langword="true" /> if managed resources should be disposed; otherwise, <see langword="false" />.</param>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork">
+            <summary>
+            Event raised when the dialog is displayed.
+            </summary>
+            <remarks>
+            Use this event to perform the operation that the dialog is showing the progress for.
+            This event will be raised on a different thread than the UI thread.
+            </remarks>
+        </member>
+        <member name="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.RunWorkerCompleted">
+            <summary>
+            Event raised when the operation completes.
+            </summary>
+        </member>
+        <member name="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ProgressChanged">
+            <summary>
+            Event raised when <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ReportProgress(System.Int32,System.String,System.String,System.Object)"/> is called.
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.WindowTitle">
+            <summary>
+            Gets or sets the text in the progress dialog's title bar.
+            </summary>
+            <value>
+            The text in the progress dialog's title bar. The default value is an empty string.
+            </value>
+            <remarks>
+            <para>
+              This property must be set before <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog"/> or <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> is called. Changing property has
+              no effect while the dialog is being displayed.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Text">
+            <summary>
+            Gets or sets a short description of the operation being carried out.
+            </summary>
+            <value>
+            A short description of the operation being carried. The default value is an empty string.
+            </value>
+            <remarks>
+            <para>
+              This is the primary message to the user.
+            </para>
+            <para>
+              This property can be changed while the dialog is running, but may only be changed from the thread which
+              created the progress dialog. The recommended method to change this value while the dialog is running
+              is to use the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ReportProgress(System.Int32,System.String,System.String)"/> method.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.UseCompactPathsForText">
+            <summary>
+            Gets or sets a value that indicates whether path strings in the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Text"/> property should be compacted if
+            they are too large to fit on one line.
+            </summary>
+            <value>
+            <see langword="true"/> to compact path strings if they are too large to fit on one line; otherwise,
+            <see langword="false"/>. The default value is <see langword="false"/>.
+            </value>
+            <remarks>
+            <note>
+              This property requires Windows Vista or later. On older versions of Windows, it has no effect.
+            </note>
+            <para>
+              This property can be changed while the dialog is running, but may only be changed from the thread which
+              created the progress dialog.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Description">
+            <summary>
+            Gets or sets additional details about the operation being carried out.
+            </summary>
+            <value>
+            Additional details about the operation being carried out. The default value is an empty string.
+            </value>
+            <remarks>
+            This text is used to provide additional details beyond the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Text"/> property.
+            </remarks>
+            <remarks>
+            <para>
+              This property can be changed while the dialog is running, but may only be changed from the thread which
+              created the progress dialog. The recommended method to change this value while the dialog is running
+              is to use the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ReportProgress(System.Int32,System.String,System.String)"/> method.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.UseCompactPathsForDescription">
+            <summary>
+            Gets or sets a value that indicates whether path strings in the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Description"/> property should be compacted if
+            they are too large to fit on one line.
+            </summary>
+            <value>
+            <see langword="true"/> to compact path strings if they are too large to fit on one line; otherwise,
+            <see langword="false"/>. The default value is <see langword="false"/>.
+            </value>
+            <remarks>
+            <note>
+              This property requires Windows Vista or later. On older versions of Windows, it has no effect.
+            </note>
+            <para>
+              This property can be changed while the dialog is running, but may only be changed from the thread which
+              created the progress dialog.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.CancellationText">
+            <summary>
+            Gets or sets the text that will be shown after the Cancel button is pressed.
+            </summary>
+            <value>
+            The text that will be shown after the Cancel button is pressed.
+            </value>
+            <remarks>
+            <para>
+              This property must be set before <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog"/> or <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> is called. Changing property has
+              no effect while the dialog is being displayed.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowTimeRemaining">
+            <summary>
+            Gets or sets a value that indicates whether an estimate of the remaining time will be shown.
+            </summary>
+            <value>
+            <see langword="true"/> if an estimate of remaining time will be shown; otherwise, <see langword="false"/>. The
+            default value is <see langword="false"/>.
+            </value>
+            <remarks>
+            <para>
+              This property must be set before <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog"/> or <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> is called. Changing property has
+              no effect while the dialog is being displayed.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowCancelButton">
+            <summary>
+            Gets or sets a value that indicates whether the dialog has a cancel button.
+            </summary>
+            <value>
+            <see langword="true"/> if the dialog has a cancel button; otherwise, <see langword="false"/>. The default
+            value is <see langword="true"/>.
+            </value>
+            <remarks>
+            <note>
+              This property requires Windows Vista or later; on older versions of Windows, the cancel button will always
+              be displayed.
+            </note>
+            <para>
+              The event handler for the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event must periodically check the value of the
+              <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.CancellationPending"/> property to see if the operation has been cancelled if this
+              property is <see langword="true"/>.
+            </para>
+            <para>
+              Setting this property to <see langword="false"/> is not recommended unless absolutely necessary.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.MinimizeBox">
+            <summary>
+            Gets or sets a value that indicates whether the progress dialog has a minimize button.
+            </summary>
+            <value>
+            <see langword="true"/> if the dialog has a minimize button; otherwise, <see langword="false"/>. The default
+            value is <see langword="true"/>.
+            </value>
+            <remarks>
+            <note>
+              This property has no effect on modal dialogs (which do not have a minimize button). It only applies
+              to modeless dialogs shown by using the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> method.
+            </note>
+            <para>
+              This property must be set before <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> is called. Changing property has
+              no effect while the dialog is being displayed.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.CancellationPending">
+            <summary>
+            Gets a value indicating whether the user has requested cancellation of the operation.
+            </summary>
+            <value>
+            <see langword="true"/> if the user has cancelled the progress dialog; otherwise, <see langword="false"/>. The default is <see langword="false"/>.
+            </value>
+            <remarks>
+            The event handler for the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.DoWork"/> event must periodically check this property and abort the operation
+            if it returns <see langword="true"/>.
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Animation">
+            <summary>
+            Gets or sets the animation to show on the progress dialog.
+            </summary>
+            <value>
+            An instance of <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.AnimationResource"/> which specifies the animation to show, or <see langword="null"/>
+            to show no animation. The default value is <see langword="null"/>.
+            </value>
+            <remarks>
+            <para>
+              This property has no effect on Windows Vista or later. On Windows XP, this property will default to
+              a flying papers animation.
+            </para>
+            <para>
+              This property must be set before <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog"/> or <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> is called. Changing property has
+              no effect while the dialog is being displayed.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ProgressBarStyle">
+            <summary>
+            Gets or sets a value that indicates whether a regular or marquee style progress bar should be used.
+            </summary>
+            <value>
+            One of the values of <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle"/>. 
+            The default value is <see cref="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle.ProgressBar"/>.
+            </value>
+            <remarks>
+            <note>
+              Operating systems older than Windows Vista do not support marquee progress bars on the progress dialog. On those operating systems, the
+              progress bar will be hidden completely if this property is <see cref="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle.MarqueeProgressBar"/>.
+            </note>
+            <para>
+              When this property is set to <see cref="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle.ProgressBar"/>, use the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ReportProgress(System.Int32)"/> method to set
+              the value of the progress bar. When this property is set to <see cref="F:Ookii.Dialogs.WpfMinusTaskDialog.ProgressBarStyle.MarqueeProgressBar"/>
+              you can still use the <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ReportProgress(System.Int32,System.String,System.String)"/> method to update the text of the dialog,
+              but the percentage will be ignored.
+            </para>
+            <para>
+              This property must be set before <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.ShowDialog"/> or <see cref="M:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.Show"/> is called. Changing property has
+              no effect while the dialog is being displayed.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog.IsBusy">
+            <summary>
+            Gets a value that indicates whether the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog"/> is running an asynchronous operation.
+            </summary>
+            <value>
+            <see langword="true"/> if the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.ProgressDialog"/> is running an asynchronous operation; 
+            otherwise, <see langword="false"/>.
+            </value>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.AnimationLoadErrorFormat">
+            <summary>
+              Looks up a localized string similar to Unable to load the progress dialog animation: {0}.
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.CredentialEmptyTargetError">
+            <summary>
+              Looks up a localized string similar to The credential target may not be an empty string..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.CredentialError">
+            <summary>
+              Looks up a localized string similar to An error occurred acquiring credentials..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.CredentialPromptNotCalled">
+            <summary>
+              Looks up a localized string similar to PromptForCredentialsWithSave has not been called or the credentials were modified after the call..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.DuplicateButtonTypeError">
+            <summary>
+              Looks up a localized string similar to The task dialog already has a non-custom button with the same type..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.DuplicateItemIdError">
+            <summary>
+              Looks up a localized string similar to The task dialog already has an item with the same id..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.FileNotFoundFormat">
+            <summary>
+              Looks up a localized string similar to The file &quot;{0}&quot; could not be found..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.FolderBrowserDialogNoRootFolder">
+            <summary>
+              Looks up a localized string similar to Unable to retrieve the root folder..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.GlassNotSupportedError">
+            <summary>
+              Looks up a localized string similar to The current operating system does not support glass, or the Desktop Window Manager is not enabled..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.InvalidFilterString">
+            <summary>
+              Looks up a localized string similar to Invalid filter string,.
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.InvalidTaskDialogItemIdError">
+            <summary>
+              Looks up a localized string similar to The id of a task dialog item must be higher than 0..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.NoAssociatedTaskDialogError">
+            <summary>
+              Looks up a localized string similar to The item is not associated with a task dialog..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.NonCustomTaskDialogButtonIdError">
+            <summary>
+              Looks up a localized string similar to Cannot change the id for a standard button..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.Preview">
+            <summary>
+              Looks up a localized string similar to Preview.
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.ProgressDialogNotRunningError">
+            <summary>
+              Looks up a localized string similar to The progress dialog is not shown..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.ProgressDialogRunning">
+            <summary>
+              Looks up a localized string similar to The progress dialog is already running..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.TaskDialogEmptyButtonLabelError">
+            <summary>
+              Looks up a localized string similar to A custom button or radio button cannot have an empty label..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.TaskDialogIllegalCrossThreadCallError">
+            <summary>
+              Looks up a localized string similar to Cross-thread operation not valid: Task dialog accessed from a thread other than the thread it was created on while it is visible..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.TaskDialogItemHasOwnerError">
+            <summary>
+              Looks up a localized string similar to The task dialog item already belongs to another task dialog..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.TaskDialogNoButtonsError">
+            <summary>
+              Looks up a localized string similar to The task dialog must have buttons..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.TaskDialogNotRunningError">
+            <summary>
+              Looks up a localized string similar to The task dialog is not current displayed..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.TaskDialogRunningError">
+            <summary>
+              Looks up a localized string similar to The task dialog is already being displayed..
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.Properties.Resources.TaskDialogsNotSupportedError">
+            <summary>
+              Looks up a localized string similar to The operating system does not support task dialogs..
+            </summary>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation">
+            <summary>
+            Resource identifiers for default animations from shell32.dll.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.FileMove">
+            <summary>
+            An animation representing a file move.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.FileCopy">
+            <summary>
+            An animation representing a file copy.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.FlyingPapers">
+            <summary>
+            An animation showing flying papers.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.SearchGlobe">
+            <summary>
+            An animation showing a magnifying glass over a globe.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.PermanentDelete">
+            <summary>
+            An animation representing a permament delete.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.FromRecycleBinDelete">
+            <summary>
+            An animation representing deleting an item from the recycle bin.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.ToRecycleBinDelete">
+            <summary>
+            An animation representing a file move to the recycle bin.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.SearchComputer">
+            <summary>
+            An animation representing a search spanning the local computer.
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.SearchDocument">
+            <summary>
+            An animation representing a search in a document..
+            </summary>
+        </member>
+        <member name="F:Ookii.Dialogs.WpfMinusTaskDialog.ShellAnimation.SearchFlashlight">
+            <summary>
+            An animation representing a search using a flashlight animation.
+            </summary>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.TimerEventArgs">
+            <summary>
+            Provides data for the <see cref="!:TaskDialog.Timer"/> event.
+            </summary>
+            <threadsafety instance="false" static="true"/>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.TimerEventArgs.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.TimerEventArgs"/> class with the specified tick count.
+            </summary>
+            <param name="tickCount">The tick count.</param>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.TimerEventArgs.ResetTickCount">
+            <summary>
+            Gets or sets a value that indicates whether the tick count should be reset.
+            </summary>
+            <value>
+            <see langword="true" /> to reset the tick count after the event handler returns; otherwise, <see langword="false" />.
+            The default value is <see langword="false" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.TimerEventArgs.TickCount">
+            <summary>
+            Gets the current tick count of the timer.
+            </summary>
+            <value>
+            The number of milliseconds that has elapsed since the dialog was created or since the last time the event handler returned
+            with the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.TimerEventArgs.ResetTickCount"/> property set to <see langword="true"/>.
+            </value>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog">
+            <summary>
+            Displays a dialog box from which the user can select a file.
+            </summary>
+            <remarks>
+            <para>
+              Windows Vista provides a new style of common file dialog, with several new features (both from
+              the user's and the programmers perspective).
+            </para>
+            <para>
+              This class and derived classes will use the Vista-style file dialogs if possible, and automatically fall back to the old-style 
+              dialog on versions of Windows older than Vista. This class is aimed at applications that
+              target both Windows Vista and older versions of Windows, and therefore does not provide any
+              of the new APIs provided by Vista's file dialogs.
+            </para>
+            <para>
+              This class precisely duplicates the public interface of <see cref="T:Microsoft.Win32.FileDialog"/> so you can just replace
+              any instances of <see cref="T:Microsoft.Win32.FileDialog"/> with the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog"/> without any further changes
+              to your code.
+            </para>
+            </remarks>
+            <threadsafety instance="false" static="true"/>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog"/> class.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.Reset">
+            <summary>
+            Resets all properties to their default values.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.ShowDialog">
+            <summary>
+            Displays the file dialog.
+            </summary>
+            <returns>If the user clicks the OK button of the dialog that is displayed (e.g. <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog"/>, <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog"/>), <see langword="true"/> is returned; otherwise, <see langword="false"/>.</returns>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.ShowDialog(System.Windows.Window)">
+            <summary>
+            Displays the file dialog.
+            </summary>
+            <param name="owner">Handle to the window that owns the dialog.</param>
+            <returns>If the user clicks the OK button of the dialog that is displayed (e.g. <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog"/>, <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog"/>), <see langword="true"/> is returned; otherwise, <see langword="false"/>.</returns>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.OnFileOk(System.ComponentModel.CancelEventArgs)">
+            <summary>
+            Raises the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.FileOk"/> event.
+            </summary>
+            <param name="e">A <see cref="T:System.ComponentModel.CancelEventArgs"/> that contains the event data.</param>
+        </member>
+        <member name="E:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.FileOk">
+            <summary>
+            Event raised when the user clicks on the Open or Save button on a file dialog box.
+            </summary>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.IsVistaFileDialogSupported">
+            <summary>
+            Gets a value that indicates whether the current OS supports Vista-style common file dialogs.
+            </summary>
+            <value>
+            <see langword="true"/> if Vista-style common file dialgs are supported; otherwise, <see langword="false"/>.
+            </value>
+            <remarks>
+            <para>
+              Returns <see langword="true"/> on Windows Vista or newer operating systems.
+            </para>
+            <para>
+              If this property returns <see langword="false"/>, the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog"/> class (and
+              its derived classes) will fall back to the regular file dialog.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.AddExtension">
+            <summary>
+            Gets or sets a value indicating whether the dialog box automatically adds an extension to a file name 
+            if the user omits the extension.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box adds an extension to a file name if the user omits the extension; otherwise, <see langword="false" />. 
+            The default value is <see langword="true" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.CheckFileExists">
+            <summary>
+            Gets or sets a value indicating whether the dialog box displays a warning if the user specifies a file name that does not exist.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box displays a warning if the user specifies a file name that does not exist;
+            otherwise, <see langword="false" />. The default value is <see langword="false" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.CheckPathExists">
+            <summary>
+            Gets or sets a value indicating whether the dialog box displays a warning if the user specifies a path that does not exist.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box displays a warning when the user specifies a path that does not exist; otherwise, <see langword="false" />. 
+            The default value is <see langword="true" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.DefaultExt">
+            <summary>
+            Gets or sets the default file name extension.
+            </summary>
+            <value>
+            The default file name extension. The returned string does not include the period. The default value is an empty string ("").
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.DereferenceLinks">
+            <summary>
+            Gets or sets a value indicating whether the dialog box returns the location of the file referenced by the shortcut 
+            or whether it returns the location of the shortcut (.lnk).
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box returns the location of the file referenced by the shortcut; otherwise, <see langword="false" />.
+            The default value is <see langword="true" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.FileName">
+            <summary>
+            Gets or sets a string containing the file name selected in the file dialog box.
+            </summary>
+            <value>
+            The file name selected in the file dialog box. The default value is an empty string ("").
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.FileNames">
+            <summary>
+            Gets the file names of all selected files in the dialog box.
+            </summary>
+            <value>
+            An array of type <see cref="T:System.String"/>, containing the file names of all selected files in the dialog box.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.Filter">
+            <summary>
+            Gets or sets the current file name filter string, which determines the choices that appear in the 
+            "Save as file type" or "Files of type" box in the dialog box.
+            </summary>
+            <value>
+            The file filtering options available in the dialog box.
+            </value>
+            <exception cref="T:System.ArgumentException">Filter format is invalid.</exception>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.FilterIndex">
+            <summary>
+            Gets or sets the index of the filter currently selected in the file dialog box.
+            </summary>
+            <value>
+            A value containing the index of the filter currently selected in the file dialog box. The default value is 1.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.InitialDirectory">
+            <summary>
+            Gets or sets the initial directory displayed by the file dialog box.
+            </summary>
+            <value>
+            The initial directory displayed by the file dialog box. The default is an empty string ("").
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.RestoreDirectory">
+            <summary>
+            Gets or sets a value indicating whether the dialog box restores the current directory before closing.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box restores the current directory to its original value if the user changed the 
+            directory while searching for files; otherwise, <see langword="false" />. The default value is <see langword="false" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.Title">
+            <summary>
+            Gets or sets the file dialog box title.
+            </summary>
+            <value>
+            The file dialog box title. The default value is an empty string ("").
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.ValidateNames">
+            <summary>
+            Gets or sets a value indicating whether the dialog box accepts only valid Win32 file names.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box accepts only valid Win32 file names; otherwise, <see langword="false" />. The default value is <see langword="false" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.DownlevelDialog">
+            <summary>
+            Gets or sets the downlevel file dialog which is to be used if the Vista-style
+            dialog is not supported.
+            </summary>
+            <value>
+            The regular <see cref="T:Microsoft.Win32.FileDialog"/> that is used when the Vista-style file dialog
+            is not supported.
+            </value>
+            <remarks>
+            This property is set by classes that derive from <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog"/>.
+            </remarks>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog">
+            <summary>
+            Prompts the user to select a folder.
+            </summary>
+            <remarks>
+            This class will use the Vista style Select Folder dialog if possible, or the regular FolderBrowserDialog
+            if it is not. Note that the Vista style dialog is very different, so using this class without testing
+            in both Vista and older Windows versions is not recommended.
+            </remarks>
+            <threadsafety instance="false" static="true" />
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog"/> class.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.Reset">
+            <summary>
+            Resets all properties to their default values.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.ShowDialog">
+            <summary>
+            Displays the folder browser dialog.
+            </summary>
+            <returns>If the user clicks the OK button, <see langword="true" /> is returned; otherwise, <see langword="false" />.</returns>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.ShowDialog(System.Windows.Window)">
+            <summary>
+            Displays the folder browser dialog.
+            </summary>
+            <param name="owner">Handle to the window that owns the dialog.</param>
+            <returns>If the user clicks the OK button, <see langword="true" /> is returned; otherwise, <see langword="false" />.</returns>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.IsVistaFolderDialogSupported">
+            <summary>
+            Gets a value that indicates whether the current OS supports Vista-style common file dialogs.
+            </summary>
+            <value>
+            <see langword="true" /> on Windows Vista or newer operating systems; otherwise, <see langword="false" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.Description">
+            <summary>
+            Gets or sets the descriptive text displayed above the tree view control in the dialog box, or below the list view control
+            in the Vista style dialog.
+            </summary>
+            <value>
+            The description to display. The default is an empty string ("").
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.RootFolder">
+            <summary>
+            Gets or sets the root folder where the browsing starts from. This property has no effect if the Vista style
+            dialog is used.
+            </summary>
+            <value>
+            One of the <see cref="T:System.Environment.SpecialFolder"/> values. The default is Desktop.
+            </value>
+            <exception cref="T:System.ComponentModel.InvalidEnumArgumentException">The value assigned is not one of the <see cref="T:System.Environment.SpecialFolder"/> values.</exception>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.SelectedPath">
+            <summary>
+            Gets or sets the path selected by the user.
+            </summary>
+            <value>
+            The path of the folder first selected in the dialog box or the last folder selected by the user. The default is an empty string ("").
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.ShowNewFolderButton">
+            <summary>
+            Gets or sets a value indicating whether the New Folder button appears in the folder browser dialog box. This
+            property has no effect if the Vista style dialog is used; in that case, the New Folder button is always shown.
+            </summary>
+            <value>
+            <see langword="true" /> if the New Folder button is shown in the dialog box; otherwise, <see langword="false" />. The default is <see langword="true" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.UseDescriptionForTitle">
+            <summary>
+            Gets or sets a value that indicates whether to use the value of the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.Description"/> property
+            as the dialog title for Vista style dialogs. This property has no effect on old style dialogs.
+            </summary>
+            <value><see langword="true"/> to indicate that the value of the <see cref="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaFolderBrowserDialog.Description"/> property is used as dialog title; <see langword="false"/>
+            to indicate the value is added as additional text to the dialog. The default is <see langword="false"/>.</value>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog">
+            <summary>
+            Prompts the user to open a file.
+            </summary>
+            <remarks>
+            <para>
+              Windows Vista provides a new style of common file dialog, with several new features (both from
+              the user's and the programmers perspective).
+            </para>
+            <para>
+              This class will use the Vista-style file dialogs if possible, and automatically fall back to the old-style 
+              dialog on versions of Windows older than Vista. This class is aimed at applications that
+              target both Windows Vista and older versions of Windows, and therefore does not provide any
+              of the new APIs provided by Vista's file dialogs.
+            </para>
+            <para>
+              This class precisely duplicates the public interface of <see cref="T:Microsoft.Win32.OpenFileDialog"/> so you can just replace
+              any instances of <see cref="T:Microsoft.Win32.OpenFileDialog"/> with the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog"/> without any further changes
+              to your code.
+            </para>
+            </remarks>
+            <threadsafety instance="false" static="true"/>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog"/> class.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog.Reset">
+            <summary>
+            Resets all properties to their default values.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog.OpenFile">
+            <summary>
+            Opens the file selected by the user, with read-only permission. The file is specified by the FileName property. 
+            </summary>
+            <returns>A Stream that specifies the read-only file selected by the user.</returns>
+            <exception cref="T:System.ArgumentNullException">The file name is <see langword="null"/>.</exception>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog.CheckFileExists">
+            <summary>
+            Gets or sets a value indicating whether the dialog box displays a warning if the user specifies a file name that does not exist.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box displays a warning if the user specifies a file name that does not exist; otherwise, <see langword="false" />. The default value is <see langword="true" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog.Multiselect">
+            <summary>
+            Gets or sets a value indicating whether the dialog box allows multiple files to be selected.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box allows multiple files to be selected together or concurrently; otherwise, <see langword="false" />. 
+            The default value is <see langword="false" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog.ShowReadOnly">
+            <summary>
+            Gets or sets a value indicating whether the dialog box contains a read-only check box.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box contains a read-only check box; otherwise, <see langword="false" />. The default value is <see langword="false" />.
+            </value>
+            <remarks>
+            If the Vista style dialog is used, this property can only be used to determine whether the user chose
+            Open as read-only on the dialog; setting it in code will have no effect.
+            </remarks>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaOpenFileDialog.ReadOnlyChecked">
+            <summary>
+            Gets or sets a value indicating whether the read-only check box is selected.
+            </summary>
+            <value>
+            <see langword="true" /> if the read-only check box is selected; otherwise, <see langword="false" />. The default value is <see langword="false" />.
+            </value>
+        </member>
+        <member name="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog">
+            <summary>
+            Prompts the user to select a location for saving a file.
+            </summary>
+            <remarks>
+            This class will use the Vista style save file dialog if possible, and automatically fall back to the old-style 
+            dialog on versions of Windows older than Vista.
+            </remarks>
+            <remarks>
+            <para>
+              Windows Vista provides a new style of common file dialog, with several new features (both from
+              the user's and the programmers perspective).
+            </para>
+            <para>
+              This class will use the Vista-style file dialogs if possible, and automatically fall back to the old-style 
+              dialog on versions of Windows older than Vista. This class is aimed at applications that
+              target both Windows Vista and older versions of Windows, and therefore does not provide any
+              of the new APIs provided by Vista's file dialogs.
+            </para>
+            <para>
+              This class precisely duplicates the public interface of <see cref="T:Microsoft.Win32.SaveFileDialog"/> so you can just replace
+              any instances of <see cref="T:Microsoft.Win32.SaveFileDialog"/> with the <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog"/> without any further changes
+              to your code.
+            </para>
+            </remarks>
+            <threadsafety instance="false" static="true"/>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog"/> class.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog.Reset">
+            <summary>
+            Resets all properties to their default values.
+            </summary>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog.OpenFile">
+            <summary>
+            Opens the file with read/write permission selected by the user.
+            </summary>
+            <returns>The read/write file selected by the user.</returns>
+            <exception cref="T:System.ArgumentNullException">The file name is <see langword="null"/>.</exception>
+        </member>
+        <member name="M:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog.OnFileOk(System.ComponentModel.CancelEventArgs)">
+            <summary>
+            Raises the <see cref="E:Ookii.Dialogs.WpfMinusTaskDialog.VistaFileDialog.FileOk"/> event.
+            </summary>
+            <param name="e">A <see cref="T:System.ComponentModel.CancelEventArgs"/> that contains the event data.</param>        
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog.CreatePrompt">
+            <summary>
+            Gets or sets a value indicating whether the dialog box prompts the user for permission to create a file if the 
+            user specifies a file that does not exist.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box prompts the user before creating a file if the user specifies a file name that does not exist; 
+            <see langword="false" /> if the dialog box automatically creates the new file without prompting the user for permission. The default 
+            value is <see langword="false" />.
+            </value>
+        </member>
+        <member name="P:Ookii.Dialogs.WpfMinusTaskDialog.VistaSaveFileDialog.OverwritePrompt">
+            <summary>
+            Gets or sets a value indicating whether the Save As dialog box displays a warning if the user 
+            specifies a file name that already exists.
+            </summary>
+            <value>
+            <see langword="true" /> if the dialog box prompts the user before overwriting an existing file if the user specifies a file 
+            name that already exists; <see langword="false" /> if the dialog box automatically overwrites the existing file without 
+            prompting the user for permission. The default value is <see langword="true" />.
+            </value>
+        </member>
+    </members>
+</doc>
