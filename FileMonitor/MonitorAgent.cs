@@ -187,6 +187,55 @@ namespace FileMonitor
             public bool folderOnly { get; set; }
         }
 
+        private class DisposeCheckingHolder
+        {
+            public object Value
+            {
+                get
+                {
+                    return _value;
+                }
+            }
+            private object _value = null;
+
+            public bool IsDisposed
+            {
+                get
+                {
+                    if (GetDisposed == null)
+                    {
+                        return GetDisposedParameterless();
+                    }
+                    else
+                    {
+                        return GetDisposed(_value);
+                    }
+                }
+            }
+            private Func<bool> GetDisposedParameterless = null;
+            private Func<object, bool> GetDisposed = null;
+
+            public DisposeCheckingHolder(Func<bool> checkDisposed, object toCheck)
+            {
+                if (checkDisposed == null)
+                {
+                    throw new NullReferenceException("checkDisposed cannot be null");
+                }
+                GetDisposedParameterless = checkDisposed;
+                _value = toCheck;
+            }
+
+            public DisposeCheckingHolder(Func<object, bool> checkDisposed, object toCheck)
+            {
+                if (checkDisposed == null)
+                {
+                    throw new NullReferenceException("checkDisposed cannot be null");
+                }
+                GetDisposed = checkDisposed;
+                _value = toCheck;
+            }
+        }
+
         private LinkedList<FileChange> ProcessingChanges = new LinkedList<FileChange>();
         private const int MaxProcessingChangesBeforeTrigger = 499;
         // Field to store timer for queue processing,
@@ -696,8 +745,7 @@ namespace FileMonitor
 
             try
             {
-
-                List<GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>> startProcessingActions = new List<GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>>();
+                List<GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>> startProcessingActions = new List<GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>>();
 
                 // lock to prevent the current, in-memory index from being seperately read/modified
                 lock (AllPaths)
@@ -743,7 +791,7 @@ namespace FileMonitor
                                         break;
                                 }
 
-                                GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>();
+                                GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>();
                                 startProcessingActions.Add(newProcessingAction);
 
                                 QueueFileChange(new FileChange(QueuedChanges)
@@ -776,7 +824,7 @@ namespace FileMonitor
                 {
                     // take the currently dequeued file system event and run it back through for processing
 
-                    GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>();
+                    GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>();
                     startProcessingActions.Add(newProcessingAction);
 
                     ChangesQueueHolder currentChange = ChangesQueueForInitialIndexing.Dequeue();
@@ -791,11 +839,12 @@ namespace FileMonitor
                 // null the pointer for the initial index queue so it can be cleared from memory
                 ChangesQueueForInitialIndexing = null;
 
-                foreach (GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> startProcessing in startProcessingActions)
+                foreach (GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessing in startProcessingActions)
                 {
-                    if (startProcessing.Value != null)
+                    if (startProcessing.Value != null
+                        && !((KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>)startProcessing.Value).Value.IsDisposed)
                     {
-                        ((KeyValuePair<Action<object>, object>)startProcessing.Value).Key(((KeyValuePair<Action<object>, object>)startProcessing.Value).Value);
+                        ((KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>)startProcessing.Value).Key(((KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>)startProcessing.Value).Value);
                     }
                 }
             }
@@ -1985,7 +2034,7 @@ namespace FileMonitor
         /// <param name="changeType">Type of file system event</param>
         /// <param name="folderOnly">Specificity from routing of file system event</param>
         /// <param name="alreadyHoldingIndexLock">Optional param only to be set (as true) from BeginProcessing method</param>
-        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly, bool alreadyHoldingIndexLock = false, GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> startProcessingAction = null)
+        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly, bool alreadyHoldingIndexLock = false, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null)
         {
             // File system events come through here to resolve the combination of current change, existing metadata, and actual file information on disk;
             // When the file monitoring is first started, it waits for the completion of an initial indexing (which will process differences as new file events);
@@ -2533,7 +2582,7 @@ namespace FileMonitor
         /// Insert new file change into a synchronized queue and begin its delay timer for processing
         /// </summary>
         /// <param name="toChange">New file change</param>
-        private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<object>, object>>> startProcessingAction = null)
+        private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null)
         {
             if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
@@ -2547,7 +2596,7 @@ namespace FileMonitor
                 FileChange matchedFileChangeForRename;
 
                 // function to move the file change to the metadata-keyed queue and start the delayed processing
-                Action<FileChange, GenericHolder<Nullable<KeyValuePair<Action<object>, object>>>> StartDelay = (toDelay, runActionExternal) =>
+                Action<FileChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>> StartDelay = (toDelay, runActionExternal) =>
                 {
                     // move the file change to the metadata-keyed queue if it does not already exist
                     if (!QueuedChangesByMetadata.ContainsKey(toDelay.Metadata.HashableProperties))
@@ -2564,12 +2613,12 @@ namespace FileMonitor
 
                     if (runActionExternal != null)
                     {
-                        runActionExternal.Value = new KeyValuePair<Action<object>, object>(state =>
+                        runActionExternal.Value = new KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>(state =>
                             {
                                 Tuple<FileChange,
                                     Action<FileChange, object, int>,
                                     int,
-                                    int> castState = state as Tuple<FileChange, Action<FileChange, object, int>, int, int>;
+                                    int> castState = state.Value as Tuple<FileChange, Action<FileChange, object, int>, int, int>;
 
                                 if (castState != null)
                                 {
@@ -2580,13 +2629,14 @@ namespace FileMonitor
                                         castState.Item3,// processing delay to wait for more events on this file
                                         castState.Item4);// number of processing delay resets before it will process the file anyways
                                 }
-                            }, new Tuple<FileChange,
-                                Action<FileChange, object, int>,
-                                int,
-                                int>(toDelay, // file change to delay-process
-                                ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
-                                ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
-                                ProcessingDelayMaxResets));// number of processing delay resets before it will process the file anyways
+                            }, new DisposeCheckingHolder(() => toDelay.DelayCompleted,
+                                new Tuple<FileChange,
+                                    Action<FileChange, object, int>,
+                                    int,
+                                    int>(toDelay, // file change to delay-process
+                                    ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
+                                    ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
+                                    ProcessingDelayMaxResets)));// number of processing delay resets before it will process the file anyways
                     }
                     else
                     {

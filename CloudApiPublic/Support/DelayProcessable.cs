@@ -179,8 +179,8 @@ namespace CloudApiPublic.Support
                 {
                     if (!startedDelay)
                     {
-                        // inactive delay error
-                        throw new Exception("Delay not already started");
+                        // delay is already at initial value
+                        return;
                     }
                 }
 
