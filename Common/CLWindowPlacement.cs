@@ -57,7 +57,7 @@ namespace win_client.Common
                 placement.flags = 0;
                 placement.showCmd = (placement.showCmd == SW_SHOWMINIMIZED ? SW_SHOWNORMAL : placement.showCmd);
                 _trace.writeToLog(9, "CLWindowPlacement: ExtractWindowPlacementInfo: Coords: {0},{1},{2},{3}(LTRB).", placement.normalPosition.left, placement.normalPosition.top, placement.normalPosition.right, placement.normalPosition.bottom);
-                _trace.writeToLog(9, "CLWindowPlacement: ExtractWindowPlacementInfo: Length: {0}. flags: {2}. showCmd: {3}.", placement.length, placement.flags, placement.showCmd);
+                _trace.writeToLog(9, "CLWindowPlacement: ExtractWindowPlacementInfo: Length: {0}. flags: {1}. showCmd: {2}.", placement.length, placement.flags, placement.showCmd);
             }
             catch (Exception ex)
             {
@@ -89,7 +89,7 @@ namespace win_client.Common
             {
                 // Set the window placement
                 _trace.writeToLog(9, "CLWindowPlacement: SetPlacement: Coords: {0},{1},{2},{3}(LTRB).", placement.normalPosition.left, placement.normalPosition.top, placement.normalPosition.right, placement.normalPosition.bottom);
-                _trace.writeToLog(9, "CLWindowPlacement: SetPlacement: Length: {0}. flags: {2}. showCmd: {3}.", placement.length, placement.flags, placement.showCmd);
+                _trace.writeToLog(9, "CLWindowPlacement: SetPlacement: Length: {0}. flags: {1}. showCmd: {2}.", placement.length, placement.flags, placement.showCmd);
                 NativeMethods.SetWindowPlacement(windowHandle, ref placement);
             }
             catch (Exception ex)
