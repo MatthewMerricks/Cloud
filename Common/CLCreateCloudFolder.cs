@@ -121,8 +121,29 @@ namespace win_client.Common
         /// <returns></returns>
         public static bool IsPathInDirectory(string testPath, string inPath)
         {
-            FilePath fpTest = new FilePath(testPath);
-            return fpTest.FindOverlappingPath(inPath) != null;
+            DirectoryInfo diInPath = new DirectoryInfo(inPath); 
+            DirectoryInfo diTestPath = new DirectoryInfo(testPath); 
+            bool isInDir = false;
+
+            if (diTestPath.FullName == diInPath.FullName)
+            {
+                return true;
+            }
+
+            while (diTestPath.Parent != null)
+            {
+                if (diTestPath.Parent.FullName == diInPath.FullName)
+                {
+                    isInDir = true;
+                    break;
+                }
+                else
+                {
+                    diTestPath = diTestPath.Parent;
+                }
+            }
+
+            return isInDir;
         }
 
         /// <summary>
