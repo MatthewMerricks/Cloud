@@ -546,6 +546,35 @@ namespace Sync
                                 {
                                     KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>> nonNullTask = (KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>)asyncTask;
 
+                                    switch (asyncTask.Value.Key)
+                                    {
+                                        case SyncDirection.From:
+                                            // direction for downloads
+                                            nonNullTask.Value.ContinueWith(eventCompletion =>
+                                            {
+                                                if (!eventCompletion.IsFaulted)
+                                                {
+                                                    EventMessageReceiver.IncrementDownloadedCount();
+                                                }
+                                            }, TaskContinuationOptions.NotOnFaulted);
+                                            break;
+
+                                        case SyncDirection.To:
+                                            // direction for uploads
+                                            nonNullTask.Value.ContinueWith(eventCompletion =>
+                                            {
+                                                if (!eventCompletion.IsFaulted)
+                                                {
+                                                    EventMessageReceiver.IncrementUploadedCount();
+                                                }
+                                            }, TaskContinuationOptions.NotOnFaulted);
+                                            break;
+
+                                        default:
+                                            // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                                            throw new NotSupportedException("Unknown SyncDirection: " + asyncTask.Value.ToString());
+                                    }
+
                                     nonNullTask.Value.ContinueWith(completeState =>
                                     {
                                         Monitor.Enter(FullShutdownToken);
@@ -765,21 +794,6 @@ namespace Sync
                                     (thingsThatWereDependenciesToQueue ?? Enumerable.Empty<FileChange>())
                                     .Select(uploadFileWithoutStream => new KeyValuePair<FileChange, FileStream>(uploadFileWithoutStream, null)));
 
-                                #region debug code REMOVE THIS
-                                if (dequeuedFailures.Any(currentTopLevel => ((FileChangeWithDependencies)currentTopLevel).Dependencies.Contains(currentTopLevel)
-                                    || ((FileChangeWithDependencies)currentTopLevel).Dependencies.Any(currentInnerTop => ((FileChangeWithDependencies)currentInnerTop).Dependencies.Contains(currentInnerTop))))
-                                {
-                                    System.Windows.MessageBox.Show("Repeated structure dequeudFailures before dependencyAssignment");
-                                }
-                                if ((changesInError ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, KeyValuePair<FileStream, Exception>>>>())
-                                        .Select(currentChangeInError => currentChangeInError.Value.Key)
-                                        .Where(currentChangeInError => currentChangeInError != null).Any(currentTopLevel => ((FileChangeWithDependencies)currentTopLevel).Dependencies.Contains(currentTopLevel)
-                                    || ((FileChangeWithDependencies)currentTopLevel).Dependencies.Any(currentInnerTop => ((FileChangeWithDependencies)currentInnerTop).Dependencies.Contains(currentInnerTop))))
-                                {
-                                    System.Windows.MessageBox.Show("Repeated structure changesInError before dependencyAssignment");
-                                }
-                                #endregion
-
                                 CLError postCommunicationDependencyError = dependencyAssignment((incompleteChanges ?? Enumerable.Empty<KeyValuePair<bool, KeyValuePair<FileChange, FileStream>>>())
                                         .Select(currentIncompleteChange => currentIncompleteChange.Value)
                                         .Concat(uploadFilesWithoutStreams),
@@ -824,19 +838,6 @@ namespace Sync
 
                                 if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                 {
-                                    #region debug code REMOVE THIS
-                                    if (outputChanges.Any(currentOutputChange => ((FileChangeWithDependencies)currentOutputChange.Key).Dependencies.Contains(currentOutputChange.Key)
-                                        || ((FileChangeWithDependencies)currentOutputChange.Key).Dependencies.Any(currentInnerOutput => ((FileChangeWithDependencies)currentInnerOutput).Dependencies.Contains(currentInnerOutput))))
-                                    {
-                                        System.Windows.MessageBox.Show("Repeated structure outputChanges after dependencyAssignment");
-                                    }
-                                    if (topLevelErrors.Any(currentTopLevel => ((FileChangeWithDependencies)currentTopLevel).Dependencies.Contains(currentTopLevel)
-                                        || ((FileChangeWithDependencies)currentTopLevel).Dependencies.Any(currentInnerTop => ((FileChangeWithDependencies)currentInnerTop).Dependencies.Contains(currentInnerTop))))
-                                    {
-                                        System.Windows.MessageBox.Show("Repeated structure topLevelErrors after dependencyAssignment");
-                                    }
-                                    #endregion
-
                                     Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.Key));
                                     Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
                                 }
@@ -1004,41 +1005,12 @@ namespace Sync
                                 case SyncDirection.From:
                                 // direction for downloads
                                     asyncTask.Value.Value.ContinueWith(eventCompletion =>
-                                        {
-                                            if (!eventCompletion.IsFaulted)
-                                            {
-                                                EventMessageReceiver.IncrementDownloadedCount();
-                                            }
-                                        });
-                                    break;
-
-                                case SyncDirection.To:
-                                // direction for uploads
-                                    asyncTask.Value.Value.ContinueWith(eventCompletion =>
-                                        {
-                                            if (!eventCompletion.IsFaulted)
-                                            {
-                                                EventMessageReceiver.IncrementUploadedCount();
-                                            }
-                                        });
-                                    break;
-
-                                default:
-                                    // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
-                                    throw new NotSupportedException("Unknown SyncDirection: " + asyncTask.Value.ToString());
-                            }
-
-                            switch (asyncTask.Value.Key)
-                            {
-                                case SyncDirection.From:
-                                // direction for downloads
-                                    asyncTask.Value.Value.ContinueWith(eventCompletion =>
                                     {
                                         if (!eventCompletion.IsFaulted)
                                         {
                                             EventMessageReceiver.IncrementDownloadedCount();
                                         }
-                                    });
+                                    }, TaskContinuationOptions.NotOnFaulted);
                                     break;
 
                                 case SyncDirection.To:
@@ -1049,7 +1021,7 @@ namespace Sync
                                         {
                                             EventMessageReceiver.IncrementUploadedCount();
                                         }
-                                    });
+                                    }, TaskContinuationOptions.NotOnFaulted);
                                     break;
 
                                 default:
@@ -1059,15 +1031,12 @@ namespace Sync
 
                             asyncTask.Value.Value.ContinueWith(eventCompletion =>
                             {
-                                if (!eventCompletion.IsFaulted)
+                                CLError sqlCompleteError = eventCompletion.Result.Value(eventCompletion.Result.Key);
+                                if (sqlCompleteError != null)
                                 {
-                                    CLError sqlCompleteError = eventCompletion.Result.Value(eventCompletion.Result.Key);
-                                    if (sqlCompleteError != null)
-                                    {
-                                        sqlCompleteError.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
-                                    }
+                                    sqlCompleteError.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
                                 }
-                            });
+                            }, TaskContinuationOptions.NotOnFaulted);
 
                             lock (FileChange.UpDownEventLocker)
                             {
@@ -1505,7 +1474,28 @@ namespace Sync
                                                 (downloadRequest.KeepAlive ? "Keep-Alive" : "Close"));
                                         }
 
-                                        using (Stream downloadRequestStream = downloadRequest.GetRequestStream())
+                                        AsyncRequestHolder requestHolder = new AsyncRequestHolder();
+
+                                        IAsyncResult requestAsyncResult;
+
+                                        lock (requestHolder)
+                                        {
+                                            requestAsyncResult = downloadRequest.BeginGetRequestStream(new AsyncCallback(MakeAsyncRequestSynchronous), requestHolder);
+
+                                            Monitor.Wait(requestHolder);
+                                        }
+
+                                        if (requestHolder.Error != null)
+                                        {
+                                            throw requestHolder.Error;
+                                        }
+
+                                        if (requestHolder.IsCanceled)
+                                        {
+                                            return new KeyValuePair<long, Func<long, CLError>>(0, null);
+                                        }
+
+                                        using (Stream downloadRequestStream = downloadRequest.EndGetRequestStream(requestAsyncResult))
                                         {
                                             downloadRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
                                         }
@@ -1513,7 +1503,28 @@ namespace Sync
                                         HttpWebResponse downloadResponse;
                                         try
                                         {
-                                            downloadResponse = (HttpWebResponse)downloadRequest.GetResponse();
+                                            AsyncRequestHolder responseHolder = new AsyncRequestHolder();
+
+                                            IAsyncResult responseAsyncResult;
+
+                                            lock (responseHolder)
+                                            {
+                                                responseAsyncResult = downloadRequest.BeginGetResponse(new AsyncCallback(MakeAsyncRequestSynchronous), responseHolder);
+
+                                                Monitor.Wait(responseHolder);
+                                            }
+
+                                            if (responseHolder.Error != null)
+                                            {
+                                                throw responseHolder.Error;
+                                            }
+
+                                            if (responseHolder.IsCanceled)
+                                            {
+                                                return new KeyValuePair<long, Func<long, CLError>>(0, null);
+                                            }
+
+                                            downloadResponse = (HttpWebResponse)downloadRequest.EndGetResponse(responseAsyncResult);
                                         }
                                         catch (WebException ex)
                                         {
@@ -1889,7 +1900,28 @@ namespace Sync
                                             (uploadRequest.KeepAlive ? "Keep-Alive" : "Close"));
                                     }
 
-                                    using (Stream uploadRequestStream = uploadRequest.GetRequestStream())
+                                    AsyncRequestHolder requestHolder = new AsyncRequestHolder();
+
+                                    IAsyncResult requestAsyncResult;
+
+                                    lock (requestHolder)
+                                    {
+                                        requestAsyncResult = uploadRequest.BeginGetRequestStream(new AsyncCallback(MakeAsyncRequestSynchronous), requestHolder);
+
+                                        Monitor.Wait(requestHolder);
+                                    }
+
+                                    if (requestHolder.Error != null)
+                                    {
+                                        throw requestHolder.Error;
+                                    }
+
+                                    if (requestHolder.IsCanceled)
+                                    {
+                                        return new KeyValuePair<long, Func<long, CLError>>(0, null);
+                                    }
+
+                                    using (Stream uploadRequestStream = uploadRequest.EndGetRequestStream(requestAsyncResult))
                                     {
                                         byte[] uploadBuffer = new byte[FileConstants.BufferSize];
 
@@ -1926,7 +1958,28 @@ namespace Sync
                                     HttpWebResponse uploadResponse;
                                     try
                                     {
-                                        uploadResponse = (HttpWebResponse)uploadRequest.GetResponse();
+                                        AsyncRequestHolder responseHolder = new AsyncRequestHolder();
+
+                                        IAsyncResult responseAsyncResult;
+
+                                        lock (responseHolder)
+                                        {
+                                            responseAsyncResult = uploadRequest.BeginGetResponse(new AsyncCallback(MakeAsyncRequestSynchronous), responseHolder);
+
+                                            Monitor.Wait(responseHolder);
+                                        }
+
+                                        if (responseHolder.Error != null)
+                                        {
+                                            throw responseHolder.Error;
+                                        }
+
+                                        if (responseHolder.IsCanceled)
+                                        {
+                                            return new KeyValuePair<long, Func<long, CLError>>(0, null);
+                                        }
+
+                                        uploadResponse = (HttpWebResponse)uploadRequest.EndGetResponse(responseAsyncResult);
                                     }
                                     catch (WebException ex)
                                     {
@@ -2152,6 +2205,79 @@ namespace Sync
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue { get; set; }
             public Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql { get; set; }
+        }
+        private class AsyncRequestHolder
+        {
+            public bool IsCanceled
+            {
+                get
+                {
+                    return _isCanceled;
+                }
+            }
+            private bool _isCanceled = false;
+
+            public void Cancel()
+            {
+                _isCanceled = true;
+            }
+
+            public Exception Error
+            {
+                get
+                {
+                    return _error;
+                }
+            }
+            private Exception _error = null;
+
+            public void MarkException(Exception toMark)
+            {
+                _error = toMark ?? new NullReferenceException("toMark is null");
+                lock (this)
+                {
+                    Monitor.Pulse(this);
+                }
+            }
+        }
+
+        private static void MakeAsyncRequestSynchronous(IAsyncResult makeSynchronous)
+        {
+            AsyncRequestHolder castHolder = (AsyncRequestHolder)makeSynchronous.AsyncState;
+            try
+            {
+                if (makeSynchronous.IsCompleted)
+                {
+                    lock (castHolder)
+                    {
+                        Monitor.Pulse(castHolder);
+                    }
+                }
+                else
+                {
+                    Monitor.Enter(FullShutdownToken);
+                    try
+                    {
+                        if (FullShutdownToken.Token.IsCancellationRequested)
+                        {
+                            castHolder.Cancel();
+
+                            lock (castHolder)
+                            {
+                                Monitor.Pulse(castHolder);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(FullShutdownToken);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                castHolder.MarkException(ex);
+            }
         }
 
         private static void MoveCompletedDownload(Func<FileChange, CLError> applySyncFromChange,

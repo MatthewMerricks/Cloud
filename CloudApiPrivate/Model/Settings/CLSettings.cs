@@ -842,7 +842,7 @@ namespace CloudApiPrivate.Model.Settings
                 "\\Cloud\\ErrorLog";
             _traceType = 0;
 
-            //TODO: Remove this setting before release.  This forces trace to be on (causing a performance issue).
+            //TODO: Bugbug Remove this debug only setting before release.  This forces trace to be on (causing a performance issue).
             _logErrors = 1;
             _traceType = (int)TraceType.Communication;
 
