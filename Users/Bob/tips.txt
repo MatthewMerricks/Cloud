@@ -4977,8 +4977,44 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       . If there are fewer than 50 periods in memory, calculate the average over the samples that we have.
     - The file upload/download works somewhat with the test drivers, but the status bars don't move to the right.
   o 10/10/12 Wed:
+    - 6:30 - 18:30
+    - The detailed status window works well.  The buttons are not yet functional.
+  o 10/11//12 Thu:
+    - 6:30 - 18:30
+    - Reviewed the todo list.
+    - Completed the detailed status window and checked it in.  The log display is still not functional.
+    - Moving to another desk.
+    - Fixed the Preferences Unlink to check for unsaved changes to preferences.  That was not easy.
+    - Move Cloud folder while running issue:
+      . Currently, the code in FramePreferencesAdvancedViewModel:MoveCloudFolderWithUserInteraction actually moves the cloud folder (renames) with the 
+        File System Monitor and all of the sync code running.  Not good.
+      . A better approach would be to save the move (rename) request and restart Cloud.  Cloud would find the request and perform the action
+        before starting the core services.
+      . I could use another of those self-destruction VBScripts to do the dirty deed.
+      . In Cloud, actually create and delete the target directory, just to prove that there won't be a problem moving the directory.
+      . Then fire off a script with the current and target directories.
+      . Then as a last dying action, change the Settings to the new Cloud directory path.
+      . The script would wait for Cloud to exit, kill it if it was tardy, then move the directory, and restart Cloud which will find the Cloud
+        directory at the new location.
+      . One glitch: At shutdown, we may actually remove the Cloud directory if it only contains the empty default folders.  Create a new Settings
+        flag that indicates that this directory move is in progress.  Shutdown will inspect the flag and not delete the existing Cloud folder.
+        The flag will be cleared on every Cloud startup, whether or not it starts core services.
+  o 10/12//12 Fri: (home)
+    - 5:30 - 10:30
+    - Move cloud directory with restart is coding and almost working...
+  o 10/13/12 Sat: (Orlando)
+  o 10/14/12 Sun: (Orlando)
+  o 10/15/12 Mon:
+    - 6:30 - 18:30
+    - Database: CopyrightCloud.comCreatedByDavidBruck
+    - The move cloud folder support works.
+    - Fixed bugs in the push polling fallback.  It worded from enableded->disabled->enabled.
+    - Implemented the saving of the server Udid and filtered push notifications by the Udid rather than by the computer friendly name.
+  o 10/16/12 Tue:
     - 6:30 - 
-    - 
+
+
+
 
 
       
@@ -6207,6 +6243,24 @@ TODO:
   x (10/4/12) Schedule an update and exit cloud.  Restart Cloud.  The installer will try to update cloud automatically with the ready update, but prevent it.  Uninstall Cloud.
               Reinstall Cloud.  Run Cloud.  The PageHome screen appears, but the installer also appears trying to install an update.  Uninstall should clean any pending updates.
   x (10/4/12) Uninstall Cloud with Cloud.exe still running.  Click Close Process.  An intermittent crash occurs.
+  x (10//11/12) Add NotifyPropertyChanged snippet.
+  x (10//11/12) The CloudUpdater still installs a new version on startup, and still complains about Cloud.exe still running.
+  x (10//11/12) Use a BusyIndicator when the update dialog is checking for updates....
+  x (10//11/12) Implement new status dialog.
+  x (10//11/12) Installing registers BadgeCom.dll in win-client\Release??
+  x (10//11/12) Launch Explorer to the proper directory during the CloudInstallUpdate script.
+  x (10//11/12) Display current updater number in NewUpdate.vbs.
+  x (10//11/12) The AutoUpdater check for updates just shows "Checking..." many times, without completing the action and giving the user a result.
+  x (10//11/12) Don't automatically download program updates.  Let the user decide to do that. (No.  Continue to automatically download.)
+  x (10//11/12) Test the actual upgrade to a new version (CloudUpdater and Cloud).
+  x (10//11/12) Apply Brian's specs to the XAML.
+  x (10//11/12) Test uninstall with Cloud.exe running.
+  x (10//11/12) Growl when an update is available.
+  x (10/11/12) Preferences, Unlink, OK.  Sorry, your cloud program is already running.  Launch a VBScript self-destruct script to wait for Cloud to exit.  Kill Cloud after 3 seconds, then restart cloud and self-destruct.
+  x (10/11/12) Add our current version of wyBuild to git.
+  x (10/11/12) Change the DependencyProperty references to use the proper classes in all of the Preferences dialogs.
+  x (10/15/12) Disconnect net adapter when web sockets are connected results in unhandled exception loop.
+  x (10/15/12) Add long-poll backup for WebSockets push notification.
   o Add ICleanup interface to all view models and call them when shutting down.  Note: Cleanup doesn't get called when the user clicks the 'X'????
   o The ViewModelLocator.Cleanup() function should call of the ViewModel.Cleanup functions.
   o Don't allow network or unmountable drives for the Cloud directory.
@@ -6256,7 +6310,6 @@ TODO:
     - Failed files/folders ->
   W Add network reachability support, and test.
   W Add "close lid" support, and test.
-  W Add long-poll backup for WebSockets push notification.
   o Add Quick Launch shortcut support for XP.
   o Implement the Windows-equivalent of KeyChain (Windows Vault).
   W Reimplement the full installation to use WiX.
@@ -6277,26 +6330,19 @@ TODO:
   W Place the systray icon on the taskbar permanently.
   W There are continual problems with processes other than Explorer placing a lock on BadgeCom.dll.  Then the uninstall fails.  Then a subsequent installation fails.
   o Provide some dynamic way to turn trace on and off (special file in installation directory?)
-
-  o Modify the InstallShield artwork.
-  o Test uninstall with Cloud.exe running.
-  o Preferences, Unlink, OK.  Sorry, your cloud program is already running.  Launch a VBScript self-destruct script to wait for Cloud to exit.  Kill Cloud after 3 seconds, then restart cloud and self-destruct.
-  o Alt-tab shows an extra window "Check for Updates".
-  o UI to request a resync operation.
-  o Check the cloud directory location to make sure it is acceptable.
-  o Change the default badge state to "syncing".
-  o Set and check tab order on all frames and dialogs .
-  o Make sure that the trace directory is not created in the release version.
-  o Add keyboard accelerators for the email and password fields on PageHome.
-  o Change the icons in the context menu.
-  o Apply Brian's specs to the XAML.
-  o Fix the PreferencesAbout background to be continuous?
-  o Fix move folder while system is running.
-  o On move folder, flag an operation to move it, then restart.  On restart, 1) Rename index for new path. (optimization)
-  o On select new cloud folder, wipe index. Can do this for both cases.
-  o Add Version.txt file with a fixed version format inside to identify the version installed.
-  o Programmatically locate all applications that have BadgeCom.dll locked.
-  o On Win7Sp1X86, the installer unpacks and then minimizes to the taskbar.  The user has to restore it to start the installation.  InstallShield problem?
+  o Change all MVVMLight RaisePropertyChanged to David's NotifyPropertyChanged.
+  o Fix the Busy Indicator to use a converter to set Visibility to Collapsed in design mode.
+  o Fix error in trace on shutdown during an update operation from Cloud: 01:02:39.568 PM_2648_1_CLModalErrorDialog: DisplayModalMessageBox:  Message: Are you sure you want to quit the Cloud.com application setup?.
+  o Remove the systray cloud icon on context menu click of Check for Updates?
+  o In CloudUpdater, find a better way to wait for Explorer to be fully operational after restart (rather than just sleeping an arbitrary amount of time).
+  o Move trace to appdata cloud dir.
+  o Delete trace files older than 10 days.
+  o Download, but don't allow install unless the user is an administrator.  Put up a message on Install Now.
+  o CloudUpdater is not killing processes when asked to do so.  It just hangs.
+  o Protect the DialogCheckForUpdates action with a dialog that indicates that Cloud (and possibly Explorer) will be closed.  Continue?  Yes, No.
+  o Take shell integration out of RegisterCom?.
+  o Vista, XP and Win7X86: The taskbar show-cloud-folder icon is not showing.
+  o Change the NewUpdate script to ask the user to copy the entire CommonFiles\Cloud.com folder to WyBuild instead of manually making the directories in WyBuild.
   o In BadgeCom, identify ignored file types and immediately return "no badge".
     . File attributes:
       - Hidden
@@ -6309,40 +6355,45 @@ TODO:
       shortcut path when the status
       has changed on the target file.  BadgeNet should also run a clean thread to watch the shortcut dictionary.  It will verify that the shortcut exists, and
       that the shortcut still points to a file in the cloud directory.  If not, the entry is deleted or modified (if the cloud relative path has changed) in the shortcut directory.
+  o On Win7Sp1X86, the installer unpacks and then minimizes to the taskbar.  The user has to restore it to start the installation.  InstallShield problem?
+  o Programmatically locate all applications that have BadgeCom.dll locked.  Use Restart Manager.
   o Before release, make sure all trace is turned off or managed in some way.
-  o Vista, XP and Win7X86: The taskbar show-cloud-folder icon is not showing.
-  o Test the actual upgrade to a new version (CloudUpdater and Cloud).
-  o Change the update process to copy the entire CommonFiles\Cloud.com folder instead of just the files in Cloud.com\Cloud.
+
+  o Modify the InstallShield artwork.
+  o Alt-tab shows an extra window "Check for Updates", even when it is hidden.
+  o UI to request a resync operation.
+  o Check the cloud directory location to make sure it is acceptable.
+  o Change the default badge state to "syncing".
+  o Set and check tab order on all frames and dialogs .
+  o Add keyboard accelerators for the email and password fields on PageHome.
+  o Change the icons in the context menu.
+  o Fix the PreferencesAbout background to be continuous?
+  o Fix move Cloud folder while system is running.
+  o On move Cloud folder, flag an operation to move it, then restart.  On restart, 1) Rename index for new path. (optimization)
+  o On select new cloud folder while running Cloud, wipe index. Can do this for both cases.
+  o Add Version.txt file with a fixed version format inside to identify the version installed.
   o When preferences UI is running, the taskbar has two cloud icons that look the same.
   o Store the device Udid received from the server in the link response.  That is the real Udid, not the GUID that we were generating???
   o Implement the device list with automatic updates via push, and a refresh button.
-  o Win7Sp1x86: The taskbar icon doesn't appear.
-  o When using Autoupdater from Preferences, don't show DialogCheckForUpdates if there are changes to preferences.
-  o Protect the DialogCheckForUpdates action with a dialog that indicates that Cloud (and possibly Explorer) will be closed.  Continue?  Yes, No.
-  o CloudUpdater is not killing processes when asked to do so.  It just hangs.
-  o Take shell integration out of RegisterCom?.
-  o Download, but don't allow install unless the user is an administrator.  Put up a message on Install Now.
+  o When using Autoupdater from Preferences, disable the button to show DialogCheckForUpdates if there are changes to preferences.
   o Completely relogo CloudUpdater.exe.
-  o Add our current version of wyBuild to git.
-  o Move trace to appdata cloud dir.
-  o Delete trace files older than 10 days.
-  o In CloudUpdater, find a better way to wait for Explorer to be fully operational after restart (rather than just sleeping an arbitrary amount of time).
-  o Don't automatically download program updates.  Let the user decide to do that.
-  o Implement Server Side Events.
-  o The AutoUpdater check for updates just shows "Checking..." many times, without completing the action and giving the user a result.
-  o Display current updater number in NewUpdate.vbs.
-  o Launch Explorer to the proper directory during the CloudInstallUpdate script.
-  o Installing registers BadgeCom.dll in win-client\Release??
-  o Growl when an update is available.
-  o Implement new status dialog.
-  o Implement Restart Manager in install/uninstall/update.
-  o Use a BusyIndicator when the update dialog is checking for updates....
-  o Remove the systray cloud icon on context menu click of Check for Updates.
-  o Fix error in trace on shutdown: 01:02:39.568 PM_2648_1_CLModalErrorDialog: DisplayModalMessageBox:  Message: Are you sure you want to quit the Cloud.com application setup?.
-  o The CloudUpdater still installs a new version on startup, and still complains about Cloud.exe still running.
-  o Fix the Busy Indicator to use a converter to set Visibility to Collapsed in design mode.
-  o Change all MVVMLight RaisePropertyChanged to David's NotifyPropertyChanged.
-  o Add NotifyPropertyChanged snippet.
+  o Implement Server Side Events as a fall-back for WebSockets.
+  o Implement the Log, Errors and Save Log buttons on the detailed status window.
+  o At shutdown, delete the new empty directories (new names). Documents, Pictures, Videos.
+  o Sign in to Cloud.  The code never sets the CompletedSetup Settings flag.  Due to Udid processing?
+  o When core services pause is implemented, the manual polling should synchronously do a SyncFrom and return exceptions that would be aggregated.  If all manual polls fail in a batch, then enter the paused state.
+  o Imlement core services pause.
+  o Implement a core services pause watcher thread.
+  o Trace.cs: Line 1013.  LogCommunication: Use a regular expression to test for proper JSON serialization format, instead of causing an exception.
+    Seen in JsonTextReader.cs, line 1348 Convert.ToInt64(number, CultureInfo.InvariantCulture).  Number is like "----C".
+    Set in Sync.cs, line 2209.  e.g., "---Completed file download---";.   Fix in trace: regular expression to detect valid JSON before removing
+    the authorization key.
+  o Get quota information from the sync/to-cloud responsea:
+		Quota information is now being returned in the sync/to_cloud response.  The data is:
+		quota:{limit: <integer>, local:<integer>, shared:<integer>}
+		Also, there is an MDS route, GET /user/usage that will return the same thing.
+  o Remove all references to System.IO and replace it with Win32 calls.  Too many bugs?????
+
 
 
 
