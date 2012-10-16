@@ -5011,7 +5011,58 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Fixed bugs in the push polling fallback.  It worded from enableded->disabled->enabled.
     - Implemented the saving of the server Udid and filtered push notifications by the Udid rather than by the computer friendly name.
   o 10/16/12 Tue:
-    - 6:30 - 
+    - 6:30 - 18:30
+    - NameChanger driver makes a part of a directory structure appear in another part of the directory structure: http://code.msdn.microsoft.com/windowshardware/NameChanger-File-System-728e1b2a
+    - SimRep driver redirects file open to another path: http://code.msdn.microsoft.com/windowshardware/SimRep-File-System-9a4e2206
+    - Driver with trace: http://code.msdn.microsoft.com/windowshardware/Tracedrv-f1c8ada8
+    - Windows Portable Devices (WPD) supported on XP with MediaPlayer 11: http://msdn.microsoft.com/en-us/library/windows/hardware/ff597869(v=vs.85).aspx
+    - WPD device properties: http://code.msdn.microsoft.com/windowshardware/Windows-Portable-Device-44810a91
+    - Minifilter driver to track file system deletes: http://code.msdn.microsoft.com/windowshardware/Change-File-System-4b132959
+    - Cancel-safe minifilter driver: http://code.msdn.microsoft.com/windowshardware/cancelSafe-File-System-0f8c8148
+    - NDIS driver that supports multiple minidrivers (used for VLANs): http://code.msdn.microsoft.com/windowshardware/NDIS-MUX-Intermediate-3e97f538
+    - WDF Installation package: http://code.msdn.microsoft.com/windowshardware/InstallWdf-13752008
+    - Event tracing to ETW (Event Tracing for Windows): http://code.msdn.microsoft.com/windowshardware/Eventdrv-42894135
+    - UMDF (User Mode Driver Framework) has access only to the address space of the process in which it runs: http://msdn.microsoft.com/en-us/library/windows/hardware/ff554455
+    - Metadata manager minifilter driver blocks access to metadata file: http://code.msdn.microsoft.com/windowshardware/Metadata-ManagerFile-8a527ef9
+    - Codeplex smart card UMDF sample: http://www.codeproject.com/Articles/134010/An-UMDF-Driver-for-a-Virtual-Smart-Card-Reader
+    - David: We could just write a SMB server.  That could actually run on a server and serve multiple users.
+    - WNetUseConnection (connect with credentials to SMB share without creating a drive letter): http://stackoverflow.com/questions/659013/accessing-a-shared-file-unc-from-a-remote-non-trusted-domain-with-credentials
+    - FreeNAS, CIFS SMB server under BSD license: http://en.wikipedia.org/wiki/FreeNAS
+    - NAS4Free: http://www.nas4free.org/
+    - Book on CIFS: http://ubiqx.org/cifs/Intro.html
+    - GNU GPL legal issues: http://en.wikipedia.org/wiki/GNU_General_Public_License
+    - CIFS/SMB e-book: http://ubiqx.org/cifs/
+    - SharpBox experimental CIFS server on Codeplex: http://sharpbox.codeplex.com/SourceControl/changeset/view/94877#1842737
+    - Microsoft open protocol capture files: http://sysdoccap.codeplex.com/wikipage?title=System%20Overview%20Document%20Scenario%20Captures
+    - Microsoft CIFS specs: http://msdn.microsoft.com/en-us/library/cc224428(prot.20).aspx
+    - At this point: Samba would be an option, but that option is prevented by our legal department because of the GNU GPL license requirement.  So, switch back to looking at a UMDF implementation.
+    - UMDF samples document: http://msdn.microsoft.com/en-us/windows/hardware/gg463290
+    - UMDF USB walk-through: http://msdn.microsoft.com/en-us/library/windows/hardware/hh706184(v=vs.85).aspx
+    - UMDF synchronous app requests pended and completed by driver: http://www.osronline.com/showthread.cfm?link=101250
+    - UMDF driver-created file objects: http://msdn.microsoft.com/en-us/library/windows/hardware/ff554633(v=vs.85).aspx
+    - UMDF driver-created file objects (more): http://msdn.microsoft.com/en-us/library/windows/hardware/ff554550(v=vs.85).aspx
+    - UMDF USB driver sample (Microsoft): http://code.msdn.microsoft.com/windowshardware/wdfosrfx2lab-c10cb375
+    - UMDF impersonation: http://books.google.com/books?id=jgDNRYZGNL4C&pg=PT519&lpg=PT519&dq=umdf+driver+filter+redirect+file+open&source=bl&ots=5Ox-TgqTv_&sig=NB2tP2jfwFNmLf3cSd9sBuUfms8&hl=en&sa=X&ei=Bpl9UL7vN4j69gTOzYDwBg&ved=0CE0Q6AEwCA
+    - File system drivers cannot be UMDF drivers???: http://msdn.microsoft.com/en-us/library/windows/hardware/ff560442(v=vs.85).aspx
+    - Buy it for $18K with source code: CallbackFileSystem: http://eldos.com/cbfs/
+    - I don't think we will need the "middleware" license.  This drive letter virtual drive implementation will be the Cloud product.  3rd parties will need to implement their own File System Monitor (or equivalent)
+      to generate the FSM events.
+    - I read the manual.  It's well done, with good reviews, and it does exactly what we need it to do, and it also provides the same functionality for Mac if we need it.
+    - Integrating CallbackFileSystem into Cloud:
+      . install and uninstall will need to be driven by RegisterCom.
+      . Create a new service which will initialize and terminate the virtual file system.
+      . The trial implementation will do the following:
+        o Allocate a mount point that in the same way as we do now for the Cloud directory.  This drive letter will represent the Cloud directory virtual file system view.
+	o Specify a drive letter to use for the actual Cloud storage.  That directory will be hidden and marked as system.  Allocate the space off of the drive root.
+	o Questions?  Will the storage drive be used for all users? Will the database be used for all users?  Probably, because then we can dedup on the machine.
+        o Just map the user view straight through to the hidden view.
+	o Also map the metadata straight through.
+	o Also map the security straight through.
+    - I tried the sample VDisk.  It was not without problems.  The driver intstallation threw an exception because it couldn't find some file, but it worked on restart.  Uninstall said we needed to reboot.
+    
+
+
+
 
 
 
@@ -6393,6 +6444,7 @@ TODO:
 		quota:{limit: <integer>, local:<integer>, shared:<integer>}
 		Also, there is an MDS route, GET /user/usage that will return the same thing.
   o Remove all references to System.IO and replace it with Win32 calls.  Too many bugs?????
+  o Make a single instance of the RateBar window.
 
 
 
