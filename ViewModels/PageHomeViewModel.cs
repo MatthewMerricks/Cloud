@@ -408,10 +408,11 @@ namespace win_client.ViewModels
 
                 // Save the information we have received.
                 string akey = clRegistration.Token;
+                string udid = clRegistration.Udid;
                 string uuid = clRegistration.Uuid;
                 string devn = clRegistration.LinkedDeviceName;
                 CLAccount acct = clRegistration.LinkedAccount;
-                SaveAccountInformationWithAccount(acct, devn, uuid, akey);
+                SaveAccountInformationWithAccount(acct, devn, uuid, akey, udid);
 
                 // Navigate to the SelectStorage page.
                 Uri nextPage = new System.Uri(CLConstants.kPageSelectStorageSize, System.UriKind.Relative);
@@ -438,7 +439,7 @@ namespace win_client.ViewModels
             }
         }
 
-        private void SaveAccountInformationWithAccount(CLAccount acct, string deviceName, string uuid, string key)
+        private void SaveAccountInformationWithAccount(CLAccount acct, string deviceName, string uuid, string key, string udid)
         {
             // Merged 7/11/12
             // NSString *userName = [[account fullName] stringByAppendingFormat:@" (%@)", [account userName]];
@@ -465,7 +466,7 @@ namespace win_client.ViewModels
             accountDict.Add(Settings.kUserName, userName);
             accountDict.Add(Settings.kDeviceName, deviceName);
             accountDict.Add(Settings.kAKey, key);
-            accountDict.Add(Settings.kUdidRegistered, "1");
+            accountDict.Add(Settings.kUdid, udid);
             accountDict.Add(Settings.kUuid, uuid);
 
             // [[CLSettings sharedSettings] saveAccountSettings:accountDict];

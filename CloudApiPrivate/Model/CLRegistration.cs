@@ -379,11 +379,13 @@ namespace CloudApiPrivate.Model
 
                     string apiKey = (string)returnDictionary[CLDefinitions.CLRegistrationAccessTokenKey];
                     string devicename = (string)deviceDictionary["friendly_name"];
+                    string udid = (string)deviceDictionary["device_uuid"];
                     string uuid = userInfoDictionary["id"].ToString();
                     string username = (string)userInfoDictionary["email"];
                     string firstname = (string)userInfoDictionary["first_name"];
                     string lastname = (string)userInfoDictionary["last_name"];
 
+                    outRegistration.Udid = udid;
                     outRegistration.Uuid = uuid;
                     outRegistration.Token = apiKey;
                     outRegistration.LinkedDeviceName = devicename;
@@ -656,7 +658,7 @@ namespace CloudApiPrivate.Model
                         isSuccess = ProcessServerResponse(outRegistration, jsonResult, out error);
 
                         // Set the new UDID after successfull link.. This id is used by the notification server.. 
-                        CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
+                        //CloudApiPrivate.Model.Settings.Settings.Instance.recordUDID(this.Udid);
                     }
                     else
                     {

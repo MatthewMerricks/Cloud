@@ -182,7 +182,6 @@ namespace CloudApiPrivate.Model.Settings
         public const string kUuid = "uuid";
         public const string kAKey = "akey";
         public const string kQuota = "q";
-        public const string kUdidRegistered = "r_udid";
         public const string kCompletedSetup = "cs";
         public const string kCloudFolderPath = "cloud_folder_path";
         public const string kEid = "eid";
@@ -511,23 +510,13 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private Boolean _udidRegistered;
-        public Boolean UdidRegistered
-        {
-            get { return _udidRegistered; }
-            set
-            {
-                _udidRegistered = value;
-                SettingsBase.Write<Boolean>(kUdidRegistered, value);
-            }
-        }
-
         private string _udid;
         public string Udid
         {
             get { return _udid; }
             set {
                 _udid = value;
+                _trace.writeToLog(9, "CLSettings: Instance: Set new Udid: {0}.", _udid);
                 SettingsBase.Write<string>(kUdid, value);
             }
         }
@@ -917,12 +906,12 @@ namespace CloudApiPrivate.Model.Settings
             // Account
             _akey = ""; // only available when registered.
             _uuid = ""; // only available when registered.
+            _udid = "";
             _userName = "";
             _userFullName = "";
             _deviceName = "";
             _quota = (int)StorageSizeSelections.Size5Gb;
             _completedSetup = false;
-            _udidRegistered = false;
     
             // Advanced
             _cloudFolderPath = GetDefaultCloudFolderPath();
@@ -1158,12 +1147,6 @@ namespace CloudApiPrivate.Model.Settings
                 _completedSetup = tempBoolean;
             }
 
-            isPresent = SettingsBase.ReadIfPresent<Boolean>(kUdidRegistered, out tempBoolean);
-            if (isPresent)
-            {
-                _udidRegistered = tempBoolean;
-            }
-
             isPresent = SettingsBase.ReadIfPresent<int>(kQuota, out temp);      // q is not the most clear value, but we don't want to make it obvious.
             if (isPresent)
             {
@@ -1244,6 +1227,7 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _udid = tempString;
+                _trace.writeToLog(9, "CLSettings: Instance: Initialize Udid: {0} from Settings file.", _udid);
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kMainWindowPlacement, out tempString);
@@ -1271,22 +1255,23 @@ namespace CloudApiPrivate.Model.Settings
         /// <summary>
         /// Record UDID
         /// </summary>
-        public void recordUDID(string udidParm)
-        {
-            Udid = udidParm;
-        }
+        //public void recordUDID(string udidParm)
+        //{
+        //    Udid = udidParm;
+        //}
 
         /// <summary>
         /// Record account settings
         /// </summary>
         public void saveAccountSettings(Dictionary<string, object> accountInfo)
-        {  
+        {
+            _trace.writeToLog(9, "CLSettings: Instance: saveAccountSettings. Udid: {0}.", accountInfo[kUdid] ?? "None");
             UserName = (string)accountInfo[kUserName];
             //UserFullName = (string)accountInfo[kUserFullName];
             DeviceName = (string)accountInfo[kDeviceName];
-            UdidRegistered = ((string)accountInfo[kUdidRegistered]) == "1" ? true : false;
             Akey = (string)accountInfo[kAKey];
             Uuid = (string)accountInfo[kUuid];
+            Udid = (string)accountInfo[kUdid];
         }
 
         /// <summary>
@@ -1299,7 +1284,7 @@ namespace CloudApiPrivate.Model.Settings
 
         /// <summary>
         /// Record setup completed
-        /// </summary>
+        /// </summary
         public void setCloudAppSetupCompleted(Boolean completedSetupParm)
         {  
             CompletedSetup = completedSetupParm;
@@ -1309,12 +1294,14 @@ namespace CloudApiPrivate.Model.Settings
         /// Reset all of our settings.
         /// </summary>
         public void resetSettings()
-        {  
+        {
+            _trace.writeToLog(9, "CLSettings: Instance: Reset settings.");
             // Clear the settings.
             //TODO: Check this.  Removed clearing the entire settings base so the user's settings would be remembered.
             //SettingsBase.Clear();
             Settings.Instance.CompletedSetup = false;       // tested at ExitApplication()
             Settings.Instance.Akey = String.Empty;          // lose the key
+            Settings.Instance.Udid = String.Empty;          // lose the device ID
             Settings.Instance.ShouldAnimateToSystemTray = true;  // Animate to the system tray after setup just the first time
         }
 
