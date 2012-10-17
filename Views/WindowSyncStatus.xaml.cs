@@ -32,6 +32,7 @@ using CloudApiPrivate.Common;
 using System.Diagnostics;
 using CloudApiPublic.Model;
 using System.Collections.Specialized;
+using CloudApiPrivate.EventMessageReceiver;
 
 namespace win_client.Views
 {
@@ -41,7 +42,7 @@ namespace win_client.Views
         private bool _isVisible = false;
         private bool _isShuttingDown = false;
         private static CLTrace _trace = CLTrace.Instance;
-        private WindowSyncStatusViewModel _vm = null;
+        private EventMessageReceiver _vm = null;
 
         public WindowSyncStatus()
         {
@@ -67,7 +68,7 @@ namespace win_client.Views
                 global::System.Windows.Application.Current.Shutdown(0);
             }
 
-            _vm = (WindowSyncStatusViewModel)this.DataContext;
+            _vm = (EventMessageReceiver)this.DataContext;
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Exit.");
         }
 

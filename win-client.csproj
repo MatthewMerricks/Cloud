@@ -183,6 +183,7 @@
     <Compile Include="CleanShutdown\ShutdownService.cs" />
     <Compile Include="Common\CLWindowPlacement.cs" />
     <Compile Include="Common\ComparisonBinding.cs" />
+    <Compile Include="Common\GenericAppMessageSender.cs" />
     <Compile Include="Common\HandlingEventTrigger.cs" />
     <Compile Include="Converters\DebugConverter.cs" />
     <Compile Include="Converters\DoubleSecondsToDurationConverter.cs" />
@@ -197,10 +198,6 @@
     <Compile Include="Growl\GrowlBase.cs" />
     <Compile Include="Growl\GrowlScrollViewer.cs" />
     <Compile Include="Model\CLPreferences.cs" />
-    <Compile Include="Model\CLStatusFileTransfer.cs" />
-    <Compile Include="Model\CLStatusFileTransferBase.cs" />
-    <Compile Include="Model\CLStatusFileTransferBlank.cs" />
-    <Compile Include="Model\CLStatusMessage.cs" />
     <Compile Include="Model\DataItem.cs" />
     <Compile Include="Model\DataService.cs" />
     <Compile Include="Model\IconPath.cs" />
@@ -257,7 +254,6 @@
     <Compile Include="SystemTray\HookWrapper.cs" />
     <Compile Include="SystemTray\TrayIcon.cs" />
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
-    <Compile Include="ViewModels\WindowSyncStatusViewModel.cs" />
     <Compile Include="ViewModels\FramePreferencesShortcutsViewModel.cs" />
     <Compile Include="ViewModels\DialogCheckForUpdatesViewModel.cs" />
     <Compile Include="ViewModels\PageTourAdvancedEndViewModel.cs" />

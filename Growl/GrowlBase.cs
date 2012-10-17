@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace win_client.Growl
 {
@@ -49,11 +50,28 @@ namespace win_client.Growl
         {
             get
             {
-                return (_fireOnLoad = _fireOnLoad
-                    ?? new Queue<RoutedEventArgs>());
+                return _fireOnLoad ?? (_fireOnLoad =
+                    new Queue<RoutedEventArgs>());
             }
         }
         private Queue<RoutedEventArgs> _fireOnLoad = null;
+
+        #region open status command
+        public static readonly DependencyProperty OpenStatusCommandProperty = DependencyProperty.Register(
+            "OpenStatusCommand", typeof(ICommand), typeof(GrowlBase), new PropertyMetadata(null));
+
+        public ICommand OpenStatusCommand
+        {   
+            get
+            {
+                return (ICommand)this.GetValue(OpenStatusCommandProperty);
+            }
+            set
+            {
+                this.SetValue(OpenStatusCommandProperty, value);
+            }
+        }
+        #endregion
 
         #region turn opaque
         private BindingEvaluator turnOpaqueEvaluator = null;

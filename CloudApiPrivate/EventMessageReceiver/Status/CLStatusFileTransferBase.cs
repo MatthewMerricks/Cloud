@@ -1,4 +1,11 @@
-﻿using CloudApiPrivate.Model;
+﻿//
+//  CLStatusFileTransferBase.cs
+//  Cloud Windows
+//
+//  Created by DavidBruck.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using CloudApiPrivate.Model;
 using RateBar;
 using System;
 using System.Collections.Generic;
@@ -7,11 +14,21 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Windows;
 
-namespace win_client.Model
+namespace CloudApiPrivate.EventMessageReceiver.Status
 {
     public abstract class CLStatusFileTransferBase<T> : NotifiableObject<T> where T : CLStatusFileTransferBase<T>
     {
-        public virtual string CloudRelativePath { get { return string.Empty; } set { throw new NotSupportedException("Readonly"); } }
+        public virtual string CloudRelativePath
+        {
+            get
+            {
+                return string.Empty;
+            }
+            set
+            {
+                throw new NotSupportedException("Readonly");
+            }
+        }
 
         /// <summary>
         /// Sets and gets the Visibility property.
@@ -25,7 +42,10 @@ namespace win_client.Model
         /// </summary>
         public virtual Double DisplayRateAtCurrentSample
         {
-            get { return 0d; }
+            get
+            {
+                return 0d;
+            }
             set
             {
                 throw new NotSupportedException("Readonly");
@@ -38,7 +58,10 @@ namespace win_client.Model
         /// </summary>
         public virtual RateGraph StatusGraph
         {
-            get { return null; }
+            get
+            {
+                return null;
+            }
             set
             {
                 throw new NotSupportedException("Readonly");
@@ -51,7 +74,10 @@ namespace win_client.Model
         /// </summary>
         public virtual Double PercentComplete
         {
-            get { return 0d; }
+            get
+            {
+                return 0d;
+            }
             set
             {
                 throw new NotSupportedException("Readonly");
@@ -65,7 +91,10 @@ namespace win_client.Model
         /// </summary>
         public virtual string DisplayFileSize
         {
-            get { return string.Empty; }
+            get
+            {
+                return string.Empty;
+            }
             set
             {
                 throw new NotSupportedException("Readonly");
@@ -78,7 +107,10 @@ namespace win_client.Model
         /// </summary>
         public virtual string DisplayTimeLeft
         {
-            get { return string.Empty; }
+            get
+            {
+                return string.Empty;
+            }
             set
             {
                 throw new NotSupportedException("Readonly");
@@ -91,7 +123,10 @@ namespace win_client.Model
         /// </summary>
         public virtual string DisplayElapsedTime
         {
-            get { return string.Empty; }
+            get
+            {
+                return string.Empty;
+            }
             set
             {
                 throw new NotSupportedException("Readonly");

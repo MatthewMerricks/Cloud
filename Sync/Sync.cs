@@ -504,7 +504,7 @@ namespace Sync
                             preprocessedEventIds.Add(topLevelChange.Key.EventId);
                             Nullable<long> successfulEventId;
                             Nullable<KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask;
-                            Exception completionException = CompleteFileChange(topLevelChange, applySyncFromChange, completeSingleEvent, GetFailureTimer(addChangesToProcessingQueue), addChangesToProcessingQueue, mergeToSql, out successfulEventId, out asyncTask);
+                            Exception completionException = CompleteFileChange(topLevelChange, applySyncFromChange, completeSingleEvent, GetFailureTimer(addChangesToProcessingQueue), addChangesToProcessingQueue, mergeToSql, out successfulEventId, out asyncTask, getCloudRoot);
                             if (successfulEventId != null
                                 && (long)successfulEventId > 0)
                             {
@@ -907,7 +907,7 @@ namespace Sync
                     {
                         Nullable<long> successfulEventId;
                         Nullable<KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask;
-                        Exception completionException = CompleteFileChange(topLevelChange, applySyncFromChange, completeSingleEvent, GetFailureTimer(addChangesToProcessingQueue), addChangesToProcessingQueue, mergeToSql, out successfulEventId, out asyncTask);
+                        Exception completionException = CompleteFileChange(topLevelChange, applySyncFromChange, completeSingleEvent, GetFailureTimer(addChangesToProcessingQueue), addChangesToProcessingQueue, mergeToSql, out successfulEventId, out asyncTask, getCloudRoot);
                         if (successfulEventId != null
                             && (long)successfulEventId > 0)
                         {
@@ -1276,7 +1276,7 @@ namespace Sync
             }
         }
 
-        private static Exception CompleteFileChange(KeyValuePair<FileChange, FileStream> toComplete, Func<FileChange, CLError> applySyncFromChange, Func<long, CLError> completeSingleEvent, ProcessingQueuesTimer failureTimer, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql, out Nullable<long> immediateSuccessEventId, out Nullable<KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask)
+        private static Exception CompleteFileChange(KeyValuePair<FileChange, FileStream> toComplete, Func<FileChange, CLError> applySyncFromChange, Func<long, CLError> completeSingleEvent, ProcessingQueuesTimer failureTimer, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql, out Nullable<long> immediateSuccessEventId, out Nullable<KeyValuePair<SyncDirection, Task<KeyValuePair<long, Func<long, CLError>>>>> asyncTask, Func<string> getCloudRoot)
         {
             try
             {
@@ -1346,6 +1346,17 @@ namespace Sync
                                     Nullable<Guid> newTempFile = null;
                                     string tempFolderString = null;
                                     Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> stateMergeToSql = null;
+
+                                    GenericHolder<Nullable<DateTime>> startTimeHolder = new GenericHolder<Nullable<DateTime>>(null);
+                                    Func<GenericHolder<Nullable<DateTime>>, DateTime> getStartTime = timeHolder =>
+                                        {
+                                            lock (timeHolder)
+                                            {
+                                                return timeHolder.Value
+                                                    ?? (DateTime)(timeHolder.Value = DateTime.Now);
+                                            }
+                                        };
+
                                     try
                                     {
                                         Monitor.Enter(FullShutdownToken);
@@ -1395,6 +1406,10 @@ namespace Sync
                                         if (castState.CompleteSingleEvent == null)
                                         {
                                             throw new NullReferenceException("DownloadTaskState must contain CompleteSingleEvent");
+                                        }
+                                        if (castState.getCloudRoot == null)
+                                        {
+                                            throw new NullReferenceException("DownloadTaskState must contain getCloudRoot");
                                         }
 
                                         string responseBody = null;
@@ -1473,6 +1488,10 @@ namespace Sync
                                                 (downloadRequest.Expect == null ? "100-continue" : downloadRequest.Expect),
                                                 (downloadRequest.KeepAlive ? "Keep-Alive" : "Close"));
                                         }
+
+                                        long storeSizeForStatus = storeFileChange.Metadata.HashableProperties.Size ?? 0;
+                                        string storeRelativePathForStatus = storeFileChange.NewPath.GetRelativePath(getCloudRoot(), false);
+                                        DateTime storeStartTimeForStatus = getStartTime(startTimeHolder);
 
                                         AsyncRequestHolder requestHolder = new AsyncRequestHolder();
 
@@ -1586,11 +1605,13 @@ namespace Sync
                                                     {
                                                         using (FileStream tempFileStream = new FileStream(newTempFileString, FileMode.Create, FileAccess.Write, FileShare.None))
                                                         {
+                                                            long totalBytesDownloaded = 0;
                                                             byte[] data = new byte[CLDefinitions.SyncConstantsResponseBufferSize];
                                                             int read;
                                                             while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
                                                             {
                                                                 tempFileStream.Write(data, 0, read);
+                                                                totalBytesDownloaded += read;
 
                                                                 Monitor.Enter(FullShutdownToken);
                                                                 try
@@ -1604,6 +1625,13 @@ namespace Sync
                                                                 {
                                                                     Monitor.Exit(FullShutdownToken);
                                                                 }
+
+                                                                EventMessageReceiver.UpdateFileDownload(storeFileChange.EventId,
+                                                                    new CloudApiPrivate.EventMessageReceiver.Status.CLStatusFileTransferUpdateParameters(
+                                                                        storeStartTimeForStatus,
+                                                                        storeSizeForStatus,
+                                                                        storeRelativePathForStatus,
+                                                                        totalBytesDownloaded));
                                                             }
                                                             tempFileStream.Flush();
                                                         }
@@ -1657,6 +1685,26 @@ namespace Sync
                                         if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                         {
                                             Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (storeFileChange == null ? null : new FileChange[] { storeFileChange }));
+                                        }
+
+                                        if (storeFileChange != null)
+                                        {
+                                            try
+                                            {
+                                                EventMessageReceiver.UpdateFileDownload(storeFileChange.EventId,
+                                                    new CloudApiPrivate.EventMessageReceiver.Status.CLStatusFileTransferUpdateParameters(
+                                                        getStartTime(startTimeHolder),
+                                                        (storeFileChange.Metadata == null
+                                                            ? 0
+                                                            : storeFileChange.Metadata.HashableProperties.Size ?? 0),
+                                                        string.Empty,
+                                                        (storeFileChange.Metadata == null
+                                                            ? 0
+                                                            : storeFileChange.Metadata.HashableProperties.Size ?? 0)));
+                                            }
+                                            catch
+                                            {
+                                            }
                                         }
 
                                         ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<KeyValuePair<string, Nullable<Guid>>, ProcessingQueuesTimer>>> wrappedEx = new ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<KeyValuePair<string, Nullable<Guid>>, ProcessingQueuesTimer>>>((exceptionState, exceptions) =>
@@ -1761,7 +1809,8 @@ namespace Sync
                                     CompleteSingleEvent = completeSingleEvent,
                                     FailureTimer = failureTimer,
                                     AddChangesToProcessingQueue = AddChangesToProcessingQueue,
-                                    mergeToSql = mergeToSql
+                                    mergeToSql = mergeToSql,
+                                    getCloudRoot = getCloudRoot
                                 }));
                         }
                     }
@@ -1798,6 +1847,17 @@ namespace Sync
                             FileChange storeFileChange = null;
                             Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> stateMergeToSql = null;
                             FileStream storeFileStream = null;
+                            
+                            GenericHolder<Nullable<DateTime>> startTimeHolder = new GenericHolder<Nullable<DateTime>>(null);
+                            Func<GenericHolder<Nullable<DateTime>>, DateTime> getStartTime = timeHolder =>
+                                {
+                                    lock (timeHolder)
+                                    {
+                                        return timeHolder.Value
+                                            ?? (DateTime)(timeHolder.Value = DateTime.Now);
+                                    }
+                                };
+
                             try
                             {
                                 try
@@ -1899,6 +1959,10 @@ namespace Sync
                                             (uploadRequest.Expect == null ? "100-continue" : uploadRequest.Expect),
                                             (uploadRequest.KeepAlive ? "Keep-Alive" : "Close"));
                                     }
+                                    
+                                    long storeSizeForStatus = storeFileChange.Metadata.HashableProperties.Size ?? 0;
+                                    string storeRelativePathForStatus = storeFileChange.NewPath.GetRelativePath(getCloudRoot(), false);
+                                    DateTime storeStartTimeForStatus = getStartTime(startTimeHolder);
 
                                     AsyncRequestHolder requestHolder = new AsyncRequestHolder();
 
@@ -1926,10 +1990,12 @@ namespace Sync
                                         byte[] uploadBuffer = new byte[FileConstants.BufferSize];
 
                                         int bytesRead = 0;
+                                        long totalBytesUploaded = 0;
 
                                         while ((bytesRead = storeFileStream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
                                         {
                                             uploadRequestStream.Write(uploadBuffer, 0, bytesRead);
+                                            totalBytesUploaded += bytesRead;
 
                                             Monitor.Enter(FullShutdownToken);
                                             try
@@ -1943,6 +2009,13 @@ namespace Sync
                                             {
                                                 Monitor.Exit(FullShutdownToken);
                                             }
+
+                                            EventMessageReceiver.UpdateFileUpload(storeFileChange.EventId,
+                                                new CloudApiPrivate.EventMessageReceiver.Status.CLStatusFileTransferUpdateParameters(
+                                                    storeStartTimeForStatus,
+                                                    storeSizeForStatus,
+                                                    storeRelativePathForStatus,
+                                                    totalBytesUploaded));
                                         }
                                     }
 
@@ -2098,6 +2171,26 @@ namespace Sync
                             }
                             catch (Exception ex)
                             {
+                                if (storeFileChange != null)
+                                {
+                                    try
+                                    {
+                                        EventMessageReceiver.UpdateFileUpload(storeFileChange.EventId,
+                                            new CloudApiPrivate.EventMessageReceiver.Status.CLStatusFileTransferUpdateParameters(
+                                                getStartTime(startTimeHolder),
+                                                (storeFileChange.Metadata == null
+                                                    ? 0
+                                                    : storeFileChange.Metadata.HashableProperties.Size ?? 0),
+                                                string.Empty,
+                                                (storeFileChange.Metadata == null
+                                                    ? 0
+                                                    : storeFileChange.Metadata.HashableProperties.Size ?? 0)));
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+
                                 ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<ProcessingQueuesTimer, FileStream>>> wrappedEx = new ExecutableException<KeyValuePair<KeyValuePair<FileChange, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>>, KeyValuePair<ProcessingQueuesTimer, FileStream>>>((exceptionState, exceptions) =>
                                 {
                                     try
@@ -2174,7 +2267,8 @@ namespace Sync
                             FileToUpload = toComplete.Key,
                             UploadStream = toComplete.Value,
                             AddChangesToProcessingQueue = AddChangesToProcessingQueue,
-                            mergeToSql = mergeToSql
+                            mergeToSql = mergeToSql,
+                            getCloudRoot = getCloudRoot
                         }));
                 }
             }
@@ -2196,6 +2290,7 @@ namespace Sync
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue { get; set; }
             public Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql { get; set; }
+            public Func<string> getCloudRoot { get; set; }
         }
         private class UploadTaskState
         {
@@ -2205,6 +2300,7 @@ namespace Sync
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> AddChangesToProcessingQueue { get; set; }
             public Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> mergeToSql { get; set; }
+            public Func<string> getCloudRoot { get; set; }
         }
         private class AsyncRequestHolder
         {

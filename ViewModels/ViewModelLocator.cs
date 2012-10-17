@@ -28,6 +28,7 @@ using GalaSoft.MvvmLight.Messaging;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Dialog.Implementors.Wpf.MVVM.Services;
 using System.Windows;
+using CloudApiPrivate.Model;
 
 
 namespace win_client.ViewModels
@@ -43,7 +44,7 @@ namespace win_client.ViewModels
     /// See http://www.galasoft.ch/mvvm/getstarted
     /// </para>
     /// </summary>
-    public class ViewModelLocator
+    public sealed class ViewModelLocator : IMessageSenderProvider
     {
         static ViewModelLocator()
         {
@@ -81,7 +82,6 @@ namespace win_client.ViewModels
 
             // Window pages
             SimpleIoc.Default.Register<PageCloudFolderMissingViewModel>();
-            SimpleIoc.Default.Register<WindowSyncStatusViewModel>();
 
             // Modal dialog support
             SimpleIoc.Default.Register<IModalDialogService, ModalDialogService>();
@@ -102,7 +102,11 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<FancyBalloon>();
 
             // EventMessageReceiver
+            // (also doubles as WindowSyncStatusViewModel)
             SimpleIoc.Default.Register<CloudApiPrivate.EventMessageReceiver.EventMessageReceiver>(() => CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.Instance);
+
+            // GenericAppMessageSender
+            SimpleIoc.Default.Register<GenericAppMessageSender>(() => GenericAppMessageSender.Instance);
         }
 
         /// <summary>
@@ -258,22 +262,6 @@ namespace win_client.ViewModels
                 return ServiceLocator.Current.GetInstance<PageCloudFolderMissingViewModel>();
             }
         }
-
-        /// <summary>
-        /// Gets the WindowSyncStatusViewModel property.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
-            "CA1822:MarkMembersAsStatic",
-            Justification = "This non-static member is needed for data binding purposes.")]
-        public WindowSyncStatusViewModel WindowSyncStatusViewModel
-        {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<WindowSyncStatusViewModel>();
-            }
-        }
-
-
 
         /// <summary>
         /// Gets the PageBadgeComInitializationErrorViewModel property.
@@ -528,11 +516,35 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
+        /// Gets the EventMessageReceiver property.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+            "CA1822:MarkMembersAsStatic",
+            Justification = "This non-static member is needed for data binding purposes.")]
+        public GenericAppMessageSender GenericAppMessageSender
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<GenericAppMessageSender>();
+            }
+        }
+
+        /// <summary>
         /// Cleans up all the resources.
         /// </summary>
         public static void Cleanup()
         {
             //TODO: Clean up all of the view models.
         }
+
+        #region IMessageSender member
+        public IMessageSender IMessageSender
+        {
+            get
+            {
+                return GenericAppMessageSender;
+            }
+        }
+        #endregion
     }
 }

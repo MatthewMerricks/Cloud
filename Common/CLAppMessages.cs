@@ -387,6 +387,8 @@ namespace win_client.Common
             {
                 Messenger.Default.Register(recipient, MessageTypes.Message_WindowSyncStatus_ShouldClose, action);
             }
+
+            public static string DefaultParameter = string.Empty;
         }
 
 #if TRASH

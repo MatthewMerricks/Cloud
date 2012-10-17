@@ -9,17 +9,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using GalaSoft.MvvmLight;
 using CloudApiPrivate.Model;
 using System.Windows;
 using RateBar;
 using System.Windows.Data;
 using System.Linq.Expressions;
 
-namespace win_client.Model
+namespace CloudApiPrivate.EventMessageReceiver.Status
 {
     public sealed class CLStatusFileTransfer : CLStatusFileTransferBase<CLStatusFileTransfer>
     {
+        // Added for calculation of current rate by samples
+        // -David
+        #region fields to record history of samples for current rate
+        public const int RateMaxSamplesToCalculate = 50;
+        public readonly List<KeyValuePair<DateTime, long>> HistorySamples = new List<KeyValuePair<DateTime, long>>();
+
+        public const double HighestDisplayRateMultiplier = 2d;
+        private const double DefaultHighestRateBitsPerSecond = 1d;
+        public double HighestRateBitsPerSecond = DefaultHighestRateBitsPerSecond;
+        public double InitialRateBitsPerSecondForMaxRateBar = DefaultHighestRateBitsPerSecond * HighestDisplayRateMultiplier;
+        #endregion
+
         #region Public fields
 
         public bool IsDirectionUpload = false;
@@ -153,7 +164,7 @@ namespace win_client.Model
 
         #endregion
 
-        public CLStatusFileTransfer()
+        public void InitializeRateGraph()
         {
             _statusGraph = new RateGraph()
             {

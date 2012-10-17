@@ -9,14 +9,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using GalaSoft.MvvmLight;
 using CloudApiPrivate.Model;
 using System.Windows;
-using RateBar;
 using System.Windows.Data;
 using System.Linq.Expressions;
 
-namespace win_client.Model
+namespace CloudApiPrivate.EventMessageReceiver.Status
 {
     public sealed class CLStatusMessage : NotifiableObject<CLStatusMessage> 
     {

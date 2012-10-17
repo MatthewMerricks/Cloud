@@ -36,5 +36,21 @@ namespace win_client.Growl
                 this.SetValue(MouseLeftButtonDownCommandProperty, value);
             }
         }
+
+        public static DependencyProperty MouseLeftButtonDownCommandParameterProperty = DependencyProperty.Register("MouseLeftButtonDownCommandParameter",
+            typeof(object),
+            typeof(GrowlScrollViewer));
+
+        public object MouseLeftButtonDownCommandParameter
+        {
+            get
+            {
+                return this.GetValue(MouseLeftButtonDownCommandParameterProperty);
+            }
+            set
+            {
+                this.SetValue(MouseLeftButtonDownCommandParameterProperty, value);
+            }
+        }
     }
 }

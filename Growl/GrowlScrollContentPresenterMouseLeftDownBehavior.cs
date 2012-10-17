@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interactivity;
 
@@ -36,7 +37,7 @@ namespace win_client.Growl
             if (growlScroller != null
                 && growlScroller.MouseLeftButtonDownCommand != null)
             {
-                growlScroller.MouseLeftButtonDownCommand.Execute(null);
+                growlScroller.MouseLeftButtonDownCommand.Execute(growlScroller.GetValue(GrowlScrollViewer.MouseLeftButtonDownCommandParameterProperty));
 
                 e.Handled = true;
             }

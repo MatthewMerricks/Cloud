@@ -22,7 +22,7 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPrivate.EventMessageReceiver
 {
-    public sealed class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IDisposable
+    public sealed partial class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IDisposable
     {
         private const int MessageTimerDelayMilliseconds = 250;
         private const int GrowlProcessMouseCheckerMilliseconds = 250;
@@ -132,8 +132,8 @@ namespace CloudApiPrivate.EventMessageReceiver
         {
             get
             {
-                return (_clickedGrowlCommand = _clickedGrowlCommand
-                    ?? new RelayCommand<object>(ClickedGrowl));
+                return _clickedGrowlCommand ?? (_clickedGrowlCommand =
+                    new RelayCommand<object>(ClickedGrowl));
             }
         }
         private ICommand _clickedGrowlCommand = null;
@@ -142,8 +142,8 @@ namespace CloudApiPrivate.EventMessageReceiver
         {
             get
             {
-                return (_closedGrowlCommand = _closedGrowlCommand
-                    ?? new RelayCommand<object>(ClosedGrowl));
+                return _closedGrowlCommand ?? (_closedGrowlCommand =
+                    new RelayCommand<object>(ClosedGrowl));
             }
         }
         private ICommand _closedGrowlCommand = null;
@@ -152,8 +152,8 @@ namespace CloudApiPrivate.EventMessageReceiver
         {
             get
             {
-                return (_mouseEnteredGrowlCommand = _mouseEnteredGrowlCommand
-                    ?? new RelayCommand<UIElement>(MouseEnteredGrowl));
+                return _mouseEnteredGrowlCommand ?? (_mouseEnteredGrowlCommand =
+                    new RelayCommand<UIElement>(MouseEnteredGrowl));
             }
         }
         private ICommand _mouseEnteredGrowlCommand = null;
@@ -178,7 +178,11 @@ namespace CloudApiPrivate.EventMessageReceiver
 
         #endregion
 
-        private EventMessageReceiver() { }
+        private EventMessageReceiver()
+        {
+            // run custom construction setter method for the partial class portion WindowSyncStatusViewModel
+            WindowSyncStatusViewModelConstructed.MarkConstructed(WindowSyncStatusViewModelConstructionSetters, this);
+        }
 
         #region public static methods
         public static void DisplayErrorGrowl(string message)
@@ -341,7 +345,20 @@ namespace CloudApiPrivate.EventMessageReceiver
         {
             ClosedGrowl(state);
 
-            MessageBox.Show("Need to open status window here");
+            ICommand castState = state as ICommand;
+            if (castState != null)
+            {
+                try
+                {
+                    if (castState.CanExecute(this))
+                    {
+                        castState.Execute(this);
+                    }
+                }
+                catch
+                {
+                }
+            }
         }
 
         private void ClosedGrowl(object state)
@@ -868,6 +885,10 @@ namespace CloudApiPrivate.EventMessageReceiver
                 }
             }
         }
+        #endregion
+
+        #region status view
+
         #endregion
     }
 }

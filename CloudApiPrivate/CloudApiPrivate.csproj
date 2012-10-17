@@ -44,6 +44,9 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="RateBar">
+      <HintPath>..\3rdParty\bin\Release\RateBar.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -79,6 +82,14 @@
     <Compile Include="EventMessageReceiver\EventMessageImplementations\ErrorMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadedMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageReceiver.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransfer.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBase.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBlank.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferUpdateParameters.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusMessage.cs" />
+    <Compile Include="EventMessageReceiver\WindowSyncStatusViewModel.cs" />
+    <Compile Include="Model\ConstructedHolder.cs" />
+    <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="EventMessageReceiver\RelayCommand.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadingMessage.cs" />

@@ -500,5 +500,47 @@ namespace CloudApiPublic.Static
                 return new Point(double.MaxValue, double.MaxValue);
             }
         }
+
+        public static bool IsCastableTo(this Type from, Type to)
+        {
+            if (to.IsAssignableFrom(from))
+            {
+                return true;
+            }
+            var methods = from.GetMethods(BindingFlags.Public | BindingFlags.Static)
+                              .Where(
+                                  m => m.ReturnType == to &&
+                                       m.Name == "op_Implicit" ||
+                                       m.Name == "op_Explicit"
+                              );
+            return methods.Count() > 0;
+        }
+
+        public static string FormatBytes(long bytes)
+        {
+            if (bytes == 1)
+            {
+                return "1 Byte"; // special case to remove the plural
+            }
+
+            const int scale = 1024;
+            long max = (long)Math.Pow(scale, FormatBytesOrders.Length - 1);
+
+            foreach (string order in FormatBytesOrders)
+            {
+                if (bytes > max)
+                {
+                    return string.Format("{0:##.##} {1}", decimal.Divide(bytes, max), order);
+                }
+                else if (bytes == max)
+                {
+                    return string.Format("1 {0}", order);
+                }
+
+                max /= scale;
+            }
+            return "0 Bytes"; // default for bytes that are less than or equal to zero
+        }
+        private static readonly string[] FormatBytesOrders = new string[] { "GB", "MB", "KB", "Bytes" };
     }
 }

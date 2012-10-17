@@ -327,7 +327,7 @@ namespace win_client.ViewModels
                     ?? (_SyncStatusCommand = new RelayCommand(
                                             () =>
                                             {
-                                                // Check for updates
+                                                // Open RateBar graph window for upload/download status and logs
                                                 WindowSyncStatus win = new WindowSyncStatus();
                                                 win.ShowInTaskbar = true;
                                                 win.ShowActivated = true;

@@ -203,6 +203,8 @@ namespace CloudApiPrivate.Model.Settings
         public const string kShouldAnimateToSystemTray = "should_animate_to_system_tray";
         public const string kIsMovingCloudFolder = "is_moving_cloud_folder";
         public const string kMovingCloudFolderTargetPath = "moving_cloud_folder_target_path";
+        public const string kHistoryUploadBandwidthBitPS = "historic_upload_bandwidth_bitsps";
+        public const string kHistoryDownloadBandwidthBitPS = "historic_download_bandwidth_bitsps";
 
         /// <summary>
         /// The persistent settings properties.
@@ -774,6 +776,38 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
+        // Setting to keep track of history upload bandwidth in bits per second
+        // Added by David
+        private double _historicUploadBandwidthBitsPS;
+        public double HistoricUploadBandwidthBitsPS
+        {
+            get { return _historicUploadBandwidthBitsPS; }
+            set
+            {
+                if (_historicUploadBandwidthBitsPS != value)
+                {
+                    _historicUploadBandwidthBitsPS = value;
+                    SettingsBase.Write<double>(kHistoryUploadBandwidthBitPS, _historicUploadBandwidthBitsPS);
+                }
+            }
+        }
+
+        // Setting to keep track of history download bandwidth in bits per second
+        // Added by David
+        private double _historicDownloadBandwidthBitsPS;
+        public double HistoricDownloadBandwidthBitsPS
+        {
+            get { return _historicDownloadBandwidthBitsPS; }
+            set
+            {
+                if (_historicDownloadBandwidthBitsPS != value)
+                {
+                    _historicDownloadBandwidthBitsPS = value;
+                    SettingsBase.Write<double>(kHistoryDownloadBandwidthBitPS, _historicDownloadBandwidthBitsPS);
+                }
+            }
+        }
+
         // Main window placement info.
         private string _mainWindowPlacement;
         public String MainWindowPlacement
@@ -835,6 +869,10 @@ namespace CloudApiPrivate.Model.Settings
         public void loadSettings()
         {    
             // Load defaults
+
+            // Historic bandwidth
+            _historicUploadBandwidthBitsPS = 1048576d; // 1 megabits per second
+            _historicDownloadBandwidthBitsPS = 262144d; // 250 kilobits per second
 
             // Logging
             _logErrors = 0;
@@ -936,6 +974,21 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _traceLocation = tempString;
+            }
+
+            // Historic bandwidth
+            // --Added by David
+            double dTemp;
+            isPresent = SettingsBase.ReadIfPresent<double>(kHistoryUploadBandwidthBitPS, out dTemp);
+            if (isPresent)
+            {
+                _historicUploadBandwidthBitsPS = dTemp;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<double>(kHistoryDownloadBandwidthBitPS, out dTemp);
+            if (isPresent)
+            {
+                _historicDownloadBandwidthBitsPS = dTemp;
             }
 
             // General

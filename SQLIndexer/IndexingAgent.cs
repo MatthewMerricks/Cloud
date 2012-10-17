@@ -1454,7 +1454,7 @@ namespace SQLIndexer
                                         "LEFT OUTER JOIN [Events] ON [FileSystemObjects].[EventId] = [Events].[EventId] " +
                                         "WHERE  [FileSystemObjects].[SyncCounter] IS NULL ",
                                     new string[] { "Event" },
-                                    indexTransaction);
+                                    indexTransaction).ToArray();
 
                                 SqlAccessor<FileSystemObject>.DeleteRows(indexDB,
                                     pendingToDelete,

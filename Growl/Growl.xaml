@@ -21,6 +21,7 @@
                  x:Name="thisGrowl"
                  MinHeight="100"
                  Width="220"
+                 OpenStatusCommand="{Binding PageInvisibleViewModel.SyncStatusCommand, Source={StaticResource Locator}}"
                  d:DesignHeight="300" d:DesignWidth="300">
     <growl:GrowlBase.Triggers>
         <EventTrigger RoutedEvent="growl:GrowlBase.TurnOpaqueChanged">
@@ -105,7 +106,8 @@
     </growl:GrowlBase.StopTurningTranslucentBinding>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="MouseDown">
-            <i:InvokeCommandAction Command="{Binding EventMessageReceiver.ClickedGrowlCommand, Source={StaticResource Locator}}" />
+            <i:InvokeCommandAction Command="{Binding EventMessageReceiver.ClickedGrowlCommand, Source={StaticResource Locator}}"
+                                   CommandParameter="{Binding OpenStatusCommand, ElementName=thisGrowl}" />
         </i:EventTrigger>
         <i:EventTrigger EventName="MouseEnter">
             <i:InvokeCommandAction Command="{Binding EventMessageReceiver.MouseEnteredGrowlCommand, Source={StaticResource Locator}}"
@@ -147,6 +149,7 @@
                                      MaxHeight="300"
                                      Style="{StaticResource GrowlScrollViewer}"
                                      MouseLeftButtonDownCommand="{Binding EventMessageReceiver.ClickedGrowlCommand, Source={StaticResource Locator}}"
+                                     MouseLeftButtonDownCommandParameter="{Binding OpenStatusCommand, ElementName=thisGrowl}"
                                      Margin="0,0,0,8">
                 <ItemsControl ItemsSource="{Binding EventMessageReceiver.GrowlMessages, Source={StaticResource Locator}}">
                     <ItemsControl.ItemTemplate>
