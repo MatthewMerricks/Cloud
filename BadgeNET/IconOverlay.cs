@@ -442,12 +442,18 @@ namespace BadgeNET
                     // as the rename is processes, and those recursive renames will cause the badges to be adjusted.
                     _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. Pass this rename to the dictionary.");
                     // Put in a check if both paths already have values so we can overwrite at the new path
-                    if (allBadges.ContainsKey(oldPath)
-                        && allBadges.ContainsKey(newPath))
+                    if (allBadges.ContainsKey(oldPath))
                     {
-                        allBadges.Remove(newPath);
+                        if (allBadges.ContainsKey(newPath))
+                        {
+                            allBadges.Remove(newPath);
+                        }
+                        return allBadges.Rename(oldPath, newPath);
                     }
-                    return allBadges.Rename(oldPath, newPath);
+                    else
+                    {
+                        return new KeyNotFoundException("Could not find path to rename at oldPath");
+                    }
                 }
             }
             catch (Exception ex)

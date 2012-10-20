@@ -74,30 +74,9 @@ namespace win_client.Services.FileSystemMonitoring
 
             MonitorAgent monitorToSet;
             CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath,
+                IndexingAgent,
                 out monitorToSet,
-                global::Sync.Sync.Run,
-                IndexingAgent.MergeEventsIntoDatabase,
-                (syncId, successfulEventIds, newRootPath) =>
-                {
-                    long newSyncCounter;
-                    return IndexingAgent.RecordCompletedSync(syncId, successfulEventIds, out newSyncCounter, newRootPath);
-                },
-                () =>
-                {
-                    IndexingAgent.LastSyncLocker.EnterReadLock();
-                    try
-                    {
-                        return IndexingAgent.LastSyncId;
-                    }
-                    finally
-                    {
-                        IndexingAgent.LastSyncLocker.ExitReadLock();
-                    }
-                },
-                IndexingAgent.MarkEventAsCompletedOnPreviousSync,
-                IndexingAgent.GetMetadataByPathAndRevision,
-                () => Settings.Instance.DeviceName,
-                () => IndexingAgent.CELocker);
+                global::Sync.Sync.Run);
 
             if (fileMonitorCreationError != null)
             {

@@ -315,10 +315,10 @@ namespace CloudApiPublic.Model
                         // then recursively grab the hierarchical structure of the inner folder for the key to output
                         else
                         {
-                            CLError recurseHeirarchyError = innerFolders[recursePath].GrabHierarchyForPath(key, out outputNode);
-                            if (recurseHeirarchyError != null)
+                            CLError recurseHierarchyError = innerFolders[recursePath].GrabHierarchyForPath(key, out outputNode, suppressException);
+                            if (recurseHierarchyError != null)
                             {
-                                throw recurseHeirarchyError.GrabFirstException();
+                                throw recurseHierarchyError.GrabFirstException();
                             }
                         }
                     }

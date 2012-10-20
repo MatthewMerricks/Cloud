@@ -1779,25 +1779,25 @@ namespace Sync
                                         {
                                             System.Windows.MessageBox.Show("Unable to cast downloadState as DownloadTaskState and thus unable cleanup after download error: " + ex.Message);
 
-                                            return new EventIdAndCompletionProcessor(0, null, null, null);
+                                            return new EventIdAndCompletionProcessor(0, null, null);
                                         }
                                         else if (castState.FileToDownload == null)
                                         {
                                             System.Windows.MessageBox.Show("downloadState must contain FileToDownload and thus unable cleanup after download error: " + ex.Message);
 
-                                            return new EventIdAndCompletionProcessor(0, null, null, null);
+                                            return new EventIdAndCompletionProcessor(0, null, null);
                                         }
                                         else if (castState.SyncData == null)
                                         {
                                             System.Windows.MessageBox.Show("downloadState must contain SyncData and thus unable cleanup after download error: " + ex.Message);
 
-                                            return new EventIdAndCompletionProcessor(0, null, null, null);
+                                            return new EventIdAndCompletionProcessor(0, null, null);
                                         }
                                         else if (castState.SyncSettings == null)
                                         {
                                             System.Windows.MessageBox.Show("downloadState must contain SyncSettings and thus unable cleanup after download error: " + ex.Message);
 
-                                            return new EventIdAndCompletionProcessor(0, null, null, null);
+                                            return new EventIdAndCompletionProcessor(0, null, null);
                                         }
                                         else
                                         {
@@ -1964,7 +1964,7 @@ namespace Sync
                                     {
                                         if (FullShutdownToken.Token.IsCancellationRequested)
                                         {
-                                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings, null);
+                                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
                                         }
                                     }
                                     finally
@@ -2074,7 +2074,7 @@ namespace Sync
 
                                     if (requestHolder.IsCanceled)
                                     {
-                                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings, null);
+                                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
                                     }
 
                                     using (Stream uploadRequestStream = uploadRequest.EndGetRequestStream(requestAsyncResult))
@@ -2094,7 +2094,7 @@ namespace Sync
                                             {
                                                 if (FullShutdownToken.Token.IsCancellationRequested)
                                                 {
-                                                    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings, null);
+                                                    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
                                                 }
                                             }
                                             finally
@@ -2142,7 +2142,7 @@ namespace Sync
 
                                         if (responseHolder.IsCanceled)
                                         {
-                                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings, null);
+                                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
                                         }
 
                                         uploadResponse = (HttpWebResponse)uploadRequest.EndGetResponse(responseAsyncResult);
@@ -2221,7 +2221,7 @@ namespace Sync
                                                     }
                                                 }
 
-                                                return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncSettings, null);
+                                                return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncSettings);
                                             }
                                         }
                                         finally
@@ -2289,25 +2289,25 @@ namespace Sync
                                 {
                                     System.Windows.MessageBox.Show("Unable to cast uploadState as UploadTaskState and thus unable cleanup after upload error: " + ex.Message);
 
-                                    return new EventIdAndCompletionProcessor(0, null, null, null);
+                                    return new EventIdAndCompletionProcessor(0, null, null);
                                 }
                                 else if (castState.FileToUpload == null)
                                 {
                                     System.Windows.MessageBox.Show("uploadState must contain FileToUpload and thus unable cleanup after upload error: " + ex.Message);
 
-                                    return new EventIdAndCompletionProcessor(0, null, null, null);
+                                    return new EventIdAndCompletionProcessor(0, null, null);
                                 }
                                 else if (castState.SyncData == null)
                                 {
                                     System.Windows.MessageBox.Show("uploadState must contain SyncData and thus unable cleanup after upload error: " + ex.Message);
 
-                                    return new EventIdAndCompletionProcessor(0, null, null, null);
+                                    return new EventIdAndCompletionProcessor(0, null, null);
                                 }
                                 else if (castState.SyncSettings == null)
                                 {
                                     System.Windows.MessageBox.Show("uploadState must contain SyncSettings and thus unable cleanup after upload error: " + ex.Message);
 
-                                    return new EventIdAndCompletionProcessor(0, null, null, null);
+                                    return new EventIdAndCompletionProcessor(0, null, null);
                                 }
                                 else
                                 {
@@ -3540,7 +3540,7 @@ namespace Sync
                                                         findMainName = currentChange.NewPath.Name.Substring(0, extensionIndex);
                                                     }
 
-                                                    string deviceAppend = " CONFLICT " + syncData.getDeviceName;
+                                                    string deviceAppend = " CONFLICT " + syncSettings.getDeviceName;
                                                     string finalizedMainName;
 
                                                     if (findMainName.IndexOf(deviceAppend, 0, StringComparison.InvariantCultureIgnoreCase) == -1)

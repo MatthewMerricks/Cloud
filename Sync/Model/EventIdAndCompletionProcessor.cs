@@ -77,7 +77,7 @@ namespace Sync.Model
         }
         private bool _isValid;
 
-        public EventIdAndCompletionProcessor(long EventId, ISyncDataObject syncData, ISyncSettings syncSettings, string TempDownloadFolderPath)
+        public EventIdAndCompletionProcessor(long EventId, ISyncDataObject syncData, ISyncSettings syncSettings, string TempDownloadFolderPath = null)
         {
             if (syncData == null)
             {
@@ -86,10 +86,6 @@ namespace Sync.Model
             if (syncSettings == null)
             {
                 throw new NullReferenceException("syncSettings cannot be null");
-            }
-            if (string.IsNullOrWhiteSpace(TempDownloadFolderPath))
-            {
-                throw new NullReferenceException("TempDownloadFolderPath cannot be null");
             }
 
             this._eventId = EventId;

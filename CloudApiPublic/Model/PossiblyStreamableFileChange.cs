@@ -62,8 +62,7 @@ namespace CloudApiPublic.Model
                     && !FileChange.Metadata.HashableProperties.IsFolder
                     && FileChange.Direction == Static.SyncDirection.To
                     && (FileChange.Type == Static.FileChangeType.Created
-                        || FileChange.Type == Static.FileChangeType.Modified)
-                    && Stream == null)
+                        || FileChange.Type == Static.FileChangeType.Modified))
                 {
                     if (Stream == null)
                     {

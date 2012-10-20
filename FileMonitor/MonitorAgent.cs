@@ -22,26 +22,12 @@ using CloudApiPrivate.Model.Settings;
 using System.Windows;
 using System.Transactions;
 using FileMonitor.Static;
+using FileMonitor.SyncImplementations;
+using CloudApiPublic.Interfaces;
+using SQLIndexer;
 
 namespace FileMonitor
 {
-    /// <summary>
-    /// Delegate to match MonitorAgent's method ProcessFileListForSyncProcessing which pulls changes for Sync
-    /// </summary>
-    /// <param name="outputChanges">Output array of FileChanges to process</param>
-    /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
-    /// <returns>Returns error(s) that occurred while pulling processed changes, if any</returns>
-    public delegate CLError GrabProcessedChanges(IEnumerable<KeyValuePair<bool, FileChange>> initialFailures,
-        out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
-        out IEnumerable<KeyValuePair<bool, FileChange>> outputChangesInError);
-
-    public delegate CLError DependencyAssignments(IEnumerable<KeyValuePair<FileChange, FileStream>> toAssign,
-        IEnumerable<FileChange> currentFailures,
-        out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
-        out IEnumerable<FileChange> outputFailures);
-
-    public delegate CLError MetadataByPathAndRevision(string path, string revision, out FileMetadata metadata);
-
     /// <summary>
     /// Class to cover file monitoring; created with delegates to connect to the SQL indexer and to start Sync communication for new events
     /// </summary>
@@ -95,46 +81,16 @@ namespace FileMonitor
         // stores the optional FileChange queueing callback intialization parameter
         private Action<MonitorAgent, FileChange> OnQueueing;
 
-        // stores the callback used to process a group of events.  Passed via an intialization parameter
-        private Func<GrabProcessedChanges,
-            Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>,
-            Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>,
+        Func<ISyncDataObject,
+            ISyncSettings,
             bool,
-            Func<string, IEnumerable<long>, string, CLError>,
-            Func<string>,
-            DependencyAssignments,
-            Func<string>,
-            Func<FileChange, CLError>,
-            Func<long, CLError>,
-            MetadataByPathAndRevision,
-            Func<string>,
-            CLError> SyncRun;
+            CLError> SyncRun = null;
+
         private GenericHolder<bool> SyncRunLocker = new GenericHolder<bool>(false);
         private GenericHolder<bool> NextSyncQueued = new GenericHolder<bool>(false);
 
-        private Func<string> GetDeviceName;
-
-        private Func<ReaderWriterLockSlim> GetCELocker;
-
-        // stores the callback used to add the processed event to the SQL index
-        /// <summary>
-        /// First parameter is merged event, second parameter is event to remove
-        /// </summary>
-        private Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> ProcessMergeToSQL;
-
-        // stores the callback used to complete a sync with a list of completed events
-        /// <summary>
-        /// First parameter is syncId, second parameter is successfulEventIds, third parameter is newSyncRoot, returns any error that occurred
-        /// </summary>
-        private Func<string, IEnumerable<long>, string, CLError> ProcessCompletedSync;
-
-
-        // Returns the last sync Id, should be tied to the SQLIndexer IndexingAgent's LastSyncId property under a locker
-        private Func<string> GetLastSyncId;
-
-        private MetadataByPathAndRevision GetMetadataByPathAndRevision;
-
-        private Func<long, CLError> CompleteSingleEvent;
+        private readonly IndexingAgent Indexer;
+        private readonly ISyncDataObject SyncData;
 
         // store the optional logging boolean initialization parameter
         private bool LogProcessingFileChanges;
@@ -265,33 +221,18 @@ namespace FileMonitor
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns>Returns any error that occurred if there was one</returns>
         public static CLError CreateNewAndInitialize(string folderPath,
+            IndexingAgent indexer,
             out MonitorAgent newAgent,
-            Func<GrabProcessedChanges,
-                Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>,
-                Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>,
+            Func<ISyncDataObject,
+                ISyncSettings,
                 bool,
-                Func<string, IEnumerable<long>, string, CLError>,
-                Func<string>,
-                DependencyAssignments,
-                Func<string>,
-                Func<FileChange, CLError>,
-                Func<long, CLError>,
-                MetadataByPathAndRevision,
-                Func<string>,
                 CLError> syncRun,
-            Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> onProcessMergeToSQL,
-            Func<string, IEnumerable<long>, string, CLError> onProcessCompletedSync,
-            Func<string> getLastSyncId,
-            Func<long, CLError> completeSingleEvent,
-            MetadataByPathAndRevision getMetadataByPathAndRevision,
-            Func<string> getDeviceName,
-            Func<ReaderWriterLockSlim> getCELocker,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
             try
             {
-                newAgent = new MonitorAgent();
+                newAgent = new MonitorAgent(indexer);
             }
             catch (Exception ex)
             {
@@ -313,18 +254,6 @@ namespace FileMonitor
                 {
                     throw new NullReferenceException("onProcessEventGroupCallback cannot be null");
                 }
-                if (onProcessMergeToSQL == null)
-                {
-                    throw new NullReferenceException("onProcessMergeToSQL cannot be null");
-                }
-                if (onProcessCompletedSync == null)
-                {
-                    throw new NullReferenceException("onProcessCompletedSync cannot be null");
-                }
-                if (getLastSyncId == null)
-                {
-                    throw new NullReferenceException("getLastSyncId cannot be null");
-                }
 
                 // Initialize current, in-memory index
                 CLError allPathsError = FilePathDictionary<FileMetadata>.CreateAndInitialize(folderInfo,
@@ -342,14 +271,7 @@ namespace FileMonitor
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;
                 newAgent.SyncRun = syncRun;
-                newAgent.ProcessMergeToSQL = onProcessMergeToSQL;
-                newAgent.ProcessCompletedSync = onProcessCompletedSync;
-                newAgent.GetLastSyncId = getLastSyncId;
                 newAgent.LogProcessingFileChanges = logProcessing;
-                newAgent.CompleteSingleEvent = completeSingleEvent;
-                newAgent.GetMetadataByPathAndRevision = getMetadataByPathAndRevision;
-                newAgent.GetDeviceName = getDeviceName;
-                newAgent.GetCELocker = getCELocker;
 
                 // assign timer object that is used for processing the FileChange queues in batches
                 CLError queueTimerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(state =>
@@ -391,7 +313,15 @@ namespace FileMonitor
             return null;
         }
 
-        private MonitorAgent() { }
+        private MonitorAgent(IndexingAgent Indexer)
+        {
+            if (Indexer == null)
+            {
+                throw new NullReferenceException("Indexer cannot be null");
+            }
+            this.Indexer = Indexer;
+            this.SyncData = new SyncData(this, Indexer);
+        }
         // Standard IDisposable implementation based on MSDN System.IDisposable
         ~MonitorAgent()
         {
@@ -868,7 +798,7 @@ namespace FileMonitor
                 //// ¡¡ SQL CE does not support transactions !!
                 //using (TransactionScope PreprocessingScope = new TransactionScope())
                 //{
-                GetCELocker().EnterWriteLock();
+                Indexer.CELocker.EnterWriteLock();
                 try
                 {
                     PulledChanges = new HashSet<FileChangeWithDependencies>();
@@ -934,7 +864,7 @@ namespace FileMonitor
                                                     RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key);
                                                 }
                                             }
-                                            CLError updateSQLError = ProcessMergeToSQL(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(null, CurrentDisposal) }, true);
+                                            CLError updateSQLError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(null, CurrentDisposal) }, true);
                                             if (updateSQLError != null)
                                             {
                                                 toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
@@ -953,7 +883,7 @@ namespace FileMonitor
                 }
                 finally
                 {
-                    GetCELocker().ExitWriteLock();
+                    Indexer.CELocker.ExitWriteLock();
                 }
                 //// ¡¡ SQL CE does not support transactions !!
                     //PreprocessingScope.Complete();
@@ -1046,7 +976,7 @@ namespace FileMonitor
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
-                                    CLError updateSqlError = ProcessMergeToSQL(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(CurrentEarlierChange, null) }, true);
+                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, true);
                                     if (updateSqlError != null)
                                     {
                                         toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.GrabExceptions());
@@ -1091,7 +1021,7 @@ namespace FileMonitor
                                         if (FilePathComparer.Instance.Equals(renamedOverlap, LaterChange.OldPath))
                                         {
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
-                                            CLError replacePathPortionError = ProcessMergeToSQL(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(CurrentEarlierChange, null) }, true);
+                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, true);
                                             if (replacePathPortionError != null)
                                             {
                                                 toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
@@ -1202,7 +1132,7 @@ namespace FileMonitor
                             if (FilePathComparer.Instance.Equals(renamedOverlap, CurrentEarlierChange.NewPath))
                             {
                                 renamedOverlapChild.Parent = CurrentEarlierChange.OldPath;
-                                CLError replacePathPortionError = ProcessMergeToSQL(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(LaterChange, null) }, false);
+                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(LaterChange, null) }, false);
                                 if (replacePathPortionError != null)
                                 {
                                     toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
@@ -1228,42 +1158,42 @@ namespace FileMonitor
             return toReturn;
         }
 
-        public CLError AssignDependencies(IEnumerable<KeyValuePair<FileChange, FileStream>> toAssign,
+        public CLError AssignDependencies(IEnumerable<PossiblyStreamableFileChange> toAssign,
             IEnumerable<FileChange> currentFailures,
-            out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
+            out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out IEnumerable<FileChange> outputFailures)
         {
             CLError toReturn = null;
             try
             {
                 HashSet<FileChangeWithDependencies> PulledChanges;
-                Func<KeyValuePair<FileChange, FileStream>, Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, FileStream>>, FileChangeWithDependencies> convertChange = (inputChange, streamMappings) =>
+                Func<PossiblyStreamableFileChange, Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, Stream>>, FileChangeWithDependencies> convertChange = (inputChange, streamMappings) =>
                     {
-                        if (inputChange.Key is FileChangeWithDependencies)
+                        if (inputChange.FileChange is FileChangeWithDependencies)
                         {
-                            streamMappings[(FileChangeWithDependencies)inputChange.Key] = new KeyValuePair<GenericHolder<bool>,FileStream>(new GenericHolder<bool>(false), inputChange.Value);
-                            return (FileChangeWithDependencies)inputChange.Key;
+                            streamMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<GenericHolder<bool>, Stream>(new GenericHolder<bool>(false), inputChange.Stream);
+                            return (FileChangeWithDependencies)inputChange.FileChange;
                         }
 
                         FileChangeWithDependencies outputChange;
-                        CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(inputChange.Key, null, out outputChange);
+                        CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(inputChange.FileChange, null, out outputChange);
                         if (conversionError != null)
                         {
                             throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
                         }
-                        streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>,FileStream>(new GenericHolder<bool>(false), inputChange.Value);
+                        streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, Stream>(new GenericHolder<bool>(false), inputChange.Stream);
                         return outputChange;
                     };
-                Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, FileStream>> originalFileStreams = new Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, FileStream>>();
+                Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, Stream>> originalFileStreams = new Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, Stream>>();
                 KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] assignmentsWithDependencies = toAssign
                     .Select(currentToAssign => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.ProcessingChanges, convertChange(currentToAssign, originalFileStreams)))
-                    .Concat(currentFailures.Select(currentFailure => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailureQueue, convertChange(new KeyValuePair<FileChange,FileStream>(currentFailure, null), originalFileStreams))))
+                    .Concat(currentFailures.Select(currentFailure => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailureQueue, convertChange(new PossiblyStreamableFileChange(currentFailure, null), originalFileStreams))))
                     .ToArray();
                 toReturn = AssignDependencies(assignmentsWithDependencies,
                     null,
                     out PulledChanges);
-                
-                List<KeyValuePair<FileChange, FileStream>> outputChangeList = new List<KeyValuePair<FileChange, FileStream>>();
+
+                List<PossiblyStreamableFileChange> outputChangeList = new List<PossiblyStreamableFileChange>();
                 List<FileChange> outputFailureList = new List<FileChange>();
 
                 foreach (KeyValuePair<FileChangeSource, FileChangeWithDependencies> currentAssignment in assignmentsWithDependencies)
@@ -1277,21 +1207,21 @@ namespace FileMonitor
                         }
                         else
                         {
-                            KeyValuePair<GenericHolder<bool>, FileStream> originalStream;
+                            KeyValuePair<GenericHolder<bool>, Stream> originalStream;
                             if (originalFileStreams.TryGetValue(currentAssignment.Value, out originalStream))
                             {
                                 originalStream.Key.Value = true;
-                                outputChangeList.Add(new KeyValuePair<FileChange, FileStream>(currentAssignment.Value, originalStream.Value));
+                                outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, originalStream.Value));
                             }
                             else
                             {
-                                outputChangeList.Add(new KeyValuePair<FileChange, FileStream>(currentAssignment.Value, null));
+                                outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, null));
                             }
                         }
                     }
                 }
 
-                foreach (KeyValuePair<GenericHolder<bool>, FileStream> streamValue in originalFileStreams.Values)
+                foreach (KeyValuePair<GenericHolder<bool>, Stream> streamValue in originalFileStreams.Values)
                 {
                     if (streamValue.Key.Value == false
                         && streamValue.Value != null)
@@ -1312,7 +1242,7 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
-                outputChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<FileChange, FileStream>>>();
+                outputChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableFileChange>>();
                 outputFailures = Helpers.DefaultForType<IEnumerable<FileChange>>();
                 toReturn += ex;
             }
@@ -1327,12 +1257,12 @@ namespace FileMonitor
         /// <param name="outputChanges">Output array of FileChanges to process</param>
         /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
         /// <returns>Returns error(s) that occurred finalizing the FileChange array, if any</returns>
-        public CLError GrabPreprocessedChanges(IEnumerable<KeyValuePair<bool, FileChange>> initialFailures,
-            out IEnumerable<KeyValuePair<FileChange, FileStream>> outputChanges,
-            out IEnumerable<KeyValuePair<bool, FileChange>> outputChangesInError)
+        public CLError GrabPreprocessedChanges(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
+            out IEnumerable<PossiblyStreamableFileChange> outputChanges,
+            out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError)
         {
             CLError toReturn = null;
-            List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>> queuedChangesNeedMergeToSql = new List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>>();
+            List<KeyValuePair<FileChangeMerge, FileChange>> queuedChangesNeedMergeToSql = new List<KeyValuePair<FileChangeMerge, FileChange>>();
             try
             {
                 lock (QueuedChanges)
@@ -1359,7 +1289,7 @@ namespace FileMonitor
 
                         var AllFileChanges = (ProcessingChanges.DequeueAll()
                             .Select(currentProcessingChange => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.ProcessingChanges, new KeyValuePair<bool, FileChange>(false, currentProcessingChange)))
-                            .Concat(initialFailures.Select(currentInitialFailure => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailureQueue, new KeyValuePair<bool, FileChange>(currentInitialFailure.Key, currentInitialFailure.Value)))))
+                            .Concat(initialFailures.Select(currentInitialFailure => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailureQueue, new KeyValuePair<bool, FileChange>(currentInitialFailure.IsPreexisting, currentInitialFailure.FileChange)))))
                             .OrderBy(eventOrdering => eventOrdering.Value.Value.EventId)
                             .Concat(QueuedChanges.Values
                                 .OrderBy(memoryIdOrdering => memoryIdOrdering.InMemoryId)
@@ -1380,8 +1310,8 @@ namespace FileMonitor
                         CLError assignmentError = AssignDependencies(AllFileChanges.Select(currentFileChange => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(currentFileChange.SourceType, currentFileChange.DependencyFileChange)).ToArray(),
                             OriginalFileChangeMappings,
                             out PulledChanges);
-                        List<KeyValuePair<FileChange, FileStream>> OutputChangesList = new List<KeyValuePair<FileChange, FileStream>>();
-                        List<KeyValuePair<bool, FileChange>> OutputFailuresList = new List<KeyValuePair<bool, FileChange>>();
+                        List<PossiblyStreamableFileChange> OutputChangesList = new List<PossiblyStreamableFileChange>();
+                        List<PossiblyPreexistingFileChangeInError> OutputFailuresList = new List<PossiblyPreexistingFileChangeInError>();
 
                         for (int currentChangeIndex = 0; currentChangeIndex < AllFileChanges.Length; currentChangeIndex++)
                         {
@@ -1389,7 +1319,7 @@ namespace FileMonitor
 
                             if (!PulledChanges.Contains(CurrentDependencyTree.DependencyFileChange))
                             {
-                                Action<List<KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>>> removeQueuedChangesFromDependencyTree = changesToAdd =>
+                                Action<List<KeyValuePair<FileChangeMerge, FileChange>>> removeQueuedChangesFromDependencyTree = changesToAdd =>
                                 {
                                     IEnumerable<KeyValuePair<int, FileChange>> queuedChangesEnumerable = EnumerateDependencies(CurrentDependencyTree.DependencyFileChange);
                                     foreach (KeyValuePair<int, FileChange> currentQueuedChange in queuedChangesEnumerable)
@@ -1401,8 +1331,8 @@ namespace FileMonitor
                                                 out mappedOriginalQueuedChange)
                                             && mappedOriginalQueuedChange.Value == FileChangeSource.QueuedChanges)
                                         {
-                                            changesToAdd.Add(new KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange>(
-                                                new KeyValuePair<FileChange, FileChange>(currentQueuedChange.Value, null),
+                                            changesToAdd.Add(new KeyValuePair<FileChangeMerge, FileChange>(
+                                                new FileChangeMerge(currentQueuedChange.Value, null),
                                                 mappedOriginalQueuedChange.Key));
                                         }
                                     }
@@ -1412,7 +1342,7 @@ namespace FileMonitor
                                 {
                                     removeQueuedChangesFromDependencyTree(queuedChangesNeedMergeToSql);
 
-                                    OutputFailuresList.Add(new KeyValuePair<bool, FileChange>(AllFileChanges[currentChangeIndex].ExistingError, CurrentDependencyTree.DependencyFileChange));
+                                    OutputFailuresList.Add(new PossiblyPreexistingFileChangeInError(AllFileChanges[currentChangeIndex].ExistingError, CurrentDependencyTree.DependencyFileChange));
                                 }
                                 else
                                 {
@@ -1503,7 +1433,7 @@ namespace FileMonitor
                                                             newCreationTime,
                                                             countFileSize);
 
-                                                        CLError writeNewMetadataError = ProcessMergeToSQL(new KeyValuePair<FileChange, FileChange>[] { new KeyValuePair<FileChange, FileChange>(CurrentDependencyTree.DependencyFileChange, null) }, false);
+                                                        CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null) }, false);
                                                         if (writeNewMetadataError != null)
                                                         {
                                                             throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.GrabExceptions());
@@ -1535,27 +1465,27 @@ namespace FileMonitor
 
                                         if (CurrentFailed)
                                         {
-                                            OutputFailuresList.Add(new KeyValuePair<bool, FileChange>(false, CurrentDependencyTree.DependencyFileChange));
+                                            OutputFailuresList.Add(new PossiblyPreexistingFileChangeInError(false, CurrentDependencyTree.DependencyFileChange));
                                         }
                                         else
                                         {
-                                            OutputChangesList.Add(new KeyValuePair<FileChange, FileStream>(CurrentDependencyTree.DependencyFileChange, OutputStream));
+                                            OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, OutputStream));
                                         }
                                     }
                                 }
                             }
                         }
 
-                        CLError queuedChangesSqlError = ProcessMergeToSQL(queuedChangesNeedMergeToSql.Select(currentQueuedChangeToSql => currentQueuedChangeToSql.Key), false);
+                        CLError queuedChangesSqlError = Indexer.MergeEventsIntoDatabase(queuedChangesNeedMergeToSql.Select(currentQueuedChangeToSql => currentQueuedChangeToSql.Key), false);
                         if (queuedChangesSqlError != null)
                         {
                             toReturn += new AggregateException("Error adding QueuedChanges within processing/failed changes dependency tree to SQL", queuedChangesSqlError.GrabExceptions());
                         }
-                        foreach (KeyValuePair<KeyValuePair<FileChange, FileChange>, FileChange> mergedToSql in queuedChangesNeedMergeToSql)
+                        foreach (KeyValuePair<FileChangeMerge, FileChange> mergedToSql in queuedChangesNeedMergeToSql)
                         {
                             try
                             {
-                                if (mergedToSql.Key.Key.EventId == 0)
+                                if (mergedToSql.Key.MergeTo.EventId == 0)
                                 {
                                     throw new ArgumentException("Cannot communicate FileChange without EventId; FileChangeSource: QueuedChanges");
                                 }
@@ -1578,8 +1508,8 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
-                outputChanges = Helpers.DefaultForType<IEnumerable<KeyValuePair<FileChange, FileStream>>>();
-                outputChangesInError = Helpers.DefaultForType<IEnumerable<KeyValuePair<bool, FileChange>>>();
+                outputChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableFileChange>>();
+                outputChangesInError = Helpers.DefaultForType<IEnumerable<PossiblyPreexistingFileChangeInError>>();
                 toReturn += ex;
             }
 
@@ -1590,9 +1520,9 @@ namespace FileMonitor
                         FileChangeWithDependencies selectedWithoutDependencies;
                         FileChangeWithDependencies.CreateAndInitialize(removeDependencies, null, out selectedWithoutDependencies);
                         return selectedWithoutDependencies;
-                    }))(currentQueuedChange.Key.Key)));
-                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<KeyValuePair<FileChange, FileStream>>()).Select(currentOutputChange => currentOutputChange.Key));
-                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<KeyValuePair<bool, FileChange>>()).Select(currentOutputChange => currentOutputChange.Value));
+                    }))(currentQueuedChange.Key.MergeTo)));
+                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
             }
 
             return toReturn;
@@ -2979,7 +2909,7 @@ namespace FileMonitor
                         }
                     }
 
-                    CLError mergeError = ProcessMergeToSQL(mergeBatch.Select(currentMerge => new KeyValuePair<FileChange, FileChange>(currentMerge, null)), false);
+                    CLError mergeError = Indexer.MergeEventsIntoDatabase(mergeBatch.Select(currentMerge => new FileChangeMerge(currentMerge, null)), false);
                     if (mergeError != null)
                     {
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear
@@ -3277,18 +3207,9 @@ namespace FileMonitor
                     (new Thread(new ParameterizedThreadStart(RunOnProcessEventGroupCallback)))
                         .Start(new object[]
                         {
-                            (GrabProcessedChanges)this.GrabPreprocessedChanges,
-                            this.ProcessMergeToSQL,
-                            (Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>)this.AddFileChangesToProcessingQueue,
+                            this.SyncData,
+                            SyncSettings.Instance,
                             emptyProcessingQueue,
-                            this.ProcessCompletedSync,
-                            this.GetLastSyncId,
-                            (DependencyAssignments)this.AssignDependencies,
-                            (Func<string>)this.GetCurrentPath,
-                            (Func<FileChange, CLError>)this.ApplySyncFromFileChange,
-                            (Func<long, CLError>)this.CompleteSingleEvent,
-                            (MetadataByPathAndRevision)this.GetMetadataByPathAndRevision,
-                            this.GetDeviceName,
                             this.SyncRun,
                             SyncRunLocker,
                             NextSyncQueued
@@ -3303,39 +3224,21 @@ namespace FileMonitor
             bool matchedParameters = false;
 
             if (castState != null
-                && castState.Length == 15)
+                && castState.Length == 6)
             {
-                GrabProcessedChanges argOne = castState[0] as GrabProcessedChanges;
-                Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError> argTwo = castState[1] as Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>;
-                Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError> argThree = castState[2] as Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>;
-                Nullable<bool> argFourNullable = castState[3] as Nullable<bool>;
-                Func<string, IEnumerable<long>, string, CLError> argFive = castState[4] as Func<string, IEnumerable<long>, string, CLError>;
-                Func<string> argSix = castState[5] as Func<string>;
-                DependencyAssignments argSeven = castState[6] as DependencyAssignments;
-                Func<string> argEight = castState[7] as Func<string>;
-                Func<FileChange, CLError> argNine = castState[8] as Func<FileChange, CLError>;
-                Func<long, CLError> argTen = castState[9] as Func<long, CLError>;
-                MetadataByPathAndRevision argEleven = castState[10] as MetadataByPathAndRevision;
-                Func<string> argTwelve = castState[11] as Func<string>;
+                ISyncDataObject argOne = castState[0] as ISyncDataObject;
+                ISyncSettings argTwo = castState[1] as ISyncSettings;
+                Nullable<bool> argThreeNullable = castState[2] as Nullable<bool>;
 
-                Func<GrabProcessedChanges,
-                    Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>,
-                    Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>,
+                Func<ISyncDataObject,
+                    ISyncSettings,
                     bool,
-                    Func<string, IEnumerable<long>, string, CLError>,
-                    Func<string>,
-                    DependencyAssignments,
-                    Func<string>,
-                    Func<FileChange, CLError>,
-                    Func<long, CLError>,
-                    MetadataByPathAndRevision,
-                    Func<string>,
-                    CLError> RunSyncRun = castState[12] as Func<GrabProcessedChanges, Func<IEnumerable<KeyValuePair<FileChange, FileChange>>, bool, CLError>, Func<IEnumerable<FileChange>, bool, GenericHolder<List<FileChange>>, CLError>, bool, Func<string, IEnumerable<long>, string, CLError>, Func<string>, DependencyAssignments, Func<string>, Func<FileChange, CLError>, Func<long, CLError>, MetadataByPathAndRevision, Func<string>, CLError>;
+                    CLError> RunSyncRun = castState[3] as Func<ISyncDataObject, ISyncSettings, bool, CLError>;
 
-                GenericHolder<bool> RunLocker = castState[13] as GenericHolder<bool>;
-                GenericHolder<bool> NextRunQueued = castState[14] as GenericHolder<bool>;
+                GenericHolder<bool> RunLocker = castState[4] as GenericHolder<bool>;
+                GenericHolder<bool> NextRunQueued = castState[5] as GenericHolder<bool>;
 
-                if (argFourNullable != null
+                if (argThreeNullable != null
                     && RunSyncRun != null
                     && RunLocker != null
                     && NextRunQueued != null)
@@ -3363,16 +3266,7 @@ namespace FileMonitor
                     {
                         RunSyncRun(argOne,
                             argTwo,
-                            argThree,
-                            (bool)argFourNullable,
-                            argFive,
-                            argSix,
-                            argSeven,
-                            argEight,
-                            argNine,
-                            argTen,
-                            argEleven,
-                            argTwelve);
+                            (bool)argThreeNullable);
                     } while (runAgain(RunLocker, NextRunQueued));
                 }
             }

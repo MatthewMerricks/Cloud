@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 using System.Transactions;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
-using FileMonitor;
 using BadgeNET;
 using System.Data.SqlServerCe;
 using System.Globalization;
@@ -1508,7 +1507,7 @@ namespace SQLIndexer
         /// <param name="eventToRemove">Previous event to set if an old event is being replaced in the process</param>
         /// <returns>Returns an error from merging the events, if any</returns>
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public CLError MergeEventsIntoDatabase(IEnumerable<KeyValuePair<FileChange, FileChange>> mergeToFroms, bool alreadyObtainedLock = false)
+        public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, bool alreadyObtainedLock = false)
         {
             CLError toReturn = null;
             if (mergeToFroms != null)
@@ -1519,32 +1518,29 @@ namespace SQLIndexer
                     Dictionary<long, FileChange> toUpdate = new Dictionary<long, FileChange>();
                     HashSet<long> toDelete = new HashSet<long>();
 
-                    foreach (KeyValuePair<FileChange, FileChange> currentMergeToFrom in mergeToFroms)
+                    foreach (FileChangeMerge currentMergeToFrom in mergeToFroms)
                     {
-                        FileChange mergedEvent = currentMergeToFrom.Key;
-                        FileChange eventToRemove = currentMergeToFrom.Value;
-
                         // Continue to next iteration if boolean set indicating not to add to SQL
-                        if (mergedEvent != null
-                            && mergedEvent.DoNotAddToSQLIndex
-                            && mergedEvent.EventId != 0)
+                        if (currentMergeToFrom.MergeTo != null
+                            && currentMergeToFrom.MergeTo.DoNotAddToSQLIndex
+                            && currentMergeToFrom.MergeTo.EventId != 0)
                         {
-                            IconOverlay.QueueNewEventBadge(mergedEvent, eventToRemove);
+                            IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom);
                             continue;
                         }
 
                         // Ensure input variables have proper references set
-                        if (mergedEvent == null)
+                        if (currentMergeToFrom.MergeTo == null)
                         {
                             // null merge events are only valid if there is an oldEvent to remove
-                            if (eventToRemove == null)
+                            if (currentMergeToFrom.MergeFrom == null)
                             {
-                                throw new NullReferenceException("mergedEvent cannot be null");
+                                throw new NullReferenceException("currentMergeToFrom.MergeTo cannot be null");
                             }
                         }
-                        else if (mergedEvent.Metadata == null)
+                        else if (currentMergeToFrom.MergeTo.Metadata == null)
                         {
-                            throw new NullReferenceException("mergedEvent cannot have null Metadata");
+                            throw new NullReferenceException("currentMergeToFrom.MergeTo cannot have null Metadata");
                         }
 
                         // Define field for the event id that needs updating in the database,
@@ -1554,50 +1550,50 @@ namespace SQLIndexer
                         // If the mergedEvent already has an id (exists in database),
                         // then the database event will be updated at the mergedEvent id;
                         // also, if the oldEvent exists in the database, it needs to be removed
-                        if (mergedEvent == null
-                            || mergedEvent.EventId > 0)
+                        if (currentMergeToFrom.MergeTo == null
+                            || currentMergeToFrom.MergeTo.EventId > 0)
                         {
-                            if (eventToRemove != null
-                                && eventToRemove.EventId > 0
+                            if (currentMergeToFrom.MergeTo != null
+                                && currentMergeToFrom.MergeTo.EventId > 0
                                 // added the following condition in case both events to merge together share a single database event
                                 // which should not be removed
-                                && (mergedEvent == null || mergedEvent.EventId != eventToRemove.EventId))
+                                && (currentMergeToFrom.MergeTo == null || currentMergeToFrom.MergeTo.EventId != currentMergeToFrom.MergeTo.EventId))
                             {
-                                toDelete.Add(eventToRemove.EventId);
+                                toDelete.Add(currentMergeToFrom.MergeTo.EventId);
                             }
 
                             // If the mergedEvent it null and the oldEvent is set with a valid eventId,
                             // then save only the deletion of the oldEvent and continue to next iteration
-                            if (mergedEvent == null)
+                            if (currentMergeToFrom.MergeTo == null)
                             {
                                 continue;
                             }
 
-                            eventIdToUpdate = mergedEvent.EventId;
+                            eventIdToUpdate = currentMergeToFrom.MergeTo.EventId;
                         }
                         // Else if the mergedEvent does not have an id in the database
                         // and the oldEvent exists and has an id in the database,
                         // then the database event will be updated at the oldEvent id
                         // and the event id should be moved to the mergedEvent
-                        else if (eventToRemove != null
-                            && eventToRemove.EventId > 0)
+                        else if (currentMergeToFrom.MergeFrom != null
+                            && currentMergeToFrom.MergeFrom.EventId > 0)
                         {
-                            mergedEvent.EventId = eventToRemove.EventId;
+                            currentMergeToFrom.MergeTo.EventId = currentMergeToFrom.MergeFrom.EventId;
 
-                            eventIdToUpdate = eventToRemove.EventId;
+                            eventIdToUpdate = currentMergeToFrom.MergeTo.EventId;
                         }
 
                         // If an id for the database event already exists,
                         // then update the object in the database with the latest properties from mergedEvent
                         if (eventIdToUpdate != null)
                         {
-                            toUpdate[(long)eventIdToUpdate] = mergedEvent;
+                            toUpdate[(long)eventIdToUpdate] = currentMergeToFrom.MergeTo;
                         }
                         // Else the database event does not already exist,
                         // then add it
                         else
                         {
-                            toAdd.Add(mergedEvent);
+                            toAdd.Add(currentMergeToFrom.MergeTo);
                         }
                     }
 
@@ -1737,15 +1733,15 @@ namespace SQLIndexer
                         }
                     }
 
-                    foreach (KeyValuePair<FileChange, FileChange> currentMergeToFrom in mergeToFroms)
+                    foreach (FileChangeMerge currentMergeToFrom in mergeToFroms)
                     {
                         // If mergedEvent was not processed in AddEvents,
                         // then process badging (AddEvents processes badging for the rest)
-                        if (currentMergeToFrom.Key == null
-                            || toUpdate.ContainsKey(currentMergeToFrom.Key.EventId)
-                            || toDelete.Contains(currentMergeToFrom.Key.EventId))
+                        if (currentMergeToFrom.MergeTo == null
+                            || toUpdate.ContainsKey(currentMergeToFrom.MergeTo.EventId)
+                            || toDelete.Contains(currentMergeToFrom.MergeTo.EventId))
                         {
-                            IconOverlay.QueueNewEventBadge(currentMergeToFrom.Key, currentMergeToFrom.Value);
+                            IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom);
                         }
                     }
                 }
@@ -2459,7 +2455,7 @@ namespace SQLIndexer
                     MessageBox.Show("Unable to scan files/folders in Cloud folder. Location not accessible:" + Environment.NewLine + ex.Message, "Error Starting Cloud");
                 }
             }
-            catch (Exception ex) { }
+            catch { }
 
             // If this method call was the outermost one (not recursed),
             // then the uncoveredChanges list was depleted of all traversed paths leaving

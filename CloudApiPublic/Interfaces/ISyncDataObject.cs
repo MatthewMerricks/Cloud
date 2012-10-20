@@ -26,8 +26,6 @@ namespace CloudApiPublic.Interfaces
             bool insertAtTop,
             GenericHolder<List<FileChange>> errorHolder);
 
-        //bool respondingToPushNotification
-
         CLError completeSyncSql(string syncId,
             IEnumerable<long> syncedEventIds,
             out long syncCounter,
@@ -47,7 +45,5 @@ namespace CloudApiPublic.Interfaces
         CLError completeSingleEvent(long eventId);
 
         CLError getMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata);
-
-        string getDeviceName { get; }
     }
 }
