@@ -88,7 +88,7 @@ namespace CloudApiPublic.Model
 
         // Added so we can append FileStream objects which can later be disposed upon error handling
         // -David
-        public static CLError operator +(CLError err, FileStream fStream)
+        public static CLError operator +(CLError err, Stream fStream)
         {
             if (fStream == null)
             {
@@ -106,7 +106,7 @@ namespace CloudApiPublic.Model
 
         // Added so we can append FileStream objects which can later be disposed upon error handling
         // -David
-        public void AddFileStream(FileStream fStream)
+        public void AddFileStream(Stream fStream)
         {
             this.errorInfo.Add(CLError.ErrorInfo_FileStreamToDispose +
                     this.errorInfo.Count(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)).ToString(),
@@ -131,10 +131,10 @@ namespace CloudApiPublic.Model
         /// Takes all the FileStream instances out of this error and returns them for disposal
         /// </summary>
         /// <returns>Returns dequeued FileStream objects</returns>
-        public IEnumerable<FileStream> DequeueFileStreams()
+        public IEnumerable<Stream> DequeueFileStreams()
         {
-            FileStream tryCast;
-            Func<KeyValuePair<string, object>, Func<string, bool>, FileStream> removeAndReturnValue = (currentPair, removeAction) =>
+            Stream tryCast;
+            Func<KeyValuePair<string, object>, Func<string, bool>, Stream> removeAndReturnValue = (currentPair, removeAction) =>
                 {
                     try
                     {
@@ -143,10 +143,10 @@ namespace CloudApiPublic.Model
                     catch
                     {
                     }
-                    return currentPair.Value as FileStream;
+                    return currentPair.Value as Stream;
                 };
             return this.errorInfo.Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)
-                    && (tryCast = currentPair.Value as FileStream) != null)
+                    && (tryCast = currentPair.Value as Stream) != null)
                 .ToArray()
                 .Select(currentPair => removeAndReturnValue(currentPair, this.errorInfo.Remove));
         }
@@ -157,7 +157,7 @@ namespace CloudApiPublic.Model
         /// </summary>
         /// <param name="err">CLError for FileStream dequeue</param>
         /// <returns>Returns dequeued FileStream objects</returns>
-        public static IEnumerable<FileStream> DequeueFileStreams(CLError err)
+        public static IEnumerable<Stream> DequeueFileStreams(CLError err)
         {
             if (err == null)
             {

@@ -14,6 +14,7 @@ namespace CloudApiPublic.Model
     {
         public const string CLRegistrationAccessTokenKey = "access_token";
 
+        public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
         public const int AppVersion = 0;
 
         public const int ManualPollingIterationsBeforeConnectingPush = 10;

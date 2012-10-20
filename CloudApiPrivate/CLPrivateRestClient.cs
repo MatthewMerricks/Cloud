@@ -226,7 +226,7 @@ namespace CloudApiPrivate
             syncRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
             // Add the client type and version.  For the W{indows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-            syncRequest.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
+            syncRequest.Headers.Add(CLDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
 
@@ -521,7 +521,7 @@ namespace CloudApiPrivate
             syncRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-            syncRequest.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
+            syncRequest.Headers.Add(CLDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _client.DefaultRequestHeaders.TransferEncodingChunked = false;
 
@@ -783,7 +783,7 @@ namespace CloudApiPrivate
             request.Headers.TransferEncodingChunked = true;
 
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-            request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
+            request.Headers.Add(CLDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _trace.writeToLog(9, "CLPrivateRestClient: StreamingUploadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to upload file.  Path: {0}, Request: {1}.", path, request.Headers.ToString());
             return new CLHTTPConnectionOperation(Settings.Instance.Udid, Settings.Instance.Uuid, ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication), Settings.Instance.TraceExcludeAuthorization, Settings.Instance.TraceLocation, _client, request, path, size, hash, isUpload: true, uploadStream: uploadStream);
@@ -822,7 +822,7 @@ namespace CloudApiPrivate
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-            request.Headers.Add(CLPrivateDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
+            request.Headers.Add(CLDefinitions.CLClientVersionHeaderName, CLPrivateDefinitions.CLClientVersion);
 
             _trace.writeToLog(9, "CLPrivateRestClient: StreamingDownloadOperationForStorageKey_WithFileSystemPath_FileSize_AndMd5Hash: Built operation to download file.  Path: {0}, json: {1}, Request: {2}.", path, json, request.Headers.ToString());
             return new CLHTTPConnectionOperation(Settings.Instance.Udid, Settings.Instance.Uuid, ((Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication), Settings.Instance.TraceExcludeAuthorization, Settings.Instance.TraceLocation, _client, request, path, size, hash, isUpload: false, uploadStream: null);

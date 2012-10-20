@@ -180,33 +180,62 @@ namespace CloudApiPrivate.EventMessageReceiver
 
         private EventMessageReceiver()
         {
+            // changes made upon construction for other partial class portions should be handled via a ConstructedHolder
+
             // run custom construction setter method for the partial class portion WindowSyncStatusViewModel
             WindowSyncStatusViewModelConstructed.MarkConstructed(WindowSyncStatusViewModelConstructionSetters, this);
+
+            MessageEvents.NewEventMessage += MessageEvents_NewEventMessage;
+            MessageEvents.DownloadingCountSet += SetDownloadingCount;
+            MessageEvents.UploadingCountSet += SetUploadingCount;
+            MessageEvents.DownloadedCountIncremented += IncrementDownloadedCount;
+            MessageEvents.UploadedCountIncremented += IncrementUploadedCount;
         }
 
-        #region public static methods
-        public static void DisplayErrorGrowl(string message)
+        #region MessageEvents callbacks
+        private void MessageEvents_NewEventMessage(object sender, EventMessageArgs e)
         {
-            Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)Instance.AddEventMessageToGrowl,
+            if (e.IsError)
+            {
+                if (((int)e.Level) > ((int)EventMessageLevel.Minor))
+                {
+                    DisplayErrorGrowl(e.Message);
+                }
+            }
+            else if (((int)e.Level) > ((int)EventMessageLevel.Regular))
+            {
+                DisplayInformationalGrowl(e.Message);
+            }
+
+            e.MarkHandled();
+        }
+
+        private void DisplayErrorGrowl(string message)
+        {
+            Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl,
                 (EventMessage)(new ErrorMessage(message)));
         }
 
-        public static void SetDownloadingCount(uint newCount)
+        private void DisplayInformationalGrowl(string message)
         {
-            EventMessageReceiver thisReceiver = Instance;
+            Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl,
+                (EventMessage)(new InformationalMessage(message)));
+        }
 
-            lock (thisReceiver.GrowlMessages)
+        private void SetDownloadingCount(object sender, SetCountArgs e)
+        {
+            lock (GrowlMessages)
             {
                 bool newMessage;
 
-                if (thisReceiver.downloading == null)
+                if (downloading == null)
                 {
-                    thisReceiver.downloading = new DownloadingMessage(newCount);
+                    downloading = new DownloadingMessage(e.NewCount);
                     newMessage = true;
                 }
                 else
                 {
-                    if (!thisReceiver.downloading.SetCount(newCount))
+                    if (!downloading.SetCount(e.NewCount))
                     {
                         return;
                     }
@@ -216,56 +245,56 @@ namespace CloudApiPrivate.EventMessageReceiver
 
                 if (newMessage)
                 {
-                    Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)thisReceiver.AddEventMessageToGrowl,
-                        (EventMessage)thisReceiver.downloading);
+                    Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl,
+                        (EventMessage)downloading);
                 }
             }
+
+            e.MarkHandled();
         }
 
-        public static void IncrementDownloadedCount(uint incrementAmount = 1)
+        private void IncrementDownloadedCount(object sender, IncrementCountArgs e)
         {
-            EventMessageReceiver thisReceiver = Instance;
-
-            lock (thisReceiver.GrowlMessages)
+            lock (GrowlMessages)
             {
                 bool newMessage;
 
-                if (thisReceiver.downloaded == null)
+                if (downloaded == null)
                 {
-                    thisReceiver.downloaded = new DownloadedMessage(incrementAmount);
+                    downloaded = new DownloadedMessage(e.IncrementAmount);
                     newMessage = true;
                 }
                 else
                 {
-                    thisReceiver.downloaded.IncrementCount(incrementAmount);
+                    downloaded.IncrementCount(e.IncrementAmount);
 
                     newMessage = false;
                 }
 
                 if (newMessage)
                 {
-                    Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)thisReceiver.AddEventMessageToGrowl,
-                        (EventMessage)thisReceiver.downloaded);
+                    Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl,
+                        (EventMessage)downloaded);
                 }
             }
+
+            e.MarkHandled();
         }
 
-        public static void SetUploadingCount(uint newCount)
+        private void SetUploadingCount(object sender, SetCountArgs e)
         {
-            EventMessageReceiver thisReceiver = Instance;
-
-            lock (thisReceiver.GrowlMessages)
+            lock (GrowlMessages)
             {
                 bool newMessage;
 
-                if (thisReceiver.uploading == null)
+                if (uploading == null)
                 {
-                    thisReceiver.uploading = new UploadingMessage(newCount);
+                    uploading = new UploadingMessage(e.NewCount);
                     newMessage = true;
                 }
                 else
                 {
-                    if (!thisReceiver.uploading.SetCount(newCount))
+                    if (!uploading.SetCount(e.NewCount))
                     {
                         return;
                     }
@@ -275,38 +304,40 @@ namespace CloudApiPrivate.EventMessageReceiver
 
                 if (newMessage)
                 {
-                    Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)thisReceiver.AddEventMessageToGrowl,
-                        (EventMessage)thisReceiver.uploading);
+                    Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl,
+                        (EventMessage)uploading);
                 }
             }
+
+            e.MarkHandled();
         }
 
-        public static void IncrementUploadedCount(uint incrementAmount = 1)
+        private void IncrementUploadedCount(object sender, IncrementCountArgs e)
         {
-            EventMessageReceiver thisReceiver = Instance;
-
-            lock (thisReceiver.GrowlMessages)
+            lock (GrowlMessages)
             {
                 bool newMessage;
 
-                if (thisReceiver.uploaded == null)
+                if (uploaded == null)
                 {
-                    thisReceiver.uploaded = new UploadedMessage(incrementAmount);
+                    uploaded = new UploadedMessage(e.IncrementAmount);
                     newMessage = true;
                 }
                 else
                 {
-                    thisReceiver.uploaded.IncrementCount(incrementAmount);
+                    uploaded.IncrementCount(e.IncrementAmount);
 
                     newMessage = false;
                 }
 
                 if (newMessage)
                 {
-                    Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)thisReceiver.AddEventMessageToGrowl,
-                        (EventMessage)thisReceiver.uploaded);
+                    Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl,
+                        (EventMessage)uploaded);
                 }
             }
+
+            e.MarkHandled();
         }
         #endregion
 

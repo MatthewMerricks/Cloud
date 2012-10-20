@@ -19,7 +19,7 @@ namespace CloudApiPrivate.EventMessageReceiver
     {
         public class Default
         {
-            public static Default Instance = new Default();
+            public static readonly Default Instance = new Default();
             private Default() { }
         }
 

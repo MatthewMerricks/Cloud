@@ -1393,5 +1393,4 @@ namespace CloudApiPrivate.Model.Settings
 
     #endregion
 
-} 
-
+}

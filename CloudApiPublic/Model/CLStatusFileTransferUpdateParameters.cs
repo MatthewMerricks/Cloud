@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPrivate.EventMessageReceiver.Status
+namespace CloudApiPublic.Model
 {
     public struct CLStatusFileTransferUpdateParameters
     {
@@ -18,7 +18,7 @@ namespace CloudApiPrivate.EventMessageReceiver.Status
         {
             get
             {
-                if (!IsValid)
+                if (!_isValid)
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid CLStatusFileTransferUpdateParameters");
                 }
@@ -31,7 +31,7 @@ namespace CloudApiPrivate.EventMessageReceiver.Status
         {
             get
             {
-                if (!IsValid)
+                if (!_isValid)
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid CLStatusFileTransferUpdateParameters");
                 }
@@ -44,7 +44,7 @@ namespace CloudApiPrivate.EventMessageReceiver.Status
         {
             get
             {
-                if (!IsValid)
+                if (!_isValid)
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid CLStatusFileTransferUpdateParameters");
                 }
@@ -57,7 +57,7 @@ namespace CloudApiPrivate.EventMessageReceiver.Status
         {
             get
             {
-                if (!IsValid)
+                if (!_isValid)
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid CLStatusFileTransferUpdateParameters");
                 }
@@ -66,7 +66,14 @@ namespace CloudApiPrivate.EventMessageReceiver.Status
         }
         private long _byteProgress;
 
-        private bool IsValid;
+        public bool IsValid
+        {
+            get
+            {
+                return _isValid;
+            }
+        }
+        private bool _isValid;
 
         public CLStatusFileTransferUpdateParameters(DateTime TransferStartTime, long ByteSize, string RelativePath, long ByteProgress)
         {
@@ -74,7 +81,7 @@ namespace CloudApiPrivate.EventMessageReceiver.Status
             this._byteSize = ByteSize;
             this._relativePath = RelativePath;
             this._byteProgress = ByteProgress;
-            this.IsValid = true;
+            this._isValid = true;
         }
     }
 }

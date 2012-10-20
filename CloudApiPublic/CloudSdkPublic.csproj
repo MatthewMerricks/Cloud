@@ -62,8 +62,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
+    <Compile Include="Interfaces\ISyncDataObject.cs" />
+    <Compile Include="Interfaces\ISyncSettings.cs" />
+    <Compile Include="Model\CLStatusFileTransferUpdateParameters.cs" />
     <Compile Include="Model\CombinedCollection.cs" />
+    <Compile Include="Model\EventMessageArgs.cs" />
     <Compile Include="Model\FileChange.cs" />
+    <Compile Include="Model\FileChangeMerge.cs" />
     <Compile Include="Model\FileChangeWithDependencies.cs" />
     <Compile Include="Model\FileMetadata.cs" />
     <Compile Include="FilePath\FilePath.cs" />
@@ -81,7 +86,14 @@
     <Compile Include="Model\CLSyncHeader.cs" />
     <Compile Include="Model\FileSystemItem.cs" />
     <Compile Include="Model\GenericHolder.cs" />
+    <Compile Include="Model\HandleableEventArgs.cs" />
+    <Compile Include="Model\IncrementCountArgs.cs" />
+    <Compile Include="Model\PossiblyPreexistingFileChangeInError.cs" />
+    <Compile Include="Model\PossiblyStreamableFileChange.cs" />
     <Compile Include="Model\RevisionChanger.cs" />
+    <Compile Include="Model\SetCountArgs.cs" />
+    <Compile Include="Model\TransferUpdateArgs.cs" />
+    <Compile Include="Model\UpdatePathArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CLRestClient.cs" />
     <Compile Include="ICLRestClientDelegate.cs" />
@@ -99,6 +111,7 @@
     <Compile Include="Static\CLPublicExtensionMethods.cs" />
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\Helpers.cs" />
+    <Compile Include="Static\MessageEvents.cs" />
     <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="Static\Trace.cs" />
     <Compile Include="Static\TraceLog.cs">
@@ -142,6 +155,7 @@
   <ItemGroup>
     <Content Include="Static\NotLinkedFull.xml" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

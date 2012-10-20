@@ -13,10 +13,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
-using CloudApiPrivate.EventMessageReceiver;
+using CloudApiPublic.Interfaces;
 
 namespace Sync
 {
@@ -35,6 +34,19 @@ namespace Sync
         // the following two bools are used to tell if a scheduler has been previously disposed
         private static bool FromDisposed = false;
         private static bool ToDisposed = false;
+
+        private static ISyncSettings SyncSettings
+        {
+            get
+            {
+                lock (SyncSettingsLocker)
+                {
+                    return _syncSettings;
+                }
+            }
+        }
+        private static ISyncSettings _syncSettings = null;
+        private static readonly object SyncSettingsLocker = new object();
         #endregion
 
         // private constructor to ensure single instance instantiations,
@@ -56,7 +68,7 @@ namespace Sync
         /// </summary>
         /// <param name="direction">Use From for downloads and To for uploads</param>
         /// <returns>Returns the appropriate instance of HttpScheduler</returns>
-        public static HttpScheduler GetSchedulerByDirection(SyncDirection direction)
+        public static HttpScheduler GetSchedulerByDirection(SyncDirection direction, ISyncSettings syncSettings)
         {
             // switch on input direction so the appropriate output is returned
             switch (direction)
@@ -68,6 +80,18 @@ namespace Sync
                         // if download scheduler is null, create it and attach its exception handler to the base type
                         if (_instanceFrom == null)
                         {
+                            lock (SyncSettingsLocker)
+                            {
+                                if (HttpScheduler._syncSettings == null)
+                                {
+                                    if (syncSettings == null)
+                                    {
+                                        throw new NullReferenceException("syncSettings cannot be null");
+                                    }
+                                    HttpScheduler._syncSettings = syncSettings;
+                                }
+                            }
+
                             _instanceFrom = new HttpScheduler(SyncDirection.From);
                             lock (GCOverrideLocker)
                             {
@@ -95,6 +119,18 @@ namespace Sync
                         // if upload scheduler is null, create it and attach its exception handler to the base type
                         if (_instanceTo == null)
                         {
+                            lock (SyncSettingsLocker)
+                            {
+                                if (HttpScheduler._syncSettings == null)
+                                {
+                                    if (syncSettings == null)
+                                    {
+                                        throw new NullReferenceException("syncSettings cannot be null");
+                                    }
+                                    HttpScheduler._syncSettings = syncSettings;
+                                }
+                            }
+
                             _instanceTo = new HttpScheduler(SyncDirection.To);
                             lock (GCOverrideLocker)
                             {
@@ -209,7 +245,7 @@ namespace Sync
             }
             catch (Exception ex)
             {
-                ((CLError)ex).LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                ((CLError)ex).LogErrors(SyncSettings.ErrorLogLocation, SyncSettings.LogErrors);
                 return false;
             }
             return true;
@@ -391,7 +427,7 @@ namespace Sync
                 }
             }
             // performs the actual logging of errors, forces logging even if the setting is turned off in the severe case where a message box had to appear
-            aggregatedError.LogErrors(Settings.Instance.ErrorLogLocation, overrideLoggingOnMessageBox ? true : Settings.Instance.LogErrors);
+            aggregatedError.LogErrors(SyncSettings.ErrorLogLocation, overrideLoggingOnMessageBox ? true : SyncSettings.LogErrors);
         }
 
         /// <summary>
@@ -436,12 +472,12 @@ namespace Sync
                 {
                     case SyncDirection.From:
                     // direction for downloads
-                        EventMessageReceiver.SetDownloadingCount((uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1));
+                        MessageEvents.SetDownloadingCount(this, (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1));
                         break;
 
                     case SyncDirection.To:
                     // direction for uploads
-                        EventMessageReceiver.SetUploadingCount((uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1));
+                        MessageEvents.SetUploadingCount(this, (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1));
                         break;
 
                     default:
@@ -487,13 +523,13 @@ namespace Sync
                         switch (scheduler.Direction)
                         {
                             case SyncDirection.From:
-                                // direction for downloads
-                                EventMessageReceiver.SetDownloadingCount(taskCount);
+                            // direction for downloads
+                                MessageEvents.SetDownloadingCount(scheduler, taskCount);
                                 break;
 
                             case SyncDirection.To:
-                                // direction for uploads
-                                EventMessageReceiver.SetUploadingCount(taskCount);
+                            // direction for uploads
+                                MessageEvents.SetUploadingCount(scheduler, taskCount);
                                 break;
 
                             default:
@@ -598,12 +634,12 @@ namespace Sync
                 {
                     case SyncDirection.From:
                     // direction for downloads
-                        EventMessageReceiver.SetDownloadingCount(taskCount);
+                        MessageEvents.SetDownloadingCount(scheduler, taskCount);
                         break;
 
                     case SyncDirection.To:
                     // direction for uploads
-                        EventMessageReceiver.SetUploadingCount(taskCount);
+                        MessageEvents.SetUploadingCount(scheduler, taskCount);
                         break;
 
                     default:

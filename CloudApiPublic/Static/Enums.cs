@@ -63,4 +63,27 @@ namespace CloudApiPublic.Static
         public static readonly byte[] EmptyBuffer = new byte[0];
         public const int BufferSize = 4096;//posts online seem to suggest between 1kb and 12kb is optimal for a FileStream buffer, 4kb seems commonly used
     }
+
+    public enum EventMessageLevel
+    {
+        Minor = 0,
+        Regular = 5,
+        Important = 9
+    }
+
+    public enum EventHandledLevel
+    {
+        NothingFired = -1,
+        FiredButNotHandled = 0,
+        IsHandled = 1
+    }
+
+    public enum PathState
+    {
+        None,
+        Synced,
+        Syncing,
+        Failed,
+        Selective
+    }
 }

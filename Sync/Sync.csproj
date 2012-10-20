@@ -61,6 +61,15 @@
     <Compile Include="JsonContracts\Push.cs" />
     <Compile Include="JsonContracts\PushResponse.cs" />
     <Compile Include="JsonContracts\To.cs" />
+    <Compile Include="Model\AsyncUploadDownloadTask.cs" />
+    <Compile Include="Model\DownloadIdAndMD5.cs" />
+    <Compile Include="Model\EventIdAndCompletionProcessor.cs" />
+    <Compile Include="Model\PossiblyChangedFileChange.cs" />
+    <Compile Include="Model\PossiblyStreamableAndPossiblyChangedFileChange.cs" />
+    <Compile Include="Model\PossiblyStreamableAndPossiblyChangedFileChangeWithError.cs" />
+    <Compile Include="Model\PossiblyStreamableAndPossiblyPreexistingErrorFileChange.cs" />
+    <Compile Include="Model\PossiblyStreamableFileChangeWithSyncData.cs" />
+    <Compile Include="Model\PossiblyStreamableFileChangeWithUploadDownloadTask.cs" />
     <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="StreamFromJaggedByteArrays.cs" />
     <Compile Include="Sync.cs" />
@@ -68,21 +77,9 @@
     <Compile Include="HttpScheduler.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BadgeNET\BadgeNET.csproj">
-      <Project>{77014147-1a34-4bf6-8fc4-3c85984f8e2e}</Project>
-      <Name>BadgeNET</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CloudApiPrivate\CloudApiPrivate.csproj">
-      <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
-      <Name>CloudApiPrivate</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudSdkPublic</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\FileMonitor\FileMonitor.csproj">
-      <Project>{dfe16278-70b2-4b6c-84c0-1d41b04bebde}</Project>
-      <Name>FileMonitor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

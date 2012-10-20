@@ -52,64 +52,68 @@ namespace CloudApiPrivate.EventMessageReceiver
 
         // static message-receiving public methods
         // -David
-        #region public static methods
-        public static void UpdateFileUpload(long eventId, CLStatusFileTransferUpdateParameters parameters)
+        #region message events callbacks
+        private void UpdateFileUpload(object sender, TransferUpdateArgs e)
         {
-            EventMessageReceiver thisReceiver = Instance;
-
-            lock (thisReceiver.UploadEventIdToQueuedUpdateParameters)
+            lock (UploadEventIdToQueuedUpdateParameters)
             {
-                thisReceiver.UploadEventIdToQueuedUpdateParameters[eventId] = parameters;
+                UploadEventIdToQueuedUpdateParameters[e.EventId] = e.Parameters;
 
-                if (!thisReceiver.UploadProcessingTimerRunning)
+                if (!UploadProcessingTimerRunning)
                 {
-                    ThreadPool.UnsafeQueueUserWorkItem(ProcessUploadParameters, thisReceiver);
+                    ThreadPool.UnsafeQueueUserWorkItem(ProcessUploadParameters, this);
 
-                    thisReceiver.UploadProcessingTimerRunning = true;
+                    UploadProcessingTimerRunning = true;
                 }
             }
+
+            e.MarkHandled();
         }
 
-        public static void UpdateFileDownload(long eventId, CLStatusFileTransferUpdateParameters parameters)
+        private void UpdateFileDownload(object sender, TransferUpdateArgs e)
         {
-            EventMessageReceiver thisReceiver = Instance;
-
-            lock (thisReceiver.DownloadEventIdToQueuedUpdateParameters)
+            lock (DownloadEventIdToQueuedUpdateParameters)
             {
-                thisReceiver.DownloadEventIdToQueuedUpdateParameters[eventId] = parameters;
+                DownloadEventIdToQueuedUpdateParameters[e.EventId] = e.Parameters;
 
-                if (!thisReceiver.DownloadProcessingTimerRunning)
+                if (!DownloadProcessingTimerRunning)
                 {
-                    ThreadPool.UnsafeQueueUserWorkItem(ProcessDownloadParameters, thisReceiver);
+                    ThreadPool.UnsafeQueueUserWorkItem(ProcessDownloadParameters, this);
 
-                    thisReceiver.DownloadProcessingTimerRunning = true;
+                    DownloadProcessingTimerRunning = true;
                 }
             }
+
+            e.MarkHandled();
         }
 
-        public static void AddStatusMessage(string message)
+        private void AddStatusMessage(object sender, EventMessageArgs e)
         {
             if (Dispatcher.CurrentDispatcher == Application.Current.Dispatcher)
             {
-                EventMessageReceiver thisReceiver = Instance;
-
-                if (thisReceiver.ListMessages.Count >= MaxStatusMessages)
+                if (ListMessages.Count >= MaxStatusMessages)
                 {
-                    for (int currentDeleteIndex = thisReceiver.ListMessages.Count - MaxStatusMessages; currentDeleteIndex >= 0; currentDeleteIndex++)
+                    for (int currentDeleteIndex = ListMessages.Count - MaxStatusMessages; currentDeleteIndex >= 0; currentDeleteIndex++)
                     {
-                        thisReceiver.ListMessages.RemoveAt(currentDeleteIndex);
+                        ListMessages.RemoveAt(currentDeleteIndex);
                     }
                 }
 
-                thisReceiver.ListMessages.Add(new CLStatusMessage()
+                ListMessages.Add(new CLStatusMessage()
                 {
-                    MessageText = message
+                    MessageText = e.Message
                 });
             }
             else
             {
-                Application.Current.Dispatcher.BeginInvoke((Action<string>)AddStatusMessage, message);
+                Application.Current.Dispatcher.BeginInvoke((Action<object, EventMessageArgs>)AddStatusMessage,
+                    sender,
+
+                    // rebuild event args since it does not make sense to handle the original args asynchronously
+                    new EventMessageArgs(e.Message, e.Level, e.IsError));
             }
+
+            e.MarkHandled();
         }
         #endregion
 
@@ -508,6 +512,10 @@ namespace CloudApiPrivate.EventMessageReceiver
         {
             _dblCurrentBandwidthBitsPerSecondUpload = Settings.Instance.HistoricUploadBandwidthBitsPS;
             _dblCurrentBandwidthBitsPerSecondDownload = Settings.Instance.HistoricDownloadBandwidthBitsPS;
+
+            MessageEvents.NewEventMessage += AddStatusMessage;
+            MessageEvents.FileDownloadUpdated += UpdateFileDownload;
+            MessageEvents.FileUploadUpdated += UpdateFileUpload;
         }
         #endregion
 

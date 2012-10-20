@@ -103,6 +103,8 @@ namespace BadgeNET
                     isInitialized = true;
                 }
 
+                MessageEvents.PathStateChanged += MessageEvents_PathStateChanged;
+
                 bool initialListContainsItem = false;
 
                 // Capture the Cloud directory path for performance.
@@ -170,6 +172,35 @@ namespace BadgeNET
             }
             _trace.writeToLog(9, "IconOverlay: Return success.");
             return null;
+        }
+
+        private void MessageEvents_PathStateChanged(object sender, UpdatePathArgs e)
+        {
+            cloudAppIconBadgeType convertedState;
+            switch (e.State)
+            {
+                case PathState.Failed:
+                    convertedState = cloudAppIconBadgeType.cloudAppBadgeFailed;
+                    break;
+                case PathState.None:
+                    convertedState = cloudAppIconBadgeType.cloudAppBadgeNone;
+                    break;
+                case PathState.Selective:
+                    convertedState = cloudAppIconBadgeType.cloudAppBadgeSyncSelective;
+                    break;
+                case PathState.Synced:
+                    convertedState = cloudAppIconBadgeType.cloudAppBadgeSynced;
+                    break;
+                case PathState.Syncing:
+                    convertedState = cloudAppIconBadgeType.cloudAppBadgeSyncing;
+                    break;
+                default:
+                    throw new ArgumentException("Unknown PathState: " + e.State.ToString());
+            }
+
+            QueueSetBadge(convertedState, e.Path);
+
+            e.MarkHandled();
         }
 
         /// <summary>

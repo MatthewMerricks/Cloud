@@ -11,7 +11,6 @@ namespace CloudApiPrivate.Model
     {
         // Client version
         public const string CLClientVersion = "W01";
-        public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
 
         // OS constants
         public const string ShortcutExtension = "lnk";
@@ -25,9 +24,7 @@ namespace CloudApiPrivate.Model
         public const string ShowCloudFolderProgramFilenameOnly = "ShowCloudFolder";
         public const string CloudFolderInProgramFilesCommon = "\\Cloud.com\\Cloud";
 
-
         // General constants
         public const int MaxPathCharsIncludingTermination = 260;
-
     }
 }

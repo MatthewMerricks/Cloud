@@ -650,6 +650,11 @@ namespace FileMonitor
             CLError toReturn = null;
             try
             {
+                if (errorHolder == null)
+                {
+                    throw new NullReferenceException("errorHolder cannot be null");
+                }
+
                 if (toAdd == null)
                 {
                     toAdd = Enumerable.Empty<FileChange>();
@@ -710,7 +715,8 @@ namespace FileMonitor
             }
             catch (Exception ex)
             {
-                if (toAdd != null)
+                if (errorHolder != null
+                    && toAdd != null)
                 {
                     if (errorHolder.Value == null)
                     {
