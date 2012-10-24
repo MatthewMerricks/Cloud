@@ -90,7 +90,8 @@ namespace win_client.Services.FileSystemMonitoring
                     {
                         this.MonitorAgent = monitorToSet;
 
-                        CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(monitorToSet, monitorToSet.PushNotification);
+                        CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(monitorToSet,
+                            (Action<CloudApiPublic.JsonContracts.NotificationResponse>)monitorToSet.PushNotification);
 
                         MonitorStatus returnStatus;
                         CLError fileMonitorStartError = MonitorAgent.Start(out returnStatus);

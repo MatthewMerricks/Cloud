@@ -12,10 +12,10 @@ using System.Runtime.Serialization;
 using System.Text;
 using CloudApiPublic.Model;
 
-namespace Sync.JsonContracts
+namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public class Event
+    public sealed class Event
     {
         [DataMember(Name = CLDefinitions.CLSyncEvent, IsRequired = false)]
         public string Action { get; set; }

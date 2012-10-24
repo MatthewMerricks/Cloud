@@ -14,14 +14,15 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
+using System.Security.Cryptography;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudApiPublic.Support;
-using System.Threading;
-using System.Security.Cryptography;
-using Sync.Static;
 using CloudApiPublic.Interfaces;
+using CloudApiPublic.JsonContracts;
 using Sync.Model;
+using Sync.Static;
 
 namespace Sync
 {
@@ -1509,8 +1510,8 @@ namespace Sync
                                         string requestBody;
                                         using (MemoryStream ms = new MemoryStream())
                                         {
-                                            DownloadSerializer.WriteObject(ms,
-                                                new JsonContracts.Download()
+                                            JsonContractHelpers.DownloadSerializer.WriteObject(ms,
+                                                new Download()
                                                 {
                                                     StorageKey = castState.FileToDownload.Metadata.StorageKey
                                                 });
@@ -1704,9 +1705,9 @@ namespace Sync
 
                                                     //Helpers.RunActionWithRetries(() => createdLastWriteUtc = createdDirectory.LastWriteTimeUtc, false);
 
-                                                    Helpers.RunActionWithRetries(() => File.SetCreationTimeUtc(newTempFileString, castState.FileToDownload.Metadata.HashableProperties.CreationTime), true);
-                                                    Helpers.RunActionWithRetries(() => File.SetLastAccessTimeUtc(newTempFileString, castState.FileToDownload.Metadata.HashableProperties.LastTime), true);
-                                                    Helpers.RunActionWithRetries(() => File.SetLastWriteTimeUtc(newTempFileString, castState.FileToDownload.Metadata.HashableProperties.LastTime), true);
+                                                    Helpers.RunActionWithRetries(() => System.IO.File.SetCreationTimeUtc(newTempFileString, castState.FileToDownload.Metadata.HashableProperties.CreationTime), true);
+                                                    Helpers.RunActionWithRetries(() => System.IO.File.SetLastAccessTimeUtc(newTempFileString, castState.FileToDownload.Metadata.HashableProperties.LastTime), true);
+                                                    Helpers.RunActionWithRetries(() => System.IO.File.SetLastWriteTimeUtc(newTempFileString, castState.FileToDownload.Metadata.HashableProperties.LastTime), true);
 
                                                     MoveCompletedDownload(castState.SyncData,
                                                         castState.SyncSettings,
@@ -1847,7 +1848,7 @@ namespace Sync
                                                                         {
                                                                             foreach (DownloadIdAndMD5 matchedErrorTemp in errorTemp.Where(currentError => currentError.Id == (Guid)exceptionState.TempDownloadFileId))
                                                                             {
-                                                                                File.Delete(exceptionState.TempDownloadFolderPath + "\\" + ((Guid)exceptionState.TempDownloadFileId).ToString("N"));
+                                                                                System.IO.File.Delete(exceptionState.TempDownloadFolderPath + "\\" + ((Guid)exceptionState.TempDownloadFileId).ToString("N"));
 
                                                                                 errorTemp.Remove(matchedErrorTemp);
                                                                                 if (errorTemp.Count == 0)
@@ -2656,7 +2657,7 @@ namespace Sync
                 string syncString;
                 if ((syncString = (syncData.getLastSyncId ?? CLDefinitions.CLDefaultSyncID)) == CLDefinitions.CLDefaultSyncID)
                 {
-                    JsonContracts.PurgePending purge = new JsonContracts.PurgePending()
+                    PurgePending purge = new PurgePending()
                     {
                         DeviceId = syncSettings.Udid,
                         UserId = syncSettings.Uuid
@@ -2665,7 +2666,7 @@ namespace Sync
                     string requestBody;
                     using (MemoryStream ms = new MemoryStream())
                     {
-                        PurgePendingSerializer.WriteObject(ms, purge);
+                        JsonContractHelpers.PurgePendingSerializer.WriteObject(ms, purge);
                         requestBody = Encoding.Default.GetString(ms.ToArray());
                     }
 
@@ -2720,7 +2721,7 @@ namespace Sync
                         purgeResponse = (HttpWebResponse)ex.Response;
                     }
 
-                    JsonContracts.PurgePendingResponse deserializedResponse;
+                    PurgePendingResponse deserializedResponse;
                     try
                     {
                         using (Stream purgeHttpWebResponseStream = purgeResponse.GetResponseStream())
@@ -2769,7 +2770,7 @@ namespace Sync
                                             purgeResponseString));
                                 }
 
-                                deserializedResponse = (JsonContracts.PurgePendingResponse)PurgePendingResponseSerializer.ReadObject(purgeResponseStream);
+                                deserializedResponse = (PurgePendingResponse)JsonContractHelpers.PurgePendingResponseSerializer.ReadObject(purgeResponseStream);
                             }
                             finally
                             {
@@ -2837,7 +2838,7 @@ namespace Sync
                         return toCheck;
                     };
 
-                    JsonContracts.To deserializedResponse = null;
+                    To deserializedResponse = null;
 
                     int totalBatches = (int)Math.Ceiling(((double)communicationArray.Length) / ((double)CLDefinitions.SyncConstantsMaximumSyncToEvents));
                     for (int batchNumber = 0; batchNumber < totalBatches; batchNumber++)
@@ -2870,10 +2871,10 @@ namespace Sync
 
                         long lastEventId = currentBatch.OrderByDescending(currentEvent => ensureNonZeroEventId(currentEvent.FileChange.EventId)).First().FileChange.EventId;
 
-                        JsonContracts.To syncTo = new JsonContracts.To()
+                        To syncTo = new To()
                         {
                             SyncId = syncString,
-                            Events = currentBatch.Select(currentEvent => new JsonContracts.Event()
+                            Events = currentBatch.Select(currentEvent => new Event()
                             {
                                 Action =
                                     // Folder events
@@ -2912,7 +2913,7 @@ namespace Sync
                                                         : getArgumentException(false, currentEvent.FileChange.Type, currentEvent.FileChange.Metadata.LinkTargetPath))))))),
 
                                 EventId = currentEvent.FileChange.EventId,
-                                Metadata = new JsonContracts.Metadata()
+                                Metadata = new Metadata()
                                 {
                                     CreatedDate = currentEvent.FileChange.Metadata.HashableProperties.CreationTime,
                                     Deleted = currentEvent.FileChange.Type == FileChangeType.Deleted,
@@ -2948,7 +2949,7 @@ namespace Sync
                         string requestBody;
                         using (MemoryStream ms = new MemoryStream())
                         {
-                            ToSerializer.WriteObject(ms, syncTo);
+                            JsonContractHelpers.ToSerializer.WriteObject(ms, syncTo);
                             requestBody = Encoding.Default.GetString(ms.ToArray());
                         }
 
@@ -3011,7 +3012,7 @@ namespace Sync
                             toResponse = (HttpWebResponse)ex.Response;
                         }
 
-                        JsonContracts.To currentBatchResponse;
+                        To currentBatchResponse;
                         try
                         {
                             using (Stream toHttpWebResponseStream = toResponse.GetResponseStream())
@@ -3059,7 +3060,7 @@ namespace Sync
                                                 toResponseString));
                                     }
 
-                                    currentBatchResponse = (JsonContracts.To)ToSerializer.ReadObject(toResponseStream);
+                                    currentBatchResponse = (To)JsonContractHelpers.ToSerializer.ReadObject(toResponseStream);
                                 }
                                 finally
                                 {
@@ -3098,11 +3099,11 @@ namespace Sync
                         }
                         else
                         {
-                            JsonContracts.Event[] previousEvents = deserializedResponse.Events;
-                            JsonContracts.Event[] newEvents = currentBatchResponse.Events;
+                            Event[] previousEvents = deserializedResponse.Events;
+                            Event[] newEvents = currentBatchResponse.Events;
 
                             deserializedResponse = currentBatchResponse;
-                            deserializedResponse.Events = new JsonContracts.Event[previousEvents.Length + newEvents.Length];
+                            deserializedResponse.Events = new Event[previousEvents.Length + newEvents.Length];
                             previousEvents.CopyTo(deserializedResponse.Events, 0);
                             newEvents.CopyTo(deserializedResponse.Events, previousEvents.Length);
                         }
@@ -3126,7 +3127,7 @@ namespace Sync
                         {
                             try
                             {
-                                JsonContracts.Event currentEvent = deserializedResponse.Events[currentEventIndex];
+                                Event currentEvent = deserializedResponse.Events[currentEventIndex];
 
                                 if (string.IsNullOrEmpty(currentEvent.Header.Status))
                                 {
@@ -3182,7 +3183,7 @@ namespace Sync
 
                         if (duplicatedEvents.BinarySearch(currentEventIndex) < 0)
                         {
-                            JsonContracts.Event currentEvent = deserializedResponse.Events[currentEventIndex];
+                            Event currentEvent = deserializedResponse.Events[currentEventIndex];
                             FileChangeWithDependencies currentChange = null;
                             Stream currentStream = null;
                             string previousRevisionOnConflictException = null;
@@ -3308,7 +3309,7 @@ namespace Sync
                                             || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.Size != currentChange.Metadata.HashableProperties.Size
                                             || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.StorageKey != currentChange.Metadata.StorageKey
                                             || !((((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath == null && currentChange.Metadata.LinkTargetPath == null)
-                                                || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath != null && currentChange.Metadata.LinkTargetPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath, currentChange.Metadata.LinkTargetPath)))
+                                                || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath != null && currentChange.Metadata.LinkTargetPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)   matchedChange).FileChange.Metadata.LinkTargetPath, currentChange.Metadata.LinkTargetPath)))
                                             || !(sameCreationTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.CreationTime, currentChange.Metadata.HashableProperties.CreationTime))
                                             || !(sameLastTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.LastTime, currentChange.Metadata.HashableProperties.LastTime))));
 
@@ -3777,8 +3778,8 @@ namespace Sync
                         string requestBody;
                         using (MemoryStream ms = new MemoryStream())
                         {
-                            PushSerializer.WriteObject(ms,
-                                new JsonContracts.Push()
+                            JsonContractHelpers.PushSerializer.WriteObject(ms,
+                                new Push()
                                 {
                                     LastSyncId = syncString
                                 });
@@ -3836,7 +3837,7 @@ namespace Sync
                             pushResponse = (HttpWebResponse)ex.Response;
                         }
 
-                        JsonContracts.PushResponse deserializedResponse;
+                        PushResponse deserializedResponse;
                         try
                         {
                             using (Stream pushHttpWebResponseStream = pushResponse.GetResponseStream())
@@ -3884,7 +3885,7 @@ namespace Sync
                                                 pushResponseString));
                                     }
 
-                                    deserializedResponse = (JsonContracts.PushResponse)PushResponseSerializer.ReadObject(pushResponseStream);
+                                    deserializedResponse = (PushResponse)JsonContractHelpers.PushResponseSerializer.ReadObject(pushResponseStream);
                                 }
                                 finally
                                 {
@@ -4158,143 +4159,6 @@ namespace Sync
                 }
             }
         }
-
-        private static DataContractJsonSerializer PushSerializer
-        {
-            get
-            {
-                lock (PushSerializerLocker)
-                {
-                    return _pushSerializer
-                        ?? (_pushSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Push)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _pushSerializer = null;
-        private static readonly object PushSerializerLocker = new object();
-        private static DataContractJsonSerializer PushResponseSerializer
-        {
-            get
-            {
-                lock (PushResponseSerializerLocker)
-                {
-                    return _pushResponseSerializer
-                        ?? (_pushResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PushResponse)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _pushResponseSerializer = null;
-        private static readonly object PushResponseSerializerLocker = new object();
-        private static DataContractJsonSerializer DownloadSerializer
-        {
-            get
-            {
-                lock (DownloadSerializerLocker)
-                {
-                    return _downloadSerializer
-                        ?? (_downloadSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Download)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _downloadSerializer = null;
-        private static readonly object DownloadSerializerLocker = new object();
-        private static DataContractJsonSerializer ToSerializer
-        {
-            get
-            {
-                lock (ToSerializerLocker)
-                {
-                    return _toSerializer
-                        ?? (_toSerializer = new DataContractJsonSerializer(typeof(JsonContracts.To)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _toSerializer = null;
-        private static readonly object ToSerializerLocker = new object();
-        //private static DataContractJsonSerializer EventSerializer
-        //{
-        //    get
-        //    {
-        //        lock (EventSerializerLocker)
-        //        {
-        //            return _eventSerializer
-        //                ?? (_eventSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Event)));
-        //        }
-        //    }
-        //}
-        //private static DataContractJsonSerializer _eventSerializer = null;
-        //private static readonly object EventSerializerLocker = new object();
-        private static DataContractJsonSerializer NotificationResponseSerializer
-        {
-            get
-            {
-                lock (NotificationResponseSerializerLocker)
-                {
-                    return _notificationResponseSerializer
-                        ?? (_notificationResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.NotificationResponse)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _notificationResponseSerializer = null;
-        private static readonly object NotificationResponseSerializerLocker = new object();
-        public static string NotificationResponseToJSON(JsonContracts.NotificationResponse notificationResponse)
-        {
-            using (MemoryStream stringStream = new MemoryStream())
-            {
-                NotificationResponseSerializer.WriteObject(stringStream, notificationResponse);
-                stringStream.Position = 0;
-                using (StreamReader stringReader = new StreamReader(stringStream))
-                {
-                    return stringReader.ReadToEnd();
-                }
-            }
-        }
-        public static JsonContracts.NotificationResponse ParseNotificationResponse(string notificationResponse)
-        {
-            MemoryStream stringStream = null;
-            try
-            {
-                stringStream = new MemoryStream(Encoding.Unicode.GetBytes(notificationResponse));
-                return (JsonContracts.NotificationResponse)NotificationResponseSerializer.ReadObject(stringStream);
-            }
-            catch
-            {
-                return null;
-            }
-            finally
-            {
-                if (stringStream != null)
-                {
-                    stringStream.Dispose();
-                }
-            }
-        }
-        private static DataContractJsonSerializer PurgePendingSerializer
-        {
-            get
-            {
-                lock (PurgePendingSerializerLocker)
-                {
-                    return _purgePendingSerializer
-                        ?? (_purgePendingSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PurgePending)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _purgePendingSerializer = null;
-        private static readonly object PurgePendingSerializerLocker = new object();
-        private static DataContractJsonSerializer PurgePendingResponseSerializer
-        {
-            get
-            {
-                lock (PurgePendingResponseSerializerLocker)
-                {
-                    return _purgePendingResponseSerializer
-                        ?? (_purgePendingResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PurgePendingResponse)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _purgePendingResponseSerializer = null;
-        private static readonly object PurgePendingResponseSerializerLocker = new object();
 
         #endregion
     }

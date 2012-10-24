@@ -1,5 +1,5 @@
 ﻿//
-// File.cs
+// Download.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -12,12 +12,12 @@ using System.Runtime.Serialization;
 using System.Text;
 using CloudApiPublic.Model;
 
-namespace Sync.JsonContracts
+namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public class File
+    public sealed class Download
     {
-        [DataMember(Name = CLDefinitions.CLMetadataFile, IsRequired = false)]
-        public Metadata Metadata { get; set; }
+        [DataMember(Name = CLDefinitions.CLMetadataStorageKey, IsRequired = false)]
+        public string StorageKey { get; set; }
     }
 }

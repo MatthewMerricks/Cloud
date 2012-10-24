@@ -12,10 +12,10 @@ using System.Runtime.Serialization;
 using System.Text;
 using CloudApiPublic.Model;
 
-namespace Sync.JsonContracts
+namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public class PurgePendingResponse
+    public sealed class PurgePendingResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataFiles, IsRequired = false)]
         public File[] Files { get; set; }

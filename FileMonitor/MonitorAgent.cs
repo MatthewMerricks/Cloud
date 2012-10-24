@@ -25,6 +25,7 @@ using FileMonitor.Static;
 using FileMonitor.SyncImplementations;
 using CloudApiPublic.Interfaces;
 using SQLIndexer;
+using JsonContracts = CloudApiPublic.JsonContracts;
 
 namespace FileMonitor
 {
@@ -333,7 +334,7 @@ namespace FileMonitor
         /// Starts the queue timer to start sync processing,
         /// if it is not already started for other events
         /// </summary>
-        public void PushNotification(string notification)
+        public void PushNotification(JsonContracts.NotificationResponse notification)
         {
             lock (QueuesTimer.TimerRunningLocker)
             {

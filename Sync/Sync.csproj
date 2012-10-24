@@ -50,17 +50,6 @@
     <Compile Include="ExecutableException.cs" />
     <Compile Include="GlobalSyncEvents.cs" />
     <Compile Include="IExecutableException.cs" />
-    <Compile Include="JsonContracts\Download.cs" />
-    <Compile Include="JsonContracts\Event.cs" />
-    <Compile Include="JsonContracts\File.cs" />
-    <Compile Include="JsonContracts\Header.cs" />
-    <Compile Include="JsonContracts\Metadata.cs" />
-    <Compile Include="JsonContracts\NotificationResponse.cs" />
-    <Compile Include="JsonContracts\PurgePending.cs" />
-    <Compile Include="JsonContracts\PurgePendingResponse.cs" />
-    <Compile Include="JsonContracts\Push.cs" />
-    <Compile Include="JsonContracts\PushResponse.cs" />
-    <Compile Include="JsonContracts\To.cs" />
     <Compile Include="Model\AsyncUploadDownloadTask.cs" />
     <Compile Include="Model\DownloadIdAndMD5.cs" />
     <Compile Include="Model\EventIdAndCompletionProcessor.cs" />
@@ -77,9 +66,9 @@
     <Compile Include="HttpScheduler.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
+    <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
-      <Name>CloudSdkPublic</Name>
+      <Name>CloudApiPublic</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

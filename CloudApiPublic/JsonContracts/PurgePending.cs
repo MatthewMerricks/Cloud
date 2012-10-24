@@ -12,10 +12,10 @@ using System.Runtime.Serialization;
 using System.Text;
 using CloudApiPublic.Model;
 
-namespace Sync.JsonContracts
+namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public class PurgePending
+    public sealed class PurgePending
     {
         [DataMember(Name = CLDefinitions.QueryStringUserId, IsRequired = false)]
         public string UserId { get; set; }

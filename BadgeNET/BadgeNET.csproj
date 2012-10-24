@@ -70,9 +70,9 @@
       <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
       <Name>CloudApiPrivate</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
+    <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
-      <Name>CloudSdkPublic</Name>
+      <Name>CloudApiPublic</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

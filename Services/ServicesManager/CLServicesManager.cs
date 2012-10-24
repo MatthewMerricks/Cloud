@@ -12,13 +12,13 @@ using CloudApiPublic.Model;
 using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
 using win_client.Services.Badging;
-using win_client.Services.Sync;
 using win_client.Services.UiActivity;
 using win_client.Services.Indexing;
 using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
 using CloudApiPrivate.Common;
 using CloudApiPrivate.Model.Settings;
+using FileMonitor.SyncImplementations;
 #if TRASH
 using win_client.DragDropServer;
 #endif // TRASH

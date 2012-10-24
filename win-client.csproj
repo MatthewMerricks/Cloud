@@ -248,7 +248,6 @@
     </Compile>
     <Compile Include="Services\ServicesManager\CLServicesManager.cs" />
     <Compile Include="Services\Indexing\CLIndexingService.cs" />
-    <Compile Include="Services\Sync\CLSyncService.cs" />
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
     <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="SystemTray\HookWrapper.cs" />
@@ -666,9 +665,9 @@
       <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
       <Name>CloudApiPrivate</Name>
     </ProjectReference>
-    <ProjectReference Include="CloudApiPublic\CloudSdkPublic.csproj">
+    <ProjectReference Include="CloudApiPublic\CloudApiPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
-      <Name>CloudSdkPublic</Name>
+      <Name>CloudApiPublic</Name>
     </ProjectReference>
     <ProjectReference Include="Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
       <Project>{3697919f-7a1e-43ba-bfdb-3eec2553dd44}</Project>

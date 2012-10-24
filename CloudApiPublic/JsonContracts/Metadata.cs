@@ -13,10 +13,10 @@ using System.Text;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 
-namespace Sync.JsonContracts
+namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public class Metadata
+    public sealed class Metadata
     {
         [DataMember(Name = CLDefinitions.CLMetadataFileIsDeleted, IsRequired = false)]
         public Nullable<bool> Deleted { get; set; }

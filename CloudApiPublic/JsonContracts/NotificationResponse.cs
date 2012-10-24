@@ -12,10 +12,10 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Sync.JsonContracts
+namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public class NotificationResponse
+    public sealed class NotificationResponse
     {
         [DataMember(Name = CLDefinitions.NotificationMessageBody, IsRequired = false)]
         public string Body { get; set; }
