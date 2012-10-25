@@ -4111,10 +4111,10 @@ namespace Sync
                 if (toRetry.FileChange.FailureCounter == 0)
                 {
                     MessageEvents.SetPathState(toRetry.FileChange,
-                        PathState.Failed,
-                        ((toRetry.FileChange.Direction == SyncDirection.From && toRetry.FileChange.Type == FileChangeType.Renamed)
-                            ? toRetry.FileChange.OldPath
-                            : toRetry.FileChange.NewPath));
+                        new SetBadge(PathState.Failed,
+                                    ((toRetry.FileChange.Direction == SyncDirection.From && toRetry.FileChange.Type == FileChangeType.Renamed)
+                                            ? toRetry.FileChange.OldPath
+                                            : toRetry.FileChange.NewPath)));
                 }
 
                 toRetry.FileChange.FailureCounter++;
@@ -4127,7 +4127,7 @@ namespace Sync
 
                 if (toRetry.FileChange.NotFoundForStreamCounter == MaxNumberOfNotFounds)
                 {
-                    MessageEvents.SetPathState(toRetry.FileChange, PathState.Synced, toRetry.FileChange.NewPath);
+                    MessageEvents.SetPathState(toRetry.FileChange, new SetBadge(PathState.Synced, toRetry.FileChange.NewPath));
                     syncData.mergeToSql(new FileChangeMerge[] { new FileChangeMerge(null, toRetry.FileChange) });
                 }
 
@@ -4146,10 +4146,11 @@ namespace Sync
         {
             foreach (FileChange dependency in (dependencies ?? Enumerable.Empty<FileChange>()))
             {
-                MessageEvents.SetPathState(dependency, PathState.Failed,
-                    ((dependency.Direction == SyncDirection.From && dependency.Type == FileChangeType.Renamed)
-                        ? dependency.OldPath
-                        : dependency.NewPath));
+                MessageEvents.SetPathState(dependency, 
+                                            new SetBadge(PathState.Failed,
+                                                ((dependency.Direction == SyncDirection.From && dependency.Type == FileChangeType.Renamed)
+                                                    ? dependency.OldPath
+                                                    : dependency.NewPath)));
 
                 FileChangeWithDependencies castDependency = dependency as FileChangeWithDependencies;
                 if (castDependency != null

@@ -5076,7 +5076,10 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - The sample code for CallbackFileSystem is in branch 20121017A0IntegratingCallbackFileSystem.
     - I moved the push notification code to CloudApiPublic.  It works, and I pushed it to git.
   o 10/25/12 Thu:
-    - 6:30 - 
+    - 8:00 - 
+    - Doxygen is a candidate documentation tool.  The Microsoft support may also be adequate.  We need to generate HTML documentation, with an intro and other sections, including
+      Class and type documentation, and we need a way to prevent documentation of internal classes.
+    - 
 
 
 

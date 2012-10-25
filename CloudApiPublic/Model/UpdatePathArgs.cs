@@ -33,11 +33,11 @@ namespace CloudApiPublic.Model
         }
         private FilePath _path;
 
-        public UpdatePathArgs(PathState State, FilePath Path)
+        public UpdatePathArgs(SetBadge badgeChange)
         {
-            if (Path == null)
+            if (badgeChange.PathToBadge == null)
             {
-                throw new NullReferenceException("Path cannot be null");
+                throw new NullReferenceException("PathToBadge cannot be null");
             }
 
             this._state = State;

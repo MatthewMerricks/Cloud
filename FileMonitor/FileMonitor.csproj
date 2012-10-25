@@ -75,10 +75,6 @@
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudApiPublic</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SQLIndexer\SQLIndexer.csproj">
-      <Project>{5ea44f8a-a8ff-48ab-b6f6-c523793e342e}</Project>
-      <Name>SQLIndexer</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

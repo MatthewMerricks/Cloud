@@ -104,6 +104,10 @@ namespace BadgeNET
                 }
 
                 MessageEvents.PathStateChanged += MessageEvents_PathStateChanged;
+                MessageEvents.FileChangeMergeToStateChanged += MessageEvents_FileChangeMergeToStateChanged;
+                MessageEvents.SetBadgeQueued += MessageEvents_QueueSetBadgeChanged;
+                MessageEvents.BadgePathDeleted += MessageEvents_BadgePathDeleted;
+                MessageEvents.BadgePathRenamed += MessageEvents_BadgePathRenamed;
 
                 bool initialListContainsItem = false;
 
@@ -174,10 +178,55 @@ namespace BadgeNET
             return null;
         }
 
-        private void MessageEvents_PathStateChanged(object sender, UpdatePathArgs e)
+        void MessageEvents_BadgePathRenamed(object sender, BadgePathRenamedArgs e)
+        {
+            CLError error = RenameBadgePath(e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath);
+            if (error != null)
+            {
+                _trace.writeToLog(1, "IconOverlay: MessageEvents_BadgePathRenamed: ERROR: Throw. Msg: <{0}>, Code: {1}. FromPath: {2}. ToPath: {3}.", error.errorDescription, error.errorCode, e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath);
+            }
+            e.MarkHandled();
+        }
+
+        void MessageEvents_BadgePathDeleted(object sender, BadgePathDeletedArgs e)
+        {
+            bool isDeleted;
+            CLError error = DeleteBadgePath(e.DeleteBadgePath.PathToDelete, out isDeleted);
+            if (error != null)
+            {
+                _trace.writeToLog(1, "IconOverlay: MessageEvents_BadgePathDeleted: ERROR: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+            }
+            else if (isDeleted)
+            {
+                e.MarkDeleted();
+            }
+            e.MarkHandled();
+        }
+
+        private void MessageEvents_QueueSetBadgeChanged(object sender, SetBadgeQueuedArgs e)
+        {
+            cloudAppIconBadgeType convertedState = ConvertBadgeState(e.SetBadge.BadgeState);
+            QueueSetBadge(convertedState, e.SetBadge.PathToBadge);
+            e.MarkHandled();
+        }
+
+        private void MessageEvents_FileChangeMergeToStateChanged(object sender, FileChangeMergeToStateArgs e)
+        {
+            QueueNewEventBadge(e.MergedFileChanges.MergeTo, e.MergedFileChanges.MergeFrom);
+            e.MarkHandled();
+        }
+
+        private void MessageEvents_PathStateChanged(object sender, SetBadgeQueuedArgs e)
+        {
+            cloudAppIconBadgeType convertedState = ConvertBadgeState(e.SetBadge.BadgeState);
+            QueueSetBadge(convertedState, e.SetBadge.PathToBadge);
+            e.MarkHandled();
+        }
+
+        private static cloudAppIconBadgeType ConvertBadgeState(PathState state)
         {
             cloudAppIconBadgeType convertedState;
-            switch (e.State)
+            switch (state)
             {
                 case PathState.Failed:
                     convertedState = cloudAppIconBadgeType.cloudAppBadgeFailed;
@@ -195,12 +244,9 @@ namespace BadgeNET
                     convertedState = cloudAppIconBadgeType.cloudAppBadgeSyncing;
                     break;
                 default:
-                    throw new ArgumentException("Unknown PathState: " + e.State.ToString());
+                    throw new ArgumentException("Unknown PathState: " + state.ToString());
             }
-
-            QueueSetBadge(convertedState, e.Path);
-
-            e.MarkHandled();
+            return convertedState;
         }
 
         /// <summary>

@@ -33,6 +33,13 @@ namespace CloudApiPublic.PushNotification
         public CLError ErrorManualPoll;
     }
     
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <example>
+    /// 
+    /// </example>
+    /// <
     public sealed class CLNotification
     {
         /// <summary>

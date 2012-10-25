@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 using System.Transactions;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
-using BadgeNET;
 using System.Data.SqlServerCe;
 using System.Globalization;
 using SQLIndexer.SqlModel;
@@ -635,7 +634,7 @@ namespace SQLIndexer
                     foreach (KeyValuePair<FileChange, GenericHolder<long>> currentAddedEvent in orderToChange.Values)
                     {
                         currentAddedEvent.Key.EventId = currentAddedEvent.Value.Value;
-                        IconOverlay.QueueNewEventBadge(currentAddedEvent.Key, null);
+                        MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentAddedEvent.Key, null));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentAddedEvent.Key, null)
                     }
                 }
             }
@@ -1022,9 +1021,10 @@ namespace SQLIndexer
                                         indexTransaction)
                                     .ToArray();
 
-                                Action<cloudAppIconBadgeType, FilePath> setBadge = (badgeType, badgePath) =>
+                                Action<PathState, FilePath> setBadge = (badgeType, badgePath) =>
                                 {
-                                    IconOverlay.QueueSetBadge(badgeType, badgePath);
+                                    MessageEvents.QueueSetBadge(this, new SetBadge(badgeType, badgePath));   // Message to invoke BadgeNet.IconOverlay.QueueSetBadge(badgeType, badgePath);
+
                                 };
 
                                 List<Event> eventsToUpdate = new List<Event>();
@@ -1125,7 +1125,7 @@ namespace SQLIndexer
                                                 if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
-                                                    setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, newPath);
+                                                    setBadge(PathState.Synced, newPath);
                                                 }
                                                 break;
                                             case FileChangeType.Deleted:
@@ -1134,13 +1134,13 @@ namespace SQLIndexer
                                                 if (previousEvent.SyncFrom)
                                                 {
                                                     bool isDeleted;
-                                                    IconOverlay.DeleteBadgePath(newPath, out isDeleted);
+                                                    MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(newPath), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(newPath, out isDeleted);
                                                 }
 
                                                 if (existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
-                                                    setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, newPath);
+                                                    setBadge(PathState.Syncing, newPath);
                                                 }
                                                 break;
                                             case FileChangeType.Modified:
@@ -1177,7 +1177,7 @@ namespace SQLIndexer
                                                 if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
-                                                    setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, newPath);
+                                                    setBadge(PathState.Synced, newPath);
                                                 }
                                                 break;
                                             case FileChangeType.Renamed:
@@ -1241,13 +1241,13 @@ namespace SQLIndexer
 
                                                 if (previousEvent.SyncFrom)
                                                 {
-                                                    IconOverlay.RenameBadgePath(oldPath, newPath);
+                                                    MessageEvents.RenameBadgePath(this, new RenameBadgePath(oldPath, newPath));   // Message to invoke BadgeNet.IconOverlay.RenameBadgePath(oldPath, newPath);
                                                 }
 
                                                 if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
-                                                    setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, newPath);
+                                                    setBadge(PathState.Synced, newPath);
                                                 }
                                                 break;
                                         }
@@ -1525,7 +1525,7 @@ namespace SQLIndexer
                             && currentMergeToFrom.MergeTo.DoNotAddToSQLIndex
                             && currentMergeToFrom.MergeTo.EventId != 0)
                         {
-                            IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom);
+                            MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
                             continue;
                         }
 
@@ -1741,7 +1741,7 @@ namespace SQLIndexer
                             || toUpdate.ContainsKey(currentMergeToFrom.MergeTo.EventId)
                             || toDelete.Contains(currentMergeToFrom.MergeTo.EventId))
                         {
-                            IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom);
+                            MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
                         }
                     }
                 }
@@ -1973,7 +1973,7 @@ namespace SQLIndexer
 
                 Action<FilePath> setBadgeSynced = syncedPath =>
                     {
-                        IconOverlay.QueueSetBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, syncedPath);
+                        MessageEvents.QueueSetBadge(this, new SetBadge(PathState.Synced, syncedPath));   // Message to invoke BadgeNet.IconOverlay.QueueSetBadge(PathState.Synced, syncedPath);
                     };
 
                 // Adjust the badge for this completed event.
@@ -1989,13 +1989,13 @@ namespace SQLIndexer
                             if (currentEvent.SyncFrom)
                             {
                                 bool isDeleted;
-                                IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
+                                MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(currentEvent.FileSystemObject.Path), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
                             }
                             break;
                         case FileChangeType.Renamed:
                             if (currentEvent.SyncFrom)
                             {
-                                IconOverlay.RenameBadgePath(currentEvent.PreviousPath, currentEvent.FileSystemObject.Path);
+                                MessageEvents.RenameBadgePath(this, new RenameBadgePath(currentEvent.PreviousPath, currentEvent.FileSystemObject.Path));   // Message to invoke BadgeNet.IconOverlay.RenameBadgePath(currentEvent.PreviousPath, currentEvent.FileSystemObject.Path);
                             }
 
                             setBadgeSynced(currentEvent.FileSystemObject.Path);

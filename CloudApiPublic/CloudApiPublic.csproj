@@ -23,6 +23,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,8 +34,15 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>bin\Release\CloudApiPublic.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework">
+      <HintPath>..\3rdParty\bin\Release\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="ErikEJ.SqlCe40">
+      <HintPath>..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Net.Http">
       <HintPath>..\3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>
     </Reference>
@@ -53,7 +62,17 @@
       <HintPath>..\3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdParty\bin\Release\System.Data.SqlServerCe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SqlServerCe.Entity, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdParty\bin\Release\System.Data.SqlServerCe.Entity.dll</HintPath>
+    </Reference>
     <Reference Include="System.Management" />
     <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.4.0.20505.0\lib\net40\System.Net.Http.Formatting.dll</HintPath>
@@ -63,6 +82,8 @@
       <HintPath>..\packages\Microsoft.Net.Http.2.0.20505.0\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -92,9 +113,16 @@
     <Compile Include="JsonContracts\To.cs" />
     <Compile Include="Model\CLStatusFileTransferUpdateParameters.cs" />
     <Compile Include="Model\CombinedCollection.cs" />
+    <Compile Include="Model\BadgePathDeletedArgs.cs" />
+    <Compile Include="Model\BadgePathRenamedArgs.cs" />
+    <Compile Include="Model\RenameBadgePath.cs" />
+    <Compile Include="Model\DeleteBadgePath.cs" />
+    <Compile Include="Model\SetBadgeQueuedArgs.cs" />
+    <Compile Include="Model\SetBadge.cs" />
     <Compile Include="Model\EventMessageArgs.cs" />
     <Compile Include="Model\FileChange.cs" />
     <Compile Include="Model\FileChangeMerge.cs" />
+    <Compile Include="Model\FileChangeMergeToStateArgs.cs" />
     <Compile Include="Model\FileChangeWithDependencies.cs" />
     <Compile Include="Model\FileMetadata.cs" />
     <Compile Include="FilePath\FilePath.cs" />
@@ -134,6 +162,23 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.fr.resx</DependentUpon>
     </Compile>
+    <Compile Include="SQLIndexer\IndexingAgent.cs" />
+    <Compile Include="SQLIndexer\Migrations\Migration2.cs" />
+    <Compile Include="SQLIndexer\Migrations\MigrationList.cs" />
+    <Compile Include="SQLIndexer\Model\FileResultRoot.cs" />
+    <Compile Include="SQLIndexer\Model\FindFileResult.cs" />
+    <Compile Include="SQLIndexer\Model\IFileResultParent.cs" />
+    <Compile Include="SQLIndexer\Model\SafeSearchHandle.cs" />
+    <Compile Include="SQLIndexer\SqlModel\Constants.cs" />
+    <Compile Include="SQLIndexer\SqlModel\EnumCategory.cs" />
+    <Compile Include="SQLIndexer\SqlModel\Event.cs" />
+    <Compile Include="SQLIndexer\SqlModel\FileSystemObject.cs" />
+    <Compile Include="SQLIndexer\SqlModel\SqlAccessor.cs" />
+    <Compile Include="SQLIndexer\SqlModel\SqlEnum.cs" />
+    <Compile Include="SQLIndexer\SqlModel\Sync.cs" />
+    <Compile Include="SQLIndexer\Static\NativeMethods.cs" />
+    <Compile Include="SQLIndexer\StringCRC.cs" />
+    <Compile Include="SQLIndexer\SyncedObject.cs" />
     <Compile Include="Static\CLDevices.cs" />
     <Compile Include="Static\CLPublicExtensionMethods.cs" />
     <Compile Include="Static\Enums.cs" />
@@ -180,6 +225,26 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\0Version.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\10FileSystemObjects_SyncCounter_ServerLinked.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_EventId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_Revision.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects.PathChecksum.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileChangeTypesEnum1.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\15FileChangeTypesEnum2.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\16FileChangeTypesEnum3.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17FileChangeTypesEnum4.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\18FileChangeTypesEnum5.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\19Events_GroupId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\1IncompleteVersion.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\20CompletedVersion.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\3EnumCategories.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\5Syncs.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\6Syncs_SyncId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
     <Content Include="Static\NotLinkedFull.xml" />
   </ItemGroup>
   <ItemGroup />
