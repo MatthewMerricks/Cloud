@@ -43,6 +43,10 @@
     <Reference Include="ErikEJ.SqlCe40">
       <HintPath>..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
     </Reference>
+    <Reference Include="Interop.Shell32">
+      <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Microsoft.Net.Http">
       <HintPath>..\3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>
     </Reference>
@@ -96,6 +100,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileMonitor\MonitorAgent.cs" />
+    <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
+    <Compile Include="SyncSettings\SyncSettings.cs" />
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
     <Compile Include="Interfaces\ISyncDataObject.cs" />
     <Compile Include="Interfaces\ISyncSettings.cs" />

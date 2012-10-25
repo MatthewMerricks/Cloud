@@ -9,7 +9,7 @@ using System.Windows;
 using System.Linq;
 using CloudApiPublic.Support;
 using CloudApiPublic.PushNotification;
-using FileMonitor.SyncImplementations;
+using FileMonitor.SyncImplementation;
 using win_client.Common;
 using CloudApiPublic.Model;
 using JsonContracts = CloudApiPublic.JsonContracts;

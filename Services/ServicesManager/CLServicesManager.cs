@@ -18,7 +18,7 @@ using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
 using CloudApiPrivate.Common;
 using CloudApiPrivate.Model.Settings;
-using FileMonitor.SyncImplementations;
+using FileMonitor.SyncImplementation;
 #if TRASH
 using win_client.DragDropServer;
 #endif // TRASH

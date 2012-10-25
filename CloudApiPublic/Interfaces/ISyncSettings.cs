@@ -34,6 +34,7 @@ namespace CloudApiPublic.Interfaces
         /// </summary>
         string TempDownloadFolderFullPath { get; }
         string ClientVersion { get; }
-        string getDeviceName { get; }
+        string DeviceName { get; }
+        string CloudRoot { get; }
     }
 }

@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FileMonitor.SyncImplementations
+namespace FileMonitor.SyncImplementation
 {
     public sealed class SyncData : ISyncDataObject
     {
@@ -96,14 +96,6 @@ namespace FileMonitor.SyncImplementations
                 currentFailures,
                 out outputChanges,
                 out outputFailures);
-        }
-
-        public string getCloudRoot
-        {
-            get
-            {
-                return Monitor.GetCurrentPath();
-            }
         }
 
         public CLError applySyncFromChange(FileChange toApply)

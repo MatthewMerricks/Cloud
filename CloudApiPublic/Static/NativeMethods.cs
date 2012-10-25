@@ -126,6 +126,7 @@ namespace CloudApiPublic.Static
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetCursorPos([Out] POINT lpPoint);
+
         #endregion
     }
 }

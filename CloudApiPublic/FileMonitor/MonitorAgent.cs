@@ -18,11 +18,9 @@ using System.Security.Cryptography;
 using System.Threading;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
 using System.Xml.Linq;
-using CloudApiPrivate.Model.Settings;
 using System.Windows;
 using System.Transactions;
-using FileMonitor.Static;
-using FileMonitor.SyncImplementations;
+using FileMonitor.SyncImplementation;
 using CloudApiPublic.Interfaces;
 using SQLIndexer;
 using JsonContracts = CloudApiPublic.JsonContracts;
@@ -208,6 +206,7 @@ namespace FileMonitor
         /// lock on InitialIndexLocker
         /// </summary>
         private bool IsInitialIndex = true;
+        private readonly ISyncSettings _syncSettings;
         #endregion
 
         /// <summary>
@@ -215,13 +214,13 @@ namespace FileMonitor
         /// requires running Start() method to begin monitoring and then, when available, load
         /// the initial index list to begin processing via BeginProcessing(initialList)
         /// </summary>
-        /// <param name="folderPath">path of root folder to be monitored</param>
+        /// <param name="syncSettings">The settings to be used with this instance of the file system monitor</param>
         /// <param name="newAgent">returned MonitorAgent</param>
         /// <param name="syncRun">delegate to be executed when a group of events is to be processed</param>
         /// <param name="onQueueingCallback">(optional) action to be executed evertime a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns>Returns any error that occurred if there was one</returns>
-        public static CLError CreateNewAndInitialize(string folderPath,
+        public static CLError CreateNewAndInitialize(ISyncSettings syncSettings,
             IndexingAgent indexer,
             out MonitorAgent newAgent,
             Func<ISyncDataObject,
@@ -233,7 +232,7 @@ namespace FileMonitor
         {
             try
             {
-                newAgent = new MonitorAgent(indexer);
+                newAgent = new MonitorAgent(indexer, syncSettings);
             }
             catch (Exception ex)
             {
@@ -242,11 +241,11 @@ namespace FileMonitor
             }
             try
             {
-                if (string.IsNullOrEmpty(folderPath))
+                if (string.IsNullOrEmpty(syncSettings.CloudRoot))
                 {
                     throw new Exception("Folder path cannot be null nor empty");
                 }
-                DirectoryInfo folderInfo = new DirectoryInfo(folderPath);
+                DirectoryInfo folderInfo = new DirectoryInfo(syncSettings.CloudRoot);
                 if (!folderInfo.Exists)
                 {
                     throw new Exception("Folder not found at provided folder path");
@@ -267,7 +266,7 @@ namespace FileMonitor
                 }
 
                 // Initialize folder paths
-                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = folderPath;
+                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = syncSettings.CloudRoot;
 
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;
@@ -314,12 +313,17 @@ namespace FileMonitor
             return null;
         }
 
-        private MonitorAgent(IndexingAgent Indexer)
+        private MonitorAgent(IndexingAgent Indexer, ISyncSettings SyncSettings)
         {
             if (Indexer == null)
             {
                 throw new NullReferenceException("Indexer cannot be null");
             }
+            if (SyncSettings == null)
+            {
+                throw new NullReferenceException("SyncSettings cannot be null");
+            }
+            this._syncSettings = SyncSettings;
             this.Indexer = Indexer;
             this.SyncData = new SyncData(this, Indexer);
         }
@@ -1514,16 +1518,16 @@ namespace FileMonitor
                 toReturn += ex;
             }
 
-            if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            if ((_syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
+                Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
                     {
                         FileChangeWithDependencies selectedWithoutDependencies;
                         FileChangeWithDependencies.CreateAndInitialize(removeDependencies, null, out selectedWithoutDependencies);
                         return selectedWithoutDependencies;
                     }))(currentQueuedChange.Key.MergeTo)));
-                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
-                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
             }
 
             return toReturn;
@@ -2521,9 +2525,9 @@ namespace FileMonitor
         /// <param name="toChange">New file change</param>
         private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null)
         {
-            if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            if ((_syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
+                Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
             }
 
             // lock on queue to prevent conflicting updates/reads
@@ -2914,7 +2918,7 @@ namespace FileMonitor
                     if (mergeError != null)
                     {
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                        mergeError.LogErrors(Settings.Instance.ErrorLogLocation, true);
+                        mergeError.LogErrors(_syncSettings.ErrorLogLocation, true);
                         MessageBox.Show("An error occurred adding a file system event to the database:" + Environment.NewLine +
                             string.Join(Environment.NewLine,
                                 mergeError.GrabExceptions().Select(currentError => (currentError is AggregateException
@@ -2922,9 +2926,9 @@ namespace FileMonitor
                                     : currentError.Message)).ToArray()));
                     }
 
-                    if ((Settings.Instance.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    if ((_syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        Trace.LogFileChangeFlow(Settings.Instance.TraceLocation, Settings.Instance.Udid, Settings.Instance.Uuid, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
+                        Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
                     }
 
                     // clear out batch for merge for next set of remaining operations
@@ -2942,7 +2946,7 @@ namespace FileMonitor
                                 nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
 
                             // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                            ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(Settings.Instance.ErrorLogLocation, true);
+                            ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncSettings.ErrorLogLocation, true);
                             MessageBox.Show(noEventIdErrorMessage);
                         }
 
@@ -3209,7 +3213,7 @@ namespace FileMonitor
                         .Start(new object[]
                         {
                             this.SyncData,
-                            SyncSettings.Instance,
+                            _syncSettings,
                             emptyProcessingQueue,
                             this.SyncRun,
                             SyncRunLocker,
