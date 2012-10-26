@@ -224,7 +224,6 @@
     <Compile Include="Sync\Model\PossiblyStreamableAndPossiblyPreexistingErrorFileChange.cs" />
     <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithSyncData.cs" />
     <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithUploadDownloadTask.cs" />
-    <Compile Include="Sync\StreamFromJaggedByteArrays.cs" />
     <Compile Include="Sync\Sync.cs" />
   </ItemGroup>
   <ItemGroup>
