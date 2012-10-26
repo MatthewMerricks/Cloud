@@ -5,6 +5,5 @@ var searchData=
   ['start',['Start',['../class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent.html#a7fd0bcb1837d5a27a32385232f6f463b',1,'CloudApiPublic::FileMonitor::MonitorAgent']]],
   ['startinitialindexing',['StartInitialIndexing',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent.html#a9eee0160dda925db6c1c7990d36dff54',1,'CloudApiPublic::SQLIndexer::IndexingAgent']]],
   ['starttimerifnotrunning',['StartTimerIfNotRunning',['../class_cloud_api_public_1_1_support_1_1_processing_queues_timer.html#ab2b799bc7901e2bfcf4cec4286b812a8',1,'CloudApiPublic::Support::ProcessingQueuesTimer']]],
-  ['stop',['Stop',['../class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent.html#ae9123602c7ba50f698e71b6904ba8cb6',1,'CloudApiPublic::FileMonitor::MonitorAgent']]],
-  ['sync_3c_20t_20_3e',['Sync&lt; T &gt;',['../class_cloud_api_public_1_1_support_1_1_dispatch.html#aa9336811b9d268159e29ff6904b1415b',1,'CloudApiPublic::Support::Dispatch']]]
+  ['stop',['Stop',['../class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent.html#ae9123602c7ba50f698e71b6904ba8cb6',1,'CloudApiPublic::FileMonitor::MonitorAgent']]]
 ];

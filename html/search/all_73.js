@@ -19,9 +19,8 @@ var searchData=
   ['storagekey',['StorageKey',['../class_cloud_api_public_1_1_model_1_1_file_metadata.html#a0290dee37319988ca953fb76c9502cd1',1,'CloudApiPublic.Model.FileMetadata.StorageKey()'],['../class_cloud_api_public_1_1_static_1_1_trace_file_change.html#a13935156660db1dd6d25d07a7de376af',1,'CloudApiPublic.Static.TraceFileChange.StorageKey()']]],
   ['stringcrc',['StringCRC',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_string_c_r_c.html',1,'CloudApiPublic::SQLIndexer']]],
   ['sync',['Sync',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_sync.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
-  ['sync_3c_20t_20_3e',['Sync&lt; T &gt;',['../class_cloud_api_public_1_1_support_1_1_dispatch.html#aa9336811b9d268159e29ff6904b1415b',1,'CloudApiPublic::Support::Dispatch']]],
   ['syncdata',['SyncData',['../class_cloud_api_public_1_1_file_monitor_1_1_sync_implementation_1_1_sync_data.html',1,'CloudApiPublic::FileMonitor::SyncImplementation']]],
   ['syncdirection',['SyncDirection',['../namespace_cloud_api_public_1_1_static.html#a8ba5d1f6d06fa058730616f021c8974f',1,'CloudApiPublic::Static']]],
   ['syncedobject',['SyncedObject',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_synced_object.html',1,'CloudApiPublic::SQLIndexer']]],
-  ['syncsettings',['SyncSettings',['../class_file_monitor_1_1_sync_settings_1_1_sync_settings.html',1,'FileMonitor::SyncSettings']]]
+  ['syncsettings',['SyncSettings',['../class_cloud_api_public_1_1_file_monitor_1_1_sync_settings_1_1_sync_settings.html',1,'CloudApiPublic::FileMonitor::SyncSettings']]]
 ];

@@ -16,7 +16,6 @@ var searchData=
   ['filemetadatahashablecomparer',['FileMetadataHashableComparer',['../class_cloud_api_public_1_1_model_1_1_file_metadata_hashable_comparer.html',1,'CloudApiPublic::Model']]],
   ['filemetadatahashableproperties',['FileMetadataHashableProperties',['../struct_cloud_api_public_1_1_model_1_1_file_metadata_hashable_properties.html',1,'CloudApiPublic::Model']]],
   ['filemetadatahashableproperties',['FileMetadataHashableProperties',['../struct_cloud_api_public_1_1_model_1_1_file_metadata_hashable_properties.html#a9b01f19ff3a326be0f1281bdfafb620d',1,'CloudApiPublic::Model::FileMetadataHashableProperties']]],
-  ['filemonitor',['FileMonitor',['../namespace_file_monitor.html',1,'']]],
   ['filename',['FileName',['../class_cloud_api_public_1_1_static_1_1_copyright.html#a29c866f96cdfcc7b70a75925c1718061',1,'CloudApiPublic::Static::Copyright']]],
   ['filepath',['FilePath',['../class_cloud_api_public_1_1_model_1_1_file_path.html',1,'CloudApiPublic::Model']]],
   ['filepath',['FilePath',['../class_cloud_api_public_1_1_model_1_1_file_path.html#a808fa118b10dc8ff0bedac77d5114353',1,'CloudApiPublic::Model::FilePath']]],
@@ -29,6 +28,5 @@ var searchData=
   ['filesystemitem',['FileSystemItem',['../class_cloud_api_public_1_1_model_1_1_file_system_item.html',1,'CloudApiPublic::Model']]],
   ['filesystemobject',['FileSystemObject',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_file_system_object.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
   ['filetime',['FILETIME',['../struct_cloud_api_public_1_1_s_q_l_indexer_1_1_static_1_1_native_methods_1_1_f_i_l_e_t_i_m_e.html',1,'CloudApiPublic::SQLIndexer::Static::NativeMethods']]],
-  ['findoverlappingpath',['FindOverlappingPath',['../class_cloud_api_public_1_1_model_1_1_file_path.html#a546fa862491a9ac6f9f27fefcdcc8e70',1,'CloudApiPublic.Model.FilePath.FindOverlappingPath(FilePath firstPath, FilePath secondPath)'],['../class_cloud_api_public_1_1_model_1_1_file_path.html#aa9f2baee747ea9b26c875e9f572c7519',1,'CloudApiPublic.Model.FilePath.FindOverlappingPath(FilePath otherPath)']]],
-  ['syncsettings',['SyncSettings',['../namespace_file_monitor_1_1_sync_settings.html',1,'FileMonitor']]]
+  ['findoverlappingpath',['FindOverlappingPath',['../class_cloud_api_public_1_1_model_1_1_file_path.html#a546fa862491a9ac6f9f27fefcdcc8e70',1,'CloudApiPublic.Model.FilePath.FindOverlappingPath(FilePath firstPath, FilePath secondPath)'],['../class_cloud_api_public_1_1_model_1_1_file_path.html#aa9f2baee747ea9b26c875e9f572c7519',1,'CloudApiPublic.Model.FilePath.FindOverlappingPath(FilePath otherPath)']]]
 ];

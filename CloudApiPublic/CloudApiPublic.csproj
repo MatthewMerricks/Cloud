@@ -156,8 +156,6 @@
     <Compile Include="Model\TransferUpdateArgs.cs" />
     <Compile Include="Model\UpdatePathArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CLRestClient.cs" />
-    <Compile Include="ICLRestClientDelegate.cs" />
     <Compile Include="PushNotification\CLNotification.cs" />
     <Compile Include="Resources\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -198,17 +196,12 @@
     </Compile>
     <Compile Include="Static\TraceType.cs" />
     <Compile Include="Support\CLSptFileCompare.cs" />
-    <Compile Include="Support\CLSptHttpConnectionOperation.cs" />
-    <Compile Include="Support\CLSptNSOperation.cs" />
-    <Compile Include="Support\CLSptNSOperationQueue.cs" />
-    <Compile Include="Support\CLSptResourceManager.cs" />
     <Compile Include="Support\CLSptJson.cs" />
     <Compile Include="Model\CLError.cs" />
     <Compile Include="Model\CLDefinitions.cs" />
     <Compile Include="Support\CLSptConstants.cs" />
     <Compile Include="Support\CLSptOsVersion.cs" />
     <Compile Include="Support\CLSptTrace.cs" />
-    <Compile Include="Support\CLSptGrandCentralDispatch.cs" />
     <Compile Include="Support\DelayProcessable.cs" />
     <Compile Include="Support\ProcessingQueuesTimer.cs" />
     <Compile Include="Sync\ExecutableException.cs" />

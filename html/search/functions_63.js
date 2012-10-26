@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['cancel',['Cancel',['../class_cloud_api_public_1_1_support_1_1_dispatch_queue_generic.html#ace26654101b58f9d28b25785071ddb09',1,'CloudApiPublic::Support::DispatchQueueGeneric']]],
   ['connectpushnotificationserver',['ConnectPushNotificationServer',['../class_cloud_api_public_1_1_push_notification_1_1_c_l_notification.html#abd048f806309e9be145f026218946731',1,'CloudApiPublic::PushNotification::CLNotification']]],
   ['contains',['Contains',['../class_cloud_api_public_1_1_model_1_1_file_path.html#ab3a9513bde83e7c917d385269d421bd4',1,'CloudApiPublic.Model.FilePath.Contains(FilePath outerPath, FilePath innerPath)'],['../class_cloud_api_public_1_1_model_1_1_file_path.html#af19b6d43f8a02c8ea4b28e8a1fbd89b2',1,'CloudApiPublic.Model.FilePath.Contains(FilePath innerPath)']]],
   ['copy',['Copy',['../class_cloud_api_public_1_1_model_1_1_file_path.html#af5779a5ded786612570db88f1fed976d',1,'CloudApiPublic::Model::FilePath']]],

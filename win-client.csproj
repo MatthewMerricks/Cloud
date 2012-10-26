@@ -230,7 +230,6 @@
     </Compile>
     <Compile Include="Services\Badging\CLBadgingService.cs" />
     <Compile Include="Services\CloudFolderMonitoring\CLCFMonitoringService.cs" />
-    <Compile Include="Services\FileSystemDispatcher\CLFSDispatcher.cs" />
     <Compile Include="Services\FileSystemMonitoring\CLFSMonitoringService.cs" />
     <Compile Include="Services\NetworkMonitoring\CLNetworkMonitorService.cs" />
     <Compile Include="Services\Notification\CLNotificationService.cs" />

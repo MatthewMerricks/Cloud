@@ -9,5 +9,5 @@ var searchData=
   ['sync',['Sync',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_sync.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
   ['syncdata',['SyncData',['../class_cloud_api_public_1_1_file_monitor_1_1_sync_implementation_1_1_sync_data.html',1,'CloudApiPublic::FileMonitor::SyncImplementation']]],
   ['syncedobject',['SyncedObject',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_synced_object.html',1,'CloudApiPublic::SQLIndexer']]],
-  ['syncsettings',['SyncSettings',['../class_file_monitor_1_1_sync_settings_1_1_sync_settings.html',1,'FileMonitor::SyncSettings']]]
+  ['syncsettings',['SyncSettings',['../class_cloud_api_public_1_1_file_monitor_1_1_sync_settings_1_1_sync_settings.html',1,'CloudApiPublic::FileMonitor::SyncSettings']]]
 ];

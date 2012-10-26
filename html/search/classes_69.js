@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['iclrestclientdelegate',['ICLRestClientDelegate',['../interface_cloud_api_public_1_1_i_c_l_rest_client_delegate.html',1,'CloudApiPublic']]],
   ['iexecutableexception',['IExecutableException',['../interface_cloud_api_public_1_1_sync_1_1_i_executable_exception.html',1,'CloudApiPublic::Sync']]],
   ['ifileresultparent',['IFileResultParent',['../interface_cloud_api_public_1_1_s_q_l_indexer_1_1_model_1_1_i_file_result_parent.html',1,'CloudApiPublic::SQLIndexer::Model']]],
   ['imigration',['IMigration',['../interface_cloud_api_public_1_1_s_q_l_indexer_1_1_migrations_1_1_i_migration.html',1,'CloudApiPublic::SQLIndexer::Migrations']]],
