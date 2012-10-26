@@ -73,7 +73,7 @@ namespace win_client.Services.FileSystemMonitoring
             // Todo: handle index creation error
 
             MonitorAgent monitorToSet;
-            CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath,
+            CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(CLSettingsSync.Instance,
                 IndexingAgent,
                 out monitorToSet,
                 global::Sync.Sync.Run);

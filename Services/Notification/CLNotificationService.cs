@@ -13,6 +13,7 @@ using FileMonitor.SyncImplementation;
 using win_client.Common;
 using CloudApiPublic.Model;
 using JsonContracts = CloudApiPublic.JsonContracts;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Services.Notification
 {
@@ -73,7 +74,7 @@ namespace win_client.Services.Notification
                     _trace.writeToLog(9, "CLNotificationService: ConnectPushNotificationServer: Entry.");
                     if (!_serviceStarted)
                     {
-                        _notificationService = CLNotification.GetInstance(SyncSettings.Instance);
+                        _notificationService = CLNotification.GetInstance(CLSettingsSync.Instance);
                     }
 
                     // Hook up the events

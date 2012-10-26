@@ -1023,7 +1023,7 @@ namespace Sync
                     CLError recordSyncError = syncData.completeSyncSql(newSyncId,
                         successfulEventIds,
                         out syncCounter,
-                        syncData.getCloudRoot);
+                        syncSettings.CloudRoot);
 
                     if (recordSyncError != null)
                     {
@@ -1552,7 +1552,7 @@ namespace Sync
                                         }
 
                                         long storeSizeForStatus = castState.FileToDownload.Metadata.HashableProperties.Size ?? 0;
-                                        string storeRelativePathForStatus = castState.FileToDownload.NewPath.GetRelativePath(castState.SyncData.getCloudRoot, false);
+                                        string storeRelativePathForStatus = castState.FileToDownload.NewPath.GetRelativePath(castState.SyncSettings.CloudRoot, false);
                                         DateTime storeStartTimeForStatus = getStartTime(startTimeHolder);
 
                                         AsyncRequestHolder requestHolder = new AsyncRequestHolder();
@@ -2054,7 +2054,7 @@ namespace Sync
                                     }
                                     
                                     long storeSizeForStatus = castState.FileToUpload.Metadata.HashableProperties.Size ?? 0;
-                                    string storeRelativePathForStatus = castState.FileToUpload.NewPath.GetRelativePath(castState.SyncData.getCloudRoot, false);
+                                    string storeRelativePathForStatus = castState.FileToUpload.NewPath.GetRelativePath(castState.SyncSettings.CloudRoot, false);
                                     DateTime storeStartTimeForStatus = getStartTime(startTimeHolder);
 
                                     AsyncRequestHolder requestHolder = new AsyncRequestHolder();
@@ -2614,7 +2614,7 @@ namespace Sync
                 {
                     if (failuresDict == null)
                     {
-                        CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize(syncData.getCloudRoot,
+                        CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize(syncSettings.CloudRoot,
                             out failuresDict);
                         if (createFailuresDictError != null)
                         {
@@ -2640,7 +2640,7 @@ namespace Sync
                         FileChange.RunUnDownEvent(new FileChange.UpDownEventArgs(currentUpDown =>
                             runningUpDownChanges.Add(currentUpDown)));
 
-                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize(syncData.getCloudRoot,
+                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize(syncSettings.CloudRoot,
                             out runningUpDownChangesDict);
                         if (createUpDownDictError != null)
                         {
@@ -2932,16 +2932,16 @@ namespace Sync
                                     ModifiedDate = currentEvent.FileChange.Metadata.HashableProperties.LastTime,
                                     RelativeFromPath = (currentEvent.FileChange.OldPath == null
                                         ? null
-                                        : currentEvent.FileChange.OldPath.GetRelativePath(syncData.getCloudRoot, true)),
-                                    RelativePath = currentEvent.FileChange.NewPath.GetRelativePath(syncData.getCloudRoot, true),
-                                    RelativeToPath = currentEvent.FileChange.NewPath.GetRelativePath(syncData.getCloudRoot, true),
+                                        : currentEvent.FileChange.OldPath.GetRelativePath(syncSettings.CloudRoot, true)),
+                                    RelativePath = currentEvent.FileChange.NewPath.GetRelativePath(syncSettings.CloudRoot, true),
+                                    RelativeToPath = currentEvent.FileChange.NewPath.GetRelativePath(syncSettings.CloudRoot, true),
                                     Revision = currentEvent.FileChange.Metadata.Revision,
                                     Size = currentEvent.FileChange.Metadata.HashableProperties.Size,
                                     StorageKey = currentEvent.FileChange.Metadata.StorageKey,
                                     Version = "1.0",
                                     TargetPath = (currentEvent.FileChange.Metadata.LinkTargetPath == null
                                         ? null
-                                        : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath(syncData.getCloudRoot, true))
+                                        : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath(syncSettings.CloudRoot, true))
                                 }
                             }).ToArray()
                         };
@@ -3135,7 +3135,7 @@ namespace Sync
                                 }
                                 else if (currentEvent.Header.Status != CLDefinitions.CLEventTypeDownload)// exception for download when looking for dependencies since we actually want the Sync From event
                                 {
-                                    eventsByPath.Add(syncData.getCloudRoot + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'));
+                                    eventsByPath.Add(syncSettings.CloudRoot + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'));
                                 }
                             }
                             catch
@@ -3146,7 +3146,7 @@ namespace Sync
                         {
                             try
                             {
-                                if (eventsByPath.Contains(syncData.getCloudRoot + "\\" + (deserializedResponse.Events[currentEventIndex].Metadata.RelativePath ?? deserializedResponse.Events[currentEventIndex].Metadata.RelativeToPath).Replace('/', '\\')))
+                                if (eventsByPath.Contains(syncSettings.CloudRoot + "\\" + (deserializedResponse.Events[currentEventIndex].Metadata.RelativePath ?? deserializedResponse.Events[currentEventIndex].Metadata.RelativeToPath).Replace('/', '\\')))
                                 {
                                     duplicatedEvents.Add(currentEventIndex);
                                 }
@@ -3193,10 +3193,10 @@ namespace Sync
                                     {
                                         Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To),
                                         EventId = currentEvent.Header.EventId ?? 0,
-                                        NewPath = syncData.getCloudRoot + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'),
+                                        NewPath = syncSettings.CloudRoot + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'),
                                         OldPath = (currentEvent.Metadata.RelativeFromPath == null
                                             ? null
-                                            : syncData.getCloudRoot + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
+                                            : syncSettings.CloudRoot + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
                                         Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action)
                                     },
                                     currentEvent.Metadata.Hash);
@@ -3219,7 +3219,7 @@ namespace Sync
                                         currentEvent.Metadata.Size),
                                     LinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
                                         ? null
-                                        : syncData.getCloudRoot + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\")),
+                                        : syncSettings.CloudRoot + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\")),
                                     Revision = currentEvent.Metadata.Revision,
                                     StorageKey = currentEvent.Metadata.StorageKey
                                 };
@@ -3541,7 +3541,7 @@ namespace Sync
                                                         findMainName = currentChange.NewPath.Name.Substring(0, extensionIndex);
                                                     }
 
-                                                    string deviceAppend = " CONFLICT " + syncSettings.getDeviceName;
+                                                    string deviceAppend = " CONFLICT " + syncSettings.DeviceName;
                                                     string finalizedMainName;
 
                                                     if (findMainName.IndexOf(deviceAppend, 0, StringComparison.InvariantCultureIgnoreCase) == -1)
@@ -3912,10 +3912,10 @@ namespace Sync
                             CreateFileChangeFromBaseChangePlusHash(new FileChange()
                             {
                                 Direction = SyncDirection.From,
-                                NewPath = syncData.getCloudRoot + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'),
+                                NewPath = syncSettings.CloudRoot + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'),
                                 OldPath = (currentEvent.Metadata.RelativeFromPath == null
                                     ? null
-                                    : syncData.getCloudRoot + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
+                                    : syncSettings.CloudRoot + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')),
                                 Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action),
                                 Metadata = new FileMetadata()
                                 {
@@ -3928,7 +3928,7 @@ namespace Sync
                                     StorageKey = currentEvent.Metadata.StorageKey,
                                     LinkTargetPath = (currentEvent.Metadata.TargetPath == null
                                         ? null
-                                        : syncData.getCloudRoot + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\"))
+                                        : syncSettings.CloudRoot + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\"))
                                 }
                             },
                             currentEvent.Metadata.Hash),
