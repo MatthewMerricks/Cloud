@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SQLIndexer.SqlModel
+namespace CloudApiPublic.SQLIndexer.SqlModel
 {
     [SqlAccess.Class("EnumCategories")]
     public class EnumCategory

@@ -11,7 +11,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace SQLIndexer
+namespace CloudApiPublic.SQLIndexer
 {
     public class StringCRC : HashAlgorithm //Core code
     {

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SQLIndexer.Model
+namespace CloudApiPublic.SQLIndexer.Model
 {
     public sealed class FileResultRoot : IFileResultParent
     {

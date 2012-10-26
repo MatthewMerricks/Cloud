@@ -18,7 +18,7 @@ using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
 using CloudApiPrivate.Common;
 using CloudApiPrivate.Model.Settings;
-using FileMonitor.SyncImplementation;
+using CloudApiPublic.FileMonitor.SyncImplementation;
 #if TRASH
 using win_client.DragDropServer;
 #endif // TRASH
@@ -168,7 +168,7 @@ namespace win_client.Services.ServicesManager
                         CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                         CLFSMonitoringService.Instance.EndFileSystemMonitoring();
                         CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
-                        global::CloudApiPublic.Sync.Sync.Shutdown();
+                        global::CloudApiPublic.Sync.SyncEngine.Shutdown();
                         DelayProcessable<FileChange>.TerminateAllProcessing();
                         
                         // Stop the growl service

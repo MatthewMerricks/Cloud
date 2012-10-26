@@ -1,0 +1,245 @@
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error}{\section{Cloud\-Api\-Public.\-Model.\-C\-L\-Error Class Reference}
+\label{class_cloud_api_public_1_1_model_1_1_c_l_error}\index{Cloud\-Api\-Public.\-Model.\-C\-L\-Error@{Cloud\-Api\-Public.\-Model.\-C\-L\-Error}}
+}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum {\bfseries Error\-Codes} \-: int \{ {\bfseries Exception} = 9999
+ \}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a1d9c11f935bc256bf2ef4b166eeee77f}{void {\bfseries Add\-File\-Stream} (Stream f\-Stream)}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a1d9c11f935bc256bf2ef4b166eeee77f}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a4e663afbfc99de8521f9a9440b3eb410}{void {\bfseries Add\-Exception} (Exception ex, bool replace\-Error\-Description=false)}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a4e663afbfc99de8521f9a9440b3eb410}
+
+\item 
+I\-Enumerable$<$ Stream $>$ \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a74f5cb28db3f4ca09c664298a2381d52}{Dequeue\-File\-Streams} ()
+\begin{DoxyCompactList}\small\item\em Takes all the File\-Stream instances out of this error and returns them for disposal \end{DoxyCompactList}\item 
+Exception \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_add9bcf1572e5b8777988ee71fe3667c7}{Grab\-First\-Exception} ()
+\begin{DoxyCompactList}\small\item\em Returns the first exception contained in error\-Info within this \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \end{DoxyCompactList}\item 
+I\-Enumerable$<$ Exception $>$ \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a7bccb3f868f332915fe9b5bbcd5cfde3}{Grab\-Exceptions} ()
+\begin{DoxyCompactList}\small\item\em Returns all exceptions contained in the error\-Info of this \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \end{DoxyCompactList}\item 
+void \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a9aac3e16ec24c2e9008f711187730cd9}{Log\-Errors} (string log\-Location, bool logging\-Enabled)
+\begin{DoxyCompactList}\small\item\em Logs error information to the specified location if logging\-Enabled parameter is passed as true for this \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a349aeca184c92d02d4aa81b5b9805267}{static implicit {\bfseries operator C\-L\-Error} (Exception ex)}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a349aeca184c92d02d4aa81b5b9805267}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a72a84def290381289e4ed48b362aefdf}{static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries operator+} (\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} err, Exception ex)}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a72a84def290381289e4ed48b362aefdf}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_ad6f2ec679ea426dec5a2067d06a849c9}{static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries operator+} (\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} err, Stream f\-Stream)}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_ad6f2ec679ea426dec5a2067d06a849c9}
+
+\item 
+static I\-Enumerable$<$ Stream $>$ \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a8dae51e34bafa27b7d769cdf6687bd62}{Dequeue\-File\-Streams} (\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} err)
+\begin{DoxyCompactList}\small\item\em Takes all the File\-Stream instances out of a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} and returns them for disposal; returns an empty array for null input \end{DoxyCompactList}\item 
+static Exception \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a3d89191c40991d6b674afd7a8711ddb4}{Grab\-First\-Exception} (\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} err)
+\begin{DoxyCompactList}\small\item\em Returns the first exception contained in error\-Info within a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error}; null for null input \end{DoxyCompactList}\item 
+static I\-Enumerable$<$ Exception $>$ \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a7433212facaa0bd0f742680f3a9b7417}{Grab\-Exceptions} (\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} err)
+\begin{DoxyCompactList}\small\item\em Returns all exceptions contained in the error\-Info within a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error}; empty array for null input \end{DoxyCompactList}\item 
+static void \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a1b826b5af362da00b84ae97b090a140e}{Log\-Errors} (\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} err, string log\-Location, bool logging\-Enabled)
+\begin{DoxyCompactList}\small\item\em Logs error information to the specified location if logging\-Enabled parameter is passed as true for a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a426856d7b4ca111a75edaabcc7c167ba}{const string {\bfseries Error\-Domain\-\_\-\-Application} = \char`\"{}Cloud\char`\"{}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a426856d7b4ca111a75edaabcc7c167ba}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_ac7100be19df847427ccd5c74345aad6a}{const string {\bfseries Error\-Info\-\_\-\-Exception} = \char`\"{}Exception\char`\"{}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_ac7100be19df847427ccd5c74345aad6a}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_ada50a3cbda5e6daa5f7b937d8acf88ec}{const string {\bfseries Error\-Info\-\_\-\-File\-Stream\-To\-Dispose} = \char`\"{}File\-Stream\char`\"{}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_ada50a3cbda5e6daa5f7b937d8acf88ec}
+
+\item 
+const string \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a94652dc5f5c6747124cf4dded0ee17b0}{Error\-Info\-\_\-\-Sync\-\_\-\-Run\-\_\-\-Status} = \char`\"{}Sync\-Run\-Status\char`\"{}
+\begin{DoxyCompactList}\small\item\em error\-Info key for the last recorded status in the Run method in \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} class \end{DoxyCompactList}\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a8ecf0d21fc8589394a428ac324a1a6e9}{string {\bfseries error\-Domain}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a8ecf0d21fc8589394a428ac324a1a6e9}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a9c44064de990a9ed6966412ac9e42629}{string {\bfseries error\-Description}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a9c44064de990a9ed6966412ac9e42629}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a28253daef958732303fb02d49a0a28ed}{int {\bfseries error\-Code}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a28253daef958732303fb02d49a0a28ed}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_addcadeb1e44fb42379f81fb4289b17e7}{const string {\bfseries File\-Stream\-First\-Message} = \char`\"{}File\-Stream added first instead of exception\char`\"{}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_addcadeb1e44fb42379f81fb4289b17e7}
+
+\end{DoxyCompactItemize}
+\subsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+Dictionary$<$ string, object $>$ \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_ae29296bb1f6e7b0992166ecc3df26662}{error\-Info}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Returns the dictionary of infoes for the current \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error}; it is never null \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a74f5cb28db3f4ca09c664298a2381d52}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Dequeue\-File\-Streams@{Dequeue\-File\-Streams}}
+\index{Dequeue\-File\-Streams@{Dequeue\-File\-Streams}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Dequeue\-File\-Streams}]{\setlength{\rightskip}{0pt plus 5cm}I\-Enumerable$<$Stream$>$ Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Dequeue\-File\-Streams (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a74f5cb28db3f4ca09c664298a2381d52}
+
+
+Takes all the File\-Stream instances out of this error and returns them for disposal 
+
+\begin{DoxyReturn}{Returns}
+Returns dequeued File\-Stream objects
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a8dae51e34bafa27b7d769cdf6687bd62}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Dequeue\-File\-Streams@{Dequeue\-File\-Streams}}
+\index{Dequeue\-File\-Streams@{Dequeue\-File\-Streams}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Dequeue\-File\-Streams}]{\setlength{\rightskip}{0pt plus 5cm}static I\-Enumerable$<$Stream$>$ Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Dequeue\-File\-Streams (
+\begin{DoxyParamCaption}
+\item[{{\bf C\-L\-Error}}]{err}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a8dae51e34bafa27b7d769cdf6687bd62}
+
+
+Takes all the File\-Stream instances out of a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} and returns them for disposal; returns an empty array for null input 
+
+
+\begin{DoxyParams}{Parameters}
+{\em err} & \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} for File\-Stream dequeue\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns dequeued File\-Stream objects
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a7433212facaa0bd0f742680f3a9b7417}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Grab\-Exceptions@{Grab\-Exceptions}}
+\index{Grab\-Exceptions@{Grab\-Exceptions}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Grab\-Exceptions}]{\setlength{\rightskip}{0pt plus 5cm}static I\-Enumerable$<$Exception$>$ Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Grab\-Exceptions (
+\begin{DoxyParamCaption}
+\item[{{\bf C\-L\-Error}}]{err}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a7433212facaa0bd0f742680f3a9b7417}
+
+
+Returns all exceptions contained in the error\-Info within a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error}; empty array for null input 
+
+
+\begin{DoxyParams}{Parameters}
+{\em err} & \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} for pullling exceptions\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns pulled exceptions
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a7bccb3f868f332915fe9b5bbcd5cfde3}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Grab\-Exceptions@{Grab\-Exceptions}}
+\index{Grab\-Exceptions@{Grab\-Exceptions}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Grab\-Exceptions}]{\setlength{\rightskip}{0pt plus 5cm}I\-Enumerable$<$Exception$>$ Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Grab\-Exceptions (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a7bccb3f868f332915fe9b5bbcd5cfde3}
+
+
+Returns all exceptions contained in the error\-Info of this \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} 
+
+\begin{DoxyReturn}{Returns}
+Returns pulled exceptions
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a3d89191c40991d6b674afd7a8711ddb4}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Grab\-First\-Exception@{Grab\-First\-Exception}}
+\index{Grab\-First\-Exception@{Grab\-First\-Exception}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Grab\-First\-Exception}]{\setlength{\rightskip}{0pt plus 5cm}static Exception Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Grab\-First\-Exception (
+\begin{DoxyParamCaption}
+\item[{{\bf C\-L\-Error}}]{err}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a3d89191c40991d6b674afd7a8711ddb4}
+
+
+Returns the first exception contained in error\-Info within a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error}; null for null input 
+
+
+\begin{DoxyParams}{Parameters}
+{\em err} & \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} for pulling exception\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns pulled exception
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_add9bcf1572e5b8777988ee71fe3667c7}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Grab\-First\-Exception@{Grab\-First\-Exception}}
+\index{Grab\-First\-Exception@{Grab\-First\-Exception}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Grab\-First\-Exception}]{\setlength{\rightskip}{0pt plus 5cm}Exception Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Grab\-First\-Exception (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_add9bcf1572e5b8777988ee71fe3667c7}
+
+
+Returns the first exception contained in error\-Info within this \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} 
+
+\begin{DoxyReturn}{Returns}
+Returns pulled exception
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a1b826b5af362da00b84ae97b090a140e}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Log\-Errors@{Log\-Errors}}
+\index{Log\-Errors@{Log\-Errors}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Log\-Errors}]{\setlength{\rightskip}{0pt plus 5cm}static void Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Log\-Errors (
+\begin{DoxyParamCaption}
+\item[{{\bf C\-L\-Error}}]{err, }
+\item[{string}]{log\-Location, }
+\item[{bool}]{logging\-Enabled}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a1b826b5af362da00b84ae97b090a140e}
+
+
+Logs error information to the specified location if logging\-Enabled parameter is passed as true for a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} 
+
+
+\begin{DoxyParams}{Parameters}
+{\em err} & \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} to log\\
+\hline
+{\em log\-Location} & Base location for log files before date and extention are appended\\
+\hline
+{\em logging\-Enabled} & Determines whether logging will actually occur\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a9aac3e16ec24c2e9008f711187730cd9}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Log\-Errors@{Log\-Errors}}
+\index{Log\-Errors@{Log\-Errors}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Log\-Errors}]{\setlength{\rightskip}{0pt plus 5cm}void Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Log\-Errors (
+\begin{DoxyParamCaption}
+\item[{string}]{log\-Location, }
+\item[{bool}]{logging\-Enabled}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a9aac3e16ec24c2e9008f711187730cd9}
+
+
+Logs error information to the specified location if logging\-Enabled parameter is passed as true for this \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} 
+
+
+\begin{DoxyParams}{Parameters}
+{\em log\-Location} & Base location for log files before date and extention are appended\\
+\hline
+{\em logging\-Enabled} & Determines whether logging will actually occur\\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a94652dc5f5c6747124cf4dded0ee17b0}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Error\-Info\-\_\-\-Sync\-\_\-\-Run\-\_\-\-Status@{Error\-Info\-\_\-\-Sync\-\_\-\-Run\-\_\-\-Status}}
+\index{Error\-Info\-\_\-\-Sync\-\_\-\-Run\-\_\-\-Status@{Error\-Info\-\_\-\-Sync\-\_\-\-Run\-\_\-\-Status}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Error\-Info\-\_\-\-Sync\-\_\-\-Run\-\_\-\-Status}]{\setlength{\rightskip}{0pt plus 5cm}const string Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Error\-Info\-\_\-\-Sync\-\_\-\-Run\-\_\-\-Status = \char`\"{}Sync\-Run\-Status\char`\"{}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a94652dc5f5c6747124cf4dded0ee17b0}
+
+
+error\-Info key for the last recorded status in the Run method in \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} class 
+
+
+
+\subsection{Property Documentation}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_ae29296bb1f6e7b0992166ecc3df26662}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!error\-Info@{error\-Info}}
+\index{error\-Info@{error\-Info}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{error\-Info}]{\setlength{\rightskip}{0pt plus 5cm}Dictionary$<$string, object$>$ Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-error\-Info\hspace{0.3cm}{\ttfamily [get]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_ae29296bb1f6e7b0992166ecc3df26662}
+
+
+Returns the dictionary of infoes for the current \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error}; it is never null 
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-Model/C\-L\-Error.\-cs\end{DoxyCompactItemize}

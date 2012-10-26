@@ -14,8 +14,9 @@ using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using FileMonitor;
 using CloudApiPublic.Sync;
-using SQLIndexer;
+using CloudApiPublic.SQLIndexer;
 using CloudApiPublic.Static;
+using CloudApiPublic.FileMonitor;
 using win_client.Common;
 
 
@@ -76,7 +77,7 @@ namespace win_client.Services.FileSystemMonitoring
             CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(CLSettingsSync.Instance,
                 IndexingAgent,
                 out monitorToSet,
-                global::CloudApiPublic.Sync.Sync.Run);
+                global::CloudApiPublic.Sync.SyncEngine.Run);
 
             if (fileMonitorCreationError != null)
             {

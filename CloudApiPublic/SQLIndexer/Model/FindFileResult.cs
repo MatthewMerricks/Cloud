@@ -5,14 +5,14 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using SQLIndexer.Static;
+using CloudApiPublic.SQLIndexer.Static;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace SQLIndexer.Model
+namespace CloudApiPublic.SQLIndexer.Model
 {
     internal sealed class FindFileResult : IFileResultParent
     {

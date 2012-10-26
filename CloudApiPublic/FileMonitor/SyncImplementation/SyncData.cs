@@ -8,13 +8,13 @@
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
 using FileMonitor;
-using SQLIndexer;
+using CloudApiPublic.SQLIndexer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FileMonitor.SyncImplementation
+namespace CloudApiPublic.FileMonitor.SyncImplementation
 {
     public sealed class SyncData : ISyncDataObject
     {

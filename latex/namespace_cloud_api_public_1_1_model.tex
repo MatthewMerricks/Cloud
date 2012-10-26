@@ -1,0 +1,86 @@
+\hypertarget{namespace_cloud_api_public_1_1_model}{\section{Package Cloud\-Api\-Public.\-Model}
+\label{namespace_cloud_api_public_1_1_model}\index{Cloud\-Api\-Public.\-Model@{Cloud\-Api\-Public.\-Model}}
+}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}
+\begin{DoxyCompactList}\small\item\em Self-\/referencing file path storage, each instance contains a name and a link to it's parent, To\-String returns a combined representation (i.\-e. \char`\"{}\-C\-:\textbackslash{}\-A\textbackslash{}\-B\textbackslash{}\-C\textbackslash{}\-D.\-txt\char`\"{}), Implicitly converted from File\-Info and Directory\-Info \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_comparer}{File\-Path\-Comparer}
+\begin{DoxyCompactList}\small\item\em Comparer to be used in all dictionaries or hashsets on \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} objects, also used to perform a deep compare between \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} objects manually \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4}{File\-Path\-Dictionary$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Generic-\/typed dictionary by \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} ¡¡\-Not thread-\/safe, must be locked for synchronized use!! recursively stores directory structure to produce same time order operations as a Dictionary, but allows recursive renaming and deletion operations of everything contained below a given path (use with callbacks to retrieve subsequent renames or deletions) \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_hierarchical_node_3_01_t_01_4}{File\-Path\-Hierarchical\-Node$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Node to represent a hierarchical representation of File\-Paths and their generic-\/typed values \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_hierarchical_node_with_value_3_01_t_01_4}{File\-Path\-Hierarchical\-Node\-With\-Value$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Extends the generic-\/typed File\-Path\-Hierarchical\-Node to store the node Value \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_badge_path_deleted_args}{Badge\-Path\-Deleted\-Args}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_badge_path_renamed_args}{Badge\-Path\-Renamed\-Args}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_account}{C\-L\-Account}
+\begin{DoxyCompactList}\small\item\em An object of this class represents a Cloud account. \end{DoxyCompactList}\item 
+class {\bfseries C\-L\-Definitions}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_device}{C\-L\-Device}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_event}{C\-L\-Event}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_json_result_with_error}{C\-L\-Json\-Result\-With\-Error}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_metadata}{C\-L\-Metadata}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_range}{C\-L\-Range}
+\item 
+struct \hyperlink{struct_cloud_api_public_1_1_model_1_1_c_l_status_file_transfer_update_parameters}{C\-L\-Status\-File\-Transfer\-Update\-Parameters}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_sync_header}{C\-L\-Sync\-Header}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_combined_collection_3_01_t_01_4}{Combined\-Collection$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Used to represent a new collection from two composite collections \end{DoxyCompactList}\item 
+struct \hyperlink{struct_cloud_api_public_1_1_model_1_1_delete_badge_path}{Delete\-Badge\-Path}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_event_message_args}{Event\-Message\-Args}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change}
+\begin{DoxyCompactList}\small\item\em Class for storing information about a file system change to be passed to the sync service for processing, implements Delay\-Processable to allow timer-\/delayed action processing (one time only per instance) \end{DoxyCompactList}\item 
+struct \hyperlink{struct_cloud_api_public_1_1_model_1_1_file_change_merge}{File\-Change\-Merge}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_merge_to_state_args}{File\-Change\-Merge\-To\-State\-Args}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_with_dependencies}{File\-Change\-With\-Dependencies}
+\begin{DoxyCompactList}\small\item\em Extension of \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} to add a property for Dependencies \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_metadata}{File\-Metadata}
+\begin{DoxyCompactList}\small\item\em Contains data used to compare files or folders along with an M\-D5 checksum to establish identity \end{DoxyCompactList}\item 
+struct \hyperlink{struct_cloud_api_public_1_1_model_1_1_file_metadata_hashable_properties}{File\-Metadata\-Hashable\-Properties}
+\begin{DoxyCompactList}\small\item\em Comparable properties used to determine uniqueness of a file change \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_metadata_hashable_comparer}{File\-Metadata\-Hashable\-Comparer}
+\begin{DoxyCompactList}\small\item\em Custom comparer for \hyperlink{struct_cloud_api_public_1_1_model_1_1_file_metadata_hashable_properties}{File\-Metadata\-Hashable\-Properties} which generates a better than default hash code for reduced hash conflicts when used in a Dictionary/\-Hashset \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_system_item}{File\-System\-Item}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_generic_holder_3_01_t_01_4}{Generic\-Holder$<$ T $>$}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_handleable_event_args}{Handleable\-Event\-Args}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_increment_count_args}{Increment\-Count\-Args}
+\item 
+struct \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_preexisting_file_change_in_error}{Possibly\-Preexisting\-File\-Change\-In\-Error}
+\item 
+struct \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change}
+\item 
+struct \hyperlink{struct_cloud_api_public_1_1_model_1_1_rename_badge_path}{Rename\-Badge\-Path}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_revision_changer}{Revision\-Changer}
+\item 
+struct \hyperlink{struct_cloud_api_public_1_1_model_1_1_set_badge}{Set\-Badge}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_set_badge_queued_args}{Set\-Badge\-Queued\-Args}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_set_count_args}{Set\-Count\-Args}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_transfer_update_args}{Transfer\-Update\-Args}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_update_path_args}{Update\-Path\-Args}
+\end{DoxyCompactItemize}

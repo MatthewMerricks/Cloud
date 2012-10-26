@@ -1,0 +1,47 @@
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object}{\section{Cloud\-Api\-Public.\-Interfaces.\-I\-Sync\-Data\-Object Interface Reference}
+\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object}\index{Cloud\-Api\-Public.\-Interfaces.\-I\-Sync\-Data\-Object@{Cloud\-Api\-Public.\-Interfaces.\-I\-Sync\-Data\-Object}}
+}
+Inheritance diagram for Cloud\-Api\-Public.\-Interfaces.\-I\-Sync\-Data\-Object\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_a137b9a4ce8e5ec066bd55933d9d4ed2f}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries grab\-Changes\-From\-File\-System\-Monitor} (I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_preexisting_file_change_in_error}{Possibly\-Preexisting\-File\-Change\-In\-Error} $>$ initial\-Failures, out I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change} $>$ output\-Changes, out I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_preexisting_file_change_in_error}{Possibly\-Preexisting\-File\-Change\-In\-Error} $>$ output\-Changes\-In\-Error)}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_a137b9a4ce8e5ec066bd55933d9d4ed2f}
+
+\item 
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_ae14b71e4964bc0cf9d5fbf563a05545e}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries merge\-To\-Sql} (I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_file_change_merge}{File\-Change\-Merge} $>$ merge\-To\-Froms, bool already\-Obtained\-Lock=false)}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_ae14b71e4964bc0cf9d5fbf563a05545e}
+
+\item 
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_aa1863eed2344565068c951e0c4c0c22e}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries add\-Changes\-To\-Processing\-Queue} (I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ to\-Add, bool insert\-At\-Top, Generic\-Holder$<$ List$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$$>$ error\-Holder)}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_aa1863eed2344565068c951e0c4c0c22e}
+
+\item 
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_aa702b66aae31ba25cc10138182944db7}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries complete\-Sync\-Sql} (string sync\-Id, I\-Enumerable$<$ long $>$ synced\-Event\-Ids, out long sync\-Counter, string new\-Root\-Path=null)}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_aa702b66aae31ba25cc10138182944db7}
+
+\item 
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_a2b36076284fea39198c49ac28decae44}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries dependency\-Assignment} (I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change} $>$ to\-Assign, I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ current\-Failures, out I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change} $>$ output\-Changes, out I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ output\-Failures)}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_a2b36076284fea39198c49ac28decae44}
+
+\item 
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_a2508ef227c6b6a7e0222a575df30f53c}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries apply\-Sync\-From\-Change} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} to\-Apply)}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_a2508ef227c6b6a7e0222a575df30f53c}
+
+\item 
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_aeda55123f350e80434eb202601316828}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries complete\-Single\-Event} (long event\-Id)}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_aeda55123f350e80434eb202601316828}
+
+\item 
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_ac9ff5ecaa81c07f9e19785db2c4d2368}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries get\-Metadata\-By\-Path\-And\-Revision} (string path, string revision, out \hyperlink{class_cloud_api_public_1_1_model_1_1_file_metadata}{File\-Metadata} metadata)}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_ac9ff5ecaa81c07f9e19785db2c4d2368}
+
+\end{DoxyCompactItemize}
+\subsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_a1e0e4f15f93fce38eb008953eb1dd477}{string {\bfseries get\-Last\-Sync\-Id}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object_a1e0e4f15f93fce38eb008953eb1dd477}
+
+\end{DoxyCompactItemize}
+
+
+The documentation for this interface was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-Interfaces/I\-Sync\-Data\-Object.\-cs\end{DoxyCompactItemize}

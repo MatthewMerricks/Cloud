@@ -1,0 +1,83 @@
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4}{\section{Cloud\-Api\-Public.\-Sync.\-Executable\-Exception$<$ T $>$ Class Template Reference}
+\label{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4}\index{Cloud\-Api\-Public.\-Sync.\-Executable\-Exception$<$ T $>$@{Cloud\-Api\-Public.\-Sync.\-Executable\-Exception$<$ T $>$}}
+}
+
+
+Generic-\/typed executable exception which can be handled via an action passed as a construction parameter (along with the typed userstate)  
+
+
+Inheritance diagram for Cloud\-Api\-Public.\-Sync.\-Executable\-Exception$<$ T $>$\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=1.917808cm]{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_abb8a1abe6ed2cdd7fc9187a1d3e00f59}{{\bfseries Executable\-Exception} (Action$<$ T, Aggregate\-Exception $>$ execution\-Action, T execution\-State)}\label{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_abb8a1abe6ed2cdd7fc9187a1d3e00f59}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a02ab6d3b53951f6fbd1131f61f01c9eb}{{\bfseries Executable\-Exception} (Action$<$ T, Aggregate\-Exception $>$ execution\-Action, T execution\-State, string message)}\label{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a02ab6d3b53951f6fbd1131f61f01c9eb}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_ad4a4dbd6b8ba958edec467cf313c2e17}{{\bfseries Executable\-Exception} (Action$<$ T, Aggregate\-Exception $>$ execution\-Action, T execution\-State, string message, Exception inner\-Exception)}\label{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_ad4a4dbd6b8ba958edec467cf313c2e17}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a433ee27281e9e4780fa1fb3618362586}{{\bfseries Executable\-Exception} (Action$<$ T, Aggregate\-Exception $>$ execution\-Action, T execution\-State, Serialization\-Info info, Streaming\-Context context)}\label{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a433ee27281e9e4780fa1fb3618362586}
+
+\item 
+Exception \hyperlink{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a8fbe98c76989f12ce54389fbebdd6023}{Execute\-Exception} (Aggregate\-Exception original\-Exception)
+\begin{DoxyCompactList}\small\item\em Executes code to handle an exception which was provided as an Action on construction along with original userstate \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+T \hyperlink{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a7ac09d33b3a81c717dc1da3366fdc7e0}{Execution\-State}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Userstate passed to the handler action when it is fired \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Generic-\/typed executable exception which can be handled via an action passed as a construction parameter (along with the typed userstate) 
+
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em T} & Type of input for the handler action as well as the userstate to pass along\\
+\hline
+\end{DoxyTemplParams}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a8fbe98c76989f12ce54389fbebdd6023}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Executable\-Exception$<$ T $>$@{Cloud\-Api\-Public\-::\-Sync\-::\-Executable\-Exception$<$ T $>$}!Execute\-Exception@{Execute\-Exception}}
+\index{Execute\-Exception@{Execute\-Exception}!CloudApiPublic::Sync::ExecutableException< T >@{Cloud\-Api\-Public\-::\-Sync\-::\-Executable\-Exception$<$ T $>$}}
+\subsubsection[{Execute\-Exception}]{\setlength{\rightskip}{0pt plus 5cm}Exception Cloud\-Api\-Public.\-Sync.\-Executable\-Exception$<$ T $>$.Execute\-Exception (
+\begin{DoxyParamCaption}
+\item[{Aggregate\-Exception}]{original\-Exception}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a8fbe98c76989f12ce54389fbebdd6023}
+
+
+Executes code to handle an exception which was provided as an Action on construction along with original userstate 
+
+
+\begin{DoxyParams}{Parameters}
+{\em original\-Exception} & Passes through the original exception which required handling\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an exception that occurred handling the exception, if any
+\end{DoxyReturn}
+
+
+\subsection{Property Documentation}
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a7ac09d33b3a81c717dc1da3366fdc7e0}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Executable\-Exception$<$ T $>$@{Cloud\-Api\-Public\-::\-Sync\-::\-Executable\-Exception$<$ T $>$}!Execution\-State@{Execution\-State}}
+\index{Execution\-State@{Execution\-State}!CloudApiPublic::Sync::ExecutableException< T >@{Cloud\-Api\-Public\-::\-Sync\-::\-Executable\-Exception$<$ T $>$}}
+\subsubsection[{Execution\-State}]{\setlength{\rightskip}{0pt plus 5cm}T Cloud\-Api\-Public.\-Sync.\-Executable\-Exception$<$ T $>$.Execution\-State\hspace{0.3cm}{\ttfamily [get]}, {\ttfamily [set]}}}\label{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4_a7ac09d33b3a81c717dc1da3366fdc7e0}
+
+
+Userstate passed to the handler action when it is fired 
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-Sync/Executable\-Exception.\-cs\end{DoxyCompactItemize}

@@ -1,0 +1,48 @@
+\hypertarget{namespace_cloud_api_public_1_1_sync}{\section{Package Cloud\-Api\-Public.\-Sync}
+\label{namespace_cloud_api_public_1_1_sync}\index{Cloud\-Api\-Public.\-Sync@{Cloud\-Api\-Public.\-Sync}}
+}
+\subsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+package \hyperlink{namespace_cloud_api_public_1_1_sync_1_1_model}{Model}
+\end{DoxyCompactItemize}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_sync_1_1_executable_exception_3_01_t_01_4}{Executable\-Exception$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Generic-\/typed executable exception which can be handled via an action passed as a construction parameter (along with the typed userstate) \end{DoxyCompactList}\item 
+class {\bfseries Global\-Sync\-Events}
+\begin{DoxyCompactList}\small\item\em \hyperlink{namespace_cloud_api_public_1_1_static}{Static} class containing events for responding to changes to File\-Change instances during sync \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler}
+\begin{DoxyCompactList}\small\item\em Extended Task\-Scheduler for \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} upload and download tasks to limit concurrency and handle exceptions; grab one instance or the over via static method Get\-Scheduler\-By\-Direction \end{DoxyCompactList}\item 
+interface \hyperlink{interface_cloud_api_public_1_1_sync_1_1_i_executable_exception}{I\-Executable\-Exception}
+\begin{DoxyCompactList}\small\item\em Interface allowing an exception to be \char`\"{}executed\char`\"{} with an originally provided action and userstate \end{DoxyCompactList}\item 
+class {\bfseries Sync}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+delegate void \hyperlink{namespace_cloud_api_public_1_1_sync_a0bba2b3af863b9be93439beef38f6ee3}{File\-Change\-Sync\-Status\-Changed\-Handler} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} sender, \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} aggregate\-Errors)
+\begin{DoxyCompactList}\small\item\em Handler delegate type for Global\-Sync\-Events.\-File\-Change\-Sync\-Status\-Changed event \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{namespace_cloud_api_public_1_1_sync_a0bba2b3af863b9be93439beef38f6ee3}{\index{Cloud\-Api\-Public\-::\-Sync@{Cloud\-Api\-Public\-::\-Sync}!File\-Change\-Sync\-Status\-Changed\-Handler@{File\-Change\-Sync\-Status\-Changed\-Handler}}
+\index{File\-Change\-Sync\-Status\-Changed\-Handler@{File\-Change\-Sync\-Status\-Changed\-Handler}!CloudApiPublic::Sync@{Cloud\-Api\-Public\-::\-Sync}}
+\subsubsection[{File\-Change\-Sync\-Status\-Changed\-Handler}]{\setlength{\rightskip}{0pt plus 5cm}delegate void Cloud\-Api\-Public.\-Sync.\-File\-Change\-Sync\-Status\-Changed\-Handler (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Change}}]{sender, }
+\item[{{\bf C\-L\-Error}}]{aggregate\-Errors}
+\end{DoxyParamCaption}
+)}}\label{namespace_cloud_api_public_1_1_sync_a0bba2b3af863b9be93439beef38f6ee3}
+
+
+Handler delegate type for Global\-Sync\-Events.\-File\-Change\-Sync\-Status\-Changed event 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sender} & File\-Change which changed during sync\\
+\hline
+{\em aggregate\-Errors} & Aggregated C\-L\-Error to append upon error, if any error occurs\\
+\hline
+\end{DoxyParams}

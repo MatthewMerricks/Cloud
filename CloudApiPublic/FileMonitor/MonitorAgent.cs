@@ -20,12 +20,12 @@ using System.Threading;
 using System.Xml.Linq;
 using System.Windows;
 using System.Transactions;
-using FileMonitor.SyncImplementation;
+using CloudApiPublic.FileMonitor.SyncImplementation;
 using CloudApiPublic.Interfaces;
-using SQLIndexer;
+using CloudApiPublic.SQLIndexer;
 using JsonContracts = CloudApiPublic.JsonContracts;
 
-namespace FileMonitor
+namespace CloudApiPublic.FileMonitor
 {
     /// <summary>
     /// Class to cover file monitoring; created with delegates to connect to the SQL indexer and to start Sync communication for new events

@@ -17,7 +17,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace SQLIndexer.SqlModel
+namespace CloudApiPublic.SQLIndexer.SqlModel
 {
     public static class SqlAccessor<T> where T : class
     {

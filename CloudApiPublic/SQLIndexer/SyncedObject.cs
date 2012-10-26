@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CloudApiPublic.Model;
 
-namespace SQLIndexer
+namespace CloudApiPublic.SQLIndexer
 {
     public class SyncedObject
     {

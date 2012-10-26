@@ -1,0 +1,251 @@
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change}{\section{Cloud\-Api\-Public.\-Model.\-File\-Change Class Reference}
+\label{class_cloud_api_public_1_1_model_1_1_file_change}\index{Cloud\-Api\-Public.\-Model.\-File\-Change@{Cloud\-Api\-Public.\-Model.\-File\-Change}}
+}
+
+
+Class for storing information about a file system change to be passed to the sync service for processing, implements Delay\-Processable to allow timer-\/delayed action processing (one time only per instance)  
+
+
+Inheritance diagram for Cloud\-Api\-Public.\-Model.\-File\-Change\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_cloud_api_public_1_1_model_1_1_file_change}
+\end{center}
+\end{figure}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args}{Up\-Down\-Event\-Args}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_a5627d09048a4ef6ada04b09161af374f}{Get\-M\-D5\-Bytes} (out byte\mbox{[}$\,$\mbox{]} md5)
+\begin{DoxyCompactList}\small\item\em Returns the M\-D5 as a 16 length byte array, or null \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_ac993cd49c746972e2f557a5bda7ecd0a}{Get\-M\-D5\-Lowercase\-String} (out string md5)
+\begin{DoxyCompactList}\small\item\em Returns the M\-D5 as a lowercase hexadecimal string 32 characters long with no seperators, or null \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_afe3e710aa632b5c7091843dcc2fd8dcc}{Set\-M\-D5} (byte\mbox{[}$\,$\mbox{]} md5)
+\begin{DoxyCompactList}\small\item\em Sets the M\-D5 from a byte array or clears it from null; throws exception if M\-D5 byte array is not 16 length \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_af7e47a037f28e2ef8c2b76ca0157cebf}{File\-Change} (object Delay\-Completed\-Locker)
+\begin{DoxyCompactList}\small\item\em Constructor with required fields of abstract base class, Delay\-Completed\-Locker to lock upon delay completion must be provided for syncing the Delay\-Completed boolean \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_adc8f11183263555d2facbf4354106797}{File\-Change} ()
+\begin{DoxyCompactList}\small\item\em Constructor for an object to store parameters, but not be delay-\/processable \end{DoxyCompactList}\item 
+override string \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_abf7bd8fb9c0b7bfcada1aa39a568a13b}{To\-String} ()
+\begin{DoxyCompactList}\small\item\em Overriding To\-String so that Quick\-Watch will show Key\-Value pairs of File\-Paths, File\-Changes as \{ \mbox{[}Path\mbox{]}, \mbox{[}File or folder\mbox{]} \mbox{[}Change\-Type\mbox{]} \} \end{DoxyCompactList}\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a4479a6e0a93d64b884fa4d48c03f6c86}{void {\bfseries File\-Change\-\_\-\-Up\-Down} (object sender, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args}{Up\-Down\-Event\-Args} e)}\label{class_cloud_api_public_1_1_model_1_1_file_change_a4479a6e0a93d64b884fa4d48c03f6c86}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a43701aa92aec24c4624080d15ba1fedf}{static void {\bfseries Run\-Un\-Down\-Event} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args}{Up\-Down\-Event\-Args} callback)}\label{class_cloud_api_public_1_1_model_1_1_file_change_a43701aa92aec24c4624080d15ba1fedf}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a731705220f8c9b1ceb3022bae1bbe02e}{byte {\bfseries Failure\-Counter} = 0}\label{class_cloud_api_public_1_1_model_1_1_file_change_a731705220f8c9b1ceb3022bae1bbe02e}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a7cd99f56c8ec93e35a9dbdcce37d673a}{byte {\bfseries Not\-Found\-For\-Stream\-Counter} = 0}\label{class_cloud_api_public_1_1_model_1_1_file_change_a7cd99f56c8ec93e35a9dbdcce37d673a}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_acb806601af19f3fd48c2ccd78d1438fd}{static readonly object {\bfseries Up\-Down\-Event\-Locker} = new object()}\label{class_cloud_api_public_1_1_model_1_1_file_change_acb806601af19f3fd48c2ccd78d1438fd}
+
+\end{DoxyCompactItemize}
+\subsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_ad7383c43cc51606f17c63fad6c032c7c}{New\-Path}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Current path associated with the file system event \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_a08ced19e1fccebb04bf6da37f21a4216}{Old\-Path}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
+\begin{DoxyCompactList}\small\item\em For rename events only, this is the old path \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_file_metadata}{File\-Metadata} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_ae4e797c6b4b11f9686e4cb1318dab9a5}{Metadata}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Contains data used to compare the file or folder and establish its identity \end{DoxyCompactList}\item 
+\hyperlink{namespace_cloud_api_public_1_1_static_a08ff1fddb1dc38f7b861b0fd106834be}{File\-Change\-Type} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_a6a1aeec98ba00f051497c5126adf69a4}{Type}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Type of file system event \end{DoxyCompactList}\item 
+long \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_aef22ff9ac6993f82e3612d05f093e836}{Event\-Id}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Event I\-D \end{DoxyCompactList}\item 
+\hyperlink{namespace_cloud_api_public_1_1_static_a8ba5d1f6d06fa058730616f021c8974f}{Sync\-Direction} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_ae9286566d391fe9d646db55e20b1ccab}{Direction}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Direction of sync (\hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} To or \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} From), defaults to \char`\"{}\-To\char`\"{} \end{DoxyCompactList}\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a150bd50fceae6c179f1bc34debb933e5}{long {\bfseries In\-Memory\-Id}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_a150bd50fceae6c179f1bc34debb933e5}
+
+\item 
+bool \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_aa979e65ac9cd9783870afe5b25137296}{Do\-Not\-Add\-To\-S\-Q\-L\-Index}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Boolean set when already indexed events are requeued in the \hyperlink{namespace_file_monitor}{File\-Monitor}, defaults to false \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Events}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_aa21bd352b70154e019ff6cf0069396e9}{static Event\-Handler\\*
+$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args}{Up\-Down\-Event\-Args} $>$ {\bfseries Up\-Down\-Event}}\label{class_cloud_api_public_1_1_model_1_1_file_change_aa21bd352b70154e019ff6cf0069396e9}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Class for storing information about a file system change to be passed to the sync service for processing, implements Delay\-Processable to allow timer-\/delayed action processing (one time only per instance) 
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_af7e47a037f28e2ef8c2b76ca0157cebf}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!File\-Change@{File\-Change}}
+\index{File\-Change@{File\-Change}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{File\-Change}]{\setlength{\rightskip}{0pt plus 5cm}Cloud\-Api\-Public.\-Model.\-File\-Change.\-File\-Change (
+\begin{DoxyParamCaption}
+\item[{object}]{Delay\-Completed\-Locker}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_af7e47a037f28e2ef8c2b76ca0157cebf}
+
+
+Constructor with required fields of abstract base class, Delay\-Completed\-Locker to lock upon delay completion must be provided for syncing the Delay\-Completed boolean 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Delay\-Completed\-Locker} & Object to lock on to synchronize setting Delay\-Completed boolean\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_adc8f11183263555d2facbf4354106797}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!File\-Change@{File\-Change}}
+\index{File\-Change@{File\-Change}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{File\-Change}]{\setlength{\rightskip}{0pt plus 5cm}Cloud\-Api\-Public.\-Model.\-File\-Change.\-File\-Change (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_adc8f11183263555d2facbf4354106797}
+
+
+Constructor for an object to store parameters, but not be delay-\/processable 
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a5627d09048a4ef6ada04b09161af374f}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Get\-M\-D5\-Bytes@{Get\-M\-D5\-Bytes}}
+\index{Get\-M\-D5\-Bytes@{Get\-M\-D5\-Bytes}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Get\-M\-D5\-Bytes}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-Model.\-File\-Change.\-Get\-M\-D5\-Bytes (
+\begin{DoxyParamCaption}
+\item[{out byte\mbox{[}$\,$\mbox{]}}]{md5}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_a5627d09048a4ef6ada04b09161af374f}
+
+
+Returns the M\-D5 as a 16 length byte array, or null 
+
+
+\begin{DoxyParams}{Parameters}
+{\em md5} & Output M\-D5 bytes\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns error in retrieving M\-D5, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_ac993cd49c746972e2f557a5bda7ecd0a}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Get\-M\-D5\-Lowercase\-String@{Get\-M\-D5\-Lowercase\-String}}
+\index{Get\-M\-D5\-Lowercase\-String@{Get\-M\-D5\-Lowercase\-String}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Get\-M\-D5\-Lowercase\-String}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-Model.\-File\-Change.\-Get\-M\-D5\-Lowercase\-String (
+\begin{DoxyParamCaption}
+\item[{out string}]{md5}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_ac993cd49c746972e2f557a5bda7ecd0a}
+
+
+Returns the M\-D5 as a lowercase hexadecimal string 32 characters long with no seperators, or null 
+
+
+\begin{DoxyParams}{Parameters}
+{\em md5} & Output M\-D5 string\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns error in retrieving M\-D5, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_afe3e710aa632b5c7091843dcc2fd8dcc}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Set\-M\-D5@{Set\-M\-D5}}
+\index{Set\-M\-D5@{Set\-M\-D5}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Set\-M\-D5}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-Model.\-File\-Change.\-Set\-M\-D5 (
+\begin{DoxyParamCaption}
+\item[{byte\mbox{[}$\,$\mbox{]}}]{md5}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_afe3e710aa632b5c7091843dcc2fd8dcc}
+
+
+Sets the M\-D5 from a byte array or clears it from null; throws exception if M\-D5 byte array is not 16 length 
+
+
+\begin{DoxyParams}{Parameters}
+{\em md5} & M\-D5 bytes to set\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns error in setting M\-D5, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_abf7bd8fb9c0b7bfcada1aa39a568a13b}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!To\-String@{To\-String}}
+\index{To\-String@{To\-String}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{To\-String}]{\setlength{\rightskip}{0pt plus 5cm}override string Cloud\-Api\-Public.\-Model.\-File\-Change.\-To\-String (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_abf7bd8fb9c0b7bfcada1aa39a568a13b}
+
+
+Overriding To\-String so that Quick\-Watch will show Key\-Value pairs of File\-Paths, File\-Changes as \{ \mbox{[}Path\mbox{]}, \mbox{[}File or folder\mbox{]} \mbox{[}Change\-Type\mbox{]} \} 
+
+\begin{DoxyReturn}{Returns}
+Returns the string of the type of change
+\end{DoxyReturn}
+
+
+\subsection{Property Documentation}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_ae9286566d391fe9d646db55e20b1ccab}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Direction@{Direction}}
+\index{Direction@{Direction}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Direction}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Sync\-Direction} Cloud\-Api\-Public.\-Model.\-File\-Change.\-Direction\hspace{0.3cm}{\ttfamily [get]}, {\ttfamily [set]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_ae9286566d391fe9d646db55e20b1ccab}
+
+
+Direction of sync (\hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} To or \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} From), defaults to \char`\"{}\-To\char`\"{} 
+
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_aa979e65ac9cd9783870afe5b25137296}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Do\-Not\-Add\-To\-S\-Q\-L\-Index@{Do\-Not\-Add\-To\-S\-Q\-L\-Index}}
+\index{Do\-Not\-Add\-To\-S\-Q\-L\-Index@{Do\-Not\-Add\-To\-S\-Q\-L\-Index}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Do\-Not\-Add\-To\-S\-Q\-L\-Index}]{\setlength{\rightskip}{0pt plus 5cm}bool Cloud\-Api\-Public.\-Model.\-File\-Change.\-Do\-Not\-Add\-To\-S\-Q\-L\-Index\hspace{0.3cm}{\ttfamily [get]}, {\ttfamily [set]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_aa979e65ac9cd9783870afe5b25137296}
+
+
+Boolean set when already indexed events are requeued in the \hyperlink{namespace_file_monitor}{File\-Monitor}, defaults to false 
+
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_aef22ff9ac6993f82e3612d05f093e836}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Event\-Id@{Event\-Id}}
+\index{Event\-Id@{Event\-Id}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Event\-Id}]{\setlength{\rightskip}{0pt plus 5cm}long Cloud\-Api\-Public.\-Model.\-File\-Change.\-Event\-Id\hspace{0.3cm}{\ttfamily [get]}, {\ttfamily [set]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_aef22ff9ac6993f82e3612d05f093e836}
+
+
+Event I\-D 
+
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_ae4e797c6b4b11f9686e4cb1318dab9a5}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Metadata@{Metadata}}
+\index{Metadata@{Metadata}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Metadata}]{\setlength{\rightskip}{0pt plus 5cm}{\bf File\-Metadata} Cloud\-Api\-Public.\-Model.\-File\-Change.\-Metadata\hspace{0.3cm}{\ttfamily [get]}, {\ttfamily [set]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_ae4e797c6b4b11f9686e4cb1318dab9a5}
+
+
+Contains data used to compare the file or folder and establish its identity 
+
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_ad7383c43cc51606f17c63fad6c032c7c}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!New\-Path@{New\-Path}}
+\index{New\-Path@{New\-Path}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{New\-Path}]{\setlength{\rightskip}{0pt plus 5cm}{\bf File\-Path} Cloud\-Api\-Public.\-Model.\-File\-Change.\-New\-Path\hspace{0.3cm}{\ttfamily [get]}, {\ttfamily [set]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_ad7383c43cc51606f17c63fad6c032c7c}
+
+
+Current path associated with the file system event 
+
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a08ced19e1fccebb04bf6da37f21a4216}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Old\-Path@{Old\-Path}}
+\index{Old\-Path@{Old\-Path}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Old\-Path}]{\setlength{\rightskip}{0pt plus 5cm}{\bf File\-Path} Cloud\-Api\-Public.\-Model.\-File\-Change.\-Old\-Path\hspace{0.3cm}{\ttfamily [get]}, {\ttfamily [set]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_a08ced19e1fccebb04bf6da37f21a4216}
+
+
+For rename events only, this is the old path 
+
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a6a1aeec98ba00f051497c5126adf69a4}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Type@{Type}}
+\index{Type@{Type}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Type}]{\setlength{\rightskip}{0pt plus 5cm}{\bf File\-Change\-Type} Cloud\-Api\-Public.\-Model.\-File\-Change.\-Type\hspace{0.3cm}{\ttfamily [get]}, {\ttfamily [set]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_a6a1aeec98ba00f051497c5126adf69a4}
+
+
+Type of file system event 
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-Model/File\-Change.\-cs\end{DoxyCompactItemize}

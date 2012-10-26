@@ -25,7 +25,7 @@ using CloudApiPublic.Sync.Model;
 
 namespace CloudApiPublic.Sync
 {
-    public static class Sync
+    public static class SyncEngine
     {
         private const int HttpTimeoutMilliseconds = 180000;// 180 seconds
         private const byte MaxNumberOfFailureRetries = 20;

@@ -15,17 +15,18 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
 using System.Data.SqlServerCe;
 using System.Globalization;
-using SQLIndexer.SqlModel;
-using SQLIndexer.Migrations;
 using System.Windows;
-using SQLIndexer.Static;
-using SQLIndexer.Model;
+using CloudApiPublic.Model;
+using CloudApiPublic.Static;
+using CloudApiPublic.SQLIndexer.SqlModel;
+using CloudApiPublic.SQLIndexer.Migrations;
+using CloudApiPublic.SQLIndexer.Static;
+using CloudApiPublic.SQLIndexer.Model;
+using SqlSync = CloudApiPublic.SQLIndexer.SqlModel.Sync;
 
-namespace SQLIndexer
+namespace CloudApiPublic.SQLIndexer
 {
     public sealed class IndexingAgent : IDisposable
     {
@@ -309,7 +310,7 @@ namespace SQLIndexer
                 using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
                 {
                     // Pull the last sync from the database
-                    Sync lastSync = SqlAccessor<Sync>
+                    SqlSync lastSync = SqlAccessor<SqlSync>
                         .SelectResultSet(indexDB,
                             "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                         .SingleOrDefault();
@@ -413,7 +414,7 @@ namespace SQLIndexer
                 using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
                 {
                     // Grab the most recent sync from the database to pull sync states
-                    Sync lastSync = SqlAccessor<Sync>
+                    SqlSync lastSync = SqlAccessor<SqlSync>
                         .SelectResultSet(indexDB,
                             "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                         .SingleOrDefault();
@@ -829,7 +830,7 @@ namespace SQLIndexer
                             try
                             {
                                 // Retrieve last sync if it exists
-                                Sync lastSync = SqlAccessor<Sync>.SelectResultSet(indexDB,
+                                SqlSync lastSync = SqlAccessor<SqlSync>.SelectResultSet(indexDB,
                                     "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC",
                                     transaction: indexTransaction)
                                     .SingleOrDefault();
@@ -866,14 +867,14 @@ namespace SQLIndexer
                                     && !FilePathComparer.Instance.Equals(previousRoot, newRoot);
 
                                 // Create the new sync database object
-                                Sync newSync = new Sync()
+                                SqlSync newSync = new SqlSync()
                                 {
                                     SyncId = syncId,
                                     RootPath = newRootPath
                                 };
 
                                 // Add the new sync to the database and store the new counter
-                                syncCounter = SqlAccessor<Sync>.InsertRow<long>(indexDB, newSync, transaction: indexTransaction);
+                                syncCounter = SqlAccessor<SqlSync>.InsertRow<long>(indexDB, newSync, transaction: indexTransaction);
 
                                 // Create the dictionary for new sync states, returning an error if it occurred
                                 FilePathDictionary<Tuple<long, Nullable<long>, FileMetadata>> newSyncStates;
@@ -1463,8 +1464,8 @@ namespace SQLIndexer
                                 deleteEvents = pendingToDelete.Where(toDelete => toDelete.EventId != null)
                                     .Select(toDelete => toDelete.Event);
 
-                                SqlAccessor<Sync>.InsertRow(indexDB,
-                                    new Sync()
+                                SqlAccessor<SqlSync>.InsertRow(indexDB,
+                                    new SqlSync()
                                     {
                                         SyncId = IdForEmptySync,
                                         RootPath = newRootPath
@@ -1799,7 +1800,7 @@ namespace SQLIndexer
                                 }
 
                                 // Grab the most recent sync from the database to pull sync states
-                                Sync lastSync = SqlAccessor<Sync>.SelectResultSet(indexDB,
+                                SqlSync lastSync = SqlAccessor<SqlSync>.SelectResultSet(indexDB,
                                         "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC",
                                         transaction: indexTransaction)
                                     .SingleOrDefault();
@@ -2057,7 +2058,7 @@ namespace SQLIndexer
             using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
             {
                 // Grab the most recent sync from the database to pull sync states
-                Sync lastSync = SqlAccessor<Sync>.SelectResultSet(indexDB,
+                SqlSync lastSync = SqlAccessor<SqlSync>.SelectResultSet(indexDB,
                     "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
                     .SingleOrDefault();
                 // Store the sync counter from the last sync, defaulting to null

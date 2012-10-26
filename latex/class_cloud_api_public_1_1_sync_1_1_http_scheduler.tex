@@ -1,0 +1,98 @@
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{\section{Cloud\-Api\-Public.\-Sync.\-Http\-Scheduler Class Reference}
+\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler}\index{Cloud\-Api\-Public.\-Sync.\-Http\-Scheduler@{Cloud\-Api\-Public.\-Sync.\-Http\-Scheduler}}
+}
+
+
+Extended Task\-Scheduler for \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} upload and download tasks to limit concurrency and handle exceptions; grab one instance or the over via static method Get\-Scheduler\-By\-Direction  
+
+
+Inheritance diagram for Cloud\-Api\-Public.\-Sync.\-Http\-Scheduler\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_cloud_api_public_1_1_sync_1_1_http_scheduler}
+\end{center}
+\end{figure}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler} \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a7cf74c44d4599e5694487dbc6d21b2fc}{Get\-Scheduler\-By\-Direction} (\hyperlink{namespace_cloud_api_public_1_1_static_a8ba5d1f6d06fa058730616f021c8974f}{Sync\-Direction} direction, \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} sync\-Settings)
+\begin{DoxyCompactList}\small\item\em Instance accessor for this \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler}, use the return instance as a parameter for \mbox{[}Task\mbox{]}.Start \end{DoxyCompactList}\item 
+static void \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a5b654a57f79ca5b29982a697e017814e}{Dispose\-Both\-Schedulers} ()
+\begin{DoxyCompactList}\small\item\em Finds the Http\-Schedulers that exist and are not yet disposed and disposes them \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_ac39e6ca2502a49a8e201bf9352d4256c}{override I\-Enumerable$<$ Task $>$ {\bfseries Get\-Scheduled\-Tasks} ()}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_ac39e6ca2502a49a8e201bf9352d4256c}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_ab0dfca7ebe07e2ca95a07dd17bcb6e42}{override void {\bfseries Queue\-Task} (Task task)}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_ab0dfca7ebe07e2ca95a07dd17bcb6e42}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a7c79395e68ff622c010f4017ed9f6a79}{override bool {\bfseries Try\-Dequeue} (Task task)}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a7c79395e68ff622c010f4017ed9f6a79}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a19d51cc06bfa728b73e25dd966d4af2d}{override bool {\bfseries Try\-Execute\-Task\-Inline} (Task task, bool task\-Was\-Previously\-Queued)}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a19d51cc06bfa728b73e25dd966d4af2d}
+
+\end{DoxyCompactItemize}
+\subsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_ae7b9d7ce395e2bda3d644fcab585e3c4}{static bool {\bfseries Is\-G\-C\-Overridden}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_ae7b9d7ce395e2bda3d644fcab585e3c4}
+
+\item 
+override int \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a2d4b8f13a92d4825cf12e9eb18578d95}{Maximum\-Concurrency\-Level}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Returns the number of simultaneous tasks which can process for the current type of \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler} \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Extended Task\-Scheduler for \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} upload and download tasks to limit concurrency and handle exceptions; grab one instance or the over via static method Get\-Scheduler\-By\-Direction 
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a5b654a57f79ca5b29982a697e017814e}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler@{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler}!Dispose\-Both\-Schedulers@{Dispose\-Both\-Schedulers}}
+\index{Dispose\-Both\-Schedulers@{Dispose\-Both\-Schedulers}!CloudApiPublic::Sync::HttpScheduler@{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler}}
+\subsubsection[{Dispose\-Both\-Schedulers}]{\setlength{\rightskip}{0pt plus 5cm}static void Cloud\-Api\-Public.\-Sync.\-Http\-Scheduler.\-Dispose\-Both\-Schedulers (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a5b654a57f79ca5b29982a697e017814e}
+
+
+Finds the Http\-Schedulers that exist and are not yet disposed and disposes them 
+
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a7cf74c44d4599e5694487dbc6d21b2fc}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler@{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler}!Get\-Scheduler\-By\-Direction@{Get\-Scheduler\-By\-Direction}}
+\index{Get\-Scheduler\-By\-Direction@{Get\-Scheduler\-By\-Direction}!CloudApiPublic::Sync::HttpScheduler@{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler}}
+\subsubsection[{Get\-Scheduler\-By\-Direction}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf Http\-Scheduler} Cloud\-Api\-Public.\-Sync.\-Http\-Scheduler.\-Get\-Scheduler\-By\-Direction (
+\begin{DoxyParamCaption}
+\item[{{\bf Sync\-Direction}}]{direction, }
+\item[{{\bf I\-Sync\-Settings}}]{sync\-Settings}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a7cf74c44d4599e5694487dbc6d21b2fc}
+
+
+Instance accessor for this \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler}, use the return instance as a parameter for \mbox{[}Task\mbox{]}.Start 
+
+
+\begin{DoxyParams}{Parameters}
+{\em direction} & Use From for downloads and To for uploads\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns the appropriate instance of \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler}
+\end{DoxyReturn}
+
+
+\subsection{Property Documentation}
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a2d4b8f13a92d4825cf12e9eb18578d95}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler@{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler}!Maximum\-Concurrency\-Level@{Maximum\-Concurrency\-Level}}
+\index{Maximum\-Concurrency\-Level@{Maximum\-Concurrency\-Level}!CloudApiPublic::Sync::HttpScheduler@{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler}}
+\subsubsection[{Maximum\-Concurrency\-Level}]{\setlength{\rightskip}{0pt plus 5cm}override int Cloud\-Api\-Public.\-Sync.\-Http\-Scheduler.\-Maximum\-Concurrency\-Level\hspace{0.3cm}{\ttfamily [get]}}}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a2d4b8f13a92d4825cf12e9eb18578d95}
+
+
+Returns the number of simultaneous tasks which can process for the current type of \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler} 
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-Sync/Http\-Scheduler.\-cs\end{DoxyCompactItemize}

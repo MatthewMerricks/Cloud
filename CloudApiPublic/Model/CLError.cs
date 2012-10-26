@@ -13,6 +13,10 @@ using System.Runtime.CompilerServices;
 
 namespace CloudApiPublic.Model
 {
+    /// <summary>
+    /// Class that represents an error, and supports logging of the error.  The error may contain multiple exceptions.
+    /// </summary>
+    /// <include file='filename' path='tagpath[@name="id"]' />
     public sealed class CLError
     {
         // Common error codes

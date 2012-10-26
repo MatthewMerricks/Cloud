@@ -1,0 +1,312 @@
+\hypertarget{class_file_monitor_1_1_monitor_agent}{\section{File\-Monitor.\-Monitor\-Agent Class Reference}
+\label{class_file_monitor_1_1_monitor_agent}\index{File\-Monitor.\-Monitor\-Agent@{File\-Monitor.\-Monitor\-Agent}}
+}
+
+
+Class to cover file monitoring; created with delegates to connect to the S\-Q\-L indexer and to start Sync communication for new events  
+
+
+Inheritance diagram for File\-Monitor.\-Monitor\-Agent\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_file_monitor_1_1_monitor_agent}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_a403fa6683404f0cbb5338aa0ab49c627}{Get\-Running\-Status} (out \hyperlink{namespace_cloud_api_public_1_1_static_a502726756c6bc84b5c9bcaf23c3a8d28}{Monitor\-Running} status)
+\begin{DoxyCompactList}\small\item\em Retrieves running status of monitor as enum for each part (file and folder) \end{DoxyCompactList}\item 
+string \hyperlink{class_file_monitor_1_1_monitor_agent_a44eb388d08ba68f98b694669af80505b}{Get\-Current\-Path} ()
+\begin{DoxyCompactList}\small\item\em Retrieves current folder path of monitored root \end{DoxyCompactList}\item 
+void \hyperlink{class_file_monitor_1_1_monitor_agent_a1ae703e313f2cf84f0fa7a45ae89f5b7}{Push\-Notification} (Json\-Contracts.\-Notification\-Response notification)
+\begin{DoxyCompactList}\small\item\em Starts the queue timer to start sync processing, if it is not already started for other events \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_af2432c237a967c6dfcd8e0127b7590e9}{Apply\-Sync\-From\-File\-Change} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} to\-Apply)
+\begin{DoxyCompactList}\small\item\em Applies a Sync From File\-Change to the local file system i.\-e. a folder creation would cause the local File\-System to create a folder locally; changes in-\/memory index first to prevent firing Sync To events \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_a6e726640dd1256258d2de207193563f4}{Add\-File\-Change\-To\-Processing\-Queue} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} to\-Add, bool insert\-At\-Top, Generic\-Holder$<$ List$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$$>$ error\-Holder)
+\begin{DoxyCompactList}\small\item\em Adds a File\-Change to the Processing\-Queue; will also trigger a sync if one isn't already scheduled to run \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_aad5e21a96a3ebb43ee25796607e6a1ee}{Add\-File\-Changes\-To\-Processing\-Queue} (I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ to\-Add, bool insert\-At\-Top, Generic\-Holder$<$ List$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$$>$ error\-Holder)
+\begin{DoxyCompactList}\small\item\em Adds File\-Changes to the Processing\-Queue; will also trigger a sync if one isn't alredy scheduled to run \end{DoxyCompactList}\item 
+void \hyperlink{class_file_monitor_1_1_monitor_agent_aa285c67524cc176edf0bb247804947d9}{Begin\-Processing} (I\-Enumerable$<$ Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_metadata}{File\-Metadata} $>$$>$ initial\-List, I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ new\-Changes=null)
+\begin{DoxyCompactList}\small\item\em Notify completion of indexing; sets Is\-Initial\-Index to false, combines index with queued changes, and processes changes \end{DoxyCompactList}\item 
+\hypertarget{class_file_monitor_1_1_monitor_agent_ad62fc5cad96ed2bd5b7e0802a4094dfa}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries Assign\-Dependencies} (I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change} $>$ to\-Assign, I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ current\-Failures, out I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change} $>$ output\-Changes, out I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ output\-Failures)}\label{class_file_monitor_1_1_monitor_agent_ad62fc5cad96ed2bd5b7e0802a4094dfa}
+
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_abb33d7c21700394389e5be0801b6f290}{Grab\-Preprocessed\-Changes} (I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_preexisting_file_change_in_error}{Possibly\-Preexisting\-File\-Change\-In\-Error} $>$ initial\-Failures, out I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change} $>$ output\-Changes, out I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_preexisting_file_change_in_error}{Possibly\-Preexisting\-File\-Change\-In\-Error} $>$ output\-Changes\-In\-Error)
+\begin{DoxyCompactList}\small\item\em Method to be called within the context of the main lock of the Sync service which locks the changed files, updates metadata, and outputs a sorted File\-Change array for processing \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_a1fc5bca23e82e87243e4e64743b8cd6d}{Start} (out \hyperlink{namespace_cloud_api_public_1_1_static_a31db95951688473984962a22ad05a45f}{Monitor\-Status} status)
+\begin{DoxyCompactList}\small\item\em Call this first to start monitoring file system while initial indexing/synchronization occur, Begin\-Processing(initial\-List) must be called before monitored events begin processing (call Begin\-Processing again after calling \hyperlink{class_file_monitor_1_1_monitor_agent_ab12233c2b615d78afb7608477f7f4d70}{Stop()} and \hyperlink{class_file_monitor_1_1_monitor_agent_a1fc5bca23e82e87243e4e64743b8cd6d}{Start()} as well) \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_ab12233c2b615d78afb7608477f7f4d70}{Stop} (out \hyperlink{namespace_cloud_api_public_1_1_static_a31db95951688473984962a22ad05a45f}{Monitor\-Status} status)
+\begin{DoxyCompactList}\small\item\em Call this to stop file monitoring and processing \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_a724124fa6c393e5c617aa07afea9f7fc}{Notify\-Root\-Rename} (string new\-Path)
+\begin{DoxyCompactList}\small\item\em Call this function when an interprocess receiver gets a call from a Copy\-Hook\-Handler C\-O\-M object that the root folder has moved or been renamed; no need to stop and start the file monitor \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_af1d59a6daa20f37ff4746eaa14f17e6f}{Dispose} ()
+\begin{DoxyCompactList}\small\item\em Call this to cleanup File\-System\-Watchers such as on application shutdown, do not start the same monitor instance after it has been disposed \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_file_monitor_1_1_monitor_agent_a1684faf7b2eeb0d84f7f500c6d309487}{Create\-New\-And\-Initialize} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} sync\-Settings, \hyperlink{class_s_q_l_indexer_1_1_indexing_agent}{Indexing\-Agent} indexer, out \hyperlink{class_file_monitor_1_1_monitor_agent}{Monitor\-Agent} new\-Agent, Func$<$ \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object}{I\-Sync\-Data\-Object}, \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings}, bool, \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} $>$ sync\-Run, Action$<$ \hyperlink{class_file_monitor_1_1_monitor_agent}{Monitor\-Agent}, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ on\-Queueing\-Callback=null, bool log\-Processing=false)
+\begin{DoxyCompactList}\small\item\em Create and initialize the \hyperlink{class_file_monitor_1_1_monitor_agent}{Monitor\-Agent} with the root folder to be monitored (Cloud Directory), requires running \hyperlink{class_file_monitor_1_1_monitor_agent_a1fc5bca23e82e87243e4e64743b8cd6d}{Start()} method to begin monitoring and then, when available, load the initial index list to begin processing via Begin\-Processing(initial\-List) \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Class to cover file monitoring; created with delegates to connect to the S\-Q\-L indexer and to start Sync communication for new events 
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_file_monitor_1_1_monitor_agent_aad5e21a96a3ebb43ee25796607e6a1ee}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Add\-File\-Changes\-To\-Processing\-Queue@{Add\-File\-Changes\-To\-Processing\-Queue}}
+\index{Add\-File\-Changes\-To\-Processing\-Queue@{Add\-File\-Changes\-To\-Processing\-Queue}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Add\-File\-Changes\-To\-Processing\-Queue}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Add\-File\-Changes\-To\-Processing\-Queue (
+\begin{DoxyParamCaption}
+\item[{I\-Enumerable$<$ {\bf File\-Change} $>$}]{to\-Add, }
+\item[{bool}]{insert\-At\-Top, }
+\item[{Generic\-Holder$<$ List$<$ {\bf File\-Change} $>$$>$}]{error\-Holder}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_aad5e21a96a3ebb43ee25796607e6a1ee}
+
+
+Adds File\-Changes to the Processing\-Queue; will also trigger a sync if one isn't alredy scheduled to run 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\-Add} & File\-Changes to queue\\
+\hline
+{\em insert\-At\-Top} & Send true for the File\-Changes to be processed first on the queue, otherwise they will be last\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred queueing the File\-Changes, if any
+\end{DoxyReturn}
+\hypertarget{class_file_monitor_1_1_monitor_agent_a6e726640dd1256258d2de207193563f4}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Add\-File\-Change\-To\-Processing\-Queue@{Add\-File\-Change\-To\-Processing\-Queue}}
+\index{Add\-File\-Change\-To\-Processing\-Queue@{Add\-File\-Change\-To\-Processing\-Queue}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Add\-File\-Change\-To\-Processing\-Queue}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Add\-File\-Change\-To\-Processing\-Queue (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Change}}]{to\-Add, }
+\item[{bool}]{insert\-At\-Top, }
+\item[{Generic\-Holder$<$ List$<$ {\bf File\-Change} $>$$>$}]{error\-Holder}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_a6e726640dd1256258d2de207193563f4}
+
+
+Adds a File\-Change to the Processing\-Queue; will also trigger a sync if one isn't already scheduled to run 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\-Add} & File\-Change to queue\\
+\hline
+{\em insert\-At\-Top} & Send true for the File\-Change to be processed first on the queue, otherwise it will be last\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred queueing the File\-Change, if any
+\end{DoxyReturn}
+\hypertarget{class_file_monitor_1_1_monitor_agent_af2432c237a967c6dfcd8e0127b7590e9}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Apply\-Sync\-From\-File\-Change@{Apply\-Sync\-From\-File\-Change}}
+\index{Apply\-Sync\-From\-File\-Change@{Apply\-Sync\-From\-File\-Change}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Apply\-Sync\-From\-File\-Change}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Apply\-Sync\-From\-File\-Change (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Change}}]{to\-Apply}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_af2432c237a967c6dfcd8e0127b7590e9}
+
+
+Applies a Sync From File\-Change to the local file system i.\-e. a folder creation would cause the local File\-System to create a folder locally; changes in-\/memory index first to prevent firing Sync To events 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\-Apply} & File\-Change to apply to the local file system\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error occurred applying the File\-Change, if any
+\end{DoxyReturn}
+\hypertarget{class_file_monitor_1_1_monitor_agent_aa285c67524cc176edf0bb247804947d9}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Begin\-Processing@{Begin\-Processing}}
+\index{Begin\-Processing@{Begin\-Processing}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Begin\-Processing}]{\setlength{\rightskip}{0pt plus 5cm}void File\-Monitor.\-Monitor\-Agent.\-Begin\-Processing (
+\begin{DoxyParamCaption}
+\item[{I\-Enumerable$<$ Key\-Value\-Pair$<$ {\bf File\-Path}, {\bf File\-Metadata} $>$$>$}]{initial\-List, }
+\item[{I\-Enumerable$<$ {\bf File\-Change} $>$}]{new\-Changes = {\ttfamily null}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_aa285c67524cc176edf0bb247804947d9}
+
+
+Notify completion of indexing; sets Is\-Initial\-Index to false, combines index with queued changes, and processes changes 
+
+
+\begin{DoxyParams}{Parameters}
+{\em initial\-List} & File\-Metadata to use as the initial index\\
+\hline
+{\em new\-Changes} & File\-Changes that need to be immediately processed as new changes\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_file_monitor_1_1_monitor_agent_a1684faf7b2eeb0d84f7f500c6d309487}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Create\-New\-And\-Initialize@{Create\-New\-And\-Initialize}}
+\index{Create\-New\-And\-Initialize@{Create\-New\-And\-Initialize}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Create\-New\-And\-Initialize}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Create\-New\-And\-Initialize (
+\begin{DoxyParamCaption}
+\item[{{\bf I\-Sync\-Settings}}]{sync\-Settings, }
+\item[{{\bf Indexing\-Agent}}]{indexer, }
+\item[{out {\bf Monitor\-Agent}}]{new\-Agent, }
+\item[{Func$<$ {\bf I\-Sync\-Data\-Object}, {\bf I\-Sync\-Settings}, bool, {\bf C\-L\-Error} $>$}]{sync\-Run, }
+\item[{Action$<$ {\bf Monitor\-Agent}, {\bf File\-Change} $>$}]{on\-Queueing\-Callback = {\ttfamily null}, }
+\item[{bool}]{log\-Processing = {\ttfamily false}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_file_monitor_1_1_monitor_agent_a1684faf7b2eeb0d84f7f500c6d309487}
+
+
+Create and initialize the \hyperlink{class_file_monitor_1_1_monitor_agent}{Monitor\-Agent} with the root folder to be monitored (Cloud Directory), requires running \hyperlink{class_file_monitor_1_1_monitor_agent_a1fc5bca23e82e87243e4e64743b8cd6d}{Start()} method to begin monitoring and then, when available, load the initial index list to begin processing via Begin\-Processing(initial\-List) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sync\-Settings} & The settings to be used with this instance of the file system monitor\\
+\hline
+{\em new\-Agent} & returned \hyperlink{class_file_monitor_1_1_monitor_agent}{Monitor\-Agent}\\
+\hline
+{\em sync\-Run} & delegate to be executed when a group of events is to be processed\\
+\hline
+{\em on\-Queueing\-Callback} & (optional) action to be executed evertime a File\-Change would be queued for processing\\
+\hline
+{\em log\-Processing} & (optional) if set, logs File\-Change objects when their processing callback fires\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error that occurred if there was one
+\end{DoxyReturn}
+\hypertarget{class_file_monitor_1_1_monitor_agent_af1d59a6daa20f37ff4746eaa14f17e6f}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Dispose@{Dispose}}
+\index{Dispose@{Dispose}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Dispose}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Dispose (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_af1d59a6daa20f37ff4746eaa14f17e6f}
+
+
+Call this to cleanup File\-System\-Watchers such as on application shutdown, do not start the same monitor instance after it has been disposed 
+
+\hypertarget{class_file_monitor_1_1_monitor_agent_a44eb388d08ba68f98b694669af80505b}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Get\-Current\-Path@{Get\-Current\-Path}}
+\index{Get\-Current\-Path@{Get\-Current\-Path}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Get\-Current\-Path}]{\setlength{\rightskip}{0pt plus 5cm}string File\-Monitor.\-Monitor\-Agent.\-Get\-Current\-Path (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_a44eb388d08ba68f98b694669af80505b}
+
+
+Retrieves current folder path of monitored root 
+
+\begin{DoxyReturn}{Returns}
+Root path
+\end{DoxyReturn}
+\hypertarget{class_file_monitor_1_1_monitor_agent_a403fa6683404f0cbb5338aa0ab49c627}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Get\-Running\-Status@{Get\-Running\-Status}}
+\index{Get\-Running\-Status@{Get\-Running\-Status}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Get\-Running\-Status}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Get\-Running\-Status (
+\begin{DoxyParamCaption}
+\item[{out {\bf Monitor\-Running}}]{status}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_a403fa6683404f0cbb5338aa0ab49c627}
+
+
+Retrieves running status of monitor as enum for each part (file and folder) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em status} & Returned running status\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Error while retrieving status, if any
+\end{DoxyReturn}
+\hypertarget{class_file_monitor_1_1_monitor_agent_abb33d7c21700394389e5be0801b6f290}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Grab\-Preprocessed\-Changes@{Grab\-Preprocessed\-Changes}}
+\index{Grab\-Preprocessed\-Changes@{Grab\-Preprocessed\-Changes}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Grab\-Preprocessed\-Changes}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Grab\-Preprocessed\-Changes (
+\begin{DoxyParamCaption}
+\item[{I\-Enumerable$<$ {\bf Possibly\-Preexisting\-File\-Change\-In\-Error} $>$}]{initial\-Failures, }
+\item[{out I\-Enumerable$<$ {\bf Possibly\-Streamable\-File\-Change} $>$}]{output\-Changes, }
+\item[{out I\-Enumerable$<$ {\bf Possibly\-Preexisting\-File\-Change\-In\-Error} $>$}]{output\-Changes\-In\-Error}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_abb33d7c21700394389e5be0801b6f290}
+
+
+Method to be called within the context of the main lock of the Sync service which locks the changed files, updates metadata, and outputs a sorted File\-Change array for processing 
+
+
+\begin{DoxyParams}{Parameters}
+{\em initial\-Failures} & Input File\-Changes from Failure\-Queue to integrate into dependency checking\\
+\hline
+{\em output\-Changes} & Output array of File\-Changes to process\\
+\hline
+{\em output\-Changes\-In\-Error} & Output array of File\-Changes with observed errors for requeueing, may be empty but never null\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns error(s) that occurred finalizing the File\-Change array, if any
+\end{DoxyReturn}
+\hypertarget{class_file_monitor_1_1_monitor_agent_a724124fa6c393e5c617aa07afea9f7fc}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Notify\-Root\-Rename@{Notify\-Root\-Rename}}
+\index{Notify\-Root\-Rename@{Notify\-Root\-Rename}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Notify\-Root\-Rename}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Notify\-Root\-Rename (
+\begin{DoxyParamCaption}
+\item[{string}]{new\-Path}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_a724124fa6c393e5c617aa07afea9f7fc}
+
+
+Call this function when an interprocess receiver gets a call from a Copy\-Hook\-Handler C\-O\-M object that the root folder has moved or been renamed; no need to stop and start the file monitor 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\-Path} & new location of root folder\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_file_monitor_1_1_monitor_agent_a1ae703e313f2cf84f0fa7a45ae89f5b7}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Push\-Notification@{Push\-Notification}}
+\index{Push\-Notification@{Push\-Notification}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Push\-Notification}]{\setlength{\rightskip}{0pt plus 5cm}void File\-Monitor.\-Monitor\-Agent.\-Push\-Notification (
+\begin{DoxyParamCaption}
+\item[{Json\-Contracts.\-Notification\-Response}]{notification}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_a1ae703e313f2cf84f0fa7a45ae89f5b7}
+
+
+Starts the queue timer to start sync processing, if it is not already started for other events 
+
+\hypertarget{class_file_monitor_1_1_monitor_agent_a1fc5bca23e82e87243e4e64743b8cd6d}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Start@{Start}}
+\index{Start@{Start}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Start}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Start (
+\begin{DoxyParamCaption}
+\item[{out {\bf Monitor\-Status}}]{status}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_a1fc5bca23e82e87243e4e64743b8cd6d}
+
+
+Call this first to start monitoring file system while initial indexing/synchronization occur, Begin\-Processing(initial\-List) must be called before monitored events begin processing (call Begin\-Processing again after calling \hyperlink{class_file_monitor_1_1_monitor_agent_ab12233c2b615d78afb7608477f7f4d70}{Stop()} and \hyperlink{class_file_monitor_1_1_monitor_agent_a1fc5bca23e82e87243e4e64743b8cd6d}{Start()} as well) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em status} & Returns whether monitor is started or if it had already been started\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Error if it occurred
+\end{DoxyReturn}
+\hypertarget{class_file_monitor_1_1_monitor_agent_ab12233c2b615d78afb7608477f7f4d70}{\index{File\-Monitor\-::\-Monitor\-Agent@{File\-Monitor\-::\-Monitor\-Agent}!Stop@{Stop}}
+\index{Stop@{Stop}!FileMonitor::MonitorAgent@{File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Stop}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} File\-Monitor.\-Monitor\-Agent.\-Stop (
+\begin{DoxyParamCaption}
+\item[{out {\bf Monitor\-Status}}]{status}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_file_monitor_1_1_monitor_agent_ab12233c2b615d78afb7608477f7f4d70}
+
+
+Call this to stop file monitoring and processing 
+
+
+\begin{DoxyParams}{Parameters}
+{\em status} & Returns whether monitor has stopped or if it had already been stopped\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Error if it occurred
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-File\-Monitor/Monitor\-Agent.\-cs\end{DoxyCompactItemize}

@@ -6,7 +6,7 @@ using System.Data.SqlServerCe;
 using System.Linq;
 using System.Text;
 
-namespace SQLIndexer.Migrations
+namespace CloudApiPublic.SQLIndexer.Migrations
 {
     public class Migration2 : IMigration
     {
