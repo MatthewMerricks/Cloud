@@ -105,7 +105,7 @@ namespace win_client.Views
             this.ctlAutoUpdate.Visibility = System.Windows.Visibility.Hidden;
             this.ctlAutoUpdate.KeepHidden = true;
             this.ctlAutoUpdate.UpdateType = wyDay.Controls.UpdateType.CheckAndDownload;
-            this.ctlAutoUpdate.wyUpdateLocation = CLDefinitions.CLUpdaterRelativePath;
+            this.ctlAutoUpdate.wyUpdateLocation = CLConstants.CLUpdaterRelativePath;
 
             // Check first.
             this.cmdCheckNow.Visibility = System.Windows.Visibility.Visible;

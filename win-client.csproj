@@ -229,7 +229,6 @@
       <DependentUpon>Resources.fr.resx</DependentUpon>
     </Compile>
     <Compile Include="Services\Badging\CLBadgingService.cs" />
-    <Compile Include="Services\CloudFolderMonitoring\CLCFMonitoringService.cs" />
     <Compile Include="Services\FileSystemMonitoring\CLFSMonitoringService.cs" />
     <Compile Include="Services\NetworkMonitoring\CLNetworkMonitorService.cs" />
     <Compile Include="Services\Notification\CLNotificationService.cs" />
@@ -246,7 +245,6 @@
       <DependentUpon>WelcomeBalloon.xaml</DependentUpon>
     </Compile>
     <Compile Include="Services\ServicesManager\CLServicesManager.cs" />
-    <Compile Include="Services\Indexing\CLIndexingService.cs" />
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
     <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="SystemTray\HookWrapper.cs" />

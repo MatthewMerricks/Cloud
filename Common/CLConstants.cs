@@ -50,5 +50,8 @@ namespace win_client.Common
 
         // Delimiters for parsing names into tokens
         public static char[] kDelimiterChars = { ' ', ',', '.', ':', '\t' };
+
+        // WyUpdate constants
+        public const string CLUpdaterRelativePath = "CloudUpdater.exe";
     }
 }

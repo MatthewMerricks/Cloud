@@ -38,7 +38,7 @@ namespace CloudApiPublic.FileMonitor
         /// </summary>
         /// <param name="status">Returned running status</param>
         /// <returns>Error while retrieving status, if any</returns>
-        public CLError GetRunningStatus(out MonitorRunning status)
+        private CLError GetRunningStatus(out MonitorRunning status)
         {
             try
             {
@@ -352,7 +352,7 @@ namespace CloudApiPublic.FileMonitor
         /// </summary>
         /// <param name="toApply">FileChange to apply to the local file system</param>
         /// <returns>Returns any error occurred applying the FileChange, if any</returns>
-        public CLError ApplySyncFromFileChange(FileChange toApply)
+        internal CLError ApplySyncFromFileChange(FileChange toApply)
         {
             try
             {
@@ -550,7 +550,7 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="toAdd">FileChange to queue</param>
         /// <param name="insertAtTop">Send true for the FileChange to be processed first on the queue, otherwise it will be last</param>
         /// <returns>Returns an error that occurred queueing the FileChange, if any</returns>
-        public CLError AddFileChangeToProcessingQueue(FileChange toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
+        internal CLError AddFileChangeToProcessingQueue(FileChange toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
         {
             try
             {
@@ -580,7 +580,7 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="toAdd">FileChanges to queue</param>
         /// <param name="insertAtTop">Send true for the FileChanges to be processed first on the queue, otherwise they will be last</param>
         /// <returns>Returns an error that occurred queueing the FileChanges, if any</returns>
-        public CLError AddFileChangesToProcessingQueue(IEnumerable<FileChange> toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
+        internal CLError AddFileChangesToProcessingQueue(IEnumerable<FileChange> toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
         {
             CLError toReturn = null;
             try
@@ -1163,7 +1163,7 @@ namespace CloudApiPublic.FileMonitor
             return toReturn;
         }
 
-        public CLError AssignDependencies(IEnumerable<PossiblyStreamableFileChange> toAssign,
+        internal CLError AssignDependencies(IEnumerable<PossiblyStreamableFileChange> toAssign,
             IEnumerable<FileChange> currentFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out IEnumerable<FileChange> outputFailures)
@@ -1262,7 +1262,7 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="outputChanges">Output array of FileChanges to process</param>
         /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
         /// <returns>Returns error(s) that occurred finalizing the FileChange array, if any</returns>
-        public CLError GrabPreprocessedChanges(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
+        internal CLError GrabPreprocessedChanges(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError)
         {

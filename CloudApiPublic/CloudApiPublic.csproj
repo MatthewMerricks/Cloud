@@ -142,8 +142,6 @@
     <Compile Include="Model\CLDevice.cs" />
     <Compile Include="Model\CLJsonResultWithError.cs" />
     <Compile Include="Model\CLRange.cs" />
-    <Compile Include="Model\CLEvent.cs" />
-    <Compile Include="Model\CLMetadata.cs" />
     <Compile Include="Model\CLSyncHeader.cs" />
     <Compile Include="Model\FileSystemItem.cs" />
     <Compile Include="Model\GenericHolder.cs" />

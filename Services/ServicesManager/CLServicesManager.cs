@@ -13,7 +13,6 @@ using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
 using win_client.Services.Badging;
 using win_client.Services.UiActivity;
-using win_client.Services.Indexing;
 using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
 using CloudApiPrivate.Common;
@@ -122,10 +121,8 @@ namespace win_client.Services.ServicesManager
                         //TODO: Handle any CLErrors returned from these services.
                         CLBadgingService.Instance.BeginBadgingServices();
                         CLUIActivityService.Instance.BeginUIActivityService();
-                        CLIndexingService.Instance.StartIndexingService();
                         CLNetworkMonitorService.Instance.BeginNetworkMonitoring();
                         CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
-                        CLCFMonitoringService.Instance.BeginCloudFolderMonitoring();
                         if (CLNetworkMonitorService.Instance.CloudReach)
                         {
                             // Outdated, Sync process replaced
@@ -167,7 +164,6 @@ namespace win_client.Services.ServicesManager
                         CLNotificationService.Instance.DisconnectPushNotificationServer();
                         CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                         CLFSMonitoringService.Instance.EndFileSystemMonitoring();
-                        CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
                         global::CloudApiPublic.Sync.SyncEngine.Shutdown();
                         DelayProcessable<FileChange>.TerminateAllProcessing();
                         
