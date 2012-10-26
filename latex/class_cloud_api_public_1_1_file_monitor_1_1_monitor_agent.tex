@@ -1,0 +1,312 @@
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent}{\section{Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent Class Reference}
+\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent}\index{Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent@{Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent}}
+}
+
+
+Class to cover file monitoring; created with delegates to connect to the S\-Q\-L indexer and to start \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} communication for new events  
+
+
+Inheritance diagram for Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a0f023e1a476bfc4c903a7904c599404f}{Get\-Running\-Status} (out \hyperlink{namespace_cloud_api_public_1_1_static_a502726756c6bc84b5c9bcaf23c3a8d28}{Monitor\-Running} status)
+\begin{DoxyCompactList}\small\item\em Retrieves running status of monitor as enum for each part (file and folder) \end{DoxyCompactList}\item 
+string \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a4f8355a65a49af520f5bad5e012d6005}{Get\-Current\-Path} ()
+\begin{DoxyCompactList}\small\item\em Retrieves current folder path of monitored root \end{DoxyCompactList}\item 
+void \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a75c1ea853f4abeb5de7f9b35f580ec15}{Push\-Notification} (Json\-Contracts.\-Notification\-Response notification)
+\begin{DoxyCompactList}\small\item\em Starts the queue timer to start sync processing, if it is not already started for other events \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ab8da6ab644491bd7372af1ff829e671d}{Apply\-Sync\-From\-File\-Change} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} to\-Apply)
+\begin{DoxyCompactList}\small\item\em Applies a \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} From File\-Change to the local file system i.\-e. a folder creation would cause the local File\-System to create a folder locally; changes in-\/memory index first to prevent firing \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} To events \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_af707ac6cbc22572792f6622398843a47}{Add\-File\-Change\-To\-Processing\-Queue} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} to\-Add, bool insert\-At\-Top, Generic\-Holder$<$ List$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$$>$ error\-Holder)
+\begin{DoxyCompactList}\small\item\em Adds a File\-Change to the Processing\-Queue; will also trigger a sync if one isn't already scheduled to run \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a6b0aae3780c7432b524a676672707ebb}{Add\-File\-Changes\-To\-Processing\-Queue} (I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ to\-Add, bool insert\-At\-Top, Generic\-Holder$<$ List$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$$>$ error\-Holder)
+\begin{DoxyCompactList}\small\item\em Adds File\-Changes to the Processing\-Queue; will also trigger a sync if one isn't alredy scheduled to run \end{DoxyCompactList}\item 
+void \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_af6a13b7d0c183eda555e669a90e3f122}{Begin\-Processing} (I\-Enumerable$<$ Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_metadata}{File\-Metadata} $>$$>$ initial\-List, I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ new\-Changes=null)
+\begin{DoxyCompactList}\small\item\em Notify completion of indexing; sets Is\-Initial\-Index to false, combines index with queued changes, and processes changes \end{DoxyCompactList}\item 
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a19c3f9d937350ec4c8012c66705bddea}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries Assign\-Dependencies} (I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change} $>$ to\-Assign, I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ current\-Failures, out I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change} $>$ output\-Changes, out I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ output\-Failures)}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a19c3f9d937350ec4c8012c66705bddea}
+
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_abf4b1ccaee3f8fe5c2a24a195a6c2f69}{Grab\-Preprocessed\-Changes} (I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_preexisting_file_change_in_error}{Possibly\-Preexisting\-File\-Change\-In\-Error} $>$ initial\-Failures, out I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change}{Possibly\-Streamable\-File\-Change} $>$ output\-Changes, out I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_possibly_preexisting_file_change_in_error}{Possibly\-Preexisting\-File\-Change\-In\-Error} $>$ output\-Changes\-In\-Error)
+\begin{DoxyCompactList}\small\item\em Method to be called within the context of the main lock of the \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} service which locks the changed files, updates metadata, and outputs a sorted File\-Change array for processing \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a7fd0bcb1837d5a27a32385232f6f463b}{Start} (out \hyperlink{namespace_cloud_api_public_1_1_static_a31db95951688473984962a22ad05a45f}{Monitor\-Status} status)
+\begin{DoxyCompactList}\small\item\em Call this first to start monitoring file system while initial indexing/synchronization occur, Begin\-Processing(initial\-List) must be called before monitored events begin processing (call Begin\-Processing again after calling \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ae9123602c7ba50f698e71b6904ba8cb6}{Stop()} and \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a7fd0bcb1837d5a27a32385232f6f463b}{Start()} as well) \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ae9123602c7ba50f698e71b6904ba8cb6}{Stop} (out \hyperlink{namespace_cloud_api_public_1_1_static_a31db95951688473984962a22ad05a45f}{Monitor\-Status} status)
+\begin{DoxyCompactList}\small\item\em Call this to stop file monitoring and processing \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a71d7f3790206a3cc461bf843ecbe1ba2}{Notify\-Root\-Rename} (string new\-Path)
+\begin{DoxyCompactList}\small\item\em Call this function when an interprocess receiver gets a call from a Copy\-Hook\-Handler C\-O\-M object that the root folder has moved or been renamed; no need to stop and start the file monitor \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a6bdf7564ecf0dc66d9490d51d19e2694}{Dispose} ()
+\begin{DoxyCompactList}\small\item\em Call this to cleanup File\-System\-Watchers such as on application shutdown, do not start the same monitor instance after it has been disposed \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ac5e74f86eea231c2f46d16cc2f926fb2}{Create\-New\-And\-Initialize} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} sync\-Settings, \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent}{Indexing\-Agent} indexer, out \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent}{Monitor\-Agent} new\-Agent, Func$<$ \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object}{I\-Sync\-Data\-Object}, \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings}, bool, \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} $>$ sync\-Run, Action$<$ \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent}{Monitor\-Agent}, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ on\-Queueing\-Callback=null, bool log\-Processing=false)
+\begin{DoxyCompactList}\small\item\em Create and initialize the \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent}{Monitor\-Agent} with the root folder to be monitored (Cloud Directory), requires running \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a7fd0bcb1837d5a27a32385232f6f463b}{Start()} method to begin monitoring and then, when available, load the initial index list to begin processing via Begin\-Processing(initial\-List) \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Class to cover file monitoring; created with delegates to connect to the S\-Q\-L indexer and to start \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} communication for new events 
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a6b0aae3780c7432b524a676672707ebb}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Add\-File\-Changes\-To\-Processing\-Queue@{Add\-File\-Changes\-To\-Processing\-Queue}}
+\index{Add\-File\-Changes\-To\-Processing\-Queue@{Add\-File\-Changes\-To\-Processing\-Queue}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Add\-File\-Changes\-To\-Processing\-Queue}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Add\-File\-Changes\-To\-Processing\-Queue (
+\begin{DoxyParamCaption}
+\item[{I\-Enumerable$<$ {\bf File\-Change} $>$}]{to\-Add, }
+\item[{bool}]{insert\-At\-Top, }
+\item[{Generic\-Holder$<$ List$<$ {\bf File\-Change} $>$$>$}]{error\-Holder}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a6b0aae3780c7432b524a676672707ebb}
+
+
+Adds File\-Changes to the Processing\-Queue; will also trigger a sync if one isn't alredy scheduled to run 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\-Add} & File\-Changes to queue\\
+\hline
+{\em insert\-At\-Top} & Send true for the File\-Changes to be processed first on the queue, otherwise they will be last\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred queueing the File\-Changes, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_af707ac6cbc22572792f6622398843a47}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Add\-File\-Change\-To\-Processing\-Queue@{Add\-File\-Change\-To\-Processing\-Queue}}
+\index{Add\-File\-Change\-To\-Processing\-Queue@{Add\-File\-Change\-To\-Processing\-Queue}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Add\-File\-Change\-To\-Processing\-Queue}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Add\-File\-Change\-To\-Processing\-Queue (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Change}}]{to\-Add, }
+\item[{bool}]{insert\-At\-Top, }
+\item[{Generic\-Holder$<$ List$<$ {\bf File\-Change} $>$$>$}]{error\-Holder}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_af707ac6cbc22572792f6622398843a47}
+
+
+Adds a File\-Change to the Processing\-Queue; will also trigger a sync if one isn't already scheduled to run 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\-Add} & File\-Change to queue\\
+\hline
+{\em insert\-At\-Top} & Send true for the File\-Change to be processed first on the queue, otherwise it will be last\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred queueing the File\-Change, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ab8da6ab644491bd7372af1ff829e671d}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Apply\-Sync\-From\-File\-Change@{Apply\-Sync\-From\-File\-Change}}
+\index{Apply\-Sync\-From\-File\-Change@{Apply\-Sync\-From\-File\-Change}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Apply\-Sync\-From\-File\-Change}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Apply\-Sync\-From\-File\-Change (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Change}}]{to\-Apply}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ab8da6ab644491bd7372af1ff829e671d}
+
+
+Applies a \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} From File\-Change to the local file system i.\-e. a folder creation would cause the local File\-System to create a folder locally; changes in-\/memory index first to prevent firing \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} To events 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\-Apply} & File\-Change to apply to the local file system\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error occurred applying the File\-Change, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_af6a13b7d0c183eda555e669a90e3f122}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Begin\-Processing@{Begin\-Processing}}
+\index{Begin\-Processing@{Begin\-Processing}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Begin\-Processing}]{\setlength{\rightskip}{0pt plus 5cm}void Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Begin\-Processing (
+\begin{DoxyParamCaption}
+\item[{I\-Enumerable$<$ Key\-Value\-Pair$<$ {\bf File\-Path}, {\bf File\-Metadata} $>$$>$}]{initial\-List, }
+\item[{I\-Enumerable$<$ {\bf File\-Change} $>$}]{new\-Changes = {\ttfamily null}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_af6a13b7d0c183eda555e669a90e3f122}
+
+
+Notify completion of indexing; sets Is\-Initial\-Index to false, combines index with queued changes, and processes changes 
+
+
+\begin{DoxyParams}{Parameters}
+{\em initial\-List} & File\-Metadata to use as the initial index\\
+\hline
+{\em new\-Changes} & File\-Changes that need to be immediately processed as new changes\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ac5e74f86eea231c2f46d16cc2f926fb2}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Create\-New\-And\-Initialize@{Create\-New\-And\-Initialize}}
+\index{Create\-New\-And\-Initialize@{Create\-New\-And\-Initialize}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Create\-New\-And\-Initialize}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Create\-New\-And\-Initialize (
+\begin{DoxyParamCaption}
+\item[{{\bf I\-Sync\-Settings}}]{sync\-Settings, }
+\item[{{\bf Indexing\-Agent}}]{indexer, }
+\item[{out {\bf Monitor\-Agent}}]{new\-Agent, }
+\item[{Func$<$ {\bf I\-Sync\-Data\-Object}, {\bf I\-Sync\-Settings}, bool, {\bf C\-L\-Error} $>$}]{sync\-Run, }
+\item[{Action$<$ {\bf Monitor\-Agent}, {\bf File\-Change} $>$}]{on\-Queueing\-Callback = {\ttfamily null}, }
+\item[{bool}]{log\-Processing = {\ttfamily false}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ac5e74f86eea231c2f46d16cc2f926fb2}
+
+
+Create and initialize the \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent}{Monitor\-Agent} with the root folder to be monitored (Cloud Directory), requires running \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a7fd0bcb1837d5a27a32385232f6f463b}{Start()} method to begin monitoring and then, when available, load the initial index list to begin processing via Begin\-Processing(initial\-List) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sync\-Settings} & The settings to be used with this instance of the file system monitor\\
+\hline
+{\em new\-Agent} & returned \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent}{Monitor\-Agent}\\
+\hline
+{\em sync\-Run} & delegate to be executed when a group of events is to be processed\\
+\hline
+{\em on\-Queueing\-Callback} & (optional) action to be executed evertime a File\-Change would be queued for processing\\
+\hline
+{\em log\-Processing} & (optional) if set, logs File\-Change objects when their processing callback fires\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error that occurred if there was one
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a6bdf7564ecf0dc66d9490d51d19e2694}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Dispose@{Dispose}}
+\index{Dispose@{Dispose}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Dispose}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Dispose (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a6bdf7564ecf0dc66d9490d51d19e2694}
+
+
+Call this to cleanup File\-System\-Watchers such as on application shutdown, do not start the same monitor instance after it has been disposed 
+
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a4f8355a65a49af520f5bad5e012d6005}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Get\-Current\-Path@{Get\-Current\-Path}}
+\index{Get\-Current\-Path@{Get\-Current\-Path}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Get\-Current\-Path}]{\setlength{\rightskip}{0pt plus 5cm}string Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Get\-Current\-Path (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a4f8355a65a49af520f5bad5e012d6005}
+
+
+Retrieves current folder path of monitored root 
+
+\begin{DoxyReturn}{Returns}
+Root path
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a0f023e1a476bfc4c903a7904c599404f}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Get\-Running\-Status@{Get\-Running\-Status}}
+\index{Get\-Running\-Status@{Get\-Running\-Status}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Get\-Running\-Status}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Get\-Running\-Status (
+\begin{DoxyParamCaption}
+\item[{out {\bf Monitor\-Running}}]{status}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a0f023e1a476bfc4c903a7904c599404f}
+
+
+Retrieves running status of monitor as enum for each part (file and folder) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em status} & Returned running status\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Error while retrieving status, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_abf4b1ccaee3f8fe5c2a24a195a6c2f69}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Grab\-Preprocessed\-Changes@{Grab\-Preprocessed\-Changes}}
+\index{Grab\-Preprocessed\-Changes@{Grab\-Preprocessed\-Changes}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Grab\-Preprocessed\-Changes}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Grab\-Preprocessed\-Changes (
+\begin{DoxyParamCaption}
+\item[{I\-Enumerable$<$ {\bf Possibly\-Preexisting\-File\-Change\-In\-Error} $>$}]{initial\-Failures, }
+\item[{out I\-Enumerable$<$ {\bf Possibly\-Streamable\-File\-Change} $>$}]{output\-Changes, }
+\item[{out I\-Enumerable$<$ {\bf Possibly\-Preexisting\-File\-Change\-In\-Error} $>$}]{output\-Changes\-In\-Error}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_abf4b1ccaee3f8fe5c2a24a195a6c2f69}
+
+
+Method to be called within the context of the main lock of the \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} service which locks the changed files, updates metadata, and outputs a sorted File\-Change array for processing 
+
+
+\begin{DoxyParams}{Parameters}
+{\em initial\-Failures} & Input File\-Changes from Failure\-Queue to integrate into dependency checking\\
+\hline
+{\em output\-Changes} & Output array of File\-Changes to process\\
+\hline
+{\em output\-Changes\-In\-Error} & Output array of File\-Changes with observed errors for requeueing, may be empty but never null\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns error(s) that occurred finalizing the File\-Change array, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a71d7f3790206a3cc461bf843ecbe1ba2}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Notify\-Root\-Rename@{Notify\-Root\-Rename}}
+\index{Notify\-Root\-Rename@{Notify\-Root\-Rename}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Notify\-Root\-Rename}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Notify\-Root\-Rename (
+\begin{DoxyParamCaption}
+\item[{string}]{new\-Path}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a71d7f3790206a3cc461bf843ecbe1ba2}
+
+
+Call this function when an interprocess receiver gets a call from a Copy\-Hook\-Handler C\-O\-M object that the root folder has moved or been renamed; no need to stop and start the file monitor 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\-Path} & new location of root folder\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a75c1ea853f4abeb5de7f9b35f580ec15}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Push\-Notification@{Push\-Notification}}
+\index{Push\-Notification@{Push\-Notification}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Push\-Notification}]{\setlength{\rightskip}{0pt plus 5cm}void Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Push\-Notification (
+\begin{DoxyParamCaption}
+\item[{Json\-Contracts.\-Notification\-Response}]{notification}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a75c1ea853f4abeb5de7f9b35f580ec15}
+
+
+Starts the queue timer to start sync processing, if it is not already started for other events 
+
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a7fd0bcb1837d5a27a32385232f6f463b}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Start@{Start}}
+\index{Start@{Start}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Start}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Start (
+\begin{DoxyParamCaption}
+\item[{out {\bf Monitor\-Status}}]{status}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a7fd0bcb1837d5a27a32385232f6f463b}
+
+
+Call this first to start monitoring file system while initial indexing/synchronization occur, Begin\-Processing(initial\-List) must be called before monitored events begin processing (call Begin\-Processing again after calling \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ae9123602c7ba50f698e71b6904ba8cb6}{Stop()} and \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a7fd0bcb1837d5a27a32385232f6f463b}{Start()} as well) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em status} & Returns whether monitor is started or if it had already been started\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Error if it occurred
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ae9123602c7ba50f698e71b6904ba8cb6}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Stop@{Stop}}
+\index{Stop@{Stop}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
+\subsubsection[{Stop}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent.\-Stop (
+\begin{DoxyParamCaption}
+\item[{out {\bf Monitor\-Status}}]{status}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_ae9123602c7ba50f698e71b6904ba8cb6}
+
+
+Call this to stop file monitoring and processing 
+
+
+\begin{DoxyParams}{Parameters}
+{\em status} & Returns whether monitor has stopped or if it had already been stopped\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Error if it occurred
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-File\-Monitor/Monitor\-Agent.\-cs\end{DoxyCompactItemize}

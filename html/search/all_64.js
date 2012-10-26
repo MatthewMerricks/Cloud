@@ -15,7 +15,7 @@ var searchData=
   ['dispatchactiontype',['DispatchActionType',['../namespace_cloud_api_public_1_1_support.html#ae4ed3cc109410edb339c363c77eb4117',1,'CloudApiPublic::Support']]],
   ['dispatchqueuegeneric',['DispatchQueueGeneric',['../class_cloud_api_public_1_1_support_1_1_dispatch_queue_generic.html#a5edf9c1a8e9f42efe192f681a013e4c4',1,'CloudApiPublic::Support::DispatchQueueGeneric']]],
   ['dispatchqueuegeneric',['DispatchQueueGeneric',['../class_cloud_api_public_1_1_support_1_1_dispatch_queue_generic.html',1,'CloudApiPublic::Support']]],
-  ['dispose',['Dispose',['../class_file_monitor_1_1_monitor_agent.html#af1d59a6daa20f37ff4746eaa14f17e6f',1,'FileMonitor::MonitorAgent']]],
+  ['dispose',['Dispose',['../class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent.html#a6bdf7564ecf0dc66d9490d51d19e2694',1,'CloudApiPublic::FileMonitor::MonitorAgent']]],
   ['disposebothschedulers',['DisposeBothSchedulers',['../class_cloud_api_public_1_1_sync_1_1_http_scheduler.html#a5b654a57f79ca5b29982a697e017814e',1,'CloudApiPublic::Sync::HttpScheduler']]],
   ['donotaddtosqlindex',['DoNotAddToSQLIndex',['../class_cloud_api_public_1_1_model_1_1_file_change.html#aa979e65ac9cd9783870afe5b25137296',1,'CloudApiPublic::Model::FileChange']]],
   ['download',['Download',['../class_cloud_api_public_1_1_json_contracts_1_1_download.html',1,'CloudApiPublic::JsonContracts']]]

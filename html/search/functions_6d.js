@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['markeventascompletedonprevioussync',['MarkEventAsCompletedOnPreviousSync',['../class_s_q_l_indexer_1_1_indexing_agent.html#a9c6482c347eb75314c0869e3aa5d9458',1,'SQLIndexer::IndexingAgent']]],
-  ['mergeeventsintodatabase',['MergeEventsIntoDatabase',['../class_s_q_l_indexer_1_1_indexing_agent.html#a2a2d5f1f72d626f15a60e925edcdb80f',1,'SQLIndexer::IndexingAgent']]]
+  ['markeventascompletedonprevioussync',['MarkEventAsCompletedOnPreviousSync',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent.html#a6bad5b195c0995b386c905615f009b95',1,'CloudApiPublic::SQLIndexer::IndexingAgent']]],
+  ['mergeeventsintodatabase',['MergeEventsIntoDatabase',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent.html#a23a1d14e2bd12963dde86a2b656d468a',1,'CloudApiPublic::SQLIndexer::IndexingAgent']]]
 ];

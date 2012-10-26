@@ -12,11 +12,10 @@ using System.Text;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
-using FileMonitor;
+using CloudApiPublic.FileMonitor;
 using CloudApiPublic.Sync;
 using CloudApiPublic.SQLIndexer;
 using CloudApiPublic.Static;
-using CloudApiPublic.FileMonitor;
 using win_client.Common;
 
 

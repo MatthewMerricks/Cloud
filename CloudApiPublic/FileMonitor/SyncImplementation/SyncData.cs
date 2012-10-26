@@ -7,7 +7,7 @@
 
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
-using FileMonitor;
+using CloudApiPublic.FileMonitor;
 using CloudApiPublic.SQLIndexer;
 using System;
 using System.Collections.Generic;
