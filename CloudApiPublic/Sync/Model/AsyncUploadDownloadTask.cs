@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sync.Model
+namespace CloudApiPublic.Sync.Model
 {
     internal struct AsyncUploadDownloadTask
     {

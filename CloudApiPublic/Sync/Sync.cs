@@ -21,10 +21,9 @@ using CloudApiPublic.Static;
 using CloudApiPublic.Support;
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.JsonContracts;
-using Sync.Model;
-using Sync.Static;
+using CloudApiPublic.Sync.Model;
 
-namespace Sync
+namespace CloudApiPublic.Sync
 {
     public static class Sync
     {

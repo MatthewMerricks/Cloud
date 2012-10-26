@@ -677,10 +677,6 @@
       <Project>{d873958b-87f4-46f6-a6e8-b72ffb08835f}</Project>
       <Name>Dialog.Implementors.Wpf</Name>
     </ProjectReference>
-    <ProjectReference Include="Sync\Sync.csproj">
-      <Project>{45e4664c-c207-4605-af85-54b587819107}</Project>
-      <Name>Sync</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\cl_icon.png" />

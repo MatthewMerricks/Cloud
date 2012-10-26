@@ -168,7 +168,7 @@ namespace win_client.Services.ServicesManager
                         CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                         CLFSMonitoringService.Instance.EndFileSystemMonitoring();
                         CLCFMonitoringService.Instance.EndCloudFolderMonitoring();
-                        global::Sync.Sync.Shutdown();
+                        global::CloudApiPublic.Sync.Sync.Shutdown();
                         DelayProcessable<FileChange>.TerminateAllProcessing();
                         
                         // Stop the growl service

@@ -1,5 +1,5 @@
 ﻿//
-// PossiblyChangedFileChange.cs
+// PossiblyStreamableAndPossiblyChangedFileChange.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -8,12 +8,13 @@
 using CloudApiPublic.Model;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Sync.Model
+namespace CloudApiPublic.Sync.Model
 {
-    internal struct PossiblyChangedFileChange
+    internal struct PossiblyStreamableAndPossiblyChangedFileChange
     {
         public FileChange FileChange
         {
@@ -21,12 +22,25 @@ namespace Sync.Model
             {
                 if (!_isValid)
                 {
-                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyChangedFileChange");
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyChangedFileChange");
                 }
                 return _fileChange;
             }
         }
         private FileChange _fileChange;
+
+        public Stream Stream
+        {
+            get
+            {
+                if (!_isValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyChangedFileChange");
+                }
+                return _stream;
+            }
+        }
+        private Stream _stream;
 
         public bool Changed
         {
@@ -34,7 +48,7 @@ namespace Sync.Model
             {
                 if (!_isValid)
                 {
-                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyChangedFileChange");
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyChangedFileChange");
                 }
                 return _changed;
             }
@@ -50,7 +64,7 @@ namespace Sync.Model
         }
         private bool _isValid;
 
-        public PossiblyChangedFileChange(bool Changed, FileChange FileChange)
+        public PossiblyStreamableAndPossiblyChangedFileChange(bool Changed, FileChange FileChange, Stream Stream)
         {
             if (FileChange == null)
             {
@@ -59,6 +73,7 @@ namespace Sync.Model
 
             this._fileChange = FileChange;
             this._changed = Changed;
+            this._stream = Stream;
             this._isValid = true;
         }
     }

@@ -11,7 +11,7 @@
 //using System.Linq;
 //using System.Text;
 
-//namespace Sync
+//namespace CloudApiPublic.Sync
 //{
 //    public class StreamFromJaggedByteArrays : Stream
 //    {

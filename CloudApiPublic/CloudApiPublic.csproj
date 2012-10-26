@@ -211,6 +211,21 @@
     <Compile Include="Support\CLSptGrandCentralDispatch.cs" />
     <Compile Include="Support\DelayProcessable.cs" />
     <Compile Include="Support\ProcessingQueuesTimer.cs" />
+    <Compile Include="Sync\ExecutableException.cs" />
+    <Compile Include="Sync\GlobalSyncEvents.cs" />
+    <Compile Include="Sync\HttpScheduler.cs" />
+    <Compile Include="Sync\IExecutableException.cs" />
+    <Compile Include="Sync\Model\AsyncUploadDownloadTask.cs" />
+    <Compile Include="Sync\Model\DownloadIdAndMD5.cs" />
+    <Compile Include="Sync\Model\EventIdAndCompletionProcessor.cs" />
+    <Compile Include="Sync\Model\PossiblyChangedFileChange.cs" />
+    <Compile Include="Sync\Model\PossiblyStreamableAndPossiblyChangedFileChange.cs" />
+    <Compile Include="Sync\Model\PossiblyStreamableAndPossiblyChangedFileChangeWithError.cs" />
+    <Compile Include="Sync\Model\PossiblyStreamableAndPossiblyPreexistingErrorFileChange.cs" />
+    <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithSyncData.cs" />
+    <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithUploadDownloadTask.cs" />
+    <Compile Include="Sync\StreamFromJaggedByteArrays.cs" />
+    <Compile Include="Sync\Sync.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.resx">

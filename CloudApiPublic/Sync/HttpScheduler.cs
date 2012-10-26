@@ -17,7 +17,7 @@ using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudApiPublic.Interfaces;
 
-namespace Sync
+namespace CloudApiPublic.Sync
 {
     /// <summary>
     /// Extended TaskScheduler for Sync upload and download tasks to limit concurrency and handle exceptions;

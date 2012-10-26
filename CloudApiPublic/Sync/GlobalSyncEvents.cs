@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using CloudApiPublic.Model;
 
-namespace Sync
+namespace CloudApiPublic.Sync
 {
     /// <summary>
     /// Handler delegate type for GlobalSyncEvents.FileChangeSyncStatusChanged event
