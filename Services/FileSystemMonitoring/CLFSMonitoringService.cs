@@ -133,21 +133,5 @@ namespace win_client.Services.FileSystemMonitoring
                 _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
-
-        public void CheckWithFSMForEvents()
-        {
-            // Merged 7/13/12
-            // Not Necessary.
-            //    if ([self.fileSystemEvents count] > 0) {
-            //        dispatch_async(get_cloud_FSM_queue(), ^{
-            //            [self postEventsWithEventId:self.lastKnownEventId];
-            //        });
-
-            //    } else {
-            //        dispatch_async(dispatch_get_main_queue(), ^{
-            //            [self fireSimulatedPushNotification];
-            //        });
-            //    }
-        }
     }
 }

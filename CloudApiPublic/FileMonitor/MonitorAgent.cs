@@ -25,6 +25,9 @@ using CloudApiPublic.Interfaces;
 using CloudApiPublic.SQLIndexer;
 using JsonContracts = CloudApiPublic.JsonContracts;
 
+/// <summary>
+/// Monitor a local file system folder as a SyncBox.
+/// </summary>
 namespace CloudApiPublic.FileMonitor
 {
     /// <summary>
@@ -217,9 +220,9 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="syncSettings">The settings to be used with this instance of the file system monitor</param>
         /// <param name="newAgent">returned MonitorAgent</param>
         /// <param name="syncRun">delegate to be executed when a group of events is to be processed</param>
-        /// <param name="onQueueingCallback">(optional) action to be executed evertime a FileChange would be queued for processing</param>
+        /// <param name="onQueueingCallback">(optional) action to be executed every time a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
-        /// <returns>Returns any error that occurred if there was one</returns>
+        /// <returns>Returns any error that occurred, or null.</returns>
         public static CLError CreateNewAndInitialize(ISyncSettings syncSettings,
             IndexingAgent indexer,
             out MonitorAgent newAgent,
@@ -335,6 +338,7 @@ namespace CloudApiPublic.FileMonitor
 
         #region public methods
         /// <summary>
+        /// A push notification has been received.
         /// Starts the queue timer to start sync processing,
         /// if it is not already started for other events
         /// </summary>

@@ -1,0 +1,50 @@
+﻿/// \mainpage SyncBoxes made easy!
+///
+/// \section intro_sec Introduction
+///
+/// The Cloud Windows Client SDK allows your application to easily support real time file synchronization services.
+///
+/// A SyncBox can be thought of as a folder with a hierarhical directory structure.  Any files placed in a SyncBox can be automatically
+/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS, Android and Windows RT).  Your account can have multiple
+/// SyncBoxes, and your application can open multiple SyncBoxes on a device.
+///
+/// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\Users\<UserName>\<YourSyncBoxName>".
+///
+/// See how easy it is:
+///
+/// \code{.cs}
+///		// ...
+///
+///		// Set the parameters for your SyncBox.
+///		ISyncSettings settings = new ISyncSettings(
+///					settings.udid = "...";			// supplied via account registration
+///					settings.uuid = "...";			// supplied via account registration
+///					settings.akey = "...";			// supplied via account registration
+///					settings.CloudRoot = "C:\Users\ThisUser\SyncBox1";
+///				);
+///
+///		// Start syncing the SyncBox
+///		Sync sync = new Sync(settings);
+///		sync.Run();
+///
+///		// ...
+/// \endcode
+///
+/// The code above will silently and automatically sync files in the "SyncBox1" directory with your other devices, and with your SyncBox on the Cloud servers.
+///
+/// Should you need more extensive control over the syncing process, the API will allow you to implement your own methods for full control, including real time sync status and server push notification.
+///
+/// \section install_sec Installation
+///
+/// Get started by following the steps below:
+/// - Browse to the Cloud download page at http://web-edge.cloudburrito.com.
+/// - Click the Download button to download the Windows Cloud client.
+/// - Follow the instructions to install the Cloud client program.
+/// - Run the Cloud.exe program and use it to sign up for a free Cloud account.
+/// - You will find this documentation in "C:\Program Files (x86)\Cloud.com\Cloud\Docs".
+/// - Use Visual Studio to load the sample program at "C:\Program Files (x86)\Cloud.com\Cloud\Samples\SampleSyncBox.sln".
+/// - Enjoy!
+/// .
+///
+/// \section copyright_sec Copyright (C) Cloud.com.  All Rights Reserved.
+/// http://www.cloud.com

@@ -8,10 +8,8 @@ var searchData=
   ['filechangemerge',['FileChangeMerge',['../struct_cloud_api_public_1_1_model_1_1_file_change_merge.html',1,'CloudApiPublic::Model']]],
   ['filechangemergetostateargs',['FileChangeMergeToStateArgs',['../class_cloud_api_public_1_1_model_1_1_file_change_merge_to_state_args.html',1,'CloudApiPublic::Model']]],
   ['filechanges',['FileChanges',['../class_cloud_api_public_1_1_static_1_1_file_change_flow_entry.html#ae6a9b0f56f9949bbd3b0c648300a03ad',1,'CloudApiPublic::Static::FileChangeFlowEntry']]],
-  ['filechangesyncstatuschangedhandler',['FileChangeSyncStatusChangedHandler',['../namespace_cloud_api_public_1_1_sync.html#a0bba2b3af863b9be93439beef38f6ee3',1,'CloudApiPublic::Sync']]],
   ['filechangetype',['FileChangeType',['../namespace_cloud_api_public_1_1_static.html#a08ff1fddb1dc38f7b861b0fd106834be',1,'CloudApiPublic::Static']]],
   ['filechangewithdependencies',['FileChangeWithDependencies',['../class_cloud_api_public_1_1_model_1_1_file_change_with_dependencies.html',1,'CloudApiPublic::Model']]],
-  ['filecompare',['FileCompare',['../class_cloud_api_public_1_1_support_1_1_c_l_spt_file_compare.html#ac3ad477da08b6f0aec416c4d8edb8c96',1,'CloudApiPublic::Support::CLSptFileCompare']]],
   ['filemetadata',['FileMetadata',['../class_cloud_api_public_1_1_model_1_1_file_metadata.html',1,'CloudApiPublic::Model']]],
   ['filemetadatahashablecomparer',['FileMetadataHashableComparer',['../class_cloud_api_public_1_1_model_1_1_file_metadata_hashable_comparer.html',1,'CloudApiPublic::Model']]],
   ['filemetadatahashableproperties',['FileMetadataHashableProperties',['../struct_cloud_api_public_1_1_model_1_1_file_metadata_hashable_properties.html',1,'CloudApiPublic::Model']]],
@@ -25,7 +23,6 @@ var searchData=
   ['filepathhierarchicalnodewithvalue',['FilePathHierarchicalNodeWithValue',['../class_cloud_api_public_1_1_model_1_1_file_path_hierarchical_node_with_value_3_01_t_01_4.html#af90046d9cbac139c07cf5a61796ed0be',1,'CloudApiPublic::Model::FilePathHierarchicalNodeWithValue&lt; T &gt;']]],
   ['filepathhierarchicalnodewithvalue_3c_20t_20_3e',['FilePathHierarchicalNodeWithValue&lt; T &gt;',['../class_cloud_api_public_1_1_model_1_1_file_path_hierarchical_node_with_value_3_01_t_01_4.html',1,'CloudApiPublic::Model']]],
   ['fileresultroot',['FileResultRoot',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_model_1_1_file_result_root.html',1,'CloudApiPublic::SQLIndexer::Model']]],
-  ['filesystemitem',['FileSystemItem',['../class_cloud_api_public_1_1_model_1_1_file_system_item.html',1,'CloudApiPublic::Model']]],
   ['filesystemobject',['FileSystemObject',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_file_system_object.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
   ['filetime',['FILETIME',['../struct_cloud_api_public_1_1_s_q_l_indexer_1_1_static_1_1_native_methods_1_1_f_i_l_e_t_i_m_e.html',1,'CloudApiPublic::SQLIndexer::Static::NativeMethods']]],
   ['findoverlappingpath',['FindOverlappingPath',['../class_cloud_api_public_1_1_model_1_1_file_path.html#a546fa862491a9ac6f9f27fefcdcc8e70',1,'CloudApiPublic.Model.FilePath.FindOverlappingPath(FilePath firstPath, FilePath secondPath)'],['../class_cloud_api_public_1_1_model_1_1_file_path.html#aa9f2baee747ea9b26c875e9f572c7519',1,'CloudApiPublic.Model.FilePath.FindOverlappingPath(FilePath otherPath)']]]

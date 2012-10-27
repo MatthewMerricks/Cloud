@@ -185,21 +185,6 @@ namespace win_client.Services.ServicesManager
                 }
             }
         }
-        public void StartSyncServices()
-        {
-            CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
-            // Outdated, Sync process replaced
-            // -David
-            //CLSyncService.Instance.BeginSyncServices();
-        }
-
-        public void StopSyncServices()
-        {
-            CLFSMonitoringService.Instance.EndFileSystemMonitoring();
-            // Outdated, Sync process replaced
-            // -David
-            //CLSyncService.Instance.StopSyncServices();
-        }
 
         /// <summary>
         /// Handle the Messsage_ReachabilityChangedNotification.  Do we have a connection to the server?

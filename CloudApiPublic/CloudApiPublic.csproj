@@ -103,6 +103,7 @@
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
+    <Compile Include="SyncBox\SyncBox.cs" />
     <Compile Include="SyncSettings\SyncSettings.cs" />
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
     <Compile Include="Interfaces\ISyncDataObject.cs" />
@@ -223,6 +224,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Docs\MainPage.dox" />
     <None Include="packages.config" />
     <None Include="Static\TraceLog.xsd">
       <SubType>Designer</SubType>
@@ -251,7 +253,9 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
     <Content Include="Static\NotLinkedFull.xml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Samples\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

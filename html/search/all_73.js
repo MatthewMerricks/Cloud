@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['syncboxes_20made_20easy_21',['SyncBoxes made easy!',['../index.html',1,'']]],
   ['setbadge',['SetBadge',['../struct_cloud_api_public_1_1_model_1_1_set_badge.html',1,'CloudApiPublic::Model']]],
   ['setbadgequeuedargs',['SetBadgeQueuedArgs',['../class_cloud_api_public_1_1_model_1_1_set_badge_queued_args.html',1,'CloudApiPublic::Model']]],
   ['setcountargs',['SetCountArgs',['../class_cloud_api_public_1_1_model_1_1_set_count_args.html',1,'CloudApiPublic::Model']]],
@@ -20,6 +21,7 @@ var searchData=
   ['stringcrc',['StringCRC',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_string_c_r_c.html',1,'CloudApiPublic::SQLIndexer']]],
   ['sync',['Sync',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_sync.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
   ['syncdata',['SyncData',['../class_cloud_api_public_1_1_file_monitor_1_1_sync_implementation_1_1_sync_data.html',1,'CloudApiPublic::FileMonitor::SyncImplementation']]],
+  ['syncdata',['SyncData',['../class_cloud_api_public_1_1_file_monitor_1_1_sync_implementation_1_1_sync_data.html#af0b43d9edc92deb302643771046efbcd',1,'CloudApiPublic::FileMonitor::SyncImplementation::SyncData']]],
   ['syncdirection',['SyncDirection',['../namespace_cloud_api_public_1_1_static.html#a8ba5d1f6d06fa058730616f021c8974f',1,'CloudApiPublic::Static']]],
   ['syncedobject',['SyncedObject',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_synced_object.html',1,'CloudApiPublic::SQLIndexer']]],
   ['syncsettings',['SyncSettings',['../class_cloud_api_public_1_1_file_monitor_1_1_sync_settings_1_1_sync_settings.html',1,'CloudApiPublic::FileMonitor::SyncSettings']]]
