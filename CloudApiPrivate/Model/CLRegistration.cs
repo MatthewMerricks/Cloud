@@ -24,6 +24,7 @@ using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Resources;
 using CloudApiPublic.Static;
 using System.IO;
+using CloudApiPrivate.Static;
 
 namespace CloudApiPrivate.Model
 {
@@ -352,7 +353,7 @@ namespace CloudApiPrivate.Model
             bool retVal = true;
 
             error = null;
-            Dictionary<string, object> returnDictionary = CLSptJson.CLSptJsonDeserializeToDictionary(response);
+            Dictionary<string, object> returnDictionary = CLPrivateHelpers.JsonDeserializeToDictionary(response);
 
             if (returnDictionary != null)
             {
@@ -693,7 +694,7 @@ namespace CloudApiPrivate.Model
         {
             try
             {
-                Dictionary<string, object> returnDictionary = CLSptJson.CLSptJsonDeserializeToDictionary(serverResponse);
+                Dictionary<string, object> returnDictionary = CLPrivateHelpers.JsonDeserializeToDictionary(serverResponse);
                 if (returnDictionary.ContainsKey("error"))
                 {
                     return (string)returnDictionary["error"];
@@ -723,7 +724,7 @@ namespace CloudApiPrivate.Model
             bool retVal = true;
 
             error = null;
-            Dictionary<string, object> returnDictionary = CLSptJson.CLSptJsonDeserializeToDictionary(response);
+            Dictionary<string, object> returnDictionary = CLPrivateHelpers.JsonDeserializeToDictionary(response);
 
             if (returnDictionary != null)
             {

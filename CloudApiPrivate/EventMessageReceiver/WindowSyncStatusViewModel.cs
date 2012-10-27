@@ -8,6 +8,7 @@
 using CloudApiPrivate.EventMessageReceiver.Status;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
+using CloudApiPrivate.Static;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using System;
@@ -442,7 +443,7 @@ namespace CloudApiPrivate.EventMessageReceiver
                     TimeSpan timeLeft = new TimeSpan(0, 0, secondsLeft);
                     transferToUpdate.DisplayTimeLeft = String.Format("Time left: {0}:{1}", (int)Math.Floor(timeLeft.TotalMinutes), timeLeft.Seconds.ToString("00"));
 
-                    transferToUpdate.DisplayFileSize = String.Format("File size: {0}", Helpers.FormatBytes(currentParameter.Value.ByteSize));
+                    transferToUpdate.DisplayFileSize = String.Format("File size: {0}", CLPrivateHelpers.FormatBytes(currentParameter.Value.ByteSize));
 
                     if (addTransferIndex.Value != null)
                     {

@@ -111,6 +111,7 @@
     <Compile Include="Static\CLExtensionMethods.cs" />
     <Compile Include="Static\CLFriendlyEnumValues.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadingMessage.cs" />
+    <Compile Include="Static\CLPrivateHelpers.cs" />
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\NativeMethods.cs" />
   </ItemGroup>
