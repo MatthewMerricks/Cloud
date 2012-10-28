@@ -19,6 +19,9 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.SyncBox
 {
+    /// <summary>
+    /// A class used to create a SyncBox to synchronize the contents of a local disk directory.
+    /// </summary>
     public class SyncBox
     {
         private MonitorAgent _monitor = null;
@@ -27,6 +30,18 @@ namespace CloudApiPublic.SyncBox
         private bool _isStarted = false;
         private static CLTrace _trace = CLTrace.Instance;
 
+        /// <summary>
+        /// Event fired when a serious notification error has occurred.  Push notification is
+        /// no longer functional.
+        /// </summary>
+        public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
+
+        /// <summary>
+        /// Initialize the SyncBox and start syncing its contents to the Cloud server, and to other devices
+        /// registering the same SyncBox.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <returns></returns>
         public CLError Start(ISyncSettings settings)
         {
             try 
@@ -37,7 +52,6 @@ namespace CloudApiPublic.SyncBox
                 {
                     CLError error = new Exception("Already started");
                     _trace.writeToLog(1, "SyncBox: Start: ERROR: {0}.", error.errorDescription);
-                    ReleaseResources();
                     return error;
                 }
 
@@ -65,7 +79,7 @@ namespace CloudApiPublic.SyncBox
                 // Hook up the events
                 _notifier.NotificationReceived += OnNotificationReceived;
                 _notifier.NotificationPerformManualSyncFrom += OnNotificationPerformManualSyncFrom;
-                _notifier.ConnectionError += OnConnectionError;
+                _notifier.ConnectionError += OnNotificationConnectionError;
 
                 // Start the monitor
                 CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(
@@ -89,7 +103,7 @@ namespace CloudApiPublic.SyncBox
                         try
                         {
                             MonitorStatus returnStatus;
-                            CLError fileMonitorStartError = MonitorAgent.Start(out returnStatus);
+                            CLError fileMonitorStartError = _monitor.Start(out returnStatus);
                             if (fileMonitorStartError != null)
                             {
                                 _trace.writeToLog(1, "SyncBox: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, fileMonitorStartError.errorCode);
@@ -126,25 +140,77 @@ namespace CloudApiPublic.SyncBox
             return null;
         }
 
-        private void OnConnectionError(object sender, NotificationErrorEventArgs e)
+        /// <summary>
+        /// A serious notification error has occurred.  Push notification is no longer functioning.
+        /// </summary>
+        /// <param name="sender">The sending object.</param>
+        /// <param name="e">Arguments including the manual poll and/or web sockets errors (possibly aggregated).</param>
+        private void OnNotificationConnectionError(object sender, NotificationErrorEventArgs e)
         {
-            //TODO: Raise an asynchronous error event to the application.
-            throw new NotImplementedException();
+            // Tell the application
+            _trace.writeToLog(1, "SyncBox: OnConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorManualPoll.errorDescription, e.ErrorWebSockets.errorDescription);
+            if (PushNotificationError != null)
+            {
+                _trace.writeToLog(1, "SyncBox: OnConnectionError: Notify the application.");
+                PushNotificationError(this, e);
+            }
         }
 
+        /// <summary>
+        /// Notification says to send a manual Sync_From request to the server.
+        /// </summary>
+        /// <param name="sender">The sending object.</param>
+        /// <param name="e">Event arguments containing the push notification message.</param>
         private void OnNotificationPerformManualSyncFrom(object sender, NotificationEventArgs e)
         {
-            throw new NotImplementedException();
+            // Pass this event on to the file monitor.
+            _monitor.PushNotification(e.Message);
         }
 
+        /// <summary>
+        /// The notifier received a push notification message from the server.
+        /// </summary>
+        /// <param name="sender">The sending object.</param>
+        /// <param name="e">Arguments containing the push notification message received.</param>
         private void OnNotificationReceived(object sender, NotificationEventArgs e)
         {
             // Let the file monitor know about this event.
             _monitor.PushNotification(e.Message);
         }
 
+        /// <summary>
+        /// Stop syncing the SyncBox, and free all resources.
+        /// </summary>
+        private void ReleaseResources()
+        {
+            if (_monitor != null)
+            {
+                MonitorStatus monitorIsStopped;
+                _monitor.Stop(out monitorIsStopped);
+                _monitor.Dispose();
+                _monitor = null;
+            }
+
+            if (_notifier != null)
+            {
+                _notifier.DisconnectPushNotificationServer();
+                _notifier = null;
+            }
+
+            if (_indexer != null)
+            {
+                _indexer.Dispose();
+                _indexer = null;
+            }
+        }
+
+        /// <summary>
+        /// Stop syncing the SyncBox and free resources.
+        /// </summary>
         public void Stop()
         {
+            _trace.writeToLog(1, "SyncBox: Stop: Entry.");
+            ReleaseResources();
         }
     }
 }
