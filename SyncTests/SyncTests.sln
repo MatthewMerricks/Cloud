@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncTests", "SyncTests.csproj", "{5F94D5D2-E8D9-4437-B7E9-E0F32AB17474}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudSdkPublic", "..\CloudApiPublic\CloudSdkPublic.csproj", "{CBFD5A87-0104-472C-8411-95DA030CDE6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sync", "..\Sync\Sync.csproj", "{45E4664C-C207-4605-AF85-54B587819107}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncTestServer", "SyncTestServer\SyncTestServer.csproj", "{DD1D46F2-A572-40D2-B19D-D21E83126F22}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		DebugNoSSL|Any CPU = DebugNoSSL|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F94D5D2-E8D9-4437-B7E9-E0F32AB17474}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F94D5D2-E8D9-4437-B7E9-E0F32AB17474}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F94D5D2-E8D9-4437-B7E9-E0F32AB17474}.DebugNoSSL|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F94D5D2-E8D9-4437-B7E9-E0F32AB17474}.DebugNoSSL|Any CPU.Build.0 = Debug|Any CPU
+		{5F94D5D2-E8D9-4437-B7E9-E0F32AB17474}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F94D5D2-E8D9-4437-B7E9-E0F32AB17474}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBFD5A87-0104-472C-8411-95DA030CDE6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBFD5A87-0104-472C-8411-95DA030CDE6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBFD5A87-0104-472C-8411-95DA030CDE6E}.DebugNoSSL|Any CPU.ActiveCfg = DebugNoSSL|Any CPU
+		{CBFD5A87-0104-472C-8411-95DA030CDE6E}.DebugNoSSL|Any CPU.Build.0 = DebugNoSSL|Any CPU
+		{CBFD5A87-0104-472C-8411-95DA030CDE6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBFD5A87-0104-472C-8411-95DA030CDE6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45E4664C-C207-4605-AF85-54B587819107}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45E4664C-C207-4605-AF85-54B587819107}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45E4664C-C207-4605-AF85-54B587819107}.DebugNoSSL|Any CPU.ActiveCfg = Debug|Any CPU
+		{45E4664C-C207-4605-AF85-54B587819107}.DebugNoSSL|Any CPU.Build.0 = Debug|Any CPU
+		{45E4664C-C207-4605-AF85-54B587819107}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45E4664C-C207-4605-AF85-54B587819107}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD1D46F2-A572-40D2-B19D-D21E83126F22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD1D46F2-A572-40D2-B19D-D21E83126F22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD1D46F2-A572-40D2-B19D-D21E83126F22}.DebugNoSSL|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD1D46F2-A572-40D2-B19D-D21E83126F22}.DebugNoSSL|Any CPU.Build.0 = Debug|Any CPU
+		{DD1D46F2-A572-40D2-B19D-D21E83126F22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD1D46F2-A572-40D2-B19D-D21E83126F22}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

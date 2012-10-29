@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{DD1D46F2-A572-40D2-B19D-D21E83126F22}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SyncTestServer</RootNamespace>
+    <AssemblyName>SyncTestServer</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Sync\JsonContracts\Download.cs">
+      <Link>SyncLinks\JsonContracts\Download.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\Event.cs">
+      <Link>SyncLinks\JsonContracts\Event.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\File.cs">
+      <Link>SyncLinks\JsonContracts\File.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\Header.cs">
+      <Link>SyncLinks\JsonContracts\Header.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\Metadata.cs">
+      <Link>SyncLinks\JsonContracts\Metadata.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\NotificationResponse.cs">
+      <Link>SyncLinks\JsonContracts\NotificationResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\PurgePending.cs">
+      <Link>SyncLinks\JsonContracts\PurgePending.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\PurgePendingResponse.cs">
+      <Link>SyncLinks\JsonContracts\PurgePendingResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\Push.cs">
+      <Link>SyncLinks\JsonContracts\Push.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\PushResponse.cs">
+      <Link>SyncLinks\JsonContracts\PushResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Sync\JsonContracts\To.cs">
+      <Link>SyncLinks\JsonContracts\To.cs</Link>
+    </Compile>
+    <Compile Include="ActionProcessors\private.cs" />
+    <Compile Include="ActionProcessors\SubProcessors\purge_pending.cs" />
+    <Compile Include="ActionProcessors\sync.cs" />
+    <Compile Include="HttpActionProcessor.cs" />
+    <Compile Include="HttpActionSubprocessor.cs" />
+    <Compile Include="Model\Device.cs" />
+    <Compile Include="Model\FileIdAndUser.cs" />
+    <Compile Include="Model\FileResultRoot.cs" />
+    <Compile Include="Model\FindFileResult.cs" />
+    <Compile Include="Model\IFileResultParent.cs" />
+    <Compile Include="Model\MD5AndFileSize.cs" />
+    <Compile Include="Model\NotifiableObject.cs" />
+    <Compile Include="Model\ObservableDictionary.cs" />
+    <Compile Include="Model\PendingMD5AndFileId.cs" />
+    <Compile Include="Model\RecursiveFilePathDictionaryHandlers.cs" />
+    <Compile Include="Model\SafeSearchHandle.cs" />
+    <Compile Include="Model\SingleActionSetter.cs" />
+    <Compile Include="Model\StreamHolderWithDisposalAction.cs" />
+    <Compile Include="Model\SyncTestScenario.cs">
+      <DependentUpon>SyncTestScenario.xsd</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Model\User.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerData\IMetadataProvider.cs" />
+    <Compile Include="ServerData\InitialMetadata.cs" />
+    <Compile Include="ServerData\InitialStorageData.cs" />
+    <Compile Include="ServerData\IServerData.cs" />
+    <Compile Include="ServerData\IServerStorage.cs" />
+    <Compile Include="ServerData\MetadataProvider.cs" />
+    <Compile Include="ServerData\PhysicalStorage.cs" />
+    <Compile Include="ServerData\ServerData.cs" />
+    <Compile Include="ServerService.cs" />
+    <Compile Include="Static\Helpers.cs" />
+    <Compile Include="Static\NativeMethods.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CloudApiPublic\CloudSdkPublic.csproj">
+      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
+      <Name>CloudSdkPublic</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Model\SyncTestScenario.xsd">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

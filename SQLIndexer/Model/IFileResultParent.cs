@@ -12,7 +12,7 @@ using System.Text;
 
 namespace SQLIndexer.Model
 {
-    public interface IFileResultParent
+    internal interface IFileResultParent
     {
         string FullName { get; }
     }

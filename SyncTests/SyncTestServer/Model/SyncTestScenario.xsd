@@ -1,0 +1,512 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="SyncTestScenario"
+    targetNamespace="http://Cloud.com/SyncTestScenario.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://Cloud.com/SyncTestScenario.xsd"
+    xmlns:mstns="http://Cloud.com/SyncTestScenario.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:appinfo>Cloud.com SyncTestScenario XML Schema</xs:appinfo>
+    <xs:documentation xml:lang="en-us">
+      SyncTestScenario.xsd and resulting generated code
+      Cloud
+
+      Created by DavidBruck.
+
+      Copyright (c) Cloud.com. All rights reserved.
+
+      Manually copy this copyright declaration to the header of any generated code files created from this schema
+    </xs:documentation>
+  </xs:annotation>
+  <xs:complexType name="Copyright">
+    <xs:sequence>
+      <xs:element name="FileName" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Copyright" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Implementation of SyncTestScenario.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved." />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Creator" minOccurs="1" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="FileOrFolderType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Base class only. Do not use directly.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="IsFolder" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="RelativePathFromRoot" type="xs:string" minOccurs="1" maxOccurs="1" />
+      <xs:element name="UTCCreatedDateTime" type="xs:dateTime" minOccurs="1" maxOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="FileType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of FileOrFolderType where IsFolder is false
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="FileOrFolderType">
+        <xs:sequence>
+          <xs:element name="MD5" minOccurs="1" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:pattern value="[a-fA-F\d]{32}" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="UTCModifiedDateTime" type="xs:dateTime" minOccurs="1" maxOccurs="1" />
+          <xs:element name="Size" minOccurs="1" maxOccurs="1" type="xs:long" />
+          <xs:element name="StorageKey" minOccurs="0" maxOccurs="1" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="FolderType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of FileOrFolderType where IsFolder is true
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="FileOrFolderType" />
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="InitialCloudFolderDataType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Base class only. Do not use directly.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Type" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="BuildFromCloudFolder" />
+            <xs:enumeration value="DefinedValues" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="BuildInitialDataFromCloudFolderType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of InitialCloudFolderDataType where Type is BuildFromCloudFolder
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="InitialCloudFolderDataType" />
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="DefinedValuesForCloudFolderType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of InitialCloudFolderDataType where Type is DefinedValues
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="InitialCloudFolderDataType">
+        <xs:sequence>
+          <xs:element name="PathsWithMetadata" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:choice minOccurs="1" maxOccurs="unbounded">
+                <xs:element name="PathWithMetadata" minOccurs="1" maxOccurs="unbounded" type="FileOrFolderType" />
+              </xs:choice>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:simpleType name="StorageType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="PhysicalLocation" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="CloudFolderType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Base class only. Do not use directly.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Type" minOccurs="1" maxOccurs="1" type="StorageType" />
+      <xs:element name="InitialData" minOccurs="1" maxOccurs="1" type="InitialCloudFolderDataType" />
+      <xs:element name="RootPath" minOccurs="0" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PhysicalLocationCloudFolderType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of CloudFolderType where Type is PhysicalLocation
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="CloudFolderType" />
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ServerDeviceType">
+    <xs:sequence>
+      <xs:element name="UDid" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="AKey" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="FriendlyName" minOccurs="1" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ServerUserType">
+    <xs:sequence>
+      <xs:element name="UUid" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="Username" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Password" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Devices" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:choice minOccurs="1" maxOccurs="unbounded">
+            <xs:element name="Device" minOccurs="1" maxOccurs="unbounded" type="ServerDeviceType" />
+          </xs:choice>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="CloudFolder" minOccurs="1" maxOccurs="1" type="CloudFolderType" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ClientLoginType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Base class only. Do not use directly.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="AlreadyAuthenticated" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="FriendlyName" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="Username" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Password" minOccurs="0" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="AuthenticatedClientType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of ClientLoginType where AlreadyAuthenticated is true
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="ClientLoginType">
+        <xs:sequence>
+          <xs:element name="InitialAKey" minOccurs="1" maxOccurs="1" type="xs:string" />
+          <xs:element name="InitialUDid" minOccurs="1" maxOccurs="1" type="xs:string" />
+          <xs:element name="InitialUUid" minOccurs="1" maxOccurs="1" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="NonAuthenticatedClientType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of ClientLoginType where AlreadyAuthenticated is false
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="ClientLoginType" />
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ClientType">
+    <xs:sequence>
+      <xs:element name="Login" minOccurs="1" maxOccurs="1" type="ClientLoginType" />
+      <xs:element name="CloudFolder" minOccurs="1" maxOccurs="1" type="CloudFolderType" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="FileChangeType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Base class only. Do not use directly.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Type" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Created" />
+            <xs:enumeration value="Deleted" />
+            <xs:enumeration value="Renamed" />
+            <xs:enumeration value="Modified" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CreatedChangeType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of FileChangeType where Type is Created
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="FileChangeType" />
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="DeletedChangeType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of FileChangeType where Type is Deleted
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="FileChangeType" />
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="RenamedChangeType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of FileChangeType where Type is Renamed
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="FileChangeType">
+        <xs:sequence>
+          <xs:element name="OldRelativePathFromRoot" minOccurs="1" maxOccurs="1" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ModifiedChangeType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of FileChangeType where Type is Modified
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="FileChangeType" />
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="OperationType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Base class only. Do not use directly.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="FileOrFolderChange" />
+            <xs:enumeration value="WaitForPending" />
+            <xs:enumeration value="Sleep" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="FileOrFolderOperationType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of OperationType where Type is FileOrFolderChange
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="OperationType">
+        <xs:sequence>
+          <xs:element name="ChangeStartsOnServer" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+          <xs:element name="FileChangeType" minOccurs="1" maxOccurs="1" type="FileChangeType" />
+          <xs:element name="FileOrFolder" minOccurs="1" maxOccurs="1" type="FileOrFolderType" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="WaitAllOperationType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of OperationType where Type is WaitForPending
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="OperationType" />
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="SleepOperationType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of OperationType where Type is Sleep
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="OperationType">
+        <xs:sequence>
+          <xs:element name="MillisecondTimeSpan" minOccurs="1" maxOccurs="1" type="xs:int" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:simpleType name="MD5Type">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-fA-F\d]{32}" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!--<xs:complexType name="RevisionHistoryType">
+    <xs:sequence>
+      <xs:element name="UserId" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="RelativePathFromRoot" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="MD5" minOccurs="1" maxOccurs="1" type="MD5Type" />
+      <xs:element name="StorageKey" minOccurs="1" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>-->
+
+  <xs:complexType name="ServerUserItem">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Base class only. Do not use directly.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Uuid" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="IsFolder" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ServerUserFile">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of ServerUserItem where IsFolder is false
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="ServerUserItem">
+        <xs:sequence>
+          <xs:element name="MD5" minOccurs="1" maxOccurs="1" type="MD5Type" />
+          <xs:element name="File" minOccurs="1" maxOccurs="1" type="FileType" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ServerUserFolder">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of ServerUserItem where IsFolder is true
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="ServerUserItem">
+        <xs:sequence>
+          <xs:element name="Folder" minOccurs="1" maxOccurs="1" type="FolderType" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ServerStorageType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Base class only. Do not use directly.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Type" minOccurs="1" maxOccurs="1" type="StorageType" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ServerPhysicalStorageType">
+    <xs:annotation>
+      <xs:documentation xml:lang="en-us">
+        Implementation of ServerStorageType where Type is PhysicalLocation
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="ServerStorageType">
+        <xs:sequence>
+          <xs:element name="RootPath" minOccurs="1" maxOccurs="1" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="Scenario">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Copyrignt" minOccurs="1" maxOccurs="1" type="Copyright" />
+        <xs:element name="Clients" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:choice minOccurs="1" maxOccurs="unbounded">
+              <xs:element name="Client" minOccurs="1" maxOccurs="unbounded" type="ClientType" />
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Server" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Users" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                  <xs:choice minOccurs="1" maxOccurs="unbounded">
+                    <xs:element name="User" minOccurs="1" maxOccurs="unbounded" type="ServerUserType" />
+                  </xs:choice>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="Storage" minOccurs="1" maxOccurs="1" type="ServerStorageType" />
+              <xs:element name="UserItems" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                  <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element name="UserItem" minOccurs="1" maxOccurs="unbounded" type="ServerUserItem" />
+                  </xs:choice>
+                </xs:complexType>
+              </xs:element>
+              <!--<xs:element name="RevisionHistoriesGoingBackwards" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                  <xs:choice minOccurs="1" maxOccurs="unbounded">
+                    <xs:element name="RevisionHistory" minOccurs="1" maxOccurs="unbounded" type="RevisionHistoryType" />
+                  </xs:choice>
+                </xs:complexType>
+              </xs:element>-->
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="InitialOperations" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:choice minOccurs="1" maxOccurs="unbounded">
+              <xs:element name="Operation" minOccurs="1" maxOccurs="unbounded" type="OperationType" />
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="RegularOperations" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:choice minOccurs="1" maxOccurs="unbounded">
+              <xs:element name="ParallelOperationSet" minOccurs="1" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:choice minOccurs="1" maxOccurs="unbounded">
+                    <xs:element name="Operation" minOccurs="1" maxOccurs="unbounded" type="OperationType" />
+                  </xs:choice>
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

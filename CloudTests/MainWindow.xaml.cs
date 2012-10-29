@@ -251,57 +251,58 @@ namespace CloudTests
         // for testing
         private void MonitorFileSystemButton_Click(object sender, RoutedEventArgs e)
         {
-            if (folderSelected)
-            {
-                lock (folderMonitoringStartedLocker)
-                {
-                    if (folderMonitoringStarted)
-                    {
-                        folderMonitor.Dispose();
-                        folderMonitor = null;
+            //if (folderSelected)
+            //{
+            //    lock (folderMonitoringStartedLocker)
+            //    {
+            //        if (folderMonitoringStarted)
+            //        {
+            //            folderMonitor.Dispose();
+            //            folderMonitor = null;
 
-                        folderMonitoringStarted = false;
+            //            folderMonitoringStarted = false;
 
-                        MessageBox.Show("Folder monitoring stopped");
-                    }
-                    else
-                    {
-                        IndexingAgent.CreateNewAndInitialize(out indexer);
-                        MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath,
-                            out folderMonitor,
-                            Sync.Sync.Run,
-                            indexer.MergeEventIntoDatabase,
-                            (syncId, eventIds, newRootPath) =>
-                                {
-                                    long newSyncCounter;
-                                    return indexer.RecordCompletedSync(syncId, eventIds, out newSyncCounter, newRootPath);
-                                },
-                            () =>
-                                {
-                                    lock (indexer)
-                                    {
-                                        return indexer.LastSyncId;
-                                    }
-                                },
-                                indexer.MarkEventAsCompletedOnPreviousSync,
-                                indexer.GetMetadataByPathAndRevision);
-                        MonitorStatus returnStatus;
+            //            MessageBox.Show("Folder monitoring stopped");
+            //        }
+            //        else
+            //        {
+            //            IndexingAgent.CreateNewAndInitialize(out indexer);
+            //            MonitorAgent.CreateNewAndInitialize(OpenFolder.SelectedPath,
+            //                out folderMonitor,
+            //                Sync.Sync.Run,
+            //                indexer.MergeEventIntoDatabase,
+            //                (syncId, eventIds, newRootPath) =>
+            //                    {
+            //                        long newSyncCounter;
+            //                        return indexer.RecordCompletedSync(syncId, eventIds, out newSyncCounter, newRootPath);
+            //                    },
+            //                () =>
+            //                    {
+            //                        lock (indexer)
+            //                        {
+            //                            return indexer.LastSyncId;
+            //                        }
+            //                    },
+            //                    indexer.MarkEventAsCompletedOnPreviousSync,
+            //                    indexer.GetMetadataByPathAndRevision);
+            //            MonitorStatus returnStatus;
 
-                        folderMonitor.Start(out returnStatus);
+            //            folderMonitor.Start(out returnStatus);
 
-                        indexer.StartInitialIndexing(folderMonitor.BeginProcessing,
-                            folderMonitor.GetCurrentPath);
+            //            indexer.StartInitialIndexing(folderMonitor.BeginProcessing,
+            //                folderMonitor.GetCurrentPath);
 
-                        folderMonitoringStarted = true;
+            //            folderMonitoringStarted = true;
 
-                        MessageBox.Show("Folder monitoring started");
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("Please select a folder first");
-            }
+            //            MessageBox.Show("Folder monitoring started");
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    MessageBox.Show("Please select a folder first");
+            //}
+            MessageBox.Show("Had to comment out this code, needs to be updated");
         }
 
         private void FileChange_OnQueueing(MonitorAgent sender, FileChange args)
@@ -924,158 +925,160 @@ namespace CloudTests
 
         private void ResetDatabaseToBlankSyncStates_Click(object sender, RoutedEventArgs e)
         {
-            if (indexer == null)
-            {
-                throw new Exception("Indexer has not been created, first start file monitoring");
-            }
-            List<KeyValuePair<FilePath, FileChange>> lastEvents;
-            indexer.GetEventsSinceLastSync(out lastEvents);
-            indexer.RemoveEventsByIds(lastEvents.Select(currentEvent => currentEvent.Value.EventId));
-            FilePathDictionary<SyncedObject> lastSyncs;
-            indexer.GetLastSyncStates(out lastSyncs);
-            List<long> deleteEvents = new List<long>();
-            foreach (KeyValuePair<FilePath, SyncedObject> lastSync in lastSyncs)
-            {
-                FileChange toDelete = new FileChange()
-                {
-                    NewPath = lastSync.Key,
-                    Type = FileChangeType.Deleted,
-                    Metadata = lastSync.Value.Metadata
-                };
-                indexer.AddEvent(toDelete);
-                deleteEvents.Add(toDelete.EventId);
-            }
-            long newSync;
-            indexer.RecordCompletedSync(DateTime.UtcNow.ToLongTimeString(), deleteEvents, out newSync, OpenFolder.SelectedPath);
+            //if (indexer == null)
+            //{
+            //    throw new Exception("Indexer has not been created, first start file monitoring");
+            //}
+            //List<KeyValuePair<FilePath, FileChange>> lastEvents;
+            //indexer.GetEventsSinceLastSync(out lastEvents);
+            //indexer.RemoveEventsByIds(lastEvents.Select(currentEvent => currentEvent.Value.EventId));
+            //FilePathDictionary<SyncedObject> lastSyncs;
+            //indexer.GetLastSyncStates(out lastSyncs);
+            //List<long> deleteEvents = new List<long>();
+            //foreach (KeyValuePair<FilePath, SyncedObject> lastSync in lastSyncs)
+            //{
+            //    FileChange toDelete = new FileChange()
+            //    {
+            //        NewPath = lastSync.Key,
+            //        Type = FileChangeType.Deleted,
+            //        Metadata = lastSync.Value.Metadata
+            //    };
+            //    indexer.AddEvent(toDelete);
+            //    deleteEvents.Add(toDelete.EventId);
+            //}
+            //long newSync;
+            //indexer.RecordCompletedSync(DateTime.UtcNow.ToLongTimeString(), deleteEvents, out newSync, OpenFolder.SelectedPath);
+            MessageBox.Show("Had to comment out this code, needs to be updated");
         }
 
         private const string schedulerLogLocation = "C:\\Users\\Public\\Documents\\HttpSchedulerLog.txt";
         private void HttpSchedulerTests_Click(object sender, RoutedEventArgs e)
         {
-            #region basic function single task
-            //Task<long> toRun = new Task<long>(state =>
-            //    {
-            //        Nullable<int> castState = state as Nullable<int>;
-            //        if (castState != null)
+            //#region basic function single task
+            ////Task<long> toRun = new Task<long>(state =>
+            ////    {
+            ////        Nullable<int> castState = state as Nullable<int>;
+            ////        if (castState != null)
+            ////        {
+            ////            bool doNothing = true;
+            ////        }
+            ////        return 2;
+            ////    }, 1);
+            ////toRun.ContinueWith(result =>
+            ////        {
+            ////            long storeResult = result.Result;
+            ////        });
+            ////toRun.Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.From));
+            //#endregion
+
+            //#region test concurrent limit
+            //GenericHolder<long> incrementor = new GenericHolder<long>();
+            //object writeLocker = new object();
+            //for (int i = 0; i < 24; i++)
+            //{
+            //    SyncDirection currentDirection = (i % 2 == 0 ? SyncDirection.From : SyncDirection.To);
+
+            //    Task<KeyValuePair<SyncDirection, KeyValuePair<long, object>>> secondRun = new Task<KeyValuePair<SyncDirection, KeyValuePair<long, object>>>(state =>
             //        {
-            //            bool doNothing = true;
-            //        }
-            //        return 2;
-            //    }, 1);
-            //toRun.ContinueWith(result =>
+            //            Nullable<KeyValuePair<SyncDirection, KeyValuePair<GenericHolder<long>, object>>> castState = state as Nullable<KeyValuePair<SyncDirection, KeyValuePair<GenericHolder<long>, object>>>;
+            //            if (castState == null)
+            //            {
+            //                throw new InvalidCastException("state was not castable as GenericHolder<long>");
+            //            }
+            //            long incrementedValue;
+            //            lock (castState.Value.Value.Key)
+            //            {
+            //                incrementedValue = castState.Value.Value.Key.Value++;
+            //            }
+            //            Thread.Sleep(10000);
+
+            //            return new KeyValuePair<SyncDirection, KeyValuePair<long, object>>(castState.Value.Key, new KeyValuePair<long, object>(incrementedValue, castState.Value.Value.Value));
+
+            //        }, new KeyValuePair<SyncDirection, KeyValuePair<GenericHolder<long>, object>>(currentDirection, new KeyValuePair<GenericHolder<long>, object>(incrementor, writeLocker)));
+
+            //    secondRun.ContinueWith(result =>
             //        {
-            //            long storeResult = result.Result;
-            //        });
-            //toRun.Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.From));
-            #endregion
-
-            #region test concurrent limit
-            GenericHolder<long> incrementor = new GenericHolder<long>();
-            object writeLocker = new object();
-            for (int i = 0; i < 24; i++)
-            {
-                SyncDirection currentDirection = (i % 2 == 0 ? SyncDirection.From : SyncDirection.To);
-
-                Task<KeyValuePair<SyncDirection, KeyValuePair<long, object>>> secondRun = new Task<KeyValuePair<SyncDirection, KeyValuePair<long, object>>>(state =>
-                    {
-                        Nullable<KeyValuePair<SyncDirection, KeyValuePair<GenericHolder<long>, object>>> castState = state as Nullable<KeyValuePair<SyncDirection, KeyValuePair<GenericHolder<long>, object>>>;
-                        if (castState == null)
-                        {
-                            throw new InvalidCastException("state was not castable as GenericHolder<long>");
-                        }
-                        long incrementedValue;
-                        lock (castState.Value.Value.Key)
-                        {
-                            incrementedValue = castState.Value.Value.Key.Value++;
-                        }
-                        Thread.Sleep(10000);
-
-                        return new KeyValuePair<SyncDirection, KeyValuePair<long, object>>(castState.Value.Key, new KeyValuePair<long, object>(incrementedValue, castState.Value.Value.Value));
-
-                    }, new KeyValuePair<SyncDirection, KeyValuePair<GenericHolder<long>, object>>(currentDirection, new KeyValuePair<GenericHolder<long>, object>(incrementor, writeLocker)));
-
-                secondRun.ContinueWith(result =>
-                    {
-                        lock (result.Result.Value.Value)
-                        {
-                            if (result.Result.Value.Key == 11)
-                            {
-                                (new Task(state =>
-                                    {
-                                        Nullable<KeyValuePair<string, object>> castState = state as Nullable<KeyValuePair<string, object>>;
-
-                                        if (castState != null)
-                                        {
-                                            KeyValuePair<string, object> nonNullState = (KeyValuePair<string, object>)castState;
-
-                                            lock (nonNullState.Value)
-                                            {
-                                                File.AppendAllText(schedulerLogLocation,
-                                                    nonNullState.Key + " Number 11 Secondary Task Synchronous" + Environment.NewLine);
-                                            }
-                                        }
-                                    },
-                                    new KeyValuePair<string, object>(result.Result.Key.ToString(), result.Result.Value.Value)))
-                                    .RunSynchronously(HttpScheduler.GetSchedulerByDirection(result.Result.Key));
-                            }
-
-                            File.AppendAllText(schedulerLogLocation,
-                                result.Result.Key.ToString() + " " + result.Result.Value.Key.ToString() + "    " + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + Environment.NewLine);
-                        }
-                    });
-
-                secondRun.Start(HttpScheduler.GetSchedulerByDirection(currentDirection));
-            }
-            #endregion
-
-            #region error bubble without executable
-            //Task<bool> thirdRun = new Task<bool>(() =>
-            //    {
-            //        throw new Exception("This exception should cause a message box to appear (should never happen in normal use!!!)");
-            //    });
-
-            //thirdRun.ContinueWith(result =>
-            //    {
-            //        string extraData = string.Empty;
-            //        try
-            //        {
-            //            extraData = Environment.NewLine + "but has data: " + result.Result.ToString();
-            //        }
-            //        catch
-            //        {
-            //        }
-            //        File.AppendAllText(schedulerLogLocation,
-            //            Environment.NewLine + "The previous task threw an exception: " + result.Exception.GetBaseException().Message + extraData);
-            //    });
-
-            //thirdRun.Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.From));
-            #endregion
-
-            #region error bubble with executable
-            //(new Task<bool>(() =>
-            //    {
-            //        try
-            //        {
-            //            throw new Exception("Inner exception thrown before wrapping");
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            throw new ExecutableException<object>((exceptionState, aggregateException) =>
+            //            lock (result.Result.Value.Value)
+            //            {
+            //                if (result.Result.Value.Key == 11)
             //                {
-            //                    File.AppendAllText(schedulerLogLocation,
-            //                        Environment.NewLine + "The previous task threw an exception: " + aggregateException.GetBaseException().Message +
-            //                        Environment.NewLine + "exceptionState: " + exceptionState);
-            //                }, "My exception state",
-            //                "Wrapped exception for HttpScheduler",
-            //                ex);
-            //        }
-            //    })).Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.From));
+            //                    (new Task(state =>
+            //                        {
+            //                            Nullable<KeyValuePair<string, object>> castState = state as Nullable<KeyValuePair<string, object>>;
 
-            //Thread.Sleep(5000);
-            //GC.Collect();
-            //GC.WaitForPendingFinalizers();
-            //GC.Collect();
-            #endregion
+            //                            if (castState != null)
+            //                            {
+            //                                KeyValuePair<string, object> nonNullState = (KeyValuePair<string, object>)castState;
+
+            //                                lock (nonNullState.Value)
+            //                                {
+            //                                    File.AppendAllText(schedulerLogLocation,
+            //                                        nonNullState.Key + " Number 11 Secondary Task Synchronous" + Environment.NewLine);
+            //                                }
+            //                            }
+            //                        },
+            //                        new KeyValuePair<string, object>(result.Result.Key.ToString(), result.Result.Value.Value)))
+            //                        .RunSynchronously(HttpScheduler.GetSchedulerByDirection(result.Result.Key));
+            //                }
+
+            //                File.AppendAllText(schedulerLogLocation,
+            //                    result.Result.Key.ToString() + " " + result.Result.Value.Key.ToString() + "    " + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + Environment.NewLine);
+            //            }
+            //        });
+
+            //    secondRun.Start(HttpScheduler.GetSchedulerByDirection(currentDirection));
+            //}
+            //#endregion
+
+            //#region error bubble without executable
+            ////Task<bool> thirdRun = new Task<bool>(() =>
+            ////    {
+            ////        throw new Exception("This exception should cause a message box to appear (should never happen in normal use!!!)");
+            ////    });
+
+            ////thirdRun.ContinueWith(result =>
+            ////    {
+            ////        string extraData = string.Empty;
+            ////        try
+            ////        {
+            ////            extraData = Environment.NewLine + "but has data: " + result.Result.ToString();
+            ////        }
+            ////        catch
+            ////        {
+            ////        }
+            ////        File.AppendAllText(schedulerLogLocation,
+            ////            Environment.NewLine + "The previous task threw an exception: " + result.Exception.GetBaseException().Message + extraData);
+            ////    });
+
+            ////thirdRun.Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.From));
+            //#endregion
+
+            //#region error bubble with executable
+            ////(new Task<bool>(() =>
+            ////    {
+            ////        try
+            ////        {
+            ////            throw new Exception("Inner exception thrown before wrapping");
+            ////        }
+            ////        catch (Exception ex)
+            ////        {
+            ////            throw new ExecutableException<object>((exceptionState, aggregateException) =>
+            ////                {
+            ////                    File.AppendAllText(schedulerLogLocation,
+            ////                        Environment.NewLine + "The previous task threw an exception: " + aggregateException.GetBaseException().Message +
+            ////                        Environment.NewLine + "exceptionState: " + exceptionState);
+            ////                }, "My exception state",
+            ////                "Wrapped exception for HttpScheduler",
+            ////                ex);
+            ////        }
+            ////    })).Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.From));
+
+            ////Thread.Sleep(5000);
+            ////GC.Collect();
+            ////GC.WaitForPendingFinalizers();
+            ////GC.Collect();
+            //#endregion
+            MessageBox.Show("Had to comment out this code, needs to be updated");
         }
 
         private void BadgeInitialize_Click(object sender, RoutedEventArgs e)
@@ -1088,7 +1091,6 @@ namespace CloudTests
             {
                 MessageBox.Show("Please select a folder first");
             }
-
         }
 
         private void BadgeTerminate_Click(object sender, RoutedEventArgs e)
