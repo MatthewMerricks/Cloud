@@ -18,7 +18,7 @@ Inheritance diagram for Cloud\-Api\-Public.\-File\-Monitor.\-Monitor\-Agent\-:\b
 string \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a4f8355a65a49af520f5bad5e012d6005}{Get\-Current\-Path} ()
 \begin{DoxyCompactList}\small\item\em Retrieves current folder path of monitored root \end{DoxyCompactList}\item 
 void \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a75c1ea853f4abeb5de7f9b35f580ec15}{Push\-Notification} (Json\-Contracts.\-Notification\-Response notification)
-\begin{DoxyCompactList}\small\item\em Starts the queue timer to start sync processing, if it is not already started for other events \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em A push notification has been received. Starts the queue timer to start sync processing, if it is not already started for other events \end{DoxyCompactList}\item 
 void \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_af6a13b7d0c183eda555e669a90e3f122}{Begin\-Processing} (I\-Enumerable$<$ Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_metadata}{File\-Metadata} $>$$>$ initial\-List, I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ new\-Changes=null)
 \begin{DoxyCompactList}\small\item\em Notify completion of indexing; sets Is\-Initial\-Index to false, combines index with queued changes, and processes changes \end{DoxyCompactList}\item 
 \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a7fd0bcb1837d5a27a32385232f6f463b}{Start} (out \hyperlink{namespace_cloud_api_public_1_1_static_a31db95951688473984962a22ad05a45f}{Monitor\-Status} status)
@@ -85,13 +85,13 @@ Create and initialize the \hyperlink{class_cloud_api_public_1_1_file_monitor_1_1
 \hline
 {\em sync\-Run} & delegate to be executed when a group of events is to be processed\\
 \hline
-{\em on\-Queueing\-Callback} & (optional) action to be executed evertime a File\-Change would be queued for processing\\
+{\em on\-Queueing\-Callback} & (optional) action to be executed every time a File\-Change would be queued for processing\\
 \hline
 {\em log\-Processing} & (optional) if set, logs File\-Change objects when their processing callback fires\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-Returns any error that occurred if there was one
+Returns any error that occurred, or null.
 \end{DoxyReturn}
 \hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a6bdf7564ecf0dc66d9490d51d19e2694}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Dispose@{Dispose}}
 \index{Dispose@{Dispose}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}
@@ -143,7 +143,7 @@ Call this function when an interprocess receiver gets a call from a Copy\-Hook\-
 )\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a75c1ea853f4abeb5de7f9b35f580ec15}
 
 
-Starts the queue timer to start sync processing, if it is not already started for other events 
+A push notification has been received. Starts the queue timer to start sync processing, if it is not already started for other events 
 
 \hypertarget{class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent_a7fd0bcb1837d5a27a32385232f6f463b}{\index{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}!Start@{Start}}
 \index{Start@{Start}!CloudApiPublic::FileMonitor::MonitorAgent@{Cloud\-Api\-Public\-::\-File\-Monitor\-::\-Monitor\-Agent}}

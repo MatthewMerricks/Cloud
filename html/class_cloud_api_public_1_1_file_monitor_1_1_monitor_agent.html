@@ -111,7 +111,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a4f8355a65a49af520f5bad5e012d6005"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves current folder path of monitored root  <a href="#a4f8355a65a49af520f5bad5e012d6005"></a><br/></td></tr>
 <tr class="separator:a4f8355a65a49af520f5bad5e012d6005"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75c1ea853f4abeb5de7f9b35f580ec15"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent.html#a75c1ea853f4abeb5de7f9b35f580ec15">PushNotification</a> (JsonContracts.NotificationResponse notification)</td></tr>
-<tr class="memdesc:a75c1ea853f4abeb5de7f9b35f580ec15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the queue timer to start sync processing, if it is not already started for other events  <a href="#a75c1ea853f4abeb5de7f9b35f580ec15"></a><br/></td></tr>
+<tr class="memdesc:a75c1ea853f4abeb5de7f9b35f580ec15"><td class="mdescLeft">&#160;</td><td class="mdescRight">A push notification has been received. Starts the queue timer to start sync processing, if it is not already started for other events  <a href="#a75c1ea853f4abeb5de7f9b35f580ec15"></a><br/></td></tr>
 <tr class="separator:a75c1ea853f4abeb5de7f9b35f580ec15"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6a13b7d0c183eda555e669a90e3f122"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent.html#af6a13b7d0c183eda555e669a90e3f122">BeginProcessing</a> (IEnumerable&lt; KeyValuePair&lt; <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path.html">FilePath</a>, <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_metadata.html">FileMetadata</a> &gt;&gt; initialList, IEnumerable&lt; <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html">FileChange</a> &gt; newChanges=null)</td></tr>
 <tr class="memdesc:af6a13b7d0c183eda555e669a90e3f122"><td class="mdescLeft">&#160;</td><td class="mdescRight">Notify completion of indexing; sets IsInitialIndex to false, combines index with queued changes, and processes changes  <a href="#af6a13b7d0c183eda555e669a90e3f122"></a><br/></td></tr>
@@ -243,12 +243,12 @@ Static Public Member Functions</h2></td></tr>
     <tr><td class="paramname">syncSettings</td><td>The settings to be used with this instance of the file system monitor</td></tr>
     <tr><td class="paramname">newAgent</td><td>returned <a class="el" href="class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent.html" title="Class to cover file monitoring; created with delegates to connect to the SQL indexer and to start Syn...">MonitorAgent</a></td></tr>
     <tr><td class="paramname">syncRun</td><td>delegate to be executed when a group of events is to be processed</td></tr>
-    <tr><td class="paramname">onQueueingCallback</td><td>(optional) action to be executed evertime a FileChange would be queued for processing</td></tr>
+    <tr><td class="paramname">onQueueingCallback</td><td>(optional) action to be executed every time a FileChange would be queued for processing</td></tr>
     <tr><td class="paramname">logProcessing</td><td>(optional) if set, logs FileChange objects when their processing callback fires</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Returns any error that occurred if there was one</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns any error that occurred, or null.</dd></dl>
 
 </div>
 </div>
@@ -357,7 +357,7 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Starts the queue timer to start sync processing, if it is not already started for other events </p>
+<p>A push notification has been received. Starts the queue timer to start sync processing, if it is not already started for other events </p>
 
 </div>
 </div>
@@ -433,7 +433,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 27 2012 12:17:13 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 29 2012 08:12:36 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

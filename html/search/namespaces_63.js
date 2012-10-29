@@ -16,6 +16,7 @@ var searchData=
   ['static',['Static',['../namespace_cloud_api_public_1_1_s_q_l_indexer_1_1_static.html',1,'CloudApiPublic::SQLIndexer']]],
   ['support',['Support',['../namespace_cloud_api_public_1_1_support.html',1,'CloudApiPublic']]],
   ['sync',['Sync',['../namespace_cloud_api_public_1_1_sync.html',1,'CloudApiPublic']]],
+  ['syncbox',['SyncBox',['../namespace_cloud_api_public_1_1_sync_box.html',1,'CloudApiPublic']]],
   ['syncimplementation',['SyncImplementation',['../namespace_cloud_api_public_1_1_file_monitor_1_1_sync_implementation.html',1,'CloudApiPublic::FileMonitor']]],
   ['syncsettings',['SyncSettings',['../namespace_cloud_api_public_1_1_file_monitor_1_1_sync_settings.html',1,'CloudApiPublic::FileMonitor']]]
 ];

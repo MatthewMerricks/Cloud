@@ -19,21 +19,20 @@ ISyncSettings settings = \textcolor{keyword}{new} ISyncSettings(
        registration}
             settings.akey = \textcolor{stringliteral}{"..."};          \textcolor{comment}{// supplied via account
        registration}
-            settings.deviceName = \textcolor{stringliteral}{"MyPc"};   \textcolor{comment}{// friendly device name}
             settings.CloudRoot = \textcolor{stringliteral}{"C:\(\backslash\)Users\(\backslash\)ThisUser\(\backslash\)SyncBox1"};
         );
 
 \textcolor{comment}{// Start syncing the SyncBox}
-Sync sync = \textcolor{keyword}{new} Sync(settings);
-sync.Run();
+SyncBox box = \textcolor{keyword}{new} SyncBox(settings);
+box.Start();
 
 \textcolor{comment}{// ...}
 \end{DoxyCode}
 
 
-The code above will automatically sync files in the \char`\"{}\-Sync\-Box1\char`\"{} directory with your other devices, and with your Sync\-Box on the Cloud servers.
+The code above will silently and automatically sync files in the \char`\"{}\-Sync\-Box1\char`\"{} directory with your other devices, and with your Sync\-Box on the Cloud servers.
 
-Should you need more extensive control over the syncing process, the A\-P\-I will allow you to implement your own methods for full control.\hypertarget{index_install_sec}{}\section{Installation}\label{index_install_sec}
+Should you need more extensive control over the syncing process, the A\-P\-I will allow you to implement your own methods for full control, including real time sync status and server push notification.\hypertarget{index_install_sec}{}\section{Installation}\label{index_install_sec}
 Get started by following the steps below\-:
 \begin{DoxyItemize}
 \item Browse to the Cloud download page at \href{http://web-edge.cloudburrito.com}{\tt http\-://web-\/edge.\-cloudburrito.\-com}.
@@ -41,7 +40,7 @@ Get started by following the steps below\-:
 \item Follow the instructions to install the Cloud client program.
 \item Run the Cloud.\-exe program and use it to sign up for a free Cloud account.
 \item You will find this documentation in \char`\"{}\-C\-:\textbackslash{}\-Program Files (x86)\textbackslash{}\-Cloud.\-com\textbackslash{}\-Cloud\textbackslash{}\-Docs\char`\"{}.
-\item Use Visual Studio to load the sample program at \char`\"{}\-C\-:\textbackslash{}\-Program Files (x86)\textbackslash{}\-Cloud.\-com\textbackslash{}\-Cloud\textbackslash{}\-Samples\textbackslash{}\-Sync\-Box.\-sln\char`\"{}.
+\item Use Visual Studio to load the sample program at \char`\"{}\-C\-:\textbackslash{}\-Program Files (x86)\textbackslash{}\-Cloud.\-com\textbackslash{}\-Cloud\textbackslash{}\-Samples\textbackslash{}\-Sample\-Sync\-Box.\-sln\char`\"{}.
 \item Enjoy!
 \end{DoxyItemize}\hypertarget{index_copyright_sec}{}\section{Copyright (\-C) Cloud.\-com.  All Rights Reserved.}\label{index_copyright_sec}
 \href{http://www.cloud.com}{\tt http\-://www.\-cloud.\-com} 

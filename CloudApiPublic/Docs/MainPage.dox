@@ -24,8 +24,8 @@
 ///				);
 ///
 ///		// Start syncing the SyncBox
-///		Sync sync = new Sync(settings);
-///		sync.Run();
+///		SyncBox box = new SyncBox(settings);
+///		box.Start();
 ///
 ///		// ...
 /// \endcode

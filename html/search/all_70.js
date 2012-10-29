@@ -13,5 +13,6 @@ var searchData=
   ['purgependingresponse',['PurgePendingResponse',['../class_cloud_api_public_1_1_json_contracts_1_1_purge_pending_response.html',1,'CloudApiPublic::JsonContracts']]],
   ['push',['Push',['../class_cloud_api_public_1_1_json_contracts_1_1_push.html',1,'CloudApiPublic::JsonContracts']]],
   ['pushnotification',['PushNotification',['../class_cloud_api_public_1_1_file_monitor_1_1_monitor_agent.html#a75c1ea853f4abeb5de7f9b35f580ec15',1,'CloudApiPublic::FileMonitor::MonitorAgent']]],
+  ['pushnotificationerror',['PushNotificationError',['../class_cloud_api_public_1_1_sync_box_1_1_sync_box.html#a8ddba93f4254b9ebfd56277ace63ff68',1,'CloudApiPublic::SyncBox::SyncBox']]],
   ['pushresponse',['PushResponse',['../class_cloud_api_public_1_1_json_contracts_1_1_push_response.html',1,'CloudApiPublic::JsonContracts']]]
 ];

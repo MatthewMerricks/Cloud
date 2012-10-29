@@ -17,7 +17,7 @@ using CloudApiPublic.SQLIndexer;
 using CloudApiPublic.PushNotification;
 using CloudApiPublic.Static;
 
-namespace CloudApiPublic.SyncBox
+namespace CloudApiPublic
 {
     /// <summary>
     /// A class used to create a SyncBox to synchronize the contents of a local disk directory.
