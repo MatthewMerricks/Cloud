@@ -25,13 +25,15 @@ using CloudApiPublic.Support;
 using CloudApiPrivate.Common;
 using System.Runtime.InteropServices;
 using BadgeNET.Static;
+using BadgeNET.PubSubEvents;
+using Microsoft.WebSolutionsPlatform.Event.PubSubManager;
 
 namespace BadgeNET
 {
     /// <summary>
     /// IconOverlay is responsible for keeping a list of badges and synchronizing them with BadgeCOM (the Windows shell extensions for icon overlays)
     /// </summary>
-    public sealed class IconOverlay : IDisposable
+    public sealed class IconOverlay : IDisposable, ISubscriptionCallback
     {
         #region Singleton pattern
         /// <summary>
@@ -114,6 +116,28 @@ namespace BadgeNET
                 // Capture the Cloud directory path for performance.
                 filePathCloudDirectory = pathRootDirectory;
 
+                // Initialize to the PubSub events shared memory queue.
+                _publishMgr = new PublishManager();
+
+                _subscriptionCallback = new SubscriptionManager.Callback(SubscriptionCallback);
+                _subscriptionMgr = new SubscriptionManager(_subscriptionCallback);
+
+                // Subscribe to the BadgeCom initialization events.
+                _subscriptionMgr.AddSubscription(eventType: EventIds.kEvent_BadgeCom_Initialized, localOnly: true);
+
+                // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
+                BadgeNet_AddSyncBoxFolderPath evt = new BadgeNet_AddSyncBoxFolderPath();
+                evt.EventType = EventIds.kEvent_BadgeNet_AddSyncBoxFolderPath;
+                evt.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
+                evt.ThreadId =  System.Threading.Thread.CurrentThread.ManagedThreadId;
+                evt.SyncBoxFolderFullPath = pathRootDirectory;
+                _publishMgr.Publish(evt.Serialize());
+                
+                // Allocate the badging current state flat dictionary.  This dictionary is used to determine the badge path to remove when the
+                // badge type for that path changes.  We send a _kEvent_BadgeNet_AddBadgePath event to the BadgeCom "new" type, and a
+                // _kEvent_BadgeNet_RemoveBadgePath event to the BadgeCom "old" type.
+                _currentBadges = new Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>(FilePathComparer.Instance);
+
                 // Allocate the badging dictionary.  This is a hierarchical dictionary.
                 CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
                     rootPath: filePathCloudDirectory,
@@ -157,6 +181,7 @@ namespace BadgeNET
                     }
                 }
 
+
                 _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes.");
                 StartBadgeCOMPipes();
 
@@ -176,6 +201,54 @@ namespace BadgeNET
             }
             _trace.writeToLog(9, "IconOverlay: Return success.");
             return null;
+        }
+
+        /// <summary>
+        /// We just received an event from one of the BadgeCom instances.
+        /// </summary>
+        /// <param name="eventType"></param>
+        /// <param name="serializedEvent"></param>
+        public void SubscriptionCallback(Guid eventType, byte[] serializedEvent)
+        {
+
+            if (eventType == EventIds.kEvent_BadgeCom_Initialized)
+            {
+                try
+                {
+                    // Deserialize the event
+                    BadgeCom_Initialized evtIn = new BadgeCom_Initialized(serializedEvent);
+
+                    // Publish the add SyncBox folder path event back to all BadgeCom instances.  Only the instance
+                    // that just sent us this event will process it.
+                    BadgeNet_AddSyncBoxFolderPath evtOut = new BadgeNet_AddSyncBoxFolderPath();
+                    evtOut.EventType = EventIds.kEvent_BadgeNet_AddSyncBoxFolderPath;
+                    evtOut.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
+                    evtOut.ThreadId =  System.Threading.Thread.CurrentThread.ManagedThreadId;
+                    evtOut.SyncBoxFolderFullPath = filePathCloudDirectory.ToString();
+                    _publishMgr.Publish(evtOut.Serialize());
+
+                    // Iterate over the current badge state dictionary.  For each entry that matches this badge type, 
+                    // publish an add badge path event.  This will populate the BadgeCom instance that just initialized.
+                    // Other instances will ignore these events.
+                    foreach(KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in _currentBadges)
+                    {
+                        if (item.Value.Value == (cloudAppIconBadgeType)evtIn.BadgeType)
+                        {
+                            // Publish a badge add path event to BadgeCom.
+                            BadgeNet_AddBadgePath evtAddBadgePath = new BadgeNet_AddBadgePath();
+                            evtAddBadgePath.EventType = EventIds.kEvent_BadgeNet_AddBadgePath;
+                            evtAddBadgePath.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
+                            evtAddBadgePath.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                            evtAddBadgePath.BadgeFullPath = item.Key.ToString();
+                            _publishMgr.Publish(evtAddBadgePath.Serialize());
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _trace.writeToLog(1, "IconOverlay: OnPubSubEventReceived: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                }
+            }
         }
 
         void MessageEvents_BadgePathRenamed(object sender, BadgePathRenamedArgs e)
@@ -746,6 +819,55 @@ namespace BadgeNET
                                     _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (3).");
                                 }
                             }
+
+                            // Tell BadgeCom instances that we are going down.
+                            try
+                            {
+                                if (_publishMgr != null)
+                                {
+                                    BadgeNet_RemoveSyncBoxFolderPath evtOut = new BadgeNet_RemoveSyncBoxFolderPath();
+                                    evtOut.EventType = EventIds.kEvent_BadgeNet_RemoveSyncBoxFolderPath;
+                                    evtOut.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
+                                    evtOut.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                                    evtOut.SyncBoxFolderFullPath = filePathCloudDirectory.ToString();
+                                    _publishMgr.Publish(evtOut.Serialize());
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncBoxFolderPath event. Msg: <{0}>.", ex.Message);
+                            }
+                            finally
+                            {
+                                _publishMgr = null;
+                            }
+
+                            // Unsubscribe from the kEvent_BadgeCom_Initialized event
+                            try
+                            {
+                                if (_subscriptionMgr != null)
+                                {
+                                    _subscriptionMgr.RemoveSubscription(eventType: EventIds.kEvent_BadgeCom_Initialized);
+                                    _subscriptionMgr.ListenForEvents = false;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncBoxFolderPath event. Msg: <{0}>.", ex.Message);
+                            }
+                            finally
+                            {
+                                _subscriptionCallback = null;
+                                _subscriptionMgr = null;
+                            }
+
+                            // Clear other references.
+                            if (_currentBadges != null)
+                            {
+                                _currentBadges.Clear();
+                            }
+                            _currentBadges = null;
+
                         }
                     }
                 }
@@ -761,6 +883,22 @@ namespace BadgeNET
         /// The Cloud directory path captured as a FilePath at initialization.
         /// </summary>
         private FilePath filePathCloudDirectory { get; set; }
+
+        /// <summary>
+        /// The PubSub Events publish manager.
+        /// </summary>
+        private PublishManager _publishMgr;
+
+        /// <summary>
+        /// The PubSub Events subscription manager.
+        /// </summary>
+        private SubscriptionManager _subscriptionMgr;
+        private SubscriptionManager.Callback _subscriptionCallback;
+
+        /// <summary>
+        /// The dictionary that holds the current state of all of the badges.
+        /// </summary>
+        private Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>> _currentBadges;
 
         /// <summary>
         /// The hierarhical dictionary that holds all of the badges.  Nodes with null values are assumed to be synced.
