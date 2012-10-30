@@ -5096,9 +5096,220 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Create Doxygen html file with a specific style: http://marc.info/?l=doxygen-users&m=120472604230865
     - Doxygen works and spits out great documentation!
     - Removed a lot of dead code.
-    - Working through CloudApiPublic to remove dead code, move it elsewhere, and to change public to internal where appropriate.  Stopped on Model\CLRange.cs.
+    - Working through CloudApiPublic to remove dead code, move it elsewhere, and to change public to internal where appropriate.  Stopped on Model\CLRange.cs.  Pushed to master.
   o 10/27/12 Sat: (Home)
-    - 5:30 - 
+    - 5:30 - 15:00
+    - Refactoring CloudApiPublic to remove more dead code, and to move other code to CloudApiPrivate.  Pushed to master.
+    - Built the MainPage Doxygen page (intro, simple example, etc.).
+    - Coding the SyncBox object.
+  o 10/28/12 Sun: (Home)
+    - 5:30 - 15:00
+    - The SyncBox object code is complete.  Now we need the simplest sample app.  What should that look like?
+    - Sample app requirements:
+      . WPF GUI.
+      . Uses a different set of isolated storage settings than Cloud.exe.
+      . The settings identify only the Cloud account, device and user.  The actual settings are
+        dynamically created, including these three, and passed to SyncBox.
+      . Log in only.  Use Cloud.exe for the registration process.
+      . If the settings already contain the registration fields, log in using those fields.
+        Otherwise, allow the user to specify credentials and log in.
+      . Log in retrieves the user's auth settings (not displayed), and stores them to settings.
+      . Textbox for a directory to sync (with a browse button).
+      . Growl display area (not in the systray).
+      . Incorporates or displays the existing detail status window.
+      . Start button.  Starts syncing the SyncBox.
+      . Stop button. Stops syncing the SyncBox.
+      . Show SyncBox button.  Launches Explorer to the SyncBox directory.
+      . Done button stops syncing and exits the sample app.  The same for closing the window.
+      . When syncing, Explorer will show badges.
+      . Test by launching multiple sample app processes and sync different folders.
+    - What is the architecture necessary to badge multiple SyncBoxes?
+      . BadgeCom is an Explorer shell extension that runs in the user context.
+      . BadgeCom and BadgeNet communicate via a named pipe that includes the user name.  e.g., "robertste/BadgeCOM/cloudAppBadgeSyncing".  There are four named pipes, one for each badge.
+      . That assumes that there is a single Cloud app for this user.  Now there may be multiple, and they aren't named "Cloud.exe".
+      . BadgeCom currently tries to launch Cloud.exe if it can't connect the pipe.  It shouldn't do that any longer.
+      . BadgeCom needs a really fast way to look for multiple apps that support badging.
+      . The obvious way is shared memory, but is there an easier way?
+      . Distributed pub/sub (using shared memory) is in use at Microsoft on thousands of servers: http://pubsub.codeplex.com/releases/view/49398
+      . However, it uses a GUID to identify the event.  I need to filter the events by user.  Can I find a way to do that?
+      . Duh.  No problem.  The event has a payload.  The payload can contain the user name, and the wrong user names can be simply ignored (filtered).
+      . Is the system too big?  No.  The shared memory manager is a short C module.  Publish and Subscribe are short C# modules.
+      . Unfortunately? this system may require a router service.  Can it run locally without the router?
+      . Apparenly it does require the router.  The router creates the shared memory queue, and listens to the queue (listener.cs).
+      . Maybe I could use the SharedQueue (shared memory queue) code?
+      . I looked for other implementations, and this one seems to be tested.  How can I use it?
+    - What functionality do I actually need?
+      . New SyncBoxes should identify themselves to all instances of BadgeCom via multicast:
+        o User name
+        o Process name
+        o Process ID
+        o SyncBox full path
+      . A SyncBox that is ending should send a message to all instances of BadgeCom via multicast:
+        o Process ID
+      . BadgeCom will keep a list of the registered SyncBoxes, and their SyncBox paths.
+      . When determining whether to badge, BadgeCom will search the list of registered paths.  If no match, no badge.
+      . If a match is found, BadgeCom knows the process and the SyncBox.
+      . BadgeCom will use the current support to establish a NamedPipe.  If it doesn't happen immediately (or with perhaps one immediate retry), no badge.    
+      . If the NamedPipe is established, BadgeNet will respond with badge or not, as it currently does.
+      . So, every BadgeCom instance will subscribe to notifications in it's initialization.
+      . BadgeCom termination will unsubscribe to notifications.
+      . BadgeCom must provide notification event handlers.
+    - Another Multicast IPC package (LGPL license) using UDP.  You have to agree on the UDP multicast port: https://code.google.com/p/lcm/
+    - A C++ sample using shared memory: http://www.asyncop.com/MTnPDirEnum.aspx?treeviewPath=%5bo%5d+Open-Source%5cWinModules%5cInfrastructure%5cInterprocess.cpp
+    - It should be possible to use the SharedQueue code from pubsub, and eliminate the router.
+      . Each process would simply create the shared memory object using Local (user) scope.  If it already exists, the current state is returned.
+      . So both the subscriber (BadgeCom) and the publisher (BadgeNet) would create the shared memory object.  Then each would subscribe and listen or publish.
+      . The subscriber (BadgeCom) needs to implement the listener thread, which is the essential router functionality.
+      . Create a sample app to test that functionality.
+        o Write it in C++.  PubSubTest.exe
+        o Make it a console app that can be a publisher or subscriber, selected by a parameter.
+        o An extension of the parameter will be the instance ID.  e.g.: /pPublisher1 (publish), or /sSubscriber5
+        o Ctrl+C will exit the app in either mode.
+        o The publisher will send incrementing messages on a timer until cancelled.
+        o The subscriber will print the messages received until cancelled.
+        o Test multiple publishers and multiple subscribers.
+    - I got the test working (somewhat).  It turns out that the router (server) is the only listener in the pubsub standard implementation.
+      Subscriptions are actually published as special events.  The router sees those and remembers the subscription.  Then when a "publish" event
+      comes in, the router matches it up to the subscription.
+    - I should be able to implement my own processing just using the queue (which works).
+    - Question: What do we do with the published events when there is no listener.  The events would fill up the queue.  Then what do we do?  Lose the new events?
+      That shouldn't be a problem.  Make the queue big enough.  Only SyncBox start and stop events are going to the queue, and Explorer is usually running.
+    - However, how do I handle the subscription logic?  I really need the router. Making it run as a service is really undesirable.  Maybe I could use
+      one (or any) of the BadgeCom badging events to start a thread that will run the router code under a global named lock.  That way there would be only
+      a single router in use at a time.  If Explorer is killed, the new Explorer would start the router at the next badge request event, or perhaps at
+      DLL load time.
+    - So, each BadgeCom COM object would register as a subscriber for the events, and one of the COM objects would run the router code.  That should do it.
+    - Install the router service for the time being, and get BadgeCom working with the shared memory SyncBox start and stop events.  Then move the router
+      code into BadgeCom as a second step.
+  o 10/29/12 Mon:
+    - 6:45 - 18:30
+    - The published events are SyncBox start and stop, not process start and stop as I had originally thought.
+    - We should change the design of BadgeCom to actually hold the database of badges.  We can use PubSubEvents to send the badges.  We would send all file paths except for the "none" state, as on the Mac.
+    - Working on getting PubSubEvents to build in 3rdParty.  That works now and it builds to the proper directories.  The WspEvent router is installed on my development machine.
+    - The Badging DLL and interfaces should be separately shippable.  SyncBoxes should work without badging.
+    - I will bite the bullet and change the badging to make the badge dictionary resident in BadgeCom.
+      . BadgeNet will continue to have the hierarchical dictionary, because that is required to calculate a badge.
+      . BadgeNet will also have (at least for now..) a flat dictionary of the current badges.  The lack of a path (key) in this dictionary means no badge.
+      . BadgeNet will subscribe to BadgeCom initialization events.
+      . BadgeCom initialization event will subscribe to badge events, and will then publish the BadgeCom initialization event.
+      . Upon receiving the BadgeCom init event, BadgeNet will publish all of the current badge states as events to BadgeCom.
+      . Each Badge change will require two publish events: Add this badge path to the new BadgeCom type, and remove this badge path from the old BadgeCom type.
+    - Code modifications required:
+      . Types:
+        x Event: BadgeCom_Initilization
+	  - Process ID
+	  - Thread ID
+	  - Badge type
+	x Event: BadgeNet_AddSyncBoxFolderPath
+	  - Process ID
+	  - Thread ID
+	  - Full path
+	x Event: BadgeNet_RemoveSyncBoxFolderPath
+	  - Process ID
+	  - Thread ID
+	  - Full path
+	x Event: BadgeNet_AddBadgePath
+	  - Process ID
+	  - Thread ID
+	  - Full path
+	  - Badge Type
+	x Event: BadgeNet_RemoveBadgePath
+	  - Process ID
+	  - Thread ID
+	  - Full path
+	  - Badge Type
+      . BadgeNet:
+        x Initilize:
+	  - Allocate a flat dictionary (FilePath/BadgeType) to hold the current badge path and state.
+	    . Use dictionary constructor that takes an IEqualityComparer and pass FilePathComparer.Instance.
+          - Initialize to the pubsub Shared Memory queue.
+          - Subscribe to BadgeComInit events.
+	  - Publish add SyncBox folder path event.
+	x Termination:
+	  - Publish remove SyncBox folder path event.
+	  - Unsubscribe from BadgeComInit events.
+	  - Null the local reference to the current badge path dictionary.
+	  - Null the local reference to the pubsub shared memory queue.
+	o Badge arrived from indexer event:
+   	  - Publish badge path add/remove events.
+	  - Maintain the dictionary of current badge paths and state.
+	  - Modificaiton notes:
+	    . When the indexer presents events to BadgeNet, the events are simply queued and a ThreadPool thread processes the queue.  This is to decouple the two processes for performance reasons.
+	    . The processing results in two Process() calls; one in genericSetter, and one in newEvent.
+	    . genericSetter.Process calls setBadgeType() to set the badge, so the new processing should be in setBadgeType(), actually pSetBadgeType().
+	    . newEvent.Process is more complicated.  It calls setBadgeType() as above, so that is the same.
+	    . newEvent.Process also calls two more complicated functions; DeleteBadgePath() and RenameBadgePath().
+	    . The new processing should be placed in those functions, specifically: pDeleteBadgePath() and pRenameBadgePath().
+	    . The actual processing in those functions drives callbacks in IconOverlay: OnAllBadgesRecursiveDelete and OnAllBadgesRecursiveRename.
+	    . The new processing needs to go into those functions as well.
+	    . So there are 5 places that need new logic (above).
+	    . Locking: The new processing needs to execute under the allBadges locker in the same context as the hierarchical dictionary update.
+	    . Logic in OnAllBadgesRecursiveDelete:
+	      o Send a RemoveBadgePath(recursivePathBeingDeleted, forBadgeType)
+	      o There is no need to lock here.  The lock is already held.
+	    . Logic in OnAllBadgesRecursiveRename:
+	      o Send a RemoveBadgePath(recursiveOldPath, recursiveOldPathBadgeType)
+	      o Send an AddBadgePath(recursiveRebuiltNewPath, recursiveOldPathBadgeType)
+	    . Logic in pDeleteBadgePath:
+	      o Process under the allBadges lock.
+	      o Determine the current badge type at the toDelete path from the flat dictionary (currentBadgeType)
+	      o Execute the existing logic to delete the toDelete node and its subtree.  This will drive the callbacks which will send the proper events to BadgeCom for the subtree being deleted (but not for the toDelete node).
+	      o If currentBadgeType was found, send a RemoveBadgePath(toDelete, currentBadgeType).
+	      o Remove the toDelete path from the flat dictionary.
+	    . Logic in pRenameBadgePath:
+	      o Process under the allBadges lock.
+	      o Determine the current badge type at the oldPath path from the flat dictionary (currentBadgeType)
+	      o Execute the existing logic to rename the oldPath node and its subtree.  This will drive the callbacks which will send the proper events to BadgeCom for the subtree being renamed (but not for the oldPath node).
+	      o Send a RemoveBadgePath(oldPath, currentBadgeType).
+	      o Send an AddBadgePath(newPath, currentBadgeType).
+	      o Remove oldPath from the flat dictionary.
+	      o Add newPath to the flat dictionary.
+	    . Logic in pSetBadgeType:
+	      o Process under the allBadges lock.
+	      o Get the CurrentBadgeType from the flat dictionary at forFileAtPath.
+	      o Execute the current logic.
+	      o If not found, send an AddBadgePath(forFileAtPath, type)
+	      o If found and different, send a RemoveBadgePath(forFileAtPath, CurrentBadgeType), then send an AddBadgePath(forFileAtPath, type).
+	    . Remove all Explorer notification logic.
+	x OnPubSubBadgeComInitEventReceived:
+	  - Publish the add SyncBox folder path event.
+	  - Iterate over the current badge path dictionary for the event badge type and send matching add badge path events.
+      . BadgeCom:
+	o Init event:
+          - Initialize to the pubsub Shared Memory queue.
+	  - Create the SyncBox folder path dictionary.
+	  - Create the badge path dictionary.
+	  - Subscribe to BadgePathAdd/Remove events.
+	  - Subscribe to the SyncBoxStart/Stop events.
+	  - Publish BadgeComInit event.
+	o Terminate event:?????
+	  - Unsubscribe from the BadgePathAdd/Remove events.
+	  - Unsubscribe from the SyncBoxStart/Stop events.
+	  - Free the badge path dictionary.
+	  - Free the SyncBox folder path dictionary.
+	  - Terminate the pubsub Shared Memory queue.
+	o Badge event:
+	  - no badge if path not in the SyncBox folder path dictionary. return.
+	  - no badge if path not in current badge path/type dictionary.  return.
+	  - Otherwise, badge it and return.
+	o OnPubSubAddBadgeEventReceived: 
+	  . Add this path to the badge dictionary if it doesn't already exist.
+	o OnPubSubRemoveBadgeEventReceived: 
+	  . Remove this path from the badge dictionary.  No error if it is not there.
+	o OnPubSubSyncBoxStartEventReceived:
+	  . Add this SyncBox folder path to the dictionary.
+	o OnPubSubSyncBoxStopEventReceived:
+	  . Remove this SyncBox folder path from the dictionary.
+	o Note: Move notification to BadgeCom and do it after the badge database has been modified.
+    - About 50% of BadgeNet is coded.
+  o 10/30/12 Tue:
+    - 6:45 - 
+    - 
+
+      
+      
+      
+      
 
 
 
@@ -6488,10 +6699,14 @@ TODO:
 		Also, there is an MDS route, GET /user/usage that will return the same thing.
   o Remove all references to System.IO and replace it with Win32 calls.  Too many bugs?????
   o Make a single instance of the RateBar window.
-  o Sync indexer needs to be initialized with ISyncSettings, and add a field for database location.  Default if null based on the Akey.
+  o Sync indexer needs to be initialized with ISyncSettings, and add a field for database location.  Default to the user's AppData Cloud directory if null (filename based on the Akey).
   o Move URLs from CloudApiPublic\Model\CLDefinitions.cs to ISyncSettings.
   o Move all definitions from CloudApiPublic\Model\CLDefinitions.cs out to another module if they are not needed in CloudApiPublic.
   o Recode GenerateDeviceUDID() to generate a GUID specific to the device hardware.  Necessary?
+  o Move BadgeNet into CloudApiPublic.
+  o Enhance BadgeCOM and BadgeNet to support badging multiple SyncBoxes.
+  o Move Context menu support out of BadgeCom and BadgeNet.  This will require another BadgeCom2.
+  o Big issue with multiple BadgeComs installed.  New BadgeComs will have new name and class ID.  Don't unregister or delete on uninstall.  On install, don't install or register if already registered.
 
 
 

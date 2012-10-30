@@ -242,5 +242,41 @@ namespace CloudApiPublic.Model
         {
             return Contains(this, innerPath);
         }
+
+        public static void ApplyRename(FilePath toModify, FilePath rootOldPath, FilePath rootNewPath)
+        {
+            if (toModify == null)
+            {
+                throw new NullReferenceException("toModify cannot be null");
+            }
+            if (rootOldPath == null)
+            {
+                throw new NullReferenceException("rootOldPath cannot be null");
+            }
+            if (rootNewPath == null)
+            {
+                throw new NullReferenceException("rootNewPath cannot be null");
+            }
+
+            if (FilePathComparer.Instance.Equals(toModify, rootOldPath))
+            {
+                toModify._name = rootNewPath._name;
+                toModify.Parent = rootNewPath.Parent;
+            }
+            else
+            {
+                while (toModify.Parent != null)
+                {
+                    if (FilePathComparer.Instance.Equals(toModify.Parent, rootOldPath))
+                    {
+                        toModify.Parent = rootNewPath;
+                        return;
+                    }
+
+                    toModify = toModify.Parent;
+                }
+                throw new KeyNotFoundException("Unable to find overlap between renamed paths or unable to rename");
+            }
+        }
     }
 }
