@@ -914,24 +914,42 @@ DATA_TYPE copyIconDataForURL(URL_TYPE URL)
 	     // we should draw a small badge icon on top of the large folder icon. This si used to distinguish various
 	     // kinds of subnodes visually (e.g. iPhoto events, albums, etc)...
 	     //- (void) drawImage:(id)inImage
-	     //{
-	     // Ê Ê Ê[super drawImage:inImage];             
-	     // Ê Ê Ê             
-	     // Ê Ê Êid datasource = self.dataSource;             
-	     // Ê Ê Ê             
-	     // Ê Ê Êif ([datasource isKindOfClass:[IMBNodeObject class]])             
-	     // Ê Ê Ê{             
-	     // Ê Ê Ê Ê Ê Ê ÊIMBNode* node = (IMBNode*) datasource;             
-	     // Ê Ê Ê Ê Ê Ê ÊNSImage* icon = node.icon;             
-	     // Ê Ê Ê Ê Ê   ÊNSRect frame = [self imageFrame];             
-	     // Ê Ê Ê Ê Ê Ê ÊCGFloat x0 = 20; //NSMidX(frame);             
-	     // Ê Ê Ê Ê Ê Ê ÊCGFloat y0 = 20; //NSMidY(frame);             
-	     // Ê Ê Ê Ê Ê Ê ÊCGFloat dx = 16.0;             
-	     // Ê Ê Ê Ê Ê Ê ÊCGFloat dy = 16.0;             
-	     // Ê Ê Ê Ê Ê Ê Êframe = NSMakeRect(x0-0.5*dx,y0-0.5*dy,dx,dy);             
-	     // Ê Ê Ê Ê Ê Ê Ê[icon drawInRect:frame fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];             
-	     // Ê Ê Ê}             
-	     //}            
+	     //{
+
+	     // Ê Ê Ê[super drawImage:inImage];
+             
+	     // Ê Ê Ê
+             
+	     // Ê Ê Êid datasource = self.dataSource;
+             
+	     // Ê Ê Ê
+             
+	     // Ê Ê Êif ([datasource isKindOfClass:[IMBNodeObject class]])
+             
+	     // Ê Ê Ê{
+             
+	     // Ê Ê Ê Ê Ê Ê ÊIMBNode* node = (IMBNode*) datasource;
+             
+	     // Ê Ê Ê Ê Ê Ê ÊNSImage* icon = node.icon;
+             
+	     // Ê Ê Ê Ê Ê   ÊNSRect frame = [self imageFrame];
+             
+	     // Ê Ê Ê Ê Ê Ê ÊCGFloat x0 = 20; //NSMidX(frame);
+             
+	     // Ê Ê Ê Ê Ê Ê ÊCGFloat y0 = 20; //NSMidY(frame);
+             
+	     // Ê Ê Ê Ê Ê Ê ÊCGFloat dx = 16.0;
+             
+	     // Ê Ê Ê Ê Ê Ê ÊCGFloat dy = 16.0;
+             
+	     // Ê Ê Ê Ê Ê Ê Êframe = NSMakeRect(x0-0.5*dx,y0-0.5*dy,dx,dy);
+             
+	     // Ê Ê Ê Ê Ê Ê Ê[icon drawInRect:frame fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
+             
+	     // Ê Ê Ê}
+             
+	     //}
+            
 	     . Maybe this will work?  First find out the type of the datasource.  It's a FINode.  No surprise.
             . Does a FINode have and icon instance method?  Not that I can see.
             . Print the IKImageBrowserCell::cellState.  Looking for IKImageStateReady (value 2).  That means the thumbnail image has been prepared and is ready to display.

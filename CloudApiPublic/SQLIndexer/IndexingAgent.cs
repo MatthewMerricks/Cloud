@@ -47,7 +47,7 @@ namespace CloudApiPublic.SQLIndexer
         {
             return string.Format(connectionStringFormatter, indexDBLocation, getDecodedIndexDBPassword());
         }
-        private const string indexScriptsResourceFolder = ".IndexDBScripts.";
+        private const string indexScriptsResourceFolder = ".SQLIndexer.IndexDBScripts.";
 
         public readonly ReaderWriterLockSlim CELocker = new ReaderWriterLockSlim();
         #endregion

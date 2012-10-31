@@ -164,7 +164,6 @@ namespace win_client.Services.ServicesManager
                         CLNotificationService.Instance.DisconnectPushNotificationServer();
                         CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                         CLFSMonitoringService.Instance.EndFileSystemMonitoring();
-                        global::CloudApiPublic.Sync.SyncEngine.Shutdown();
                         DelayProcessable<FileChange>.TerminateAllProcessing();
                         
                         // Stop the growl service

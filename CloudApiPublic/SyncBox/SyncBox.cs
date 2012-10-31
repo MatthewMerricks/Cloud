@@ -16,6 +16,7 @@ using CloudApiPublic.Support;
 using CloudApiPublic.SQLIndexer;
 using CloudApiPublic.PushNotification;
 using CloudApiPublic.Static;
+using CloudApiPublic.Sync;
 
 namespace CloudApiPublic
 {
@@ -29,6 +30,7 @@ namespace CloudApiPublic
         private CLNotification _notifier = null;
         private bool _isStarted = false;
         private static CLTrace _trace = CLTrace.Instance;
+        private SyncEngine _syncEngine = null;
 
         /// <summary>
         /// Event fired when a serious notification error has occurred.  Push notification is
@@ -82,11 +84,10 @@ namespace CloudApiPublic
                 _notifier.ConnectionError += OnNotificationConnectionError;
 
                 // Start the monitor
-                CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(
-                                            settings,
-                                            _indexer,
-                                            out _monitor,
-                                            global::CloudApiPublic.Sync.SyncEngine.Run);
+                CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(settings,
+                    _indexer,
+                    out _monitor,
+                    out _syncEngine);
 
                 if (fileMonitorCreationError != null)
                 {
@@ -185,22 +186,52 @@ namespace CloudApiPublic
         {
             if (_monitor != null)
             {
-                MonitorStatus monitorIsStopped;
-                _monitor.Stop(out monitorIsStopped);
-                _monitor.Dispose();
-                _monitor = null;
+                try
+                {
+                    MonitorStatus monitorIsStopped;
+                    _monitor.Stop(out monitorIsStopped);
+                    _monitor.Dispose();
+                    _monitor = null;
+                }
+                catch
+                {
+                }
             }
 
             if (_notifier != null)
             {
-                _notifier.DisconnectPushNotificationServer();
-                _notifier = null;
+                try
+                {
+                    _notifier.DisconnectPushNotificationServer();
+                    _notifier = null;
+                }
+                catch
+                {
+                }
             }
 
             if (_indexer != null)
             {
-                _indexer.Dispose();
-                _indexer = null;
+                try
+                {
+                    _indexer.Dispose();
+                    _indexer = null;
+                }
+                catch
+                {
+                }
+            }
+
+            if (_syncEngine != null)
+            {
+                try
+                {
+                    _syncEngine.Dispose();
+                    _syncEngine = null;
+                }
+                catch
+                {
+                }
             }
         }
 

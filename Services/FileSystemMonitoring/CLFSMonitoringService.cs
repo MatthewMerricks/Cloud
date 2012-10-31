@@ -28,6 +28,7 @@ namespace win_client.Services.FileSystemMonitoring
         private static CLTrace _trace = CLTrace.Instance;
         public MonitorAgent MonitorAgent { get; private set; }
         public IndexingAgent IndexingAgent { get; private set; }
+        public SyncEngine SyncEngine { get; private set; }
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -73,10 +74,11 @@ namespace win_client.Services.FileSystemMonitoring
             // Todo: handle index creation error
 
             MonitorAgent monitorToSet;
+            SyncEngine enginetoSet;
             CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(CLSettingsSync.Instance,
                 IndexingAgent,
                 out monitorToSet,
-                global::CloudApiPublic.Sync.SyncEngine.Run);
+                out enginetoSet);
 
             if (fileMonitorCreationError != null)
             {
@@ -84,11 +86,13 @@ namespace win_client.Services.FileSystemMonitoring
             }
             else
             {
-                if (monitorToSet != null)
+                if (monitorToSet != null
+                    && enginetoSet != null)
                 {
                     try
                     {
                         this.MonitorAgent = monitorToSet;
+                        this.SyncEngine = enginetoSet;
 
                         CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(monitorToSet,
                             (Action<CloudApiPublic.JsonContracts.NotificationResponse>)monitorToSet.PushNotification);
@@ -130,7 +134,19 @@ namespace win_client.Services.FileSystemMonitoring
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring disposing MonitorAgent: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+            }
+            try
+            {
+                if (SyncEngine != null)
+                {
+                    SyncEngine.Dispose();
+                    SyncEngine = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring disposing SyncEngine: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
     }

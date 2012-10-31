@@ -24,6 +24,7 @@ using CloudApiPublic.FileMonitor.SyncImplementation;
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.SQLIndexer;
 using JsonContracts = CloudApiPublic.JsonContracts;
+using CloudApiPublic.Sync;
 
 /// <summary>
 /// Monitor a local file system folder as a SyncBox.
@@ -83,10 +84,7 @@ namespace CloudApiPublic.FileMonitor
         // stores the optional FileChange queueing callback intialization parameter
         private Action<MonitorAgent, FileChange> OnQueueing;
 
-        Func<ISyncDataObject,
-            ISyncSettings,
-            bool,
-            CLError> SyncRun = null;
+        Func<bool, CLError> SyncRun = null;
 
         private GenericHolder<bool> SyncRunLocker = new GenericHolder<bool>(false);
         private GenericHolder<bool> NextSyncQueued = new GenericHolder<bool>(false);
@@ -226,10 +224,7 @@ namespace CloudApiPublic.FileMonitor
         public static CLError CreateNewAndInitialize(ISyncSettings syncSettings,
             IndexingAgent indexer,
             out MonitorAgent newAgent,
-            Func<ISyncDataObject,
-                ISyncSettings,
-                bool,
-                CLError> syncRun,
+            out SyncEngine syncEngine,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
@@ -240,8 +235,21 @@ namespace CloudApiPublic.FileMonitor
             catch (Exception ex)
             {
                 newAgent = Helpers.DefaultForType<MonitorAgent>();
+                syncEngine = Helpers.DefaultForType<SyncEngine>();
                 return ex;
             }
+
+            try
+            {
+                // Create sync engine
+                syncEngine = new SyncEngine(new SyncData(newAgent, indexer), syncSettings);
+            }
+            catch (Exception ex)
+            {
+                syncEngine = Helpers.DefaultForType<SyncEngine>();
+                return ex;
+            }
+
             try
             {
                 if (string.IsNullOrEmpty(syncSettings.CloudRoot))
@@ -252,10 +260,6 @@ namespace CloudApiPublic.FileMonitor
                 if (!folderInfo.Exists)
                 {
                     throw new Exception("Folder not found at provided folder path");
-                }
-                if (syncRun == null)
-                {
-                    throw new NullReferenceException("onProcessEventGroupCallback cannot be null");
                 }
 
                 // Initialize current, in-memory index
@@ -273,7 +277,7 @@ namespace CloudApiPublic.FileMonitor
 
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;
-                newAgent.SyncRun = syncRun;
+                newAgent.SyncRun = syncEngine.Run;
                 newAgent.LogProcessingFileChanges = logProcessing;
 
                 // assign timer object that is used for processing the FileChange queues in batches
@@ -3216,8 +3220,6 @@ namespace CloudApiPublic.FileMonitor
                     (new Thread(new ParameterizedThreadStart(RunOnProcessEventGroupCallback)))
                         .Start(new object[]
                         {
-                            this.SyncData,
-                            _syncSettings,
                             emptyProcessingQueue,
                             this.SyncRun,
                             SyncRunLocker,
@@ -3233,21 +3235,16 @@ namespace CloudApiPublic.FileMonitor
             bool matchedParameters = false;
 
             if (castState != null
-                && castState.Length == 6)
+                && castState.Length == 4)
             {
-                ISyncDataObject argOne = castState[0] as ISyncDataObject;
-                ISyncSettings argTwo = castState[1] as ISyncSettings;
-                Nullable<bool> argThreeNullable = castState[2] as Nullable<bool>;
+                Nullable<bool> argOneNullable = castState[0] as Nullable<bool>;
 
-                Func<ISyncDataObject,
-                    ISyncSettings,
-                    bool,
-                    CLError> RunSyncRun = castState[3] as Func<ISyncDataObject, ISyncSettings, bool, CLError>;
+                Func<bool, CLError> RunSyncRun = castState[1] as Func<bool, CLError>;
 
-                GenericHolder<bool> RunLocker = castState[4] as GenericHolder<bool>;
-                GenericHolder<bool> NextRunQueued = castState[5] as GenericHolder<bool>;
+                GenericHolder<bool> RunLocker = castState[2] as GenericHolder<bool>;
+                GenericHolder<bool> NextRunQueued = castState[3] as GenericHolder<bool>;
 
-                if (argThreeNullable != null
+                if (argOneNullable != null
                     && RunSyncRun != null
                     && RunLocker != null
                     && NextRunQueued != null)
@@ -3273,9 +3270,7 @@ namespace CloudApiPublic.FileMonitor
 
                     do
                     {
-                        RunSyncRun(argOne,
-                            argTwo,
-                            (bool)argThreeNullable);
+                        RunSyncRun((bool)argOneNullable);
                     } while (runAgain(RunLocker, NextRunQueued));
                 }
             }

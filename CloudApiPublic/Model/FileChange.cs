@@ -190,19 +190,12 @@ namespace CloudApiPublic.Model
                 Type.ToString();
         }
 
-        public static void RunUnDownEvent(UpDownEventArgs callback)
+        internal void FileChange_UpDown(object sender, UpDownEventArgs e)
         {
-            lock (UpDownEventLocker)
-            {
-                if (UpDownEvent != null)
-                {
-                    UpDownEvent(null, callback);
-                }
-            }
+            e.SendBackChange(this);
         }
-        public static event EventHandler<UpDownEventArgs> UpDownEvent;
-        public static readonly object UpDownEventLocker = new object();
-        public class UpDownEventArgs : EventArgs
+
+        internal class UpDownEventArgs : EventArgs
         {
             public Action<FileChange> SendBackChange { get; private set; }
 
@@ -210,10 +203,6 @@ namespace CloudApiPublic.Model
             {
                 this.SendBackChange = SendBackChange;
             }
-        }
-        public void FileChange_UpDown(object sender, UpDownEventArgs e)
-        {
-            e.SendBackChange(this);
         }
     }
 }

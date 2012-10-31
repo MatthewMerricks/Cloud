@@ -58,6 +58,20 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _downloadSerializer = null;
         private static readonly object DownloadSerializerLocker = new object();
 
+        public static DataContractJsonSerializer GetMetadataResponseSerializer
+        {
+            get
+            {
+                lock (GetMetadataResponseSerializerLocker)
+                {
+                    return _getMetadataResponseSerializer
+                        ?? (_getMetadataResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Metadata)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _getMetadataResponseSerializer = null;
+        private static readonly object GetMetadataResponseSerializerLocker = new object();
+
         public static DataContractJsonSerializer ToSerializer
         {
             get

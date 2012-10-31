@@ -145,6 +145,22 @@ namespace CloudApiPublic.FileMonitor.SyncSettings
         }
         private string _cloudRoot = null;
 
+        public static SyncSettings CopySettings(ISyncSettings toCopy)
+        {
+            return new SyncSettings(toCopy.ErrorLogLocation,
+                toCopy.LogErrors,
+                toCopy.TraceType,
+                toCopy.TraceLocation,
+                toCopy.TraceExcludeAuthorization,
+                toCopy.Udid,
+                toCopy.Uuid,
+                toCopy.Akey,
+                toCopy.TempDownloadFolderFullPath,
+                toCopy.ClientVersion,
+                toCopy.DeviceName,
+                toCopy.CloudRoot);
+        }
+
         public SyncSettings(
                     string errorLogLocation,
                     bool logErrors,

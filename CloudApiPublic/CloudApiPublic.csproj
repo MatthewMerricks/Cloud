@@ -36,6 +36,15 @@
     <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>bin\Release\CloudApiPublic.XML</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugNoSSL|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugNoSSL\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NOSSL</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework">
       <HintPath>..\3rdParty\bin\Release\EntityFramework.dll</HintPath>
@@ -198,6 +207,7 @@
     <Compile Include="Support\ProcessingQueuesTimer.cs" />
     <Compile Include="Sync\ExecutableException.cs" />
     <Compile Include="Sync\HttpScheduler.cs" />
+    <Compile Include="Sync\IEnumerableStreamExtensions.cs" />
     <Compile Include="Sync\IExecutableException.cs" />
     <Compile Include="Sync\Model\AsyncUploadDownloadTask.cs" />
     <Compile Include="Sync\Model\DownloadIdAndMD5.cs" />
@@ -251,11 +261,8 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
-    <Content Include="Static\NotLinkedFull.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Samples\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

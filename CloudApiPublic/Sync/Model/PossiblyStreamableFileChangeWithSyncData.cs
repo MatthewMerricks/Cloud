@@ -7,6 +7,7 @@
 
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
+using CloudApiPublic.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,20 @@ namespace CloudApiPublic.Sync.Model
             }
         }
         private PossiblyStreamableFileChange _fileChange;
+
+        public ProcessingQueuesTimer DownloadErrorTimer
+        {
+            get
+            {
+                if (!_fileChange.IsValid
+                    || !IsValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChangeWithSyncData");
+                }
+                return _downloadErrorTimer;
+            }
+        }
+        private ProcessingQueuesTimer _downloadErrorTimer;
 
         public ISyncDataObject SyncData
         {
@@ -86,6 +101,48 @@ namespace CloudApiPublic.Sync.Model
         }
         private Nullable<Guid> _tempDownloadFileId;
 
+        public byte MaxNumberOfFailureRetries
+        {
+            get
+            {
+                if (!_fileChange.IsValid
+                    || !IsValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChangeWithSyncData");
+                }
+                return _maxNumberOfFailureRetries;
+            }
+        }
+        private byte _maxNumberOfFailureRetries;
+
+        public byte MaxNumberOfNotFounds
+        {
+            get
+            {
+                if (!_fileChange.IsValid
+                    || !IsValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChangeWithSyncData");
+                }
+                return _maxNumberOfNotFounds;
+            }
+        }
+        private byte _maxNumberOfNotFounds;
+
+        public Queue<FileChange> FailedChangesQueue
+        {
+            get
+            {
+                if (!_fileChange.IsValid
+                    || !IsValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChangeWithSyncData");
+                }
+                return _failedChangesQueue;
+            }
+        }
+        private Queue<FileChange> _failedChangesQueue;
+
         public bool IsValid
         {
             get
@@ -95,7 +152,7 @@ namespace CloudApiPublic.Sync.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableFileChangeWithSyncData(PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, ISyncSettings SyncSettings, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
+        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, ISyncSettings SyncSettings, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
         {
             if (SyncData == null)
             {
@@ -105,6 +162,14 @@ namespace CloudApiPublic.Sync.Model
             {
                 throw new NullReferenceException("SyncSettings cannot be null");
             }
+            if (DownloadErrorTimer == null)
+            {
+                throw new NullReferenceException("DownloadErrorTimer cannot be null");
+            }
+            if (FailedChangesQueue == null)
+            {
+                throw new NullReferenceException("FailedChangesQueue cannot be null");
+            }
 
             this._fileChange = FileChange;
             this._syncData = SyncData;
@@ -112,6 +177,10 @@ namespace CloudApiPublic.Sync.Model
             this._tempDownloadFolderPath = TempDownloadFolderPath;
             this._tempDownloadFileId = TempDownloadFileId;
             this._isValid = true;
+            this._downloadErrorTimer = DownloadErrorTimer;
+            this._maxNumberOfFailureRetries = MaxNumberOfFailureRetries;
+            this._maxNumberOfNotFounds = MaxNumberOfNotFounds;
+            this._failedChangesQueue = FailedChangesQueue;
         }
     }
 }

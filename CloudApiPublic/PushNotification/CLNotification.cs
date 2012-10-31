@@ -159,7 +159,13 @@ namespace CloudApiPublic.PushNotification
                                 webSocketOpenStatus = "Attached connection closed handler";
                                 try
                                 {
-                                    urlReceiver = new MessageReceiver(url, _syncSettings, NotificationReceived);
+                                    urlReceiver = new MessageReceiver(url, _syncSettings, (sender, e) =>
+                                    {
+                                        if (NotificationReceived != null)
+                                        {
+                                            NotificationReceived(sender, e);
+                                        }
+                                    });
                                     webSocketOpenStatus = "Instantiated new MessageReceiver";
                                     _connection.MessageReceived += urlReceiver.OnConnectionReceived;
                                     webSocketOpenStatus = "Attached connection received handler";
