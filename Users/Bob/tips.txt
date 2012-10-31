@@ -5059,6 +5059,49 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
 	o Also map the metadata straight through.
 	o Also map the security straight through.
     - I tried the sample VDisk.  It was not without problems.  The driver intstallation threw an exception because it couldn't find some file, but it worked on restart.  Uninstall said we needed to reboot.
+  o 10/17/12 Wed: (home)
+    - 6:00 - 10:30
+    - The normal cloud directory path (e.g.: "C:\Users\RobertSte\Cloud") won't work because we need to use only a drive letter to represent the cloud directory.  e.g.: "X:".
+    - That means all of the code that is in place to move the cloud directory (at setup and in Preferences) should be replaced with code that allows the user to change just the cloud drive letter.
+    - Coding a test of CallbackFileSystem.
+  o 10/18/12 Thu - 10/22/12 Mon: (off)
+    - About 8 hours spent working.
+    - The CallbackFileSystem test works.  It produces a virtual drive X: that maps to the underlying Cloud directory.  The file system monitor still tracks the underlying cloud directory.
+  o 10/23/12 Tue:
+    - 10:30 - 16:30
+    - Caught up with David and the current events.
+    - Wrote a memo and scheduled a meeting to discuss the virtual drive and whether we will proceed with it.
+  o 10/24/12 Wed:
+    - 6:45 - 18:30
+    - The sample code for CallbackFileSystem is in branch 20121017A0IntegratingCallbackFileSystem.
+    - I moved the push notification code to CloudApiPublic.  It works, and I pushed it to git.
+  o 10/25/12 Thu:
+    - 8:00 - 18:00
+    - Doxygen is a candidate documentation tool.  The Microsoft support may also be adequate.  We need to generate HTML documentation, with an intro and other sections, including
+      Class and type documentation, and we need a way to prevent documentation of internal classes.
+    - SqlIndexer has been moved to CloudApiPublic.  Most of FileMonitor has been moved as well.
+  o 10/26/12 Fri:
+    - 7:00 - 18:30
+    - Doxygen procedure:
+      . Install Doxygen for Windows.
+      . open a command prompt window.
+      . Change to the win-client directory.
+      . Run doxygen -g (creates a configuration file DoxyFile)
+      . Edit DoxyFile:
+        o Change PROJECT_NAME = "Cloud Windows Client"
+        o Change RECURSIVE = YES
+	o Change INPUT = CloudApiPublic
+      . Run doxygen Doxyfile
+    - Microsoft XML documentation tags: http://msdn.microsoft.com/en-us/library/5ast78ax(v=vs.110).aspx
+    - Create Doxygen html file with a specific style: http://marc.info/?l=doxygen-users&m=120472604230865
+    - Doxygen works and spits out great documentation!
+    - Removed a lot of dead code.
+    - Working through CloudApiPublic to remove dead code, move it elsewhere, and to change public to internal where appropriate.  Stopped on Model\CLRange.cs.
+  o 10/27/12 Sat: (Home)
+    - 5:30 - 
+
+
+
     
 
 
@@ -6445,6 +6488,10 @@ TODO:
 		Also, there is an MDS route, GET /user/usage that will return the same thing.
   o Remove all references to System.IO and replace it with Win32 calls.  Too many bugs?????
   o Make a single instance of the RateBar window.
+  o Sync indexer needs to be initialized with ISyncSettings, and add a field for database location.  Default if null based on the Akey.
+  o Move URLs from CloudApiPublic\Model\CLDefinitions.cs to ISyncSettings.
+  o Move all definitions from CloudApiPublic\Model\CLDefinitions.cs out to another module if they are not needed in CloudApiPublic.
+  o Recode GenerateDeviceUDID() to generate a GUID specific to the device hardware.  Necessary?
 
 
 

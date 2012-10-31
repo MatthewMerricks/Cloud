@@ -317,25 +317,6 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static bool FileChangeMD5sDifferent(FileChange firstChange, FileChange secondChange)
-        {
-            byte[] firstMD5;
-            CLError firstChangeMD5Error = firstChange.GetMD5Bytes(out firstMD5);
-            if (firstChangeMD5Error != null)
-            {
-                throw new AggregateException("Error retrieving MD5 from firstChange", firstChangeMD5Error.GrabExceptions());
-            }
-            byte[] secondMD5;
-            CLError secondChangeMD5Error = secondChange.GetMD5Bytes(out secondMD5);
-            if (secondChangeMD5Error != null)
-            {
-                throw new AggregateException("Error retrieving MD5 from secondChange", secondChangeMD5Error.GrabExceptions());
-            }
-
-            return !((firstMD5 == null && secondMD5 == null)
-                || (firstMD5 != null && secondMD5 != null && firstMD5.Length == secondMD5.Length && NativeMethods.memcmp(firstMD5, secondMD5, new UIntPtr((uint)firstMD5.Length)) == 0));
-        }
-
         public static void RunActionWithRetries(Action toRun, bool throwExceptionOnFailure, int numRetries = 5, int millisecondsBetweenRetries = 50)
         {
             if (toRun == null)
@@ -369,12 +350,6 @@ namespace CloudApiPublic.Static
                     }
                 }
             }
-        }
-
-        public static string GetComputerFriendlyName()
-        {
-            // Todo: should find an algorithm to generate a unique identifier for this device name
-            return Environment.MachineName;
         }
 
         #region encrypt/decrypt strings
@@ -458,35 +433,6 @@ namespace CloudApiPublic.Static
                 new Type[] { typeof(object) },
                 null);
 
-        public static Point TransformToScreen(Point point, Visual relativeTo)
-        {
-            HwndSource hwndSource = PresentationSource.FromVisual(relativeTo) as HwndSource;
-            Visual root = hwndSource.RootVisual;// Translate the point from the visual to the root.
-            GeneralTransform transformToRoot = relativeTo.TransformToAncestor(root);
-            Point pointRoot = transformToRoot.Transform(point);// Transform the point from the root to client coordinates.
-            Matrix m = Matrix.Identity;
-            Transform transform = VisualTreeHelper.GetTransform(root);
-            if (transform != null)
-            {
-                m = Matrix.Multiply(m, transform.Value);
-            }
-            Vector offset = VisualTreeHelper.GetOffset(root);
-            m.Translate(offset.X, offset.Y);
-            Point pointClient = m.Transform(pointRoot);// Convert from “device-independent pixels” into pixels.
-            pointClient = hwndSource.CompositionTarget.TransformToDevice.Transform(pointClient);
-            NativeMethods.POINT pointClientPixels = new NativeMethods.POINT();
-            pointClientPixels.x = ((0 < pointClient.X)
-                ? (int)(pointClient.X + 0.5)
-                : (int)(pointClient.X - 0.5));
-            pointClientPixels.y = ((0 < pointClient.Y)
-                ? (int)(pointClient.Y + 0.5)
-                : (int)(pointClient.Y - 0.5));
-            // Transform the point into screen coordinates.
-            NativeMethods.POINT pointScreenPixels = pointClientPixels;
-            NativeMethods.ClientToScreen(hwndSource.Handle, pointScreenPixels);
-            return new Point(pointScreenPixels.x, pointScreenPixels.y);
-        }
-
         public static Point CorrectGetPosition(Visual relativeTo)
         {
             try
@@ -501,46 +447,5 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static bool IsCastableTo(this Type from, Type to)
-        {
-            if (to.IsAssignableFrom(from))
-            {
-                return true;
-            }
-            var methods = from.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                              .Where(
-                                  m => m.ReturnType == to &&
-                                       m.Name == "op_Implicit" ||
-                                       m.Name == "op_Explicit"
-                              );
-            return methods.Count() > 0;
-        }
-
-        public static string FormatBytes(long bytes)
-        {
-            if (bytes == 1)
-            {
-                return "1 Byte"; // special case to remove the plural
-            }
-
-            const int scale = 1024;
-            long max = (long)Math.Pow(scale, FormatBytesOrders.Length - 1);
-
-            foreach (string order in FormatBytesOrders)
-            {
-                if (bytes > max)
-                {
-                    return string.Format("{0:##.##} {1}", decimal.Divide(bytes, max), order);
-                }
-                else if (bytes == max)
-                {
-                    return string.Format("1 {0}", order);
-                }
-
-                max /= scale;
-            }
-            return "0 Bytes"; // default for bytes that are less than or equal to zero
-        }
-        private static readonly string[] FormatBytesOrders = new string[] { "GB", "MB", "KB", "Bytes" };
     }
 }

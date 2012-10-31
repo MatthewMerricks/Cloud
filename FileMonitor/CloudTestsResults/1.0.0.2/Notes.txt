@@ -1,6 +1,0 @@
-Handle delete callbacks to stop changes from processing if they have been overridden by a parent folder being deleted
-Handle rename callbacks to update the newpath and/or old path to point to the overriden location
-Reordered events through a batching queue so they make sense logically (delete a file before deleting the folder it is in, renaming a folder before modifying a file inside it)
-
-Known bugs:
-Repeated tests with the same implementations of FileCreation.xsd produce different results (Rename01 only has multiple results, but now both possible event orders are logically sound)

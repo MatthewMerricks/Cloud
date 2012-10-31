@@ -1,8 +1,0 @@
-Removed MD5 checksum hashing from FileMonitor (removes file access conflicts with other applications)
-Integrated FilePathDictionary: Deletion/renaming folders now triggers callbacks for inner files/inner folders recursively (not handled, see known bugs)
-Made Stream01 test work consistently and correctly (4 creates only at correct locations)
-Reduced permutations of Rename01 test (and triggers an unhandled callback)
-
-Known bugs:
-Deletion/rename callbacks are not handled (need to Dispose inner FileChanges on QueuedChanges, clean from metadata-keyed dictionary, etc.)
-Repeated tests with the same implementations of FileCreation.xsd produce different results (Rename01 only, although I noticed it fired a delete callback which may need to be handled)

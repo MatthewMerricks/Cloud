@@ -23,13 +23,26 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
-
+using System.Reflection;
+using System.Linq;
 
 namespace CloudApiPrivate.Static
 {
 
     public static class CLExtensionMethods
     {
+        /// <summary> 
+        /// Extend string.  Return equivalent of Objective C lastPathComponent.  
+        /// </summary> 
+        /// <param name="source">The source string.</param> 
+        /// <returns>string.  The last path component.</returns> 
+        /// Call like this:
+        /// myStringLastPathComponent = sourceString.LastPathComponent;
+        public static string LastPathComponent(this string source)
+        {
+            return Path.GetFileName(source);
+        }
+
         /// <summary>
         /// Generic object deep copy.
         /// </summary>
@@ -272,8 +285,9 @@ namespace CloudApiPrivate.Static
         {
             return source.Substring(0, toIndex);
         }
-        
+
         /// <summary> 
+        /// 
         /// Extend string.  Return equivalent of Objective C RangeOfString.
         /// This is the CLRange (Location and Position) of the search string in the source string.
         /// </summary> 
@@ -289,6 +303,11 @@ namespace CloudApiPrivate.Static
             range.Length = search.Length;
             
             return range;
+        }
+        public class CLRange
+        {
+            public int Location { get; set; }
+            public int Length { get; set; }
         }
 
         /// <summary> 
@@ -334,6 +353,21 @@ namespace CloudApiPrivate.Static
                 pinnedBuffer.AddrOfPinnedObject(), typeof(T));
             pinnedBuffer.Free();
             return structure;
+        }
+
+        public static bool IsCastableTo(this Type from, Type to)
+        {
+            if (to.IsAssignableFrom(from))
+            {
+                return true;
+            }
+            var methods = from.GetMethods(BindingFlags.Public | BindingFlags.Static)
+                              .Where(
+                                  m => m.ReturnType == to &&
+                                       m.Name == "op_Implicit" ||
+                                       m.Name == "op_Explicit"
+                              );
+            return methods.Count() > 0;
         }
     }
 }

@@ -15,7 +15,7 @@ using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using win_client.AppDelegate;
-using SQLIndexer;
+using CloudApiPublic.SQLIndexer;
 using win_client.Services.FileSystemMonitoring;
 using win_client.Resources;
 using CloudApiPublic.Support;

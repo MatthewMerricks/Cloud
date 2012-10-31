@@ -36,25 +36,9 @@
 			<Name>CloudApiPrivate</Name>
 			<Project>{02780AC8-0096-407A-B2D4-2AB98821EA47}</Project>
 		</ProjectReference>
-		<ProjectReference Include="..\win-client\CloudApiPublic\CloudSdkPublic.csproj">
-			<Name>CloudSdkPublic</Name>
-			<Project>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</Project>
-		</ProjectReference>
 		<ProjectReference Include="..\win-client\Dialog.Implementors.Wpf\Dialog.Implementors.Wpf.csproj">
 			<Name>Dialog.Implementors.Wpf</Name>
 			<Project>{D873958B-87F4-46F6-A6E8-B72FFB08835F}</Project>
-		</ProjectReference>
-		<ProjectReference Include="..\win-client\FileMonitor\FileMonitor.csproj">
-			<Name>FileMonitor</Name>
-			<Project>{DFE16278-70B2-4B6C-84C0-1D41B04BEBDE}</Project>
-		</ProjectReference>
-		<ProjectReference Include="..\win-client\SQLIndexer\SQLIndexer.csproj">
-			<Name>SQLIndexer</Name>
-			<Project>{5EA44F8A-A8FF-48AB-B6F6-C523793E342E}</Project>
-		</ProjectReference>
-		<ProjectReference Include="..\win-client\Sync\Sync.csproj">
-			<Name>Sync</Name>
-			<Project>{45E4664C-C207-4605-AF85-54B587819107}</Project>
 		</ProjectReference>
 		<ProjectReference Include="..\win-client\win-client.csproj">
 			<Name>win-client</Name>
@@ -71,6 +55,10 @@
 		<ProjectReference Include="..\CloudSendTo\CloudSendTo.csproj">
 			<Name>CloudSendTo</Name>
 			<Project>{F645F31E-ED61-481F-9048-E7765ED96691}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
+			<Name>CloudApiPublic</Name>
+			<Project>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</Project>
 		</ProjectReference>
 	</ItemGroup>
 </Project>

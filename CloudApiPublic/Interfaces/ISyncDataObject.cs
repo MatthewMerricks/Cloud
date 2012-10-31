@@ -38,8 +38,6 @@ namespace CloudApiPublic.Interfaces
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out IEnumerable<FileChange> outputFailures);
 
-        string getCloudRoot { get; }
-
         CLError applySyncFromChange(FileChange toApply);
 
         CLError completeSingleEvent(long eventId);

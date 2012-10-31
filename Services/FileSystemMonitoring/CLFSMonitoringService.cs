@@ -12,9 +12,9 @@ using System.Text;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
-using FileMonitor;
-using Sync;
-using SQLIndexer;
+using CloudApiPublic.FileMonitor;
+using CloudApiPublic.Sync;
+using CloudApiPublic.SQLIndexer;
 using CloudApiPublic.Static;
 using win_client.Common;
 
@@ -28,6 +28,7 @@ namespace win_client.Services.FileSystemMonitoring
         private static CLTrace _trace = CLTrace.Instance;
         public MonitorAgent MonitorAgent { get; private set; }
         public IndexingAgent IndexingAgent { get; private set; }
+        public SyncEngine SyncEngine { get; private set; }
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -73,10 +74,11 @@ namespace win_client.Services.FileSystemMonitoring
             // Todo: handle index creation error
 
             MonitorAgent monitorToSet;
-            CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(Settings.Instance.CloudFolderPath,
+            SyncEngine enginetoSet;
+            CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(CLSettingsSync.Instance,
                 IndexingAgent,
                 out monitorToSet,
-                global::Sync.Sync.Run);
+                out enginetoSet);
 
             if (fileMonitorCreationError != null)
             {
@@ -84,13 +86,16 @@ namespace win_client.Services.FileSystemMonitoring
             }
             else
             {
-                if (monitorToSet != null)
+                if (monitorToSet != null
+                    && enginetoSet != null)
                 {
                     try
                     {
                         this.MonitorAgent = monitorToSet;
+                        this.SyncEngine = enginetoSet;
 
-                        CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(monitorToSet, monitorToSet.PushNotification);
+                        CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(monitorToSet,
+                            (Action<CloudApiPublic.JsonContracts.NotificationResponse>)monitorToSet.PushNotification);
 
                         MonitorStatus returnStatus;
                         CLError fileMonitorStartError = MonitorAgent.Start(out returnStatus);
@@ -129,24 +134,20 @@ namespace win_client.Services.FileSystemMonitoring
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring disposing MonitorAgent: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
-        }
-
-        public void CheckWithFSMForEvents()
-        {
-            // Merged 7/13/12
-            // Not Necessary.
-            //    if ([self.fileSystemEvents count] > 0) {
-            //        dispatch_async(get_cloud_FSM_queue(), ^{
-            //            [self postEventsWithEventId:self.lastKnownEventId];
-            //        });
-
-            //    } else {
-            //        dispatch_async(dispatch_get_main_queue(), ^{
-            //            [self fireSimulatedPushNotification];
-            //        });
-            //    }
+            try
+            {
+                if (SyncEngine != null)
+                {
+                    SyncEngine.Dispose();
+                    SyncEngine = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring disposing SyncEngine: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+            }
         }
     }
 }

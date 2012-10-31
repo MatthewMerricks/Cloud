@@ -13,8 +13,13 @@ namespace CloudApiPublic.Model
     public static class CLDefinitions
     {
         public const string CLRegistrationAccessTokenKey = "access_token";
+<<<<<<< HEAD
 #if NOSSL
         public const string HttpPrefix = "http://";
+=======
+#if NOSSL
+        public const string HttpPrefix = "http://";
+>>>>>>> origin/master
 #else
         public const string HttpPrefix = "https://";
 #endif
@@ -35,7 +40,11 @@ namespace CloudApiPublic.Model
         // Link/Unlink
         public const string CLRegistrationUnlinkRequestURLString  = HttpPrefix + @"auth.cloud.com/device/unlink.json";
         public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + @"=[0]";
+<<<<<<< HEAD
         public const string CLRegistrationLinkRequestURLString    = HttpPrefix + @"HttpPrefix + ://auth.cloud.com/device/link.json";
+=======
+        public const string CLRegistrationLinkRequestURLString    = HttpPrefix + @"auth.cloud.com/device/link.json";
+>>>>>>> origin/master
         public const string CLRegistrationLinkRequestBodyString   = @"email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&device[os_type]={4}&device[os_version]={5}&device[app_version]={6}";
 
         // Meta Data
@@ -50,7 +59,11 @@ namespace CloudApiPublic.Model
 #else
 
         // Registration
+<<<<<<< HEAD
         public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth-edge.cloudburrito.com/user/create.json";
+=======
+        public const string CLRegistrationCreateRequestURLString  = HttpPrefix + "auth-edge.cloudburrito.com/user/create.json";
+>>>>>>> origin/master
         public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
                                                                     "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
                                                                     "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";
@@ -75,9 +88,6 @@ namespace CloudApiPublic.Model
 
 #endif
 
-        // Error Domain
-        public const string CLCloudAppRestAPIErrorDomain = @"com.cloudapp.networking.error";
-
         // Twitter page
         public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
 
@@ -87,6 +97,8 @@ namespace CloudApiPublic.Model
         public const string MethodPathUpload = "/put_file";
         public const string MethodPathSyncTo = "/sync/to_cloud";
         public const string MethodPathPurgePending = "/private/purge_pending";
+        public const string MethodPathGetFileMetadata = "/file_objects/metadata";
+        public const string MethodPathGetFolderMetadata = "/folder_objects/metadata";
 
         // Query string keys
         public const string QueryStringUserId = "user_id";
@@ -108,6 +120,7 @@ namespace CloudApiPublic.Model
         public const string HeaderAppendContentTypeBinary = "application/octet-stream";
         public const string HeaderAppendContentEncoding = "UTF8";
         public const string HeaderAppendMethodPost = "POST";
+        public const string HeaderAppendMethodGet = "GET";
         public const string HeaderAppendMethodPut = "PUT";
         public const string HeaderAppendCloudClient = "Cloud Client";
         public const string HeaderAppendStorageKey = "X-Ctx-Storage-Key";
@@ -208,12 +221,14 @@ namespace CloudApiPublic.Model
         public const string CLEventTypeDownload = "download";
 
         // Cloud Metadata Protocol
+        public const string CLMetadataFileObject = "file_object";
+        public const string CLMetadataFolderObject = "folder_object";
         public const string CLMetadataCloudPath = "path";
         public const string CLMetadataFileHash = "file_hash";
         public const string CLMetadataFileRevision = "revision";
         public const string CLMetadataFileCreateDate = "created_date";
         public const string CLMetadataFileModifiedDate = "modified_date";
-        public const string CLMetadataFileIsDeleted = "isDeleted";// "is_deleted" according to latest SyncController docs on Jenkins?
+        public const string CLMetadataFileIsDeleted = "is_deleted";
         public const string CLMetadataFileIsDirectory = "is_folder";
         public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
@@ -263,8 +278,5 @@ namespace CloudApiPublic.Model
 
         // Invalid SID or EID
         public const long CLDoNotSaveId = 1608198229012012;   // used with SyncTo and SyncFrom to represent sid and eid
-
-        // WyUpdate constants
-        public const string CLUpdaterRelativePath = "CloudUpdater.exe";
     }
 }

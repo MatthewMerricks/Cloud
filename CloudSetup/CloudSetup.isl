@@ -346,13 +346,12 @@
 		<row><td>BadgeCOM.dll1</td><td>{09F994D0-24E1-456A-AE45-7A72BC97519A}</td><td>AMD64</td><td>2</td><td/><td>badgecom.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeNET.Primary_output</td><td>{F9A20767-A22D-4D83-A21A-B3FA86EDFA95}</td><td>INSTALLDIR</td><td>2</td><td/><td>badgenet.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td>{84489268-EDF1-4D66-9B57-F8AED3BEC035}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapiprivate.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>CloudSdkPublic.Primary_output</td><td>{967E051F-636C-4A43-BCCE-FE9EDD2DA5CE}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsdkpublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>CloudApiPublic.Primary_output</td><td>{9A53BE05-DFC9-4056-9738-B1C423D7D923}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapipublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSendTo.Primary_output</td><td>{6AA194B5-728C-4238-AC8C-AE7EF0287F60}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsendto.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudUpdater.exe</td><td>{1E65DA1C-18C7-4BB7-AED6-473C7B9753CA}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudupdater.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td>{0D8DF327-F492-416E-9D7A-45516132482A}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.abstractions.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td>{45AB52EC-5E33-4DF5-9D14-F444FA8E02A4}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.implementors.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ErikEJ.SqlCe40.dll</td><td>{53B764E4-20F9-4C4D-A175-DA4BC68EB2B5}</td><td>INSTALLDIR</td><td>2</td><td/><td>erikej.sqlce40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>FileMonitor.Primary_output</td><td>{4C00C7F8-AFC1-40C8-910B-1E42AB5981D9}</td><td>INSTALLDIR</td><td>2</td><td/><td>filemonitor.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>{018468C0-823E-43A2-9D29-AB51440EE907}</td><td>INSTALLDIR</td><td>2</td><td/><td>galasoft.mvvmlight.extras.wp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>GalaSoft.MvvmLight.WPF4.dll</td><td>{A707E09C-B186-453E-BB12-A9026046B62A}</td><td>INSTALLDIR</td><td>2</td><td/><td>galasoft.mvvmlight.wpf4.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Hardcodet.Wpf.TaskbarNotification.dll</td><td>{360E4782-0905-4032-A800-37E2D6B0C59F}</td><td>INSTALLDIR</td><td>2</td><td/><td>hardcodet.wpf.taskbarnotific</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -372,13 +371,11 @@
 		<row><td>Newtonsoft.Json.dll</td><td>{C2C45D4D-4CEC-4083-95FF-42D7EF8563FB}</td><td>INSTALLDIR</td><td>2</td><td/><td>newtonsoft.json.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td>{227C8773-5E56-4DD1-9355-FEFA9C9DDF08}</td><td>INSTALLDIR</td><td>2</td><td/><td>ookii.dialogs.wpfminustaskdi</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>RegisterCom.exe</td><td>{87594C89-C824-401E-A43F-5BD8595DF0A3}</td><td>INSTALLDIR</td><td>2</td><td/><td>registercom.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SQLIndexer.Primary_output</td><td>{34BABC21-57FF-4923-A46D-A7F33AB4CE4F}</td><td>INSTALLDIR</td><td>2</td><td/><td>sqlindexer.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ShowCloudFolder.Primary_output</td><td>{1459739C-3FD8-4ED9-A0D8-A2A64E61B8F5}</td><td>INSTALLDIR</td><td>2</td><td/><td>showcloudfolder.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SimpleJson.dll</td><td>{3A7C4C31-6BF3-4216-A74E-14365AB7A31F}</td><td>INSTALLDIR</td><td>2</td><td/><td>simplejson.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SuperSocket.ClientEngine.Common.dll</td><td>{A5CCCE36-F96C-427F-8585-E2C6DCA13D4D}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.com</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SuperSocket.ClientEngine.Core.dll</td><td>{311737ED-A6CF-464D-AFA9-48DD3A332B36}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.cor</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SuperSocket.ClientEngine.Protocol.dll</td><td>{739A4D66-D9BF-4AF6-B172-1244BBF0CEFE}</td><td>INSTALLDIR</td><td>2</td><td/><td>supersocket.clientengine.pro</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Sync.Primary_output</td><td>{47FFEA81-00B1-4F1F-A476-A0CA4DDE4016}</td><td>INSTALLDIR</td><td>2</td><td/><td>sync.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Data.SqlServerCe.Entity.dll</td><td>{0247F38A-3ED3-4864-B671-52D6C847749B}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.data.sqlserverce.enti</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Data.SqlServerCe.dll</td><td>{1E6C9281-EE2C-4932-9898-BDEA646D56A3}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.data.sqlserverce.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Windows.Interactivity.dll</td><td>{A183DAD8-B99C-4E2A-8A9C-A5A9184A1389}</td><td>INSTALLDIR</td><td>2</td><td/><td>system.windows.interactivity</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1946,13 +1943,12 @@
 		<row><td>AlwaysInstall</td><td>BadgeCOM.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>BadgeNET.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudApiPrivate.Primary_output</td></row>
-		<row><td>AlwaysInstall</td><td>CloudSdkPublic.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>CloudApiPublic.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudSendTo.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudUpdater.exe</td></row>
 		<row><td>AlwaysInstall</td><td>Dialog.Abstractions.Wpf.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>Dialog.Implementors.Wpf.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>ErikEJ.SqlCe40.dll</td></row>
-		<row><td>AlwaysInstall</td><td>FileMonitor.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td></row>
 		<row><td>AlwaysInstall</td><td>GalaSoft.MvvmLight.WPF4.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Hardcodet.Wpf.TaskbarNotification.dll</td></row>
@@ -1972,13 +1968,11 @@
 		<row><td>AlwaysInstall</td><td>Newtonsoft.Json.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td></row>
 		<row><td>AlwaysInstall</td><td>RegisterCom.exe</td></row>
-		<row><td>AlwaysInstall</td><td>SQLIndexer.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>ShowCloudFolder.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>SimpleJson.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Common.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Core.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Protocol.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Sync.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>System.Data.SqlServerCe.Entity.dll</td></row>
 		<row><td>AlwaysInstall</td><td>System.Data.SqlServerCe.dll</td></row>
 		<row><td>AlwaysInstall</td><td>System.Windows.Interactivity.dll</td></row>
@@ -2023,13 +2017,12 @@
 		<row><td>badgenet.primary_output</td><td>BadgeNET.Primary_output</td><td>BadgeNET.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;BadgeNET&gt;|Built</td><td>3</td><td/></row>
 		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\WyUpdater\wyUpdate\client.wyc</td><td>1</td><td/></row>
 		<row><td>cloudapiprivate.primary_outp</td><td>CloudApiPrivate.Primary_output</td><td>CloudApiPrivate.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPrivate&gt;|Built</td><td>3</td><td/></row>
-		<row><td>cloudsdkpublic.primary_outpu</td><td>CloudSdkPublic.Primary_output</td><td>CloudSdkPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSdkPublic&gt;|Built</td><td>3</td><td/></row>
+		<row><td>cloudapipublic.primary_outpu</td><td>CloudApiPublic.Primary_output</td><td>CloudApiPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPublic&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudsendto.primary_output</td><td>CloudSendTo.Primary_output</td><td>CloudSendTo.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSendTo&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudupdater.exe</td><td>CloudUpdater.exe</td><td>CLOUDU~1.EXE|CloudUpdater.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\CloudUpdater.exe</td><td>1</td><td/></row>
 		<row><td>dialog.abstractions.wpf.prim</td><td>Dialog.Abstractions.Wpf.Primary_output</td><td>Dialog.Abstractions.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Abstractions.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>dialog.implementors.wpf.prim</td><td>Dialog.Implementors.Wpf.Primary_output</td><td>Dialog.Implementors.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Implementors.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>erikej.sqlce40.dll</td><td>ErikEJ.SqlCe40.dll</td><td>ERIKEJ~1.DLL|ErikEJ.SqlCe40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</td><td>1</td><td/></row>
-		<row><td>filemonitor.primary_output</td><td>FileMonitor.Primary_output</td><td>FileMonitor.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;FileMonitor&gt;|Built</td><td>3</td><td/></row>
 		<row><td>galasoft.mvvmlight.extras.wp</td><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>GALASO~1.DLL|GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\GalaSoft.MvvmLight.Extras.WPF4.dll</td><td>1</td><td/></row>
 		<row><td>galasoft.mvvmlight.wpf4.dll</td><td>GalaSoft.MvvmLight.WPF4.dll</td><td>GALASO~1.DLL|GalaSoft.MvvmLight.WPF4.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\GalaSoft.MvvmLight.WPF4.dll</td><td>1</td><td/></row>
 		<row><td>hardcodet.wpf.taskbarnotific</td><td>Hardcodet.Wpf.TaskbarNotification.dll</td><td>HARDCO~1.DLL|Hardcodet.Wpf.TaskbarNotification.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\Hardcodet.Wpf.TaskbarNotification.dll</td><td>1</td><td/></row>
@@ -2066,11 +2059,9 @@
 		<row><td>sqlceqp40.dll1</td><td>sqlceqp40.dll1</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlceqp40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcese40.dll</td><td>sqlcese40.dll</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\sqlcese40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcese40.dll1</td><td>sqlcese40.dll1</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\sqlcese40.dll</td><td>1</td><td/></row>
-		<row><td>sqlindexer.primary_output</td><td>SQLIndexer.Primary_output</td><td>SQLIndexer.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;SQLIndexer&gt;|Built</td><td>3</td><td/></row>
 		<row><td>supersocket.clientengine.com</td><td>SuperSocket.ClientEngine.Common.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Common.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.cor</td><td>SuperSocket.ClientEngine.Core.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.pro</td><td>SuperSocket.ClientEngine.Protocol.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Protocol.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll</td><td>1</td><td/></row>
-		<row><td>sync.primary_output</td><td>Sync.Primary_output</td><td>Sync.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Sync&gt;|Built</td><td>3</td><td/></row>
 		<row><td>system.data.sqlserverce.dll</td><td>System.Data.SqlServerCe.dll</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
 		<row><td>system.data.sqlserverce.enti</td><td>System.Data.SqlServerCe.Entity.dll</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.Entity.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\System.Data.SqlServerCe.Entity.dll</td><td>1</td><td/></row>
 		<row><td>system.windows.interactivity</td><td>System.Windows.Interactivity.dll</td><td>SYSTEM~1.DLL|System.Windows.Interactivity.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\System.Windows.Interactivity.dll</td><td>1</td><td/></row>
@@ -2338,13 +2329,12 @@
 		<row><td>BadgeCOM.dll1</td><td/><td/><td>_D14DBBFE_947B_4CAC_A12B_EA302A56D440_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>BadgeNET.Primary_output</td><td/><td/><td>_68A1F3C3_1D5C_4F81_B265_5C456D2987FE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td/><td/><td>_6027BBEB_0CBE_4E7D_B0B7_579A78009BD1_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>CloudSdkPublic.Primary_output</td><td/><td/><td>_2D07A2D1_ED2E_4198_8D5D_80C0A5671F51_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>CloudApiPublic.Primary_output</td><td/><td/><td>_35D1CFEA_D23D_4ABF_AF5B_40465997CA48_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSendTo.Primary_output</td><td/><td/><td>_8C137BC7_C97F_4636_A1F0_1A2ADCBC28A8_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudUpdater.exe</td><td/><td/><td>_9D933A0F_642B_465A_8E23_986B9BFB96A9_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td/><td/><td>_20049C24_C097_4693_B36E_AE931F83388C_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td/><td/><td>_03BAA0A3_E5E9_4BAE_A8DC_7916EB10CC2F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ErikEJ.SqlCe40.dll</td><td/><td/><td>_D061E4D3_FFDD_4EEE_8483_F32C676D05BC_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>FileMonitor.Primary_output</td><td/><td/><td>_D12F2FB2_EF23_4993_A175_2815BAF9508A_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>GalaSoft.MvvmLight.Extras.WPF4.dll</td><td/><td/><td>_0BE3DFB9_ADDA_4750_BE5C_079BE270FD2D_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>GalaSoft.MvvmLight.WPF4.dll</td><td/><td/><td>_29E100B2_C650_4E00_B992_E72B73409D0E_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Hardcodet.Wpf.TaskbarNotification.dll</td><td/><td/><td>_133BC3EE_2E29_4FB0_A974_8F7849E2B514_FILTER</td><td/><td/><td/><td/></row>
@@ -2364,13 +2354,11 @@
 		<row><td>Newtonsoft.Json.dll</td><td/><td/><td>_9E009E28_5A56_4E1F_AD85_D032308D48B4_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Ookii.Dialogs.WpfMinusTaskDialog.dll</td><td/><td/><td>_B1B22F10_13DE_4A85_A01F_7F629E22E895_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>RegisterCom.exe</td><td/><td/><td>_AE27194E_DE6A_4638_85D3_EAEF4BD96B1E_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>SQLIndexer.Primary_output</td><td/><td/><td>_3682A8A1_3E56_400E_BE49_AF6A532811F4_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ShowCloudFolder.Primary_output</td><td/><td/><td>_72974E47_1F9D_44E6_A0BD_FAF16E7D7DF7_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.dll</td><td/><td/><td>_FA8E56BA_31C1_4CB7_85E2_E09A4E728EF8_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SuperSocket.ClientEngine.Common.dll</td><td/><td/><td>_FAB4D98D_8F27_4D87_A4C5_D74E20FE619E_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SuperSocket.ClientEngine.Core.dll</td><td/><td/><td>_06133FC7_4E52_473A_A01E_09B61A3D273F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SuperSocket.ClientEngine.Protocol.dll</td><td/><td/><td>_202AC53E_F8FD_4424_94A0_34E7ABF7FA00_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Sync.Primary_output</td><td/><td/><td>_897BFD61_02CA_4227_A8BE_4216703C9C23_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Data.SqlServerCe.Entity.dll</td><td/><td/><td>_50BEC892_3180_435F_8736_6FEF304A0D38_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Data.SqlServerCe.dll</td><td/><td/><td>_2DA13F64_D786_4FBF_A9BF_A63B61E7C118_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Windows.Interactivity.dll</td><td/><td/><td>_ED77A1E5_89F5_4D16_92E3_713C0CD15CB2_FILTER</td><td/><td/><td/><td/></row>
@@ -2708,6 +2696,7 @@
 		<row><td>BadgeCOM</td><td>BadgeCOM\BadgeCOM.vcxproj</td><td/><td>2</td></row>
 		<row><td>BadgeNET</td><td>BadgeNET\BadgeNET.csproj</td><td/><td>2</td></row>
 		<row><td>CloudApiPrivate</td><td>CloudApiPrivate\CloudApiPrivate.csproj</td><td/><td>2</td></row>
+		<row><td>CloudApiPublic</td><td>CloudApiPublic\CloudApiPublic.csproj</td><td/><td>2</td></row>
 		<row><td>CloudSdkPublic</td><td>CloudApiPublic\CloudSdkPublic.csproj</td><td/><td>2</td></row>
 		<row><td>CloudSendTo</td><td>CloudSendTo\CloudSendTo.csproj</td><td/><td>2</td></row>
 		<row><td>CommonFilesFolder</td><td/><td/><td>1</td></row>

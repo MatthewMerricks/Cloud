@@ -64,7 +64,8 @@ namespace CloudApiPublic.Model
                     && (FileChange.Type == Static.FileChangeType.Created
                         || FileChange.Type == Static.FileChangeType.Modified))
                 {
-                    if (Stream == null)
+                    if (!(FileChange is FileChangeWithDependencies)
+                        && Stream == null)
                     {
                         throw new NullReferenceException("Stream cannot be null when FileChange is meant to be uploaded to server (file creations and modifications)");
                     }

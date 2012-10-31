@@ -11,6 +11,7 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Navigation;
 using System.Collections.Generic;
 using win_client.Model;
+using CloudApiPublic.JsonContracts;
 #if TRASH
 using win_client.DragDropServer;
 #endif // TRASH
@@ -181,12 +182,12 @@ namespace win_client.Common
 
         public static class Message_DidReceivePushNotificationFromServer
         {
-            public static void Send(string msg)
+            public static void Send(NotificationResponse msg)
             {
                 Messenger.Default.Send(msg, MessageTypes.Message_DidReceivePushNotificationFromServer);
             }
 
-            public static void Register(object recipient, Action<string> action)
+            public static void Register(object recipient, Action<NotificationResponse> action)
             {
                 Messenger.Default.Register(recipient, MessageTypes.Message_DidReceivePushNotificationFromServer, action);
             }

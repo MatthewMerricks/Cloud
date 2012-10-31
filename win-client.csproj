@@ -229,8 +229,6 @@
       <DependentUpon>Resources.fr.resx</DependentUpon>
     </Compile>
     <Compile Include="Services\Badging\CLBadgingService.cs" />
-    <Compile Include="Services\CloudFolderMonitoring\CLCFMonitoringService.cs" />
-    <Compile Include="Services\FileSystemDispatcher\CLFSDispatcher.cs" />
     <Compile Include="Services\FileSystemMonitoring\CLFSMonitoringService.cs" />
     <Compile Include="Services\NetworkMonitoring\CLNetworkMonitorService.cs" />
     <Compile Include="Services\Notification\CLNotificationService.cs" />
@@ -247,8 +245,6 @@
       <DependentUpon>WelcomeBalloon.xaml</DependentUpon>
     </Compile>
     <Compile Include="Services\ServicesManager\CLServicesManager.cs" />
-    <Compile Include="Services\Indexing\CLIndexingService.cs" />
-    <Compile Include="Services\Sync\CLSyncService.cs" />
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
     <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="SystemTray\HookWrapper.cs" />
@@ -666,9 +662,9 @@
       <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
       <Name>CloudApiPrivate</Name>
     </ProjectReference>
-    <ProjectReference Include="CloudApiPublic\CloudSdkPublic.csproj">
+    <ProjectReference Include="CloudApiPublic\CloudApiPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
-      <Name>CloudSdkPublic</Name>
+      <Name>CloudApiPublic</Name>
     </ProjectReference>
     <ProjectReference Include="Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
       <Project>{3697919f-7a1e-43ba-bfdb-3eec2553dd44}</Project>
@@ -677,18 +673,6 @@
     <ProjectReference Include="Dialog.Implementors.Wpf\Dialog.Implementors.Wpf.csproj">
       <Project>{d873958b-87f4-46f6-a6e8-b72ffb08835f}</Project>
       <Name>Dialog.Implementors.Wpf</Name>
-    </ProjectReference>
-    <ProjectReference Include="FileMonitor\FileMonitor.csproj">
-      <Project>{dfe16278-70b2-4b6c-84c0-1d41b04bebde}</Project>
-      <Name>FileMonitor</Name>
-    </ProjectReference>
-    <ProjectReference Include="SQLIndexer\SQLIndexer.csproj">
-      <Project>{5ea44f8a-a8ff-48ab-b6f6-c523793e342e}</Project>
-      <Name>SQLIndexer</Name>
-    </ProjectReference>
-    <ProjectReference Include="Sync\Sync.csproj">
-      <Project>{45e4664c-c207-4605-af85-54b587819107}</Project>
-      <Name>Sync</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

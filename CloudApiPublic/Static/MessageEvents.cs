@@ -284,7 +284,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static event EventHandler<UpdatePathArgs> PathStateChanged
+        public static event EventHandler<SetBadgeQueuedArgs> PathStateChanged
         {
             add
             {
@@ -301,9 +301,9 @@ namespace CloudApiPublic.Static
                 }
             }
         }
-        private static event EventHandler<UpdatePathArgs> _pathStateChanged;
+        private static event EventHandler<SetBadgeQueuedArgs> _pathStateChanged;
         private static readonly object PathStateChangedLocker = new object();
-        public static EventHandledLevel SetPathState(object sender, PathState state, FilePath path)
+        public static EventHandledLevel SetPathState(object sender, SetBadge badgeChange)
         {
             lock (PathStateChangedLocker)
             {
@@ -313,8 +313,162 @@ namespace CloudApiPublic.Static
                 }
                 else
                 {
-                    UpdatePathArgs newArgs = new UpdatePathArgs(state, path);
+                    SetBadgeQueuedArgs newArgs = new SetBadgeQueuedArgs(badgeChange);
                     _pathStateChanged(sender, newArgs);
+                    return (newArgs.Handled
+                        ? EventHandledLevel.IsHandled
+                        : EventHandledLevel.FiredButNotHandled);
+                }
+            }
+        }
+
+        public static event EventHandler<FileChangeMergeToStateArgs> FileChangeMergeToStateChanged
+        {
+            add
+            {
+                lock (FileChangeMergeToStateChangedLocker)
+                {
+                    _fileChangeMergeToStateChanged += value;
+                }
+            }
+            remove
+            {
+                lock (FileChangeMergeToStateChangedLocker)
+                {
+                    _fileChangeMergeToStateChanged -= value;
+                }
+            }
+        }
+        private static event EventHandler<FileChangeMergeToStateArgs> _fileChangeMergeToStateChanged;
+        private static readonly object FileChangeMergeToStateChangedLocker = new object();
+        public static EventHandledLevel ApplyFileChangeMergeToChangeState(object sender, FileChangeMerge mergedFileChanges)
+        {
+            lock (FileChangeMergeToStateChangedLocker)
+            {
+                if (_fileChangeMergeToStateChanged == null)
+                {
+                    return EventHandledLevel.NothingFired;
+                }
+                else
+                {
+                    FileChangeMergeToStateArgs newArgs = new FileChangeMergeToStateArgs(mergedFileChanges);
+                    _fileChangeMergeToStateChanged(sender, newArgs);
+                    return (newArgs.Handled
+                        ? EventHandledLevel.IsHandled
+                        : EventHandledLevel.FiredButNotHandled);
+                }
+            }
+        }
+
+        public static event EventHandler<SetBadgeQueuedArgs> SetBadgeQueued
+        {
+            add
+            {
+                lock (SetBadgeQueuedLocker)
+                {
+                    _setBadgeQueued += value;
+                }
+            }
+            remove
+            {
+                lock (SetBadgeQueuedLocker)
+                {
+                    _setBadgeQueued -= value;
+                }
+            }
+        }
+        private static event EventHandler<SetBadgeQueuedArgs> _setBadgeQueued;
+        private static readonly object SetBadgeQueuedLocker = new object();
+        public static EventHandledLevel QueueSetBadge(object sender, SetBadge badgeChange)
+        {
+            lock (SetBadgeQueuedLocker)
+            {
+                if (_setBadgeQueued == null)
+                {
+                    return EventHandledLevel.NothingFired;
+                }
+                else
+                {
+                    SetBadgeQueuedArgs newArgs = new SetBadgeQueuedArgs(badgeChange);
+                    _setBadgeQueued(sender, newArgs);
+                    return (newArgs.Handled
+                        ? EventHandledLevel.IsHandled
+                        : EventHandledLevel.FiredButNotHandled);
+                }
+            }
+        }
+
+        public static event EventHandler<BadgePathDeletedArgs> BadgePathDeleted
+        {
+            add
+            {
+                lock (BadgePathDeletedLocker)
+                {
+                    _badgePathDeleted += value;
+                }
+            }
+            remove
+            {
+                lock (BadgePathDeletedLocker)
+                {
+                    _badgePathDeleted -= value;
+                }
+            }
+        }
+        private static event EventHandler<BadgePathDeletedArgs> _badgePathDeleted;
+        private static readonly object BadgePathDeletedLocker = new object();
+        public static EventHandledLevel DeleteBadgePath(object sender, DeleteBadgePath badgePathDeleted, out bool isDeleted)
+        {
+            lock (BadgePathDeletedLocker)
+            {
+                if (_badgePathDeleted == null)
+                {
+                    isDeleted = false;
+                    return EventHandledLevel.NothingFired;
+                }
+                else
+                {
+                    BadgePathDeletedArgs newArgs = new BadgePathDeletedArgs(badgePathDeleted);
+                    _badgePathDeleted(sender, newArgs);
+                    isDeleted = newArgs.IsDeleted;
+                    return (newArgs.IsDeleted
+                        ? EventHandledLevel.IsHandled
+                        : EventHandledLevel.FiredButNotHandled);
+                }
+            }
+        }
+
+        public static event EventHandler<BadgePathRenamedArgs> BadgePathRenamed
+        {
+            add
+            {
+                lock (BadgePathRenamedLocker)
+                {
+                    _badgePathRenamed += value;
+                }
+            }
+            remove
+            {
+                lock (BadgePathRenamedLocker)
+                {
+                    _badgePathRenamed -= value;
+                }
+            }
+        }
+        private static event EventHandler<BadgePathRenamedArgs> _badgePathRenamed;
+        private static readonly object BadgePathRenamedLocker = new object();
+        public static EventHandledLevel RenameBadgePath(object sender, RenameBadgePath badgeRename)
+        {
+            lock (BadgePathRenamedLocker)
+            {
+                if (_badgePathRenamed == null)
+                {
+                    return EventHandledLevel.NothingFired;
+                }
+                else
+                {
+                    BadgePathRenamedArgs newArgs = new BadgePathRenamedArgs(badgeRename);
+                    _badgePathRenamed(sender, newArgs);
                     return (newArgs.Handled
                         ? EventHandledLevel.IsHandled
                         : EventHandledLevel.FiredButNotHandled);
