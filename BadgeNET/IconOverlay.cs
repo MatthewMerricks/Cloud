@@ -181,17 +181,8 @@ namespace BadgeNET
                     }
                 }
 
-
                 _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes.");
                 StartBadgeCOMPipes();
-
-                // initial list contained an item so notify the system to update
-                if (initialListContainsItem)
-                {
-                    //Parameterless call to notify will force OS to update all icons
-                    _trace.writeToLog(9, "IconOverlay: Initial list contains items.  Notify Explorer to repaint all icons.");
-                    NotifySystemForBadgeUpdate();
-                }
             }
             catch (Exception ex)
             {
@@ -437,10 +428,6 @@ namespace BadgeNET
                             }
                         }
                     }
-
-                    //Parameterless call to notify will force OS to update all icons
-                    _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Notify Explorer to refresh all icons.");
-                    NotifySystemForBadgeUpdate();
                 }
             }
             catch (Exception ex)
@@ -642,8 +629,9 @@ namespace BadgeNET
                                 pDeleteBadgePath(oldPath, out isDeleted, isPending: false, alreadyCheckedInitialized: true);
 
                                 // Chase the hierarchy grabbed above and manually apply all of the renames.  Also set the BadgeCom and
-                                // current badge flat dictionary badge states as we go.
-                                ManuallyApplyRenamesInHierarchyAndUpdateBadgeState(tree);
+                                // current badge flat dictionary badge states as we go.  This essentially adds back the deleted tree
+                                // using the new names.
+                                ManuallyApplyRenamesInHierarchyAndUpdateBadgeState(tree, oldPath, newPath);
                                 return null;
                             }
                             else
@@ -689,12 +677,61 @@ namespace BadgeNET
             }
         }
 
-        private void ManuallyApplyRenamesInHierarchyAndUpdateBadgeState(FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree)
+        /// <summary>
+        /// Recursively apply a rename to a node and all of its children.
+        /// </summary>
+        /// <param name="node">The top node in a hierarchy.</param>
+        /// <param name="oldPath">The old path.</param>
+        /// <param name="newPath">The new path.</param>
+        private void ManuallyApplyRenamesInHierarchyAndUpdateBadgeState(FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> node, FilePath oldPath, FilePath newPath)
         {
-            //  loop thru hierarchy
-            //    call FilePath.ApplyRename(nodePath, oldPath, newPath);
-            //    pSetBadge(nodePath, nodeValue, true)
-            //  endloop thru hierarchy
+            // Error if no parms.
+            if (node == null)
+            {
+                throw new Exception("node must not be null");
+            }
+            if (oldPath == null)
+            {
+                throw new Exception("oldPath must not be null");
+            }
+            if (newPath == null)
+            {
+                throw new Exception("newPath must not be null");
+            }
+
+            // Loop through all of the node's children
+            foreach (FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> child in node.Children)
+            {
+                ManuallyApplyRenamesInHierarchyAndUpdateBadgeState(child, oldPath, newPath);
+            }
+
+            // Process this node.  First apply the rename.
+            FilePath.ApplyRename(node.Value.Key, oldPath, newPath);
+
+            // Now add the badge back in and notify BadgeCom, etc.
+            pSetBadgeType(node.Value.Key, node.Value.Value, alreadyCheckedInitialized: true);
+        }
+
+        /// <summary>
+        /// Recursively update the badge state for a node and all of its children.
+        /// </summary>
+        /// <param name="node">The top node in a hierarchy.</param>
+        private void UpdateBadgeStateInHierarchy(FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> node)
+        {
+            // Error if no parms.
+            if (node == null)
+            {
+                throw new Exception("node must not be null");
+            }
+
+            // Loop through all of the node's children
+            foreach (FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> child in node.Children)
+            {
+                UpdateBadgeStateInHierarchy(child);
+            }
+
+            // Process this node.  First apply the rename.
+            UpdateBadgeStateAtPath(node.Value.Key);
         }
 
         /// <summary>
@@ -737,6 +774,24 @@ namespace BadgeNET
                 // lock internal list during modification
                 lock (allBadges)
                 {
+                    // Retrieve the hierarchy below if this node is selective.
+                    FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> selectiveTree = null;
+                    if (newType.Equals(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncSelective)))
+                    {
+                        CLError errGrab = allBadges.GrabHierarchyForPath(filePath, out selectiveTree, suppressException: true);
+                        if (errGrab != null
+                            || selectiveTree == null)
+                        {
+                            if (errGrab == null)
+                            {
+                                errGrab = new Exception("ERROR: Grabbing filePath hierarchy: tree is null");
+                            }
+                            _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. ERROR: Grabbing filePath hierarchy. Msg: <{0}>.  Code: {1}.", errGrab.errorDescription, errGrab.errorCode);
+                            return errGrab;
+                        }
+
+                    }
+
                     // newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
                     //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Add this type to the dictionary.");
                     if (newType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
@@ -747,27 +802,20 @@ namespace BadgeNET
                     {
                         allBadges[filePath] = newType;
                     }
-                }
 
-                // Notify this node, and all of the parents until the node is null, or equal to the Cloud path.
-                FilePath node = filePath;
-                while (node != null)
-                {
-                    // Notify the file system that this icon needs to be updated.
-                    //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Notify Explorer for path {0}.", node.ToString());
-                    NotifySystemForBadgeUpdate(node);
+                    // Update badges for anything changed up the tree
+                    UpdateBadgeStateUpTreeStartingWithParentOfNode(filePath);
 
-                    // Quit if we notified the Cloud directory root
-                    if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
+                    // Potentially update badges in this node's children
+                    if (selectiveTree != null)
                     {
-                        //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Break.  At Cloud root.");
-                        break;
+                        // Update the badge state in the grabbed selective tree.
+                        UpdateBadgeStateInHierarchy(selectiveTree);
                     }
 
-                    // Chain up
-                    node = node.Parent;
+                    // Update the badge for this node
+                    UpdateBadgeStateAtPath(filePath);
                 }
-                //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Exit.");
             }
             catch (Exception ex)
             {
@@ -1220,7 +1268,7 @@ namespace BadgeNET
                                         }
                                     }
 
-                                    // Quit if we notified the Cloud directory root
+                                    // Quit if we are at the Cloud directory root
                                     //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?");
                                     if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
                                     {
