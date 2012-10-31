@@ -78,17 +78,6 @@ namespace SyncTests.SyncImplementations
             return null;
         }
 
-        /// <summary>
-        /// Should be null-coallesced to an empty string wherever used
-        /// </summary>
-        public string getCloudRoot
-        {
-            get
-            {
-                return null;
-            }
-        }
-
         public CLError applySyncFromChange(FileChange toApply)
         {
             return null;

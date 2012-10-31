@@ -99,13 +99,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
+    <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudSdkPublic</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Sync\Sync.csproj">
-      <Project>{45e4664c-c207-4605-af85-54b587819107}</Project>
-      <Name>Sync</Name>
     </ProjectReference>
     <ProjectReference Include="SyncTestServer\SyncTestServer.csproj">
       <Project>{dd1d46f2-a572-40d2-b19d-d21e83126f22}</Project>

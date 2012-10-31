@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Folder>
+  <Name>C:\Users\Public\Documents\CreateFileTests\CreateFileTests</Name>
+  <LastTime>634765133586585202</LastTime>
+  <CreationTime>634765133447101255</CreationTime>
+  <InnerFolders>
+    <Folder>
+      <Name>AnotherFolder</Name>
+      <LastTime>634765133586585202</LastTime>
+      <CreationTime>634765133586175161</CreationTime>
+      <Files>
+        <File>
+          <Name>file.txt</Name>
+          <LastTime>634765133586195163</LastTime>
+          <CreationTime>634765133586175161</CreationTime>
+          <Size>5</Size>
+          <MD5>e2e0231924c98bf32f797c4d738bdc6a</MD5>
+        </File>
+      </Files>
+    </Folder>
+  </InnerFolders>
+</Folder>

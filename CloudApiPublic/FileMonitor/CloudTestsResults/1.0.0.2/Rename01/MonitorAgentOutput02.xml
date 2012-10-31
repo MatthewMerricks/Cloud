@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+<FileChange>
+  <NewPath>C:\\Users\Public\Documents\CreateFileTests\AnotherFolder</NewPath>
+  <IsFolder>True</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634765143991735613</LastTime>
+  <CreationTime>634765143991695609</CreationTime>
+</FileChange>
+<FileChange>
+  <NewPath>C:\\Users\Public\Documents\CreateFileTests\AnotherFolder\file.txt</NewPath>
+  <IsFolder>False</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634765143991715611</LastTime>
+  <CreationTime>634765143991705610</CreationTime>
+  <Size>5</Size>
+</FileChange>
+</root>

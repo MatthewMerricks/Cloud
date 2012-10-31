@@ -108,11 +108,23 @@ namespace SyncTests.SyncImplementations
                 return "T01"; // Test 01
             }
         }
-        public string getDeviceName
+        public string DeviceName
         {
             get
             {
                 return "Test";
+            }
+        }
+
+
+        /// <summary>
+        /// Should be null-coallesced to an empty string wherever used
+        /// </summary>
+        public string CloudRoot
+        {
+            get
+            {
+                return null;
             }
         }
     }

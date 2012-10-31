@@ -1,0 +1,6 @@
+Initial version
+
+Known bugs:
+Can throw errors in other applications that are trying to modify/delete a file that file monitor is reading
+Deletion/renaming folders does not modify nor delete contained folder/file paths appropriately
+Repeated tests with the same implementations of FileCreation.xsd produce different results (Rename01 and Stream01)

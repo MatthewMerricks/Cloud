@@ -1,0 +1,173 @@
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4}{\section{Cloud\-Api\-Public.\-Model.\-File\-Path\-Dictionary$<$ T $>$ Class Template Reference}
+\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4}\index{Cloud\-Api\-Public.\-Model.\-File\-Path\-Dictionary$<$ T $>$@{Cloud\-Api\-Public.\-Model.\-File\-Path\-Dictionary$<$ T $>$}}
+}
+
+
+Generic-\/typed dictionary by \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} ¡¡\-Not thread-\/safe, must be locked for synchronized use!! recursively stores directory structure to produce same time order operations as a Dictionary, but allows recursive renaming and deletion operations of everything contained below a given path (use with callbacks to retrieve subsequent renames or deletions)  
+
+
+Inheritance diagram for Cloud\-Api\-Public.\-Model.\-File\-Path\-Dictionary$<$ T $>$\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a068be02b7d2cde6bae7ac43a24f362fe}{Rename} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} old\-Path, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} new\-Path)
+\begin{DoxyCompactList}\small\item\em Rename files or folders with recursive updates of all items below the changed item (if item is a non-\/empty folder); old\-Path must not be null, new\-Path must not be null, and the two paths must not be the same; also, an item must exist at the old\-Path and must not exist at the new\-Path \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_abf279e695a660a0a7dde5dc122a43647}{Grab\-Hierarchy\-For\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} key, out File\-Path\-Hierarchical\-Node$<$ T $>$ output\-Node, bool suppress\-Exception=false)
+\begin{DoxyCompactList}\small\item\em Finds the paths starting at the given key value and builds a recursive structure including all children \end{DoxyCompactList}\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a1104bf4bef99cb7857fe60b4bdfc9fdf}{void {\bfseries Add} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} key, T value)}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a1104bf4bef99cb7857fe60b4bdfc9fdf}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a8b97ffd76233716dbfd6432df0b56d36}{bool {\bfseries Contains\-Key} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} key)}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a8b97ffd76233716dbfd6432df0b56d36}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_aa1c96b0a427eb624d7f5e80b9469a5cf}{bool {\bfseries Remove} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} key)}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_aa1c96b0a427eb624d7f5e80b9469a5cf}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_aa6fa59acfbee90f7eea598d3554339b9}{bool {\bfseries Try\-Get\-Value} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} key, out T value)}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_aa6fa59acfbee90f7eea598d3554339b9}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_aef296fba5c028b32841814d6b9788743}{void {\bfseries Add} (Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, T $>$ item)}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_aef296fba5c028b32841814d6b9788743}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_adf3aa8b458f33146d9b9ba8ac8c2bc00}{void {\bfseries Clear} ()}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_adf3aa8b458f33146d9b9ba8ac8c2bc00}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a69563f2d00d781a5862115684a074e61}{bool {\bfseries Contains} (Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, T $>$ item)}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a69563f2d00d781a5862115684a074e61}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a7deba0a3a8d3c7fbb7e71780d0c51c89}{void {\bfseries Copy\-To} (Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, T $>$\mbox{[}$\,$\mbox{]} array, int array\-Index)}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a7deba0a3a8d3c7fbb7e71780d0c51c89}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_af056aef61aafd4c913fbb3c1c57d0604}{bool {\bfseries Remove} (Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, T $>$ item)}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_af056aef61aafd4c913fbb3c1c57d0604}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a770fe08003857f72d97f82f722d718a8}{I\-Enumerator$<$ Key\-Value\-Pair\\*
+$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, T $>$ $>$ {\bfseries Get\-Enumerator} ()}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a770fe08003857f72d97f82f722d718a8}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a56e73d1ac059528b55a32fdfc0a5f0bc}{Create\-And\-Initialize} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} root\-Path, out File\-Path\-Dictionary$<$ T $>$ path\-Dictionary, Action$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, T, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} $>$ recursive\-Delete\-Callback=null, Action$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, T, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} $>$ recursive\-Rename\-Callback=null, T value\-At\-Folder=null)
+\begin{DoxyCompactList}\small\item\em Used to construct a new File\-Path\-Dictionary, returns a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} if an exception occurred during creation, optionally takes callbacks to fire upon subsequent deletions or renames as well as an optional value in order to set the info for the current path \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_ad4ccafc3ede78e7d1ad866a838f1f623}{I\-Collection$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} $>$ {\bfseries Keys}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_ad4ccafc3ede78e7d1ad866a838f1f623}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_ac1bf9870be2ff9a291b4c438db18ce1c}{I\-Collection$<$ T $>$ {\bfseries Values}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_ac1bf9870be2ff9a291b4c438db18ce1c}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a5316a089d976ced4328bf70fd5042bd5}{T {\bfseries this\mbox{[}\-File\-Path key\mbox{]}}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a5316a089d976ced4328bf70fd5042bd5}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_ad403f0e4d7b702877d1fa8f3faefccdf}{int {\bfseries Count}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_ad403f0e4d7b702877d1fa8f3faefccdf}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_af915a72ba00b2c3dcdf5889717d41af9}{bool {\bfseries Is\-Read\-Only}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_af915a72ba00b2c3dcdf5889717d41af9}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Generic-\/typed dictionary by \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} ¡¡\-Not thread-\/safe, must be locked for synchronized use!! recursively stores directory structure to produce same time order operations as a Dictionary, but allows recursive renaming and deletion operations of everything contained below a given path (use with callbacks to retrieve subsequent renames or deletions) 
+
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em T} & Any reference type\\
+\hline
+\end{DoxyTemplParams}
+\begin{Desc}
+\item[Type Constraints]\begin{description}
+\item[{\em T} : {\em class}]\end{description}
+\end{Desc}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a56e73d1ac059528b55a32fdfc0a5f0bc}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path\-Dictionary$<$ T $>$@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path\-Dictionary$<$ T $>$}!Create\-And\-Initialize@{Create\-And\-Initialize}}
+\index{Create\-And\-Initialize@{Create\-And\-Initialize}!CloudApiPublic::Model::FilePathDictionary< T >@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path\-Dictionary$<$ T $>$}}
+\subsubsection[{Create\-And\-Initialize}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-Model.\-File\-Path\-Dictionary$<$ T $>$.Create\-And\-Initialize (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{root\-Path, }
+\item[{out File\-Path\-Dictionary$<$ T $>$}]{path\-Dictionary, }
+\item[{Action$<$ {\bf File\-Path}, T, {\bf File\-Path} $>$}]{recursive\-Delete\-Callback = {\ttfamily null}, }
+\item[{Action$<$ {\bf File\-Path}, {\bf File\-Path}, T, {\bf File\-Path}, {\bf File\-Path} $>$}]{recursive\-Rename\-Callback = {\ttfamily null}, }
+\item[{T}]{value\-At\-Folder = {\ttfamily null}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a56e73d1ac059528b55a32fdfc0a5f0bc}
+
+
+Used to construct a new File\-Path\-Dictionary, returns a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} if an exception occurred during creation, optionally takes callbacks to fire upon subsequent deletions or renames as well as an optional value in order to set the info for the current path 
+
+
+\begin{DoxyParams}{Parameters}
+{\em root\-Path} & Root path of the dictionary (such as the path of a watched directory)\\
+\hline
+{\em path\-Dictionary} & (out) File\-Path\-Dictionary created by calling this method\\
+\hline
+{\em recursive\-Delete\-Callback} & (optional) Callback fired upon subsequent deletions\\
+\hline
+{\em recursive\-Rename\-Callback} & (optional) Callback fired upon subsequent renames\\
+\hline
+{\em value\-At\-Folder} & (optional) Item for current path, if any\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} if an exception occurred, otherwise returns null
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_abf279e695a660a0a7dde5dc122a43647}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path\-Dictionary$<$ T $>$@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path\-Dictionary$<$ T $>$}!Grab\-Hierarchy\-For\-Path@{Grab\-Hierarchy\-For\-Path}}
+\index{Grab\-Hierarchy\-For\-Path@{Grab\-Hierarchy\-For\-Path}!CloudApiPublic::Model::FilePathDictionary< T >@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path\-Dictionary$<$ T $>$}}
+\subsubsection[{Grab\-Hierarchy\-For\-Path}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-Model.\-File\-Path\-Dictionary$<$ T $>$.Grab\-Hierarchy\-For\-Path (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{key, }
+\item[{out File\-Path\-Hierarchical\-Node$<$ T $>$}]{output\-Node, }
+\item[{bool}]{suppress\-Exception = {\ttfamily false}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_abf279e695a660a0a7dde5dc122a43647}
+
+
+Finds the paths starting at the given key value and builds a recursive structure including all children 
+
+
+\begin{DoxyParams}{Parameters}
+{\em key} & Key to search\\
+\hline
+{\em output\-Node} & Outputs heirarchical structure of the highest node and its recursive children\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred retrieving the heirarchical structure, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a068be02b7d2cde6bae7ac43a24f362fe}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path\-Dictionary$<$ T $>$@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path\-Dictionary$<$ T $>$}!Rename@{Rename}}
+\index{Rename@{Rename}!CloudApiPublic::Model::FilePathDictionary< T >@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path\-Dictionary$<$ T $>$}}
+\subsubsection[{Rename}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-Model.\-File\-Path\-Dictionary$<$ T $>$.Rename (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{old\-Path, }
+\item[{{\bf File\-Path}}]{new\-Path}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4_a068be02b7d2cde6bae7ac43a24f362fe}
+
+
+Rename files or folders with recursive updates of all items below the changed item (if item is a non-\/empty folder); old\-Path must not be null, new\-Path must not be null, and the two paths must not be the same; also, an item must exist at the old\-Path and must not exist at the new\-Path 
+
+
+\begin{DoxyParams}{Parameters}
+{\em old\-Path} & Previous path for file or folder\\
+\hline
+{\em new\-Path} & New path for file or folder\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns a \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} for an exception if one occurred, otherwise null
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-File\-Path/File\-Path\-Dictionary.\-cs\end{DoxyCompactItemize}

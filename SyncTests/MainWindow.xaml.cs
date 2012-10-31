@@ -89,10 +89,10 @@ namespace SyncTests
                 else
                 {
                     MessageBox.Show("TestClient started");
-                    Sync.Sync.Run(SyncImplementations.SyncData.Instance,
-                        SyncImplementations.SyncSettings.Instance,
-                        true);
-                }
+
+                    CloudApiPublic.Sync.SyncEngine testEngine = new CloudApiPublic.Sync.SyncEngine(SyncImplementations.SyncData.Instance,
+                        SyncImplementations.SyncSettings.Instance);
+                    testEngine.Run(true);                }
             }
         }
 

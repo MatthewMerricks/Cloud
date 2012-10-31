@@ -1,0 +1,284 @@
+\hypertarget{namespace_cloud_api_public_1_1_static}{\section{Package Cloud\-Api\-Public.\-Static}
+\label{namespace_cloud_api_public_1_1_static}\index{Cloud\-Api\-Public.\-Static@{Cloud\-Api\-Public.\-Static}}
+}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class {\bfseries C\-L\-Devices}
+\item 
+class {\bfseries File\-Constants}
+\item 
+class {\bfseries Helpers}
+\begin{DoxyCompactList}\small\item\em Class containing commonly usable static helper methods \end{DoxyCompactList}\item 
+class {\bfseries Message\-Events}
+\item 
+class {\bfseries Native\-Methods}
+\item 
+class {\bfseries Trace}
+\item 
+class \hyperlink{class_cloud_api_public_1_1_static_1_1_log}{Log}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_static_1_1_copyright}{Copyright}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_static_1_1_trace_file_change}{Trace\-File\-Change}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_static_1_1_entry}{Entry}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_static_1_1_file_change_flow_entry}{File\-Change\-Flow\-Entry}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_static_1_1_communication_entry}{Communication\-Entry}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+class \hyperlink{class_cloud_api_public_1_1_static_1_1_communication_entry_header}{Communication\-Entry\-Header}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{namespace_cloud_api_public_1_1_static_a502726756c6bc84b5c9bcaf23c3a8d28}{Monitor\-Running} \-: byte \{ {\bfseries Not\-Running} = 0, 
+{\bfseries Folder\-Only\-Running} = 1, 
+{\bfseries File\-Only\-Running} = 2, 
+{\bfseries Both\-Running} = 3
+ \}
+\begin{DoxyCompactList}\small\item\em Flagged enumeration used to determine running status of File\-Monitor; File watcher may be running, folder watcher may be running, or both/neither \end{DoxyCompactList}\item 
+enum \hyperlink{namespace_cloud_api_public_1_1_static_a31db95951688473984962a22ad05a45f}{Monitor\-Status} \-: byte \{ {\bfseries Started}, 
+{\bfseries Already\-Started}, 
+{\bfseries Stopped}, 
+{\bfseries Already\-Stopped}
+ \}
+\begin{DoxyCompactList}\small\item\em Enumeration to provide information on the returns from starting or stopping the File\-Monitor \end{DoxyCompactList}\item 
+enum \hyperlink{namespace_cloud_api_public_1_1_static_a8ba5d1f6d06fa058730616f021c8974f}{Sync\-Direction} \-: byte \{ {\bfseries To}, 
+{\bfseries From}
+ \}
+\begin{DoxyCompactList}\small\item\em Enumeration for direction of sync \end{DoxyCompactList}\item 
+enum \hyperlink{namespace_cloud_api_public_1_1_static_a08ff1fddb1dc38f7b861b0fd106834be}{File\-Change\-Type} \-: byte \{ {\bfseries Created}, 
+{\bfseries Modified}, 
+{\bfseries Deleted}, 
+{\bfseries Renamed}
+ \}
+\begin{DoxyCompactList}\small\item\em Enumeration to associate the type of event occurred for a File\-Change (mutually exclusive) \end{DoxyCompactList}\item 
+enum {\bfseries Event\-Message\-Level} \{ {\bfseries Minor} = 0, 
+{\bfseries Regular} = 5, 
+{\bfseries Important} = 9
+ \}
+\item 
+enum {\bfseries Event\-Handled\-Level} \{ {\bfseries Nothing\-Fired} = -\/1, 
+{\bfseries Fired\-But\-Not\-Handled} = 0, 
+{\bfseries Is\-Handled} = 1
+ \}
+\item 
+enum {\bfseries Path\-State} \{ \\*
+{\bfseries None}, 
+{\bfseries Synced}, 
+{\bfseries Syncing}, 
+{\bfseries Failed}, 
+\\*
+{\bfseries Selective}
+ \}
+\item 
+enum \hyperlink{namespace_cloud_api_public_1_1_static_a889ed6895b377efd7091a65ddb8cb3f0}{Copyright\-Copyright} \{ \hyperlink{namespace_cloud_api_public_1_1_static_a889ed6895b377efd7091a65ddb8cb3f0}{Implementationof\-Trace\-Logxsd\-X\-M\-L\-Schema\-Cloud\-Copyrightc\-Cloudcom\-Allrightsreserved}
+ \}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+enum \hyperlink{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{Trace\-File\-Change\-Type} \{ \hyperlink{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{Created}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{Deleted}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{Renamed}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{Modified}
+ \}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+enum \hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{File\-Change\-Flow\-Entry\-Position\-In\-Flow} \{ \\*
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{File\-Monitor\-Adding\-To\-Queued\-Changes}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{File\-Monitor\-Adding\-Batch\-To\-S\-Q\-L}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Initial\-Errors}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Grab\-Changes\-Queued\-Changes\-Added\-To\-S\-Q\-L}, 
+\\*
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Grab\-Changes\-Output\-Changes}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Grab\-Changes\-Output\-Changes\-In\-Error}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Preprocessed\-Events\-Synchronous}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Preprocessed\-Events\-Asynchronous}, 
+\\*
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Requeued\-Failures\-Before\-Communication}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Changes\-For\-Communication}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Communication\-Completed\-Changes}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Communication\-Incompleted\-Changes}, 
+\\*
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Communication\-Changes\-In\-Error}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Post\-Communication\-Dequeued\-Failures}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Dependency\-Assignment\-Output\-Changes}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Dependency\-Assignment\-Top\-Level\-Errors}, 
+\\*
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Post\-Communication\-Synchronous}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Post\-Communication\-Asynchronous}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-End\-Things\-That\-Were\-Dependencies\-To\-Queue}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-End\-Requeued\-Failures}, 
+\\*
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Upload\-Download\-Success}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Upload\-Download\-Failure}
+ \}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+enum \hyperlink{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e753f33c72}{Communication\-Entry\-Direction} \{ \hyperlink{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e753f33c72}{Request}, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e753f33c72}{Response}
+ \}
+\begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
+enum \hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Trace\-Type} \-: int \{ \\*
+{\bfseries Not\-Enabled} = 0x00, 
+{\bfseries Communication} = 0x01, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Add\-Authorization} = 0x02, 
+{\bfseries Communication\-Include\-Authorization} = 0x03, 
+\\*
+{\bfseries File\-Change\-Flow} = 0x04
+ \}
+\begin{DoxyCompactList}\small\item\em Types of Trace Log entries; must match Trace\-Log.\-xsd \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Enumeration Type Documentation}
+\hypertarget{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e753f33c72}{\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Communication\-Entry\-Direction@{Communication\-Entry\-Direction}}
+\index{Communication\-Entry\-Direction@{Communication\-Entry\-Direction}!CloudApiPublic::Static@{Cloud\-Api\-Public\-::\-Static}}
+\subsubsection[{Communication\-Entry\-Direction}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-Communication\-Entry\-Direction}}}\label{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e753f33c72}
+
+
+
+
+\begin{Desc}
+\item[Enumerator\-: ]\par
+\begin{description}
+\index{Request@{Request}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Request@{Request}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e753f33c72}{Request}\label{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e753f33c72}
+}]\index{Response@{Response}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Response@{Response}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e753f33c72}{Response}\label{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e753f33c72}
+}]\end{description}
+\end{Desc}
+
+\hypertarget{namespace_cloud_api_public_1_1_static_a889ed6895b377efd7091a65ddb8cb3f0}{\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Copyright\-Copyright@{Copyright\-Copyright}}
+\index{Copyright\-Copyright@{Copyright\-Copyright}!CloudApiPublic::Static@{Cloud\-Api\-Public\-::\-Static}}
+\subsubsection[{Copyright\-Copyright}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-Copyright\-Copyright}}}\label{namespace_cloud_api_public_1_1_static_a889ed6895b377efd7091a65ddb8cb3f0}
+
+
+
+
+\begin{Desc}
+\item[Enumerator\-: ]\par
+\begin{description}
+\index{Implementationof\-Trace\-Logxsd\-X\-M\-L\-Schema\-Cloud\-Copyrightc\-Cloudcom\-Allrightsreserved@{Implementationof\-Trace\-Logxsd\-X\-M\-L\-Schema\-Cloud\-Copyrightc\-Cloudcom\-Allrightsreserved}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Implementationof\-Trace\-Logxsd\-X\-M\-L\-Schema\-Cloud\-Copyrightc\-Cloudcom\-Allrightsreserved@{Implementationof\-Trace\-Logxsd\-X\-M\-L\-Schema\-Cloud\-Copyrightc\-Cloudcom\-Allrightsreserved}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a889ed6895b377efd7091a65ddb8cb3f0}{Implementationof\-Trace\-Logxsd\-X\-M\-L\-Schema\-Cloud\-Copyrightc\-Cloudcom\-Allrightsreserved}\label{namespace_cloud_api_public_1_1_static_a889ed6895b377efd7091a65ddb8cb3f0}
+}]\end{description}
+\end{Desc}
+
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!File\-Change\-Flow\-Entry\-Position\-In\-Flow@{File\-Change\-Flow\-Entry\-Position\-In\-Flow}}
+\index{File\-Change\-Flow\-Entry\-Position\-In\-Flow@{File\-Change\-Flow\-Entry\-Position\-In\-Flow}!CloudApiPublic::Static@{Cloud\-Api\-Public\-::\-Static}}
+\subsubsection[{File\-Change\-Flow\-Entry\-Position\-In\-Flow}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-File\-Change\-Flow\-Entry\-Position\-In\-Flow}}}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+
+
+
+
+\begin{Desc}
+\item[Enumerator\-: ]\par
+\begin{description}
+\index{File\-Monitor\-Adding\-To\-Queued\-Changes@{File\-Monitor\-Adding\-To\-Queued\-Changes}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!File\-Monitor\-Adding\-To\-Queued\-Changes@{File\-Monitor\-Adding\-To\-Queued\-Changes}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{File\-Monitor\-Adding\-To\-Queued\-Changes}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{File\-Monitor\-Adding\-Batch\-To\-S\-Q\-L@{File\-Monitor\-Adding\-Batch\-To\-S\-Q\-L}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!File\-Monitor\-Adding\-Batch\-To\-S\-Q\-L@{File\-Monitor\-Adding\-Batch\-To\-S\-Q\-L}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{File\-Monitor\-Adding\-Batch\-To\-S\-Q\-L}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-Initial\-Errors@{Sync\-Run\-Initial\-Errors}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-Initial\-Errors@{Sync\-Run\-Initial\-Errors}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Initial\-Errors}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Grab\-Changes\-Queued\-Changes\-Added\-To\-S\-Q\-L@{Grab\-Changes\-Queued\-Changes\-Added\-To\-S\-Q\-L}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Grab\-Changes\-Queued\-Changes\-Added\-To\-S\-Q\-L@{Grab\-Changes\-Queued\-Changes\-Added\-To\-S\-Q\-L}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Grab\-Changes\-Queued\-Changes\-Added\-To\-S\-Q\-L}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Grab\-Changes\-Output\-Changes@{Grab\-Changes\-Output\-Changes}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Grab\-Changes\-Output\-Changes@{Grab\-Changes\-Output\-Changes}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Grab\-Changes\-Output\-Changes}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Grab\-Changes\-Output\-Changes\-In\-Error@{Grab\-Changes\-Output\-Changes\-In\-Error}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Grab\-Changes\-Output\-Changes\-In\-Error@{Grab\-Changes\-Output\-Changes\-In\-Error}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Grab\-Changes\-Output\-Changes\-In\-Error}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-Preprocessed\-Events\-Synchronous@{Sync\-Run\-Preprocessed\-Events\-Synchronous}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-Preprocessed\-Events\-Synchronous@{Sync\-Run\-Preprocessed\-Events\-Synchronous}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Preprocessed\-Events\-Synchronous}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-Preprocessed\-Events\-Asynchronous@{Sync\-Run\-Preprocessed\-Events\-Asynchronous}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-Preprocessed\-Events\-Asynchronous@{Sync\-Run\-Preprocessed\-Events\-Asynchronous}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Preprocessed\-Events\-Asynchronous}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-Requeued\-Failures\-Before\-Communication@{Sync\-Run\-Requeued\-Failures\-Before\-Communication}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-Requeued\-Failures\-Before\-Communication@{Sync\-Run\-Requeued\-Failures\-Before\-Communication}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Requeued\-Failures\-Before\-Communication}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-Changes\-For\-Communication@{Sync\-Run\-Changes\-For\-Communication}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-Changes\-For\-Communication@{Sync\-Run\-Changes\-For\-Communication}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Changes\-For\-Communication}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Communication\-Completed\-Changes@{Communication\-Completed\-Changes}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Communication\-Completed\-Changes@{Communication\-Completed\-Changes}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Communication\-Completed\-Changes}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Communication\-Incompleted\-Changes@{Communication\-Incompleted\-Changes}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Communication\-Incompleted\-Changes@{Communication\-Incompleted\-Changes}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Communication\-Incompleted\-Changes}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Communication\-Changes\-In\-Error@{Communication\-Changes\-In\-Error}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Communication\-Changes\-In\-Error@{Communication\-Changes\-In\-Error}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Communication\-Changes\-In\-Error}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-Post\-Communication\-Dequeued\-Failures@{Sync\-Run\-Post\-Communication\-Dequeued\-Failures}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-Post\-Communication\-Dequeued\-Failures@{Sync\-Run\-Post\-Communication\-Dequeued\-Failures}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Post\-Communication\-Dequeued\-Failures}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Dependency\-Assignment\-Output\-Changes@{Dependency\-Assignment\-Output\-Changes}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Dependency\-Assignment\-Output\-Changes@{Dependency\-Assignment\-Output\-Changes}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Dependency\-Assignment\-Output\-Changes}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Dependency\-Assignment\-Top\-Level\-Errors@{Dependency\-Assignment\-Top\-Level\-Errors}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Dependency\-Assignment\-Top\-Level\-Errors@{Dependency\-Assignment\-Top\-Level\-Errors}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Dependency\-Assignment\-Top\-Level\-Errors}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-Post\-Communication\-Synchronous@{Sync\-Run\-Post\-Communication\-Synchronous}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-Post\-Communication\-Synchronous@{Sync\-Run\-Post\-Communication\-Synchronous}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Post\-Communication\-Synchronous}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-Post\-Communication\-Asynchronous@{Sync\-Run\-Post\-Communication\-Asynchronous}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-Post\-Communication\-Asynchronous@{Sync\-Run\-Post\-Communication\-Asynchronous}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-Post\-Communication\-Asynchronous}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-End\-Things\-That\-Were\-Dependencies\-To\-Queue@{Sync\-Run\-End\-Things\-That\-Were\-Dependencies\-To\-Queue}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-End\-Things\-That\-Were\-Dependencies\-To\-Queue@{Sync\-Run\-End\-Things\-That\-Were\-Dependencies\-To\-Queue}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-End\-Things\-That\-Were\-Dependencies\-To\-Queue}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Sync\-Run\-End\-Requeued\-Failures@{Sync\-Run\-End\-Requeued\-Failures}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Run\-End\-Requeued\-Failures@{Sync\-Run\-End\-Requeued\-Failures}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Sync\-Run\-End\-Requeued\-Failures}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Upload\-Download\-Success@{Upload\-Download\-Success}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Upload\-Download\-Success@{Upload\-Download\-Success}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Upload\-Download\-Success}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\index{Upload\-Download\-Failure@{Upload\-Download\-Failure}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Upload\-Download\-Failure@{Upload\-Download\-Failure}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}{Upload\-Download\-Failure}\label{namespace_cloud_api_public_1_1_static_a9082ca8fb56ff22723a53cd835e02451}
+}]\end{description}
+\end{Desc}
+
+\hypertarget{namespace_cloud_api_public_1_1_static_a08ff1fddb1dc38f7b861b0fd106834be}{\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!File\-Change\-Type@{File\-Change\-Type}}
+\index{File\-Change\-Type@{File\-Change\-Type}!CloudApiPublic::Static@{Cloud\-Api\-Public\-::\-Static}}
+\subsubsection[{File\-Change\-Type}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-File\-Change\-Type} \-: byte}}\label{namespace_cloud_api_public_1_1_static_a08ff1fddb1dc38f7b861b0fd106834be}
+
+
+Enumeration to associate the type of event occurred for a File\-Change (mutually exclusive) 
+
+\hypertarget{namespace_cloud_api_public_1_1_static_a502726756c6bc84b5c9bcaf23c3a8d28}{\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Monitor\-Running@{Monitor\-Running}}
+\index{Monitor\-Running@{Monitor\-Running}!CloudApiPublic::Static@{Cloud\-Api\-Public\-::\-Static}}
+\subsubsection[{Monitor\-Running}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-Monitor\-Running} \-: byte}}\label{namespace_cloud_api_public_1_1_static_a502726756c6bc84b5c9bcaf23c3a8d28}
+
+
+Flagged enumeration used to determine running status of \hyperlink{namespace_cloud_api_public_1_1_file_monitor}{File\-Monitor}; File watcher may be running, folder watcher may be running, or both/neither 
+
+\hypertarget{namespace_cloud_api_public_1_1_static_a31db95951688473984962a22ad05a45f}{\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Monitor\-Status@{Monitor\-Status}}
+\index{Monitor\-Status@{Monitor\-Status}!CloudApiPublic::Static@{Cloud\-Api\-Public\-::\-Static}}
+\subsubsection[{Monitor\-Status}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-Monitor\-Status} \-: byte}}\label{namespace_cloud_api_public_1_1_static_a31db95951688473984962a22ad05a45f}
+
+
+Enumeration to provide information on the returns from starting or stopping the \hyperlink{namespace_cloud_api_public_1_1_file_monitor}{File\-Monitor} 
+
+\hypertarget{namespace_cloud_api_public_1_1_static_a8ba5d1f6d06fa058730616f021c8974f}{\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Sync\-Direction@{Sync\-Direction}}
+\index{Sync\-Direction@{Sync\-Direction}!CloudApiPublic::Static@{Cloud\-Api\-Public\-::\-Static}}
+\subsubsection[{Sync\-Direction}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-Sync\-Direction} \-: byte}}\label{namespace_cloud_api_public_1_1_static_a8ba5d1f6d06fa058730616f021c8974f}
+
+
+Enumeration for direction of sync 
+
+\hypertarget{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Trace\-File\-Change\-Type@{Trace\-File\-Change\-Type}}
+\index{Trace\-File\-Change\-Type@{Trace\-File\-Change\-Type}!CloudApiPublic::Static@{Cloud\-Api\-Public\-::\-Static}}
+\subsubsection[{Trace\-File\-Change\-Type}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-Trace\-File\-Change\-Type}}}\label{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}
+
+
+
+
+\begin{Desc}
+\item[Enumerator\-: ]\par
+\begin{description}
+\index{Created@{Created}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Created@{Created}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{Created}\label{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}
+}]\index{Deleted@{Deleted}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Deleted@{Deleted}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{Deleted}\label{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}
+}]\index{Renamed@{Renamed}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Renamed@{Renamed}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{Renamed}\label{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}
+}]\index{Modified@{Modified}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Modified@{Modified}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}{Modified}\label{namespace_cloud_api_public_1_1_static_aadccab0d764f187bdd87a34e98676034}
+}]\end{description}
+\end{Desc}
+
+\hypertarget{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Trace\-Type@{Trace\-Type}}
+\index{Trace\-Type@{Trace\-Type}!CloudApiPublic::Static@{Cloud\-Api\-Public\-::\-Static}}
+\subsubsection[{Trace\-Type}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-Trace\-Type} \-: int}}\label{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}
+
+
+Types of Trace \hyperlink{class_cloud_api_public_1_1_static_1_1_log}{Log} entries; must match Trace\-Log.\-xsd 
+
+\begin{Desc}
+\item[Enumerator\-: ]\par
+\begin{description}
+\index{Add\-Authorization@{Add\-Authorization}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Add\-Authorization@{Add\-Authorization}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Add\-Authorization}\label{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}
+}]Add\-Authorization is only valid in conjunction with Communication (Communication\-Include\-Authorization) \end{description}
+\end{Desc}
+

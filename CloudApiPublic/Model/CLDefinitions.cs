@@ -13,13 +13,8 @@ namespace CloudApiPublic.Model
     public static class CLDefinitions
     {
         public const string CLRegistrationAccessTokenKey = "access_token";
-<<<<<<< HEAD
 #if NOSSL
         public const string HttpPrefix = "http://";
-=======
-#if NOSSL
-        public const string HttpPrefix = "http://";
->>>>>>> origin/master
 #else
         public const string HttpPrefix = "https://";
 #endif
@@ -40,11 +35,7 @@ namespace CloudApiPublic.Model
         // Link/Unlink
         public const string CLRegistrationUnlinkRequestURLString  = HttpPrefix + @"auth.cloud.com/device/unlink.json";
         public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + @"=[0]";
-<<<<<<< HEAD
         public const string CLRegistrationLinkRequestURLString    = HttpPrefix + @"HttpPrefix + ://auth.cloud.com/device/link.json";
-=======
-        public const string CLRegistrationLinkRequestURLString    = HttpPrefix + @"auth.cloud.com/device/link.json";
->>>>>>> origin/master
         public const string CLRegistrationLinkRequestBodyString   = @"email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&device[os_type]={4}&device[os_version]={5}&device[app_version]={6}";
 
         // Meta Data
@@ -59,11 +50,7 @@ namespace CloudApiPublic.Model
 #else
 
         // Registration
-<<<<<<< HEAD
         public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth-edge.cloudburrito.com/user/create.json";
-=======
-        public const string CLRegistrationCreateRequestURLString  = HttpPrefix + "auth-edge.cloudburrito.com/user/create.json";
->>>>>>> origin/master
         public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
                                                                     "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
                                                                     "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";

@@ -1,0 +1,326 @@
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent}{\section{Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent Class Reference}
+\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent}\index{Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent@{Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent}}
+}
+Inheritance diagram for Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a9eee0160dda925db6c1c7990d36dff54}{Start\-Initial\-Indexing} (Action$<$ I\-Enumerable$<$ Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_metadata}{File\-Metadata} $>$$>$, I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$$>$ index\-Completion\-Callback, Func$<$ string $>$ get\-Path)
+\begin{DoxyCompactList}\small\item\em Starts the indexing process on an indexing agent which will resolve the last events and changes to the file system since the last time the file monitor was running to produce the initial in-\/memory index and changes to process, spins off a user work thread for the actual processing and returns immediately \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a7e399ddd4f016dd2484a028f2439ce20}{Get\-Last\-Sync\-States} (out File\-Path\-Dictionary$<$ \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_synced_object}{Synced\-Object} $>$ sync\-States)
+\begin{DoxyCompactList}\small\item\em Retrieve the complete file system state at the time of the last sync \end{DoxyCompactList}\item 
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_abbc921fa18a1a75f0912c62ddfc16779}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries Get\-Metadata\-By\-Path\-And\-Revision} (string path, string revision, out \hyperlink{class_cloud_api_public_1_1_model_1_1_file_metadata}{File\-Metadata} metadata)}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_abbc921fa18a1a75f0912c62ddfc16779}
+
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_ab925fc9c21beaa2156e74544ca3e696d}{Get\-Pending\-Events} (out List$<$ Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$$>$ change\-Events)
+\begin{DoxyCompactList}\small\item\em Retrieves all unprocessed events that occurred since the last sync \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a33d5ccb1b74ad1e87ec44a7b56587c71}{Add\-Events} (I\-Enumerable$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} $>$ new\-Events, bool already\-Obtained\-Lock=false)
+\begin{DoxyCompactList}\small\item\em Adds an unprocessed change since the last sync as a new event to the database, Event\-Id property of the input event is set after database update \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_ab7f3d7d070951526e528e998ae26c664}{Remove\-Event\-By\-Id} (long event\-Id)
+\begin{DoxyCompactList}\small\item\em Removes a single event by its id \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a8c26e3fad07247b53f21bb280850abd1}{Remove\-Events\-By\-Ids} (I\-Enumerable$<$ long $>$ event\-Ids, bool already\-Obtained\-Lock=false)
+\begin{DoxyCompactList}\small\item\em Removes a collection of events by their ids \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a7aa84742829670c50f733190a8e841df}{Record\-Completed\-Sync} (string sync\-Id, I\-Enumerable$<$ long $>$ synced\-Event\-Ids, out long sync\-Counter, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} new\-Root\-Path=null)
+\begin{DoxyCompactList}\small\item\em Writes a new set of sync states to the database after a sync completes, requires new\-Root\-Path to be set on the first sync or on any sync with a new root path \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a00c810332347750882864aa4adf6458f}{Record\-Completed\-Sync} (string sync\-Id, I\-Enumerable$<$ long $>$ synced\-Event\-Ids, out long sync\-Counter, string new\-Root\-Path=null)
+\begin{DoxyCompactList}\small\item\em Writes a new set of sync states to the database after a sync completes, requires new\-Root\-Path to be set on the first sync or on any sync with a new root path \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a5e5d473ee9ca4cb06755c2e2610540c0}{Wipe\-Index} (string new\-Root\-Path)
+\begin{DoxyCompactList}\small\item\em ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !! \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a23a1d14e2bd12963dde86a2b656d468a}{Merge\-Events\-Into\-Database} (I\-Enumerable$<$ \hyperlink{struct_cloud_api_public_1_1_model_1_1_file_change_merge}{File\-Change\-Merge} $>$ merge\-To\-Froms, bool already\-Obtained\-Lock=false)
+\begin{DoxyCompactList}\small\item\em Method to merge event into database, used when events are modified or replaced with new events \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a6bad5b195c0995b386c905615f009b95}{Mark\-Event\-As\-Completed\-On\-Previous\-Sync} (long event\-Id)
+\begin{DoxyCompactList}\small\item\em Includes an event in the last set of sync states, or in other words processes it as complete (event will no longer be included in Get\-Events\-Since\-Last\-Sync) \end{DoxyCompactList}\item 
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a508aeac63bcdb7395f6e3393317766d6}{void {\bfseries Dispose} ()}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a508aeac63bcdb7395f6e3393317766d6}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a0e956d0bbe633961139d440ea91acc24}{Create\-New\-And\-Initialize} (out \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent}{Indexing\-Agent} new\-Indexer)
+\begin{DoxyCompactList}\small\item\em Creates the S\-Q\-L indexing service and outputs it, must be started afterwards with Start\-Initial\-Indexing \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_aa4deb010555c85b86efe40d27c6c1842}{readonly Reader\-Writer\-Lock\-Slim {\bfseries C\-E\-Locker} = new Reader\-Writer\-Lock\-Slim()}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_aa4deb010555c85b86efe40d27c6c1842}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a1bb708c5bf42f70b66aacd0ddcbf208f}{readonly Reader\-Writer\-Lock\-Slim {\bfseries Last\-Sync\-Locker} = new Reader\-Writer\-Lock\-Slim()}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a1bb708c5bf42f70b66aacd0ddcbf208f}
+
+\end{DoxyCompactItemize}
+\subsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+string \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a9295f92ed5326ef6bda65d736574a82b}{Last\-Sync\-Id}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Store the last \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} Id, starts null before indexing; lock on the \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent}{Indexing\-Agent} instance for all reads/writes \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a33d5ccb1b74ad1e87ec44a7b56587c71}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Add\-Events@{Add\-Events}}
+\index{Add\-Events@{Add\-Events}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Add\-Events}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Add\-Events (
+\begin{DoxyParamCaption}
+\item[{I\-Enumerable$<$ {\bf File\-Change} $>$}]{new\-Events, }
+\item[{bool}]{already\-Obtained\-Lock = {\ttfamily false}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a33d5ccb1b74ad1e87ec44a7b56587c71}
+
+
+Adds an unprocessed change since the last sync as a new event to the database, Event\-Id property of the input event is set after database update 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\-Events} & Change to add\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns error that occurred when adding the event to database, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a0e956d0bbe633961139d440ea91acc24}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Create\-New\-And\-Initialize@{Create\-New\-And\-Initialize}}
+\index{Create\-New\-And\-Initialize@{Create\-New\-And\-Initialize}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Create\-New\-And\-Initialize}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Create\-New\-And\-Initialize (
+\begin{DoxyParamCaption}
+\item[{out {\bf Indexing\-Agent}}]{new\-Indexer}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a0e956d0bbe633961139d440ea91acc24}
+
+
+Creates the S\-Q\-L indexing service and outputs it, must be started afterwards with Start\-Initial\-Indexing 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\-Indexer} & Output indexing agent\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns the error that occurred during creation, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a7e399ddd4f016dd2484a028f2439ce20}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Get\-Last\-Sync\-States@{Get\-Last\-Sync\-States}}
+\index{Get\-Last\-Sync\-States@{Get\-Last\-Sync\-States}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Get\-Last\-Sync\-States}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Get\-Last\-Sync\-States (
+\begin{DoxyParamCaption}
+\item[{out File\-Path\-Dictionary$<$ {\bf Synced\-Object} $>$}]{sync\-States}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a7e399ddd4f016dd2484a028f2439ce20}
+
+
+Retrieve the complete file system state at the time of the last sync 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sync\-States} & Outputs the file system state\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred retrieving the file system state, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_ab925fc9c21beaa2156e74544ca3e696d}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Get\-Pending\-Events@{Get\-Pending\-Events}}
+\index{Get\-Pending\-Events@{Get\-Pending\-Events}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Get\-Pending\-Events}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Get\-Pending\-Events (
+\begin{DoxyParamCaption}
+\item[{out List$<$ Key\-Value\-Pair$<$ {\bf File\-Path}, {\bf File\-Change} $>$$>$}]{change\-Events}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_ab925fc9c21beaa2156e74544ca3e696d}
+
+
+Retrieves all unprocessed events that occurred since the last sync 
+
+
+\begin{DoxyParams}{Parameters}
+{\em change\-Events} & Outputs the unprocessed events\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred filling the unprocessed events, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a6bad5b195c0995b386c905615f009b95}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Mark\-Event\-As\-Completed\-On\-Previous\-Sync@{Mark\-Event\-As\-Completed\-On\-Previous\-Sync}}
+\index{Mark\-Event\-As\-Completed\-On\-Previous\-Sync@{Mark\-Event\-As\-Completed\-On\-Previous\-Sync}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Mark\-Event\-As\-Completed\-On\-Previous\-Sync}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Mark\-Event\-As\-Completed\-On\-Previous\-Sync (
+\begin{DoxyParamCaption}
+\item[{long}]{event\-Id}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a6bad5b195c0995b386c905615f009b95}
+
+
+Includes an event in the last set of sync states, or in other words processes it as complete (event will no longer be included in Get\-Events\-Since\-Last\-Sync) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em event\-Id} & Primary key value of the event to process\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred marking the event complete, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a23a1d14e2bd12963dde86a2b656d468a}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Merge\-Events\-Into\-Database@{Merge\-Events\-Into\-Database}}
+\index{Merge\-Events\-Into\-Database@{Merge\-Events\-Into\-Database}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Merge\-Events\-Into\-Database}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Merge\-Events\-Into\-Database (
+\begin{DoxyParamCaption}
+\item[{I\-Enumerable$<$ {\bf File\-Change\-Merge} $>$}]{merge\-To\-Froms, }
+\item[{bool}]{already\-Obtained\-Lock = {\ttfamily false}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a23a1d14e2bd12963dde86a2b656d468a}
+
+
+Method to merge event into database, used when events are modified or replaced with new events 
+
+
+\begin{DoxyParams}{Parameters}
+{\em merged\-Event} & Event with latest file or folder metadata, pass null to only delete the old event\\
+\hline
+{\em event\-To\-Remove} & Previous event to set if an old event is being replaced in the process\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error from merging the events, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a7aa84742829670c50f733190a8e841df}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Record\-Completed\-Sync@{Record\-Completed\-Sync}}
+\index{Record\-Completed\-Sync@{Record\-Completed\-Sync}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Record\-Completed\-Sync}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Record\-Completed\-Sync (
+\begin{DoxyParamCaption}
+\item[{string}]{sync\-Id, }
+\item[{I\-Enumerable$<$ long $>$}]{synced\-Event\-Ids, }
+\item[{out long}]{sync\-Counter, }
+\item[{{\bf File\-Path}}]{new\-Root\-Path = {\ttfamily null}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a7aa84742829670c50f733190a8e841df}
+
+
+Writes a new set of sync states to the database after a sync completes, requires new\-Root\-Path to be set on the first sync or on any sync with a new root path 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sync\-Id} & New sync Id from server\\
+\hline
+{\em synced\-Event\-Ids} & Enumerable of event ids processed in sync\\
+\hline
+{\em sync\-Counter} & Output sync counter local identity\\
+\hline
+{\em new\-Root\-Path} & Optional new root path for location of sync root, must be set on first sync\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred during recording the sync, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a00c810332347750882864aa4adf6458f}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Record\-Completed\-Sync@{Record\-Completed\-Sync}}
+\index{Record\-Completed\-Sync@{Record\-Completed\-Sync}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Record\-Completed\-Sync}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Record\-Completed\-Sync (
+\begin{DoxyParamCaption}
+\item[{string}]{sync\-Id, }
+\item[{I\-Enumerable$<$ long $>$}]{synced\-Event\-Ids, }
+\item[{out long}]{sync\-Counter, }
+\item[{string}]{new\-Root\-Path = {\ttfamily null}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a00c810332347750882864aa4adf6458f}
+
+
+Writes a new set of sync states to the database after a sync completes, requires new\-Root\-Path to be set on the first sync or on any sync with a new root path 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sync\-Id} & New sync Id from server\\
+\hline
+{\em synced\-Event\-Ids} & Enumerable of event ids processed in sync\\
+\hline
+{\em sync\-Counter} & Output sync counter local identity\\
+\hline
+{\em new\-Root\-Path} & Optional new root path for location of sync root, must be set on first sync\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred during recording the sync, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_ab7f3d7d070951526e528e998ae26c664}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Remove\-Event\-By\-Id@{Remove\-Event\-By\-Id}}
+\index{Remove\-Event\-By\-Id@{Remove\-Event\-By\-Id}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Remove\-Event\-By\-Id}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Remove\-Event\-By\-Id (
+\begin{DoxyParamCaption}
+\item[{long}]{event\-Id}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_ab7f3d7d070951526e528e998ae26c664}
+
+
+Removes a single event by its id 
+
+
+\begin{DoxyParams}{Parameters}
+{\em event\-Id} & Id of event to remove\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error in removing the event, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a8c26e3fad07247b53f21bb280850abd1}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Remove\-Events\-By\-Ids@{Remove\-Events\-By\-Ids}}
+\index{Remove\-Events\-By\-Ids@{Remove\-Events\-By\-Ids}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Remove\-Events\-By\-Ids}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Remove\-Events\-By\-Ids (
+\begin{DoxyParamCaption}
+\item[{I\-Enumerable$<$ long $>$}]{event\-Ids, }
+\item[{bool}]{already\-Obtained\-Lock = {\ttfamily false}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a8c26e3fad07247b53f21bb280850abd1}
+
+
+Removes a collection of events by their ids 
+
+
+\begin{DoxyParams}{Parameters}
+{\em event\-Ids} & Ids of events to remove\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error in removing events, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a9eee0160dda925db6c1c7990d36dff54}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Start\-Initial\-Indexing@{Start\-Initial\-Indexing}}
+\index{Start\-Initial\-Indexing@{Start\-Initial\-Indexing}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Start\-Initial\-Indexing}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Start\-Initial\-Indexing (
+\begin{DoxyParamCaption}
+\item[{Action$<$ I\-Enumerable$<$ Key\-Value\-Pair$<$ {\bf File\-Path}, {\bf File\-Metadata} $>$$>$, I\-Enumerable$<$ {\bf File\-Change} $>$$>$}]{index\-Completion\-Callback, }
+\item[{Func$<$ string $>$}]{get\-Path}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a9eee0160dda925db6c1c7990d36dff54}
+
+
+Starts the indexing process on an indexing agent which will resolve the last events and changes to the file system since the last time the file monitor was running to produce the initial in-\/memory index and changes to process, spins off a user work thread for the actual processing and returns immediately 
+
+
+\begin{DoxyParams}{Parameters}
+{\em index\-Completion\-Callback} & \hyperlink{namespace_cloud_api_public_1_1_file_monitor}{File\-Monitor} method to call upon completion of the index (should trigger normal processing of file events)\\
+\hline
+{\em get\-Path} & \hyperlink{namespace_cloud_api_public_1_1_file_monitor}{File\-Monitor} method which returns the path to be indexed (so that the indexing and monitor are tied together)\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred during startup, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a5e5d473ee9ca4cb06755c2e2610540c0}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Wipe\-Index@{Wipe\-Index}}
+\index{Wipe\-Index@{Wipe\-Index}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Wipe\-Index}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Wipe\-Index (
+\begin{DoxyParamCaption}
+\item[{string}]{new\-Root\-Path}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a5e5d473ee9ca4cb06755c2e2610540c0}
+
+
+¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !! 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+\subsection{Property Documentation}
+\hypertarget{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a9295f92ed5326ef6bda65d736574a82b}{\index{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}!Last\-Sync\-Id@{Last\-Sync\-Id}}
+\index{Last\-Sync\-Id@{Last\-Sync\-Id}!CloudApiPublic::SQLIndexer::IndexingAgent@{Cloud\-Api\-Public\-::\-S\-Q\-L\-Indexer\-::\-Indexing\-Agent}}
+\subsubsection[{Last\-Sync\-Id}]{\setlength{\rightskip}{0pt plus 5cm}string Cloud\-Api\-Public.\-S\-Q\-L\-Indexer.\-Indexing\-Agent.\-Last\-Sync\-Id\hspace{0.3cm}{\ttfamily [get]}, {\ttfamily [set]}}}\label{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent_a9295f92ed5326ef6bda65d736574a82b}
+
+
+Store the last \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} Id, starts null before indexing; lock on the \hyperlink{class_cloud_api_public_1_1_s_q_l_indexer_1_1_indexing_agent}{Indexing\-Agent} instance for all reads/writes 
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-S\-Q\-L\-Indexer/Indexing\-Agent.\-cs\end{DoxyCompactItemize}

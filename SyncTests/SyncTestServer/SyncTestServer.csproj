@@ -42,37 +42,40 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Sync\JsonContracts\Download.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\Download.cs">
       <Link>SyncLinks\JsonContracts\Download.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\Event.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\Event.cs">
       <Link>SyncLinks\JsonContracts\Event.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\File.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\File.cs">
       <Link>SyncLinks\JsonContracts\File.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\Header.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\Header.cs">
       <Link>SyncLinks\JsonContracts\Header.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\Metadata.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\JsonContractHelpers.cs">
+      <Link>SyncLinks\JsonContracts\JsonContractHelpers.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\Metadata.cs">
       <Link>SyncLinks\JsonContracts\Metadata.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\NotificationResponse.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\NotificationResponse.cs">
       <Link>SyncLinks\JsonContracts\NotificationResponse.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\PurgePending.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\PurgePending.cs">
       <Link>SyncLinks\JsonContracts\PurgePending.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\PurgePendingResponse.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\PurgePendingResponse.cs">
       <Link>SyncLinks\JsonContracts\PurgePendingResponse.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\Push.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\Push.cs">
       <Link>SyncLinks\JsonContracts\Push.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\PushResponse.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\PushResponse.cs">
       <Link>SyncLinks\JsonContracts\PushResponse.cs</Link>
     </Compile>
-    <Compile Include="..\..\Sync\JsonContracts\To.cs">
+    <Compile Include="..\..\CloudApiPublic\JsonContracts\To.cs">
       <Link>SyncLinks\JsonContracts\To.cs</Link>
     </Compile>
     <Compile Include="ActionProcessors\private.cs" />
@@ -112,16 +115,16 @@
     <Compile Include="Static\NativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CloudApiPublic\CloudSdkPublic.csproj">
-      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
-      <Name>CloudSdkPublic</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Model\SyncTestScenario.xsd">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CloudApiPublic\CloudApiPublic.csproj">
+      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
+      <Name>CloudApiPublic</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

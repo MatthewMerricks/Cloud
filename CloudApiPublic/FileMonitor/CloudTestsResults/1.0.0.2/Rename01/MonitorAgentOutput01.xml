@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+<FileChange>
+  <NewPath>C:\\Users\Public\Documents\CreateFileTests\MyFolder</NewPath>
+  <IsFolder>True</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634765133586215165</LastTime>
+  <CreationTime>634765133586175161</CreationTime>
+</FileChange>
+<FileChange>
+  <NewPath>C:\\Users\Public\Documents\CreateFileTests\AnotherFolder</NewPath>
+  <OldPath>C:\\Users\Public\Documents\CreateFileTests\MyFolder</OldPath>
+  <IsFolder>True</IsFolder>
+  <Type>Renamed</Type>
+  <LastTime>634765133586215165</LastTime>
+  <CreationTime>634765133586175161</CreationTime>
+</FileChange>
+<FileChange>
+  <NewPath>C:\\Users\Public\Documents\CreateFileTests\AnotherFolder\file.txt</NewPath>
+  <IsFolder>False</IsFolder>
+  <Type>Created</Type>
+  <LastTime>634765133586195163</LastTime>
+  <CreationTime>634765133586175161</CreationTime>
+  <Size>5</Size>
+</FileChange>
+</root>
