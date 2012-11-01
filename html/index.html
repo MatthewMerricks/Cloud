@@ -36,6 +36,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li class="current"><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li>
@@ -82,21 +83,57 @@ Introduction</h1>
 <p>A SyncBox can be thought of as a folder with a hierarhical directory structure. Any files placed in a SyncBox can be automatically synced to the same SyncBox on all of your other devices (Windows, Mac, iOS, Android and Windows RT). Your account can have multiple SyncBoxes, and your application can open multiple SyncBoxes on a device.</p>
 <p>In desktop environments, a SyncBox is tied to a particular local disk directory. e.g., on Windows, "C:\Users\&lt;UserName&gt;\&lt;YourSyncBoxName&gt;".</p>
 <p>See how easy it is:</p>
-<div class="fragment"><div class="line"><span class="comment">// ...</span></div>
+<div class="fragment"><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class </span>MyApplication</div>
+<div class="line">{</div>
+<div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keywordtype">int</span> main(<span class="keywordtype">string</span>[] args)</div>
+<div class="line">    {</div>
+<div class="line">        <span class="comment">// ...</span></div>
+<div class="line">        <span class="comment">// Set the parameters for your SyncBox.</span></div>
+<div class="line">        ISyncSettings settings = <span class="keyword">new</span> SyncSettings(</div>
+<div class="line">            SyncBoxFolderFullPath: <span class="stringliteral">&quot;&lt;full path of SyncBox folder&gt;&quot;</span>,</div>
+<div class="line">            RegistrationInfoApplicationId: <span class="stringliteral">&quot;...&quot;</span>,   <span class="comment">// provided by the registration process</span></div>
+<div class="line">            RegistrationInfoSyncBoxId: <span class="stringliteral">&quot;...&quot;</span>,       <span class="comment">// provided by the application developer through the registration process</span></div>
+<div class="line">            RegistrationInfoDeviceId: <span class="stringliteral">&quot;...&quot;</span>,        <span class="comment">// provided by the registration process</span></div>
+<div class="line">            DatabaseFileFullPath: <span class="stringliteral">&quot;&lt;full path and filename.ext of the database file&gt;&quot;</span>,</div>
+<div class="line">                );</div>
+<div class="line">        </div>
+<div class="line">        <span class="comment">// Construct the SyncBox object with the settings.</span></div>
+<div class="line">        SyncBox box = <span class="keyword">new</span> SyncBox(settings);</div>
 <div class="line"></div>
-<div class="line"><span class="comment">// Set the parameters for your SyncBox.</span></div>
-<div class="line">ISyncSettings settings = <span class="keyword">new</span> ISyncSettings(</div>
-<div class="line">            settings.udid = <span class="stringliteral">&quot;...&quot;</span>;          <span class="comment">// supplied via account registration</span></div>
-<div class="line">            settings.uuid = <span class="stringliteral">&quot;...&quot;</span>;          <span class="comment">// supplied via account registration</span></div>
-<div class="line">            settings.akey = <span class="stringliteral">&quot;...&quot;</span>;          <span class="comment">// supplied via account registration</span></div>
-<div class="line">            settings.CloudRoot = <span class="stringliteral">&quot;C:\Users\ThisUser\SyncBox1&quot;</span>;</div>
-<div class="line">        );</div>
+<div class="line">        <span class="comment">// Subscribe to the events (notifications).</span></div>
+<div class="line">        box.ActivityMessage += OnActivityMessage;</div>
+<div class="line">    </div>
+<div class="line">        <span class="comment">// Start syncing</span></div>
+<div class="line">        box.Start(); </div>
+<div class="line">    </div>
+<div class="line">        <span class="comment">// ...</span></div>
+<div class="line">    </div>
+<div class="line">        <span class="comment">// Stop syncing</span></div>
+<div class="line">        box.Stop();</div>
+<div class="line">        <span class="comment">// ...</span></div>
+<div class="line">    }</div>
 <div class="line"></div>
-<div class="line"><span class="comment">// Start syncing the SyncBox</span></div>
-<div class="line">SyncBox box = <span class="keyword">new</span> SyncBox(settings);</div>
-<div class="line">box.Start();</div>
+<div class="line">    <span class="keyword">private</span> <span class="keywordtype">void</span> OnActivityMessage(<span class="keywordtype">object</span> sender, ActivityMessageArgs e)</div>
+<div class="line">    {</div>
+<div class="line">        <span class="comment">// Handle the event</span></div>
+<div class="line">        <span class="keywordflow">switch</span> (e.Message.MessageType)</div>
+<div class="line">        {</div>
+<div class="line">            <span class="keywordflow">case</span> EnumMessageType.Informational:</div>
+<div class="line">                MessageBox.Show(<span class="stringliteral">&quot;Informational message: &quot;</span> + e.Message.Message);  <span class="comment">// example only</span></div>
+<div class="line">                <span class="keywordflow">break</span>;</div>
 <div class="line"></div>
-<div class="line"><span class="comment">// ...</span></div>
+<div class="line">            <span class="keywordflow">case</span> EnumMessageType.SyncStarted:</div>
+<div class="line">                MessageBox.Show(<span class="stringliteral">&quot;Sync has started&quot;</span>);    <span class="comment">// example only</span></div>
+<div class="line">                <span class="keywordflow">break</span>;</div>
+<div class="line"></div>
+<div class="line">            <span class="keywordflow">case</span> EnumMessageType.SyncStopped:</div>
+<div class="line">                MessageBox.Show(<span class="stringliteral">&quot;Sync has stopped&quot;</span>);    <span class="comment">// example only</span></div>
+<div class="line">                <span class="keywordflow">break</span>;</div>
+<div class="line"></div>
+<div class="line">            <span class="comment">// other cases....</span></div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="line">}</div>
 </div><!-- fragment --><p>The code above will silently and automatically sync files in the "SyncBox1" directory with your other devices, and with your SyncBox on the Cloud servers.</p>
 <p>Should you need more extensive control over the syncing process, the API will allow you to implement your own methods for full control, including real time sync status and server push notification.</p>
 <h1><a class="anchor" id="install_sec"></a>
@@ -117,7 +154,7 @@ Copyright (C) Cloud.com.  All Rights Reserved.</h1>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 30 2012 15:12:39 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Nov 1 2012 12:38:27 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

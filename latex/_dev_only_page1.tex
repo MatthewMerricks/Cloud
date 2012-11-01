@@ -1,0 +1,184 @@
+
+\begin{DoxyCode}
+. Namespaces
+  o CloudSyncBox
+. Interfaces
+  o ISyncSettings
+    - Required properties:
+      . \textcolor{keywordtype}{string} SyncBoxFolderFullPath
+      . \textcolor{keywordtype}{string} RegistrationInfoApplicationId
+      . \textcolor{keywordtype}{string} RegistrationInfoSyncBoxId
+      . \textcolor{keywordtype}{string} RegistrationInfoDeviceId
+. SyncBox Class
+  o Constructor
+    - SyncBox(ISyncSettings settings)
+      . settings must be valid
+      . May \textcolor{keywordflow}{throw} exceptions
+  o Public methods
+    - Start()
+      . May \textcolor{keywordflow}{throw} exceptions
+    - \textcolor{keywordtype}{void} Stop()
+  o Public properties
+    - Read-write properties:
+      . None.
+    - Read-only properties:
+      . \textcolor{keywordtype}{bool} IsSyncStarted
+      . \textcolor{keywordtype}{int} NumberOfQueuedFileUploads
+      . \textcolor{keywordtype}{int} NumberOfActiveFileUploads
+      . \textcolor{keywordtype}{int} NumberOfQueuedFileDownloads
+      . \textcolor{keywordtype}{int} NumberOfActiveFileDownloads
+      . \textcolor{keywordtype}{long} TotalPendingUploadBytes
+      . \textcolor{keywordtype}{long} TotalPendingDownloadBytes
+      . \textcolor{keywordtype}{string} FriendlyDeviceName
+      . \textcolor{keywordtype}{string} FriendlyApplicationName
+      . \textcolor{keywordtype}{string} FriendlySyncBoxName
+      . \textcolor{keywordtype}{string} SyncBoxFolderFullPath
+      . \textcolor{keywordtype}{string} RegistrationInfoApplicationId
+      . \textcolor{keywordtype}{string} RegistrationInfoSyncBoxId
+      . \textcolor{keywordtype}{string} RegistrationInfoDeviceId
+  o Events
+    - All activity events provide an IActivityMessage.
+    - IActivityMessage is an interface with two required properties: 
+      . \textcolor{keywordtype}{string} Message
+      . enum MessageType
+    - There are many implementations of IActivityMessage provided by the SDK.
+    - Each contains specific properties, and all implement the required Message
+       and MessageType properties (IActivityMessage).
+    - The Windows SDK implements these classes as "public sealed", and all of 
+      the properties are publc read-only.
+    - The user can read all or any of the public properties, but cannot derive 
+      the class (because it is sealed).
+    - The simplest implentation class of IActivityMessage is:
+          public sealed class InformationalMessage : IActivityMessage
+          \{
+              \textcolor{keyword}{public} EnumMessageType MessageType 
+              \{
+                  \textcolor{keyword}{get}
+                  \{
+                      \textcolor{keywordflow}{return} EnumMessageType.Informational;
+                  \}
+              \}
+              \textcolor{keyword}{public} \textcolor{keywordtype}{string} Message \{ \textcolor{keyword}{get}; \textcolor{keyword}{private} \textcolor{keyword}{set}; \}
+              \textcolor{keyword}{public} InformationalMessage(\textcolor{keywordtype}{string} message)
+              \{
+                  this.Message = message;
+              \}
+          \}
+    - The \textcolor{keyword}{enum} is defined as:
+          \textcolor{keyword}{public} \textcolor{keyword}{enum} EnumMessageType
+          \{
+              Informational,
+              FilesUploaded,
+              NextType1,
+              NextType2,
+              etc....
+          \}
+    - A slightly more complex implementation would be something like \textcolor{stringliteral}{"23 files
+       uploaded"}.
+          \textcolor{keyword}{public} sealed \textcolor{keyword}{class }FilesUploadedMessage : IActivityMessage
+          \{
+              \textcolor{keyword}{public} EnumMessageType MessageType 
+              \{
+                  \textcolor{keyword}{get}
+                  \{
+                      \textcolor{keywordflow}{return} EnumMessageType.FilesUploaded;
+                  \}
+              \}
+              \textcolor{keyword}{public} \textcolor{keywordtype}{string} Message
+              \{
+                  \textcolor{keyword}{get}
+                  \{
+                      \textcolor{comment}{// Return formatted message}
+                      FileCount.ToString() + \textcolor{stringliteral}{" files uploaded"};
+                  \}
+              \}
+              \textcolor{keyword}{public} \textcolor{keywordtype}{int} FileCount \{ \textcolor{keyword}{get}; \textcolor{keyword}{private} \textcolor{keyword}{set}; \}
+              \textcolor{keyword}{public} FilesUploadedMessage(\textcolor{keywordtype}{int} fileCount)
+              \{
+                  this.FileCount = fileCount;
+              \}
+          \}
+    - There will be many implementations of IActivityMessage.  The 
+      implementations will fall into general categories:
+      . SyncStarted
+      . SyncStopped
+      . Informational summary
+      . Informational detail
+      . Informational error
+      . Serious error
+    - As the teams define these implementations, we should attempt to use the 
+      same definitions.
+      . We will define a Podio page to document these implementations.
+      . Each team will submit implementations and other teams will attempt to 
+      use the same definition, negotiating when appropriate.
+    - The EventArgs that will be passed to the \textcolor{keyword}{event} is defined as:
+          \textcolor{keyword}{public} sealed \textcolor{keyword}{class }ActivityMessageArgs : EventArgs
+          \{
+              \textcolor{keyword}{public} IActivityMessage Message \{ \textcolor{keyword}{get}; \textcolor{keyword}{private} \textcolor{keyword}{set}; \}
+              \textcolor{keyword}{public} ActivityMessageArgs(IActivityMessage message)
+              \{
+                  this.Message = message;
+              \}
+          \}
+    - The \textcolor{keyword}{event} is defined as:
+          \textcolor{keyword}{public} \textcolor{keyword}{event} EventHandler<ActivityMessageArgs> ActivityMessage;
+  o Sample code:
+    - Application
+      \textcolor{keyword}{public} \textcolor{keyword}{static} \textcolor{keyword}{class }MyApplication
+      \{
+          \textcolor{keyword}{public} \textcolor{keyword}{static} \textcolor{keywordtype}{int} main(\textcolor{keywordtype}{string}[] args)
+          \{
+              \textcolor{comment}{// ...}
+              \textcolor{comment}{// Set the parameters for your SyncBox.}
+              ISyncSettings settings = \textcolor{keyword}{new} SyncSettings(
+                  SyncBoxFolderFullPath: \textcolor{stringliteral}{"<full path of SyncBox folder>"},
+                  RegistrationInfoApplicationId: \textcolor{stringliteral}{"..."},   \textcolor{comment}{// provided by the
+       registration process}
+                  RegistrationInfoSyncBoxId: \textcolor{stringliteral}{"..."},       \textcolor{comment}{// provided by the
+       application developer through the registration process}
+                  RegistrationInfoDeviceId: \textcolor{stringliteral}{"..."},        \textcolor{comment}{// provided by the
+       registration process}
+                  DatabaseFileFullPath: \textcolor{stringliteral}{"<full path and filename.ext of the
+       database file>"},
+                   );
+        
+              \textcolor{comment}{// Construct the SyncBox object with the settings.}
+              SyncBox box = \textcolor{keyword}{new} SyncBox(settings);
+
+              \textcolor{comment}{// Subscribe to the events (notifications).}
+              box.ActivityMessage += OnActivityMessage;
+    
+              \textcolor{comment}{// Start syncing}
+              box.Start(); 
+    
+              \textcolor{comment}{// ...}
+    
+              \textcolor{comment}{// Stop syncing}
+              box.Stop();
+              \textcolor{comment}{// ...}
+          \}
+
+          \textcolor{keyword}{private} \textcolor{keywordtype}{void} OnActivityMessage(\textcolor{keywordtype}{object} sender, ActivityMessageArgs e)
+          \{
+              \textcolor{comment}{// Handle the event}
+              \textcolor{keywordflow}{switch} (e.Message.MessageType)
+              \{
+                  \textcolor{keywordflow}{case} EnumMessageType.Informational:
+                      MessageBox.Show(\textcolor{stringliteral}{"Informational message: "} + e.Message.
+      Message);  \textcolor{comment}{// example only}
+                      \textcolor{keywordflow}{break};
+
+                  \textcolor{keywordflow}{case} EnumMessageType.SyncStarted:
+                      MessageBox.Show(\textcolor{stringliteral}{"Sync has started"});    \textcolor{comment}{// example only}
+                      \textcolor{keywordflow}{break};
+
+                  \textcolor{keywordflow}{case} EnumMessageType.SyncStopped:
+                      MessageBox.Show(\textcolor{stringliteral}{"Sync has stopped"});    \textcolor{comment}{// example only}
+                      \textcolor{keywordflow}{break};
+
+                  \textcolor{comment}{// other cases....}
+              \}
+          \}
+      \}
+\end{DoxyCode}
+ 

@@ -13,21 +13,57 @@
 /// See how easy it is:
 ///
 /// \code{.cs}
-///		// ...
-///
-///		// Set the parameters for your SyncBox.
-///		ISyncSettings settings = new ISyncSettings(
-///					settings.udid = "...";			// supplied via account registration
-///					settings.uuid = "...";			// supplied via account registration
-///					settings.akey = "...";			// supplied via account registration
-///					settings.CloudRoot = "C:\Users\ThisUser\SyncBox1";
-///				);
-///
-///		// Start syncing the SyncBox
-///		SyncBox box = new SyncBox(settings);
-///		box.Start();
-///
-///		// ...
+/// public static class MyApplication
+/// {
+///     public static int main(string[] args)
+///     {
+///         // ...
+///         // Set the parameters for your SyncBox.
+///         ISyncSettings settings = new SyncSettings(
+///             SyncBoxFolderFullPath: "<full path of SyncBox folder>",
+///             RegistrationInfoApplicationId: "...",   // provided by the registration process
+///             RegistrationInfoSyncBoxId: "...",       // provided by the application developer through the registration process
+///             RegistrationInfoDeviceId: "...",        // provided by the registration process
+///             DatabaseFileFullPath: "<full path and filename.ext of the database file>",
+///                 );
+///         
+///         // Construct the SyncBox object with the settings.
+///         SyncBox box = new SyncBox(settings);
+/// 
+///         // Subscribe to the events (notifications).
+///         box.ActivityMessage += OnActivityMessage;
+///     
+///         // Start syncing
+///         box.Start(); 
+///     
+///         // ...
+///     
+///         // Stop syncing
+///         box.Stop();
+///         // ...
+///     }
+/// 
+///     private void OnActivityMessage(object sender, ActivityMessageArgs e)
+///     {
+///         // Handle the event
+///         switch (e.Message.MessageType)
+///         {
+///             case EnumMessageType.Informational:
+///                 MessageBox.Show("Informational message: " + e.Message.Message);  // example only
+///                 break;
+/// 
+///             case EnumMessageType.SyncStarted:
+///                 MessageBox.Show("Sync has started");    // example only
+///                 break;
+/// 
+///             case EnumMessageType.SyncStopped:
+///                 MessageBox.Show("Sync has stopped");    // example only
+///                 break;
+/// 
+///             // other cases....
+///         }
+///     }
+/// }
 /// \endcode
 ///
 /// The code above will silently and automatically sync files in the "SyncBox1" directory with your other devices, and with your SyncBox on the Cloud servers.
@@ -48,3 +84,174 @@
 ///
 /// \section copyright_sec Copyright (C) Cloud.com.  All Rights Reserved.
 /// http://www.cloud.com
+/// \page DevOnlyPage1 A Guide to the Cloud API Design
+/// \code{.txt}
+/// . Namespaces
+///   o CloudSyncBox
+/// . Interfaces
+///   o ISyncSettings
+///     - Required properties:
+///       . string SyncBoxFolderFullPath
+///       . string RegistrationInfoApplicationId
+///       . string RegistrationInfoSyncBoxId
+///       . string RegistrationInfoDeviceId
+/// . SyncBox Class
+///   o Constructor
+///     - SyncBox(ISyncSettings settings)
+///       . settings must be valid
+///       . May throw exceptions
+///   o Public methods
+///     - Start()
+///       . May throw exceptions
+///     - void Stop()
+///   o Public properties
+///     - Read-write properties:
+///       . None.
+///     - Read-only properties:
+///       . bool IsSyncStarted
+///       . int NumberOfQueuedFileUploads
+///       . int NumberOfActiveFileUploads
+///       . int NumberOfQueuedFileDownloads
+///       . int NumberOfActiveFileDownloads
+///       . long TotalPendingUploadBytes
+///       . long TotalPendingDownloadBytes
+///       . string FriendlyDeviceName
+///       . string FriendlyApplicationName
+///       . string FriendlySyncBoxName
+///       . string SyncBoxFolderFullPath
+///       . string RegistrationInfoApplicationId
+///       . string RegistrationInfoSyncBoxId
+///       . string RegistrationInfoDeviceId
+///   o Events
+///     - All activity events provide an IActivityMessage.
+///     - IActivityMessage is an interface with two required properties: 
+///       . string Message
+///       . enum MessageType
+///     - There are many implementations of IActivityMessage provided by the SDK.
+///     - Each contains specific properties, and all implement the required Message and MessageType properties (IActivityMessage).
+///     - The Windows SDK implements these classes as "public sealed", and all of the properties are publc read-only.
+///     - The user can read all or any of the public properties, but cannot derive the class (because it is sealed).
+///     - The simplest implentation class of IActivityMessage is:
+///           public sealed class InformationalMessage : IActivityMessage
+///           {
+///               public EnumMessageType MessageType 
+///               {
+///                   get
+///                   {
+///                       return EnumMessageType.Informational;
+///                   }
+///               }
+///               public string Message { get; private set; }
+///               public InformationalMessage(string message)
+///               {
+///                   this.Message = message;
+///               }
+///           }
+///     - The enum is defined as:
+///           public enum EnumMessageType
+///           {
+///               Informational,
+///               FilesUploaded,
+///               NextType1,
+///               NextType2,
+///               etc....
+///           }
+///     - A slightly more complex implementation would be something like "23 files uploaded".
+///           public sealed class FilesUploadedMessage : IActivityMessage
+///           {
+///               public EnumMessageType MessageType 
+///               {
+///                   get
+///                   {
+///                       return EnumMessageType.FilesUploaded;
+///                   }
+///               }
+///               public string Message
+///               {
+///                   get
+///                   {
+///                       // Return formatted message
+///                       FileCount.ToString() + " files uploaded";
+///                   }
+///               }
+///               public int FileCount { get; private set; }
+///               public FilesUploadedMessage(int fileCount)
+///               {
+///                   this.FileCount = fileCount;
+///               }
+///           }
+///     - There will be many implementations of IActivityMessage.  The implementations will fall into general categories:
+///       . SyncStarted
+///       . SyncStopped
+///       . Informational summary
+///       . Informational detail
+///       . Informational error
+///       . Serious error
+///     - As the teams define these implementations, we should attempt to use the same definitions.
+///       . We will define a Podio page to document these implementations.
+///       . Each team will submit implementations and other teams will attempt to use the same definition, negotiating when appropriate.
+///     - The EventArgs that will be passed to the event is defined as:
+///           public sealed class ActivityMessageArgs : EventArgs
+///           {
+///               public IActivityMessage Message { get; private set; }
+///               public ActivityMessageArgs(IActivityMessage message)
+///               {
+///                   this.Message = message;
+///               }
+///           }
+///     - The event is defined as:
+///           public event EventHandler<ActivityMessageArgs> ActivityMessage;
+///   o Sample code:
+///     - Application
+///       public static class MyApplication
+///       {
+///           public static int main(string[] args)
+///           {
+///               // ...
+///               // Set the parameters for your SyncBox.
+///               ISyncSettings settings = new SyncSettings(
+///                   SyncBoxFolderFullPath: "<full path of SyncBox folder>",
+///                   RegistrationInfoApplicationId: "...",   // provided by the registration process
+///                   RegistrationInfoSyncBoxId: "...",       // provided by the application developer through the registration process
+///                   RegistrationInfoDeviceId: "...",        // provided by the registration process
+///                   DatabaseFileFullPath: "<full path and filename.ext of the database file>",
+///                    );
+///         
+///               // Construct the SyncBox object with the settings.
+///               SyncBox box = new SyncBox(settings);
+/// 
+///               // Subscribe to the events (notifications).
+///               box.ActivityMessage += OnActivityMessage;
+///     
+///               // Start syncing
+///               box.Start(); 
+///     
+///               // ...
+///     
+///               // Stop syncing
+///               box.Stop();
+///               // ...
+///           }
+/// 
+///           private void OnActivityMessage(object sender, ActivityMessageArgs e)
+///           {
+///               // Handle the event
+///               switch (e.Message.MessageType)
+///               {
+///                   case EnumMessageType.Informational:
+///                       MessageBox.Show("Informational message: " + e.Message.Message);  // example only
+///                       break;
+/// 
+///                   case EnumMessageType.SyncStarted:
+///                       MessageBox.Show("Sync has started");    // example only
+///                       break;
+/// 
+///                   case EnumMessageType.SyncStopped:
+///                       MessageBox.Show("Sync has stopped");    // example only
+///                       break;
+/// 
+///                   // other cases....
+///               }
+///           }
+///       }
+/// \endcode
