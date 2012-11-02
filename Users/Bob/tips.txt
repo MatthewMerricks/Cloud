@@ -5433,173 +5433,174 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
   o 10/31/12 Wed:
     - 6:45 - 16:15
     - API Design
-      . Namespaces
-        o CloudSyncBox
-      . Interfaces
-        o ISyncSettings
-          - Required properties:
-            . string SyncBoxFolderFullPath
-            . string RegistrationInfoApplicationId
-            . string RegistrationInfoSyncBoxId
-            . string RegistrationInfoDeviceId
-      . SyncBox Class
-        o Constructor
-          - SyncBox(ISyncSettings settings)
-            . settings must be valid
-            . May throw exceptions
-        o Public methods
-          - Start()
-            . May throw exceptions
-          - void Stop()
-        o Public properties
-          - Read-write properties:
-            . None.
-          - Read-only properties:
-            . bool IsSyncStarted
-            . int NumberOfQueuedFileUploads
-            . int NumberOfActiveFileUploads
-            . int NumberOfQueuedFileDownloads
-            . int NumberOfActiveFileDownloads
-            . long TotalPendingUploadBytes
-            . long TotalPendingDownloadBytes
-            . string FriendlyDeviceName
-            . string FriendlyApplicationName
-            . string FriendlySyncBoxName
-            . string SyncBoxFolderFullPath
-            . string RegistrationInfoApplicationId
-            . string RegistrationInfoSyncBoxId
-            . string RegistrationInfoDeviceId
-        o Events
-          - All activity events provide an IActivityMessage.
-          - IActivityMessage is an interface with two required properties: 
-            . string Message
-            . enum MessageType
-          - There are many implementations of IActivityMessage provided by the SDK.
-          - Each contains specific properties, and all implement the required Message and MessageType properties (IActivityMessage).
-          - The Windows SDK implements these classes as "public sealed", and all of the properties are publc read-only.
-          - The user can read all or any of the public properties, but cannot derive the class (because it is sealed).
-          - The simplest implentation class of IActivityMessage is:
-                public sealed class InformationalMessage : IActivityMessage
-                {
-                    public EnumMessageType MessageType 
-                    {
-                        get
-                        {
-                            return EnumMessageType.Informational;
-                        }
-                    }
-                    public string Message { get; private set; }
-                    public InformationalMessage(string message)
-                    {
-                        this.Message = message;
-                    }
-                }
-          - The enum is defined as:
-                public enum EnumMessageType
-                {
-                    Informational,
-                    FilesUploaded,
-                    NextType1,
-                    NextType2,
-                    etc....
-                }
-          - A slightly more complex implementation would be something like "23 files uploaded".
-                public sealed class FilesUploadedMessage : IActivityMessage
-                {
-                    public EnumMessageType MessageType 
-                    {
-                        get
-                        {
-                            return EnumMessageType.FilesUploaded;
-                        }
-                    }
-                    public string Message
-                    {
-                        get
-                        {
-                            // Return formatted message
-                            FileCount.ToString() + " files uploaded";
-                        }
-                    }
-                    public int FileCount { get; private set; }
-                    public FilesUploadedMessage(int fileCount)
-                    {
-                        this.FileCount = fileCount;
-                    }
-                }
-          - There will be many implementations of IActivityMessage.  The implementations will fall into general categories:
-            . SyncStarted
-            . SyncStopped
-            . Informational summary
-            . Informational detail
-            . Informational error
-            . Serious error
-          - As the teams define these implementations, we should attempt to use the same definitions.
-            . We will define a Podio page to document these implementations.
-            . Each team will submit implementations and other teams will attempt to use the same definition, negotiating when appropriate.
-          - The EventArgs that will be passed to the event is defined as:
-                public sealed class ActivityMessageArgs : EventArgs
-                {
-                    public IActivityMessage Message { get; private set; }
-                    public ActivityMessageArgs(IActivityMessage message)
-                    {
-                        this.Message = message;
-                    }
-                }
-          - The event is defined as:
-                public event EventHandler<ActivityMessageArgs> ActivityMessage;
-        o Sample code:
-          - Application
-            public static class MyApplication
-            {
-                public static int main(string[] args)
-                {
-                    // ...
-                    // Set the parameters for your SyncBox.
-                    ISyncSettings settings = new SyncSettings(
-                        SyncBoxFolderFullPath: "<full path of SyncBox folder>",
-                        RegistrationInfoApplicationId: "...",   // provided by the registration process
-                        RegistrationInfoSyncBoxId: "...",       // provided by the application developer through the registration process
-                        RegistrationInfoDeviceId: "...",        // provided by the registration process
-                        DatabaseFileFullPath: "<full path and filename.ext of the database file>",
-                         );
-        
-                    // Construct the SyncBox object with the settings.
-                    SyncBox box = new SyncBox(settings);
-
-                    // Subscribe to the events (notifications).
-                    box.ActivityMessage += OnActivityMessage;
-    
-                    // Start syncing
-                    box.Start(); 
-    
-                    // ...
-    
-                    // Stop syncing
-                    box.Stop();
-                    // ...
-                }
-
-                private void OnActivityMessage(object sender, ActivityMessageArgs e)
-                {
-                    // Handle the event
-                    switch (e.Message.MessageType)
-                    {
-                        case EnumMessageType.Informational:
-                            MessageBox.Show("Informational message: " + e.Message.Message);
-                            break;
-
-                        case EnumMessageType.SyncStarted:
-                            MessageBox.Show("Sync has started");
-                            break;
-
-                        case EnumMessageType.SyncStopped:
-                            MessageBox.Show("Sync has stopped");
-                            break;
-                    }
-                }
-
-            }
+/// . Namespaces
+///   o CloudSyncBox
+/// . Interfaces
+///   o ISyncSettings
+///     - Required properties:
+///       . string SyncBoxFolderFullPath
+///       . string RegistrationInfoApplicationId
+///       . string RegistrationInfoSyncBoxId
+///       . string RegistrationInfoDeviceId
+/// . SyncBox Class
+///   o Constructor
+///     - SyncBox(ISyncSettings settings)
+///       . settings must be valid
+///       . May throw exceptions
+///   o Public methods
+///     - Start()
+///       . May throw exceptions
+///     - void Stop()
+///   o Public properties
+///     - Read-write properties:
+///       . None.
+///     - Read-only properties:
+///       . bool IsSyncStarted
+///       . int NumberOfQueuedFileUploads
+///       . int NumberOfActiveFileUploads
+///       . int NumberOfQueuedFileDownloads
+///       . int NumberOfActiveFileDownloads
+///       . long TotalPendingUploadBytes
+///       . long TotalPendingDownloadBytes
+///       . string FriendlyDeviceName
+///       . string FriendlyApplicationName
+///       . string FriendlySyncBoxName
+///       . string SyncBoxFolderFullPath
+///       . string RegistrationInfoApplicationId
+///       . string RegistrationInfoSyncBoxId
+///       . string RegistrationInfoDeviceId
+///   o Events
+///     - All activity events provide an IActivityMessage.
+///     - IActivityMessage is an interface with two required properties: 
+///       . string Message
+///       . enum MessageType
+///     - There are many implementations of IActivityMessage provided by the SDK.
+///     - Each contains specific properties, and all implement the required Message and MessageType properties (IActivityMessage).
+///     - The Windows SDK implements these classes as "public sealed", and all of the properties are publc read-only.
+///     - The user can read all or any of the public properties, but cannot derive the class (because it is sealed).
+///     - The simplest implentation class of IActivityMessage is:
+///           public sealed class InformationalMessage : IActivityMessage
+///           {
+///               public EnumMessageType MessageType 
+///               {
+///                   get
+///                   {
+///                       return EnumMessageType.Informational;
+///                   }
+///               }
+///               public string Message { get; private set; }
+///               public InformationalMessage(string message)
+///               {
+///                   this.Message = message;
+///               }
+///           }
+///     - The enum is defined as:
+///           public enum EnumMessageType
+///           {
+///               Informational,
+///               FilesUploaded,
+///               NextType1,
+///               NextType2,
+///               etc....
+///           }
+///     - A slightly more complex implementation would be something like "23 files uploaded".
+///           public sealed class FilesUploadedMessage : IActivityMessage
+///           {
+///               public EnumMessageType MessageType 
+///               {
+///                   get
+///                   {
+///                       return EnumMessageType.FilesUploaded;
+///                   }
+///               }
+///               public string Message
+///               {
+///                   get
+///                   {
+///                       // Return formatted message
+///                       FileCount.ToString() + " files uploaded";
+///                   }
+///               }
+///               public int FileCount { get; private set; }
+///               public FilesUploadedMessage(int fileCount)
+///               {
+///                   this.FileCount = fileCount;
+///               }
+///           }
+///     - There will be many implementations of IActivityMessage.  The implementations will fall into general categories:
+///       . SyncStarted
+///       . SyncStopped
+///       . Informational summary
+///       . Informational detail
+///       . Informational error
+///       . Serious error
+///     - As the teams define these implementations, we should attempt to use the same definitions.
+///       . We will define a Podio page to document these implementations.
+///       . Each team will submit implementations and other teams will attempt to use the same definition, negotiating when appropriate.
+///     - The EventArgs that will be passed to the event is defined as:
+///           public sealed class ActivityMessageArgs : EventArgs
+///           {
+///               public IActivityMessage Message { get; private set; }
+///               public ActivityMessageArgs(IActivityMessage message)
+///               {
+///                   this.Message = message;
+///               }
+///           }
+///     - The event is defined as:
+///           public event EventHandler<ActivityMessageArgs> ActivityMessage;
+///   o Sample code:
+///     - Application
+///       public static class MyApplication
+///       {
+///           public static int main(string[] args)
+///           {
+///               // ...
+///               // Set the parameters for your SyncBox.
+///               ISyncSettings settings = new SyncSettings(
+///                   SyncBoxFolderFullPath: "<full path of SyncBox folder>",
+///                   RegistrationInfoApplicationId: "...",   // provided by the registration process
+///                   RegistrationInfoSyncBoxId: "...",       // provided by the application developer through the registration process
+///                   RegistrationInfoDeviceId: "...",        // provided by the registration process
+///                   DatabaseFileFullPath: "<full path and filename.ext of the database file>",
+///                    );
+///         
+///               // Construct the SyncBox object with the settings.
+///               SyncBox box = new SyncBox(settings);
+/// 
+///               // Subscribe to the events (notifications).
+///               box.ActivityMessage += OnActivityMessage;
+///     
+///               // Start syncing
+///               box.Start(); 
+///     
+///               // ...
+///     
+///               // Stop syncing
+///               box.Stop();
+///               // ...
+///           }
+/// 
+///           private void OnActivityMessage(object sender, ActivityMessageArgs e)
+///           {
+///               // Handle the event
+///               switch (e.Message.MessageType)
+///               {
+///                   case EnumMessageType.Informational:
+///                       MessageBox.Show("Informational message: " + e.Message.Message);  // example only
+///                       break;
+/// 
+///                   case EnumMessageType.SyncStarted:
+///                       MessageBox.Show("Sync has started");    // example only
+///                       break;
+/// 
+///                   case EnumMessageType.SyncStopped:
+///                       MessageBox.Show("Sync has stopped");    // example only
+///                       break;
+/// 
+///                   // other cases....
+///               }
+///           }
+///       }
     - Sent a memo including the above design.
     - Sent a memo about possibly developing a kernel/user mode filter driver to fix many of our issues.  (Release 2?)
     - Updated the API definition above.  Steve likes it and will let us know if there are any issues.
@@ -5646,6 +5647,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       . The publishers should be any thread or process.
       . The subscribers should be any thread or process.
       . Pulish an event causes every subscriber callback to be driven (almost) immediately.
+      . There shouldn't be any 3rd party.  This should be peer-to-peer.
       . Try to do it without polling (possible?).
       . The shared memory pool should be allocated per user for all user processes.
       . A publisher is a SyncBox.
@@ -5658,10 +5660,169 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       . When any single publisher publishes a named event, all subscribers to that named event receive the event.
       . The data in the event must be serialized for both C# and C++.
       . Each BadgeCom process entering the BadgeCom init event will start a listener thread for that BadgeCom instance.
+      . The publishing threads should wait with a timeout if the events are not flowing.
+      . The subscribers should wait with a timeout for an event to arrive.
   o 11/1/12 The:
-    - 6:30 - 
+    - 6:30 - 18:30
+    - I thought of using WM_COPYDATA to send the actual messages, while the shared memory just handles the subscription.  That wouldn't be good because WM_COPYDATA can only be used with synchronous SendData().
+      Also, WM_COPYDATA requires a window (which can be hidden).  I don't think creating an Explorer window would be a good idea because it might break other apps that are iterating through Explorer windows.
+    - It seems that the best solution so far would be to use the Boost Interprocess library.  The shared memory would hold the subscriptions and the queues.  Each subscriber would have a queue of (say) 5
+      messages.  The shared memory would hold the subscription control blocks.  Each subscription control block would hold the subscriber's queue, and the synchronization objects for that subscriber.
+      Each publisher will loop through all of the subscribers for the event that is being published.  The publisher will copy the event and place it on each of the subscriber's queues and then signal
+      the subscribers to pull the events from the subscription queue.  What if one of the subscribers goes to sleep and its queue fills up?  Everything will fill up, and the only choice is to
+      error-out with a timeout.  Not good. Also, what if the subscription process is gone?  There isn't an obvious termination event for the BageCom instances, and Explorer could just be killed.
+      I need a synchronous error indication.  That brings me back to WM_COPYDATA.  It must use SendMessage, so SendMessage will error-out, and the publisher can remove the target subscription.  However,
+      as mentioned above, I don't want to use WM_COPYDATA, so is there some other low-overhead way to synchronously drive the message to the target subscriber?
+    - MailSlots are an alternative, but they are like datagrams; max 424 bytes, support broadcast by name and wildcards?, are asynchronous, with no guarantee of delivery.  Our paths may be longer than 424 bytes.
+    - Named Pipes are an alternative.  They take any amount of data, are synchronous, and we will know errors immediately, but anything with a name seems to be expensive.
+    - I could use Windows Sockets, but they require port allocation.
+    - It seems that WM_COPYDATA would be best if extra hidden Explorer windows didn't create a problem with other applications.
+    - An alternative would be to have the publisher blow away the subscriber if a queue backup were detected.  The subscriber could poll the shared memory and re-establish its subscription if it were blown away.
+    - Shared memory map holding complex objects: http://www.boost.org/doc/libs/1_37_0/doc/html/interprocess/allocators_containers.html#interprocess.allocators_containers.containers_explained.containers_of_containers
+    - Boost support named objects in shared memory.
+    - Boost allocators: http://www.boost.org/doc/libs/1_37_0/doc/html/interprocess/allocators_containers.html#interprocess.allocators_containers.containers_explained.containers_of_containers
+    - Boost supports various containers: http://www.boost.org/doc/libs/1_37_0/doc/html/interprocess/allocators_containers.html#interprocess.allocators_containers.containers_explained.containers_of_containers
+      . cons: Simple Forward Sequence, lisp-style recursive list structure.  car is the head, and cdr is the tail (usually another cons structure or nil: (the empty list)).
+      . vector: Random Access Sequence of heterogenous typed data structured as a simple struct.  A vector with N elements is a struct with N members)
+      . deque: Bidirectional Sequence, constant-time insertion and removal of elements at both ends.
+      . list: Forward Sequence of heterogenous data build on top of con, constant-time access to each element.  More efficient than vector.
+      . set: ???
+      . map: Dictionary.
+      . flat_set
+      . flat_map
+      . basic_string
+    - OK.  That seems to work.
+    - Test to run:  What happens when Explorer is killed while holding a mutex?
+    - Boost serialization: http://www.codeproject.com/Articles/33012/InterprocessSingleton-Convenient-Template-to-Use-S
+    - Boost constructor for byte array: http://www.boost.org/doc/libs/1_46_1/doc/html/interprocess/managed_memory_segments.html
+    - Boost prebuilt libraries: http://boost.teeks99.com/
+    - Boost eBook: http://en.highscore.de/cpp/boost/interprocesscommunication.html
+    - Boost managed_shared_memory and windows_shared_memory has exactly the same interface: http://67.223.234.84/boost_doc/doc/html/boost_interprocess_reference.html#header.boost.interprocess.managed_shared_memory_hpp
+    - Boost both have the basic_managed_shared_memory interface: http://67.223.234.84/boost_doc/doc/html/boost_interprocess_reference.html#header.boost.interprocess.managed_shared_memory_hpp
+    - Now I think I have all of the tools in place.  What is the design?  I can use vectors and maps.  Each can hold complex objects.  I assume that a vector or map can hold an object that, itself, holds a vector or map.
+      . Events:
+        o These are the messages that are sent.
+        o Each event is a complex data type.
+        o Each event may vary in size, even within the same event type.
+        o Event structure:
+          - int nEventId
+          - int nSerializedDataLength
+          - byte[] abSerializedData
+      . mutex: Named: "SubscriptionsMutex".  Used for locking access to the Subscriptions vector.
+      . vector: Named: "Subscriptions".  Each block contains:
+        o int: nSubscribingProcessId
+        o int: nSubscribingThreadId
+        o int: nBadgeTypeHandled
+        o int: nEventType
+        o Mutex: mEventQueue: used to lock the queue of events.
+        o vector: vEvents: Queue of events of type nEventType (Note: Each event type may have a different size).
+      . The C# code will used the current PubSubEvents definitions.
+      . The current BadgeNet code will perform its own JSON serialization, and the BadgeCom C++ code will deserialize the JSON.
+      . GetSubscribedEvents pseudocode:
+        ; Parms
+        o Current process ID
+        o Current thread ID
+        o nBadgeTypeHandled (for logging)
+        o nEventType
+        o (out) vector: vOutFoundEvents: Found events:
+        ; Code
+        lock SubscriptionsMutex
+          locate the Subscriptions vector
+          set fThisProcessFound = false
+          loop thru the Subscriptions vector
+            if item.nSubscribingProcessId and item.nSubscribingThreadId match this one
+              break
+            endif item.nSubscribingProcessId and item.nSubscribingThreadId match this one
+          endloop thru the Subscriptions vector
+          if !fThisProcessFound
+            allocate a new subscription
+            set it up with the parms
+            add this subscription to the Subscriptions vector
+          else fThisProcessFound
+            // This subscriber is already subscribed
+            name the found subscription subFound.
+            set vOutFoundEvents to empty
+            loop waiting for at least one event
+              if subFound.Events.Count <= 0
+                unlock SubscriptionsMutex
+                wait on subFound.mEventQueue mutex
+                return (with no events. The caller will reenter at the top)
+                lock SubscriptionsMutex
+              else subFound.Events.Count > 0
+                break out of loop
+              endif subFound.Events.Count > 0
+            endloop waiting for at least one event
+            // Remove all events from the queue and return them
+            loop thru subFound.Events
+              remove this event from subFound.Events
+              add this event to vOutFoundEvents
+            endloop thru subFound.Events
+          endif fThisProcessFound
+        unlock SubscriptionsMutex
+        return
+      . PublishEvent pseudocode:
+        ; Parms
+        o Current process ID (logging)
+        o Current thread ID (logging)
+        o Event: event
+        ; Code
+        lock SubscriptionsMutex
+          locate the Subscriptions vector
+          loop thru the Subscriptions vector (subItem)
+            if event.nEventType == subItem.nEventType
+              get the count of events (subItem.Events.Count)
+              if count >= maximum
+                signal or otherwise invalidate the subItem.mEventQueue mutex that the subscriber may be waiting on.
+                delete this subscription (subItem) (watch the iterator validity)
+                continue at top of loop
+              else count < maximum
+                allocate storage for a copy of the event
+                make a copy of event
+                add the event copy to subItem.Events (FIFO)
+                signal subItem.mEventQueue (signal BadgeCom instance)
+              endelse count < maximum
+            endif event.nEventType == subItem.nEventType
+          endloop thru the Subscriptions vector
+        unlock SubscriptionsMutex
+        return
+      . Assume that the publisher serialization will be in C#, and the subscriber deserialization will be in C++.  That way we only need to marshal a couple of ints and a byte array.
+      . What if the subscriber is waiting for an event, but the thread has no priority to run?  Then the publisher may blow away the subscription, including the event queue mutex that the
+        subscriber is waiting on.  To prevent exceptions, the subscriber must reenter the GetSubscribedEvents() function to recreate the subscription, because the old subscription that
+        he was waiting on has been deleted.  This also means that the publisher must signal the mutex or invalidate it in some way.
+      . I need a test app:
+        o Library:
+          - C++ publisher code:
+            . Include the methods pseudo-coded above.
+          - Required Boost modules.
+        o Publisher:
+          - Console app in C#.
+          - Run multiple of these publishing processes.
+          - Starts multiple publishing threads.
+          - Each thread publishes an event with a random size, and a random event ID, in a random time up to 2 seconds.
+          - The C# code PInvokes the library publisher functions.
+        o Subscriber:
+          - Console app in C++.
+          - Run multiple of these subscribing processes.
+          - Starts multiple subscription threads
+          - Each thread:
+            loop getting and processing events
+              call GetSubscribedEvents (returns a vector of events, or waits for one).
+              if events returned
+                loop through the returned events
+                  print the event to the console
+                endloop through the returned events
+              endif events returned
+            endloop getting and processing events
+        o Start with the Subscriber.
+    - Coding the Subscriber C++ sample app.
+    - I wasted the entire afternoon on out-of-date documentation.  The docs specifically stated that managed_shared_memory and windows_shared_memory have the same interface.  WRONG!
+    - I can't use windows_shared_memory.  I think that means that boost will use a memory-mapped file to emulate shared memory.  Where will be file be stored????  I don't know.
+    - I will be using managed_shared_memory.  That allows containers that contain multiple containers.  I will use that sample to create a map<string, SubscriptionContainer>.
+    - The map will have just a single entry keyed with string "base".  The value will be a container (like a struct) that has any global data needed, plus the vector<Subscription>.
+  o 11/2/12 Fri:
+    - 7:30 - 
 
-      
+
       
 
 

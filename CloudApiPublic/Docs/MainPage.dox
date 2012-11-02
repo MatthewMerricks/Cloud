@@ -28,7 +28,7 @@
 ///                 );
 ///         
 ///         // Construct the SyncBox object with the settings.
-///         SyncBox box = new SyncBox(settings);
+///         CLSync box = new CLSync(settings);
 /// 
 ///         // Subscribe to the events (notifications).
 ///         box.ActivityMessage += OnActivityMessage;
@@ -87,7 +87,8 @@
 /// \page DevOnlyPage1 A Guide to the Cloud API Design
 /// \code{.txt}
 /// . Namespaces
-///   o CloudSyncBox
+///   o ClSync
+///   o CLPushNotification
 /// . Interfaces
 ///   o ISyncSettings
 ///     - Required properties:
@@ -95,7 +96,7 @@
 ///       . string RegistrationInfoApplicationId
 ///       . string RegistrationInfoSyncBoxId
 ///       . string RegistrationInfoDeviceId
-/// . SyncBox Class
+/// . CLSync Class
 ///   o Constructor
 ///     - SyncBox(ISyncSettings settings)
 ///       . settings must be valid
@@ -218,7 +219,7 @@
 ///                    );
 ///         
 ///               // Construct the SyncBox object with the settings.
-///               SyncBox box = new SyncBox(settings);
+///               CLSync box = new CLSync(settings);
 /// 
 ///               // Subscribe to the events (notifications).
 ///               box.ActivityMessage += OnActivityMessage;
