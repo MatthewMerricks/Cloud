@@ -5234,7 +5234,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
           - Null the local reference to the pubsub shared memory queue.
         x Indexer code that ends up calling DeleteBadgePath:
           - Pass the "pending" status.
-        o Badge arrived from indexer event:
+        x Badge arrived from indexer event:
           - Publish badge path add/remove events.
           - Maintain the dictionary of current badge paths and state.
           - Modificaiton notes:
@@ -5662,7 +5662,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       . Each BadgeCom process entering the BadgeCom init event will start a listener thread for that BadgeCom instance.
       . The publishing threads should wait with a timeout if the events are not flowing.
       . The subscribers should wait with a timeout for an event to arrive.
-  o 11/1/12 The:
+  o 11/1/12 Thu:
     - 6:30 - 18:30
     - I thought of using WM_COPYDATA to send the actual messages, while the shared memory just handles the subscription.  That wouldn't be good because WM_COPYDATA can only be used with synchronous SendData().
       Also, WM_COPYDATA requires a window (which can be hidden).  I don't think creating an Explorer window would be a good idea because it might break other apps that are iterating through Explorer windows.
@@ -5820,7 +5820,85 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - I will be using managed_shared_memory.  That allows containers that contain multiple containers.  I will use that sample to create a map<string, SubscriptionContainer>.
     - The map will have just a single entry keyed with string "base".  The value will be a container (like a struct) that has any global data needed, plus the vector<Subscription>.
   o 11/2/12 Fri:
-    - 7:30 - 
+    - 7:30 - 18:30
+    - A great tutorial on STL allocator: http://www.codeproject.com/Articles/4795/C-Standard-Allocator-An-Introduction-and-Implement
+    - Boost basic_string and formatting classes: http://www.boost.org/doc/libs/1_37_0/doc/html/interprocess/allocators_containers.html#interprocess.allocators_containers.allocator_introduction.allocator_swapping
+    - Friday stand-up.
+    - I finally got a sample (TestPubSubScription) project working.  It allocates a Base object that contains a vector of Subscription objects.  I was able to construct, add and remove a subscription.
+    - It looks like I can allocate a Windows shared memory segment and hook it up to a Managed_Shared_Memory object: http://www.cs.washington.edu/research/projects/uns/F9/src/boost_1_37_0/doc/html/boost/interprocess/basic_managed_shared_me_id2902229.html
+    - Boost scoped locks: http://www.boost.org/doc/libs/1_51_0/doc/html/interprocess/synchronization_mechanisms.html#interprocess.synchronization_mechanisms.mutexes
+    - Big time waster with Subscription class copy constructor and its contained semaphore.
+    - It is possible to write copyable and movable classes: http://www.boost.org/doc/libs/1_48_0/doc/html/move/implementing_movable_classes.html
+    - Boost interprocess PDF file: http://share.korepwx.com/study/boost_1_49_pdf/interprocess.pdf
+    - Still working on the un-copyable contained semaphore.  I am constructing the semaphore as an anonymous_instance, and using a pointer to track it, but the pointer is a "smart"
+      pointer, and it is causing an exception because the same object is being destructed twice.
+  o 11/3/12 Sat: (home)
+    - 5:30 - 
+    - Time waster: One hour to recreate the boost development environment at home.
+    - Boost smart pointers tutorial: http://www.drdobbs.com/cpp/smart-pointers-in-boost/184401507
+    - The crash is apparently happening because the interprocess_semaphore can only be constructed in shared memory.  It gets confused when one
+      object is constructed in shared memory, and another object is constructed in local memory.  It might work if all were constructed in local memory only???
+      The local memory construction was only done for a test.  Just eliminate it.
+    - OK.  Now the Subscription semaphore is being constructed and destructed properly (allocated as a separate shared memory object, and referenced by a pointer).  This solves
+      the (at least) day long time waster.  Now add the vector of events to the Subscription class.
+    - The events will be pure data, representing the messages to be sent.  There will be a base class and derived classes for different events.
+    - The base event will have the event type, process ID and thread ID.  The derived classes will add the rest of the fields:
+      . Event: BadgeCom_Initilization
+          - Process ID
+          - Thread ID
+          - Badge type
+      . Event: BadgeNet_AddSyncBoxFolderPath
+          - Process ID
+          - Thread ID
+          - Full path
+      . Event: BadgeNet_RemoveSyncBoxFolderPath
+          - Process ID
+          - Thread ID
+          - Full path
+      . Event: BadgeNet_AddBadgePath
+          - Process ID
+          - Thread ID
+          - Full path
+          - Badge Type
+      . Event: BadgeNet_RemoveBadgePath
+          - Process ID
+          - Thread ID
+          - Full path
+          - Badge Type
+    - I tried that, and it didn't work.  Boost interprocess doesn't support virtuality (deriving classes): http://stackoverflow.com/questions/12969391/is-it-possible-to-store-polymorphic-class-in-shared-memory
+    - Fortunately these classes are simple.  Just put all of the fields into one class.
+    - I succeeded in adding an event to the Subscription's events_ vector, and I pulled the object's members out and verified that they are correct.
+    - Determine the shared memory segment address, and verify that all objects are in the shared memory segment.
+      . m_base holds the segment address.  It is 0x02600000.  Seems reasonable for a real segment address.  The length is 1024000.  Correct.
+      . base is a pointer allocated on the local stack (at 0x0036F92C).  It's value is 0x02600074.  It points into the shared memory segment.
+      . &base->nSampleInt_ is at 0x26000074, in shared memory, and it has the correct value (42).
+      . &base->subscriptions_ is at 0x2600007C, in shared memory.
+      . NOTE: The VS 2012 QuickWatch does not know how to navigate these smart pointer expressions.  It must be done in code.
+      . &(base->subscriptions_[0].events_[0]) is 0x260000E0, in shared memory.
+      . &(base->subscriptions_[0].events_[0].EventType_) is 0x260000E0, in shared memory.  The value is correct (3).
+      . &(base->subscriptions_[0].events_[0].BadgeType_) is 0x260000EC, in shared memory.  The value is correct (2).
+      . &(base->subscriptions_[0].events_[0].FullPath_) is 0x260000F0, in shared memory.  The value is correct ("Badge full path").
+      . &(base->subscriptions_[0].events_[0].ProcessId_) is 0x260000E4, in shared memory.  The value is correct (88).
+      . &(base->subscriptions_[0].events_[0].ThreadId_) is 0x260000E8, in shared memory.  The value is correct (99).
+      . So, everything is there, and it looks correct.
+    - Next, paramaterize the test (subscriber and publisher).  Run the subscriber first.  The subscriber will create the shared memory,
+      add its subscription and wait on the semaphore for an event.  Then run the publisher.  The publisher will locate the shared memory and base.
+      Then it will add an event to the subscriber's event vector and post the subscriber.  The subscriber will read the event from the
+      events_ vector and remove it. 
+    - Question: Why does the code issue the command: "shared_memory_object::remove("CloudPubSubSharedMemory");" at the beginning of these samples?
+      I believe that has to do with the fact that the standard boost interprocess support emulates shared memory using a memory-mapped file.
+      The remove is necessary to remove the persistent file prior to the test.  If that is correct, this requirement will vanish when I
+      switch to using Windows shared memory (assuming that is possible...).  So, for the current testing, bypass the remove for the
+      publisher case.
+    - Boost: How to use offset_ptr: http://stackoverflow.com/questions/3907313/getting-offset-ptr-of-object-in-shared-memory
+    - Boost: It is possible to recast offset_ptr: http://boost.2283326.n4.nabble.com/Problem-with-Interpocess-offset-ptr-td4236231.html
+      . For TestClass:
+                offset_ptr<TestClass> Node1;
+                offset_ptr<TestClass> Node2 = static_cast<TestClass *>(Node1.get()); 
+    - FINALLY!  It works.  The publisher posts the subscriber and both exit.  I never had so much trouble with 20 lines of code in my life!
+    
+
+      
 
 
       
