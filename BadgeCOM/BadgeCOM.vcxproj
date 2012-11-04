@@ -849,6 +849,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Program Files\boost\Boost_1_51;</AdditionalIncludeDirectories>
     </ClCompile>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -870,10 +871,14 @@
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>.\BadgeCOM.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <RegisterOutput>false</RegisterOutput>
+      <RegisterOutput>true</RegisterOutput>
       <AdditionalDependencies>Psapi.lib;shlwapi.lib;comctl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>C:\Program Files\boost\boost_1_51\lib64;</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>tlbimp $(OutDir)$(TargetName)$(TargetExt) /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -881,6 +886,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <PreprocessorDefinitions>X86;WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Program Files\boost\Boost_1_51;</AdditionalIncludeDirectories>
     </ClCompile>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -910,6 +916,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\boost\boost_1_51\lib64;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseARM|Win32'">
@@ -1460,6 +1467,7 @@
     <ClCompile Include="JsonSerialization\json_reader.cpp" />
     <ClCompile Include="JsonSerialization\json_value.cpp" />
     <ClCompile Include="JsonSerialization\json_writer.cpp" />
+    <ClCompile Include="PubSubServer.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugItanium|Win32'">Create</PrecompiledHeader>
@@ -1505,6 +1513,7 @@
     <ClInclude Include="JsonSerialization\reader.h" />
     <ClInclude Include="JsonSerialization\value.h" />
     <ClInclude Include="JsonSerialization\writer.h" />
+    <ClInclude Include="PubSubServer.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="resource1.h" />
     <ClInclude Include="stdafx.h" />
@@ -1526,6 +1535,7 @@
     <None Include="JsonSerialization\json_internalarray.inl" />
     <None Include="JsonSerialization\json_internalmap.inl" />
     <None Include="JsonSerialization\json_valueiterator.inl" />
+    <None Include="PubSubServer.rgs" />
     <None Include="ReadMe.txt" />
     <None Include="Selective.ico" />
     <None Include="Synced.ico" />

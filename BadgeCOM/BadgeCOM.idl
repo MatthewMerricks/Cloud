@@ -58,6 +58,19 @@ interface IBadgeIconFailed : IDispatch{
 interface IContextMenuExt : IUnknown{
 };
 [
+	object,
+	uuid(7ADF06AF-3F02-4686-9704-B94A1667D284),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IPubSubServer : IUnknown{
+	[id(1), helpstring("method Publish")] HRESULT(Publish)(int nTestParm);
+
+	[propget, id(2), helpstring("Test long property"), bindable] HRESULT nTestProperty([out, retval] LONG* pVal);
+	[propput, id(2), helpstring("Test long property"), bindable] HRESULT nTestProperty([in] LONG newVal);
+};
+[
 	uuid(B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1),
 	version(1.0),
 ]
@@ -98,6 +111,13 @@ library BadgeCOMLib
 	coclass ContextMenuExt
 	{
 		[default] interface IContextMenuExt;
+	};
+	[
+		uuid(53AC487B-051C-476F-AE8A-FE660AA427B8)		
+	]
+	coclass PubSubServer
+	{
+		[default] interface IPubSubServer;
 	};
 };
 
