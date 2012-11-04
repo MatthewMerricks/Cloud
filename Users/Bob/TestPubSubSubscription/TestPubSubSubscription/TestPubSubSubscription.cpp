@@ -5,7 +5,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <boost\interprocess\managed_shared_memory.hpp>
+#include <boost\interprocess\managed_windows_shared_memory.hpp>
 #include <boost\interprocess\containers\map.hpp>
 #include <boost\interprocess\allocators\allocator.hpp>
 #include <boost\interprocess\containers\vector.hpp>
@@ -18,7 +18,7 @@
 using namespace boost::interprocess;
 
 // Typedefs of allocators and containers
-typedef managed_shared_memory::segment_manager          segment_manager_t;      // this is the segment_manager
+typedef managed_windows_shared_memory::segment_manager          segment_manager_t;      // this is the segment_manager
 
 // Define the allocators.
 typedef allocator<void, segment_manager_t>              void_allocator;         // void_allocator is convertible to any other allocator<T>.
@@ -73,30 +73,29 @@ typedef vector<EventMessage, EventMessage_allocator>	EventMessage_vector;			// v
 class Subscription
 {
 public:
-    managed_shared_memory   *pSegment_;                 // pointer to the shared memory segment
+    offset_ptr<managed_windows_shared_memory> pSegment_;                 // pointer to the shared memory segment
     int                     nSubscribingProcessId_;     // the subscribing process ID
     int                     nSubscribingThreadId_;      // the subscribing thread ID
     int                     nBadgeTypeHandled_;         // for logging only.  The badge type  handled by this process/thread.
     int                     nEventType_;                // the event type being subscribed to
-    interprocess_semaphore	*pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
+    offset_ptr<interprocess_semaphore>	pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
     bool                    fDestructed_;               // true: this object has been destructed
 	EventMessage_vector		events_;					// a vector of events
 
     // Constructor
-    Subscription(managed_shared_memory *pSegment, int nSubscribingProcessId, int nSubscribingThreadId, int nBadgeTypeHandled, int nEventType, const void_allocator &void_alloc) :
+    Subscription(managed_windows_shared_memory *pSegment, int nSubscribingProcessId, int nSubscribingThreadId, int nBadgeTypeHandled, int nEventType, const void_allocator &void_alloc) :
                         pSegment_(pSegment),
                         nSubscribingProcessId_(nSubscribingProcessId), 
                         nSubscribingThreadId_(nSubscribingThreadId),
                         nBadgeTypeHandled_(nBadgeTypeHandled),
                         nEventType_(nEventType),
-                        pSemaphoreSubscription_(NULL),
                         fDestructed_(false),
 						events_(void_alloc)
     {
         // The interprocess_semaphore object is marked not copyable, and this prevented compilation.  Change it to a pointer
         // reference to allow the object to be copied to get past the compiler error.  The actual semaphore should be allocated in
         // shared memory by this constructor, and it should be deallocated when this subscription is destructed.
-        pSemaphoreSubscription_ = pSegment_->construct<interprocess_semaphore>(anonymous_instance)(1);
+         pSemaphoreSubscription_ = pSegment_->construct<interprocess_semaphore>(anonymous_instance)(0);
     }
 
     // Destructor
@@ -110,7 +109,7 @@ public:
         fDestructed_ = true;
 
         // Deallocate the semaphore
-        pSegment_->destroy_ptr(pSemaphoreSubscription_);
+        pSegment_->destroy_ptr(pSemaphoreSubscription_.get());
     }
 };
 
@@ -140,11 +139,10 @@ DWORD ThreadProc(LPVOID lpdwThreadParam);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-    shared_memory_object::remove("CloudPubSubSharedMemory");
-    remove_shared_memory_on_destroy remove_on_destroy("CloudPubSubSharedMemory");
+	bool isSubscriber = true;
 
     // Open the shared memory segment, or create it if it is not there.
-    managed_shared_memory segment(open_or_create, "CloudPubSubSharedMemory", 1024000);
+    managed_windows_shared_memory segment(open_or_create, "CloudPubSubSharedMemory", 1024000);
 
     // An allocator convertible to any allocator<T, segment_manager_t> type.
     void_allocator alloc_inst(segment.get_segment_manager());
@@ -153,14 +151,59 @@ int _tmain(int argc, _TCHAR* argv[])
     Base *base = segment.find_or_construct<Base>("Base")(42, alloc_inst);
 
     // Lock the rest under the global shared memory lock.
-    {
-        scoped_lock<interprocess_mutex> lock(base->mutexSharedMemory_);
+	base->mutexSharedMemory_.lock();
 
-        // Construct a Subscription that we will copy to shared memory (transfer).
-        base->subscriptions_.emplace_back(&segment, 1, 2, 3, 4, alloc_inst);
+	if (isSubscriber)
+	{
+		// This is the subscriber. Add a Subscription to the end of the subscriptions vector.
+		base->subscriptions_.emplace_back(&segment, 1, 2, 3, 4, alloc_inst);
 
-		// Add an event to the first Subscription.
+		// Are there events available?
+		if (base->subscriptions_[0].events_.size() > 0)
+		{
+			// Loop retrieving the events from the events_ vector.
+			int rc = base->subscriptions_[0].events_.size();
+			while (base->subscriptions_[0].events_.size() > 0)
+			{
+				// Read the event at the front of the vector.
+				void *eventAddr = &(base->subscriptions_[0].events_[0]);
+				int eventType = base->subscriptions_[0].events_[0].EventType_;
+				void *eventTypeAddr = &(base->subscriptions_[0].events_[0].EventType_);
+				EnumCloudAppIconBadgeType badgeType = base->subscriptions_[0].events_[0].BadgeType_;
+				void *badgeTypeAddr = &(base->subscriptions_[0].events_[0].BadgeType_);
+				char_string fullPath = base->subscriptions_[0].events_[0].FullPath_;
+				void *fullPathAddr = &(base->subscriptions_[0].events_[0].FullPath_);
+				std::string fullPathString(fullPath.c_str());
+				int processId = base->subscriptions_[0].events_[0].ProcessId_;
+				void *processIdAddr = &(base->subscriptions_[0].events_[0].ProcessId_);
+				int threadId = base->subscriptions_[0].events_[0].ThreadId_;
+				void *threadIdAddr = &(base->subscriptions_[0].events_[0].ThreadId_);
+
+			    // Delete the Subscription from the shared memory shared memory.
+				base->subscriptions_.erase(base->subscriptions_.begin());
+			}
+
+			base->mutexSharedMemory_.unlock();
+			return(rc);
+		}
+		else
+		{
+			// Wait for an event to be posted.
+			base->mutexSharedMemory_.unlock();
+			base->subscriptions_[0].pSemaphoreSubscription_->wait();
+
+			// One or more events have been added to the vector.  Return zero events to the caller.  The caller
+			// will loop back and retrieve the events from the queue (above).
+			return(0);
+		}
+
+	}
+	else
+	{
+		// This is the publisher.  Add an event to the first Subscription.
 		base->subscriptions_[0].events_.emplace_back(BadgeNet_AddBadgePath, 88, 99, cloudAppBadgeSyncing, "Badge full path", alloc_inst);
+
+		// Read the event at the front of the vector.
 		void *eventAddr = &(base->subscriptions_[0].events_[0]);
 		int eventType = base->subscriptions_[0].events_[0].EventType_;
 		void *eventTypeAddr = &(base->subscriptions_[0].events_[0].EventType_);
@@ -174,10 +217,14 @@ int _tmain(int argc, _TCHAR* argv[])
 		int threadId = base->subscriptions_[0].events_[0].ThreadId_;
 		void *threadIdAddr = &(base->subscriptions_[0].events_[0].ThreadId_);
 
-        // Delete the Subscription from the shared memory shared memory.
-        base->subscriptions_.erase(base->subscriptions_.begin());
-    }
+		// Post the subscriber to look for this event just added.
+		base->subscriptions_[0].pSemaphoreSubscription_->post();
 
+		base->mutexSharedMemory_.unlock();
+		return(0);
+	}
+	return(0);
+	//&&&&&&&&&&& end
 
 
     // Start multiple threads
