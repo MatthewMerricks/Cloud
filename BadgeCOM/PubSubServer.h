@@ -5,6 +5,9 @@
 //#include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+#include <exception>
+#include <limits.h>
 #include <boost\interprocess\managed_windows_shared_memory.hpp>
 #include <boost\interprocess\containers\map.hpp>
 #include <boost\interprocess\allocators\allocator.hpp>
@@ -58,10 +61,6 @@ END_COM_MAP()
 
 public:
 
-//	int nTest;
-
-	STDMETHOD(Publish)(int nTestParm);
-
 	// Typedefs of allocators and containers
 	typedef managed_windows_shared_memory::segment_manager          segment_manager_t;      // this is the segment_manager
 
@@ -71,43 +70,43 @@ public:
 	typedef vector<int, int_allocator>                      int_vector;             // an int_vector is a vector of ints.
 	typedef allocator<int_vector, segment_manager_t>        int_vector_allocator;   // an allocator for allocating vectors of ints.
 	typedef vector<int_vector, int_vector_allocator>        int_vector_vector;      // an int_vector_vector is a vecctor of (vectors of ints)
-	typedef allocator<char, segment_manager_t>              char_allocator;         // an allocator for chars.
-	typedef basic_string<char, std::char_traits<char>, char_allocator>      char_string;    // a basic_string (which supports formatting).  This is built on a collection of chars, allocated by char_allocator.
 	typedef allocator<interprocess_semaphore, segment_manager_t>  semaphore_allocator;   // an allocator for interprocess_semaphore
+    typedef allocator<WCHAR, segment_manager_t>             wchar_allocator;        // an allocator for wide chars.
+    typedef basic_string<WCHAR, std::char_traits<WCHAR>, wchar_allocator>  wchar_string;  // a basic_string (which supports formatting).  This is built on a collection of wide chars, allocated by wchar_alloctor.
 
-	// Event types:
-	enum EnumEventType
-	{
-		BadgeCom_Initilization,
-		BadgeNet_AddSyncBoxFolderPath,
-		BadgeNet_RemoveSyncBoxFolderPath,
-		BadgeNet_AddBadgePath,
-		BadgeNet_RemoveBadgePath,
-	};
+	// Event types:  Note this is defined in the .IDL file.
+	//enum EnumEventTypeX
+	//{
+	//	BadgeCom_Initilization,
+	//	BadgeNet_AddSyncBoxFolderPath,
+	//	BadgeNet_RemoveSyncBoxFolderPath,
+	//	BadgeNet_AddBadgePath,
+	//	BadgeNet_RemoveBadgePath,
+	//};
 
-	// Badge types
-	enum EnumCloudAppIconBadgeType
-	{
-		cloudAppBadgeNone = 0,				// clears a badge overlay, if any
-		cloudAppBadgeSynced = 1,			// sets a badge with a checkmark or similar metaphor.
-		cloudAppBadgeSyncing = 2,			// sets a badge indicating circular motion, active sync.
-		cloudAppBadgeFailed = 3,			// sets a badge with an x indicating failure to sync.
-		cloudAppBadgeSyncSelective = 4,		// sets a badge with an - indicating file/folder is selected not to sync.
-	};
+	// Badge types:  Note this is defined in the .IDL file.
+	//enum EnumCloudAppIconBadgeTypeX
+	//{
+	//	cloudAppBadgeNone = 0,				// clears a badge overlay, if any
+	//	cloudAppBadgeSynced = 1,			// sets a badge with a checkmark or similar metaphor.
+	//	cloudAppBadgeSyncing = 2,			// sets a badge indicating circular motion, active sync.
+	//	cloudAppBadgeFailed = 3,			// sets a badge with an x indicating failure to sync.
+	//	cloudAppBadgeSyncSelective = 4,		// sets a badge with an - indicating file/folder is selected not to sync.
+	//};
 
 	// Event base class
 	class EventMessage
 	{
 	public:
 		EnumEventType				EventType_;
-		int							ProcessId_;
-		int							ThreadId_;
+		ULONG						ProcessId_;
+		ULONG						ThreadId_;
 		EnumCloudAppIconBadgeType	BadgeType_;
-		char_string					FullPath_;
+		wchar_string				FullPath_;
 
 		// Constructor
-		EventMessage(EnumEventType EventType, int ProcessId, int ThreadId, EnumCloudAppIconBadgeType BadgeType, const char *FullPath, const void_allocator &void_alloc) :
-				EventType_(EventType), ProcessId_(ProcessId), ThreadId_(ThreadId), BadgeType_(BadgeType), FullPath_(FullPath, void_alloc) {}
+		EventMessage(EnumEventType EventType, ULONG ProcessId, ULONG ThreadId, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, const void_allocator &void_alloc) :
+				EventType_(EventType), ProcessId_(ProcessId), ThreadId_(ThreadId), BadgeType_(BadgeType), FullPath_(*FullPath, void_alloc) {}
 	};
 
 	// Event allocators
@@ -119,20 +118,18 @@ public:
 	{
 	public:
 		offset_ptr<managed_windows_shared_memory> pSegment_;                 // pointer to the shared memory segment
-		int                     nSubscribingProcessId_;     // the subscribing process ID
-		int                     nSubscribingThreadId_;      // the subscribing thread ID
-		int                     nBadgeTypeHandled_;         // for logging only.  The badge type  handled by this process/thread.
-		int                     nEventType_;                // the event type being subscribed to
+		ULONG                       uSubscribingProcessId_;     // the subscribing process ID
+		ULONG                       uSubscribingThreadId_;      // the subscribing thread ID
+		EnumEventType               nEventType_;                // the event type being subscribed to
 		offset_ptr<interprocess_semaphore>	pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
-		bool                    fDestructed_;               // true: this object has been destructed
-		EventMessage_vector		events_;					// a vector of events
+		bool                        fDestructed_;               // true: this object has been destructed
+		EventMessage_vector		    events_;					// a vector of events
 
 		// Constructor
-		Subscription(managed_windows_shared_memory *pSegment, int nSubscribingProcessId, int nSubscribingThreadId, int nBadgeTypeHandled, int nEventType, const void_allocator &void_alloc) :
+		Subscription(managed_windows_shared_memory *pSegment, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const void_allocator &void_alloc) :
 							pSegment_(pSegment),
-							nSubscribingProcessId_(nSubscribingProcessId), 
-							nSubscribingThreadId_(nSubscribingThreadId),
-							nBadgeTypeHandled_(nBadgeTypeHandled),
+							uSubscribingProcessId_(uSubscribingProcessId), 
+							uSubscribingThreadId_(uSubscribingThreadId),
 							nEventType_(nEventType),
 							fDestructed_(false),
 							events_(void_alloc)
@@ -179,11 +176,19 @@ public:
 	// will be a complex container containing any required global data, plus the vector<Subscription>.
 	typedef allocator<Base, segment_manager_t>                              base_allocator;       // allocator for allocating Base
 
-	//&&&&&&&&&&&&&&&&&&&&&
+	// Public OLE accessible methods
+    STDMETHOD(Publish)(EnumEventType EventType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, int *returnValue);
+    STDMETHOD(Subscribe)(EnumEventType EventType, LONG TimeoutMilliseconds, int *returnValue);
 
-	int nTest;
-	STDMETHOD(get_nTestProperty)(LONG* pVal);
-	STDMETHOD(put_nTestProperty)(LONG newVal);
+    // Public OLE accessible properties
+    STDMETHOD(get_SharedMemoryName)(BSTR* pVal);
+private:
+
+    static managed_windows_shared_memory _segment;
+
+    // Private static constants
+    static const OLECHAR *_ksSharedMemoryName;              // the name of the shared memory segment
+    static const int _knMaxEventsInEventQueue;              // maximum number of events allowed in a subscription's event queue
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(PubSubServer), CPubSubServer)

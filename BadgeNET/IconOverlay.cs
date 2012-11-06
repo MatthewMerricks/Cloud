@@ -25,15 +25,14 @@ using CloudApiPublic.Support;
 using CloudApiPrivate.Common;
 using System.Runtime.InteropServices;
 using BadgeNET.Static;
-using BadgeNET.PubSubEvents;
-using Microsoft.WebSolutionsPlatform.Event.PubSubManager;
+using BadgeCOMLib;
 
 namespace BadgeNET
 {
     /// <summary>
     /// IconOverlay is responsible for keeping a list of badges and synchronizing them with BadgeCOM (the Windows shell extensions for icon overlays)
     /// </summary>
-    public sealed class IconOverlay : IDisposable, ISubscriptionCallback
+    public sealed class IconOverlay : IDisposable
     {
         #region Singleton pattern
         /// <summary>
@@ -117,10 +116,7 @@ namespace BadgeNET
                 filePathCloudDirectory = pathRootDirectory;
 
                 // Initialize to the PubSub events shared memory queue.
-                _publishMgr = new PublishManager();
-
-                _subscriptionCallback = new SubscriptionManager.Callback(SubscriptionCallback);
-                _subscriptionMgr = new SubscriptionManager(_subscriptionCallback);
+                //&&&&
 
                 // Subscribe to the BadgeCom initialization events.
                 _subscriptionMgr.AddSubscription(eventType: EventIds.kEvent_BadgeCom_Initialized, localOnly: true);
@@ -1048,17 +1044,6 @@ namespace BadgeNET
         /// The Cloud directory path captured as a FilePath at initialization.
         /// </summary>
         private FilePath filePathCloudDirectory { get; set; }
-
-        /// <summary>
-        /// The PubSub Events publish manager.
-        /// </summary>
-        private PublishManager _publishMgr;
-
-        /// <summary>
-        /// The PubSub Events subscription manager.
-        /// </summary>
-        private SubscriptionManager _subscriptionMgr;
-        private SubscriptionManager.Callback _subscriptionCallback;
 
         /// <summary>
         /// The dictionary that holds the current state of all of the badges.

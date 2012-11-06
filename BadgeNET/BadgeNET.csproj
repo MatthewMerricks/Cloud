@@ -54,20 +54,9 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
-    <Reference Include="WspEvent, Version=2.1.120.0, Culture=neutral, PublicKeyToken=d8f84176f389054b, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\3rdParty\bin\Release\WspEvent.dll</HintPath>
-    </Reference>
-    <Reference Include="WspPubSubMgr, Version=2.1.120.0, Culture=neutral, PublicKeyToken=eb7703fad7db9f19, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\3rdParty\bin\Release\WspPubSubMgr.dll</HintPath>
-    </Reference>
-    <Reference Include="WspSharedQueue, Version=2.1.120.0, Culture=neutral, PublicKeyToken=c6aff9439f6713b8, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\3rdParty\bin\Release\WspSharedQueue.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BadgeComInitWatcher.cs" />
     <Compile Include="ContextMenuObject.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IconOverlay.cs" />
@@ -75,7 +64,6 @@
     <Compile Include="NamedPipeServerBadge.cs" />
     <Compile Include="NamedPipeServerContextMenu.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PubSubEvents\Events.cs" />
     <Compile Include="Static\NativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -87,6 +75,17 @@
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudApiPublic</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="BadgeCOMLib">
+      <Guid>{B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

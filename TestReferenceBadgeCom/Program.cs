@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using BadgeCOMLib;
+using 
 
 namespace TestReferenceBadgeCom
 {
@@ -11,9 +11,10 @@ namespace TestReferenceBadgeCom
         {
 
             PubSubServerClass test = new PubSubServerClass();
-            test.Publish(5);
-            test.nTestProperty = 10;
-            Console.WriteLine("Test property is {0}.", test.nTestProperty);
+            string sharedMemoryName = test.SharedMemoryName;
+            int rc = test.Publish(EnumEventType.BadgeNet_AddBadgePath,EnumCloudAppIconBadgeType.cloudAppBadgeSynced, "This is a full path");
+            rc = test.Subscribe(EnumEventType.BadgeNet_AddBadgePath, 10);
+            
             
            
         }

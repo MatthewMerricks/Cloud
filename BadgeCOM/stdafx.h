@@ -32,3 +32,4 @@
 #include <atlctl.h>
 #include <comdef.h>
 #include <ShlObj.h>
+#include <windows.h>

@@ -13,6 +13,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudApiPublic", "CloudApiPublic\CloudApiPublic.csproj", "{CBFD5A87-0104-472C-8411-95DA030CDE6E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadgeNET", "BadgeNET\BadgeNET.csproj", "{77014147-1A34-4BF6-8FC4-3C85984F8E2E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{84373324-5261-45D7-AA92-5C4A88C07233} = {84373324-5261-45D7-AA92-5C4A88C07233}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BadgeCOM", "BadgeCOM\BadgeCOM.vcxproj", "{84373324-5261-45D7-AA92-5C4A88C07233}"
 EndProject
@@ -50,6 +53,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WyUpdater", "WyUpdater", "{
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestReferenceBadgeCom", "TestReferenceBadgeCom\TestReferenceBadgeCom.csproj", "{23C4B560-2930-4B21-A420-27FD90AAA760}"
+	ProjectSection(ProjectDependencies) = postProject
+		{84373324-5261-45D7-AA92-5C4A88C07233} = {84373324-5261-45D7-AA92-5C4A88C07233}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

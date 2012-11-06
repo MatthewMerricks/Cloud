@@ -60,15 +60,20 @@ interface IContextMenuExt : IUnknown{
 [
 	object,
 	uuid(7ADF06AF-3F02-4686-9704-B94A1667D284),
-	dual,
+    dual,
 	nonextensible,
 	pointer_default(unique)
 ]
 interface IPubSubServer : IUnknown{
-	[id(1), helpstring("method Publish")] HRESULT(Publish)(int nTestParm);
+    typedef enum {RC_SUBSCRIBE_GOT_EVENT = 0, RC_SUBSCRIBE_TRY_AGAIN, RC_SUBSCRIBE_TIMED_OUT, RC_SUBSCRIBE_ERROR} EnumPubSubServerSubscribeReturnCodes;
+    typedef enum {RC_PUBLISH_OK = 0, RC_PUBLISH_AT_LEAST_ONE_EVENT_QUEUE_FULL, RC_PUBLISH_ERROR} EnumPubSubServerPublishReturnCodes;
+    typedef enum {BadgeCom_Initialization=0, BadgeNet_AddSyncBoxFolderPath, BadgeNet_RemoveSyncBoxFolderPath, BadgeNet_AddBadgePath, BadgeNet_RemoveBadgePath} EnumEventType;
+    typedef enum {cloudAppBadgeNone=0, cloudAppBadgeSynced, cloudAppBadgeSyncing, cloudAppBadgeFailed, cloudAppBadgeSyncSelective} EnumCloudAppIconBadgeType;
 
-	[propget, id(2), helpstring("Test long property"), bindable] HRESULT nTestProperty([out, retval] LONG* pVal);
-	[propput, id(2), helpstring("Test long property"), bindable] HRESULT nTestProperty([in] LONG newVal);
+	[id(1), helpstring("method Publish")] HRESULT(Publish)([in] EnumEventType EventType, [in] EnumCloudAppIconBadgeType BadgeType, [in] BSTR *FullPath, [out, retval] int *returnValue);
+	[id(2), helpstring("method Subscribe")] HRESULT(Subscribe)([in] EnumEventType EventType, [in] LONG TimeoutMilliseconds, [out, retval] int *returnValue);
+
+    [propget, id(3), helpstring("Name associated with the badging shared memory segment."), bindable] HRESULT SharedMemoryName([out, retval] BSTR* pVal);
 };
 [
 	uuid(B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1),
