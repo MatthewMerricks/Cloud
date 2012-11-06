@@ -665,8 +665,6 @@ namespace CloudApiPublic.Sync
 
                                         lock (UpDownEventLocker)
                                         {
-                                            topLevelChange.FileChange.FileChange_UpDown(null, null);
-
                                             UpDownEvent += topLevelChange.FileChange.FileChange_UpDown;
                                         }
                                         try
@@ -1457,6 +1455,7 @@ namespace CloudApiPublic.Sync
                                         TempDownloadFolderPath = TempDownloadsFolder,
                                         ShutdownToken = FullShutdownToken,
                                         MoveCompletedDownload = MoveCompletedDownload,
+                                        HttpTimeoutMilliseconds = HttpTimeoutMilliseconds,
                                         MaxNumberOfFailureRetries = MaxNumberOfFailureRetries,
                                         MaxNumberOfNotFounds = MaxNumberOfNotFounds,
                                         FailedChangesQueue = FailedChangesQueue,

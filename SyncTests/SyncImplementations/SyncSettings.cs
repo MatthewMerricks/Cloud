@@ -81,7 +81,7 @@ namespace SyncTests.SyncImplementations
         {
             get
             {
-                return "-1";
+                return "1";
             }
         }
         public string Akey
@@ -115,7 +115,6 @@ namespace SyncTests.SyncImplementations
                 return "Test";
             }
         }
-
 
         /// <summary>
         /// Should be null-coallesced to an empty string wherever used

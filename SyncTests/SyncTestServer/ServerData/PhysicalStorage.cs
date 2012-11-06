@@ -29,6 +29,8 @@ namespace SyncTestServer
         }
         private readonly GenericHolder<bool> Initialized = new GenericHolder<bool>(false);
 
+        private Action<string> storageKeyNoLongerPending = null;
+
         private readonly Dictionary<FileIdAndUser, UpdateQueuedData> UpdateFileIdToQueuedData = new Dictionary<FileIdAndUser, UpdateQueuedData>(FileIdAndUser.Comparer);
         private sealed class UpdateQueuedData
         {
@@ -58,14 +60,21 @@ namespace SyncTestServer
             }
         }
 
-        public void InitializeStorage(IEnumerable<InitialStorageData> initialData = null)
+        public void InitializeStorage(Action<string> storageKeyNoLongerPending, IEnumerable<InitialStorageData> initialData = null)
         {
+            if (storageKeyNoLongerPending == null)
+            {
+                throw new NullReferenceException("storageKeyNoLongerPending cannot be null");
+            }
+
             lock (Initialized)
             {
                 if (Initialized.Value)
                 {
                     throw new Exception("Already Initialized");
                 }
+
+                this.storageKeyNoLongerPending = storageKeyNoLongerPending;
 
                 if (initialData != null)
                 {
@@ -306,6 +315,7 @@ namespace SyncTestServer
                 string previousStorageKey;
                 PendingMD5AndFileId previousFile;
                 lastestMD5 = null;
+                Dictionary<Guid, Dictionary<string, KeyValuePair<Action<object>, object>>> userPendings;
                 if (oldMD5 != null
                     && oldMD5.Length == 16
                     && userToRevisionHistory.TryGetValue(userId, out userRevisions)
@@ -317,7 +327,9 @@ namespace SyncTestServer
                     && previousFile.GetUserUsagesByUser(userId).Contains(userRelativePath, FilePathComparer.Instance)
                     && SyncTestServer.Static.NativeMethods.memcmp(((KeyValuePair<long, byte[]>)RetrieveOrPullFirstRevision(fileRevisions, firstRevision)).Value,
                         oldMD5,
-                        new UIntPtr((uint)16)) == 0)
+                        new UIntPtr((uint)16)) == 0
+                    && !(userPendingStorageKeys.TryGetValue(userId, out userPendings)
+                        && userPendings.Values.Any(userPending => userPending.ContainsKey(previousStorageKey))))
                 {
                     AddUserFile(userId, deviceId, userRelativePath, newMD5, newFileSize, out newStorageKey, out filePending, out newUpload, new KeyValuePair<string, PendingMD5AndFileId>(previousStorageKey, previousFile));
 
@@ -397,6 +409,8 @@ namespace SyncTestServer
                     storageFileStream.Flush();
                 }
 
+                List<string> storageKeysNoLongerPending = new List<string>();
+
                 lock (storageKeyToFile)
                 {
                     PendingMD5AndFileId existingFileId;
@@ -437,7 +451,10 @@ namespace SyncTestServer
                                     KeyValuePair<Action<object>, object> uploadCompletionAction;
                                     if (pendingDeviceKeys.Value.TryGetValue(storageKey, out uploadCompletionAction))
                                     {
-                                        pendingDeviceKeys.Value.Remove(storageKey);
+                                        if (pendingDeviceKeys.Value.Remove(storageKey))
+                                        {
+                                            storageKeysNoLongerPending.Add(storageKey);
+                                        }
 
                                         if (uploadCompletionAction.Key != null)
                                         {
@@ -470,6 +487,18 @@ namespace SyncTestServer
                         }
                     }
                 }
+
+                if (storageKeysNoLongerPending.Count > 0)
+                {
+                    ThreadPool.QueueUserWorkItem(noLongerPendingState =>
+                        {
+                            KeyValuePair<List<string>, Action<string>> castNoLongerPending = (KeyValuePair<List<string>, Action<string>>)noLongerPendingState;
+                            foreach (string currentNoLongerPending in castNoLongerPending.Key)
+                            {
+                                castNoLongerPending.Value(currentNoLongerPending);
+                            }
+                        }, new KeyValuePair<List<string>, Action<string>>(storageKeysNoLongerPending, storageKeyNoLongerPending));
+                }
             }
 
             if (disposeStreamAfterWrite)
@@ -480,7 +509,7 @@ namespace SyncTestServer
             return needsUpload;
         }
 
-        public void RemoveUserUsageFromFile(string storageKey, int userId, FilePath userRelativePath)
+        public bool RemoveUserUsageFromFile(string storageKey, int userId, FilePath userRelativePath)
         {
             lock (Initialized)
             {
@@ -494,12 +523,14 @@ namespace SyncTestServer
                 throw new NullReferenceException("userRelativePath cannot be null");
             }
 
+            bool fileRemoved = false;
+
             lock (storageKeyToFile)
             {
                 PendingMD5AndFileId fileId;
                 if (storageKeyToFile.TryGetValue(storageKey, out fileId))
                 {
-                    RemoveFileById(storageKey, userId, userRelativePath, fileId);
+                    fileRemoved = RemoveFileById(storageKey, userId, userRelativePath, fileId);
 
                     UpdateFileIdToQueuedData.Remove(new FileIdAndUser(fileId.FileId, userId));
 
@@ -514,15 +545,21 @@ namespace SyncTestServer
                     }
                 }
             }
+
+            return fileRemoved;
         }
 
-        private void RemoveFileById(string storageKey, int userId, FilePath userRelativePath, PendingMD5AndFileId fileId)
+        private bool RemoveFileById(string storageKey, int userId, FilePath userRelativePath, PendingMD5AndFileId fileId)
         {
+            bool fileRemoved;
+
             lock (storageKeyToFile)
             {
                 lock (fileId.SyncRoot)
                 {
-                    if (fileId.RemoveUserUsage(userId, userRelativePath))
+                    fileRemoved = fileId.RemoveUserUsage(userId, userRelativePath);
+
+                    if (fileRemoved)
                     {
                         storageKeyToFile.Remove(storageKey);
                         MD5AndFileSize toRemoveMD5;
@@ -540,11 +577,8 @@ namespace SyncTestServer
 
                         foreach (KeyValuePair<Guid, Dictionary<string, KeyValuePair<Action<object>, object>>> pendingDeviceKeys in pendingUserKeys)
                         {
-                            KeyValuePair<Action<object>, object> uploadCompletionAction;
-                            if (pendingDeviceKeys.Value.TryGetValue(storageKey, out uploadCompletionAction))
+                            if (pendingDeviceKeys.Value.Remove(storageKey))
                             {
-                                pendingDeviceKeys.Value.Remove(storageKey);
-
                                 if (pendingDeviceKeys.Value.Count == 0)
                                 {
                                     if (emptiedDevices == null)
@@ -580,6 +614,8 @@ namespace SyncTestServer
                     }
                 }
             }
+
+            return fileRemoved;
         }
 
         public Stream ReadFile(string storageKey)
@@ -679,6 +715,138 @@ namespace SyncTestServer
                 }
 
                 return false;
+            }
+        }
+
+        //public bool[] CheckPending(int userId, string[] storageKeys)
+        //{
+        //    if (storageKeys == null)
+        //    {
+        //        throw new NullReferenceException("storageKeys cannot be null");
+        //    }
+
+        //    lock (Initialized)
+        //    {
+        //        if (!Initialized.Value)
+        //        {
+        //            throw new Exception("Not Initialized, call PopulateInitialData first");
+        //        }
+        //    }
+
+        //    if (storageKeys.Length == 0)
+        //    {
+        //        return new bool[0];
+        //    }
+
+        //    lock (storageKeyToFile)
+        //    {
+        //        bool[] toReturn = new bool[storageKeys.Length];
+
+        //        Dictionary<Guid, Dictionary<string, KeyValuePair<Action<object>, object>>> userPendings;
+        //        if (userPendingStorageKeys.TryGetValue(userId, out userPendings))
+        //        {
+        //            Dictionary<string, IEnumerable<int>> storageKeyIndexes = storageKeys.Select((currentStorageKey, keyIndex) => new KeyValuePair<string, int>(currentStorageKey, keyIndex))
+        //                .GroupBy(currentStorageKey => currentStorageKey.Key)
+        //                .ToDictionary(currentStorageKey => currentStorageKey.Key, currentStorageKey => currentStorageKey.Select(storageKeyIndex => storageKeyIndex.Value));
+
+        //            foreach (string userPendingStorageKey in userPendings.SelectMany(currentUserPending => currentUserPending.Value.Keys))
+        //            {
+        //                IEnumerable<int> pendingIndexes;
+        //                if (storageKeyIndexes.TryGetValue(userPendingStorageKey, out pendingIndexes))
+        //                {
+        //                    foreach (int pendingIndex in pendingIndexes)
+        //                    {
+        //                        toReturn[pendingIndex] = true;
+        //                    }
+        //                }
+        //            }
+        //        }
+
+        //        return toReturn;
+        //    }
+        //}
+
+        public IEnumerable<PurgedFile> PurgeUserPendingsByDevice(int userId, Guid deviceId)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("Not Initialized, call PopulateInitialData first");
+                }
+            }
+            lock (storageKeyToFile)
+            {
+                Dictionary<Guid, Dictionary<string, KeyValuePair<Action<object>, object>>> userPendings;
+                Dictionary<string, KeyValuePair<Action<object>, object>> devicePendings;
+                if (userPendingStorageKeys.TryGetValue(userId, out userPendings)
+                    && userPendings.TryGetValue(deviceId, out devicePendings))
+                {
+                    //KeyValuePair<string, KeyValuePair<Action<object>, object>>[] copiedStorageKeys = devicePendings.ToArray();
+                    userPendings.Remove(deviceId);
+                    if (userPendings.Count == 0)
+                    {
+                        userPendingStorageKeys.Remove(userId);
+                    }
+
+                    List<PurgedFile> toReturn = new List<PurgedFile>();
+
+                    foreach (KeyValuePair<string, KeyValuePair<Action<object>, object>> currentCopiedKey in devicePendings)
+                    {
+                        long fileSize;
+                        MD5AndFileSize fileHash;
+                        Nullable<MD5AndFileSize> nullableFileHash;
+                        byte[] fileMD5;
+                        if (storageKeyToHash.TryGetValue(currentCopiedKey.Key, out fileHash))
+                        {
+                            fileSize = fileHash.FileSize;
+                            fileMD5 = fileHash.MD5;
+                            nullableFileHash = fileHash;
+                        }
+                        else
+                        {
+                            fileSize = -1;
+                            fileMD5 = null;
+                            nullableFileHash = null;
+                        }
+
+                        PendingMD5AndFileId fileId;
+                        if (storageKeyToFile.TryGetValue(currentCopiedKey.Key, out fileId))
+                        {
+                            if (fileMD5 == null)
+                            {
+                                fileMD5 = fileId.MD5;
+                            }
+
+                            IEnumerable<FilePath> userUsages = fileId.GetUserUsagesByUser(userId);
+                            if (userUsages == null
+                                || userUsages.Count() == 0)
+                            {
+                                toReturn.Add(new PurgedFile(true, currentCopiedKey.Key, fileSize, fileMD5, null));
+                            }
+                            else
+                            {
+                                Func<string, int, FilePath, long, byte[], PurgedFile> removeUsageAndReturnPurgedFile = (storageKey, innerUserId, userRelativePath, innerFileSize, innerFileMD5) =>
+                                    {
+                                        return new PurgedFile(RemoveUserUsageFromFile(storageKey, innerUserId, userRelativePath),
+                                            storageKey, innerFileSize, innerFileMD5, userRelativePath);
+                                    };
+
+                                toReturn.AddRange(userUsages.Select(userUsage => removeUsageAndReturnPurgedFile(currentCopiedKey.Key, userId, userUsage, fileSize, fileMD5)));
+                            }
+                        }
+                        else
+                        {
+                            toReturn.Add(new PurgedFile(true, currentCopiedKey.Key, fileSize, fileMD5, null));
+                        }
+                    }
+
+                    return toReturn;
+                }
+                else
+                {
+                    return Enumerable.Empty<PurgedFile>();
+                }
             }
         }
     }

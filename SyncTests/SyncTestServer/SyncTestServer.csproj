@@ -42,43 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\Download.cs">
-      <Link>SyncLinks\JsonContracts\Download.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\Event.cs">
-      <Link>SyncLinks\JsonContracts\Event.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\File.cs">
-      <Link>SyncLinks\JsonContracts\File.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\Header.cs">
-      <Link>SyncLinks\JsonContracts\Header.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\JsonContractHelpers.cs">
-      <Link>SyncLinks\JsonContracts\JsonContractHelpers.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\Metadata.cs">
-      <Link>SyncLinks\JsonContracts\Metadata.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\NotificationResponse.cs">
-      <Link>SyncLinks\JsonContracts\NotificationResponse.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\PurgePending.cs">
-      <Link>SyncLinks\JsonContracts\PurgePending.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\PurgePendingResponse.cs">
-      <Link>SyncLinks\JsonContracts\PurgePendingResponse.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\Push.cs">
-      <Link>SyncLinks\JsonContracts\Push.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\PushResponse.cs">
-      <Link>SyncLinks\JsonContracts\PushResponse.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CloudApiPublic\JsonContracts\To.cs">
-      <Link>SyncLinks\JsonContracts\To.cs</Link>
-    </Compile>
     <Compile Include="ActionProcessors\private.cs" />
+    <Compile Include="ActionProcessors\SubProcessors\from_cloud.cs" />
     <Compile Include="ActionProcessors\SubProcessors\purge_pending.cs" />
     <Compile Include="ActionProcessors\sync.cs" />
     <Compile Include="HttpActionProcessor.cs" />
@@ -92,6 +57,7 @@
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\ObservableDictionary.cs" />
     <Compile Include="Model\PendingMD5AndFileId.cs" />
+    <Compile Include="Model\PurgedFile.cs" />
     <Compile Include="Model\RecursiveFilePathDictionaryHandlers.cs" />
     <Compile Include="Model\SafeSearchHandle.cs" />
     <Compile Include="Model\SingleActionSetter.cs" />
@@ -101,6 +67,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Model\User.cs" />
+    <Compile Include="Model\UserEvent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerData\IMetadataProvider.cs" />
     <Compile Include="ServerData\InitialMetadata.cs" />
@@ -113,6 +80,7 @@
     <Compile Include="ServerService.cs" />
     <Compile Include="Static\Helpers.cs" />
     <Compile Include="Static\NativeMethods.cs" />
+    <Compile Include="SyncLinks\JsonContracts\Message.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Model\SyncTestScenario.xsd">

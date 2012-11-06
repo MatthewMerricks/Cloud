@@ -8,12 +8,15 @@ namespace SyncTestServer
 {
     public interface IMetadataProvider
     {
-        void InitializeProvider(IServerStorage storage, IEnumerable<InitialMetadata> initialData = null);
-        bool AddFolderMetadata(int userId, FilePath relativePathFromRoot, FileMetadata metadata);
-        bool AddFileMetadata(int userId, Guid deviceId, FilePath relativePathFromRoot, FileMetadata metadata, out bool isPending, out bool newUpload, byte[] MD5);
+        void InitializeProvider(IServerStorage storage, IEnumerable<InitialMetadata> initialData = null, Action userWasNotLockedDetected = null);
+        long NewSyncIdBeforeStart { get; }
+        bool AddFolderMetadata(long syncId, int userId, FilePath relativePathFromRoot, FileMetadata metadata);
+        bool AddFileMetadata(long syncId, int userId, Guid deviceId, FilePath relativePathFromRoot, FileMetadata metadata, out bool isPending, out bool newUpload, byte[] MD5);
         bool TryGetMetadata(int userId, FilePath relativePathFromRoot, out FileMetadata metadata);
-        bool RecursivelyRemoveMetadata(int userId, FilePath relativePathFromRoot);
-        bool RecursivelyRenameMetadata(int userId, FilePath relativePathFrom, FilePath relativePathTo);
-        bool UpdateMetadata(int userId, Guid deviceId, string revision, FilePath relativePathFromRoot, FileMetadata metadata, out bool isPending, out bool newUpload, out bool conflict, byte[] MD5 = null);
+        bool RecursivelyRemoveMetadata(long syncId, int userId, FilePath relativePathFromRoot);
+        bool RecursivelyRenameMetadata(long syncId, int userId, FilePath relativePathFrom, FilePath relativePathTo);
+        bool UpdateMetadata(long syncId, int userId, Guid deviceId, string revision, FilePath relativePathFromRoot, FileMetadata metadata, out bool isPending, out bool newUpload, out bool conflict, byte[] MD5 = null);
+        IEnumerable<FileChange> ChangesSinceSyncId(long syncId, int userId);
+        IEnumerable<KeyValuePair<FilePath, FileMetadata>> PurgeUserPendingsByDevice(int userId, Guid deviceId);
     }
 }

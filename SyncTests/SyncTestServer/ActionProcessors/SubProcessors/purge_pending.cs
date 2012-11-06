@@ -1,5 +1,8 @@
-﻿using System;
+﻿using CloudApiPublic.Model;
+using SyncTestServer.Model;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -33,7 +36,7 @@ namespace SyncTestServer.SubProcessors
                 lock (InnerMethodLocker)
                 {
                     return _innerMethod
-                        ?? (_innerMethod = this.GetType().Name);
+                        ?? (_innerMethod = (this.GetType().Name));
                 }
             }
         }
@@ -42,7 +45,49 @@ namespace SyncTestServer.SubProcessors
 
         public override void ProcessContext(HttpListenerContext toProcess, IServerData serverData)
         {
-            throw new NotImplementedException();
+            Device currentDevice;
+            User currentUser;
+            if ((currentUser = SyncTestServer.Static.Helpers.FindUserDevice(serverData, toProcess, out currentDevice)) == null)
+            {
+                SyncTestServer.Static.Helpers.WriteUnauthorizedResponse(toProcess);
+            }
+            else
+            {
+                SyncTestServer.Static.Helpers.WriteRandomETag(toProcess);
+
+                CloudApiPublic.JsonContracts.PurgePending purgeRequest = (CloudApiPublic.JsonContracts.PurgePending)CloudApiPublic.JsonContracts.JsonContractHelpers.PurgePendingSerializer.ReadObject(toProcess.Request.InputStream);
+
+                bool deviceNotInUser;
+                IEnumerable<CloudApiPublic.JsonContracts.File> filesPurged = serverData.PurgePendingFiles(currentUser, purgeRequest, out deviceNotInUser);
+
+                if (deviceNotInUser)
+                {
+                    SyncTestServer.Static.Helpers.WriteUnauthorizedResponse(toProcess);
+                }
+                else
+                {
+                    CloudApiPublic.JsonContracts.PurgePendingResponse toWrite = new CloudApiPublic.JsonContracts.PurgePendingResponse()
+                    {
+                        Files = filesPurged.ToArray()
+                    };
+
+                    string responseBody;
+
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        CloudApiPublic.JsonContracts.JsonContractHelpers.PurgePendingResponseSerializer.WriteObject(ms, toWrite);
+                        responseBody = Encoding.Default.GetString(ms.ToArray());
+                    }
+
+                    byte[] requestBodyBytes = Encoding.UTF8.GetBytes(responseBody);
+
+                    toProcess.Response.ContentType = "application/json; charset=utf-8";
+                    toProcess.Response.SendChunked = true;
+                    toProcess.Response.StatusCode = 200;
+
+                    toProcess.Response.OutputStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
+                }
+            }
         }
     }
 }

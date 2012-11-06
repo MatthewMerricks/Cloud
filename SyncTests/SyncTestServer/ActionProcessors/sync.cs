@@ -27,6 +27,13 @@ namespace SyncTestServer.ActionProcessors
         private sync() { }
         #endregion
 
+        private static readonly HttpActionSubprocessor[] ActionSubprocessors = new HttpActionSubprocessor[]
+        {
+            global::SyncTestServer.SubProcessors.from_cloud.Instance
+        };
+        private readonly Dictionary<string, HttpActionSubprocessor> MethodNameToActionSubprocessor = ActionSubprocessors.ToDictionary(innerMethod => innerMethod.InnerMethod,
+            StringComparer.InvariantCultureIgnoreCase);
+
         public override string HttpPrefix
         {
             get
@@ -46,7 +53,19 @@ namespace SyncTestServer.ActionProcessors
 
         public override bool ProcessContext(HttpListenerContext toProcess, IServerData serverData, string listenerFirstPath, string listenerFullPath)
         {
-            throw new NotImplementedException();
+            string innerMethodName = listenerFullPath.Substring(listenerFirstPath.Length);
+
+            HttpActionSubprocessor subProcessor;
+            if (MethodNameToActionSubprocessor.TryGetValue(innerMethodName, out subProcessor))
+            {
+                subProcessor.ProcessContext(toProcess, serverData);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ using System.Xml;
 
 namespace SyncTestServer
 {
-    public class ServerData : NotifiableObject<ServerData>, IServerData
+    public class ServerData : IServerData
     {
         public ObservableCollection<User> Users
         {
@@ -43,9 +43,8 @@ namespace SyncTestServer
 
         private readonly GenericHolder<bool> Initialized = new GenericHolder<bool>(false);
 
-        public ServerData() { }
-
-        public void InitializeServer(Model.ScenarioServer initialData)
+        #region IServerData members
+        public void InitializeServer(Model.ScenarioServer initialData, Action userWasNotLockedDetected = null)
         {
             lock (Initialized)
             {
@@ -61,7 +60,7 @@ namespace SyncTestServer
                             setState.Item2.Add(null, schemaReader);
                         }
                     }),
-                    new Tuple<string, XmlSchemaSet>("SyncTestScenario.xsd", ScenarioSchemas));
+                    new Tuple<string, XmlSchemaSet>("Model\\SyncTestScenario.xsd", ScenarioSchemas));
 
                 List<string> validationErrors = new List<string>();
 
@@ -334,7 +333,7 @@ namespace SyncTestServer
                     else
                     {
                         _metadataProvider = new MetadataProvider();
-                        _metadataProvider.InitializeProvider(_serverStorage, startingMetadata);
+                        _metadataProvider.InitializeProvider(_serverStorage, startingMetadata, userWasNotLockedDetected);
                     }
                     #endregion
                 }
@@ -343,8 +342,203 @@ namespace SyncTestServer
             }
         }
 
+        public User FindUserByAKey(string akey, out Device specificDevice)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("Not Initialized, call InitializeServer first");
+                }
+            }
+
+            User toReturn;
+            Device outDevice = null;
+            lock (Users)
+            {
+                toReturn = Users.FirstOrDefault(currentUser => currentUser.Devices.Any(currentDevice => (outDevice = currentDevice).AuthorizationKey.Equals(akey, StringComparison.InvariantCultureIgnoreCase)));
+            }
+            if (toReturn == null)
+            {
+                specificDevice = null;
+            }
+            else
+            {
+                specificDevice = outDevice;
+            }
+            return toReturn;
+        }
+
+        public IEnumerable<CloudApiPublic.JsonContracts.File> PurgePendingFiles(User currentUser, CloudApiPublic.JsonContracts.PurgePending request, out bool deviceNotInUser)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("Not Initialized, call InitializeServer first");
+                }
+            }
+
+            if (currentUser == null)
+            {
+                throw new NullReferenceException("currentUser cannot be null");
+            }
+            if (request == null)
+            {
+                throw new NullReferenceException("request cannot be null");
+            }
+            if (request.DeviceId == null)
+            {
+                throw new NullReferenceException("PurgePending request DeviceId cannot be null");
+            }
+            Guid currentDevice;
+            if (!Guid.TryParse(request.DeviceId, out currentDevice))
+            {
+                throw new ArgumentException("PurgePending request DeviceId must be parsable to Guid");
+            }
+
+            lock (currentUser)
+            {
+                if (!currentUser.Devices.Any(userDevice => userDevice.Id == currentDevice))
+                {
+                    deviceNotInUser = true;
+                    return null;
+                }
+                else
+                {
+                    deviceNotInUser = false;
+                    return _metadataProvider.PurgeUserPendingsByDevice(currentUser.Id, currentDevice)
+                        .Select(currentPending =>
+                            {
+                                return new CloudApiPublic.JsonContracts.File()
+                                {
+                                    Metadata = JsonMetadataByMetadata(currentPending.Key, null, currentPending.Value)
+                                };
+                            })
+                        .ToArray();
+                }
+            }
+        }
+
+        public long NewSyncIdBeforeStart
+        {
+            get
+            {
+                lock (Initialized)
+                {
+                    if (!Initialized.Value)
+                    {
+                        throw new Exception("Not Initialized, call InitializeServer first");
+                    }
+                }
+                return _metadataProvider.NewSyncIdBeforeStart;
+            }
+        }
+
+        private static CloudApiPublic.JsonContracts.Metadata JsonMetadataByMetadata(FilePath newPath, FilePath oldPath, FileMetadata metadata)
+        {
+            if (newPath == null)
+            {
+                throw new NullReferenceException("newPath cannot be null");
+            }
+            if (metadata == null)
+            {
+                throw new NullReferenceException("metadata cannot be null");
+            }
+
+            return new CloudApiPublic.JsonContracts.Metadata()
+                {
+                    RelativePath = (oldPath == null
+                        ? newPath.ToString().Replace('\\', '/') +
+                            (metadata.HashableProperties.IsFolder
+                                ? "/"
+                                : string.Empty)
+                        : null),
+                    RelativeFromPath = (oldPath == null
+                        ? null
+                        : oldPath.ToString().Replace('\\', '/') +
+                            (metadata.HashableProperties.IsFolder
+                                ? "/"
+                                : string.Empty)),
+                    RelativeToPath = (oldPath == null
+                        ? null
+                        : newPath.ToString().Replace('\\', '/') +
+                            (metadata.HashableProperties.IsFolder
+                                ? "/"
+                                : string.Empty)),
+                    Deleted = false,
+                    MimeType = ((metadata.HashableProperties.IsFolder
+                            || oldPath != null)
+                        ? null
+                        : "application/octet-stream"),
+                    CreatedDate = (oldPath == null ? metadata.HashableProperties.CreationTime : (Nullable<DateTime>)null),
+                    ModifiedDate = (oldPath == null
+                        ? (metadata.HashableProperties.IsFolder
+                            ? metadata.HashableProperties.CreationTime
+                            : metadata.HashableProperties.LastTime)
+                        : (Nullable<DateTime>)null),
+                    IsFolder = metadata.HashableProperties.IsFolder,
+                    Revision = (oldPath == null ? metadata.Revision : null),
+                    Hash = (oldPath == null ? metadata.Revision : null),
+                    StorageKey = (oldPath == null ? metadata.StorageKey : null),
+                    Version = "6",
+                    Size = (oldPath == null ? metadata.HashableProperties.Size : null)
+                };
+        }
+
+        public IEnumerable<CloudApiPublic.JsonContracts.Event> GrabEventsAfterLastSync(CloudApiPublic.JsonContracts.Push request, User currentUser, long newSyncId)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("Not Initialized, call InitializeServer first");
+                }
+            }
+
+            if (currentUser == null)
+            {
+                throw new NullReferenceException("currentUser cannot be null");
+            }
+            if (request == null)
+            {
+                throw new NullReferenceException("request cannot be null");
+            }
+            if (string.IsNullOrWhiteSpace(request.LastSyncId))
+            {
+                throw new NullReferenceException("Push request LastSyncId cannot be null");
+            }
+            long lastSyncId;
+            if (!long.TryParse(request.LastSyncId, out lastSyncId))
+            {
+                throw new ArgumentException("Push request LastSyncId cannot be parsed into a long");
+            }
+
+            if (request.RelativeRootPath != null
+                && (request.RelativeRootPath.Length == 0
+                    || request.RelativeRootPath[request.RelativeRootPath.Length - 1] != '/'
+                    || request.RelativeRootPath.Substring(0, request.RelativeRootPath.Length - 1) != string.Empty))
+            {
+                throw new NotImplementedException("Have not implemented grabbing events except from the relative root path, \"/\"");
+            }
+
+            return _metadataProvider.ChangesSinceSyncId(lastSyncId, currentUser.Id)
+                .Where(currentEvent => currentEvent.Metadata != null
+                    && currentEvent.NewPath != null)
+                .Select(currentEvent => new CloudApiPublic.JsonContracts.Event()
+                {
+                    Header = new CloudApiPublic.JsonContracts.Header()
+                    {
+                        Action = SyncTestServer.Static.Helpers.GetEventAction(currentEvent.Type, currentEvent.Metadata.HashableProperties.IsFolder, (currentEvent.Metadata.LinkTargetPath == null ? null : currentEvent.Metadata.LinkTargetPath.ToString().Replace('\\', '/'))),
+                        SyncId = newSyncId.ToString()
+                    },
+                    Metadata = JsonMetadataByMetadata(currentEvent.NewPath, currentEvent.OldPath, currentEvent.Metadata)
+                });
+        }
+        #endregion
+
         private static readonly XmlSerializer ScenarioServerSerializer = new XmlSerializer(typeof(Model.ScenarioServer));
         private static readonly XmlSchemaSet ScenarioSchemas = new XmlSchemaSet();
-        private static readonly SingleActionSetter NeedToAddScenarioSchema = new SingleActionSetter();
+        private static readonly SingleActionSetter NeedToAddScenarioSchema = new SingleActionSetter(false);
     }
 }

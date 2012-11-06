@@ -119,21 +119,9 @@
       <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
       <Name>CloudApiPrivate</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CloudApiPublic\CloudSdkPublic.csproj">
+    <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
-      <Name>CloudSdkPublic</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\FileMonitor\FileMonitor.csproj">
-      <Project>{dfe16278-70b2-4b6c-84c0-1d41b04bebde}</Project>
-      <Name>FileMonitor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SQLIndexer\SQLIndexer.csproj">
-      <Project>{5ea44f8a-a8ff-48ab-b6f6-c523793e342e}</Project>
-      <Name>SQLIndexer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Sync\Sync.csproj">
-      <Project>{45e4664c-c207-4605-af85-54b587819107}</Project>
-      <Name>Sync</Name>
+      <Name>CloudApiPublic</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

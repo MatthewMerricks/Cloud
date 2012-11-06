@@ -29,6 +29,7 @@ namespace SyncTests
 
         private readonly GenericHolder<ServerService> TestServer = new GenericHolder<ServerService>(null);
         private bool TestServerDisposed = false;
+        private ServerData ServerData = null;
 
         private void StartServer_Click(object sender, RoutedEventArgs e)
         {
@@ -42,8 +43,70 @@ namespace SyncTests
                 {
                     try
                     {
-                        MessageBox.Show("Not implemented: need to read in new IServerData");
-                        TestServer.Value = ServerService.GetInstance();
+                        ServerData = new ServerData();
+                        ServerData.InitializeServer(new SyncTestServer.Model.ScenarioServer()
+                        {
+                            Storage = new SyncTestServer.Model.ServerPhysicalStorageType()
+                            {
+                                Type = SyncTestServer.Model.StorageType.PhysicalLocation,
+                                RootPath = "C:\\SyncServer"
+                            },
+                            //UserItems = new[]
+                            //{
+                            //    new SyncTestServer.Model.ServerUserFolder()
+                            //    {
+                            //        IsFolder = true,
+                            //        Uuid = "1",
+                            //        Folder = new SyncTestServer.Model.FolderType()
+                            //        {
+                            //            IsFolder = true,
+                            //            RelativePathFromRoot = string.Empty,
+                            //            UTCCreatedDateTime = new DateTime(2012, 10, 31) // Happy Halloween!
+                            //        }
+                            //    }
+                            //},
+                            Users = new[]
+                            {
+                                new SyncTestServer.Model.ServerUserType()
+                                {
+                                    CloudFolder = new SyncTestServer.Model.PhysicalLocationCloudFolderType()
+                                    {
+                                        Type = SyncTestServer.Model.StorageType.PhysicalLocation,
+                                        RootPath = string.Empty,
+                                        InitialData = new SyncTestServer.Model.DefinedValuesForCloudFolderType()
+                                        {
+                                            Type = SyncTestServer.Model.InitialCloudFolderDataTypeType.DefinedValues,
+                                            PathsWithMetadata = new[]
+                                            {
+                                                new SyncTestServer.Model.FolderType()
+                                                {
+                                                    IsFolder = true,
+                                                    RelativePathFromRoot = string.Empty,
+                                                    UTCCreatedDateTime = new DateTime(2012, 10, 31) // Happy Halloween!
+                                                }
+                                            }
+                                        }
+                                    },
+                                    UUid = "1",
+                                    Devices = new[]
+                                    {
+                                        new SyncTestServer.Model.ServerDeviceType()
+                                        {
+                                            AKey = "0000000000000000000000000000000000000000000000000000000000000000",
+                                            FriendlyName = "Test",
+                                            UDid = Guid.Empty.ToString()
+                                        }
+                                    },
+                                    Username = "Test",
+                                    Password = "Test"
+                                }
+                            }
+                        },
+                        () =>
+                        {
+                            MessageBox.Show("Server failed to lock on the account of the user for making metadata changes, simultaneous syncs were processed intertwined");
+                        });
+                        TestServer.Value = ServerService.GetInstance(ServerData);
                         MessageBox.Show("TestServer started");
                     }
                     catch (Exception ex)
@@ -92,7 +155,8 @@ namespace SyncTests
 
                     CloudApiPublic.Sync.SyncEngine testEngine = new CloudApiPublic.Sync.SyncEngine(SyncImplementations.SyncData.Instance,
                         SyncImplementations.SyncSettings.Instance);
-                    testEngine.Run(true);                }
+                    testEngine.Run(true);
+                }
             }
         }
 

@@ -27,10 +27,10 @@ using System.Xml.Serialization;
 using CloudApiPrivate.Common;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
-using FileMonitor;
-using SQLIndexer;
-using Sync;
 using BadgeNET;
+using CloudApiPublic.SQLIndexer;
+using CloudApiPublic.Sync;
+using CloudApiPublic.FileMonitor;
 
 namespace CloudTests
 {
@@ -128,7 +128,8 @@ namespace CloudTests
                     cloudAppIconBadgeType findBadge;
                     FilePath filePath = OpenFile.FileName;
                     GenericHolder<cloudAppIconBadgeType> badgeType;
-                    IconOverlay.getBadgeTypeForFileAtPath(filePath, out badgeType);// error ignored
+                    IconOverlay.getBadgeTypeForFileAtPath(filePath,
+                        out badgeType);// error ignored
                     findBadge = badgeType.Value;
                     MessageBox.Show(String.Format("Old badge was {0}.", findBadge.ToString()));
 
@@ -954,6 +955,23 @@ namespace CloudTests
         private const string schedulerLogLocation = "C:\\Users\\Public\\Documents\\HttpSchedulerLog.txt";
         private void HttpSchedulerTests_Click(object sender, RoutedEventArgs e)
         {
+            FilePathDictionary<GenericHolder<Nullable<bool>>> testDict;
+            FilePathDictionary<GenericHolder<Nullable<bool>>>.CreateAndInitialize(new FilePath(string.Empty), out testDict);
+
+            testDict.Add(new FilePath("C.txt", new FilePath("B", new FilePath("A", new FilePath(string.Empty)))),
+                new GenericHolder<Nullable<bool>>(true));
+
+            FilePathHierarchicalNode<GenericHolder<Nullable<bool>>> invalidPath;
+            CLError grabInvalidPath = testDict.GrabHierarchyForPath(new FilePath("Q", new FilePath(string.Empty)), out invalidPath, true);
+
+            FilePathHierarchicalNode<GenericHolder<Nullable<bool>>> validPath;
+            CLError grabValidPath = testDict.GrabHierarchyForPath(new FilePath("B", new FilePath("A", new FilePath(string.Empty))), out validPath, true);
+
+            testDict.Rename(new FilePath("B", new FilePath("A", new FilePath(string.Empty))),
+                new FilePath("D", new FilePath("A", new FilePath(string.Empty))));
+
+            bool parentOrCurrentLevelRemoved = testDict.Remove(new FilePath("A", new FilePath(string.Empty)));
+
             //#region basic function single task
             ////Task<long> toRun = new Task<long>(state =>
             ////    {

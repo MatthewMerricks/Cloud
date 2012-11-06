@@ -378,7 +378,7 @@
     </xs:sequence>
   </xs:complexType>-->
 
-  <xs:complexType name="ServerUserItem">
+  <!--<xs:complexType name="ServerUserItem">
     <xs:annotation>
       <xs:documentation xml:lang="en-us">
         Base class only. Do not use directly.
@@ -388,9 +388,9 @@
       <xs:element name="Uuid" minOccurs="1" maxOccurs="1" type="xs:string" />
       <xs:element name="IsFolder" minOccurs="1" maxOccurs="1" type="xs:boolean" />
     </xs:sequence>
-  </xs:complexType>
+  </xs:complexType>-->
 
-  <xs:complexType name="ServerUserFile">
+  <!--<xs:complexType name="ServerUserFile">
     <xs:annotation>
       <xs:documentation xml:lang="en-us">
         Implementation of ServerUserItem where IsFolder is false
@@ -404,9 +404,9 @@
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
-  </xs:complexType>
+  </xs:complexType>-->
 
-  <xs:complexType name="ServerUserFolder">
+  <!--<xs:complexType name="ServerUserFolder">
     <xs:annotation>
       <xs:documentation xml:lang="en-us">
         Implementation of ServerUserItem where IsFolder is true
@@ -419,7 +419,7 @@
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
-  </xs:complexType>
+  </xs:complexType>-->
 
   <xs:complexType name="ServerStorageType">
     <xs:annotation>
@@ -469,13 +469,13 @@
                 </xs:complexType>
               </xs:element>
               <xs:element name="Storage" minOccurs="1" maxOccurs="1" type="ServerStorageType" />
-              <xs:element name="UserItems" minOccurs="0" maxOccurs="1">
+              <!--<xs:element name="UserItems" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                   <xs:choice minOccurs="0" maxOccurs="unbounded">
                     <xs:element name="UserItem" minOccurs="1" maxOccurs="unbounded" type="ServerUserItem" />
                   </xs:choice>
                 </xs:complexType>
-              </xs:element>
+              </xs:element>-->
               <!--<xs:element name="RevisionHistoriesGoingBackwards" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                   <xs:choice minOccurs="1" maxOccurs="unbounded">

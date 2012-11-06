@@ -166,13 +166,22 @@ namespace SyncTestServer
                         string listenerFullPath = addressThroughDomain +
                             dequeuedContext.Request.RawUrl;
 
+                        SyncTestServer.Static.Helpers.WriteStandardHeaders(dequeuedContext);
+
                         HttpActionProcessor retrieveProcessor;
                         if (!thisService.HttpPrefixToActionProcessor.TryGetValue(listenerFirstPath, out retrieveProcessor)
                             || !retrieveProcessor.ProcessContext(dequeuedContext, thisService.ServerData, listenerFirstPath, listenerFullPath))
                         {
-                            System.Windows.MessageBox.Show("Unable to find processor at address: " +
-                                listenerFullPath);
+                            ThreadPool.QueueUserWorkItem(NotFoundState =>
+                                {
+                                    System.Windows.MessageBox.Show("Unable to find processor at address: " +
+                                        ((NotFoundState as string) ?? "{unable to cast NotFoundState}"));
+                                }, listenerFullPath);
+
+                            SyncTestServer.Static.Helpers.WriteNotFoundResponse(dequeuedContext);
                         }
+
+                        dequeuedContext.Response.Close();
                     }
                     catch (Exception ex)
                     {
