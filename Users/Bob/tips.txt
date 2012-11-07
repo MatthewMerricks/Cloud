@@ -5678,7 +5678,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - I could use Windows Sockets, but they require port allocation.
     - It seems that WM_COPYDATA would be best if extra hidden Explorer windows didn't create a problem with other applications.
     - An alternative would be to have the publisher blow away the subscriber if a queue backup were detected.  The subscriber could poll the shared memory and re-establish its subscription if it were blown away.
-    - Shared memory map holding complex objects: http://www.boost.org/doc/libs/1_37_0/doc/html/interprocess/allocators_containers.html#interprocess.allocators_containers.containers_explained.containers_of_containers
+    - Shared memory map holding complex objects (containers): http://www.boost.org/doc/libs/1_37_0/doc/html/interprocess/allocators_containers.html#interprocess.allocators_containers.containers_explained.containers_of_containers
     - Boost support named objects in shared memory.
     - Boost allocators: http://www.boost.org/doc/libs/1_37_0/doc/html/interprocess/allocators_containers.html#interprocess.allocators_containers.containers_explained.containers_of_containers
     - Boost supports various containers: http://www.boost.org/doc/libs/1_37_0/doc/html/interprocess/allocators_containers.html#interprocess.allocators_containers.containers_explained.containers_of_containers
@@ -5833,7 +5833,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Still working on the un-copyable contained semaphore.  I am constructing the semaphore as an anonymous_instance, and using a pointer to track it, but the pointer is a "smart"
       pointer, and it is causing an exception because the same object is being destructed twice.
   o 11/3/12 Sat: (home)
-    - 5:30 - 
+    - 5:30 - 14:30
     - Time waster: One hour to recreate the boost development environment at home.
     - Boost smart pointers tutorial: http://www.drdobbs.com/cpp/smart-pointers-in-boost/184401507
     - The crash is apparently happening because the interprocess_semaphore can only be constructed in shared memory.  It gets confused when one
@@ -5896,6 +5896,214 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
                 offset_ptr<TestClass> Node1;
                 offset_ptr<TestClass> Node2 = static_cast<TestClass *>(Node1.get()); 
     - FINALLY!  It works.  The publisher posts the subscriber and both exit.  I never had so much trouble with 20 lines of code in my life!
+  o 11/4/12 Sun: (home)
+    - 4:30 - 14:45
+    - One remaining tool for the toolkit: The current support works with boost managed_shared_memory.  On Windows, that works with memory-mapped files to
+      provide cross-platform persistence characteristics.  I need it to work with native Windows shared memory.  There should be a way to allocate
+      the segment using the native Windows shared memory, and then just hook up the segment to the managed_shared_memory support.  That will be
+      today's project.
+    - A way to do this is described in boost version 47, but I don't know if it is currently supported in version 51?: http://www.boost.org/doc/libs/1_47_0/doc/html/interprocess/managed_memory_segments.html#interprocess.managed_memory_segments.managed_shared_memory.windows_managed_memory_common_shm
+    - The version 51 docs say that it is supported: http://www.boost.org/doc/libs/1_51_0/doc/html/interprocess/managed_memory_segments.html#interprocess.managed_memory_segments.managed_shared_memory.windows_managed_memory_common_shm
+    - A good description of the windows_shared_memory class: http://boost.cowic.de/rc/pdf/interprocess.pdf
+    - Steps posted to do what I want to do? (NOT): http://stackoverflow.com/questions/6212138/boostinterprocess-message-queue-performance-rather-slow?s=d9a5aca4-f9c2-4dee-bb75-98e88c1cc3eb
+    - It seems that managed_windows_shared_memory should do what I want, but I haven't been able to get it to work yet: https://groups.google.com/forum/?fromgroups#!topic/boost-list/BjQqmqXyMis
+    - FINALLY!  It works with Windows shared memory!  Now I should have all of the tools.  Pushed.
+    - Now I need to create a build environment that will support Explorer shell extensions and C#:
+      . I don't want another shell extension DLL.  The functionality will need to be exposed as a statically linkable lib.  Call it PubSub.obj and PubSub.lib. That will allow me to link it into BadgeCom.dll.
+      . I need to create another DLL that BadgeNet can load for the C# interface.  Call it CLPubSub.dll.  CLPubSub.dll will also statically link PubSub.lib.
+      . CLPubSub will expose the types and methods.  How is that done, specifically?
+      . Research it and build some very simple modules that integrate into BadgeCom and BadgeNet.  Expose a single type and a single method.
+      . After looking at this, since BadgeCom is already a COM object, it might be simpler to just include the PubSub stuff as another source module in BadgeCom, provide new COM
+        interfaces for the PubSub types and methods, and use COM interop to talk to the new interfaces (BadgeNet => BadgeCom).  So, Explorer will have BadgeCom loaded, and so will Cloud.exe.  I don't see a problem with that.
+      . A great COM interop sample and tutorial: http://msdn.microsoft.com/en-us/magazine/cc163494.aspx
+      . Great tutorial and sample for using pInvoke: http://www.codeproject.com/Articles/14180/Using-Unmanaged-C-Libraries-DLLs-in-NET-Applicatio
+      . Passing strings using C++/CLI: http://stackoverflow.com/questions/12111964/c-cli-string-interop
+      . C++/CLI is a newer technology that allows mixing C++ and C# directly?: http://asawicki.info/Download/Productions/Publications/CPP_CLI_tutorial.pdf
+      . I turned on C++/CLI in the test project (/clr, and I turned off /MTd (incompatible)), and it worked properly.
+      . C++/CLI: "You can freely mix managed (.NET) and native (C++) code in a single project, single source file, even single function code."
+      . After studying that, you can mix managed and native, but it all has to be compiled by the C++/CLI compiler.  That might work differently than the purely native code.
+      . So, keep it all pure native C++ and use COM interop.
+      . Another COM interop tutorial: http://www.c-sharpcorner.com/UploadFile/ptailor/COMInterop0111092005071610AM/COMInterop01.aspx
+      . 5 interop tips: http://www.simple-talk.com/dotnet/.net-framework/5-tips-for-understanding-managed-unmanaged-interoperability-in-.net/
+      . Build a BadgeCom lib import file: tlbimp BadgeCom.dll  (this created BadgeComLib.dll)
+      . Dump (list) a .lib file: dumpbin /SYMBOLS BadgeCOM.lib
+      . Use OleView (type at command prompt) to view OLE .DLLs and .TLBs.  Select File/View/TypeLib...
+      . View the BadgeComLib.dll: ildasm BadgeCOMLib.dll (brings up a GUI to view the interface).
+      . Methods and properties are exposed.  The method seems to work, but the property doesn't yet (probably because I didn't check the implementation).  At least they are exposed.
+      . The Base, Subscription and Event classes are not yet exposed.
+  o 11/5/12 Mon:
+    - 6:30 - 15:00 (DR appointment)
+    - I got the test program working on my work computer.
+    - I have a test property and a test method working from a test program in win-client (TestReferenceBadgeCom), but I have not yet interfaced the Base, Subscription and Event classes.  Do I need to?
+    - A normal method will suffice for Publishing from C#.  I can provide the Event information via method parameters.
+    - What about subscribing from C#?
+    - Subscription is by process/thread/EventId.
+    - Maybe the easiest way to do this is to have the thread make a call on the COM interface, return a single published event from the queue via the method parameters, or wait on the subscription's semaphore for an event to be posted.
+    - The easiest use of this subscription in C# would be to use the normal event subscription process (+= OnEventHandler).  That type of interface can be handled on the C# side, interfacing to the object whose thread
+      is looping and waiting on the on the Subscription method.
+    - What should the be the method definitions?  Properties?
+      . Publish()
+        o Event type ([in] LONG)
+        o Full path ([in] BSTR)
+        o Badge Type ([in] LONG)
+        o Return: (HRESULT) OK, Error code
+      . Subscribe
+        o Timeout milliseconds ([in] LONG)
+        o Event type ([in] LONG)
+        o Badge Type ([in] LONG)
+        o Return: (HRESULT) Event occurred, Timeout, other error code.
+        o Note: No output information is needed.  Just the fact that an event of this type occurred.
+      . No properties needed.
+    - A problem: The subscription thread may be waiting on the semaphore, and Explorer may crash.  I need to implement another thread that watches the
+      subscription thread, times out, kills the subscription thread, logs the event, and attempts to restart the subscription thread.
+    - Question: Does the boost interprocess semaphore support a timeout?  Yes.  (timed_wait()).
+    - The pseudocode for these methods has changed with this design:
+      . Subscribe pseudocode:
+        o Parameters:
+          - EventType: The event type to listen for.
+          - BadgeType: The badge type to listen for.
+          - TimeoutMilliseconds: The max time to wait for an event
+           try
+               set waitRequired = false
+               open or create the shared memory segment
+               allocate the segment manager
+               find or construct the Base object
+               lock Base
+                 foundSubscription = null
+                 loop through the subscriptions vector looking for this ProcessId, ThreadId, EventType and BadgeType
+                   if this subscription matches
+                     foundSubscription = this item
+                     break
+                   endif this subscription matches
+                 endloop through the subscriptions vector looking for this ProcessId, ThreadId, EventType and BadgeType
+                 if subscription found
+                   if an event exists on this subscription's event vector
+                     remove the front event from the vector
+                     set result "event occurred"
+                   else no events on this subscription's event vector
+                     set waitRequired = true
+                   endelse no events on this subscription's event vector
+                 else subscription not found
+                   foundSubscription = construct a new subscription and add it to the subscriptions vector
+                   set waitRequired = true
+                 endelse subscription not found
+               endlock Base
+               if waitRequired
+                 rc = wait on foundSubscription semaphore with parameter timeout
+                 switch on rc
+                 case timeout:
+                   set result "timeout"
+                 case wait posted:
+                   set result "event occurred"
+                 case error:
+                   set result "error"
+                 case default:
+                   set result "unknown error"
+                 endswitch on rc
+               endif waitRequired
+           endtry
+           catch(Exception)
+             set result = error from Exception
+           endcatch(Exception)
+           return result
+      . Publish pseudocode:
+        o Event type ([in] LONG)
+        o Full path ([in] BSTR)
+        o Badge Type ([in] LONG)
+        o Return: (HRESULT) OK, Error code
+           try
+               set result = "OK"
+               open or create the shared memory segment
+               allocate the segment manager
+               find or construct the Base object
+               lock Base
+                 loop through the subscriptions vector looking for this EventType and BadgeType
+                   if this subscription matches
+                     determine the number of events in this subscription
+                     if the number of events is already at the maximum
+                       set error code = "at least one event queue full"
+                       delete this subscription (be careful to preserve iterator)
+                     else the number of events is not at the maximum
+                       construct the event in shared memory
+                       add the event to item event vector (may throw)
+                       post the item semaphore
+                     endelse the number of events is not at the maximum
+                   endif this subscription matches
+                 endloop through the subscriptions vector looking for this EventType and BadgeType
+               end lock Base
+           end try
+           catch (Exception)
+             set result = "exception"
+           endcatch (Exception)
+           return result
+    - The complete guide to C++ strings: http://www.codeproject.com/Articles/3004/The-Complete-Guide-to-C-Strings-Part-II-String-Wra
+    - ATL string conversions: http://msdn.microsoft.com/en-us/library/87zae4a3.aspx
+    - MIDL description: http://msdn.microsoft.com/en-us/library/windows/desktop/ms690150(v=vs.85).aspx
+    - Coding the PubSubServer in BadgeCom.  Most of subscription is done.
+    - Interviewed Gary Garvin (contractor).  Looks good.
+  o 11/6/12 Tue:
+    - 6:30 - 18:30
+    - Tutorial with a lot of MIDL: http://spec.winprog.org/typeinf2/
+    - Command to build lib out of DLL in PostBuild: tlbimp $(OutDir)$(TargetName)$(TargetExt) /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib
+    - In the latest design, I made the BadgeCom_initialization subscription dependent on the event type (BadgeCom_Initialization) and the badge type.  That would
+      mean that every process would need five subscriptions (one for each badge type, and for none?).  The previous design, implemented in BadgeNet, used only
+      a single subscription, and sent all of the badge path/type pairs for all badge types, and let the Explorer processes filter the events.  I would like
+      to have BadgeNet receive only a single BadgeCom_Initialization event, rather than five, but the Explorer side actually needs to filter by EventType and
+      BadgeType on subscriptions.  So, could I add a BadgeType_All definition to subscription?  I don't like that.  It puts too much knowledge into the PubSub
+      system.  Really, it should be dependent on the event type only.  The subscriber can filter by whatever he likes.  Do it that way.
+    - Integrating the COM-exposed PubSub methods and definitions into BadgeNet.  Trouble exposing two of the enum definitions....
+  o 11/7/12 Wed:
+    - 6:30 - 
+    - DONE: The PubSub code has a static initializer for the shared memory segment.  That needs to be disposed, but how.  The easiest way is to provide
+    - TODO: Implement a cancellable wait for Subscribe() using WaitForMultipleObjects.  Expose a Cancel() method to cancel out of a wait (to support proper termination).
+      Initialize() and Terminate() interfaces that allocate it and clean it up.
+    - Pseudo code for the BadgeComInitWatcher threads:
+      . Data
+            bool fAlive = false
+      . Startup
+            start Subscriber thread
+            start Watcher thread
+      . Subscriber thread
+            loop subscribing
+              get subscription with timeout
+              lock
+              set fAlive
+              unlock
+            endloop subscribing
+      . Watcher thread
+            loop watching
+              sleep for a longer timeout than the subscribe timeout
+              lock
+              if !fAlive
+                restart the subscribing thread
+              endif
+              fAlive = false
+              endlock
+            endloop watching
+    - How do I implement the cancellation from the watching thread to the subscribing thread who is waiting over in the PubSub code on a shared memory semaphore?
+      . Under a lock in BadgeNet, I could set a flag to know if the subscribing thread is waiting.
+      . If the subscribing thread is waiting, I could implement another interface to "cancel" the wait.
+      . Cancelling the wait could be as simple as posting the semaphore being waited on.
+      . Before posting it, I would set a flag under a lock to indicate that the subscription is being cancelled, then I would post the semaphore.
+      . The waiting thread would error out and return.  The HRESULT would cause an exception back to C#.
+      . I would need a handle of some sort to identify the subscription to be cancelled.
+      . The subscription is identified by the EventType, ProcessId and ThreadId.  I could search for it.
+      . The method would be _pubSubServer.CancelWaitingSubscription([in] EnumEventType EventType, [in] LONG ProcessId, [in] LONG ThreadId, [out, retval] EnumType *returnValue);
+      . Under the lock in BadgeNet, the subsribing thread must exit when it is cancelled.
+    - I have been using the native process and thread ID to make events unique.  I was assigning these in the C++ code.  When I implemented and tested the CancelWaitingSubscription() member
+      function, I discovered that I needed a handle to identify the subscription to cancel, since it was being cancelled by a different thread.  I used the stored processId and threadId of the
+      subscribing thread, but found that C# doesn't know how to get the native threadId.  A C# thread is run on the thread pool, and the native thread will continually change as
+      the thread is running.  So I need a better identifier, and a small redesign.  I will use a GUID as a handle to a subscription.  The GUID will be passed in when the app calls Subscribe().
+    - GUIDs are defined in binary as a structure: http://msdn.microsoft.com/en-us/library/windows/desktop/aa373931(v=vs.85).aspx
+    - MIDL supports GUID * in parameters: http://stackoverflow.com/questions/3028076/midl-constant-references
+    - The PubSubServer has been reworked to support GUID identification, and tested.
+    - The code is complete in BadgeNet:BadgeComInitWatcher.  That module has a thread that subscribes to the BadgeCom_initialization event.  There is also a watcher thread that restarts
+      the subscribing thread if no activity is detected.
+                                                                           
+
+ 
+      
+
     
 
       
@@ -7300,6 +7508,7 @@ TODO:
   o Move Context menu support out of BadgeCom and BadgeNet.  This will require another BadgeCom2.
   o Big issue with multiple BadgeComs installed.  New BadgeComs will have new name and class ID.  Don't unregister or delete on uninstall.  On install, don't install or register if already registered.
   o Don't allow a SyncBox to use the same directory as another SyncBox.
+  o Compile Boost to source and push to git.
 
 
 

@@ -115,8 +115,13 @@ namespace BadgeNET
                 // Capture the Cloud directory path for performance.
                 filePathCloudDirectory = pathRootDirectory;
 
-                // Initialize to the PubSub events shared memory queue.
-                //&&&&
+                // Start the PubSub watcher threads.
+                if (_badgeComInitWatcher == null)
+                {
+                    _badgeComInitWatcher = new BadgeComInitWatcher();
+                    _badgeComInitWatcher.BadgeComInitialized +=BadgeComInitWatcher_OnBadgeComInitialized;
+                    _badgeComInitWatcher.BadgeComInitialized += _badgeComInitWatcher_BadgeComInitialized;
+                }
 
                 // Subscribe to the BadgeCom initialization events.
                 _subscriptionMgr.AddSubscription(eventType: EventIds.kEvent_BadgeCom_Initialized, localOnly: true);
@@ -188,6 +193,27 @@ namespace BadgeNET
             }
             _trace.writeToLog(9, "IconOverlay: Return success.");
             return null;
+        }
+
+        /// <summary>
+        /// The BadgeCom initialization event watcher died.  Clean up resources.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void _badgeComInitWatcher_BadgeComInitialized(object sender, EventArgs e)
+        {
+            _badgeComInitWatcher.Dispose();
+            _badgeComInitWatcher = null;
+        }
+
+        /// <summary>
+        /// Callback indicating that we received a BadgeCom initialization event.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BadgeComInitWatcher_OnBadgeComInitialized(object sender, EventArgs e)
+        {
+ 	        throw new NotImplementedException();  ////&&&&&
         }
 
         /// <summary>
@@ -1022,6 +1048,20 @@ namespace BadgeNET
                                 _subscriptionMgr = null;
                             }
 
+                            // Terminate the BadgeCom initialization watcher
+                            try
+                            {
+                                if (_badgeComInitWatcher != null)
+                                {
+                                    _badgeComInitWatcher.Dispose();
+                                }
+
+                            }
+                            catch (Exception ex)
+                            {
+                                _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: <{0}>.", ex.Message);
+                            }
+
                             // Clear other references.
                             if (_currentBadges != null)
                             {
@@ -1142,6 +1182,11 @@ namespace BadgeNET
         /// Creates the named pipe server stream for the shell extension context menu support.
         /// </summary>
         private NamedPipeServerContextMenu pipeContextMenuServer = null;
+
+        /// <summary>
+        /// BadgeComInitWatcher threads subscribe and monitor initialization events from BadgeCom (Explorer shell extension).
+        /// </summary>
+        private BadgeComInitWatcher _badgeComInitWatcher = null;
 
         /// <summary>
         /// Object type of pipeLocker

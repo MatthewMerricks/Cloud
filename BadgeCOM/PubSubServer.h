@@ -98,11 +98,11 @@ public:
 	class EventMessage
 	{
 	public:
-		EnumEventType				EventType_;
-		ULONG						ProcessId_;
-		ULONG						ThreadId_;
-		EnumCloudAppIconBadgeType	BadgeType_;
-		wchar_string				FullPath_;
+		EnumEventType				EventType_;                 // this event's event type
+		ULONG						ProcessId_;                 // for logging only
+		ULONG						ThreadId_;                  // for logging only
+		EnumCloudAppIconBadgeType	BadgeType_;                 // the badge type associated with this event
+		wchar_string				FullPath_;                  // the full path associated with this event
 
 		// Constructor
 		EventMessage(EnumEventType EventType, ULONG ProcessId, ULONG ThreadId, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, const void_allocator &void_alloc) :
@@ -117,27 +117,31 @@ public:
 	class Subscription
 	{
 	public:
-		offset_ptr<managed_windows_shared_memory> pSegment_;                 // pointer to the shared memory segment
-		ULONG                       uSubscribingProcessId_;     // the subscribing process ID
-		ULONG                       uSubscribingThreadId_;      // the subscribing thread ID
+		ULONG                       uSubscribingProcessId_;     // the subscribing process ID (logging only)
+		ULONG                       uSubscribingThreadId_;      // the subscribing thread ID (logging only)
 		EnumEventType               nEventType_;                // the event type being subscribed to
 		offset_ptr<interprocess_semaphore>	pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
+        GUID                        guidId_;                    // the unique identifier of this subscription
 		bool                        fDestructed_;               // true: this object has been destructed
+        bool                        fWaiting_;                  // true: the subscribing thread is waiting
+        bool                        fCancelled_;                // true: this subscription has been cancelled.
 		EventMessage_vector		    events_;					// a vector of events
 
 		// Constructor
-		Subscription(managed_windows_shared_memory *pSegment, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const void_allocator &void_alloc) :
-							pSegment_(pSegment),
+		Subscription(GUID guidId, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const void_allocator &void_alloc) :
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
 							nEventType_(nEventType),
+                            guidId_(guidId),
 							fDestructed_(false),
+							fWaiting_(false),
+							fCancelled_(false),
 							events_(void_alloc)
 		{
 			// The interprocess_semaphore object is marked not copyable, and this prevented compilation.  Change it to a pointer
 			// reference to allow the object to be copied to get past the compiler error.  The actual semaphore should be allocated in
 			// shared memory by this constructor, and it should be deallocated when this subscription is destructed.
-			 pSemaphoreSubscription_ = pSegment_->construct<interprocess_semaphore>(anonymous_instance)(0);
+			 pSemaphoreSubscription_ = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
 		}
 
 		// Destructor
@@ -151,7 +155,7 @@ public:
 			fDestructed_ = true;
 
 			// Deallocate the semaphore
-			pSegment_->destroy_ptr(pSemaphoreSubscription_.get());
+			_pSegment->destroy_ptr(pSemaphoreSubscription_.get());
 		}
 	};
 
@@ -177,14 +181,18 @@ public:
 	typedef allocator<Base, segment_manager_t>                              base_allocator;       // allocator for allocating Base
 
 	// Public OLE accessible methods
-    STDMETHOD(Publish)(EnumEventType EventType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, int *returnValue);
-    STDMETHOD(Subscribe)(EnumEventType EventType, LONG TimeoutMilliseconds, int *returnValue);
+    STDMETHOD(Initialize)();
+    STDMETHOD(Publish)(EnumEventType EventType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, EnumPubSubServerPublishReturnCodes *returnValue);
+    STDMETHOD(Subscribe)(EnumEventType EventType, GUID guidId, LONG TimeoutMilliseconds, EnumPubSubServerSubscribeReturnCodes *returnValue);
+	STDMETHOD(CancelWaitingSubscription)(EnumEventType EventType, GUID guidId, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
+    STDMETHOD(Terminate)();
 
     // Public OLE accessible properties
     STDMETHOD(get_SharedMemoryName)(BSTR* pVal);
 private:
 
-    static managed_windows_shared_memory _segment;
+    // Pointer to the managed native windows shared memory segment.
+    static managed_windows_shared_memory *_pSegment;
 
     // Private static constants
     static const OLECHAR *_ksSharedMemoryName;              // the name of the shared memory segment
