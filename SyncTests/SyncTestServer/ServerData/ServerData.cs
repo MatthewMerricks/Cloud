@@ -69,10 +69,10 @@ namespace SyncTestServer
                 {
                     ScenarioServerSerializer.Serialize(initialDocWriter, initialData);
                 }
-                initialDataDoc.Validate(ScenarioSchemas, new ValidationEventHandler((sender, e) =>
+                initialDataDoc.Validate(ScenarioSchemas, (sender, e) =>
                     {
                         validationErrors.Add(e.Message);
-                    }));
+                    });
 
                 if (validationErrors.Count > 0)
                 {
@@ -486,7 +486,7 @@ namespace SyncTestServer
                 };
         }
 
-        public IEnumerable<CloudApiPublic.JsonContracts.Event> GrabEventsAfterLastSync(CloudApiPublic.JsonContracts.Push request, User currentUser, long newSyncId)
+        public IEnumerable<CloudApiPublic.JsonContracts.Event> GrabEventsAfterLastSync(string lastSyncIdString, string relativeRootPath, User currentUser, long newSyncId)
         {
             lock (Initialized)
             {
@@ -500,24 +500,20 @@ namespace SyncTestServer
             {
                 throw new NullReferenceException("currentUser cannot be null");
             }
-            if (request == null)
+            if (lastSyncIdString == null)
             {
-                throw new NullReferenceException("request cannot be null");
-            }
-            if (string.IsNullOrWhiteSpace(request.LastSyncId))
-            {
-                throw new NullReferenceException("Push request LastSyncId cannot be null");
+                throw new NullReferenceException("lastSyncIdString cannot be null");
             }
             long lastSyncId;
-            if (!long.TryParse(request.LastSyncId, out lastSyncId))
+            if (!long.TryParse(lastSyncIdString, out lastSyncId))
             {
-                throw new ArgumentException("Push request LastSyncId cannot be parsed into a long");
+                throw new ArgumentException("lastSyncIdString cannot be parsed into a long");
             }
 
-            if (request.RelativeRootPath != null
-                && (request.RelativeRootPath.Length == 0
-                    || request.RelativeRootPath[request.RelativeRootPath.Length - 1] != '/'
-                    || request.RelativeRootPath.Substring(0, request.RelativeRootPath.Length - 1) != string.Empty))
+            if (relativeRootPath != null
+                && (relativeRootPath.Length == 0
+                    || relativeRootPath[relativeRootPath.Length - 1] != '/'
+                    || relativeRootPath.Substring(0, relativeRootPath.Length - 1) != string.Empty))
             {
                 throw new NotImplementedException("Have not implemented grabbing events except from the relative root path, \"/\"");
             }
@@ -535,7 +531,308 @@ namespace SyncTestServer
                     Metadata = JsonMetadataByMetadata(currentEvent.NewPath, currentEvent.OldPath, currentEvent.Metadata)
                 });
         }
+
+        public void ApplyClientEventToServer(long syncId, User currentUser, Device currentDevice, CloudApiPublic.JsonContracts.Event toEvent)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("Not Initialized, call InitializeServer first");
+                }
+            }
+
+            if (currentUser == null)
+            {
+                throw new NullReferenceException("currentUser cannot be null");
+            }
+            if (currentDevice == null)
+            {
+                throw new NullReferenceException("currentDevice cannot be null");
+            }
+            if (toEvent == null)
+            {
+                throw new NullReferenceException("toApply cannot be null");
+            }
+
+            toEvent.Header = new CloudApiPublic.JsonContracts.Header()
+            {
+                EventId = toEvent.EventId,
+                Action = toEvent.Action
+            };
+
+            toEvent.EventId = null;
+            toEvent.Action = null;
+            
+            FileChange newChange = new FileChange()
+                {
+                    EventId = toEvent.Header.EventId ?? 0,
+                    NewPath = GenerateFilePathFromForwardSlashRelativePath(CloudApiPublic.Model.CLDefinitions.SyncHeaderRenames.Contains(toEvent.Header.Action)
+                        ? toEvent.Metadata.RelativeToPath
+                        : toEvent.Metadata.RelativePath),
+                    OldPath = (CloudApiPublic.Model.CLDefinitions.SyncHeaderRenames.Contains(toEvent.Header.Action)
+                        ? null
+                        : GenerateFilePathFromForwardSlashRelativePath(toEvent.Metadata.RelativeFromPath)),
+                    Type = ParseEventStringToType(toEvent.Header.Action),
+                    Metadata = new FileMetadata()
+                    {
+                        HashableProperties = new FileMetadataHashableProperties((bool)toEvent.Metadata.IsFolder,
+                            (((bool)toEvent.Metadata.IsFolder)
+                                ? toEvent.Metadata.CreatedDate
+                                : toEvent.Metadata.ModifiedDate),
+                            toEvent.Metadata.CreatedDate,
+                            toEvent.Metadata.Size),
+                        LinkTargetPath = GenerateFilePathFromForwardSlashRelativePath(toEvent.Metadata.TargetPath),
+                        Revision = toEvent.Metadata.Revision,
+                        StorageKey = toEvent.Metadata.StorageKey
+                    }
+                };
+
+            byte[] newMD5 = toEvent.Metadata.Hash == null
+                ? null
+                : Enumerable.Range(0, 32)
+                    .Where(currentHex => currentHex % 2 == 0)
+                    .Select(currentHex => Convert.ToByte(toEvent.Metadata.Hash.Substring(currentHex, 2), 16))
+                    .ToArray();
+            CLError setMD5Error = newChange.SetMD5(newMD5);
+            if (setMD5Error != null)
+            {
+                throw new AggregateException("Error setting MD5 on newChange", setMD5Error.GrabExceptions());
+            }
+
+            switch (newChange.Type)
+            {
+                case CloudApiPublic.Static.FileChangeType.Created:
+                    if (newChange.Metadata.HashableProperties.IsFolder)
+                    {
+                        FileMetadata existingMetadata;
+                        if (MetadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out existingMetadata))
+                        {
+                            if (existingMetadata.HashableProperties.IsFolder)
+                            {
+                                toEvent.Header.Status = CLDefinitions.CLEventTypeExists;
+                            }
+                            else
+                            {
+                                toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
+                            }
+                        }
+                        else if (MetadataProvider.AddFolderMetadata(syncId, currentUser.Id, newChange.NewPath, newChange.Metadata))
+                        {
+                            toEvent.Header.Status = CLDefinitions.CLEventTypeAccepted;
+                        }
+                        else
+                        {
+                            toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
+                        }
+                    }
+                    else
+                    {
+                        bool isPending;
+                        bool newUpload;
+                        FileMetadata existingMetadata;
+                        if (MetadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out existingMetadata))
+                        {
+                            byte[] latestMD5;
+                            if (existingMetadata.HashableProperties.IsFolder
+                                || existingMetadata.Revision == null)
+                            {
+                                toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
+                            }
+                            else if (existingMetadata.Revision.Equals(toEvent.Metadata.Hash, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                toEvent.Header.Status = CLDefinitions.CLEventTypeDuplicate;
+                            }
+                            else if (ServerStorage.DoesFileHaveEarlierRevisionOfUndeletedFile(syncId, currentUser.Id, newChange.NewPath, (long)newChange.Metadata.HashableProperties.Size, newMD5, out latestMD5))
+                            {
+                                toEvent.Metadata = new CloudApiPublic.JsonContracts.Metadata()
+                                {
+                                    CreatedDate = existingMetadata.HashableProperties.CreationTime,
+                                    Deleted = false,
+                                    Hash = latestMD5
+                                        .Select(md5Byte => string.Format("{0:x2}", md5Byte))
+                                        .Aggregate((previousBytes, newByte) => previousBytes + newByte),
+                                    IsFolder = false,
+                                    ModifiedDate = existingMetadata.HashableProperties.LastTime,
+                                    RelativePath = toEvent.Metadata.RelativePath,
+                                    Revision = existingMetadata.Revision,
+                                    Size = existingMetadata.HashableProperties.Size,
+                                    StorageKey = existingMetadata.StorageKey,
+                                    Version = "1.0",
+                                    TargetPath = (existingMetadata.LinkTargetPath == null
+                                        ? null
+                                        : existingMetadata.LinkTargetPath.ToString())
+                                };
+
+                                toEvent.Header.Status = CLDefinitions.CLEventTypeDownload;
+                            }
+                            else
+                            {
+                                toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
+                            }
+                        }
+                        else
+                        {
+                            if (MetadataProvider.AddFileMetadata(syncId, currentUser.Id, currentDevice.Id, newChange.NewPath, newChange.Metadata, out isPending, out newUpload, newMD5))
+                            {
+                                if (isPending)
+                                {
+                                    if (newUpload)
+                                    {
+                                        toEvent.Header.Status = CLDefinitions.CLEventTypeUpload;
+                                    }
+                                    else
+                                    {
+                                        toEvent.Header.Status = CLDefinitions.CLEventTypeUploading;
+                                    }
+                                }
+                                else
+                                {
+                                    toEvent.Header.Status = CLDefinitions.CLEventTypeDuplicate;
+                                }
+                            }
+                            else
+                            {
+                                toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
+                            }
+
+                            toEvent.Metadata.Revision = newChange.Metadata.Revision;
+                            toEvent.Metadata.StorageKey = newChange.Metadata.StorageKey;
+                        }
+                    }
+                    break;
+
+                case CloudApiPublic.Static.FileChangeType.Deleted:
+                    FileMetadata deleteMetadata;
+                    if (!newChange.Metadata.HashableProperties.IsFolder
+                        && MetadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out deleteMetadata)
+                        && deleteMetadata.Revision != newChange.Metadata.Revision)
+                    {
+                        toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
+                    }
+                    else if (MetadataProvider.RecursivelyRemoveMetadata(syncId, currentUser.Id, newChange.NewPath))
+                    {
+                        toEvent.Header.Status = CLDefinitions.CLEventTypeAccepted;
+                    }
+                    else
+                    {
+                        toEvent.Header.Status = CLDefinitions.CLEventTypeNotFound;
+                    }
+                    break;
+
+                case CloudApiPublic.Static.FileChangeType.Modified:
+                    bool modifiedPending;
+                    bool modifiedNew;
+                    bool modifiedConflict;
+                    if (MetadataProvider.UpdateMetadata(syncId, currentUser.Id, currentDevice.Id, newChange.Metadata.Revision, newChange.NewPath, newChange.Metadata, out modifiedPending, out modifiedNew, out modifiedConflict, newMD5))
+                    {
+                        if (modifiedConflict)
+                        {
+                            toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
+                        }
+                        else if (newChange.Metadata.HashableProperties.IsFolder)
+                        {
+                            toEvent.Header.Status = CLDefinitions.CLEventTypeAccepted;
+                        }
+                        else if (modifiedPending)
+                        {
+                            if (modifiedNew)
+                            {
+                                toEvent.Header.Status = CLDefinitions.CLEventTypeUpload;
+                            }
+                            else
+                            {
+                                toEvent.Header.Status = CLDefinitions.CLEventTypeUploading;
+                            }
+                        }
+                        else
+                        {
+                            toEvent.Header.Status = CLDefinitions.CLEventTypeDuplicate;
+                        }
+                        
+                        toEvent.Metadata.Revision = newChange.Metadata.Revision;
+                        toEvent.Metadata.StorageKey = newChange.Metadata.StorageKey;
+                    }
+                    else
+                    {
+                        toEvent.Header.Status = CLDefinitions.CLEventTypeNotFound;
+                    }
+                    break;
+
+                case CloudApiPublic.Static.FileChangeType.Renamed:
+                    FileMetadata renameMetadata;
+                    if (!newChange.Metadata.HashableProperties.IsFolder
+                        && MetadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out renameMetadata)
+                        && renameMetadata.Revision != newChange.Metadata.Revision)
+                    {
+                        toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
+                    }
+                    else if (MetadataProvider.RecursivelyRenameMetadata(syncId, currentUser.Id, newChange.OldPath, newChange.NewPath))
+                    {
+                        toEvent.Header.Status = CLDefinitions.CLEventTypeAccepted;
+                    }
+                    else
+                    {
+                        toEvent.Header.Status = CLDefinitions.CLEventTypeNotFound;
+                    }
+                    break;
+
+                default:
+                    throw new Exception("Unknown FileChangeType newChange.Type: " + newChange.Type.ToString());
+            }
+        }
         #endregion
+
+        private static FilePath GenerateFilePathFromForwardSlashRelativePath(string relativePath)
+        {
+            if (relativePath == null)
+            {
+                return null;
+            }
+
+            return GenerateFilePathFromParts(relativePath.Split('/'));
+        }
+
+        private static FilePath GenerateFilePathFromParts(string[] pathParts, Nullable<int> partsIndex = null)
+        {
+            int nonNullIndex;
+            if (partsIndex == null)
+            {
+                nonNullIndex = pathParts.Length - 1;
+            }
+            else
+            {
+                nonNullIndex = (int)partsIndex;
+
+                if (nonNullIndex < 0)
+                {
+                    return null;
+                }
+            }
+
+            return new FilePath(pathParts[nonNullIndex], GenerateFilePathFromParts(pathParts, nonNullIndex - 1));
+        }
+
+        private static CloudApiPublic.Static.FileChangeType ParseEventStringToType(string actionString)
+        {
+            if (CloudApiPublic.Model.CLDefinitions.SyncHeaderCreations.Contains(actionString))
+            {
+                return CloudApiPublic.Static.FileChangeType.Created;
+            }
+            if (CloudApiPublic.Model.CLDefinitions.SyncHeaderDeletions.Contains(actionString))
+            {
+                return CloudApiPublic.Static.FileChangeType.Deleted;
+            }
+            if (CloudApiPublic.Model.CLDefinitions.SyncHeaderModifications.Contains(actionString))
+            {
+                return CloudApiPublic.Static.FileChangeType.Modified;
+            }
+            if (CloudApiPublic.Model.CLDefinitions.SyncHeaderRenames.Contains(actionString))
+            {
+                return CloudApiPublic.Static.FileChangeType.Renamed;
+            }
+            throw new ArgumentException("eventString was not parsable to FileChangeType: " + actionString);
+        }
 
         private static readonly XmlSerializer ScenarioServerSerializer = new XmlSerializer(typeof(Model.ScenarioServer));
         private static readonly XmlSchemaSet ScenarioSchemas = new XmlSchemaSet();

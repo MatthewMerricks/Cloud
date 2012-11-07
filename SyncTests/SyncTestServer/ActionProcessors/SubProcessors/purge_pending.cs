@@ -2,6 +2,7 @@
 using SyncTestServer.Model;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -43,7 +44,7 @@ namespace SyncTestServer.SubProcessors
         private string _innerMethod = null;
         private readonly object InnerMethodLocker = new object();
 
-        public override void ProcessContext(HttpListenerContext toProcess, IServerData serverData)
+        public override void ProcessContext(HttpListenerContext toProcess, IServerData serverData, NameValueCollection queryString)
         {
             Device currentDevice;
             User currentUser;
@@ -53,8 +54,6 @@ namespace SyncTestServer.SubProcessors
             }
             else
             {
-                SyncTestServer.Static.Helpers.WriteRandomETag(toProcess);
-
                 CloudApiPublic.JsonContracts.PurgePending purgeRequest = (CloudApiPublic.JsonContracts.PurgePending)CloudApiPublic.JsonContracts.JsonContractHelpers.PurgePendingSerializer.ReadObject(toProcess.Request.InputStream);
 
                 bool deviceNotInUser;
@@ -66,6 +65,8 @@ namespace SyncTestServer.SubProcessors
                 }
                 else
                 {
+                    SyncTestServer.Static.Helpers.WriteRandomETag(toProcess);
+
                     CloudApiPublic.JsonContracts.PurgePendingResponse toWrite = new CloudApiPublic.JsonContracts.PurgePendingResponse()
                     {
                         Files = filesPurged.ToArray()

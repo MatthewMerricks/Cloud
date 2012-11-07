@@ -1,5 +1,6 @@
 ﻿using CloudApiPublic.Model;
 using SyncTestServer.Model;
+using SyncTestServer.Static;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,13 +10,13 @@ using System.Threading;
 
 namespace SyncTestServer
 {
-    public sealed class PhysicalStorage : NotifiableObject<PhysicalStorage>, IServerStorage
+    public sealed class PhysicalStorage : IServerStorage
     {
         private const string AppendTempName = "temp";
         private const string EmptyFileStorageKey = "0";
 
         private readonly Dictionary<string, PendingMD5AndFileId> storageKeyToFile = new Dictionary<string, PendingMD5AndFileId>();
-        private readonly Dictionary<int, Dictionary<FilePath, LinkedList<KeyValuePair<long, byte[]>>>> userToRevisionHistory = new Dictionary<int, Dictionary<FilePath, LinkedList<KeyValuePair<long, byte[]>>>>();
+        private readonly Dictionary<int, Dictionary<FilePath, LinkedList<MD5AndFileSize>>> userToRevisionHistory = new Dictionary<int, Dictionary<FilePath, LinkedList<MD5AndFileSize>>>();
         private readonly Dictionary<MD5AndFileSize, string> hashToStorageKey = new Dictionary<MD5AndFileSize, string>(MD5AndFileSize.Comparer);
         private readonly Dictionary<string, MD5AndFileSize> storageKeyToHash = new Dictionary<string, MD5AndFileSize>();
         private readonly Dictionary<int, Dictionary<Guid, Dictionary<string, KeyValuePair<Action<object>, object>>>> userPendingStorageKeys = new Dictionary<int, Dictionary<Guid, Dictionary<string, KeyValuePair<Action<object>, object>>>>();
@@ -110,10 +111,10 @@ namespace SyncTestServer
 
                             storageKeyToFile.Add(newStorageKey, existingFileId);
                         }
-                        Dictionary<FilePath, LinkedList<KeyValuePair<long, byte[]>>> userHistory;
+                        Dictionary<FilePath, LinkedList<MD5AndFileSize>> userHistory;
                         if (!userToRevisionHistory.TryGetValue(currentData.UserId, out userHistory))
                         {
-                            userHistory = new Dictionary<FilePath, LinkedList<KeyValuePair<long, byte[]>>>(FilePathComparer.Instance);
+                            userHistory = new Dictionary<FilePath, LinkedList<MD5AndFileSize>>(FilePathComparer.Instance);
                             userToRevisionHistory.Add(currentData.UserId, userHistory);
                         }
                         if (userHistory.ContainsKey(currentData.RelativePath))
@@ -122,7 +123,7 @@ namespace SyncTestServer
                         }
 
                         userHistory.Add(currentData.RelativePath,
-                            new LinkedList<KeyValuePair<long, byte[]>>(new[] { new KeyValuePair<long, byte[]>(currentData.FileSize, currentData.MD5) }));
+                            new LinkedList<MD5AndFileSize>(new[] { new MD5AndFileSize(currentData.MD5, currentData.FileSize) }));
                     }
                 }
 
@@ -265,16 +266,16 @@ namespace SyncTestServer
                         RemoveFileById(castPreviousFile.Key, userId, userRelativePath, castPreviousFile.Value);
                     }
 
-                    Dictionary<FilePath, LinkedList<KeyValuePair<long, byte[]>>> userHistory;
+                    Dictionary<FilePath, LinkedList<MD5AndFileSize>> userHistory;
                     if (!userToRevisionHistory.TryGetValue(userId, out userHistory))
                     {
-                        userHistory = new Dictionary<FilePath, LinkedList<KeyValuePair<long, byte[]>>>(FilePathComparer.Instance);
+                        userHistory = new Dictionary<FilePath, LinkedList<MD5AndFileSize>>(FilePathComparer.Instance);
                         userToRevisionHistory.Add(userId, userHistory);
                     }
                     if (!userHistory.ContainsKey(userRelativePath))
                     {
                         userHistory.Add(userRelativePath,
-                            new LinkedList<KeyValuePair<long, byte[]>>(new[] { new KeyValuePair<long, byte[]>(fileSize, MD5) }));
+                            new LinkedList<MD5AndFileSize>(new[] { new MD5AndFileSize(MD5, fileSize) }));
                     }
 
                     return true;
@@ -308,9 +309,9 @@ namespace SyncTestServer
 
             lock (storageKeyToFile)
             {
-                Dictionary<FilePath, LinkedList<KeyValuePair<long, byte[]>>> userRevisions;
-                LinkedList<KeyValuePair<long, byte[]>> fileRevisions;
-                GenericHolder<Nullable<KeyValuePair<long, byte[]>>> firstRevision = new GenericHolder<Nullable<KeyValuePair<long,byte[]>>>(null);
+                Dictionary<FilePath, LinkedList<MD5AndFileSize>> userRevisions;
+                LinkedList<MD5AndFileSize> fileRevisions;
+                GenericHolder<Nullable<MD5AndFileSize>> firstRevision = new GenericHolder<Nullable<MD5AndFileSize>>(null);
                 MD5AndFileSize previousHash;
                 string previousStorageKey;
                 PendingMD5AndFileId previousFile;
@@ -321,11 +322,11 @@ namespace SyncTestServer
                     && userToRevisionHistory.TryGetValue(userId, out userRevisions)
                     && userRevisions.TryGetValue(userRelativePath, out fileRevisions)
                     && fileRevisions.Count > 0
-                    && (lastestMD5 = (((KeyValuePair<long, byte[]>)RetrieveOrPullFirstRevision(fileRevisions, firstRevision)).Value)) != null
-                    && hashToStorageKey.TryGetValue(previousHash = new MD5AndFileSize(((KeyValuePair<long, byte[]>)RetrieveOrPullFirstRevision(fileRevisions, firstRevision)).Value, ((KeyValuePair<long, byte[]>)RetrieveOrPullFirstRevision(fileRevisions, firstRevision)).Key), out previousStorageKey)
+                    && (lastestMD5 = (((MD5AndFileSize)RetrieveOrPullFirstRevision(fileRevisions, firstRevision)).MD5)) != null
+                    && hashToStorageKey.TryGetValue(previousHash = new MD5AndFileSize(((MD5AndFileSize)RetrieveOrPullFirstRevision(fileRevisions, firstRevision)).MD5, ((MD5AndFileSize)RetrieveOrPullFirstRevision(fileRevisions, firstRevision)).FileSize), out previousStorageKey)
                     && storageKeyToFile.TryGetValue(previousStorageKey, out previousFile)
                     && previousFile.GetUserUsagesByUser(userId).Contains(userRelativePath, FilePathComparer.Instance)
-                    && SyncTestServer.Static.NativeMethods.memcmp(((KeyValuePair<long, byte[]>)RetrieveOrPullFirstRevision(fileRevisions, firstRevision)).Value,
+                    && SyncTestServer.Static.NativeMethods.memcmp(((MD5AndFileSize)RetrieveOrPullFirstRevision(fileRevisions, firstRevision)).MD5,
                         oldMD5,
                         new UIntPtr((uint)16)) == 0
                     && !(userPendingStorageKeys.TryGetValue(userId, out userPendings)
@@ -333,7 +334,7 @@ namespace SyncTestServer
                 {
                     AddUserFile(userId, deviceId, userRelativePath, newMD5, newFileSize, out newStorageKey, out filePending, out newUpload, new KeyValuePair<string, PendingMD5AndFileId>(previousStorageKey, previousFile));
 
-                    fileRevisions.AddFirst(new KeyValuePair<long, byte[]>(newFileSize, newMD5));
+                    fileRevisions.AddFirst(new MD5AndFileSize(newMD5, newFileSize));
 
                     lastestMD5 = newMD5;
 
@@ -349,7 +350,7 @@ namespace SyncTestServer
             }
         }
 
-        private static Nullable<KeyValuePair<long, byte[]>> RetrieveOrPullFirstRevision(LinkedList<KeyValuePair<long, byte[]>> allRevisions, GenericHolder<Nullable<KeyValuePair<long, byte[]>>> alreadyPulledRevision)
+        private static Nullable<MD5AndFileSize> RetrieveOrPullFirstRevision(LinkedList<MD5AndFileSize> allRevisions, GenericHolder<Nullable<MD5AndFileSize>> alreadyPulledRevision)
         {
             if (alreadyPulledRevision.Value == null)
             {
@@ -534,7 +535,7 @@ namespace SyncTestServer
 
                     UpdateFileIdToQueuedData.Remove(new FileIdAndUser(fileId.FileId, userId));
 
-                    Dictionary<FilePath, LinkedList<KeyValuePair<long, byte[]>>> userHistory;
+                    Dictionary<FilePath, LinkedList<MD5AndFileSize>> userHistory;
                     if (userToRevisionHistory.TryGetValue(userId, out userHistory))
                     {
                         userHistory.Remove(userRelativePath);
@@ -700,10 +701,10 @@ namespace SyncTestServer
                         updateQueue.UserRelativePath = newUserRelativePath;
                     }
 
-                    Dictionary<FilePath, LinkedList<KeyValuePair<long, byte[]>>> userHistory;
+                    Dictionary<FilePath, LinkedList<MD5AndFileSize>> userHistory;
                     if (userToRevisionHistory.TryGetValue(userId, out userHistory))
                     {
-                        LinkedList<KeyValuePair<long, byte[]>> previousRevisions;
+                        LinkedList<MD5AndFileSize> previousRevisions;
                         if (userHistory.TryGetValue(oldUserRelativePath, out previousRevisions))
                         {
                             userHistory.Remove(oldUserRelativePath);
@@ -847,6 +848,75 @@ namespace SyncTestServer
                 {
                     return Enumerable.Empty<PurgedFile>();
                 }
+            }
+        }
+
+        public bool DoesFileHaveEarlierRevisionOfUndeletedFile(long syncId, int userId, FilePath userRelativePath, long fileSize, byte[] MD5, out byte[] latestMD5)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("Not Initialized, call PopulateInitialData first");
+                }
+            }
+
+            if (userRelativePath == null)
+            {
+                throw new NullReferenceException("userRelativePath cannot be null");
+            }
+            if (MD5 == null
+                || MD5.Length != 16)
+            {
+                throw new ArgumentException("MD5 must be a 16-length byte array");
+            }
+            if (fileSize < 0)
+            {
+                throw new ArgumentException("fileSize cannot be negative");
+            }
+
+            lock (storageKeyToFile)
+            {
+                Dictionary<FilePath, LinkedList<MD5AndFileSize>> usersHistory;
+                if (!userToRevisionHistory.TryGetValue(userId, out usersHistory))
+                {
+                    latestMD5 = null;
+                    return false;
+                }
+
+                LinkedList<MD5AndFileSize> fileHistory;
+                if (!usersHistory.TryGetValue(userRelativePath, out fileHistory))
+                {
+                    latestMD5 = null;
+                    return false;
+                }
+
+                foreach (MD5AndFileSize currentRevision in fileHistory)
+                {
+                    if (currentRevision.FileSize == fileSize
+                            && NativeMethods.memcmp(currentRevision.MD5, MD5, new UIntPtr((uint)16)) == 0)
+                    {
+                        string storageKey;
+                        if (!hashToStorageKey.TryGetValue(currentRevision, out storageKey))
+                        {
+                            latestMD5 = null;
+                            return false;
+                        }
+
+                        PendingMD5AndFileId fileId;
+                        if (!storageKeyToFile.TryGetValue(storageKey, out fileId))
+                        {
+                            latestMD5 = null;
+                            return false;
+                        }
+
+                        latestMD5 = fileHistory.First.Value.MD5;
+                        return true;
+                    }
+                }
+
+                latestMD5 = null;
+                return false;
             }
         }
     }

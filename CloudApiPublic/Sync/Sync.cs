@@ -47,7 +47,7 @@ namespace CloudApiPublic.Sync
             this.syncData = syncData;
 
             // Copy sync settings in case third party attempts to change values without restarting sync 
-            this.syncSettings = FileMonitor.SyncSettings.SyncSettings.CopySettings(syncSettings);
+            this.syncSettings = FileMonitor.SyncSettings.SyncSettingsExtensions.CopySettings(syncSettings);
 
             this.HttpTimeoutMilliseconds = HttpTimeoutMilliseconds;
             this.MaxNumberOfFailureRetries = MaxNumberOfFailureRetries;
@@ -99,30 +99,9 @@ namespace CloudApiPublic.Sync
 
         private readonly CancellationTokenSource FullShutdownToken = new CancellationTokenSource();
 
-        private static string GetDefaultDownloadTempName()
-        {
-            System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
-            foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in 
-                entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
-            {
-                if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
-                {
-                    return currentProductAttribute.Product;
-                }
-            }
-            foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
-                entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
-            {
-                if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
-                {
-                    return currentTitleAttribute.Title;
-                }
-            }
-            return entryAssembly.GetName().Name;
-        }
         private static readonly string DefaultTempDownloadsPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" +
-            GetDefaultDownloadTempName()
-            + "\\DownloadTemp";
+            Helpers.GetDefaultName() +
+            "\\DownloadTemp";
 
         // EventHandler for when the _failureTimer hits the end of its timer;
         // state object must be the Function which adds failed items to the FileMonitor processing queue

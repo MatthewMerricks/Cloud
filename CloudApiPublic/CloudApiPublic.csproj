@@ -82,10 +82,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdParty\bin\Release\System.Data.SqlServerCe.dll</HintPath>
     </Reference>
-    <Reference Include="System.Data.SqlServerCe.Entity, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\3rdParty\bin\Release\System.Data.SqlServerCe.Entity.dll</HintPath>
-    </Reference>
     <Reference Include="System.Management" />
     <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.4.0.20505.0\lib\net40\System.Net.Http.Formatting.dll</HintPath>
@@ -263,6 +259,34 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="..\amd64\sqlceer40EN.dll">
+      <Link>SQLIndexer\SqlCE\amd64\sqlceer40EN.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\amd64\sqlceme40.dll">
+      <Link>SQLIndexer\SqlCE\amd64\sqlceme40.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\amd64\sqlceqp40.dll">
+      <Link>SQLIndexer\SqlCE\amd64\sqlceqp40.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\amd64\sqlcese40.dll">
+      <Link>SQLIndexer\SqlCE\amd64\sqlcese40.dll</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\x86\sqlceer40EN.dll">
+      <Link>SQLIndexer\SqlCE\x86\sqlceer40EN.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\x86\sqlceme40.dll">
+      <Link>SQLIndexer\SqlCE\x86\sqlceme40.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\x86\sqlceqp40.dll">
+      <Link>SQLIndexer\SqlCE\x86\sqlceqp40.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\x86\sqlcese40.dll">
+      <Link>SQLIndexer\SqlCE\x86\sqlcese40.dll</Link>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

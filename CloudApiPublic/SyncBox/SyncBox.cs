@@ -47,7 +47,17 @@ namespace CloudApiPublic
         public CLError Start(ISyncSettings settings)
         {
             try 
-	        {	        
+	        {
+                if (settings == null)
+                {
+                    throw new NullReferenceException("settings cannot be null");
+                }
+                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(settings.CloudRoot);
+                if (!rootInfo.Exists)
+                {
+                    rootInfo.Create();
+                }
+
                 // Don't start twice.
                 _trace.writeToLog(1, "SyncBox: Start: Entry.");
                 if (_isStarted)
@@ -59,7 +69,7 @@ namespace CloudApiPublic
 
                 // Start the indexer.
                 _trace.writeToLog(9, "SyncBox: Start: Start the indexer.");
-                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer);
+                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, settings.DatabaseFile);
                 if (indexCreationError != null)
                 {
                     _trace.writeToLog(1, "SyncBox: Start: ERROR: Exception. Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);

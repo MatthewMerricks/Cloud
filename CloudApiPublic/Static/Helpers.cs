@@ -447,5 +447,26 @@ namespace CloudApiPublic.Static
             }
         }
 
+        public static string GetDefaultName()
+        {
+            System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
+            foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
+                entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
+            {
+                if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
+                {
+                    return currentProductAttribute.Product;
+                }
+            }
+            foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
+                entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
+            {
+                if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
+                {
+                    return currentTitleAttribute.Title;
+                }
+            }
+            return entryAssembly.GetName().Name;
+        }
     }
 }

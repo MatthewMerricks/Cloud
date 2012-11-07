@@ -45,6 +45,7 @@
     <Compile Include="ActionProcessors\private.cs" />
     <Compile Include="ActionProcessors\SubProcessors\from_cloud.cs" />
     <Compile Include="ActionProcessors\SubProcessors\purge_pending.cs" />
+    <Compile Include="ActionProcessors\SubProcessors\to_cloud.cs" />
     <Compile Include="ActionProcessors\sync.cs" />
     <Compile Include="HttpActionProcessor.cs" />
     <Compile Include="HttpActionSubprocessor.cs" />

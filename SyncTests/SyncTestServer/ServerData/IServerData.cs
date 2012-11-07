@@ -13,6 +13,7 @@ namespace SyncTestServer
         User FindUserByAKey(string akey, out Device specificDevice);
         IEnumerable<CloudApiPublic.JsonContracts.File> PurgePendingFiles(User currentUser, CloudApiPublic.JsonContracts.PurgePending request, out bool deviceNotInUser);
         long NewSyncIdBeforeStart { get; }
-        IEnumerable<CloudApiPublic.JsonContracts.Event> GrabEventsAfterLastSync(CloudApiPublic.JsonContracts.Push request, User currentUser, long newSyncId);
+        IEnumerable<CloudApiPublic.JsonContracts.Event> GrabEventsAfterLastSync(string lastSyncIdString, string relativeRootPath, User currentUser, long newSyncId);
+        void ApplyClientEventToServer(long syncId, User currentUser, Device currentDevice, CloudApiPublic.JsonContracts.Event toEvent);
     }
 }

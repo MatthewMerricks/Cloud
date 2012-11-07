@@ -145,21 +145,14 @@ namespace CloudApiPublic.FileMonitor.SyncSettings
         }
         private string _cloudRoot = null;
 
-        public static SyncSettings CopySettings(ISyncSettings toCopy)
+        public string DatabaseFile
         {
-            return new SyncSettings(toCopy.ErrorLogLocation,
-                toCopy.LogErrors,
-                toCopy.TraceType,
-                toCopy.TraceLocation,
-                toCopy.TraceExcludeAuthorization,
-                toCopy.Udid,
-                toCopy.Uuid,
-                toCopy.Akey,
-                toCopy.TempDownloadFolderFullPath,
-                toCopy.ClientVersion,
-                toCopy.DeviceName,
-                toCopy.CloudRoot);
+            get
+            {
+                return _databaseFile;
+            }
         }
+        private string _databaseFile = null;
 
         public SyncSettings(
                     string errorLogLocation,
@@ -173,21 +166,42 @@ namespace CloudApiPublic.FileMonitor.SyncSettings
                     string tempDownloadFolderFullPath,
                     string clientVersion,
                     string deviceName,
-                    string cloudRoot
-                            )
+                    string cloudRoot,
+                    string databaseFile)
         {
-            _errorLogLocation = errorLogLocation;
-            _logErrors = logErrors;
-            _traceType = traceType;
-            _traceLocation = traceLocation;
-            _traceExcludeAuthorization = traceExcludeAuthorization;
-            _udid = udid;
-            _uuid = uuid;
-            _akey = akey;
-            _tempDownloadFolderFullPath = tempDownloadFolderFullPath;
-            _clientVersion = clientVersion;
-            _deviceName = deviceName;
-            _cloudRoot = cloudRoot;
+            this._errorLogLocation = errorLogLocation;
+            this._logErrors = logErrors;
+            this._traceType = traceType;
+            this._traceLocation = traceLocation;
+            this._traceExcludeAuthorization = traceExcludeAuthorization;
+            this._udid = udid;
+            this._uuid = uuid;
+            this._akey = akey;
+            this._tempDownloadFolderFullPath = tempDownloadFolderFullPath;
+            this._clientVersion = clientVersion;
+            this._deviceName = deviceName;
+            this._cloudRoot = cloudRoot;
+            this._databaseFile = databaseFile;
+        }
+    }
+
+    public static class SyncSettingsExtensions
+    {
+        public static SyncSettings CopySettings(this ISyncSettings toCopy)
+        {
+            return new SyncSettings(toCopy.ErrorLogLocation,
+                toCopy.LogErrors,
+                toCopy.TraceType,
+                toCopy.TraceLocation,
+                toCopy.TraceExcludeAuthorization,
+                toCopy.Udid,
+                toCopy.Uuid,
+                toCopy.Akey,
+                toCopy.TempDownloadFolderFullPath,
+                toCopy.ClientVersion,
+                toCopy.DeviceName,
+                toCopy.CloudRoot,
+                toCopy.DatabaseFile);
         }
     }
 }

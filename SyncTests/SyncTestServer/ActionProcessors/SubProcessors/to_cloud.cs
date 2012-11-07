@@ -1,4 +1,5 @@
-﻿using SyncTestServer.Model;
+﻿using CloudApiPublic.Model;
+using SyncTestServer.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -9,24 +10,24 @@ using System.Text;
 
 namespace SyncTestServer.SubProcessors
 {
-    public sealed class from_cloud : HttpActionSubprocessor
+    public sealed class to_cloud : HttpActionSubprocessor
     {
         #region singleton pattern
-        public static from_cloud Instance
+        public static to_cloud Instance
         {
             get
             {
                 lock (InstanceLocker)
                 {
                     return _instance
-                        ?? (_instance = new from_cloud());
+                        ?? (_instance = new to_cloud());
                 }
             }
         }
-        private static from_cloud _instance = null;
+        private static to_cloud _instance = null;
         private static readonly object InstanceLocker = new object();
 
-        private from_cloud() { }
+        private to_cloud() { }
         #endregion
 
         public override string InnerMethod
@@ -47,7 +48,10 @@ namespace SyncTestServer.SubProcessors
         {
             Device currentDevice;
             User currentUser;
-            if ((currentUser = SyncTestServer.Static.Helpers.FindUserDevice(serverData, toProcess, out currentDevice)) == null)
+            int queryUser;
+            if ((currentUser = SyncTestServer.Static.Helpers.FindUserDevice(serverData, toProcess, out currentDevice)) == null
+                || !int.TryParse(queryString[CloudApiPublic.Model.CLDefinitions.QueryStringUserId], out queryUser)
+                || currentUser.Id != queryUser)
             {
                 SyncTestServer.Static.Helpers.WriteUnauthorizedResponse(toProcess);
             }
@@ -55,22 +59,32 @@ namespace SyncTestServer.SubProcessors
             {
                 SyncTestServer.Static.Helpers.WriteRandomETag(toProcess);
 
-                CloudApiPublic.JsonContracts.Push pushRequest = (CloudApiPublic.JsonContracts.Push)CloudApiPublic.JsonContracts.JsonContractHelpers.PushSerializer.ReadObject(toProcess.Request.InputStream);
+                CloudApiPublic.JsonContracts.To syncRequest = (CloudApiPublic.JsonContracts.To)CloudApiPublic.JsonContracts.JsonContractHelpers.ToSerializer.ReadObject(toProcess.Request.InputStream);
 
                 long newSyncId = serverData.NewSyncIdBeforeStart;
+                
+                IEnumerable<CloudApiPublic.JsonContracts.Event> fromEvents;
+                lock (currentUser)
+                {
+                    fromEvents = serverData.GrabEventsAfterLastSync(syncRequest.SyncId, null, currentUser, newSyncId);
 
-                CloudApiPublic.JsonContracts.PushResponse toWrite = new CloudApiPublic.JsonContracts.PushResponse()
+                    foreach (CloudApiPublic.JsonContracts.Event toEvent in syncRequest.Events)
+                    {
+                        serverData.ApplyClientEventToServer(newSyncId, currentUser, currentDevice, toEvent);
+                    }
+                }
+
+                CloudApiPublic.JsonContracts.To toWrite = new CloudApiPublic.JsonContracts.To()
                 {
                     SyncId = newSyncId.ToString(),
-                    PartialResponse = false,
-                    Events = serverData.GrabEventsAfterLastSync(pushRequest.LastSyncId, pushRequest.RelativeRootPath, currentUser, newSyncId).ToArray()
+                    Events = fromEvents.Concat(syncRequest.Events).ToArray()
                 };
 
                 string responseBody;
 
                 using (MemoryStream ms = new MemoryStream())
                 {
-                    CloudApiPublic.JsonContracts.JsonContractHelpers.PushResponseSerializer.WriteObject(ms, toWrite);
+                    CloudApiPublic.JsonContracts.JsonContractHelpers.ToSerializer.WriteObject(ms, toWrite);
                     responseBody = Encoding.Default.GetString(ms.ToArray());
                 }
 

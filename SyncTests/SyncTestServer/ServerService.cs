@@ -164,13 +164,13 @@ namespace SyncTestServer
                         // http://upd-edge.cloudburrito.com/get_file/
 
                         string listenerFullPath = addressThroughDomain +
-                            dequeuedContext.Request.RawUrl;
+                            dequeuedContext.Request.RawUrl.Split('?')[0];
 
                         SyncTestServer.Static.Helpers.WriteStandardHeaders(dequeuedContext);
 
                         HttpActionProcessor retrieveProcessor;
                         if (!thisService.HttpPrefixToActionProcessor.TryGetValue(listenerFirstPath, out retrieveProcessor)
-                            || !retrieveProcessor.ProcessContext(dequeuedContext, thisService.ServerData, listenerFirstPath, listenerFullPath))
+                            || !retrieveProcessor.ProcessContext(dequeuedContext, thisService.ServerData, listenerFirstPath, listenerFullPath, dequeuedContext.Request.QueryString))
                         {
                             ThreadPool.QueueUserWorkItem(NotFoundState =>
                                 {

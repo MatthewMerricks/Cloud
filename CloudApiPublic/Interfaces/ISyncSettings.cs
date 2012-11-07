@@ -36,5 +36,9 @@ namespace CloudApiPublic.Interfaces
         string ClientVersion { get; }
         string DeviceName { get; }
         string CloudRoot { get; }
+        /// <summary>
+        /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
+        /// </summary>
+        string DatabaseFile { get; }
     }
 }

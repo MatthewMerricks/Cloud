@@ -77,13 +77,13 @@ namespace CloudApiPublic.SQLIndexer
         /// </summary>
         /// <param name="newIndexer">Output indexing agent</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, string databaseLocation = null)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
-                newIndexer = newAgent = new IndexingAgent();
+                newIndexer = newAgent = new IndexingAgent(databaseLocation);
             }
             catch (Exception ex)
             {
@@ -2016,10 +2016,12 @@ namespace CloudApiPublic.SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
-        private IndexingAgent()
+        private IndexingAgent(string databaseLocation)
         {
-            this.indexDBLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                "\\Cloud\\IndexDB.sdf";
+            this.indexDBLocation = (databaseLocation == null
+                ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
+                    "\\" + Helpers.GetDefaultName() + "\\IndexDB.sdf"
+                : new FileInfo(databaseLocation).FullName);
         }
 
         /// <summary>

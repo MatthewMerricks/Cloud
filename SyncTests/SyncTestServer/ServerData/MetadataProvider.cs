@@ -73,7 +73,9 @@ namespace SyncTestServer
                             UserEvents.Add(currentMetadata.UserId,
                                 currentUserEvents = new List<UserEvent>());
                         }
-                        currentUserEvents.Add(new UserEvent(initialSyncId, new FileChange()
+                        currentUserEvents.Add(new UserEvent(((currentMetadata.RelativePath.Name == string.Empty && currentMetadata.RelativePath.Parent == null)
+                            ? 0 // special case for sync id, for the root folder of a user use a 0 always so that a fresh sync won't return metadata for the root
+                            : initialSyncId), new FileChange()
                         {
                             NewPath = currentMetadata.RelativePath,
                             Type = CloudApiPublic.Static.FileChangeType.Created,
@@ -540,14 +542,34 @@ namespace SyncTestServer
                         newUpload = false;
                     }
 
-                    UserEvent newEvent;
-                    AddUserEvent(currentUserEvents, syncId, userId, new FileChange()
+                    FileChange newChange = new FileChange()
                         {
                             NewPath = relativePathFromRoot,
                             Type = CloudApiPublic.Static.FileChangeType.Created,
                             Metadata = metadata
-                        }, null, out newEvent);
+                        };
 
+                    CLError setMD5Error = newChange.SetMD5(MD5);
+                    if (setMD5Error != null)
+                    {
+                        throw new AggregateException("Error setting MD5 on newChange", setMD5Error.GrabExceptions());
+                    }
+
+                    string retrieveMD5;
+                    CLError retrieveMD5Error = newChange.GetMD5LowercaseString(out retrieveMD5);
+                    if (retrieveMD5Error != null)
+                    {
+                        throw new AggregateException("Error retrieving MD5 on newChange", retrieveMD5Error.GrabExceptions());
+                    }
+                    metadata.Revision = retrieveMD5;
+
+                    UserEvent newEvent;
+                    AddUserEvent(currentUserEvents,
+                        ((relativePathFromRoot.Name == string.Empty && relativePathFromRoot.Parent == null)
+                            ? 0
+                            : syncId),
+                        userId,
+                        newChange, null, out newEvent);
 
                     if (isPending)
                     {
@@ -910,25 +932,42 @@ namespace SyncTestServer
                             out storageKey,
                             out latestMD5))
                         {
-                            metadata.StorageKey = storageKey;
                             conflict = false;
                             foundMetadata[relativePathFromRoot] = metadata;
                         }
                         else
                         {
+                            metadata.Revision = latestMD5
+                                .Select(md5Byte => string.Format("{0:x2}", md5Byte))
+                                .Aggregate((previousBytes, newByte) => previousBytes + newByte);
                             conflict = true;
                         }
-                        metadata.Revision = latestMD5
-                            .Select(md5Byte => string.Format("{0:x2}", md5Byte))
-                            .Aggregate((previousBytes, newByte) => previousBytes + newByte);
 
-                        UserEvent newEvent;
-                        AddUserEvent(currentUserEvents, syncId, userId, new FileChange()
+                        metadata.StorageKey = storageKey;
+
+                        FileChange newChange = new FileChange()
                             {
                                 NewPath = relativePathFromRoot,
                                 Type = CloudApiPublic.Static.FileChangeType.Modified,
                                 Metadata = metadata
-                            }, previousMetadata, out newEvent);
+                            };
+
+                        CLError setMD5Error = newChange.SetMD5(latestMD5);
+                        if (setMD5Error != null)
+                        {
+                            throw new AggregateException("Error setting MD5 on newChange", setMD5Error.GrabExceptions());
+                        }
+
+                        string retrieveMD5;
+                        CLError retrieveMD5Error = newChange.GetMD5LowercaseString(out retrieveMD5);
+                        if (retrieveMD5Error != null)
+                        {
+                            throw new AggregateException("Error retrieving MD5 on newChange", retrieveMD5Error.GrabExceptions());
+                        }
+                        metadata.Revision = retrieveMD5;
+
+                        UserEvent newEvent;
+                        AddUserEvent(currentUserEvents, syncId, userId, newChange, previousMetadata, out newEvent);
 
                         if (isPending)
                         {

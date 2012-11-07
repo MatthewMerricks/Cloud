@@ -153,9 +153,12 @@ namespace SyncTests
                 {
                     MessageBox.Show("TestClient started");
 
-                    CloudApiPublic.Sync.SyncEngine testEngine = new CloudApiPublic.Sync.SyncEngine(SyncImplementations.SyncData.Instance,
-                        SyncImplementations.SyncSettings.Instance);
-                    testEngine.Run(true);
+                    CloudApiPublic.SyncBox testBox = new CloudApiPublic.SyncBox();
+                    testBox.Start(SyncImplementations.SyncSettings.Instance);
+
+                    //CloudApiPublic.Sync.SyncEngine testEngine = new CloudApiPublic.Sync.SyncEngine(SyncImplementations.SyncData.Instance,
+                    //    SyncImplementations.SyncSettings.Instance);
+                    //testEngine.Run(true);
                 }
             }
         }
