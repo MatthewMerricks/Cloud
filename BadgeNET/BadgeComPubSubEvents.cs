@@ -1,5 +1,5 @@
 ﻿//
-// BadgeComInitWatcher.cs
+// BadgeComPubSubEvents.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -18,10 +18,16 @@ namespace BadgeNET
     /// <summary>
     /// Class to watch for initialization events from BadgeCom (Explorer shell extension).
     /// </summary>
-    public sealed class BadgeComInitWatcher : IDisposable
+    public sealed class BadgeComPubSubEvents : IDisposable
     {
+        #region Public events
+
         public event EventHandler<EventArgs> BadgeComInitialized;
-        public event EventHandler<EventArgs> BadgeComWatcherFailed;
+        public event EventHandler<EventArgs> BadgeComInitializedSubscriptionFailed;
+
+        #endregion
+
+        #region Private fields
 
         private PubSubServerClass _pubSubServer = null;
         private static CLTrace _trace = CLTrace.Instance;
@@ -32,24 +38,71 @@ namespace BadgeNET
         private Thread _threadWatching = null;
         private bool _isSubscriberThreadAlive = false;
         private readonly object _locker = new object();
+        
+        #endregion
+
+        #region Public methods
+
+
+        /// <summary>
+        /// Initialize and load the BadgeCom PubSubServer.
+        /// </summary>
+        public void Initialize()
+        {
+            try
+            {
+                // Hook up with the shared memory PubSubServer
+                if (_pubSubServer == null)
+                {
+                    _pubSubServer = new PubSubServerClass();
+                    _pubSubServer.Initialize();
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "BadgeComPubSubEvents: Initialize: ERROR: Exception: Msg: <{0}>.", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Publish an event to BadgeCom
+        /// </summary>
+        public void PublishEventToBadgeCom(EnumEventType eventType, EnumCloudAppIconBadgeType badgeType, string fullPath)
+        {
+            try
+            {
+                if (_pubSubServer == null)
+                {
+                    throw new Exception("Call Initialize() first");
+                }
+
+                // Publish the event
+                EnumPubSubServerPublishReturnCodes result = _pubSubServer.Publish(eventType, badgeType, fullPath);
+                if (result != EnumPubSubServerPublishReturnCodes.RC_PUBLISH_OK)
+                {
+                    _trace.writeToLog(1, "BadgeComPubSubEvents: PublishEventToBadgeCom: ERROR: From Publish. Result: {0}.", result.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "BadgeComPubSubEvents: PublishEventToBadgeCom: ERROR: Exception: Msg: <{0}>.", ex.Message);
+            }
+        }
 
         /// <summary>
         /// Start a thread which will subscribe to BadgeCom_Initialization events.  
         /// </summary>
-        public void StartWatchingBadgeCom()
+        public void SubscribeToBadgeComInitializationEvents()
         {
-            // Hook up with the shared memory PubSubServer
-            if (_pubSubServer == null)
-            {
-                _pubSubServer = new PubSubServerClass();
-                _pubSubServer.Initialize();
-            }
-
             // Start the threads.
             StartSubscribingThread();
             StartWatchingThread();
         }
 
+        #endregion
+
+        #region Support functions
+        
         /// <summary>
         /// Subscribe and pull events from any of the BadgeCom instance threads.  
         /// </summary>
@@ -75,12 +128,12 @@ namespace BadgeNET
                     }
                     else if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_ERROR)
                     {
-                        _trace.writeToLog(1, "BadgeComInitWatcher: SubscribingThreadProc: ERROR: From PubSubServer.Subscribe. Exception.");
+                        _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: From PubSubServer.Subscribe. Exception.");
                         break;
                     }
                     else if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_ALREADY_CANCELLED)
                     {
-                        _trace.writeToLog(1, "BadgeComInitWatcher: SubscribingThreadProc: ERROR: From PubSubServer.Subscribe.  Already cancelled.");
+                        _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: From PubSubServer.Subscribe.  Already cancelled.");
                         break;
                     }
 
@@ -95,7 +148,7 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "BadgeComInitWatcher: SubscribingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -135,8 +188,8 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "BadgeComInitWatcher: WatchingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
-                EventHandler<EventArgs> handler = BadgeComWatcherFailed;
+                _trace.writeToLog(1, "BadgeComPubSubEvents: WatchingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                EventHandler<EventArgs> handler = BadgeComInitializedSubscriptionFailed;
                 if (handler != null)
                 {
                     handler(this, EventArgs.Empty);
@@ -161,7 +214,7 @@ namespace BadgeNET
                         EnumPubSubServerCancelWaitingSubscriptionReturnCodes result = _pubSubServer.CancelWaitingSubscription(EnumEventType.BadgeCom_Initialization, _guidSubscription);
                         if (result != EnumPubSubServerCancelWaitingSubscriptionReturnCodes.RC_CANCEL_CANCELLED)
                         {
-                            _trace.writeToLog(1, "BadgeComInitWatcher: KillSubscribingThread: ERROR: Cancelling. Result: {0}.", result.ToString());
+                            _trace.writeToLog(1, "BadgeComPubSubEvents: KillSubscribingThread: ERROR: Cancelling. Result: {0}.", result.ToString());
                         }
                     }
                 }
@@ -203,7 +256,7 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "BadgeComInitWatcher: KillSubscribingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "BadgeComPubSubEvents: KillSubscribingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -225,10 +278,13 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "BadgeComInitWatcher: KillWatchingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "BadgeComPubSubEvents: KillWatchingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 
+        /// <summary>
+        /// Start the subscribing thread.
+        /// </summary>
         private void StartSubscribingThread()
         {
             try
@@ -243,50 +299,65 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "BadgeComInitWatcher: StartSubscribingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "BadgeComPubSubEvents: StartSubscribingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 
+        /// <summary>
+        /// Start the watching thread.
+        /// </summary>
         private void StartWatchingThread()
         {
             try
             {
-                // Start a thread to watch the thread that is watching BadgeCom.  This is necessary because BadgeCom may crash with
-                // the threadWatcher thread waiting for an event to arrive.  That might result in a wait forever.  This thread
-                // will kill the threadWatcher if it waits too long.  If it kills the thread, it will attempt to restart it.
-                _threadWatching = new Thread(new ThreadStart(WatchingThreadProc));
-                _threadWatching.Start();
+                lock (_locker)
+                {
+                    // Start a thread to watch the thread that is watching BadgeCom.  This is necessary because BadgeCom may crash with
+                    // the threadWatcher thread waiting for an event to arrive.  That might result in a wait forever.  This thread
+                    // will kill the threadWatcher if it waits too long.  If it kills the thread, it will attempt to restart it.
+                    _threadWatching = new Thread(new ThreadStart(WatchingThreadProc));
+                    _threadWatching.Start();
+                }
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "BadgeComInitWatcher: StartWatchingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "BadgeComPubSubEvents: StartWatchingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 
-        // Attempt to restart the subscribing thread.
+        /// <summary>
+        /// Attempt to restart the subscribing thread.
+        /// </summary>
         private void RestartSubcribingThread()
         {
             KillSubscribingThread();
             StartSubscribingThread();
         }
 
+        #endregion
+
         #region IDisposable members
 
-        // Standard IDisposable implementation based on MSDN System.IDisposable
-        ~BadgeComInitWatcher()
+        /// <summary>
+        /// Standard IDisposable implementation based on MSDN System.IDisposable.
+        /// </summary>
+        ~BadgeComPubSubEvents()
         {
             Dispose(false);
         }
 
-        // Standard IDisposable implementation based on MSDN System.IDisposable
+        /// <summary>
+        /// Standard IDisposable implementation based on MSDN System.IDisposable.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        
-        // Standard IDisposable implementation based on MSDN System.IDisposable
+        /// <summary>
+        /// Standard IDisposable implementation based on MSDN System.IDisposable.
+        /// </summary>
         private void Dispose(bool disposing)
         {
             lock (this)
@@ -302,7 +373,7 @@ namespace BadgeNET
                     }
                     catch (Exception ex)
                     {
-                        _trace.writeToLog(1, "BadgeComInitWatcher: Dispose: ERROR: Exception. Killing threads.: Msg: <{0}>.", ex.Message);
+                        _trace.writeToLog(1, "BadgeComPubSubEvents: Dispose: ERROR: Exception. Killing threads.: Msg: <{0}>.", ex.Message);
                     }
                 }
 
@@ -319,7 +390,7 @@ namespace BadgeNET
                 }
                 catch (Exception ex)
                 {
-                    _trace.writeToLog(1, "BadgeComInitWatcher: Dispose: ERROR: Exception. Freeing PubSubServer resources. Msg: <{0}>.", ex.Message);
+                    _trace.writeToLog(1, "BadgeComPubSubEvents: Dispose: ERROR: Exception. Freeing PubSubServer resources. Msg: <{0}>.", ex.Message);
                 }
             }
         }

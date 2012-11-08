@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "PubSubServer.h"
+#include "TestOnly.h"                   //TODO: Debug only.  Remove.
 
 // Static constant initializers
 const OLECHAR * CPubSubServer::_ksSharedMemoryName = L"CloudPubSubSharedMemory";   // the name of the shared memory segment
@@ -161,6 +162,13 @@ STDMETHODIMP CPubSubServer::Initialize()
     HRESULT result = S_OK;
     try
     {
+        //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& DEBUG ONLY &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+        TestOnly *pTestOnly = new TestOnly();
+
+  
+
+        //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& DEBUG ONLY &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
         _pSegment = new managed_windows_shared_memory(open_or_create, "CloudPubSubSharedMemory", 1024000);
     }
     catch (std::exception &ex)
@@ -177,10 +185,11 @@ STDMETHODIMP CPubSubServer::Initialize()
 /// All subscribers to this event type and badge type will be notified.
 /// </summary>
 /// <param name="EventType">This is the event type being published.</param>
+/// <param name="EventSubType">This is the event subtype being published.</param>
 /// <param name="BadgeType">This is the badge type being published.</param>
 /// <param name="FullPath">This is the full path of the file system item being badged with the badge type.</param>
 /// <returns>(int via returnValue: See RC_PUBLISH_*.</returns>
-STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, EnumPubSubServerPublishReturnCodes *returnValue)
+STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType EventSubType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, EnumPubSubServerPublishReturnCodes *returnValue)
 {
     EnumPubSubServerPublishReturnCodes nResult = RC_PUBLISH_OK;                // assume no error
     bool fIsLocked = false;
@@ -222,7 +231,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumCloudAppIconBad
                 else
                 {
                     // Construct this event in shared memory and add it at the back of the event queue for this subscription.
-                    itSubscription->events_.emplace_back(EventType, processId, threadId, BadgeType, FullPath, alloc_inst);
+                    itSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, alloc_inst);
 
                     // Post the subscription's semaphore.
                     itSubscription->pSemaphoreSubscription_->post();
@@ -261,7 +270,14 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumCloudAppIconBad
 /// <param name="EventType">This is the event type we want to receive.</param>
 /// <param name="TimeoutMilliseconds">Wait for an event for up to this period of time.  If specified as 0, the wait will not time out.</param>
 /// <returns>(int via returnValue): See RC_SUBSCRIBE_*.</returns>
-STDMETHODIMP CPubSubServer::Subscribe(EnumEventType EventType, GUID guidId, LONG TimeoutMilliseconds, EnumPubSubServerSubscribeReturnCodes *returnValue)
+STDMETHODIMP CPubSubServer::Subscribe(
+            EnumEventType EventType,
+            GUID guidId,
+            LONG TimeoutMilliseconds,
+            EnumEventSubType *outEventSubType,
+            EnumCloudAppIconBadgeType *outBadgeType,
+            BSTR *outFullPath,
+            EnumPubSubServerSubscribeReturnCodes *returnValue)
 {
     EnumPubSubServerSubscribeReturnCodes nResult;
     bool fIsLocked = false;
@@ -320,7 +336,12 @@ STDMETHODIMP CPubSubServer::Subscribe(EnumEventType EventType, GUID guidId, LONG
             }
             else if (base->subscriptions_[nFoundSubscriptionIndex].events_.size() > 0)      // Check to see if we have a pending event.
             {
-                // An event is waiting.  Remove the front event from the vector.
+                // An event is waiting.  Return the information.
+                *outEventSubType = base->subscriptions_[nFoundSubscriptionIndex].events_.begin()->EventSubType_;
+                *outBadgeType = base->subscriptions_[nFoundSubscriptionIndex].events_.begin()->BadgeType_;
+                *outFullPath = SysAllocString(base->subscriptions_[nFoundSubscriptionIndex].events_.begin()->FullPath_.c_str());
+
+                // Remove the event from the vector.
 				base->subscriptions_[nFoundSubscriptionIndex].events_.erase(base->subscriptions_[nFoundSubscriptionIndex].events_.begin());
                 nResult = RC_SUBSCRIBE_GOT_EVENT;
             }

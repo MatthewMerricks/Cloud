@@ -2,7 +2,6 @@
 
 #pragma once
 #include "resource.h"       // main symbols
-//#include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -99,14 +98,15 @@ public:
 	{
 	public:
 		EnumEventType				EventType_;                 // this event's event type
+        EnumEventSubType            EventSubType_;              // this event's event subtype
 		ULONG						ProcessId_;                 // for logging only
 		ULONG						ThreadId_;                  // for logging only
 		EnumCloudAppIconBadgeType	BadgeType_;                 // the badge type associated with this event
 		wchar_string				FullPath_;                  // the full path associated with this event
 
 		// Constructor
-		EventMessage(EnumEventType EventType, ULONG ProcessId, ULONG ThreadId, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, const void_allocator &void_alloc) :
-				EventType_(EventType), ProcessId_(ProcessId), ThreadId_(ThreadId), BadgeType_(BadgeType), FullPath_(*FullPath, void_alloc) {}
+		EventMessage(EnumEventType EventType, EnumEventSubType EventSubType, ULONG ProcessId, ULONG ThreadId, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, const void_allocator &void_alloc) :
+				EventType_(EventType), EventSubType_(EventSubType), ProcessId_(ProcessId), ThreadId_(ThreadId), BadgeType_(BadgeType), FullPath_(*FullPath, void_alloc) {}
 	};
 
 	// Event allocators
@@ -182,8 +182,19 @@ public:
 
 	// Public OLE accessible methods
     STDMETHOD(Initialize)();
-    STDMETHOD(Publish)(EnumEventType EventType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, EnumPubSubServerPublishReturnCodes *returnValue);
-    STDMETHOD(Subscribe)(EnumEventType EventType, GUID guidId, LONG TimeoutMilliseconds, EnumPubSubServerSubscribeReturnCodes *returnValue);
+    STDMETHOD(Publish)(EnumEventType EventType,
+            EnumEventSubType EventSubType, 
+            EnumCloudAppIconBadgeType BadgeType, 
+            BSTR *FullPath, 
+            EnumPubSubServerPublishReturnCodes *returnValue);
+    STDMETHOD(Subscribe)(
+            EnumEventType EventType,
+            GUID guidId,
+            LONG TimeoutMilliseconds,
+            EnumEventSubType *outEventSubType,
+            EnumCloudAppIconBadgeType *outBadgeType,
+            BSTR *outFullPath,
+            EnumPubSubServerSubscribeReturnCodes *returnValue);
 	STDMETHOD(CancelWaitingSubscription)(EnumEventType EventType, GUID guidId, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
     STDMETHOD(Terminate)();
 

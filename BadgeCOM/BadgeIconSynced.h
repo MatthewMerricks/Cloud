@@ -12,6 +12,7 @@
 
 
 #include "BadgeCOM_i.h"
+#include "CBadgeNetPubSubEvents.h"
 
 #include <ShlObj.h>
 #include <comdef.h>

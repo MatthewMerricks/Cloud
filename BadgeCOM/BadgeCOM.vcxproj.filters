@@ -61,6 +61,12 @@
     <ClCompile Include="PubSubServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CBadgeNetPubSubEvents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestOnly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -127,6 +133,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PubSubServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CBadgeNetPubSubEvents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestOnly.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

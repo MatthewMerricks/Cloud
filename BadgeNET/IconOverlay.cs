@@ -110,30 +110,23 @@ namespace BadgeNET
                 MessageEvents.BadgePathDeleted += MessageEvents_BadgePathDeleted;
                 MessageEvents.BadgePathRenamed += MessageEvents_BadgePathRenamed;
 
-                bool initialListContainsItem = false;
-
                 // Capture the Cloud directory path for performance.
                 filePathCloudDirectory = pathRootDirectory;
 
                 // Start the PubSub watcher threads.
-                if (_badgeComInitWatcher == null)
+                if (_badgeComPubSubEvents == null)
                 {
-                    _badgeComInitWatcher = new BadgeComInitWatcher();
-                    _badgeComInitWatcher.BadgeComInitialized +=BadgeComInitWatcher_OnBadgeComInitialized;
-                    _badgeComInitWatcher.BadgeComInitialized += _badgeComInitWatcher_BadgeComInitialized;
+                    _badgeComPubSubEvents = new BadgeComPubSubEvents();
+                    _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
+                    _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
                 }
 
-                // Subscribe to the BadgeCom initialization events.
-                _subscriptionMgr.AddSubscription(eventType: EventIds.kEvent_BadgeCom_Initialized, localOnly: true);
+                // Start listening for BadgeCom initialization events.
+                _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
 
                 // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
-                BadgeNet_AddSyncBoxFolderPath evt = new BadgeNet_AddSyncBoxFolderPath();
-                evt.EventType = EventIds.kEvent_BadgeNet_AddSyncBoxFolderPath;
-                evt.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
-                evt.ThreadId =  System.Threading.Thread.CurrentThread.ManagedThreadId;
-                evt.SyncBoxFolderFullPath = pathRootDirectory;
-                _publishMgr.Publish(evt.Serialize());
-                
+                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, pathRootDirectory);
+
                 // Allocate the badging current state flat dictionary.  This dictionary is used to determine the badge path to remove when the
                 // badge type for that path changes.  We send a _kEvent_BadgeNet_AddBadgePath event to the BadgeCom "new" type, and a
                 // _kEvent_BadgeNet_RemoveBadgePath event to the BadgeCom "old" type.
@@ -163,11 +156,8 @@ namespace BadgeNET
                 if (initialList != null
                     && (initialListArray = initialList.ToArray()).Length > 0)
                 {
-                    // store that initial list contained an item so system can be notified later
-                    _trace.writeToLog(9, "IconOverlay: pInitialize: Got initial list.");
-                    initialListContainsItem = true;
-
                     // loop through initial list for badged objects to add to local dictionary
+                    _trace.writeToLog(9, "IconOverlay: pInitialize: Got initial list.");
                     for (int initialListCounter = 0; initialListCounter < initialListArray.Length; initialListCounter++)
                     {
                         // only keep track of badges that are not "synced"
@@ -187,23 +177,64 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                CLError error = ex;
-                _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
                 return ex;
             }
-            _trace.writeToLog(9, "IconOverlay: Return success.");
+            _trace.writeToLog(9, "IconOverlay: pInitialize: Return success.");
             return null;
         }
 
         /// <summary>
-        /// The BadgeCom initialization event watcher died.  Clean up resources.
+        /// The BadgeCom initialization event watcher threads died.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void _badgeComInitWatcher_BadgeComInitialized(object sender, EventArgs e)
+        void _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed(object sender, EventArgs e)
         {
-            _badgeComInitWatcher.Dispose();
-            _badgeComInitWatcher = null;
+            try
+            {
+                // Delay the execution of the response to this event.  We will attempt to restart BadgeComPubSubEvents.
+                _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: Entry.  ERROR.");
+                _timer = new DispatcherTimer();
+                _timer.Tick += OnDelayedTimerTick;
+                _timer.Interval = new TimeSpan(100);
+                _timer.Start();
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// The BadgeCom initialization event subscription threads crashed.  Attempt to restart BadgeComPubSubEvents.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnDelayedTimerTick(object sender, EventArgs e)
+        {
+            try
+            {
+                // Stop the timer
+                _timer.Stop();
+                _timer = null;
+
+                // Kill the subscriptions and dispose the object
+                _trace.writeToLog(1, "IconOverlay: OnDelayedTimerTick: Entry.  Kill BadgeComPubSubEvents.");
+                _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
+                _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+                _badgeComPubSubEvents.Dispose();
+
+                // Restart
+                _trace.writeToLog(1, "IconOverlay: OnDelayedTimerTick: Entry.  Restart BadgeComPubSubEvents.");
+                _badgeComPubSubEvents = new BadgeComPubSubEvents();
+                _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
+                _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "IconOverlay: OnDelayedTimerTick: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
+            }
         }
 
         /// <summary>
@@ -211,57 +242,28 @@ namespace BadgeNET
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void BadgeComInitWatcher_OnBadgeComInitialized(object sender, EventArgs e)
+        private void BadgeComPubSubEvents_OnBadgeComInitialized(object sender, EventArgs e)
         {
- 	        throw new NotImplementedException();  ////&&&&&
-        }
-
-        /// <summary>
-        /// We just received an event from one of the BadgeCom instances.
-        /// </summary>
-        /// <param name="eventType"></param>
-        /// <param name="serializedEvent"></param>
-        public void SubscriptionCallback(Guid eventType, byte[] serializedEvent)
-        {
-
-            if (eventType == EventIds.kEvent_BadgeCom_Initialized)
+            try
             {
-                try
+                _trace.writeToLog(9, "IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry.");
+                if (_badgeComPubSubEvents != null)
                 {
-                    // Deserialize the event
-                    BadgeCom_Initialized evtIn = new BadgeCom_Initialized(serializedEvent);
+                    // Publish the add SyncBox folder path event back to all BadgeCom instances.
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, filePathCloudDirectory.ToString());
 
-                    // Publish the add SyncBox folder path event back to all BadgeCom instances.  Only the instance
-                    // that just sent us this event will process it.
-                    BadgeNet_AddSyncBoxFolderPath evtOut = new BadgeNet_AddSyncBoxFolderPath();
-                    evtOut.EventType = EventIds.kEvent_BadgeNet_AddSyncBoxFolderPath;
-                    evtOut.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
-                    evtOut.ThreadId =  System.Threading.Thread.CurrentThread.ManagedThreadId;
-                    evtOut.SyncBoxFolderFullPath = filePathCloudDirectory.ToString();
-                    _publishMgr.Publish(evtOut.Serialize());
-
-                    // Iterate over the current badge state dictionary.  For each entry that matches this badge type, 
-                    // publish an add badge path event.  This will populate the BadgeCom instance that just initialized.
-                    // Other instances will ignore these events.
-                    foreach(KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in _currentBadges)
+                    // Iterate over the current badge state dictionary and send the badges to BadgeCom. This will populate the BadgeCom instance that just initialized.
+                    // Other instances will update from these events only if necessary.
+                    foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in _currentBadges)
                     {
-                        if (item.Value.Value == (cloudAppIconBadgeType)evtIn.BadgeType)
-                        {
-                            // Publish a badge add path event to BadgeCom.
-                            BadgeNet_AddBadgePath evtAddBadgePath = new BadgeNet_AddBadgePath();
-                            evtAddBadgePath.EventType = EventIds.kEvent_BadgeNet_AddBadgePath;
-                            evtAddBadgePath.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
-                            evtAddBadgePath.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                            evtAddBadgePath.BadgeFullPath = item.Key.ToString();
-                            evtAddBadgePath.BadgeType = (int)item.Value.Value;
-                            _publishMgr.Publish(evtAddBadgePath.Serialize());
-                        }
+                        // Publish a badge add path event to BadgeCom.
+                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)item.Value.Value, item.Key.ToString());
                     }
                 }
-                catch (Exception ex)
-                {
-                    _trace.writeToLog(1, "IconOverlay: OnPubSubEventReceived: ERROR: Exception: Msg: <{0}>.", ex.Message);
-                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "IconOverlay: OnPubSubEventReceived: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -670,7 +672,7 @@ namespace BadgeNET
                         {
                             // No rename error.  Update the badge state for anything changed up the tree.
                             //TODO: This could be optimized by processing either of these (oldPath or newPath) first, then processing
-                            //TODO: the other path only up to the point one below the overlapping root path.
+                            // the other path only up to the point one below the overlapping root path.
                             UpdateBadgeStateUpTreeStartingWithParentOfNode(newPath);
                             UpdateBadgeStateUpTreeStartingWithParentOfNode(oldPath);
 
@@ -1010,52 +1012,25 @@ namespace BadgeNET
                             // Tell BadgeCom instances that we are going down.
                             try
                             {
-                                if (_publishMgr != null)
+                                if (_badgeComPubSubEvents != null)
                                 {
-                                    BadgeNet_RemoveSyncBoxFolderPath evtOut = new BadgeNet_RemoveSyncBoxFolderPath();
-                                    evtOut.EventType = EventIds.kEvent_BadgeNet_RemoveSyncBoxFolderPath;
-                                    evtOut.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
-                                    evtOut.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                                    evtOut.SyncBoxFolderFullPath = filePathCloudDirectory.ToString();
-                                    _publishMgr.Publish(evtOut.Serialize());
+                                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, filePathCloudDirectory.ToString());
                                 }
                             }
                             catch (Exception ex)
                             {
                                 _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncBoxFolderPath event. Msg: <{0}>.", ex.Message);
-                            }
-                            finally
-                            {
-                                _publishMgr = null;
-                            }
-
-                            // Unsubscribe from the kEvent_BadgeCom_Initialized event
-                            try
-                            {
-                                if (_subscriptionMgr != null)
-                                {
-                                    _subscriptionMgr.RemoveSubscription(eventType: EventIds.kEvent_BadgeCom_Initialized);
-                                    _subscriptionMgr.ListenForEvents = false;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncBoxFolderPath event. Msg: <{0}>.", ex.Message);
-                            }
-                            finally
-                            {
-                                _subscriptionCallback = null;
-                                _subscriptionMgr = null;
                             }
 
                             // Terminate the BadgeCom initialization watcher
                             try
                             {
-                                if (_badgeComInitWatcher != null)
+                                if (_badgeComPubSubEvents != null)
                                 {
-                                    _badgeComInitWatcher.Dispose();
+                                    _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
+                                    _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+                                    _badgeComPubSubEvents.Dispose();
                                 }
-
                             }
                             catch (Exception ex)
                             {
@@ -1068,7 +1043,6 @@ namespace BadgeNET
                                 _currentBadges.Clear();
                             }
                             _currentBadges = null;
-
                         }
                     }
                 }
@@ -1160,6 +1134,11 @@ namespace BadgeNET
         private const string PipeName = "BadgeCOM";
 
         /// <summary>
+        /// Timer to support a delayed event.
+        /// </summary>
+        private DispatcherTimer _timer = null;
+
+        /// <summary>
         /// Lockable object used to store running state of the initial badging connection pipe
         /// </summary>
         private pipeRunningHolder pipeLocker = new pipeRunningHolder()
@@ -1186,7 +1165,7 @@ namespace BadgeNET
         /// <summary>
         /// BadgeComInitWatcher threads subscribe and monitor initialization events from BadgeCom (Explorer shell extension).
         /// </summary>
-        private BadgeComInitWatcher _badgeComInitWatcher = null;
+        private BadgeComPubSubEvents _badgeComPubSubEvents = null;
 
         /// <summary>
         /// Object type of pipeLocker
@@ -1496,15 +1475,12 @@ namespace BadgeNET
         private void SendAddBadgePathEvent(FilePath nodePath, GenericHolder<cloudAppIconBadgeType> badgeType)
         {
             try 
-	        {	        
-                _trace.writeToLog(1, "IconOverlay: SendAddBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
-                BadgeNet_AddBadgePath evtAdd = new BadgeNet_AddBadgePath();
-                evtAdd.EventType = EventIds.kEvent_BadgeNet_AddBadgePath;
-                evtAdd.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
-                evtAdd.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                evtAdd.BadgeFullPath = nodePath.ToString();
-                evtAdd.BadgeType = (int)badgeType.Value;
-                _publishMgr.Publish(evtAdd.Serialize());
+	        {
+                if (_badgeComPubSubEvents != null)
+                {
+                    _trace.writeToLog(9, "IconOverlay: SendAddBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString());
+                }
 	        }
 	        catch (global::System.Exception ex)
 	        {
@@ -1520,15 +1496,12 @@ namespace BadgeNET
         private void SendRemoveBadgePathEvent(FilePath nodePath, GenericHolder<cloudAppIconBadgeType> badgeType)
         {
             try 
-	        {	        
-                _trace.writeToLog(1, "IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
-                BadgeNet_RemoveBadgePath evtRemove = new BadgeNet_RemoveBadgePath();
-                evtRemove.EventType = EventIds.kEvent_BadgeNet_AddBadgePath;
-                evtRemove.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
-                evtRemove.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                evtRemove.BadgeFullPath = nodePath.ToString();
-                evtRemove.BadgeType = (int)badgeType.Value;
-                _publishMgr.Publish(evtRemove.Serialize());
+	        {
+                if (_badgeComPubSubEvents != null)
+                {
+                    _trace.writeToLog(9, "IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_RemoveBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString());
+                }
 	        }
 	        catch (global::System.Exception ex)
 	        {

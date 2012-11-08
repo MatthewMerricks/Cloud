@@ -14,6 +14,7 @@
 #include <sstream>
 #include "lmcons.h"
 #include "Trace.h"
+
 using namespace std;
 
 // Debug trace
@@ -182,7 +183,7 @@ STDMETHODIMP CBadgeIconSynced::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 			CLTRACE(9, "CBadgeIconSynced: IsMemberOf: Pipe counter is %lu.", localPipeCounter);
 
 			//need to zero-pad packetId to ensure constant length of 10 chars
-			string packetId;
+			std::string packetId;
 			packetIdStream >> packetId;
 			int startLength = packetId.length();
 			for (int currentPaddedChar = 0; currentPaddedChar < 10 - startLength; currentPaddedChar++)
@@ -193,7 +194,7 @@ STDMETHODIMP CBadgeIconSynced::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 			currentPathLength << pathLength;
 
 			//need to zero-pad pathLength to ensure constant length of 10 chars
-			string paddedLength;
+			std::string paddedLength;
 			currentPathLength >> paddedLength;
 			startLength = paddedLength.length();
 			for (int currentPaddedChar = 0; currentPaddedChar < 10 - startLength; currentPaddedChar++)

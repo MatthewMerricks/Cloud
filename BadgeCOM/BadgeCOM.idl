@@ -99,16 +99,51 @@ library BadgeCOMLib
             RC_CANCEL_ERROR                                 // an error occurred.  Usually an exception.
         } EnumPubSubServerCancelWaitingSubscriptionReturnCodes;
 
-        typedef [v1_enum] enum {BadgeCom_Initialization=0, BadgeNet_AddSyncBoxFolderPath, BadgeNet_RemoveSyncBoxFolderPath, BadgeNet_AddBadgePath, BadgeNet_RemoveBadgePath} EnumEventType;
-        typedef [v1_enum] enum {cloudAppBadgeNone=0, cloudAppBadgeSynced, cloudAppBadgeSyncing, cloudAppBadgeFailed, cloudAppBadgeSyncSelective} EnumCloudAppIconBadgeType;
+        typedef [v1_enum] enum 
+        {
+            BadgeCom_To_BadgeNet=0,
+            BadgeNet_To_BadgeCom,
+        } EnumEventType;
+
+        typedef [v1_enum] enum 
+        {
+            BadgeCom_Initialization=0,
+            BadgeNet_AddSyncBoxFolderPath,
+            BadgeNet_RemoveSyncBoxFolderPath,
+            BadgeNet_AddBadgePath,
+            BadgeNet_RemoveBadgePath
+        } EnumEventSubType;
+
+        typedef [v1_enum] enum 
+        {
+            cloudAppBadgeNone=0,
+            cloudAppBadgeSynced,
+            cloudAppBadgeSyncing,
+            cloudAppBadgeFailed,
+            cloudAppBadgeSyncSelective
+        } EnumCloudAppIconBadgeType;
 
 	    [id(1), helpstring("method Initialize")] HRESULT(Initialize)();
-	    [id(2), helpstring("method Publish")] HRESULT(Publish)([in] EnumEventType EventType, [in] EnumCloudAppIconBadgeType BadgeType, [in] BSTR *FullPath, [out, retval] EnumPubSubServerPublishReturnCodes *returnValue);
-	    [id(3), helpstring("method Subscribe")] HRESULT(Subscribe)([in] EnumEventType EventType, [in] GUID guidId, [in] LONG TimeoutMilliseconds, [out, retval] EnumPubSubServerSubscribeReturnCodes *returnValue);
-	    [id(4), helpstring("method CancelWaitingSubscription")] HRESULT(CancelWaitingSubscription)([in] EnumEventType EventType, [in] GUID guidId, [out, retval] EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
+
+	    [id(2), helpstring("method Publish")] HRESULT(Publish)([in] EnumEventType EventType, [in] EnumEventSubType EventSubType, [in] EnumCloudAppIconBadgeType BadgeType, [in] BSTR *FullPath, [out, retval] EnumPubSubServerPublishReturnCodes *returnValue);
+
+	    [id(3), helpstring("method Subscribe")] HRESULT(Subscribe)(
+                        [in] EnumEventType EventType,
+                        [in] GUID guidId,
+                        [in] LONG TimeoutMilliseconds,
+                        [out] EnumEventSubType *outEventSubType,
+                        [out] EnumCloudAppIconBadgeType *outBadgeType,
+                        [out] BSTR *outFullPath,
+                        [out, retval] EnumPubSubServerSubscribeReturnCodes *returnValue);
+
+	    [id(4), helpstring("method CancelWaitingSubscription")] HRESULT(CancelWaitingSubscription)(
+                        [in] EnumEventType EventType,
+                        [in] GUID guidId,
+                        [out, retval] EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
+
 	    [id(5), helpstring("method Terminate")] HRESULT(Terminate)();
 
-        [propget, id(7), helpstring("Name associated with the badging shared memory segment."), bindable] HRESULT SharedMemoryName([out, retval] BSTR* pVal);
+        [propget, id(6), helpstring("Name associated with the badging shared memory segment."), bindable] HRESULT SharedMemoryName([out, retval] BSTR* pVal);
     };
 
 	[

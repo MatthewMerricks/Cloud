@@ -1400,6 +1400,7 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(T
     <ClCompile Include="BadgeIconSelective.cpp" />
     <ClCompile Include="BadgeIconSynced.cpp" />
     <ClCompile Include="BadgeIconSyncing.cpp" />
+    <ClCompile Include="CBadgeNetPubSubEvents.cpp" />
     <ClCompile Include="ContextMenuExt.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
@@ -1505,6 +1506,7 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(T
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseItanium|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TestOnly.cpp" />
     <ClCompile Include="Trace.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -1513,6 +1515,7 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(T
     <ClInclude Include="BadgeIconSelective.h" />
     <ClInclude Include="BadgeIconSynced.h" />
     <ClInclude Include="BadgeIconSyncing.h" />
+    <ClInclude Include="CBadgeNetPubSubEvents.h" />
     <ClInclude Include="ContextMenuExt.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="JsonSerialization\autolink.h" />
@@ -1529,6 +1532,7 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(T
     <ClInclude Include="resource1.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TestOnly.h" />
     <ClInclude Include="Trace.h" />
   </ItemGroup>
   <ItemGroup>
