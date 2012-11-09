@@ -189,7 +189,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
                         pThis->FireEventAddBadgePath(bsFullPath, badgeType);
                         break;
                     case BadgeNet_RemoveBadgePath:
-                        pThis->FireEventRemoveBadgePath(bsFullPath, badgeType);
+                        pThis->FireEventRemoveBadgePath(bsFullPath);
                         break;
                 }
             }
@@ -259,7 +259,7 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
     catch (std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: Exception.  Message: %s.", ex.what());
-        pThis->FireSubscriptionWatcherFailed();                // notify the delegates
+        pThis->FireEventSubscriptionWatcherFailed();                // notify the delegates
         pThis->KillSubscribingThread();
     }
 }

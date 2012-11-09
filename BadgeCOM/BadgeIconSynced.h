@@ -13,6 +13,9 @@
 
 #include "BadgeCOM_i.h"
 #include "CBadgeNetPubSubEvents.h"
+#include <boost\unordered_map.hpp>
+#include <boost\filesystem.hpp>
+#include "TemplateTimer.h"
 
 #include <ShlObj.h>
 #include <comdef.h>
@@ -67,9 +70,25 @@ END_COM_MAP()
 	{
 	}
 
+private:
+    // Private fields
+    CBadgeNetPubSubEvents *_pBadgeNetPubSubEvents;
+    boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType> _mapBadges;             // the dictionary of fullPath->badgeType
+    boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType> _mapSyncBoxPaths;       // the list of SyncBox full paths.  Used for O(1) access time.  The badge type is not used (always "none").
+    TTimer<CBadgeIconSynced> _delayedMethodTimer;
+
+    // Private methods
+    void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType);
+    void OnEventRemoveBadgePath(BSTR fullPath);
+    void OnEventAddSyncBoxFolderPath(BSTR fullPath);
+    void OnEventRemoveSyncBoxFolderPath(BSTR fullPath);
+    void OnEventSubscriptionWatcherFailed();
+    std::wstring NormalizePath(std::wstring inPath);
+    bool IsPathInRootPath(std::wstring testPath, std::wstring rootPath);
+    void OnDelayedEvent();
+    void InitializeBadgeNetPubSubEvents();
+
 public:
-
-
 
 };
 

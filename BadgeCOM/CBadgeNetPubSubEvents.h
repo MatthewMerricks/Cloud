@@ -35,8 +35,8 @@ public:
     boost::signal<void (BSTR)> FireEventAddSyncBoxFolderPath;
     boost::signal<void (BSTR)> FireEventRemoveSyncBoxFolderPath;
     boost::signal<void (BSTR, EnumCloudAppIconBadgeType)> FireEventAddBadgePath;
-    boost::signal<void (BSTR, EnumCloudAppIconBadgeType)> FireEventRemoveBadgePath;
-    boost::signal<void ()> FireSubscriptionWatcherFailed;
+    boost::signal<void (BSTR)> FireEventRemoveBadgePath;
+    boost::signal<void ()> FireEventSubscriptionWatcherFailed;
 
     // Methods
     void Initialize();

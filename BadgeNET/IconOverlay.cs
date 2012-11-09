@@ -476,7 +476,7 @@ namespace BadgeNET
                 // Remove this path from the current flat dictionary if it exists, and send a remove badge path event to BadgeCom.
                 if (_currentBadges.ContainsKey(recursivePathBeingDeleted))
                 {
-                    SendRemoveBadgePathEvent(recursivePathBeingDeleted, forBadgeType);
+                    SendRemoveBadgePathEvent(recursivePathBeingDeleted);
                     _currentBadges.Remove(recursivePathBeingDeleted);
                 }
             }
@@ -501,7 +501,7 @@ namespace BadgeNET
                 // Remove the old path if it exists, and update BadgeCom.
                 if (_currentBadges.ContainsKey(recursiveOldPath))
                 {
-                    SendRemoveBadgePathEvent(recursiveOldPath, recursiveOldPathBadgeType);
+                    SendRemoveBadgePathEvent(recursiveOldPath);
                     _currentBadges.Remove(recursiveOldPath);
                 }
 
@@ -679,7 +679,7 @@ namespace BadgeNET
                             // Update the badge for this node
                             GenericHolder<cloudAppIconBadgeType> newBadgeType;
                             pFindBadge(newPath, out newBadgeType);        // always returns a badgeType, even if an error occurs.
-                            SendRemoveBadgePathEvent(oldPath, newBadgeType);
+                            SendRemoveBadgePathEvent(oldPath);
                             SendAddBadgePathEvent(newPath, newBadgeType);
                             _currentBadges.Remove(oldPath);
                             _currentBadges[newPath] = newBadgeType;
@@ -1442,14 +1442,14 @@ namespace BadgeNET
                     if (!hierarchicalBadgeType.Equals(badgeTypeNone))
                     {
                         // They are different and both specified.  Remove and add.
-                        SendRemoveBadgePathEvent(nodePath, flatBadgeType);
+                        SendRemoveBadgePathEvent(nodePath);
                         SendAddBadgePathEvent(nodePath, hierarchicalBadgeType);
                         _currentBadges[nodePath] = hierarchicalBadgeType;
                     }
                     else
                     {
                         // They are different and there is no hierarchical badge.  Remove.
-                        SendRemoveBadgePathEvent(nodePath, flatBadgeType);
+                        SendRemoveBadgePathEvent(nodePath);
                         _currentBadges.Remove(nodePath);
                     }
                 }
@@ -1492,15 +1492,14 @@ namespace BadgeNET
         /// Send a remove badge path event to all BadgeCom instances.
         /// </summary>
         /// <param name="nodePath">The path to remove.</param>
-        /// <param name="badgeType">The relevant badgeType.  Only the instances that filter for this type will process the event.</param>
-        private void SendRemoveBadgePathEvent(FilePath nodePath, GenericHolder<cloudAppIconBadgeType> badgeType)
+        private void SendRemoveBadgePathEvent(FilePath nodePath)
         {
             try 
 	        {
                 if (_badgeComPubSubEvents != null)
                 {
                     _trace.writeToLog(9, "IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_RemoveBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_RemoveBadgePath, 0 /* not used */, nodePath.ToString());
                 }
 	        }
 	        catch (global::System.Exception ex)
