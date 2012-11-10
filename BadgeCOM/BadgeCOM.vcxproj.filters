@@ -64,9 +64,6 @@
     <ClCompile Include="CBadgeNetPubSubEvents.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestOnly.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -136,9 +133,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CBadgeNetPubSubEvents.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TestOnly.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TemplateTimer.h">

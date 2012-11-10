@@ -2,157 +2,11 @@
 
 #include "stdafx.h"
 #include "PubSubServer.h"
-#include "TestOnly.h"                   //TODO: Debug only.  Remove.
 
 // Static constant initializers
 const OLECHAR * CPubSubServer::_ksSharedMemoryName = L"CloudPubSubSharedMemory";   // the name of the shared memory segment
-
 const int CPubSubServer::_knMaxEventsInEventQueue = 500;                            // maximum number of events allowed in a subscription's event queue
-
 managed_windows_shared_memory *CPubSubServer::_pSegment = NULL;
-
-
-//TODO: Remove or rework _tmain and dependencies.
-// Forward function definitions.
-DWORD ThreadProc(LPVOID lpdwThreadParam);
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-	//&&&&&&&&&&& end
-
-
-    // Start multiple threads
-    int nThreads = 5;
-    int i;
-
-    for (i = 0; i < nThreads; i++)
-    {
-        DWORD dwThreadId;
-        if (CreateThread(NULL,  // default security
-                    0,  // default stack size
-                    (LPTHREAD_START_ROUTINE) &ThreadProc,  // function to run
-                    (LPVOID) &i,        // thread parameter
-                    0,                  // imediately run the thread
-                    &dwThreadId         // output thread ID
-                    ) == NULL)
-        {
-            printf("Error creating thread#: %d.\n", i);
-        }
-
-    }
-
-    std::cout << std::endl << "Press any key to continue...\n";
-    getchar();
-
-
-	return(0);
-}
-
-// Thread function
-DWORD ThreadProc(LPVOID lpdwThreadParam)
-{
-    // print thread number
-    printf("Thread #: %d started.\n", ((int *)lpdwThreadParam));
-
-    // Loop getting and processing events from this process/thread's queue in shared memory.
-    while (true)
-    {
-
-    }
-
-
-    return(0);
-}
-
-//STDMETHODIMP CPubSubServer::Publish(int nTestParm)
-//{
-//	bool isSubscriber = true;
-//
-//    // Open the shared memory segment, or create it if it is not there.
-//    managed_windows_shared_memory segment(open_or_create, "CloudPubSubSharedMemory", 1024000);
-//
-//    // An allocator convertible to any allocator<T, segment_manager_t> type.
-//    void_allocator alloc_inst(segment.get_segment_manager());
-//
-//    // Construct the shared memory Base image and initiliaze it.
-//    Base *base = segment.find_or_construct<Base>("Base")(42, alloc_inst);
-//
-//    // Lock the rest under the global shared memory lock.
-//	base->mutexSharedMemory_.lock();
-//
-//	if (isSubscriber)
-//	{
-//		// This is the subscriber. Add a Subscription to the end of the subscriptions vector.
-//		base->subscriptions_.emplace_back(&segment, 1, 2, 3, 4, alloc_inst);
-//
-//		// Are there events available?
-//		if (base->subscriptions_[0].events_.size() > 0)
-//		{
-//			// Loop retrieving the events from the events_ vector.
-//			int rc = base->subscriptions_[0].events_.size();
-//			while (base->subscriptions_[0].events_.size() > 0)
-//			{
-//				// Read the event at the front of the vector.
-//				void *eventAddr = &(base->subscriptions_[0].events_[0]);
-//				int eventType = base->subscriptions_[0].events_[0].EventType_;
-//				void *eventTypeAddr = &(base->subscriptions_[0].events_[0].EventType_);
-//				EnumCloudAppIconBadgeType badgeType = base->subscriptions_[0].events_[0].BadgeType_;
-//				void *badgeTypeAddr = &(base->subscriptions_[0].events_[0].BadgeType_);
-//				char_string fullPath = base->subscriptions_[0].events_[0].FullPath_;
-//				void *fullPathAddr = &(base->subscriptions_[0].events_[0].FullPath_);
-//				std::string fullPathString(fullPath.c_str());
-//				int processId = base->subscriptions_[0].events_[0].ProcessId_;
-//				void *processIdAddr = &(base->subscriptions_[0].events_[0].ProcessId_);
-//				int threadId = base->subscriptions_[0].events_[0].ThreadId_;
-//				void *threadIdAddr = &(base->subscriptions_[0].events_[0].ThreadId_);
-//
-//			    // Delete the Subscription from the shared memory shared memory.
-//				base->subscriptions_.erase(base->subscriptions_.begin());
-//			}
-//
-//			base->mutexSharedMemory_.unlock();
-//			return(rc);
-//		}
-//		else
-//		{
-//			// Wait for an event to be posted.
-//			base->mutexSharedMemory_.unlock();
-//			base->subscriptions_[0].pSemaphoreSubscription_->wait();
-//
-//			// One or more events have been added to the vector.  Return zero events to the caller.  The caller
-//			// will loop back and retrieve the events from the queue (above).
-//			return(0);
-//		}
-//
-//	}
-//	else
-//	{
-//		// This is the publisher.  Add an event to the first Subscription.
-//		base->subscriptions_[0].events_.emplace_back(BadgeNet_AddBadgePath, 88, 99, cloudAppBadgeSyncing, "Badge full path", alloc_inst);
-//
-//		// Read the event at the front of the vector.
-//		void *eventAddr = &(base->subscriptions_[0].events_[0]);
-//		int eventType = base->subscriptions_[0].events_[0].EventType_;
-//		void *eventTypeAddr = &(base->subscriptions_[0].events_[0].EventType_);
-//		EnumCloudAppIconBadgeType badgeType = base->subscriptions_[0].events_[0].BadgeType_;
-//		void *badgeTypeAddr = &(base->subscriptions_[0].events_[0].BadgeType_);
-//		char_string fullPath = base->subscriptions_[0].events_[0].FullPath_;
-//		void *fullPathAddr = &(base->subscriptions_[0].events_[0].FullPath_);
-//		std::string fullPathString(fullPath.c_str());
-//		int processId = base->subscriptions_[0].events_[0].ProcessId_;
-//		void *processIdAddr = &(base->subscriptions_[0].events_[0].ProcessId_);
-//		int threadId = base->subscriptions_[0].events_[0].ThreadId_;
-//		void *threadIdAddr = &(base->subscriptions_[0].events_[0].ThreadId_);
-//
-//		// Post the subscriber to look for this event just added.
-//		base->subscriptions_[0].pSemaphoreSubscription_->post();
-//
-//		base->mutexSharedMemory_.unlock();
-//		return(0);
-//	}
-//	return(0);
-//}
-
 
 /// <summary>
 /// Open or create the shared memory segment.
@@ -162,13 +16,6 @@ STDMETHODIMP CPubSubServer::Initialize()
     HRESULT result = S_OK;
     try
     {
-        //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& DEBUG ONLY &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        TestOnly *pTestOnly = new TestOnly();
-
-  
-
-        //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& DEBUG ONLY &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
         _pSegment = new managed_windows_shared_memory(open_or_create, "CloudPubSubSharedMemory", 1024000);
     }
     catch (std::exception &ex)
@@ -199,6 +46,8 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
     {
         ULONG processId = GetCurrentProcessId();
         ULONG threadId = GetCurrentThreadId();
+		const int knMillisecondsToWaitEachTry = 50;
+		const int knRetries = 4;
 
         // Open the shared memory segment, or create it if it is not there.  This is atomic.
         // An allocator convertible to any allocator<T, segment_manager_t> type.
@@ -207,41 +56,30 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
         base = _pSegment->find_or_construct<Base>("Base")(42, alloc_inst);
 
-        // Lock the rest under the global shared memory lock in shared memory Base.
+		// We want to add this event to the queue for each of the scriptions waiting for this event type, but
+		// one or more of the subscriber's event queues may be full.  If we find a full event queue, we will
+		// sleep for a short while to give the subscriber cycles to remove the events.
+		// During the first pass under the lock, we will save a list of the subscriptions that need to receive
+		// a copy of this event.  Then we will release the lock.  Then we will iterate through the saved subscriptions
+		// attempting to deliver the event (under the lock), checking to see if the subscription is still there.  We
+		// will make several attempts to deliver the event to each subscriber (under the lock), sleeping for a short
+		// while after each unsuccessful attempt.  If we time out during this process, delete the entire full subscription
+		// and return with an error.
+
+        // Find the subscriptions that should receive this event.  Lock the rest under the global shared memory lock in shared memory Base.
+		std::vector<GUID> subscribers;
 	    base->mutexSharedMemory_.lock();
         fIsLocked = true;
 
-        // Loop through the subscriptions vector looking for this EventType and BadgeType.  We will process all such subscriptions found.
-        subscription_vector::iterator itSubscription = base->subscriptions_.begin();
-        while (itSubscription != base->subscriptions_.end())
+        // Loop through the subscriptions vector looking for this EventType.  We will deliver this event to those subscribers.
+		for (subscription_vector::iterator itSubscription = base->subscriptions_.begin(); itSubscription != base->subscriptions_.end(); ++itSubscription)
         {
-            // Process this subscription if the event types match.
-            bool fBumpUpIterator = true;
+            // This is a subscriber if the event types match.
             EnumEventType eventType = itSubscription->nEventType_;
             if (eventType == EventType)
             {
-                // Is the event queue full?
-                if (itSubscription->events_.size() >= _knMaxEventsInEventQueue)
-                {
-                    // No more room.  Delete this entire subscription and log an error.
-                    fBumpUpIterator = false;
-                    itSubscription = base->subscriptions_.erase(itSubscription);
-                    nResult = RC_PUBLISH_AT_LEAST_ONE_EVENT_QUEUE_FULL;
-                }
-                else
-                {
-                    // Construct this event in shared memory and add it at the back of the event queue for this subscription.
-                    itSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, alloc_inst);
-
-                    // Post the subscription's semaphore.
-                    itSubscription->pSemaphoreSubscription_->post();
-                }
-            }
-
-            // Bump up the iterator.  Note that the iterator may have been adjusted if we erased the subscription.
-            if (fBumpUpIterator)
-            {
-                itSubscription++;
+                // This is a subscriber.  Remember its ID.
+				subscribers.push_back(itSubscription->guidId_);
             }
         }
 
@@ -249,6 +87,62 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
         fIsLocked = false;
         base->mutexSharedMemory_.unlock();
 
+		// Now iterate through the subscribers attempting to deliver the event to each.
+		for (std::vector<GUID>::iterator itGuid = subscribers.begin(); itGuid != subscribers.end(); ++itGuid)
+		{
+			for (int nRetry; nRetry < knRetries; nRetry++)
+			{
+				// Find the subscription with this ID and try to deliver the event.  Lock around this action.
+				base->mutexSharedMemory_.lock();
+				fIsLocked = true;
+
+				bool fEventDelivered = false;
+				bool fSubscriptionRemoved = false;
+				for (subscription_vector::iterator itSubscription = base->subscriptions_.begin(); itSubscription != base->subscriptions_.end(); ++itSubscription)
+				{
+					if (itGuid->Data1 == itSubscription->guidId_.Data1 &&
+						itGuid->Data2 == itSubscription->guidId_.Data2 &&
+						itGuid->Data3 == itSubscription->guidId_.Data3 &&
+						itGuid->Data4 == itSubscription->guidId_.Data4)
+					{
+						// This is a subscriber.  Is its event queue full?
+						if (itSubscription->events_.size() >= _knMaxEventsInEventQueue)
+						{
+							// No more room.  Retry or delete the subscription in error.
+							if (nRetry >= (knRetries - 1))
+							{
+								// Delete this entire subscription and log an error.
+								base->subscriptions_.erase(itSubscription);
+								nResult = RC_PUBLISH_AT_LEAST_ONE_EVENT_QUEUE_FULL;
+								fSubscriptionRemoved = true;
+							}
+						}
+						else
+						{
+							// Construct this event in shared memory and add it at the back of the event queue for this subscription.
+							itSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, alloc_inst);
+
+							// Post the subscription's semaphore.
+							itSubscription->pSemaphoreSubscription_->post();
+							fEventDelivered = true;
+						}
+						break;
+					}
+				}
+
+				// Unlock
+				fIsLocked = false;
+				base->mutexSharedMemory_.unlock();
+
+				if (fEventDelivered || fSubscriptionRemoved)
+				{
+					break;
+				}
+
+				// Wait a short time
+				Sleep(knMillisecondsToWaitEachTry);
+			}
+		}
     }
     catch(std::exception &ex)
     {

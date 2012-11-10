@@ -19,7 +19,8 @@ using namespace std;
 
 // Debug trace
 #ifdef _DEBUG
-	#define CLTRACE(intPriority, szFormat, ...) //#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
+	//#define CLTRACE(intPriority, szFormat, ...) 
+	#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
 #else	
 	#define CLTRACE(intPriority, szFormat, ...)
 	//#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
@@ -39,7 +40,10 @@ STDMETHODIMP CBadgeIconSelective::GetOverlayInfo(
 	try
 	{
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-		__debugbreak();
+		while (true)
+		{
+			Sleep(100);
+		}
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 		// Get our module's full path
 		CLTRACE(9, "CBadgeIconSelective: GetOverlayInfo: Entry");
@@ -169,7 +173,7 @@ void CBadgeIconSelective::OnEventRemoveSyncBoxFolderPath(BSTR fullPath)
 			}
 			else
 			{
-				it++;
+				++it;
 			}
 		}
 	}
@@ -246,6 +250,7 @@ void CBadgeIconSelective::InitializeBadgeNetPubSubEvents()
 	{
 		CLTRACE(9, "CBadgeIconSelective: InitializeBadgeNetPubSubEvents: Entry.");
 		_pBadgeNetPubSubEvents = new CBadgeNetPubSubEvents();
+		_pBadgeNetPubSubEvents->Initialize();
 
 		// Hook up events.  The "_1" and "_2" are placeholders required by bind (placeholders for the parameters).
 		_pBadgeNetPubSubEvents->FireEventAddBadgePath.connect(boost::bind(&CBadgeIconSelective::OnEventAddBadgePath, this, _1, _2));
@@ -254,8 +259,12 @@ void CBadgeIconSelective::InitializeBadgeNetPubSubEvents()
 		_pBadgeNetPubSubEvents->FireEventRemoveSyncBoxFolderPath.connect(boost::bind(&CBadgeIconSelective::OnEventRemoveSyncBoxFolderPath, this, _1));
 		_pBadgeNetPubSubEvents->FireEventSubscriptionWatcherFailed.connect(boost::bind(&CBadgeIconSelective::OnEventSubscriptionWatcherFailed, this));
 
+		// Subscribe to the events from BadgeNet
+		_pBadgeNetPubSubEvents->SubscribeToBadgeNetEvents();
+
 		// Tell BadgeNet we just initialized.
-		_pBadgeNetPubSubEvents->PublishEventToBadgeCom(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, NULL /* not used */);
+		BSTR dummy;
+		_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */);
 	}
 	catch(std::exception &ex)
 	{

@@ -11,7 +11,8 @@
 
 // Debug trace
 #ifdef _DEBUG
-	#define CLTRACE(intPriority, szFormat, ...) //#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
+	//#define CLTRACE(intPriority, szFormat, ...) 
+	#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
 #else	
 	#define CLTRACE(intPriority, szFormat, ...)
 	//#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
@@ -51,7 +52,7 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void)
         }
         else
         {
-            throw new std::exception("Error creating a class factory for CPubSubServer");
+            throw new std::exception("Error creating a class factory for CPubSubServer.  hr: %d.", hr);
         }
     }
     catch (std::exception &ex)
@@ -93,13 +94,23 @@ CBadgeNetPubSubEvents::~CBadgeNetPubSubEvents(void)
 }
 
 /// <summary>
-/// Initialize and load the BadgeCom PubSubServer.
+/// Initialize.  Initialize the PubSubEventsServer.
 /// </summary>
 void CBadgeNetPubSubEvents::Initialize()
 {
     try
     {
-        //TODO: Nothing to do here?
+        if (_pPubSubServer == NULL)
+        {
+            throw new std::exception("Call Initialize() first");
+        }
+
+        // Initialize the PubSubServer
+        HRESULT hr = _pPubSubServer->Initialize();
+        if (!SUCCEEDED(hr))
+        {
+    		CLTRACE(1, "CBadgeNetPubSubEvents: Initialize: ERROR: From Initialize.  hr: %d.", hr);
+        }
     }
     catch (std::exception &ex)
     {
@@ -108,9 +119,9 @@ void CBadgeNetPubSubEvents::Initialize()
 }
 
 /// <summary>
-/// Publish an event to BadgeCom
+/// Publish an event to BadgeNet
 /// </summary>
-void CBadgeNetPubSubEvents::PublishEventToBadgeCom(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, BSTR *fullPath)
+void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, BSTR *fullPath)
 {
     try
     {
@@ -124,19 +135,19 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeCom(EnumEventType eventType, Enum
         HRESULT hr = _pPubSubServer->Publish(eventType, eventSubType, badgeType, fullPath, &result);
         if (!SUCCEEDED(hr) || result != RC_PUBLISH_OK)
         {
-    		CLTRACE(1, "CBadgeNetPubSubEvents: PublishEventToBadgeCom: ERROR: From Publish.  Result: %d.", result);
+    		CLTRACE(1, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: ERROR: From Publish.  hr: %d. Result: %d.", hr, result);
         }
     }
     catch (std::exception &ex)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: PublishEventToBadgeCom: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: ERROR: Exception.  Message: %s.", ex.what());
     }
 }
 
 /// <summary>
-/// Start a thread which will subscribe to BadgeCom_Initialization events.  
+/// Start a thread which will subscribe to events from BadgeNet.  
 /// </summary>
-void CBadgeNetPubSubEvents::SubscribeToBadgeComInitializationEvents()
+void CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
 {
     // Start the threads.
     StartSubscribingThread();
@@ -157,7 +168,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
         HRESULT hr = CoCreateGuid(&pThis->_guidSubscription);
         if (!SUCCEEDED(hr))
         {
-    		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Creating GUID.  Result: %d.", result);
+    		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Creating GUID. hr: %d.", hr);
             throw new std::exception("Error creating GUID");
         }
 
@@ -172,7 +183,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             hr = pThis->_pPubSubServer->Subscribe(BadgeCom_To_BadgeNet, pThis->_guidSubscription, _kMillisecondsTimeoutSubscribingThread, &eventSubType, &badgeType, &bsFullPath, &result);
             if (!SUCCEEDED(hr))
             {
-        		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: From Subscribe.  Result: %d.", result);
+        		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: From Subscribe.  hr: %d.", hr);
                 throw new std::exception("Error from Subscribe");
             }
             if (result == RC_SUBSCRIBE_GOT_EVENT)
@@ -305,7 +316,7 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
         if (fThreadSubscribingInstantiated)
         {
             bool fThreadDead = false;
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 3; ++i)
             {
                 if (IsThreadAlive(_threadSubscribingHandle))
                 {
