@@ -15,10 +15,14 @@ namespace TestReferenceBadgeCom
             PubSubServerClass test = new PubSubServerClass();
             test.Initialize();
             string sharedMemoryName = test.SharedMemoryName;
-            EnumPubSubServerPublishReturnCodes  rcPublish = test.Publish(EnumEventType.BadgeNet_AddBadgePath,EnumCloudAppIconBadgeType.cloudAppBadgeSynced, "This is a full path");
+            EnumPubSubServerPublishReturnCodes  rcPublish = test.Publish(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath,EnumCloudAppIconBadgeType.cloudAppBadgeSynced, "This is a full path");
             Guid myGuid = Guid.NewGuid();
-            EnumPubSubServerSubscribeReturnCodes rcSubscribe = test.Subscribe(EnumEventType.BadgeNet_AddBadgePath, myGuid, 0);
-            EnumPubSubServerCancelWaitingSubscriptionReturnCodes rcCancel = test.CancelWaitingSubscription(EnumEventType.BadgeNet_AddBadgePath, myGuid);
+            EnumEventSubType outEventSubType;
+            EnumCloudAppIconBadgeType outBadgeType;
+            string outFullPath;
+            EnumPubSubServerSubscribeReturnCodes rcSubscribe = test.Subscribe(EnumEventType.BadgeNet_To_BadgeCom, myGuid, 0,
+                        out outEventSubType, out outBadgeType, out outFullPath);
+            EnumPubSubServerCancelWaitingSubscriptionReturnCodes rcCancel = test.CancelWaitingSubscription(EnumEventType.BadgeNet_To_BadgeCom, myGuid);
             test.Terminate();
            
         }

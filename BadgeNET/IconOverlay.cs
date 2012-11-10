@@ -125,7 +125,7 @@ namespace BadgeNET
                 _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
 
                 // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
-                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, pathRootDirectory);
+                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, pathRootDirectory);
 
                 // Allocate the badging current state flat dictionary.  This dictionary is used to determine the badge path to remove when the
                 // badge type for that path changes.  We send a _kEvent_BadgeNet_AddBadgePath event to the BadgeCom "new" type, and a
@@ -250,14 +250,14 @@ namespace BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     // Publish the add SyncBox folder path event back to all BadgeCom instances.
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, filePathCloudDirectory.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, filePathCloudDirectory.ToString());
 
                     // Iterate over the current badge state dictionary and send the badges to BadgeCom. This will populate the BadgeCom instance that just initialized.
                     // Other instances will update from these events only if necessary.
                     foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in _currentBadges)
                     {
                         // Publish a badge add path event to BadgeCom.
-                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)item.Value.Value, item.Key.ToString());
+                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)item.Value.Value, item.Key.ToString());
                     }
                 }
             }
@@ -1014,7 +1014,7 @@ namespace BadgeNET
                             {
                                 if (_badgeComPubSubEvents != null)
                                 {
-                                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, filePathCloudDirectory.ToString());
+                                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, filePathCloudDirectory.ToString());
                                 }
                             }
                             catch (Exception ex)
@@ -1479,7 +1479,7 @@ namespace BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     _trace.writeToLog(9, "IconOverlay: SendAddBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString());
                 }
 	        }
 	        catch (global::System.Exception ex)
@@ -1499,7 +1499,7 @@ namespace BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     _trace.writeToLog(9, "IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_RemoveBadgePath, 0 /* not used */, nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_RemoveBadgePath, 0 /* not used */, nodePath.ToString());
                 }
 	        }
 	        catch (global::System.Exception ex)

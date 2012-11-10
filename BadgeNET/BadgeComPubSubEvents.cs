@@ -67,7 +67,7 @@ namespace BadgeNET
         /// <summary>
         /// Publish an event to BadgeCom
         /// </summary>
-        public void PublishEventToBadgeCom(EnumEventType eventType, EnumCloudAppIconBadgeType badgeType, string fullPath)
+        public void PublishEventToBadgeCom(EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, string fullPath)
         {
             try
             {
@@ -77,7 +77,7 @@ namespace BadgeNET
                 }
 
                 // Publish the event
-                EnumPubSubServerPublishReturnCodes result = _pubSubServer.Publish(eventType, badgeType, fullPath);
+                EnumPubSubServerPublishReturnCodes result = _pubSubServer.Publish(EnumEventType.BadgeNet_To_BadgeCom, eventSubType, badgeType, fullPath);
                 if (result != EnumPubSubServerPublishReturnCodes.RC_PUBLISH_OK)
                 {
                     _trace.writeToLog(1, "BadgeComPubSubEvents: PublishEventToBadgeCom: ERROR: From Publish. Result: {0}.", result.ToString());
@@ -117,7 +117,11 @@ namespace BadgeNET
                 while (true)
                 {
                     // Create or open this subcription.  Since the GUID is unique, this will create the subscription on the first call.
-                    EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeCom_Initialization, _guidSubscription, _kMillisecondsTimeoutSubscribingThread);
+                    EnumEventSubType outEventSubType;
+                    EnumCloudAppIconBadgeType outBadgeType;
+                    string outFullPath;
+                    EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeNet_To_BadgeCom, _guidSubscription, _kMillisecondsTimeoutSubscribingThread,
+                                 out outEventSubType, out outBadgeType, out outFullPath);
                     if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_GOT_EVENT)
                     {
                         EventHandler<EventArgs> handler = BadgeComInitialized;
@@ -211,7 +215,7 @@ namespace BadgeNET
                     if (_pubSubServer != null)
                     {
                         // Ask the subscribing thread to exit gracefully.
-                        EnumPubSubServerCancelWaitingSubscriptionReturnCodes result = _pubSubServer.CancelWaitingSubscription(EnumEventType.BadgeCom_Initialization, _guidSubscription);
+                        EnumPubSubServerCancelWaitingSubscriptionReturnCodes result = _pubSubServer.CancelWaitingSubscription(EnumEventType.BadgeNet_To_BadgeCom, _guidSubscription);
                         if (result != EnumPubSubServerCancelWaitingSubscriptionReturnCodes.RC_CANCEL_CANCELLED)
                         {
                             _trace.writeToLog(1, "BadgeComPubSubEvents: KillSubscribingThread: ERROR: Cancelling. Result: {0}.", result.ToString());
