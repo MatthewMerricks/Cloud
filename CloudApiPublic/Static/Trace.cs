@@ -1010,12 +1010,18 @@ namespace CloudApiPublic.Static
             {
                 try
                 {
-                    Dictionary<string, object> bodyDict = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(body);
-                    if (bodyDict != null
-                        && bodyDict.ContainsKey(CLDefinitions.CLRegistrationAccessTokenKey))
+                    string trimJson = (body ?? string.Empty).Trim();
+
+                    if ((trimJson.StartsWith("{") && trimJson.EndsWith("}"))
+                        || (trimJson.StartsWith("[") && trimJson.EndsWith("]")))
                     {
-                        bodyDict[CLDefinitions.CLRegistrationAccessTokenKey] = "---Access token excluded---";
-                        body = Newtonsoft.Json.JsonConvert.SerializeObject(bodyDict);
+                        Dictionary<string, object> bodyDict = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(body);
+                        if (bodyDict != null
+                            && bodyDict.ContainsKey(CLDefinitions.CLRegistrationAccessTokenKey))
+                        {
+                            bodyDict[CLDefinitions.CLRegistrationAccessTokenKey] = "---Access token excluded---";
+                            body = Newtonsoft.Json.JsonConvert.SerializeObject(bodyDict);
+                        }
                     }
                 }
                 catch

@@ -183,5 +183,32 @@ namespace SyncTests
                 }
             }
         }
+
+        private void DeleteClientDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            lock (TestServer)
+            {
+                if (TestServer.Value != null)
+                {
+                    MessageBox.Show("Error: Cannot delete database while TestServer is running");
+                }
+                else
+                {
+                    try
+                    {
+                        string dbLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
+                            "\\SyncTests\\IndexDB.sdf";
+
+                        if (System.IO.File.Exists(dbLocation))
+                        {
+                            System.IO.File.Delete(dbLocation);
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
     }
 }

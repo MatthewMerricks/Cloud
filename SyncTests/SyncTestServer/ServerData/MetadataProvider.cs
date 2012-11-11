@@ -1075,7 +1075,13 @@ namespace SyncTestServer
                         {
                             pendingStorageKeys.Add(simultaneouslyCompleted);
                         }
-                        currentUsersQueries.Remove(queryId);
+                        if (currentUsersQueries.Remove(queryId))
+                        {
+                            if (currentUsersQueries.Count == 0)
+                            {
+                                CurrentlyQueryingUserEvents.Remove(userId);
+                            }
+                        }
                     }
                 }
             }
@@ -1086,18 +1092,322 @@ namespace SyncTestServer
                     Dictionary<Guid, HashSet<string>> currentUsersQueries;
                     if (CurrentlyQueryingUserEvents.TryGetValue(userId, out currentUsersQueries))
                     {
-                        currentUsersQueries.Remove(queryId);
+                        if (currentUsersQueries.Remove(queryId))
+                        {
+                            if (currentUsersQueries.Count == 0)
+                            {
+                                CurrentlyQueryingUserEvents.Remove(userId);
+                            }
+                        }
                     }
                 }
 
                 throw;
             }
 
+            //List<UserEvent> folderEvents = new List<UserEvent>();
+
+            //FilePathDictionary<Tuple<UserEvent, int, bool>> fileEvents;
+            //CLError createFileEvents = FilePathDictionary<Tuple<UserEvent, int, bool>>.CreateAndInitialize(new FilePath(string.Empty), out fileEvents);
+            //if (createFileEvents != null)
+            //{
+            //    throw new AggregateException("Unable to create FilePathDictionary<Tuple<UserEvent, int>> fileEvents", createFileEvents.GrabExceptions());
+            //}
+
+            //int fileCounter = 0;
+            //foreach (UserEvent currentEvent in copiedEvents)
+            //{
+            //    if (currentEvent.FileChange == null
+            //        || currentEvent.FileChange.Metadata == null
+            //        || currentEvent.FileChange.Metadata.HashableProperties.IsFolder)
+            //    {
+            //        folderEvents.Add(currentEvent);
+
+            //        if (currentEvent.FileChange != null
+            //            && currentEvent.FileChange.Metadata != null)// not an important check, but in conjunction with the outer if statement check above,
+            //                                                        // only folder events will enter below
+            //        {
+            //            switch (currentEvent.FileChange.Type)
+            //            {
+            //                case CloudApiPublic.Static.FileChangeType.Deleted:
+            //                    fileEvents.Remove(currentEvent.FileChange.NewPath);
+            //                    break;
+
+            //                case CloudApiPublic.Static.FileChangeType.Renamed:
+            //                    FilePathHierarchicalNode<Tuple<UserEvent, int, bool>> renameHierarchy;
+            //                    CLError grabHierarchyError = fileEvents.GrabHierarchyForPath(currentEvent.FileChange.OldPath, out renameHierarchy, suppressException: true);
+            //                    if (grabHierarchyError != null)
+            //                    {
+            //                        throw new AggregateException("Error grabbing renameHierarchy from forwardTrackEventPath", grabHierarchyError.GrabExceptions());
+            //                    }
+            //                    if (renameHierarchy != null)
+            //                    {
+            //                        ApplyRenameToHierarchy(currentEvent, renameHierarchy);
+
+            //                        fileEvents.Rename(currentEvent.FileChange.OldPath, currentEvent.FileChange.NewPath.Copy());
+            //                    }
+            //                    break;
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        switch (currentEvent.FileChange.Type)
+            //        {
+            //            case CloudApiPublic.Static.FileChangeType.Created:
+            //                Tuple<UserEvent, int, bool> beforeCreation;
+            //                if (fileEvents.TryGetValue(currentEvent.FileChange.NewPath, out beforeCreation))
+            //                {
+            //                    fileEvents[currentEvent.FileChange.NewPath.Copy()] = new Tuple<UserEvent, int, bool>(new UserEvent(beforeCreation.Item1.SyncId,
+            //                            new FileChange()
+            //                            {
+            //                                EventId = currentEvent.FileChange.EventId,
+            //                                Metadata = currentEvent.FileChange.Metadata,
+            //                                NewPath = currentEvent.FileChange.NewPath.Copy(),
+            //                                Type = CloudApiPublic.Static.FileChangeType.Modified
+            //                            },
+            //                            beforeCreation.Item1.FileChange.Metadata),
+            //                        beforeCreation.Item2,
+            //                        false);
+            //                }
+            //                else
+            //                {
+            //                    fileEvents.Add(currentEvent.FileChange.NewPath.Copy(), new Tuple<UserEvent, int, bool>(currentEvent,
+            //                        fileCounter++,
+            //                        true));
+            //                }
+            //                break;
+
+            //            case CloudApiPublic.Static.FileChangeType.Deleted:
+            //                Tuple<UserEvent, int, bool> beforeDeletion;
+            //                if (fileEvents.TryGetValue(currentEvent.FileChange.NewPath, out beforeDeletion))
+            //                {
+            //                    if (beforeDeletion.Item3)
+            //                    {
+            //                        fileEvents.Remove(currentEvent.FileChange.NewPath);
+            //                    }
+            //                    else if (beforeDeletion.Item1.FileChange.Type == CloudApiPublic.Static.FileChangeType.Renamed)
+            //                    {
+            //                        fileEvents[currentEvent.FileChange.NewPath.Copy()] = new Tuple<UserEvent, int, bool>(new UserEvent(beforeDeletion.Item1.SyncId,
+            //                                new FileChange()
+            //                                {
+            //                                    EventId = currentEvent.FileChange.EventId,
+            //                                    Metadata = currentEvent.FileChange.Metadata,
+            //                                    NewPath = beforeDeletion.Item1.FileChange.OldPath.Copy(),
+            //                                    Type = CloudApiPublic.Static.FileChangeType.Deleted
+            //                                },
+            //                                beforeDeletion.Item1.FileChange.Metadata),
+            //                            beforeDeletion.Item2,
+            //                            false);
+            //                    }
+            //                    else
+            //                    {
+            //                        fileEvents[currentEvent.FileChange.NewPath.Copy()] = new Tuple<UserEvent, int, bool>(currentEvent,
+            //                            beforeDeletion.Item2,
+            //                            false);
+            //                    }
+            //                }
+            //                else
+            //                {
+            //                    fileEvents.Add(currentEvent.FileChange.NewPath.Copy(),
+            //                        new Tuple<UserEvent, int, bool>(currentEvent,
+            //                            fileCounter++,
+            //                            false));
+            //                }
+            //                break;
+
+            //            case CloudApiPublic.Static.FileChangeType.Modified:
+            //                Tuple<UserEvent, int, bool> beforeModification;
+            //                if (fileEvents.TryGetValue(currentEvent.FileChange.NewPath.Copy(), out beforeModification))
+            //                {
+            //                    if (beforeModification.Item1.FileChange.Type == CloudApiPublic.Static.FileChangeType.Renamed)
+            //                    {
+            //                        FileChangeWithDependencies castItem1;
+            //                        if ((castItem1 = beforeModification.Item1.FileChange as FileChangeWithDependencies) != null)
+            //                        {
+            //                            FileChange item1Dependency = castItem1.Dependencies[0];
+            //                            castItem1.RemoveDependency(item1Dependency);
+            //                            castItem1.AddDependency(currentEvent.FileChange);
+            //                        }
+            //                        else
+            //                        {
+            //                            CLError createItem1 = FileChangeWithDependencies.CreateAndInitialize(beforeModification.Item1.FileChange,
+            //                                new[] { currentEvent.FileChange },
+            //                                out castItem1);
+            //                            if (createItem1 != null)
+            //                            {
+            //                                throw new AggregateException("Error creating FileChangeWithDependencies out of beforeModification Item1 FileChange", createItem1.GrabExceptions());
+            //                            }
+            //                            fileEvents[currentEvent.FileChange.NewPath.Copy()] = new Tuple<UserEvent, int, bool>(new UserEvent(beforeModification.Item1.SyncId,
+            //                                    castItem1,
+            //                                    beforeModification.Item1.PreviousMetadata),
+            //                                beforeModification.Item2,
+            //                                false);
+            //                        }
+            //                    }
+            //                    else
+            //                    {
+            //                        fileEvents[currentEvent.FileChange.NewPath.Copy()] = new Tuple<UserEvent, int, bool>(new UserEvent(beforeModification.Item1.SyncId,
+            //                                new FileChange()
+            //                                {
+            //                                    EventId = currentEvent.FileChange.EventId,
+            //                                    Metadata = currentEvent.FileChange.Metadata,
+            //                                    NewPath = currentEvent.FileChange.NewPath.Copy(),
+            //                                    Type = (beforeModification.Item3
+            //                                        ? CloudApiPublic.Static.FileChangeType.Created
+            //                                        : CloudApiPublic.Static.FileChangeType.Modified)
+            //                                },
+            //                                beforeModification.Item1.FileChange.Metadata),
+            //                            beforeModification.Item2,
+            //                            beforeModification.Item3);
+            //                    }
+            //                }
+            //                else
+            //                {
+            //                    fileEvents.Add(currentEvent.FileChange.NewPath.Copy(),
+            //                        new Tuple<UserEvent, int, bool>(currentEvent, fileCounter++, false));
+            //                }
+            //                break;
+
+            //            case CloudApiPublic.Static.FileChangeType.Renamed:
+            //                Tuple<UserEvent, int, bool> beforeRename;
+            //                if (fileEvents.TryGetValue(currentEvent.FileChange.OldPath, out beforeRename))
+            //                {
+            //                    switch (beforeRename.Item1.FileChange.Type)
+            //                    {
+            //                        case CloudApiPublic.Static.FileChangeType.Created:
+            //                            fileEvents.Remove(currentEvent.FileChange.OldPath);
+            //                            fileEvents.Add(currentEvent.FileChange.NewPath.Copy(),
+            //                                new Tuple<UserEvent, int, bool>(new UserEvent(beforeRename.Item1.SyncId,
+            //                                    new FileChange()
+            //                                    {
+            //                                        EventId = currentEvent.FileChange.EventId,
+            //                                        Metadata = currentEvent.FileChange.Metadata,
+            //                                        NewPath = currentEvent.FileChange.NewPath.Copy(),
+            //                                        Type = CloudApiPublic.Static.FileChangeType.Created
+            //                                    },
+            //                                    beforeRename.Item1.FileChange.Metadata),
+            //                                beforeRename.Item2,
+            //                                true));
+            //                            break;
+
+            //                        case CloudApiPublic.Static.FileChangeType.Modified:
+            //                            FileChangeWithDependencies currentRename;
+            //                            CLError createCurrentRename = FileChangeWithDependencies.CreateAndInitialize(currentEvent.FileChange,
+            //                                new[]
+            //                                {
+            //                                    new FileChange()
+            //                                    {
+            //                                        EventId = beforeRename.Item1.FileChange.EventId,
+            //                                        Metadata = beforeRename.Item1.FileChange.Metadata,
+            //                                        NewPath = currentEvent.FileChange.NewPath.Copy(),
+            //                                        Type = CloudApiPublic.Static.FileChangeType.Modified
+            //                                    }
+            //                                }, out currentRename);
+            //                            if (createCurrentRename != null)
+            //                            {
+            //                                throw new AggregateException("Unable to create FileChangeWithDependencies currentRename", createCurrentRename.GrabExceptions());
+            //                            }
+            //                            fileEvents.Remove(currentEvent.FileChange.OldPath);
+            //                            fileEvents.Add(currentEvent.FileChange.NewPath.Copy(),
+            //                                    new Tuple<UserEvent, int, bool>(new UserEvent(beforeRename.Item1.SyncId,
+            //                                        currentRename,
+            //                                        beforeRename.Item1.FileChange.Metadata),
+            //                                beforeRename.Item2,
+            //                                false));
+            //                            break;
+
+            //                        case CloudApiPublic.Static.FileChangeType.Renamed:
+            //                            fileEvents.Remove(currentEvent.FileChange.OldPath);
+            //                            fileEvents.Add(currentEvent.FileChange.NewPath.Copy(),
+            //                                new Tuple<UserEvent, int, bool>(new UserEvent(beforeRename.Item1.SyncId,
+            //                                        new FileChange()
+            //                                        {
+            //                                            EventId = currentEvent.FileChange.EventId,
+            //                                            Metadata = currentEvent.FileChange.Metadata,
+            //                                            NewPath = currentEvent.FileChange.NewPath.Copy(),
+            //                                            OldPath = beforeRename.Item1.FileChange.OldPath.Copy(),
+            //                                            Type = CloudApiPublic.Static.FileChangeType.Renamed
+            //                                        }, beforeRename.Item1.FileChange.Metadata),
+            //                                    beforeRename.Item2,
+            //                                    false));
+            //                            break;
+            //                    }
+            //                }
+            //                else
+            //                {
+            //                    Tuple<UserEvent, int, bool> atNewPath;
+            //                    if (fileEvents.TryGetValue(currentEvent.FileChange.NewPath, out atNewPath))
+            //                    {
+
+            //                    }
+            //                    else
+            //                    {
+            //                        fileEvents.Add(currentEvent.FileChange.NewPath.Copy(),
+            //                            new Tuple<UserEvent, int, bool>(currentEvent,
+            //                                fileCounter++,
+            //                                false));
+            //                    }
+            //                }
+            //                break;
+            //        }
+            //    }
+            //}
+
             return copiedEvents.Where(currentEvent => currentEvent.FileChange == null
                     || currentEvent.FileChange.Metadata == null
                     || currentEvent.FileChange.Metadata.HashableProperties.IsFolder
                     || !pendingStorageKeys.Contains(currentEvent.FileChange.Metadata.StorageKey))
                 .Select(currentEvent => currentEvent.FileChange);
+        }
+
+        private static void ApplyRenameToHierarchy(UserEvent currentEvent, FilePathHierarchicalNode<Tuple<UserEvent, int, bool>> applyFilePathNode)
+        {
+            if (applyFilePathNode.HasValue)
+            {
+                FileChange applyFilePath = applyFilePathNode.Value.Value.Item1.FileChange;
+                if (applyFilePath.OldPath != null)
+                {
+                    if (!FilePathComparer.Instance.Equals(applyFilePath.OldPath, currentEvent.FileChange.OldPath)) // paths should never be equal since a file change should not share a path with a folder, but check anyways
+                    {
+                        FilePath changeChild = applyFilePath.OldPath;
+                        while (changeChild.Parent != null)
+                        {
+                            if (FilePathComparer.Instance.Equals(changeChild.Parent, currentEvent.FileChange.OldPath))
+                            {
+                                changeChild.Parent = currentEvent.FileChange.NewPath.Copy();
+                                break;
+                            }
+
+                            changeChild = changeChild.Parent;
+                        }
+                    }
+                }
+                if (!FilePathComparer.Instance.Equals(applyFilePath.NewPath, currentEvent.FileChange.OldPath)) // paths should never be equal since a file change should not share a path with a folder, but check anyways
+                {
+                    FilePath changeChild = applyFilePath.NewPath.Copy();
+                    while (changeChild.Parent != null)
+                    {
+                        if (FilePathComparer.Instance.Equals(changeChild.Parent, currentEvent.FileChange.OldPath))
+                        {
+                            changeChild.Parent = currentEvent.FileChange.NewPath.Copy();
+                            break;
+                        }
+
+                        changeChild = changeChild.Parent;
+                    }
+                }
+            }
+
+            if (applyFilePathNode.Children != null
+                && (!(applyFilePathNode.Children is FilePathHierarchicalNode<Tuple<UserEvent, int, bool>>[])
+                    || ((FilePathHierarchicalNode<Tuple<UserEvent, int, bool>>[])applyFilePathNode.Children).Length != 0))// optimization since FilePathDictionary uses an empty array as the empty default
+            {
+                foreach (FilePathHierarchicalNode<Tuple<UserEvent, int, bool>> currentChild in applyFilePathNode.Children)
+                {
+                    ApplyRenameToHierarchy(currentEvent, currentChild);
+                }
+            }
         }
 
         public IEnumerable<KeyValuePair<FilePath, FileMetadata>> PurgeUserPendingsByDevice(int userId, Guid deviceId)
@@ -1130,7 +1440,7 @@ namespace SyncTestServer
                         throw new AggregateException("Error creating forwardTrackEventPath", createForwardTrackEventPath.GrabExceptions());
                     }
 
-                    forwardTrackEventPath.Add(innerTrackEventPath.Keys.Single(), new object());
+                    forwardTrackEventPath.Add(innerTrackEventPath.Keys.Single().Copy(), new object());
 
                     foreach (UserEvent subsequentEvent in innerCurrentUserEvents.Skip(innerPreviousEvent.Value + 1))
                     {
@@ -1166,7 +1476,7 @@ namespace SyncTestServer
                                     }
                                     if (renameHierarchy != null)
                                     {
-                                        forwardTrackEventPath.Rename(subsequentEvent.FileChange.OldPath, subsequentEvent.FileChange.NewPath);
+                                        forwardTrackEventPath.Rename(subsequentEvent.FileChange.OldPath, subsequentEvent.FileChange.NewPath.Copy());
                                     }
                                     break;
                             }
@@ -1279,7 +1589,7 @@ namespace SyncTestServer
                                                 }
                                                 else if (trackEventPath.Remove(previousEvent.Key.FileChange.NewPath))
                                                 {
-                                                    removedPath = previousEvent.Key.FileChange.NewPath;
+                                                    removedPath = previousEvent.Key.FileChange.NewPath.Copy();
                                                     stopIteration = true;
                                                 }
                                                 break;
@@ -1340,7 +1650,7 @@ namespace SyncTestServer
                                                             matchingStorageKeyMetadata = previousEvent.Key.FileChange.Metadata;
                                                         }
                                                     }
-                                                    trackEventPath.Rename(previousEvent.Key.FileChange.NewPath, previousEvent.Key.FileChange.OldPath);
+                                                    trackEventPath.Rename(previousEvent.Key.FileChange.NewPath, previousEvent.Key.FileChange.OldPath.Copy());
                                                 }
                                                 break;
                                         }
@@ -1363,7 +1673,7 @@ namespace SyncTestServer
                                             new FileChange()
                                             {
                                                 Metadata = matchingStorageKeyMetadata,
-                                                NewPath = trackEventPath.SingleOrDefault().Key ?? removedPath,
+                                                NewPath = (trackEventPath.SingleOrDefault().Key ?? removedPath).Copy(),
                                                 Type = CloudApiPublic.Static.FileChangeType.Deleted
                                             }, matchingStorageKeyMetadata));
                                     }
@@ -1373,7 +1683,7 @@ namespace SyncTestServer
                                             new FileChange()
                                             {
                                                 Metadata = latestNonPendingMetadata,
-                                                NewPath = trackEventPath.SingleOrDefault().Key,
+                                                NewPath = trackEventPath.SingleOrDefault().Key.Copy(),
                                                 Type = CloudApiPublic.Static.FileChangeType.Modified
                                             }, matchingStorageKeyMetadata));
                                     }

@@ -23,7 +23,7 @@ namespace SyncTestServer
         private readonly string storageFolder;
         private readonly string storageFolderTemp;
         private readonly DirectoryInfo storageInfo;
-        private static int storageKeyCounter;
+        private static int storageKeyCounter = 0;
         private static string GetNewStorageKey()
         {
             return Interlocked.Increment(ref storageKeyCounter).ToString();
@@ -359,7 +359,7 @@ namespace SyncTestServer
             return alreadyPulledRevision.Value;
         }
 
-        public bool WriteFile(string storageKey, Stream toWrite, bool disposeStreamAfterWrite = true)
+        public bool WriteFile(Stream toWrite, string storageKey, long contentLength, byte[] MD5, int userId, bool disposeStreamAfterWrite = true)
         {
             lock (Initialized)
             {
@@ -367,6 +367,15 @@ namespace SyncTestServer
                 {
                     throw new Exception("Not Initialized, call PopulateInitialData first");
                 }
+            }
+            if (contentLength < 0)
+            {
+                throw new ArgumentException("contentLength cannot negative");
+            }
+            if (MD5 == null
+                || MD5.Length != 16)
+            {
+                throw new ArgumentException("contentMD5 must be a 16-length byte array");
             }
             if (storageKey == EmptyFileStorageKey)
             {
@@ -383,10 +392,29 @@ namespace SyncTestServer
             lock (storageKeyToFile)
             {
                 PendingMD5AndFileId existingFileId;
-                if (!storageKeyToFile.TryGetValue(storageKey, out existingFileId))
+                if (!storageKeyToFile.TryGetValue(storageKey, out existingFileId)
+                    || NativeMethods.memcmp(existingFileId.MD5, MD5, new UIntPtr((uint)16)) != 0
+                    || existingFileId.GetUserUsagesByUser(userId).Count() == 0)
                 {
-                    throw new KeyNotFoundException("Could not find fileId for storageKey: " + (storageKey ?? "{null}"));
+                    // Behavior of existing server is to the appear to the client that the upload worked correctly when it didn't
+
+                    byte[] deadBuffer = new byte[CloudApiPublic.Static.FileConstants.BufferSize];
+                    int deadRead = 0;
+                    do
+                    {
+                        deadRead = toWrite.Read(deadBuffer, 0, deadBuffer.Length);
+                    } while (deadRead > 0);
+                    if (disposeStreamAfterWrite)
+                    {
+                        toWrite.Dispose();
+                    }
+                    return true;
+
+                    ////Server does not have an error with a bad upload, so do not throw exception
+                    ////Also, this exception only describes one of the cases that would reach this code
+                    //throw new KeyNotFoundException("Could not find fileId for storageKey: " + (storageKey ?? "{null}"));
                 }
+
                 fileId = existingFileId.FileId;
 
                 lock (existingFileId.SyncRoot)
@@ -399,15 +427,45 @@ namespace SyncTestServer
             {
                 string fileIdString = fileId.ToString();
                 string tempFile = storageFolderTemp + "\\" + fileIdString;
+
+                global::System.Security.Cryptography.MD5 md5Hasher = global::System.Security.Cryptography.MD5.Create();
+
+                long countFileSize = 0;
+
                 using (FileStream storageFileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     byte[] data = new byte[CloudApiPublic.Static.FileConstants.BufferSize];
+                    byte[] hashOut = new byte[CloudApiPublic.Static.FileConstants.BufferSize];
                     int read;
                     while ((read = toWrite.Read(data, 0, data.Length)) > 0)
                     {
+                        countFileSize += read;
                         storageFileStream.Write(data, 0, read);
+                        md5Hasher.TransformBlock(data, 0, read, hashOut, 0);
                     }
+
+                    md5Hasher.TransformFinalBlock(CloudApiPublic.Static.FileConstants.EmptyBuffer, 0, 0);
                     storageFileStream.Flush();
+                }
+
+                if (countFileSize != contentLength
+                    || NativeMethods.memcmp(md5Hasher.Hash, MD5, new UIntPtr((uint)16)) != 0)
+                {
+                    // Behavior of existing server is to the appear to the client that the upload worked correctly when it didn't
+
+                    try
+                    {
+                        File.Delete(tempFile);
+                    }
+                    catch
+                    {
+                    }
+
+                    if (disposeStreamAfterWrite)
+                    {
+                        toWrite.Dispose();
+                    }
+                    return true;
                 }
 
                 List<string> storageKeysNoLongerPending = new List<string>();
@@ -429,6 +487,7 @@ namespace SyncTestServer
                         {
                             File.Move(tempFile, storageFolder + "\\" + fileIdString);
                             existingFileId.Pending = false;
+                            storageKeyToFile[storageKey] = existingFileId;
                             clearPending = true;
                         }
                         else
@@ -604,7 +663,7 @@ namespace SyncTestServer
                         }
                     }
 
-                    if (!fileId.Pending
+                    if ((!fileId.IsValid || !fileId.Pending)
                         && storageKey != EmptyFileStorageKey)
                     {
                         string fileToDelete = storageFolder + "\\" + fileId.FileId.ToString();
@@ -619,7 +678,7 @@ namespace SyncTestServer
             return fileRemoved;
         }
 
-        public Stream ReadFile(string storageKey)
+        public Stream ReadFile(string storageKey, int userId, out long fileSize)
         {
             lock (Initialized)
             {
@@ -633,12 +692,31 @@ namespace SyncTestServer
             {
                 if (!storageKeyToFile.TryGetValue(storageKey, out existingFileId))
                 {
-                    throw new KeyNotFoundException("Could not find fileId for storageKey: " + (storageKey ?? "{null}"));
+                    fileSize = 0;
+                    return null;
+                    //throw new KeyNotFoundException("Could not find fileId for storageKey: " + (storageKey ?? "{null}"));
                 }
                 else if (existingFileId.Pending)
                 {
-                    throw new Exception("Cannot read from Pending file");
+                    fileSize = 0;
+                    return null;
+                    //throw new Exception("Cannot read from Pending file");
                 }
+                else if (existingFileId.GetUserUsagesByUser(userId).Count() == 0)
+                {
+                    fileSize = 0;
+                    return null;
+                    //throw new Exception("storageKey does not belong to userId");
+                }
+
+                MD5AndFileSize fileHash;
+                if (!storageKeyToHash.TryGetValue(storageKey, out fileHash))
+                {
+                    fileSize = 0;
+                    return null;
+                }
+
+                fileSize = fileHash.FileSize;
 
                 if (storageKey != EmptyFileStorageKey)
                 {

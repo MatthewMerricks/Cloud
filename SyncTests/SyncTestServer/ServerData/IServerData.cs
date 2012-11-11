@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -15,5 +16,7 @@ namespace SyncTestServer
         long NewSyncIdBeforeStart { get; }
         IEnumerable<CloudApiPublic.JsonContracts.Event> GrabEventsAfterLastSync(string lastSyncIdString, string relativeRootPath, User currentUser, long newSyncId);
         void ApplyClientEventToServer(long syncId, User currentUser, Device currentDevice, CloudApiPublic.JsonContracts.Event toEvent);
+        bool WriteUpload(Stream toWrite, string storageKey, long contentLength, string contentMD5, User currentUser, bool disposeStreamAfterWrite = true);
+        Stream GetDownload(string storageKey, User currentUser, out long fileSize);
     }
 }

@@ -69,7 +69,7 @@ namespace CloudApiPublic.PushNotification
         private static readonly Dictionary<string, CLNotification> NotificationClientsRunning = new Dictionary<string, CLNotification>();
 
 
-        private const int MillisecondManualPollingInterval = 10000;
+        private const int MillisecondManualPollingInterval = 20000;
 
         /// <summary>
         /// Access Instance to get the push notification server object for this client.

@@ -206,6 +206,81 @@ namespace SyncTestServer.Static
             toProcess.Response.OutputStream.Write(notAuthorizedResponseBytes, 0, notAuthorizedResponseBytes.Length);
         }
 
+        public static void WriteInternalServerError(HttpListenerContext toProcess, Exception error)
+        {
+            toProcess.Request.Headers.Clear();
+            toProcess.Response.ContentEncoding = Encoding.UTF8;
+            toProcess.Response.KeepAlive = false;
+
+            toProcess.Response.ContentType = "application/json; charset=utf-8";
+            toProcess.Response.SendChunked = true;
+            toProcess.Response.StatusCode = 500;
+
+            StringBuilder messageBuilder = new StringBuilder("Internal Server Error" + (error == null ? string.Empty : ":\r\n"));
+
+            if (error != null)
+            {
+                // define a string for storing the StackTrace, defaulting to null
+                string stack = null;
+                // I don't know if it's dangerous to pull out the StackTrace, so I wrap it safely
+                try
+                {
+                    stack = error.StackTrace;
+                }
+                catch
+                {
+                }
+
+                // keep track of how many inner exceptions have recursed to increase tab amount
+                int tabCounter = 1;
+                // define function to build spaces by tab count
+                Func<int, string> makeTabs = tabCount =>
+                    new string(Enumerable.Range(0, 4 * tabCount)// the "4 *" multiplier means each tab is 4 spaces
+                        .Select(currentTabSpace => ' ')// components of the tab are spaces
+                        .ToArray());
+
+                // recurse through inner exceptions, each time with an extra tab appended
+                while (error != null)
+                {
+                    // write the current exception message to the log after the tabCounter worth of tabs
+                    messageBuilder.Append(makeTabs(tabCounter) +
+                        error.Message + "\r\n");
+
+                    tabCounter++;
+
+                    // prepare for next inner exception recursion
+                    error = error.InnerException;
+                }
+
+                // if a StackTrace was found,
+                // then write it to the log
+                if (!string.IsNullOrWhiteSpace(stack))
+                {
+                    // write the StackTrace to the log with 1 tab
+                    messageBuilder.Append(makeTabs(1) + "StackTrace:" + Environment.NewLine +
+                        stack + "\r\n");
+                }
+            }
+
+            CloudApiPublic.JsonContracts.Message errorMessage = new CloudApiPublic.JsonContracts.Message()
+            {
+                Value = messageBuilder.ToString()
+            };
+
+            string errorString;
+            using (System.IO.MemoryStream ms = new System.IO.MemoryStream())
+            {
+                MessageSerializer.WriteObject(ms, errorMessage);
+                errorString = Encoding.Default.GetString(ms.ToArray());
+            }
+
+            byte[] errorResponseBytes = Encoding.UTF8.GetBytes(errorString);
+
+            toProcess.Response.ContentLength64 = errorResponseBytes.LongLength;
+
+            toProcess.Response.OutputStream.Write(errorResponseBytes, 0, errorResponseBytes.Length);
+        }
+
         public static void WriteRandomETag(HttpListenerContext toProcess)
         {
             toProcess.Response.Headers.Add("ETag", "\"" + Guid.NewGuid().ToString("N") + "\"");

@@ -74,13 +74,13 @@ namespace SyncTestServer.SubProcessors
                     responseBody = Encoding.Default.GetString(ms.ToArray());
                 }
 
-                byte[] requestBodyBytes = Encoding.UTF8.GetBytes(responseBody);
+                byte[] responseBodyBytes = Encoding.UTF8.GetBytes(responseBody);
 
                 toProcess.Response.ContentType = "application/json; charset=utf-8";
                 toProcess.Response.SendChunked = true;
                 toProcess.Response.StatusCode = 200;
 
-                toProcess.Response.OutputStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
+                toProcess.Response.OutputStream.Write(responseBodyBytes, 0, responseBodyBytes.Length);
             }
         }
     }

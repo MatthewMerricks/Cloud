@@ -42,7 +42,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionProcessors\get_file.cs" />
     <Compile Include="ActionProcessors\private.cs" />
+    <Compile Include="ActionProcessors\put_file.cs" />
     <Compile Include="ActionProcessors\SubProcessors\from_cloud.cs" />
     <Compile Include="ActionProcessors\SubProcessors\purge_pending.cs" />
     <Compile Include="ActionProcessors\SubProcessors\to_cloud.cs" />
@@ -82,6 +84,7 @@
     <Compile Include="Static\Helpers.cs" />
     <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="SyncLinks\JsonContracts\Message.cs" />
+    <Compile Include="SyncLinks\JsonContracts\PutFileResponse.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Model\SyncTestScenario.xsd">

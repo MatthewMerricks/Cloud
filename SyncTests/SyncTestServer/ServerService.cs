@@ -31,16 +31,16 @@ namespace SyncTestServer
         private static readonly HttpActionProcessor[] ActionProcessors = new HttpActionProcessor[]
         {
             global::SyncTestServer.ActionProcessors.sync.Instance,
-            global::SyncTestServer.ActionProcessors.@private.Instance
+            global::SyncTestServer.ActionProcessors.@private.Instance,
+            global::SyncTestServer.ActionProcessors.get_file.Instance,
+            global::SyncTestServer.ActionProcessors.put_file.Instance
         };
         private readonly Dictionary<string, HttpActionProcessor> HttpPrefixToActionProcessor = ActionProcessors.ToDictionary(httpPrefix => httpPrefix.HttpPrefix,
             StringComparer.InvariantCultureIgnoreCase);
 
         private readonly HttpListener listener = new HttpListener();
         private readonly Thread listenerThread = new Thread(new ParameterizedThreadStart(HandleListenerRequests));
-        private readonly Thread[] listenerContextProcessors = Enumerable.Range(0, Environment.ProcessorCount)
-            .Select(currentProcessor => new Thread(new ParameterizedThreadStart(ListenerContextProcessor)))
-            .ToArray();
+        private readonly Thread[] listenerContextProcessors = new[] { new Thread(new ParameterizedThreadStart(ListenerContextProcessor)) };
         private readonly ManualResetEvent listenerStop = new ManualResetEvent(false);
         private readonly ManualResetEvent listenerReady = new ManualResetEvent(false);
         private readonly Queue<HttpListenerContext> listenerContexts = new Queue<HttpListenerContext>();
@@ -141,53 +141,94 @@ namespace SyncTestServer
 
                     try
                     {
-                        //process request here
-                        ////CloudApiPublic.Model.CLDefinitions.HttpPrefix
-                        // http://
-
-                        ////dequeuedContext.Request.UserHostName
-                        // mds-edge.cloudburrito.com
-
-                        ////dequeuedContext.Request.RawUrl
-                        // /private/purge-pending
-
-                        int secondForwardSlash;
-                        string addressThroughDomain = CloudApiPublic.Model.CLDefinitions.HttpPrefix + // http://
-                            dequeuedContext.Request.UserHostName; // mds-edge.cloudburrito.com
-                        string listenerFirstPath = addressThroughDomain +
-                            ((secondForwardSlash = dequeuedContext.Request.RawUrl.IndexOf('/', 1)) < 0
-                                ? dequeuedContext.Request.RawUrl // /get_file
-                                : dequeuedContext.Request.RawUrl.Substring(0, secondForwardSlash)) + "/"; // /private/purge-pending
-                        // result:
-                        // http://mds-edge.cloudburrito.com/private/
-                        // or
-                        // http://upd-edge.cloudburrito.com/get_file/
-
-                        string listenerFullPath = addressThroughDomain +
-                            dequeuedContext.Request.RawUrl.Split('?')[0];
-
-                        SyncTestServer.Static.Helpers.WriteStandardHeaders(dequeuedContext);
-
-                        HttpActionProcessor retrieveProcessor;
-                        if (!thisService.HttpPrefixToActionProcessor.TryGetValue(listenerFirstPath, out retrieveProcessor)
-                            || !retrieveProcessor.ProcessContext(dequeuedContext, thisService.ServerData, listenerFirstPath, listenerFullPath, dequeuedContext.Request.QueryString))
-                        {
-                            ThreadPool.QueueUserWorkItem(NotFoundState =>
-                                {
-                                    System.Windows.MessageBox.Show("Unable to find processor at address: " +
-                                        ((NotFoundState as string) ?? "{unable to cast NotFoundState}"));
-                                }, listenerFullPath);
-
-                            SyncTestServer.Static.Helpers.WriteNotFoundResponse(dequeuedContext);
-                        }
-
-                        dequeuedContext.Response.Close();
+                        ThreadPool.UnsafeQueueUserWorkItem(UncastProcessServerMethod,
+                            new KeyValuePair<ServerService, HttpListenerContext>(thisService, dequeuedContext));
                     }
                     catch (Exception ex)
                     {
                         System.Windows.MessageBox.Show("Error in ListenerContextProcessor: " + ex.Message);
                     }
                 }
+            }
+        }
+
+        private static void UncastProcessServerMethod(object state)
+        {
+            Nullable<KeyValuePair<ServerService, HttpListenerContext>> castState = state as Nullable<KeyValuePair<ServerService, HttpListenerContext>>;
+            if (castState == null)
+            {
+                System.Windows.MessageBox.Show("Unable to cast state as Nullable<KeyValuePair<ServerService, HttpListenerContext>>, cannot process server method");
+            }
+            else
+            {
+                KeyValuePair<ServerService, HttpListenerContext> nonNullState = (KeyValuePair<ServerService, HttpListenerContext>)castState;
+
+                ProcessServerMethod(nonNullState.Key, nonNullState.Value);
+            }
+        }
+
+        private static void ProcessServerMethod(ServerService thisService, HttpListenerContext dequeuedContext)
+        {
+            try
+            {
+                //process request here
+                ////CloudApiPublic.Model.CLDefinitions.HttpPrefix
+                // http://
+
+                ////dequeuedContext.Request.UserHostName
+                // mds-edge.cloudburrito.com
+
+                ////dequeuedContext.Request.RawUrl
+                // /private/purge-pending
+
+                int secondForwardSlash;
+                string addressThroughDomain = CloudApiPublic.Model.CLDefinitions.HttpPrefix + // http://
+                    dequeuedContext.Request.UserHostName; // mds-edge.cloudburrito.com
+                string listenerFirstPath = addressThroughDomain +
+                    ((secondForwardSlash = dequeuedContext.Request.RawUrl.IndexOf('/', 1)) < 0
+                        ? dequeuedContext.Request.RawUrl // /get_file
+                        : dequeuedContext.Request.RawUrl.Substring(0, secondForwardSlash)) + "/"; // /private/purge-pending
+                // result:
+                // http://mds-edge.cloudburrito.com/private/
+                // or
+                // http://upd-edge.cloudburrito.com/get_file/  <<-- translated to add the trailing slash
+
+                string listenerFullPath = addressThroughDomain +
+                    dequeuedContext.Request.RawUrl.Split('?')[0];
+
+                SyncTestServer.Static.Helpers.WriteStandardHeaders(dequeuedContext);
+
+                HttpActionProcessor retrieveProcessor;
+                if (!thisService.HttpPrefixToActionProcessor.TryGetValue(listenerFirstPath, out retrieveProcessor)
+                    || !retrieveProcessor.ProcessContext(dequeuedContext, thisService.ServerData, listenerFirstPath, listenerFullPath, dequeuedContext.Request.QueryString))
+                {
+                    ThreadPool.QueueUserWorkItem(NotFoundState =>
+                    {
+                        System.Windows.MessageBox.Show("Unable to find processor at address: " +
+                            ((NotFoundState as string) ?? "{unable to cast NotFoundState}"));
+                    }, listenerFullPath);
+
+                    SyncTestServer.Static.Helpers.WriteNotFoundResponse(dequeuedContext);
+                }
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    SyncTestServer.Static.Helpers.WriteInternalServerError(dequeuedContext, ex);
+                }
+                catch
+                {
+                }
+            }
+
+            try
+            {
+                dequeuedContext.Response.Close();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Error closing dequeuedContext Response: " + ex.Message);
             }
         }
         #endregion

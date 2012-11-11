@@ -1,0 +1,215 @@
+before sync:
+c C:\a
+c C:\d.txt
+
+one hierarchical dictionary problem:
+d C:\a
+c C:\a (cannot simply replace C:\a)
+
+folder events remain logical in order, only need to filter file events
+can use one hierarchical dictionary only for files?:
+(also store order of appearance of files to maintain order, but do not interdisperse files with folders instead files always last)
+
+event 1:
+c C:\a\b.txt
+<>
+c C:\a\b.txt
+
+event 2:
+m C:\a\b.txt <-- replace metadata on existing value but retain 'create' type
+<>
+c C:\a\b.txt
+
+event 3:
+r C:\a -> C:\d
+<>
+c C:\d\b.txt
+
+event 4:
+c C:\d\e.txt
+<>
+c C:\d\b.txt
+c C:\d\e.txt
+
+event 5:
+d C:\d
+<>
+
+
+
+
+logical events:
+// following doesn't take into account new folder creation date
+d C:\d.txt
+d C:\b.txt
+c C:\b.txt
+
+OR
+
+d C:\a
+c C:\a
+c C:\a\b.txt
+
+
+need to create parent folders on the server if they don't already exist
+
+
+
+create
+rename old to new
+delete new location
+create new location
+<>
+create at new location
+
+modify old location
+rename old to new
+modify new location
+rename new to newer
+<>
+add rename to user events?? no, doesn't work with delete
+delete and creation?? no, inconvenient on client
+(before last modify:)
+rename old to new
+	-- modify at new location
+(after last modify:)
+rename old to new
+	-- latest modify at new location
+(after last rename:)
+rename old to newer
+	-- latest modify at new location
+
+
+create should never follow anything except delete
+
+
+modify
+delete
+create
+
+
+modify new location
+delete new location
+rename old location to new location
+<>
+delete new location
+rename old location to new location
+
+delete new location
+rename old location to new location
+{cannot have a create here}
+
+delete new location
+rename old location to new location
+modify new location
+<>
+same
+
+delete new location
+rename old location to new location
+modify new location
+rename new location to newer location
+<>
+delete new location
+AND
+rename old location to newer location
+modify newer location
+
+delete old location
+create old location (converts to modify)
+rename old location to new location
+<>
+rename old location to new location
+modify new location
+which is weird instead of:
+delete old location
+create new location
+
+delete new location
+rename old location to new location
+delete new location
+<>
+delete old location
+delete new location
+
+rename old location to new location
+delete new location
+delete parent folder of new location
+<>
+delete old location
+delete parent folder of new location
+
+rename old location to new location
+delete new location
+delete parent folder of old location
+delete parent folder of new location
+<>
+{would not know not to do the previous thing}
+
+
+
+New approach:
+build presumed starting hierarchy (using only new events)
+build final hierarchy
+calculate difference (with some ordering???)
+
+starting:
+\
+\A
+\A\B.txt
+
+new events:
+create \C
+rename \A\B.txt to \C\B.txt
+delete \A
+
+
+rename C:\A\B to C:\D\C
+
+
+presumed starting is empty and final starting is empty
+create \C
+check highest parents first
+if change is rename
+	if final does not contain {old path parent}
+		if starting does not contain {old path parent}
+			add {old path parent} to starting
+		if final does not contain root
+			add root to final
+else
+	if final does not contain root
+		if starting does not contain root
+			add root to starting
+		add root to final
+when no more parents, handle by type
+for create
+	add \C to final
+for delete
+	if starting does not contain \C
+		add \C to starting with previous metadata
+	recursively remove \C from final
+for rename
+	if starting does not contain {old path}
+	recursively rename {old path} to \C
+for modify
+
+
+rename C:\Z\A\B to C:\Z\D\C
+rename C:\Z\D to C:\Y
+
+starting needs C:\, C:\Z, C:\Z\A, C:\Z\A\B, C:\Z\D
+final needs C:\, C:\Z, C:\Z\A, C:\Y, C:\Y\C
+
+
+start at C:\
+
+changes made on computer 1:
+create folder C:\A
+create folder C:\A\B (Computer 2 is up to date to this point)
+create file C:\A\B\C.txt
+create folder C:\D
+rename folder C:\A to C:\E
+rename file C:\E\B\C.txt to C:\D\C.txt
+modify file C:\D\C.txt
+delete folder C:\E\B
+

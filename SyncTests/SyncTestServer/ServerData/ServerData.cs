@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using System.Xml.Schema;
 using System.Xml;
+using System.IO;
 
 namespace SyncTestServer
 {
@@ -571,8 +572,8 @@ namespace SyncTestServer
                         ? toEvent.Metadata.RelativeToPath
                         : toEvent.Metadata.RelativePath),
                     OldPath = (CloudApiPublic.Model.CLDefinitions.SyncHeaderRenames.Contains(toEvent.Header.Action)
-                        ? null
-                        : GenerateFilePathFromForwardSlashRelativePath(toEvent.Metadata.RelativeFromPath)),
+                        ? GenerateFilePathFromForwardSlashRelativePath(toEvent.Metadata.RelativeFromPath)
+                        : null),
                     Type = ParseEventStringToType(toEvent.Header.Action),
                     Metadata = new FileMetadata()
                     {
@@ -606,7 +607,7 @@ namespace SyncTestServer
                     if (newChange.Metadata.HashableProperties.IsFolder)
                     {
                         FileMetadata existingMetadata;
-                        if (MetadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out existingMetadata))
+                        if (_metadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out existingMetadata))
                         {
                             if (existingMetadata.HashableProperties.IsFolder)
                             {
@@ -617,7 +618,7 @@ namespace SyncTestServer
                                 toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
                             }
                         }
-                        else if (MetadataProvider.AddFolderMetadata(syncId, currentUser.Id, newChange.NewPath, newChange.Metadata))
+                        else if (_metadataProvider.AddFolderMetadata(syncId, currentUser.Id, newChange.NewPath, newChange.Metadata))
                         {
                             toEvent.Header.Status = CLDefinitions.CLEventTypeAccepted;
                         }
@@ -631,7 +632,7 @@ namespace SyncTestServer
                         bool isPending;
                         bool newUpload;
                         FileMetadata existingMetadata;
-                        if (MetadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out existingMetadata))
+                        if (_metadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out existingMetadata))
                         {
                             byte[] latestMD5;
                             if (existingMetadata.HashableProperties.IsFolder
@@ -643,7 +644,7 @@ namespace SyncTestServer
                             {
                                 toEvent.Header.Status = CLDefinitions.CLEventTypeDuplicate;
                             }
-                            else if (ServerStorage.DoesFileHaveEarlierRevisionOfUndeletedFile(syncId, currentUser.Id, newChange.NewPath, (long)newChange.Metadata.HashableProperties.Size, newMD5, out latestMD5))
+                            else if (_serverStorage.DoesFileHaveEarlierRevisionOfUndeletedFile(syncId, currentUser.Id, newChange.NewPath, (long)newChange.Metadata.HashableProperties.Size, newMD5, out latestMD5))
                             {
                                 toEvent.Metadata = new CloudApiPublic.JsonContracts.Metadata()
                                 {
@@ -673,7 +674,7 @@ namespace SyncTestServer
                         }
                         else
                         {
-                            if (MetadataProvider.AddFileMetadata(syncId, currentUser.Id, currentDevice.Id, newChange.NewPath, newChange.Metadata, out isPending, out newUpload, newMD5))
+                            if (_metadataProvider.AddFileMetadata(syncId, currentUser.Id, currentDevice.Id, newChange.NewPath, newChange.Metadata, out isPending, out newUpload, newMD5))
                             {
                                 if (isPending)
                                 {
@@ -705,12 +706,12 @@ namespace SyncTestServer
                 case CloudApiPublic.Static.FileChangeType.Deleted:
                     FileMetadata deleteMetadata;
                     if (!newChange.Metadata.HashableProperties.IsFolder
-                        && MetadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out deleteMetadata)
+                        && _metadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out deleteMetadata)
                         && deleteMetadata.Revision != newChange.Metadata.Revision)
                     {
                         toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
                     }
-                    else if (MetadataProvider.RecursivelyRemoveMetadata(syncId, currentUser.Id, newChange.NewPath))
+                    else if (_metadataProvider.RecursivelyRemoveMetadata(syncId, currentUser.Id, newChange.NewPath))
                     {
                         toEvent.Header.Status = CLDefinitions.CLEventTypeAccepted;
                     }
@@ -724,7 +725,7 @@ namespace SyncTestServer
                     bool modifiedPending;
                     bool modifiedNew;
                     bool modifiedConflict;
-                    if (MetadataProvider.UpdateMetadata(syncId, currentUser.Id, currentDevice.Id, newChange.Metadata.Revision, newChange.NewPath, newChange.Metadata, out modifiedPending, out modifiedNew, out modifiedConflict, newMD5))
+                    if (_metadataProvider.UpdateMetadata(syncId, currentUser.Id, currentDevice.Id, newChange.Metadata.Revision, newChange.NewPath, newChange.Metadata, out modifiedPending, out modifiedNew, out modifiedConflict, newMD5))
                     {
                         if (modifiedConflict)
                         {
@@ -762,12 +763,12 @@ namespace SyncTestServer
                 case CloudApiPublic.Static.FileChangeType.Renamed:
                     FileMetadata renameMetadata;
                     if (!newChange.Metadata.HashableProperties.IsFolder
-                        && MetadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out renameMetadata)
+                        && _metadataProvider.TryGetMetadata(currentUser.Id, newChange.NewPath, out renameMetadata)
                         && renameMetadata.Revision != newChange.Metadata.Revision)
                     {
                         toEvent.Header.Status = CLDefinitions.CLEventTypeConflict;
                     }
-                    else if (MetadataProvider.RecursivelyRenameMetadata(syncId, currentUser.Id, newChange.OldPath, newChange.NewPath))
+                    else if (_metadataProvider.RecursivelyRenameMetadata(syncId, currentUser.Id, newChange.OldPath, newChange.NewPath))
                     {
                         toEvent.Header.Status = CLDefinitions.CLEventTypeAccepted;
                     }
@@ -780,6 +781,58 @@ namespace SyncTestServer
                 default:
                     throw new Exception("Unknown FileChangeType newChange.Type: " + newChange.Type.ToString());
             }
+        }
+
+        public bool WriteUpload(Stream toWrite, string storageKey, long contentLength, string contentMD5, User currentUser, bool disposeStreamAfterWrite = true)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("Not Initialized, call InitializeServer first");
+                }
+            }
+
+            if (contentMD5 == null)
+            {
+                throw new NullReferenceException("contentMD5 cannot be null");
+            }
+            if (!System.Text.RegularExpressions.Regex.IsMatch(contentMD5, "[a-fA-F\\d]{32}", System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.CultureInvariant))
+            {
+                throw new ArgumentException("contentMD5 must be 32 hexadecimal characters");
+            }
+            if (currentUser == null)
+            {
+                throw new ArgumentException("currentUser cannot be null");
+            }
+
+            return _serverStorage.WriteFile(toWrite,
+                storageKey,
+                contentLength,
+                Enumerable.Range(0, 32)
+                    .Where(currentHex => currentHex % 2 == 0)
+                    .Select(currentHex => Convert.ToByte(contentMD5.Substring(currentHex, 2), 16))
+                    .ToArray(),
+                currentUser.Id,
+                false);
+        }
+
+        public Stream GetDownload(string storageKey, User currentUser, out long fileSize)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("Not Initialized, call InitializeServer first");
+                }
+            }
+
+            if (currentUser == null)
+            {
+                throw new NullReferenceException("currentUser cannot be null");
+            }
+
+            return _serverStorage.ReadFile(storageKey, currentUser.Id, out fileSize);
         }
         #endregion
 
