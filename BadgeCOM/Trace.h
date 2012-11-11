@@ -10,8 +10,6 @@
 #include <iostream>
 #include <fstream>
 
-using namespace std;
-
 class Trace
 {
 private:

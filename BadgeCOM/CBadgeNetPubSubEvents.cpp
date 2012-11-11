@@ -83,6 +83,7 @@ CBadgeNetPubSubEvents::~CBadgeNetPubSubEvents(void)
         // Free the CPubSubServer COM object
         if (_pPubSubServer != NULL)
         {
+			_pPubSubServer->Terminate();
             _pPubSubServer->Release();
             _pPubSubServer = NULL;
         }
@@ -214,6 +215,9 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
         		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: Already Cancelled: From Subscribe.  Result: %d.", result);
                 break;
             }
+
+			// Free the out parameter BSTR allocated by the COM server.
+			SysFreeString(bsFullPath);
 
             // We're alive
             pThis->_locker.lock();

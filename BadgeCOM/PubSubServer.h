@@ -1,4 +1,9 @@
-// PubSubServer.h : Declaration of the CPubSubServer
+//
+// PubSubServer.h
+// Cloud Windows COM
+//
+// Created By BobS.
+// Copyright (c) Cloud.com. All rights reserved.
 
 #pragma once
 #include "resource.h"       // main symbols
@@ -16,6 +21,8 @@
 #include <boost\interprocess\sync\interprocess_semaphore.hpp>
 #include <boost\interprocess\sync\scoped_lock.hpp>
 #include <boost\interprocess\detail\move.hpp>
+#include <boost\thread.hpp>
+#include "Trace.h"
 #include "BadgeCOM_i.h"
 
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
@@ -201,9 +208,17 @@ public:
     // Public OLE accessible properties
     STDMETHOD(get_SharedMemoryName)(BSTR* pVal);
 private:
+	// Private methods
+	void DeleteSubscriptionByGuid(Base * base, GUID guid);
 
-    // Pointer to the managed native windows shared memory segment.
-    static managed_windows_shared_memory *_pSegment;
+	// Private instance fields
+	std::vector<GUID> _subscriptionIds;						// list of subscriptions created by this instance
+	boost::mutex _lockerLocal;								// local locker
+	
+
+	// Private static fields
+    static managed_windows_shared_memory *_pSegment;		// Pointer to the managed native windows shared memory segment.
+	static int _nSegmentReferenceCounter;					// reference counter for _pSegment.
 
     // Private static constants
     static const OLECHAR *_ksSharedMemoryName;              // the name of the shared memory segment
