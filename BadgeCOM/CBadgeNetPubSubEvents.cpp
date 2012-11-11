@@ -28,6 +28,7 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void)
     try
     {
         // Initialize private fields
+		CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Entry.");
         _pPubSubServer = NULL;
         _threadSubscribingHandle = NULL;
         _threadWatchingHandle = NULL;
@@ -70,6 +71,7 @@ CBadgeNetPubSubEvents::~CBadgeNetPubSubEvents(void)
     // Kill both threads
     try
     {
+		CLTRACE(9, "CBadgeNetPubSubEvents: ~CBadgeNetPubSubEvents: Entry.");
         KillSubscribingThread();
         KillWatchingThread();
     }
@@ -126,7 +128,8 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
 {
     try
     {
-        if (_pPubSubServer == NULL)
+		CLTRACE(9, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: Entry. EventType: %d. EventSubType: %d. BadgeType: %d.", eventType, eventSubType, badgeType);
+        if (_pPubSubServer == NULL || fullPath == NULL)
         {
             throw new std::exception("Call Initialize() first");
         }
@@ -151,6 +154,7 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
 void CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
 {
     // Start the threads.
+	CLTRACE(9, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: Entry.");
     StartSubscribingThread();
     StartWatchingThread();
 }
@@ -162,6 +166,13 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 {
     try
     {
+		CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Entry.");
+		if (pUserState == NULL)
+		{
+    		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: User state is NULL.");
+            throw new std::exception("pUserState must not be NULL");
+		}
+
         // Cast the user state to an object instance
         CBadgeNetPubSubEvents *pThis = (CBadgeNetPubSubEvents *)pUserState;
 
@@ -181,7 +192,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             EnumEventSubType eventSubType;
             EnumCloudAppIconBadgeType badgeType;
             BSTR bsFullPath;                                // allocated by Subscribe.  Must be freed eventually (SysFreeString()).
-            hr = pThis->_pPubSubServer->Subscribe(BadgeCom_To_BadgeNet, pThis->_guidSubscription, _kMillisecondsTimeoutSubscribingThread, &eventSubType, &badgeType, &bsFullPath, &result);
+            hr = pThis->_pPubSubServer->Subscribe(BadgeNet_To_BadgeCom, pThis->_guidSubscription, _kMillisecondsTimeoutSubscribingThread, &eventSubType, &badgeType, &bsFullPath, &result);
             if (!SUCCEEDED(hr))
             {
         		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: From Subscribe.  hr: %d.", hr);
@@ -204,6 +215,9 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
                         pThis->FireEventRemoveBadgePath(bsFullPath);
                         break;
                 }
+
+				// Free the out parameter BSTR allocated by the COM server.
+				SysFreeString(bsFullPath);
             }
             else if (result == RC_SUBSCRIBE_ERROR)
             {
@@ -215,9 +229,6 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
         		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: Already Cancelled: From Subscribe.  Result: %d.", result);
                 break;
             }
-
-			// Free the out parameter BSTR allocated by the COM server.
-			SysFreeString(bsFullPath);
 
             // We're alive
             pThis->_locker.lock();
@@ -240,10 +251,17 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
 {
     // Cast the user state to an object instance
+	CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Entry.");
     CBadgeNetPubSubEvents *pThis = (CBadgeNetPubSubEvents *)pUserState;
 
     try
     {
+		if (pUserState == NULL)
+		{
+    		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: User state is NULL.");
+			throw new std::exception("pUserState must not be NULL");
+		}
+
         bool fRestartSubscribingThread;
 
         while (true)
@@ -257,7 +275,9 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
             {
                 if (!pThis->_isSubscriberThreadAlive)
                 {
-                    fRestartSubscribingThread = true;
+					//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REPLACE FOLLOWING STATEMEN &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+                    //fRestartSubscribingThread = true;
+					//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REPLACE FOLLOWING STATEMEN &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
                 }
 
                 pThis->_isSubscriberThreadAlive = false;               // reset it for the next look
@@ -267,6 +287,7 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
             // Restart the subscribing thread if we need to
             if (fRestartSubscribingThread)
             {
+				CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: Call RestartSubscribingThread().");
                 pThis->RestartSubcribingThread();
             }
         }
@@ -274,8 +295,11 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
     catch (std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: Exception.  Message: %s.", ex.what());
-        pThis->FireEventSubscriptionWatcherFailed();                // notify the delegates
-        pThis->KillSubscribingThread();
+		if (pThis != NULL)
+		{
+	        pThis->FireEventSubscriptionWatcherFailed();                // notify the delegates
+			pThis->KillSubscribingThread();
+		}
     }
 }
 
@@ -286,11 +310,13 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
 {
     try
     {
+		CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Entry.");
         _locker.lock();
         {
             if (_pPubSubServer != NULL)
             {
                 // Ask the subscribing thread to exit gracefully.
+				CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Call CancelWaitingSubscription.");
                 EnumPubSubServerCancelWaitingSubscriptionReturnCodes result;
                 HRESULT hr = _pPubSubServer->CancelWaitingSubscription(BadgeCom_To_BadgeNet, _guidSubscription, &result);
                 if (!SUCCEEDED(hr))
@@ -328,6 +354,7 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
                 }
                 else
                 {
+					CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Thread is dead.");
                     fThreadDead = true;
                     break;
                 }
@@ -335,6 +362,7 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
 
             if (!fThreadDead)
             {
+				CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Call TerminateThread.");
                 TerminateThread(_threadSubscribingHandle, 9999);
             }
         }
@@ -354,10 +382,12 @@ void CBadgeNetPubSubEvents::KillWatchingThread()
 {
     try
     {
+		CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Entry.");
         _locker.lock();
         {
             if (_threadWatchingHandle != NULL)
             {
+				CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Call TerminateThread.");
                 TerminateThread(_threadWatchingHandle, 9999);
                 _threadWatchingHandle = NULL;
             }
@@ -377,6 +407,7 @@ void CBadgeNetPubSubEvents::StartSubscribingThread()
 {
     try
     {
+		CLTRACE(9, "CBadgeNetPubSubEvents: StartSubscribingThread: Entry.");
         _locker.lock();
         {
             // Start a thread to subscribe and process BadgeCom initialization events.  Upon receiving one of these events,
@@ -412,6 +443,7 @@ void CBadgeNetPubSubEvents::StartWatchingThread()
 {
     try
     {
+		CLTRACE(9, "CBadgeNetPubSubEvents: StartWatchingThread: Entry.");
         _locker.lock();
         {
             // Start a thread to watch the thread that is watching BadgeCom.  This is necessary because BadgeCom may crash with
@@ -445,6 +477,7 @@ void CBadgeNetPubSubEvents::StartWatchingThread()
 /// </summary>
 void CBadgeNetPubSubEvents::RestartSubcribingThread()
 {
+	CLTRACE(9, "CBadgeNetPubSubEvents: RestartSubcribingThread: Entry.");
     KillSubscribingThread();
     StartSubscribingThread();
 }

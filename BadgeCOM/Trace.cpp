@@ -6,6 +6,7 @@
 #include "time.h"
 #include "limits.h"
 #include <string>
+
 using namespace std;
 
 bool Trace::instanceFlag = false;

@@ -120,7 +120,7 @@ namespace BadgeNET
                     EnumEventSubType outEventSubType;
                     EnumCloudAppIconBadgeType outBadgeType;
                     string outFullPath;
-                    EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeNet_To_BadgeCom, _guidSubscription, _kMillisecondsTimeoutSubscribingThread,
+                    EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscription, _kMillisecondsTimeoutSubscribingThread,
                                  out outEventSubType, out outBadgeType, out outFullPath);
                     if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_GOT_EVENT)
                     {

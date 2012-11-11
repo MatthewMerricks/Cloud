@@ -71,14 +71,14 @@ public:
 	typedef managed_windows_shared_memory::segment_manager          segment_manager_t;      // this is the segment_manager
 
 	// Define the allocators.
-	typedef allocator<void, segment_manager_t>              void_allocator;         // void_allocator is convertible to any other allocator<T>.
-	typedef allocator<int, segment_manager_t>               int_allocator;          // allocator for allocating ints.
-	typedef vector<int, int_allocator>                      int_vector;             // an int_vector is a vector of ints.
-	typedef allocator<int_vector, segment_manager_t>        int_vector_allocator;   // an allocator for allocating vectors of ints.
-	typedef vector<int_vector, int_vector_allocator>        int_vector_vector;      // an int_vector_vector is a vecctor of (vectors of ints)
-	typedef allocator<interprocess_semaphore, segment_manager_t>  semaphore_allocator;   // an allocator for interprocess_semaphore
-    typedef allocator<WCHAR, segment_manager_t>             wchar_allocator;        // an allocator for wide chars.
-    typedef basic_string<WCHAR, std::char_traits<WCHAR>, wchar_allocator>  wchar_string;  // a basic_string (which supports formatting).  This is built on a collection of wide chars, allocated by wchar_alloctor.
+	typedef boost::interprocess::allocator<void, segment_manager_t>              void_allocator;         // void_allocator is convertible to any other allocator<T>.
+	typedef boost::interprocess::allocator<int, segment_manager_t>               int_allocator;          // allocator for allocating ints.
+	typedef boost::interprocess::vector<int, int_allocator>                      int_vector;             // an int_vector is a vector of ints.
+	typedef boost::interprocess::allocator<int_vector, segment_manager_t>        int_vector_allocator;   // an allocator for allocating vectors of ints.
+	typedef boost::interprocess::vector<int_vector, int_vector_allocator>        int_vector_vector;      // an int_vector_vector is a vecctor of (vectors of ints)
+	typedef boost::interprocess::allocator<interprocess_semaphore, segment_manager_t>  semaphore_allocator;   // an allocator for interprocess_semaphore
+    typedef boost::interprocess::allocator<WCHAR, segment_manager_t>             wchar_allocator;        // an allocator for wide chars.
+    typedef boost::interprocess::basic_string<WCHAR, std::char_traits<WCHAR>, wchar_allocator>  wchar_string;  // a basic_string (which supports formatting).  This is built on a collection of wide chars, allocated by wchar_alloctor.
 
 	// Event types:  Note this is defined in the .IDL file.
 	//enum EnumEventTypeX
@@ -117,8 +117,8 @@ public:
 	};
 
 	// Event allocators
-	typedef allocator<EventMessage, segment_manager_t>		EventMessage_allocator;			// allocator for allocating EventMessage
-	typedef vector<EventMessage, EventMessage_allocator>	EventMessage_vector;			// vector of EventMessage objects.
+	typedef boost::interprocess::allocator<EventMessage, segment_manager_t>		EventMessage_allocator;			// allocator for allocating EventMessage
+	typedef boost::interprocess::vector<EventMessage, EventMessage_allocator>	EventMessage_vector;			// vector of EventMessage objects.
 
 	// Subscription class
 	class Subscription
@@ -162,14 +162,14 @@ public:
 			fDestructed_ = true;
 
 			// Deallocate the semaphore
-			_pSegment->destroy_ptr(pSemaphoreSubscription_.get());
+			pSemaphoreSubscription_->~interprocess_semaphore();
 		}
 	};
 
 	// Define the types related to Subscription
-	typedef allocator<Subscription, segment_manager_t>                      subscription_allocator;     // allocator for allocating Subscription
-	typedef vector<Subscription, subscription_allocator>                    subscription_vector;    // a vector of Subscriptions
-	typedef allocator<subscription_vector, segment_manager_t>               subscription_vector_allocator;  // allocator for allocating a vector of Subscription.
+	typedef boost::interprocess::allocator<Subscription, segment_manager_t>                      subscription_allocator;     // allocator for allocating Subscription
+	typedef boost::interprocess::vector<Subscription, subscription_allocator>                    subscription_vector;    // a vector of Subscriptions
+	typedef boost::interprocess::allocator<subscription_vector, segment_manager_t>               subscription_vector_allocator;  // allocator for allocating a vector of Subscription.
 
 	// Base class to hold all of the data in shared memory.
 	class Base
@@ -185,7 +185,7 @@ public:
 
 	// Definition of the map holding all of the data.  There will just be a single map element with key "base".  The value
 	// will be a complex container containing any required global data, plus the vector<Subscription>.
-	typedef allocator<Base, segment_manager_t>                              base_allocator;       // allocator for allocating Base
+	typedef boost::interprocess::allocator<Base, segment_manager_t>                              base_allocator;       // allocator for allocating Base
 
 	// Public OLE accessible methods
     STDMETHOD(Initialize)();

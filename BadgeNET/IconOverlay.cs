@@ -117,6 +117,7 @@ namespace BadgeNET
                 if (_badgeComPubSubEvents == null)
                 {
                     _badgeComPubSubEvents = new BadgeComPubSubEvents();
+                    _badgeComPubSubEvents.Initialize();
                     _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
                     _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
                 }
@@ -228,6 +229,7 @@ namespace BadgeNET
                 // Restart
                 _trace.writeToLog(1, "IconOverlay: OnDelayedTimerTick: Entry.  Restart BadgeComPubSubEvents.");
                 _badgeComPubSubEvents = new BadgeComPubSubEvents();
+                _badgeComPubSubEvents.Initialize();
                 _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
                 _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
             }

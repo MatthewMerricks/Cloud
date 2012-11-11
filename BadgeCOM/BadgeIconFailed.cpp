@@ -263,7 +263,7 @@ void CBadgeIconFailed::InitializeBadgeNetPubSubEvents()
 		_pBadgeNetPubSubEvents->SubscribeToBadgeNetEvents();
 
 		// Tell BadgeNet we just initialized.
-		BSTR dummy;
+		BSTR dummy(L"");
 		_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */);
 	}
 	catch(std::exception &ex)

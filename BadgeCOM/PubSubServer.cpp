@@ -64,7 +64,7 @@ STDMETHODIMP CPubSubServer::Initialize()
 /// <returns>(int via returnValue: See RC_PUBLISH_*.</returns>
 STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType EventSubType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, EnumPubSubServerPublishReturnCodes *returnValue)
 {
-	if (!_pSegment == NULL || returnValue == NULL || FullPath == NULL)
+	if (_pSegment == NULL || returnValue == NULL || FullPath == NULL)
 	{
 		CLTRACE(1, "PubSubServer: Publish: ERROR. _pSegment, FullPath and returnValue must all be non-NULL.");
 		return E_POINTER;
@@ -125,7 +125,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		// Now iterate through the subscribers attempting to deliver the event to each.
 		for (std::vector<GUID>::iterator itGuid = subscribers.begin(); itGuid != subscribers.end(); ++itGuid)
 		{
-			for (int nRetry; nRetry < knRetries; ++nRetry)
+			for (int nRetry = 0; nRetry < knRetries; ++nRetry)
 			{
 				// Find the subscription with this ID and try to deliver the event.  Lock around this action.
 				base->mutexSharedMemory_.lock();
@@ -209,7 +209,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
             BSTR *outFullPath,
             EnumPubSubServerSubscribeReturnCodes *returnValue)
 {
-	if (!_pSegment == NULL || returnValue == NULL || outEventSubType == NULL || outBadgeType == NULL || outFullPath == NULL)
+	if (_pSegment == NULL || returnValue == NULL || outEventSubType == NULL || outBadgeType == NULL || outFullPath == NULL)
 	{
 		CLTRACE(1, "PubSubServer: Subscribe: ERROR. One or more required parameters are NULL.");
 		return E_POINTER;
@@ -374,7 +374,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 /// </Summary>
 STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, GUID guidId, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue)
 {
-	if (!_pSegment == NULL || returnValue == NULL)
+	if (_pSegment == NULL || returnValue == NULL)
 	{
 		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR. _pSegment, and returnValue must all be non-NULL.");
 		return E_POINTER;
@@ -440,7 +440,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
                 // Give up some cycles.  Free the lock momentarily.
                 fIsLocked = false;
                 base->mutexSharedMemory_.unlock();
-                Sleep(1);
+                Sleep(50);
                 base->mutexSharedMemory_.lock();
                 fIsLocked = true;
 
@@ -499,8 +499,9 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 /// </Summary>
 STDMETHODIMP CPubSubServer::get_SharedMemoryName(BSTR* pVal)
 {
-	if (!_pSegment == NULL)
+	if (_pSegment == NULL)
 	{
+		CLTRACE(1, "PubSubServer: get_SharedMemoryName: ERROR. _pSegment is NULL.");
 		return E_POINTER;
 	}
 
