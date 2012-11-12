@@ -610,7 +610,130 @@ namespace CloudApiPublic.Model
                     rootSearch = rootSearch.Parent;
                 }
             }
-            if (!rootSearchStarted)
+            if (rootSearchStarted)
+            {
+                // if key paths did not match any inner folders
+                if (existingInnerFolder == null)
+                {
+                    // if key paths did not match any inner folders and the key was not in pathsAtCurrentLevel
+                    if (existingCurrentPath == null)
+                    {
+                        // a new current level path or an inner folder needs to be created to store the new value
+
+                        // if the child to be placed under the current level is the key itself,
+                        // then the key belongs directly under the current level as a new current level path
+                        if (rootChild.Equals(key))
+                        {
+                            // create pathsAtCurrentLevel as needed
+                            if (pathsAtCurrentLevel == null)
+                            {
+                                pathsAtCurrentLevel = new Dictionary<FilePath, T>(FilePathComparer.Instance);
+                            }
+                            _count++;
+                            pathsAtCurrentLevel.Add(key, value);
+                        }
+                        // else if the key is more than one level below the current path,
+                        // then create an innerFolder to recursively create the child directory structure
+                        else
+                        {
+                            // create innerFolders as needed
+                            if (innerFolders == null)
+                            {
+                                innerFolders = new Dictionary<FilePath, FilePathDictionary<T>>(FilePathComparer.Instance);
+                            }
+
+                            // create the FilePathDictionary to use as innerFolder
+                            FilePathDictionary<T> innerFolder;
+                            CLError innerFolderError = FilePathDictionary<T>.CreateAndInitialize(rootChild,
+                                out innerFolder,
+                                this.recursiveDeleteCallback,
+                                this.recursiveRenameCallback);
+                            if (innerFolderError != null)
+                            {
+                                throw innerFolderError.GrabFirstException();
+                            }
+
+                            // recursively call Add on innerFolder to build child structure and eventually add the value
+                            _count++;
+                            innerFolder.Add(key, value);
+
+                            // add the new innerFolder to innerFolders at the path directly below the current path
+                            innerFolders.Add(rootChild, innerFolder);
+                        }
+                    }
+                    // else if a path exists in pathsAtCurrentLevel for the key,
+                    // then throw alreadyExistsException
+                    else if (FilePathComparer.Instance.Equals(existingCurrentPath, key))
+                    {
+                        throw alreadyExistsException();
+                    }
+                    // else if a path exists at pathsAtCurrentLevel for a recursed parent of a key,
+                    // then the pathAtCurrentLevel needs to be made into an innerFolder to which the new key/value will be added
+                    else
+                    {
+                        // create innerFolders as necessary
+                        if (innerFolders == null)
+                        {
+                            innerFolders = new Dictionary<FilePath, FilePathDictionary<T>>(FilePathComparer.Instance);
+                        }
+
+                        // create the FilePathDictionary to use as innerFolder,
+                        // pass the optional parameter for its new CurrentValue from pathsAtCurrentLevel
+                        FilePathDictionary<T> innerFolder;
+                        CLError innerFolderError = FilePathDictionary<T>.CreateAndInitialize(rootChild,
+                            out innerFolder,
+                            this.recursiveDeleteCallback,
+                            this.recursiveRenameCallback,
+                            pathsAtCurrentLevel[existingCurrentPath]);
+                        if (innerFolderError != null)
+                        {
+                            throw innerFolderError.GrabFirstException();
+                        }
+
+                        // recursively call Add on innerFolder to build child structure and eventually add the value 
+                        _count++;
+                        innerFolder.Add(key, value);
+
+                        // add the new innerFolder to innerFolders at the path directly below the current path
+                        innerFolders.Add(rootChild, innerFolder);
+
+                        // remove the pathAtCurrentLevel that was converted to an innerFolder
+                        pathsAtCurrentLevel.Remove(rootChild);
+                    }
+                }
+                // else if key paths did match an innerFolder
+                else
+                {
+                    // store the innerFolder found for the key paths out of innerFolders
+                    FilePathDictionary<T> innerFolder = innerFolders[(FilePath)existingInnerFolder];
+
+                    // if the innerFolder has a path matching the key,
+                    // then only add the value if it does not have a current value;
+                    // if the innerFolder path matched and has a current value,
+                    // throw alreadyExistsException
+                    if (FilePathComparer.Instance.Equals((FilePath)existingInnerFolder, key))
+                    {
+                        if (innerFolder.CurrentValue == null)
+                        {
+                            _count++;
+                            innerFolder._count++;
+                            innerFolder.CurrentValue = value;
+                        }
+                        else
+                        {
+                            throw alreadyExistsException();
+                        }
+                    }
+                    // else if innerFolder path does not match key (instead matches a recursed parent of the key),
+                    // then recursively call Add on the innerFolder to add the key/value
+                    else
+                    {
+                        _count++;
+                        innerFolder.Add(key, value);
+                    }
+                }
+            }
+            else
             {
                 if (CurrentValue == null)
                 {
@@ -620,127 +743,6 @@ namespace CloudApiPublic.Model
                 else
                 {
                     throw alreadyExistsException();
-                }
-            }
-
-            // if key paths did not match any inner folders
-            if (existingInnerFolder == null)
-            {
-                // if key paths did not match any inner folders and the key was not in pathsAtCurrentLevel
-                if (existingCurrentPath == null)
-                {
-                    // a new current level path or an inner folder needs to be created to store the new value
-                    
-                    // if the child to be placed under the current level is the key itself,
-                    // then the key belongs directly under the current level as a new current level path
-                    if (rootChild.Equals(key))
-                    {
-                        // create pathsAtCurrentLevel as needed
-                        if (pathsAtCurrentLevel == null)
-                        {
-                            pathsAtCurrentLevel = new Dictionary<FilePath, T>(FilePathComparer.Instance);
-                        }
-                        _count++;
-                        pathsAtCurrentLevel.Add(key, value);
-                    }
-                    // else if the key is more than one level below the current path,
-                    // then create an innerFolder to recursively create the child directory structure
-                    else
-                    {
-                        // create innerFolders as needed
-                        if (innerFolders == null)
-                        {
-                            innerFolders = new Dictionary<FilePath, FilePathDictionary<T>>(FilePathComparer.Instance);
-                        }
-
-                        // create the FilePathDictionary to use as innerFolder
-                        FilePathDictionary<T> innerFolder;
-                        CLError innerFolderError = FilePathDictionary<T>.CreateAndInitialize(rootChild,
-                            out innerFolder,
-                            this.recursiveDeleteCallback,
-                            this.recursiveRenameCallback);
-                        if (innerFolderError != null)
-                        {
-                            throw innerFolderError.GrabFirstException();
-                        }
-
-                        // recursively call Add on innerFolder to build child structure and eventually add the value
-                        _count++;
-                        innerFolder.Add(key, value);
-
-                        // add the new innerFolder to innerFolders at the path directly below the current path
-                        innerFolders.Add(rootChild, innerFolder);
-                    }
-                }
-                // else if a path exists in pathsAtCurrentLevel for the key,
-                // then throw alreadyExistsException
-                else if (FilePathComparer.Instance.Equals(existingCurrentPath, key))
-                {
-                    throw alreadyExistsException();
-                }
-                // else if a path exists at pathsAtCurrentLevel for a recursed parent of a key,
-                // then the pathAtCurrentLevel needs to be made into an innerFolder to which the new key/value will be added
-                else
-                {
-                    // create innerFolders as necessary
-                    if (innerFolders == null)
-                    {
-                        innerFolders = new Dictionary<FilePath, FilePathDictionary<T>>(FilePathComparer.Instance);
-                    }
-
-                    // create the FilePathDictionary to use as innerFolder,
-                    // pass the optional parameter for its new CurrentValue from pathsAtCurrentLevel
-                    FilePathDictionary<T> innerFolder;
-                    CLError innerFolderError = FilePathDictionary<T>.CreateAndInitialize(rootChild,
-                        out innerFolder,
-                        this.recursiveDeleteCallback,
-                        this.recursiveRenameCallback,
-                        pathsAtCurrentLevel[existingCurrentPath]);
-                    if (innerFolderError != null)
-                    {
-                        throw innerFolderError.GrabFirstException();
-                    }
-
-                    // recursively call Add on innerFolder to build child structure and eventually add the value 
-                    _count++;
-                    innerFolder.Add(key, value);
-
-                    // add the new innerFolder to innerFolders at the path directly below the current path
-                    innerFolders.Add(rootChild, innerFolder);
-
-                    // remove the pathAtCurrentLevel that was converted to an innerFolder
-                    pathsAtCurrentLevel.Remove(rootChild);
-                }
-            }
-            // else if key paths did match an innerFolder
-            else
-            {
-                // store the innerFolder found for the key paths out of innerFolders
-                FilePathDictionary<T> innerFolder = innerFolders[(FilePath)existingInnerFolder];
-
-                // if the innerFolder has a path matching the key,
-                // then only add the value if it does not have a current value;
-                // if the innerFolder path matched and has a current value,
-                // throw alreadyExistsException
-                if (FilePathComparer.Instance.Equals((FilePath)existingInnerFolder, key))
-                {
-                    if (innerFolder.CurrentValue == null)
-                    {
-                        _count++;
-                        innerFolder._count++;
-                        innerFolder.CurrentValue = value;
-                    }
-                    else
-                    {
-                        throw alreadyExistsException();
-                    }
-                }
-                // else if innerFolder path does not match key (instead matches a recursed parent of the key),
-                // then recursively call Add on the innerFolder to add the key/value
-                else
-                {
-                    _count++;
-                    innerFolder.Add(key, value);
                 }
             }
         }

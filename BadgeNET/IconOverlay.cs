@@ -22,10 +22,10 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using CloudApiPublic.Support;
-using CloudApiPrivate.Common;
 using System.Runtime.InteropServices;
 using BadgeNET.Static;
 using BadgeCOMLib;
+using CloudApiPublic.Interfaces;
 
 namespace BadgeNET
 {
@@ -75,12 +75,17 @@ namespace BadgeNET
         /// </summary>
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
         /// <param name="pathRootDirectory">The full path of the Cloud root directory.</param>
-        public static CLError Initialize(string pathRootDirectory, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        public static CLError Initialize(ISyncSettings syncSettings, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
+                if (syncSettings == null)
+                {
+                    throw new NullReferenceException("syncSettings cannot be null");
+                }
+
                 _trace.writeToLog(9, "IconOverlay: Initialize: Entry.");
-                return Instance.pInitialize(pathRootDirectory, initialList);
+                return Instance.pInitialize(syncSettings.CloudRoot, initialList);
             }
             catch (Exception ex)
             {
@@ -89,7 +94,7 @@ namespace BadgeNET
                 return ex;
             }
         }
-        private CLError pInitialize(string pathRootDirectory, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        private CLError pInitialize(string cloudRoot, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
@@ -111,7 +116,7 @@ namespace BadgeNET
                 MessageEvents.BadgePathRenamed += MessageEvents_BadgePathRenamed;
 
                 // Capture the Cloud directory path for performance.
-                filePathCloudDirectory = pathRootDirectory;
+                _filePathCloudDirectory = cloudRoot;
 
                 // Start the PubSub watcher threads.
                 if (_badgeComPubSubEvents == null)
@@ -126,7 +131,7 @@ namespace BadgeNET
                 _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
 
                 // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
-                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, pathRootDirectory);
+                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
 
                 // Allocate the badging current state flat dictionary.  This dictionary is used to determine the badge path to remove when the
                 // badge type for that path changes.  We send a _kEvent_BadgeNet_AddBadgePath event to the BadgeCom "new" type, and a
@@ -135,7 +140,7 @@ namespace BadgeNET
 
                 // Allocate the badging dictionary.  This is a hierarchical dictionary.
                 CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
-                    rootPath: filePathCloudDirectory,
+                    rootPath: _filePathCloudDirectory,
                     pathDictionary: out allBadges,
                     recursiveDeleteCallback: OnAllBadgesRecursiveDelete,
                     recursiveRenameCallback: OnAllBadgesRecursiveRename);
@@ -251,8 +256,11 @@ namespace BadgeNET
                 _trace.writeToLog(9, "IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry.");
                 if (_badgeComPubSubEvents != null)
                 {
+                    // Publish the remove SyncBox folder path event back to all BadgeCom instances.  This will clear any dictionaries involving those folder paths.
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+
                     // Publish the add SyncBox folder path event back to all BadgeCom instances.
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, filePathCloudDirectory.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
 
                     // Iterate over the current badge state dictionary and send the badges to BadgeCom. This will populate the BadgeCom instance that just initialized.
                     // Other instances will update from these events only if necessary.
@@ -422,14 +430,14 @@ namespace BadgeNET
                     if (!isInitialized)
                     {
                         _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Not initialized yet.  Initialize.");
-                        Initialize(pathRootDirectory, initialList);
+                        pInitialize(pathRootDirectory, initialList);
                         // store that list was already processed by initialization
                         listProcessed = true;
                     }
                 }
 
                 // Capture the Cloud directory path for performance.
-                filePathCloudDirectory = pathRootDirectory;
+                _filePathCloudDirectory = pathRootDirectory;
 
                 // if list was not already processed by initialization
                 if (!listProcessed)
@@ -570,7 +578,7 @@ namespace BadgeNET
                     }
 
                     // Update badges for anything changed up the tree.  The nodes below will be deleted so we don't need to process those..
-                    UpdateBadgeStateUpTreeStartingWithParentOfNode(toDelete);
+                    UpdateBadgeStateUpTreeStartingWithParentOfNode(toDelete, _filePathCloudDirectory.ToString());
 
                     // Update the badge for this specific node.
                     UpdateBadgeStateAtPath(toDelete);
@@ -675,8 +683,8 @@ namespace BadgeNET
                             // No rename error.  Update the badge state for anything changed up the tree.
                             //TODO: This could be optimized by processing either of these (oldPath or newPath) first, then processing
                             // the other path only up to the point one below the overlapping root path.
-                            UpdateBadgeStateUpTreeStartingWithParentOfNode(newPath);
-                            UpdateBadgeStateUpTreeStartingWithParentOfNode(oldPath);
+                            UpdateBadgeStateUpTreeStartingWithParentOfNode(newPath, _filePathCloudDirectory.ToString());
+                            UpdateBadgeStateUpTreeStartingWithParentOfNode(oldPath, _filePathCloudDirectory.ToString());
 
                             // Update the badge for this node
                             GenericHolder<cloudAppIconBadgeType> newBadgeType;
@@ -830,7 +838,7 @@ namespace BadgeNET
                     }
 
                     // Update badges for anything changed up the tree
-                    UpdateBadgeStateUpTreeStartingWithParentOfNode(filePath);
+                    UpdateBadgeStateUpTreeStartingWithParentOfNode(filePath, _filePathCloudDirectory.ToString());
 
                     // Potentially update badges in this node's children
                     if (selectiveTree != null)
@@ -968,29 +976,6 @@ namespace BadgeNET
                                 _trace.writeToLog(9, "IconOverlay: Dispose. PipeLocker.");
                                 pipeLocker.pipeRunning = false;
 
-                                // Dispose the badging streams
-                                foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerBadge> currentStreamToKill in pipeBadgeServers)
-                                {
-                                    try
-                                    {
-                                        // cleanup initial pipe connection
-                                        try
-                                        {
-                                            _trace.writeToLog(9, "IconOverlay: Dispose. Stop NamedPipeBadge for badge type {0}.", currentStreamToKill.Key.ToString());
-                                            currentStreamToKill.Value.Stop();
-                                        }
-                                        catch
-                                        {
-                                            _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception stopping NamedPipeBadge for badge type {0}.", currentStreamToKill.Key.ToString());
-                                        }
-                                    }
-                                    catch
-                                    {
-                                        _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (2).");
-                                    }
-                                }
-                                pipeBadgeServers.Clear();
-
                                 // Dispose the context menu stream
                                 try
                                 {
@@ -1016,7 +1001,7 @@ namespace BadgeNET
                             {
                                 if (_badgeComPubSubEvents != null)
                                 {
-                                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, filePathCloudDirectory.ToString());
+                                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
                                 }
                             }
                             catch (Exception ex)
@@ -1059,7 +1044,7 @@ namespace BadgeNET
         /// <summary>
         /// The Cloud directory path captured as a FilePath at initialization.
         /// </summary>
-        private FilePath filePathCloudDirectory { get; set; }
+        private FilePath _filePathCloudDirectory { get; set; }
 
         /// <summary>
         /// The dictionary that holds the current state of all of the badges.
@@ -1149,17 +1134,6 @@ namespace BadgeNET
         };
 
         /// <summary>
-        /// Creates the named pipe server streams to handle badge type communications from the COM object icon overlays
-        /// </summary>
-        private Dictionary<cloudAppIconBadgeType, NamedPipeServerBadge> pipeBadgeServers = new Dictionary<cloudAppIconBadgeType, NamedPipeServerBadge>()
-        {
-            { cloudAppIconBadgeType.cloudAppBadgeSyncing, null },
-            { cloudAppIconBadgeType.cloudAppBadgeSynced, null },
-            { cloudAppIconBadgeType.cloudAppBadgeSyncSelective, null },
-            { cloudAppIconBadgeType.cloudAppBadgeFailed, null }
-        };
-
-        /// <summary>
         /// Creates the named pipe server stream for the shell extension context menu support.
         /// </summary>
         private NamedPipeServerContextMenu pipeContextMenuServer = null;
@@ -1186,24 +1160,10 @@ namespace BadgeNET
         {
             try
             {
-                // create the processing threads for each server stream (one for each badge type)
-                _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Entry.");
-                foreach (cloudAppIconBadgeType currentBadgeType in new List<cloudAppIconBadgeType>(pipeBadgeServers.Keys))
-                {
-                    // Create a thread to handle this badge type
-                    NamedPipeServerBadge serverBadge = new NamedPipeServerBadge();
-                    serverBadge.UserState = new NamedPipeServerBadge_UserState { BadgeType = currentBadgeType, ShouldIconBeBadged = this.ShouldIconBeBadged, FilePathCloudDirectory = filePathCloudDirectory };
-                    serverBadge.PipeName = Environment.UserName + "/" + PipeName + currentBadgeType;
-                    serverBadge.Run();
-
-                    // Remember this thread for Dispose.
-                    pipeBadgeServers[currentBadgeType] = serverBadge;
-                }
-
                 // Set up the thread params to start the pipe to listen to shell extension context menu messages
                 _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Start new server pipe for the context menu.");
                 NamedPipeServerContextMenu serverContextMenu = new NamedPipeServerContextMenu();
-                serverContextMenu.UserState = new NamedPipeServerContextMenu_UserState { FilePathCloudDirectory = filePathCloudDirectory };
+                serverContextMenu.UserState = new NamedPipeServerContextMenu_UserState { FilePathCloudDirectory = _filePathCloudDirectory };
                 serverContextMenu.PipeName = Environment.UserName + "/" + PipeName + "/ContextMenu";
                 serverContextMenu.Run();
 
@@ -1239,7 +1199,7 @@ namespace BadgeNET
                 {
                     // There will be no badge if the path doesn't contain Cloud root
                     //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Locked.");
-                    if (objFilePath.Contains(filePathCloudDirectory))
+                    if (objFilePath.Contains(_filePathCloudDirectory))
                     {
                         // If the value at this path is set and it is our type, then badge.
                         //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Contains Cloud root.");
@@ -1258,7 +1218,7 @@ namespace BadgeNET
                             // 
                             // If an item is marked selective, then none of its children (whole hierarchy of children) should be badged.
                             //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. TryGetValue not successful.");
-                            if (!FilePathComparer.Instance.Equals(objFilePath, filePathCloudDirectory))
+                            if (!FilePathComparer.Instance.Equals(objFilePath, _filePathCloudDirectory))
                             {
                                 // Recurse through parents of this node up to and including the CloudPath.
                                 //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Recurse thru parents.");
@@ -1281,7 +1241,7 @@ namespace BadgeNET
 
                                     // Quit if we are at the Cloud directory root
                                     //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?");
-                                    if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
+                                    if (FilePathComparer.Instance.Equals(node, _filePathCloudDirectory))
                                     {
                                         //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node.");
                                         break;
@@ -1402,14 +1362,21 @@ namespace BadgeNET
         /// <summary>
         /// Update the badging state to match the hierarchical badge dictionary, working from the parent of a node up to the root.
         /// </summary>
-        void UpdateBadgeStateUpTreeStartingWithParentOfNode(FilePath nodePath)
+        private void UpdateBadgeStateUpTreeStartingWithParentOfNode(FilePath nodePath, FilePath rootPath)
         {
+            if (rootPath == null)
+            {
+                throw new NullReferenceException("rootPath cannot be null");
+            }
+
             // Loop up the tree starting with the parent of the parm node.
-            FilePath node = nodePath.Parent;
-            while (node != null)
+            FilePath node = nodePath;
+            while (node != null
+                && node.Parent != null
+                && !FilePathComparer.Instance.Equals(node, rootPath))
             {
                 // Update the badging state at this node.  This will send events to BadgeCom, and will keep the current badge flat dictionary up to date.
-                UpdateBadgeStateAtPath(node);
+                UpdateBadgeStateAtPath(node.Parent);
 
                 // Chain up
                 node = node.Parent;
@@ -1423,25 +1390,21 @@ namespace BadgeNET
         /// </summary>
         private void UpdateBadgeStateAtPath(FilePath nodePath)
         {
-            GenericHolder<cloudAppIconBadgeType> badgeTypeNone = new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeNone);
-
             // Get the new badge type for this nodePath from the hierarchical dictionary.
             GenericHolder<cloudAppIconBadgeType> hierarchicalBadgeType;
             pFindBadge(nodePath, out hierarchicalBadgeType);        // always returns a badgeType, even if an error occurs.
 
             // Get the current badge type for this nodePath from the flat dictionary.
             GenericHolder<cloudAppIconBadgeType> flatBadgeType;
-            if (!_currentBadges.TryGetValue(nodePath, out flatBadgeType))
-            {
-                flatBadgeType = badgeTypeNone;
-            }
+            _currentBadges.TryGetValue(nodePath, out flatBadgeType);
 
             // Only process if they are different
-            if (!flatBadgeType.Equals(hierarchicalBadgeType))
+            if ((flatBadgeType == null && hierarchicalBadgeType != null)
+                || (flatBadgeType != null && !flatBadgeType.Equals(hierarchicalBadgeType)))
             {
-                if (!flatBadgeType.Equals(badgeTypeNone))
+                if (flatBadgeType != null)
                 {
-                    if (!hierarchicalBadgeType.Equals(badgeTypeNone))
+                    if (hierarchicalBadgeType != null)
                     {
                         // They are different and both specified.  Remove and add.
                         SendRemoveBadgePathEvent(nodePath);
@@ -1457,13 +1420,9 @@ namespace BadgeNET
                 }
                 else
                 {
-                    if (!hierarchicalBadgeType.Equals(badgeTypeNone))
-                    {
-
-                        // They are different and there is no flat badge.  Add.
-                        SendAddBadgePathEvent(nodePath, hierarchicalBadgeType);
-                        _currentBadges.Add(nodePath, hierarchicalBadgeType);
-                    }
+                    // They are different and there is no flat badge.  Add.
+                    SendAddBadgePathEvent(nodePath, hierarchicalBadgeType);
+                    _currentBadges.Add(nodePath, hierarchicalBadgeType);
                 }
             }
         }

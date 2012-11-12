@@ -93,11 +93,18 @@ library BadgeCOMLib
 
         typedef [v1_enum] enum 
         {
-            RC_CANCEL_CANCELLED = 0,                        // subscription found and cancelled
+            RC_CANCEL_OK = 0,                               // subscription found and cancelled
             RC_CANCEL_CANCELLED_BUT_SUBSCRIPTION_NOT_REMOVED,  // subscription found, wait cancelled, but subscription not removed.
             RC_CANCEL_NOT_FOUND,                            // subscription not found
             RC_CANCEL_ERROR                                 // an error occurred.  Usually an exception.
         } EnumPubSubServerCancelWaitingSubscriptionReturnCodes;
+
+        typedef [v1_enum] enum 
+        {
+            RC_CANCELBYPROCESSID_OK = 0,                    // subscriptions found and cancelled
+            RC_CANCELBYPROCESSID_NOT_FOUND,                 // no subscriptions found
+            RC_CANCELBYPROCESSID_ERROR                      // an error occurred.  Usually an exception.
+        } EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes;
 
         typedef [v1_enum] enum 
         {

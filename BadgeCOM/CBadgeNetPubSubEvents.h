@@ -11,13 +11,17 @@
 #include "PubSubServer.h"
 #include "Trace.h"
 #include "BadgeCOM_i.h"
+#include "BoostSemaphore.h"
 
 class CBadgeNetPubSubEvents
 {
 private:
     // Constants
     static const int _kMillisecondsTimeoutSubscribingThread = 1000;
-    static const int _kMillisecondsTimeoutWatchingThread = 5000;
+    static const int _kMillisecondsTimeoutWatchingThread = 20000;
+
+    // Static private fields
+    static bool _fDebugging;
 
     // Private fields
     CPubSubServer *_pPubSubServer;
@@ -26,6 +30,10 @@ private:
     HANDLE _threadWatchingHandle;
     bool _isSubscriberThreadAlive;
     boost::mutex _locker;
+    semaphore _semSync;
+    semaphore _semWatcher;
+    bool _fRequestSubscribingThreadExit;
+    bool _fRequestWatchingThreadExit;
 
 public:
     // Life cycle
@@ -47,7 +55,7 @@ public:
     static void WatchingThreadProc(LPVOID pUserState);
     void KillSubscribingThread();
     void KillWatchingThread();
-    void StartSubscribingThread();
+    bool StartSubscribingThread();
     void StartWatchingThread();
     void RestartSubcribingThread();
     bool IsThreadAlive(const HANDLE hThread);

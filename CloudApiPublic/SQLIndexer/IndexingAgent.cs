@@ -2268,6 +2268,11 @@ namespace CloudApiPublic.SQLIndexer
                     }
                 }
 
+                foreach (FilePath initiallySyncedBadge in indexPaths.Keys)
+                {
+                    MessageEvents.SetPathState(this, new SetBadge(PathState.Synced, initiallySyncedBadge));
+                }
+
                 // Callback on initial index completion
                 // (will process detected changes and begin normal folder monitor processing)
                 indexCompletionCallback(indexPaths,

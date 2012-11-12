@@ -40,10 +40,10 @@ STDMETHODIMP CBadgeIconSynced::GetOverlayInfo(
 	try
 	{
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-		while (true)
-		{
-			Sleep(100);
-		}
+		///*while (true)
+		//{
+		//	Sleep(100);
+		//*/}
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 		// Get our module's full path
 		CLTRACE(9, "CBadgeIconSynced: GetOverlayInfo: Entry");
@@ -107,6 +107,7 @@ void CBadgeIconSynced::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeT
 		// Add or update the <path,badgeType>
 		CLTRACE(9, "CBadgeIconSynced: OnEventAddBadgePath: Entry. Path: <%ls>.", fullPath);
 		_mapBadges[fullPath] = badgeType;
+        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
 	}
 	catch(std::exception &ex)
 	{
@@ -125,6 +126,7 @@ void CBadgeIconSynced::OnEventRemoveBadgePath(BSTR fullPath)
 		// Remove the item with key fullPath.
 		CLTRACE(9, "CBadgeIconSynced: OnEventRemoveBadgePath: Entry. Path: <%ls>.", fullPath);
 		_mapBadges.erase(fullPath);
+        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
 	}
 	catch(std::exception &ex)
 	{
@@ -144,6 +146,7 @@ void CBadgeIconSynced::OnEventAddSyncBoxFolderPath(BSTR fullPath)
 		// Add or update the fullPath.  The value is not used.
 		CLTRACE(9, "CBadgeIconSynced: OnEventAddSyncBoxFolderPath: Entry. Path: <%ls>.", fullPath);
 		_mapBadges[fullPath] = cloudAppBadgeNone;
+        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
 	}
 	catch(std::exception &ex)
 	{
@@ -163,12 +166,14 @@ void CBadgeIconSynced::OnEventRemoveSyncBoxFolderPath(BSTR fullPath)
 		// Remove the item with key fullPath.
 		CLTRACE(9, "CBadgeIconSynced: OnEventRemoveSyncBoxFolderPath: Entry. Path: <%ls>.", fullPath);
 		_mapBadges.erase(fullPath);
+        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
 
 		// Delete all of the keys in the badging dictionary that have this folder path as a root.
 		for (boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType>::iterator it = _mapBadges.begin(); it != _mapBadges.end();  /* bump in body of code */)
 		{
 			if (IsPathInRootPath(it->first, fullPath))
 			{
+                SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, it->first.c_str(), NULL);
 				it = _mapBadges.erase(it);
 			}
 			else

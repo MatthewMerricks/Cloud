@@ -203,6 +203,7 @@ public:
             BSTR *outFullPath,
             EnumPubSubServerSubscribeReturnCodes *returnValue);
 	STDMETHOD(CancelWaitingSubscription)(EnumEventType EventType, GUID guidId, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
+	STDMETHOD(CancelSubscriptionsForProcessId)(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue);
     STDMETHOD(Terminate)();
 
     // Public OLE accessible properties

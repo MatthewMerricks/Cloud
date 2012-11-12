@@ -1520,6 +1520,7 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(T
     <ClInclude Include="BadgeIconSelective.h" />
     <ClInclude Include="BadgeIconSynced.h" />
     <ClInclude Include="BadgeIconSyncing.h" />
+    <ClInclude Include="BoostSemaphore.h" />
     <ClInclude Include="CBadgeNetPubSubEvents.h" />
     <ClInclude Include="ContextMenuExt.h" />
     <ClInclude Include="dllmain.h" />

@@ -138,6 +138,9 @@
     <ClInclude Include="TemplateTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BoostSemaphore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BadgeCOM.rc">

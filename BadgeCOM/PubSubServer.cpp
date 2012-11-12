@@ -70,7 +70,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		return E_POINTER;
 	}
 
-	CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls.", EventType, EventSubType, BadgeType, FullPath);
+	CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls.", EventType, EventSubType, BadgeType, *FullPath);
     EnumPubSubServerPublishReturnCodes nResult = RC_PUBLISH_OK;                // assume no error
     bool fIsLocked = false;
     Base *base = NULL;
@@ -281,7 +281,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
                 *outBadgeType = base->subscriptions_[nFoundSubscriptionIndex].events_.begin()->BadgeType_;
 				//TODO: Is this memory freed by the subscriber?
                 *outFullPath = SysAllocString(base->subscriptions_[nFoundSubscriptionIndex].events_.begin()->FullPath_.c_str());
-				CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls.", *outEventSubType, *outBadgeType, outFullPath);
+				CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls.", *outEventSubType, *outBadgeType, *outFullPath);
 
                 // Remove the event from the vector.
 				CLTRACE(9, "PubSubServer: Subscribe: Erase the event.");
@@ -338,19 +338,24 @@ STDMETHODIMP CPubSubServer::Subscribe(
                 nResult = RC_SUBSCRIBE_TRY_AGAIN;
             }
 
-            // Dropped out of the wait.  Clear the waiting state under the lock, and indicate an error if we dropped out of the wait due to a cancellation.
-            base->mutexSharedMemory_.lock();
-            fIsLocked = true;
-            base->subscriptions_[nFoundSubscriptionIndex].fWaiting_ = false;
-
+            // Dropped out of the wait.  If we were cancelled, we don't need the lock.
             if (base->subscriptions_[nFoundSubscriptionIndex].fCancelled_)
             {
 				CLTRACE(9, "PubSubServer: Subscribe: Return code 'cancelled'.");
+                base->subscriptions_[nFoundSubscriptionIndex].fWaiting_ = false;
                 nResult = RC_SUBSCRIBE_CANCELLED;
             }
+            else
+            {
+                // Clear the waiting state under the lock, and indicate an error if we dropped out of the wait due to a cancellation.
+                base->mutexSharedMemory_.lock();
+                fIsLocked = true;
 
-            fIsLocked = false;
-            base->mutexSharedMemory_.unlock();
+                base->subscriptions_[nFoundSubscriptionIndex].fWaiting_ = false;
+
+                fIsLocked = false;
+                base->mutexSharedMemory_.unlock();            
+            }
         }
     }
     catch (std::exception &ex)
@@ -368,6 +373,72 @@ STDMETHODIMP CPubSubServer::Subscribe(
     return S_OK;
 }
 
+/// <Summary>
+/// Cancel all of the subscriptions belonging to a particular process ID.
+/// </Summary>
+STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue)
+{
+	if (_pSegment == NULL || returnValue == NULL)
+	{
+		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR. _pSegment, and returnValue must all be non-NULL.");
+		return E_POINTER;
+	}
+
+	CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Entry. ProcessId: %lu.", ProcessId);
+    EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes nResult = RC_CANCELBYPROCESSID_NOT_FOUND;
+    bool fIsLocked = false;
+    Base *base = NULL;
+
+    try
+    {
+        // An allocator convertible to any allocator<T, segment_manager_t> type.
+        void_allocator alloc_inst(_pSegment->get_segment_manager());
+
+        // Construct the shared memory Base image and initiliaze it.  This is atomic.
+        base = _pSegment->find_or_construct<Base>("Base")(42, alloc_inst);
+
+        // Lock the rest under the global shared memory lock in shared memory Base.
+	    base->mutexSharedMemory_.lock();
+        fIsLocked = true;
+
+        // Look for any subscriptions belonging to this process
+        for (int i = 0; i < base->subscriptions_.size(); i++)
+        {
+            ULONG thisProcessId = base->subscriptions_[i].uSubscribingProcessId_;
+            if (thisProcessId == ProcessId)
+            {
+				CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Found subscription index %d.", i);
+                EnumPubSubServerCancelWaitingSubscriptionReturnCodes cancelResult;
+                CancelWaitingSubscription(base->subscriptions_[i].nEventType_, base->subscriptions_[i].guidId_, &cancelResult);
+                if (cancelResult == RC_CANCEL_OK)
+                {
+                    nResult = RC_CANCELBYPROCESSID_OK;
+                }
+                else
+                {
+                    nResult = RC_CANCELBYPROCESSID_ERROR;
+                }
+            }
+        }
+
+        // Unlock
+        fIsLocked = false;
+        base->mutexSharedMemory_.unlock();
+    }
+    catch (std::exception &ex)
+    {
+		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Exception.  Message: %s.", ex.what());
+        if (fIsLocked && base != NULL)
+        {
+            fIsLocked = false;
+            base->mutexSharedMemory_.unlock();
+        }
+        nResult = RC_CANCELBYPROCESSID_ERROR;
+    }
+
+    *returnValue = nResult;
+    return S_OK;
+}
 
 /// <Summary>
 /// Break a waiting subscription out of its wait and delete the subscription.
@@ -460,7 +531,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
             if (fCancelOk)
             {
 				CLTRACE(1, "PubSubServer: CancelWaitingSubscription: Return result 'Cancelled'.");
-                nResult = RC_CANCEL_CANCELLED;
+                nResult = RC_CANCEL_OK;
             }
             else
             {
