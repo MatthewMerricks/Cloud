@@ -184,7 +184,7 @@ namespace BadgeNET
                     lock (_locker)
                     {
                         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                        if (testCount < 0)
+                        if (testCount >= 0)
                         {
                             _isSubscriberThreadAlive = true;
                         }
