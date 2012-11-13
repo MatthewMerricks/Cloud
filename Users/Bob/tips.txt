@@ -6053,9 +6053,9 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       system.  Really, it should be dependent on the event type only.  The subscriber can filter by whatever he likes.  Do it that way.
     - Integrating the COM-exposed PubSub methods and definitions into BadgeNet.  Trouble exposing two of the enum definitions....
   o 11/7/12 Wed:
-    - 6:30 - 
-    - DONE: The PubSub code has a static initializer for the shared memory segment.  That needs to be disposed, but how.  The easiest way is to provide
-    - TODO: Implement a cancellable wait for Subscribe() using WaitForMultipleObjects.  Expose a Cancel() method to cancel out of a wait (to support proper termination).
+    - 6:30 - 18:30
+    - TODO(Done): The PubSub code has a static initializer for the shared memory segment.  That needs to be disposed, but how.  The easiest way is to provide
+    - TODO(Done): Implement a cancellable wait for Subscribe() using WaitForMultipleObjects.  Expose a Cancel() method to cancel out of a wait (to support proper termination).
       Initialize() and Terminate() interfaces that allocate it and clean it up.
     - Pseudo code for the BadgeComInitWatcher threads:
       . Data
@@ -6099,9 +6099,110 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - The PubSubServer has been reworked to support GUID identification, and tested.
     - The code is complete in BadgeNet:BadgeComInitWatcher.  That module has a thread that subscribes to the BadgeCom_initialization event.  There is also a watcher thread that restarts
       the subscribing thread if no activity is detected.
-                                                                           
+  o 11/8/12 Thu
+    - 6:30 - 18:00
+    - BadgeNet is coded and built.  Move on to BadgeCom:
+      . BadgeCom will need the same kind of class as BadgeNet:BadgeComPubSubEvents, with threads to watch the subscriptions to events.
+      . Pseudo-code:
+        o COM initialization event:
+          - Create the SyncBox folder path dictionary.
+          - Create the badge path dictionary.
+          - Start the BadgeNetSubscription class:
+            o Two thread, as in BadgeNet.
+            o Subscribes to the folder and badging events.
+            o Fires the events to a callback where they are used to manage the badging dictionaries.
+          - Initialize to the pubsub Shared Memory queue.
+          - Publish the BadgeComInit event.
+        o COM Terminate event:?????
+          - Actually, I don't believe a terminate event exists, but if it does, do the following..
+          - Terminate the BadgeNetSubscription class.
+          - Free the badge path dictionary.
+          - Free the SyncBox folder path dictionary.
+        o COM Badge event:
+          - no badge if path not in the SyncBox folder path dictionary. return.
+          - no badge if path not in current badge path/type dictionary.  return.
+          - Otherwise, return code to badge it.
+        o OnPubSubAddBadgeEventReceived: 
+          . Add this path to the badge dictionary if it doesn't already exist.
+        o OnPubSubRemoveBadgeEventReceived: 
+          . Remove this path from the badge dictionary.  No error if it is not there.
+        o OnPubSubSyncBoxStartEventReceived:
+          . Add this SyncBox folder path to the dictionary if it doesn't already exist.
+        o OnPubSubSyncBoxStopEventReceived:
+          . Remove this SyncBox folder path from the dictionary.  No error if it is not there.
+        o On any modification of the badging dictionary, notify the system to redisplay the icon.
+    - Unmanaged C++ delegate equivalent: http://www.codeguru.com/cpp/cpp/cpp_mfc/article.php/c4119/Delegate-in-Standard-C.htm
+    - The BadgeCom:CBadgeNetPubSubEvents module is coded and built.  It is basically a port of the BadgeNet:BadgeComPubSubEvents class (from c# to C++).
+  o 11/9/12 Fri
+    - 7:30 - 18:30
+    - The badging dictionaries in BadgeCom should be very fast.  The boost unordered associative maps seem to fit the bill.  They use a hash function so the complexity is O(1) for a find.  
+      Erasing an item is of complexith O(count(k)), where k is the key (path string).  The code is like:
+            typedef boost::unordered_map<std::string, int> map;map x;x["one"] = 1;
+            x["two"] = 2;
+            x["three"] = 3;
+            assert(x.at("one") == 1);
+            assert(x.find("missing") == x.end());
+    - Boost Unordered: http://www.boost.org/doc/libs/1_52_0/doc/html/unordered.html
+    - Boost comparison of Unordered Associative and Associative maps: http://www.boost.org/doc/libs/1_52_0/doc/html/unordered/comparison.html
+    - One of the BadgeCom overlay modules is coded (but refuses to build at the moment).  The other three will use the same code.
+    - Lunch with Gary Garvin.
+  o 11/10/12 Sat (home)
+    - 5:30 - 14:30
+    - Still big timewaster: Boost signal bind compile errors.
+    - Good example of signal.connect() with bind: http://stackoverflow.com/questions/768351/complete-example-using-boostsignals-for-c-eventing
+    - Finally! The boost bind code builds!  That only wasted about 3.5 hours.  At this point, the "synced" BadgeCom module is coded and builds.  Replicate the code to the others.
+    - BadgeCom code and build complete.
+    - Now I have a very complex debugging situation:
+      . One BadgeCom.dll that is loaded by potentially multiple Explorer processes, and by potentially multiple processes containing BadgeNet.dll.
+      . I need to debug through BadgeNet and BadgeCom code simultaneously.
+      . I did that somewhat before and made notes at line 3854 above.
+      . However, that was for the delayed debugging of the context menu.  I could attach to Explorer and then right click a window to cause the break.
+      . The BadgeIcon* entries are hit immediately when Explorer loads, so I will have to put in a delay to give me time to attach.
+      . Procedure:
+        o Insert a sleep loop at the top of all four badging modules.
+        o Put a breakpoints on all of the the Sleep() statements above.
+        o Build BadgeCom using the "Debug64" configuration.
+        o "StopExplorer" at the command prompt.  This should unregister BadgeCom.
+        o "RegisterBadgeCom" command at the command prompt.  That will register BadgeCom in the win-client\x64\Debug64 directory, and the .pdb is built there too. 
+        o "StartExplorer" at the command prompt.
+        o Attach to the Explorer process using VS Debug.
+        o A debug break should occur at one of the Sleep() statements.
+    - Win-client and BadgeNet build now.
+    - TODO(Done): Wait for a short while if the event queue is full on publish.
+    - TODO(Done): Rename PublishEventToBadgeCom => PublishEventToBadgeNet in CBadgeNetPubSubEvents.cpp.
+    - TODO(Done): Remove commented code in PubSubServer.cpp.
+  o 11/11/12 Sun (home)
+    - 5:30 - 16:00 (1.5 hour for lunch)
+    - TODO(Done): How are subscriptions deleted normally/abnormally?  When PubSubServer is disposed, delete all subscriptions owned by that object.
+    - TODO(Done): Reference count the creation and deletion of the static shared memory segment (_pSegment) in PubSubServer.
+    - TODO(Done): Check the segment (_pSegment) at every method call in PubSubServer.
+    - TODO(Done): Add trace to PubSubServer.
+    - TODO(Done): PubSubServer:283 uses SysAllocString to allocate returned BSTR FullPath.  Do the C++ and C# subscribers free this memory???  Research shows that it must be freed.
+      Research (http://limbioliong.wordpress.com/2011/08/13/the-importance-of-proper-bstr-allocation/) also shows that the C# marshalling code handles the freeing for
+      C# clients.
+    - TODO(Done): CBadgeNetPubSubEvents line 129: Check FullPath too.
+    - TODO(Done): Check the trace file for garbage output. (Guids print properly).
+    - TODO(Done): Add trace to CBadgeNetPubSubEvents.
+    - TODO(Done): Bug: Sent BadgeCom_Initialization event, but BadgeCom received it.
+    - TODO(Done): Bug: Exception managing the Semaphore in the Subscription destructor.
+    - BadgeCom is looping waiting for badging events.
+    - TODO(Done): Bug: Change subscription direction in BadgeNet.
+    - TODO(Done): Bug: BadgeNet IconOverlay does not call CBadgeComPubSubEvents.Initialize().
+    - Testing the BadgeNet publishing side.
+  o 11/12/12 Mon:
+    - 6:45 - 18:30
+    - TODO(Done): Add thread synchronization to force the subscription to occur first on both sides.
+    - TODO(Done): Don't restart threads when disposing.
+    - TODO(Done): Bug. Subscribing thread did not cancel, and required abort.
+    - TODO(Done): Remove the named pipe badge thread startup and code.  IconOverlay line 1194.
+    - TODO(Aborted): Add the code to free all of the dictionaries and subscriptions when the Explorer process terminates.  I wrote the code in PubSubServer to free the
+      subscriptions, but it is not possible to do this from DllMain.  By that time, the threads are already terminated, except the current thread executing in DllMain,
+      and the resources are in an inconsistent state.  See: http://msdn.microsoft.com/en-us/library/windows/desktop/ms682583(v=vs.85).aspx
+    - We are badging again!  It is very fast to badge, but not to create the badges (logging?).
+    - TODO: Bug? The trace shows cancelling a subscription by event type and guid, but it is not found.  That's because the subscription is by a different event type.  Check it out further.
+  o 11/13/12 Mon: 
+    - 6:??
 
- 
       
 
     
@@ -7509,6 +7610,10 @@ TODO:
   o Big issue with multiple BadgeComs installed.  New BadgeComs will have new name and class ID.  Don't unregister or delete on uninstall.  On install, don't install or register if already registered.
   o Don't allow a SyncBox to use the same directory as another SyncBox.
   o Compile Boost to source and push to git.
+  o In BadgeCom DllMain, when a process is unloading the DLL, free all PubSub subscriptions owned by the process from shared memory.  This is important mostly for Explorer, since there
+    are no normal termination events.  An exiting process is the only event, and that process may own multiple PubSub subscriptions.
+  o Split out the context menu support from BadgeCom.  Also split out all of the matching context menu support in BadgeNet.
+  o Move BadgeNet into CloudApiPublic.
 
 
 

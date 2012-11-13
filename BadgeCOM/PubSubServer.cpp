@@ -135,7 +135,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 				bool fSubscriptionRemoved = false;
 				for (subscription_vector::iterator itSubscription = base->subscriptions_.begin(); itSubscription != base->subscriptions_.end(); ++itSubscription)
 				{
-					if (*itGuid == itSubscription->guidId_)
+					if ((EventType == itSubscription->nEventType_) && (*itGuid == itSubscription->guidId_))
 					{
 						// This is a subscriber.  Is its event queue full?
 						if (itSubscription->events_.size() >= _knMaxEventsInEventQueue)
@@ -198,6 +198,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 /// This thread wants to receive events with a particular event type.  Optionally time out if an event does not arrive within the timeout period.
 /// </summary>
 /// <param name="EventType">This is the event type we want to receive.</param>
+/// <param name="guidId">Represents the subscriber.  A subscriber may subscribe to multiple EventTypes.</param>
 /// <param name="TimeoutMilliseconds">Wait for an event for up to this period of time.  If specified as 0, the wait will not time out.</param>
 /// <returns>(int via returnValue): See RC_SUBSCRIBE_*.</returns>
 STDMETHODIMP CPubSubServer::Subscribe(
@@ -238,54 +239,31 @@ STDMETHODIMP CPubSubServer::Subscribe(
         fIsLocked = true;
 
         // Look for this subscription.
-        ULONGLONG nFoundSubscriptionIndex = UINT64_MAX;
-        for (int i = 0; i < base->subscriptions_.size(); i++)
-        {
-            EnumEventType thisEventType = base->subscriptions_[i].nEventType_;
-            GUID thisGuid = base->subscriptions_[i].guidId_;
-            if (thisEventType == EventType && thisGuid == guidId)
-            {
-                nFoundSubscriptionIndex = i;
-				CLTRACE(9, "PubSubServer: Subscribe: Found subscription index %d.", nFoundSubscriptionIndex);
-                break;
-            }
-        }
-
-        // Add a subscription if not found.  Otherwise, wait.
-        // NOTE: There is a bug in the compiler!!   Comparing two maximum value ULONGLONG numbers is broken when the comparison is against two numbers with value 0xFFFFFFFFFFFFFFFFU.
-        // The code below ends up in the "No match" block.
-        //     if (nFoundSubscriptionIndex != UINT64_MAX)
-        //     {
-        //         // No match
-        //     }
-        //     else
-        //     {
-        //         // Match
-        //     }
-        // The code below is substituted to determine whether we have a valid index.
-        if (nFoundSubscriptionIndex == 0
-            || (nFoundSubscriptionIndex - 1) / 2 != MAXLONGLONG)
+        subscription_vector::iterator itFoundSubscription;
+        bool fSubscriptionFound = FindSubscription(EventType, guidId, base, &itFoundSubscription);
+        if (fSubscriptionFound)
         {
             // Found our subscription.  Make sure that it has not been previously cancelled.  If so, remove the subscription.
 			CLTRACE(9, "PubSubServer: Subscribe: Found our subscription.");
-            if (base->subscriptions_[nFoundSubscriptionIndex].fCancelled_)
+            if (itFoundSubscription->fCancelled_)
             {
-				CLTRACE(9, "PubSubServer: Subscribe: Warning: Already cancelled.");
-                base->subscriptions_.erase(base->subscriptions_.begin() + nFoundSubscriptionIndex);
+				CLTRACE(9, "PubSubServer: Subscribe: Warning: Already cancelled.  Erase the subscription.");
+                base->subscriptions_.erase(itFoundSubscription);
+                fSubscriptionFound = false;             // itFoundSubscription not valid now
                 nResult = RC_SUBSCRIBE_ALREADY_CANCELLED;
             }
-            else if (base->subscriptions_[nFoundSubscriptionIndex].events_.size() > 0)      // Check to see if we have a pending event.
+            else if (itFoundSubscription->events_.size() > 0)      // Check to see if we have a pending event.
             {
                 // An event is waiting.  Return the information.
-                *outEventSubType = base->subscriptions_[nFoundSubscriptionIndex].events_.begin()->EventSubType_;
-                *outBadgeType = base->subscriptions_[nFoundSubscriptionIndex].events_.begin()->BadgeType_;
+                *outEventSubType = itFoundSubscription->events_.begin()->EventSubType_;
+                *outBadgeType = itFoundSubscription->events_.begin()->BadgeType_;
 				//TODO: Is this memory freed by the subscriber?
-                *outFullPath = SysAllocString(base->subscriptions_[nFoundSubscriptionIndex].events_.begin()->FullPath_.c_str());
+                *outFullPath = SysAllocString(itFoundSubscription->events_.begin()->FullPath_.c_str());
 				CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls.", *outEventSubType, *outBadgeType, *outFullPath);
 
                 // Remove the event from the vector.
 				CLTRACE(9, "PubSubServer: Subscribe: Erase the event.");
-				base->subscriptions_[nFoundSubscriptionIndex].events_.erase(base->subscriptions_[nFoundSubscriptionIndex].events_.begin());
+				itFoundSubscription->events_.erase(itFoundSubscription->events_.begin());
                 nResult = RC_SUBSCRIBE_GOT_EVENT;
             }
             else 
@@ -293,7 +271,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
                 // No events are waiting.  We will wait for one.
 				CLTRACE(9, "PubSubServer: Subscribe: No events.  A wait will be required.");
                 fWaitRequired = true;
-                base->subscriptions_[nFoundSubscriptionIndex].fWaiting_ = true;
+                itFoundSubscription->fWaiting_ = true;
             }
         }
         else
@@ -301,10 +279,27 @@ STDMETHODIMP CPubSubServer::Subscribe(
             // Our subscription was not found.  Construct a new subscription at the back of the vector.  We will wait for an event.
 			CLTRACE(9, "PubSubServer: Subscribe: Our subscription was not found.  Construct a new subscription.  Wait required.");
             base->subscriptions_.emplace_back(guidId, processId, threadId, EventType, alloc_inst);
-            nFoundSubscriptionIndex = base->subscriptions_.size() - 1;      // the index is the index of the last subscription just added.
+
+            // Point our iterator at the Subscription just placed at the end of the subscription_vector.
+            itFoundSubscription = base->subscriptions_.end();
+            --itFoundSubscription;
             fWaitRequired = true;
-            base->subscriptions_[nFoundSubscriptionIndex].fWaiting_ = true;
-			_subscriptionIds.push_back(guidId);								// add this subscription ID to the list of subscriptions created by this instance
+            itFoundSubscription->fWaiting_ = true;
+            fSubscriptionFound = true;                  // itFoundSubscription valid now
+
+            // Remember this subscription
+            UniqueSubscription thisSubscriptionId;
+            thisSubscriptionId.eventType = EventType;
+            thisSubscriptionId.guid = guidId;
+			_subscriptionIds.push_back(thisSubscriptionId);				// add this subscription ID to the list of subscriptions created by this instance
+        }
+
+        // Get a pointer to the semaphore allocated in shared memory.  We must release the lock before waiting on the semaphore.
+        // Without the lock, the subscriptions may move around in shared memory, but the semaphore itself will remain fixed.
+        offset_ptr<interprocess_semaphore> optrSemaphore;
+        if (fSubscriptionFound && fWaitRequired)
+        {
+            optrSemaphore = itFoundSubscription->pSemaphoreSubscription_;
         }
 
         // Unlock
@@ -319,10 +314,10 @@ STDMETHODIMP CPubSubServer::Subscribe(
                 // Wait for a matching event to arrive.  Use a timed wait.
 				CLTRACE(9, "PubSubServer: Subscribe: Wait with timeout.");
                 boost::posix_time::ptime tNow(boost::posix_time::microsec_clock::universal_time());
-                bool fDidNotTimeOut = base->subscriptions_[nFoundSubscriptionIndex].pSemaphoreSubscription_->timed_wait(tNow + boost::posix_time::milliseconds(TimeoutMilliseconds));
+                bool fDidNotTimeOut = optrSemaphore->timed_wait(tNow + boost::posix_time::milliseconds(TimeoutMilliseconds));
                 if (fDidNotTimeOut)
                 {
-					CLTRACE(9, "PubSubServer: Subscribe: Got an event. Return code 'try again'.");
+					CLTRACE(9, "PubSubServer: Subscribe: Got an event or posted by a cancel. Return code 'try again'.");
                     nResult = RC_SUBSCRIBE_TRY_AGAIN;
                 }
                 else
@@ -334,28 +329,39 @@ STDMETHODIMP CPubSubServer::Subscribe(
             {
                 // Wait forever for a matching event to arrive.
 				CLTRACE(9, "PubSubServer: Subscribe: Wait forever for an event to arrive.");
-                base->subscriptions_[nFoundSubscriptionIndex].pSemaphoreSubscription_->wait();
+                optrSemaphore->wait();
+				CLTRACE(9, "PubSubServer: Subscribe: Got an event or posted by a cancel(2).  Return code 'try again'.");
                 nResult = RC_SUBSCRIBE_TRY_AGAIN;
             }
 
-            // Dropped out of the wait.  If we were cancelled, we don't need the lock.
-            if (base->subscriptions_[nFoundSubscriptionIndex].fCancelled_)
+            // Dropped out of the wait.  Lock again.
+      	    base->mutexSharedMemory_.lock();
+            fIsLocked = true;
+
+            // The subscriptions may have moved.  Locate our subscription again.
+            fSubscriptionFound = FindSubscription(EventType, guidId, base, &itFoundSubscription);
+            if (fSubscriptionFound)
             {
-				CLTRACE(9, "PubSubServer: Subscribe: Return code 'cancelled'.");
-                base->subscriptions_[nFoundSubscriptionIndex].fWaiting_ = false;
-                nResult = RC_SUBSCRIBE_CANCELLED;
+                // We found the subscription again.
+                itFoundSubscription->fWaiting_ = false;        // no longer waiting
+
+                // Check for a cancellation.
+                if (itFoundSubscription->fCancelled_)
+                {
+				    CLTRACE(9, "PubSubServer: Subscribe: Return code 'cancelled'.");
+                    nResult = RC_SUBSCRIBE_CANCELLED;
+                }
             }
             else
             {
-                // Clear the waiting state under the lock, and indicate an error if we dropped out of the wait due to a cancellation.
-                base->mutexSharedMemory_.lock();
-                fIsLocked = true;
-
-                base->subscriptions_[nFoundSubscriptionIndex].fWaiting_ = false;
-
-                fIsLocked = false;
-                base->mutexSharedMemory_.unlock();            
+                // The subscription is gone!  YIKES!
+				CLTRACE(1, "PubSubServer: Subscribe: ERROR.  Subscription missing after wait..");
+                nResult = RC_SUBSCRIBE_ERROR;
             }
+
+            // Unlock
+            fIsLocked = false;
+            base->mutexSharedMemory_.unlock();
         }
     }
     catch (std::exception &ex)
@@ -412,7 +418,10 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
                 CancelWaitingSubscription(base->subscriptions_[i].nEventType_, base->subscriptions_[i].guidId_, &cancelResult);
                 if (cancelResult == RC_CANCEL_OK)
                 {
-                    nResult = RC_CANCELBYPROCESSID_OK;
+                    if (nResult != RC_CANCELBYPROCESSID_ERROR)
+                    {
+                        nResult = RC_CANCELBYPROCESSID_OK;
+                    }
                 }
                 else
                 {
@@ -469,40 +478,16 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
         fIsLocked = true;
 
         // Look for this subscription.
-        ULONGLONG nFoundSubscriptionIndex = UINT64_MAX;
-        for (int i = 0; i < base->subscriptions_.size(); i++)
-        {
-            EnumEventType thisEventType = base->subscriptions_[i].nEventType_;
-            GUID thisGuid = base->subscriptions_[i].guidId_;
-            if (thisEventType == EventType && thisGuid == guidId)
-            {
-                nFoundSubscriptionIndex = i;
-				CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Found subscription index %d.", nFoundSubscriptionIndex);
-                break;
-            }
-        }
-
-        // Process by whether we found the target subscription.
-        // NOTE: There is a bug in the compiler!!   Comparing two maximum value ULONGLONG numbers is broken when the comparison is against two numbers with value 0xFFFFFFFFFFFFFFFFU.
-        // The code below ends up in the "No match" block.
-        //     if (nFoundSubscriptionIndex != UINT64_MAX)
-        //     {
-        //         // No match
-        //     }
-        //     else
-        //     {
-        //         // Match
-        //     }
-        // The code below is substituted to determine whether we have a valid index.
-        if (nFoundSubscriptionIndex == 0
-            || (nFoundSubscriptionIndex - 1) / 2 != MAXLONGLONG)
+        subscription_vector::iterator itFoundSubscription;
+        bool fSubscriptionFound = FindSubscription(EventType, guidId, base, &itFoundSubscription);
+        if (fSubscriptionFound)
         {
             // Found our subscription.  Post the semaphore to allow the waiting thread to fall through the wait.
             // Set a flag in the subscription to indicate that it is cancelled.  This will prevent the subscribing thread
             // from waiting again.
 			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Found our subscription. Mark cancelled and post it.");
-            base->subscriptions_[nFoundSubscriptionIndex].fCancelled_ = true;
-            base->subscriptions_[nFoundSubscriptionIndex].pSemaphoreSubscription_->post();
+            itFoundSubscription->fCancelled_ = true;
+            itFoundSubscription->pSemaphoreSubscription_->post();
 
             // Give the thread a chance to exit the wait.
             bool fCancelOk = false;
@@ -516,13 +501,14 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
                 fIsLocked = true;
 
                 // If not waiting now, remove the subscription
-                if (!base->subscriptions_[nFoundSubscriptionIndex].fWaiting_)
+                if (!itFoundSubscription->fWaiting_)
                 {
 					// Remove this subscription ID from the list of subscriptions created by this instance.
-					_subscriptionIds.erase(std::find(_subscriptionIds.begin(), _subscriptionIds.end(), base->subscriptions_[nFoundSubscriptionIndex].guidId_));
+        			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Erase the subscription.");
+                    RemoveSubscriptionId(itFoundSubscription->nEventType_, itFoundSubscription->guidId_);
 
 					// Delete the subscription itself
-                    base->subscriptions_.erase(base->subscriptions_.begin() + nFoundSubscriptionIndex);
+                    base->subscriptions_.erase(itFoundSubscription);
                     fCancelOk = true;
                     break;
                 }
@@ -584,26 +570,45 @@ STDMETHODIMP CPubSubServer::get_SharedMemoryName(BSTR* pVal)
     }
     catch(std::exception &ex)
     {
+        CLTRACE(1, "PubSubServer: get_SharedMemoryName: Exception: %s.", ex.what());
         nResult = E_OUTOFMEMORY;
     }
 
     return nResult;
 }
 
+/// <summary>
+/// Remove a subscription ID from the list of subscriptions created by this instance.
+/// NOTE: Assumes that the caller holds the shared memory lock.
+/// </summary>
+void CPubSubServer::RemoveSubscriptionId(EnumEventType eventType, GUID guid)
+{
+    for (std::vector<UniqueSubscription>::iterator it = _subscriptionIds.begin(); it != _subscriptionIds.end(); ++it)
+    {
+        if (it->eventType == eventType && it->guid == guid)
+        {
+    		CLTRACE(1, "PubSubServer: RemoveSubscriptionId: Erase subscription ID. EventType: %d. GUID: %ls.", eventType, CComBSTR(guid));
+            _subscriptionIds.erase(it);
+            break;
+        }
+    }
+}
+
 
 /// <summary>
-/// Delete a subscription from shared memory by GUID ID.  Assumes that the caller holds the shared memory lock.
+/// Delete a subscription from shared memory by GUID ID.
+/// NOTE: Assumes the shared memory lock is held.
 /// </summary>
-void CPubSubServer::DeleteSubscriptionByGuid(Base * base, GUID guid)
+void CPubSubServer::DeleteSubscriptionById(Base * base, CPubSubServer::UniqueSubscription subscriptionId)
 {
 	try
 	{
 		// Look for the subscription
 		for (subscription_vector::iterator itSubscription = base->subscriptions_.begin(); itSubscription != base->subscriptions_.end(); /* iterator bump handled in body */)
 		{
-			if (itSubscription->guidId_ == guid)
+			if (itSubscription->guidId_ == subscriptionId.guid && itSubscription->nEventType_ == subscriptionId.eventType)
 			{
-				CLTRACE(9, "PubSubServer: DeleteSubscriptionByGuid: Delete subscription with GUID: %ls.", CComBSTR(guid));
+				CLTRACE(9, "PubSubServer: DeleteSubscriptionById: Delete subscription.  EventType: %d. GUID: %ls.", subscriptionId.eventType, CComBSTR(subscriptionId.guid));
 				itSubscription = base->subscriptions_.erase(itSubscription);
 			}
 			else
@@ -614,7 +619,41 @@ void CPubSubServer::DeleteSubscriptionByGuid(Base * base, GUID guid)
 	}
 	catch (std::exception &ex)
 	{
+        CLTRACE(1, "PubSubServer: DeleteSubscriptionById: Exception: %s.", ex.what());
 	}
+}
+
+/// <summary>
+/// Find a subscription by its event type and GUID.
+/// NOTE: Assumes the shared memory lock is held.
+/// </summary>
+/// <returns>bool: true: found the subscription.</returns>
+bool CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidId, Base *base, CPubSubServer::subscription_vector::iterator *outItFoundSubscription)
+{
+    bool result = false;
+ 	try
+	{
+        // Look for this subscription.
+		for (subscription_vector::iterator itSubscription = base->subscriptions_.begin(); itSubscription != base->subscriptions_.end(); ++itSubscription)
+        {
+            EnumEventType thisEventType = itSubscription->nEventType_;
+            GUID thisGuid = itSubscription->guidId_;
+            if (thisEventType == EventType && thisGuid == guidId)
+            {
+                *outItFoundSubscription = itSubscription;
+                result = true;
+				CLTRACE(9, "PubSubServer: FindSubscription: Found subscription index %d.", std::distance(base->subscriptions_.begin(), itSubscription));
+                break;
+            }
+        }
+	}
+	catch (std::exception &ex)
+	{
+        CLTRACE(1, "PubSubServer: FindSubscription: Exception: %s.", ex.what());
+        result = false;
+	}
+
+    return result;
 }
 
 /// <summary>
@@ -640,11 +679,23 @@ STDMETHODIMP CPubSubServer::Terminate()
 			base->mutexSharedMemory_.lock();
 			fIsLocked = true;
 
-			for (std::vector<GUID>::iterator it = _subscriptionIds.begin(); it != _subscriptionIds.end(); ++it)
+            // Delete all of the subscriptions made by this instance.
+			for (std::vector<UniqueSubscription>::iterator it = _subscriptionIds.begin(); it != _subscriptionIds.end(); ++it)
 			{
-				CLTRACE(9, "PubSubServer: Terminate: Call DeleteSubscriptionByGuid for GUID: %ls.", CComBSTR(*it));
-				DeleteSubscriptionByGuid(base, *it);
+				CLTRACE(9, "PubSubServer: Terminate: Call DeleteSubscriptionById.");
+				DeleteSubscriptionById(base, *it);
 			}
+            _subscriptionIds.clear();
+
+            ULONG processId = GetCurrentProcessId();
+            ULONG threadId = GetCurrentThreadId();
+
+            CLTRACE(9, "PubSubServer: Terminate: Print subscriptions left.  This process ID: %lu. This thread ID: %lu", processId, threadId);
+    		for (subscription_vector::iterator itSubscription = base->subscriptions_.begin(); itSubscription != base->subscriptions_.end(); ++itSubscription)
+            {
+                CLTRACE(9, "PubSubServer: Terminate: Remaining subscription: EventType: %d. ProcessId: %lu. ThreadId: %lu. Guid: %ls.", itSubscription->nEventType_, itSubscription->uSubscribingProcessId_, itSubscription->uSubscribingThreadId_, CComBSTR(itSubscription->guidId_));
+            }
+            CLTRACE(9, "PubSubServer: Terminate: End of remaining subscriptions.");
 
 			fIsLocked = false;
 			base->mutexSharedMemory_.unlock();

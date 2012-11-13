@@ -215,14 +215,15 @@ void CBadgeIconFailed::OnDelayedEvent()
 	try
 	{
 		// We lost the badging connection.  Empty the dictionaries.  They will be rebuilt if we can get another connection.
+		CLTRACE(9, "CBadgeIconFailed: OnDelayedEvent: Entry.");
 		_mapBadges.clear();
 		_mapSyncBoxPaths.clear();
 
 		// Restart the CBadgeNetPubSubEvents class.
-		CLTRACE(9, "CBadgeIconFailed: OnDelayedEvent: Entry.");
 		if (_pBadgeNetPubSubEvents != NULL)
 		{
 			// Kill the BadgeNetPubSubEvents threads and free resources.
+    		CLTRACE(9, "CBadgeIconFailed: OnDelayedEvent: Restart the subscription.");
 			_pBadgeNetPubSubEvents->~CBadgeNetPubSubEvents();
 			_pBadgeNetPubSubEvents = NULL;
 
@@ -234,6 +235,7 @@ void CBadgeIconFailed::OnDelayedEvent()
 	{
 		CLTRACE(1, "CBadgeIconFailed: OnDelayedEvent: ERROR: Exception.  Message: %s.", ex.what());
 	}
+	CLTRACE(9, "CBadgeIconFailed: OnDelayedEvent: Exit.");
 }
 
 /// <summary>
@@ -271,12 +273,14 @@ void CBadgeIconFailed::InitializeBadgeNetPubSubEvents()
 
 		// Tell BadgeNet we just initialized.
 		BSTR dummy(L"");
+		CLTRACE(9, "CBadgeIconFailed: InitializeBadgeNetPubSubEvents: Call PublishEventToBadgeNet.");
 		_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */);
 	}
 	catch(std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconFailed: InitializeBadgeNetPubSubEvents: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    CLTRACE(9, "CBadgeIconFailed: InitializeBadgeNetPubSubEvents: Exit.");
 }
 
 

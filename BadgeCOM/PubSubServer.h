@@ -209,11 +209,20 @@ public:
     // Public OLE accessible properties
     STDMETHOD(get_SharedMemoryName)(BSTR* pVal);
 private:
+    // Private structs
+    typedef struct UniqueSubscription_tag
+    {
+         EnumEventType eventType;
+         GUID guid;
+    } UniqueSubscription, *P_UniqueSubscription;
+
 	// Private methods
-	void DeleteSubscriptionByGuid(Base * base, GUID guid);
+    void RemoveSubscriptionId(EnumEventType eventType, GUID guid);
+	void DeleteSubscriptionById(Base * base, UniqueSubscription subscriptionId);
+    bool FindSubscription(EnumEventType EventType, GUID guidId, Base *base, subscription_vector::iterator *outItFoundSubscription);
 
 	// Private instance fields
-	std::vector<GUID> _subscriptionIds;						// list of subscriptions created by this instance
+	std::vector<UniqueSubscription> _subscriptionIds;		// list of subscriptions created by this instance
 	boost::mutex _lockerLocal;								// local locker
 	
 

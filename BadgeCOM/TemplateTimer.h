@@ -47,7 +47,8 @@ public:
                                               this,
                                               immediately ? 0 : interval,
                                               once ? 0 : interval,
-                                              WT_EXECUTEINTIMERTHREAD);
+                                              (once ? WT_EXECUTEONLYONCE : 0) | WT_EXECUTEINPERSISTENTTHREAD);
+                                              //RKSWT_EXECUTEINTIMERTHREAD);
 
         return( success != 0 );
     }

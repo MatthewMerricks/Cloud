@@ -40,10 +40,10 @@ STDMETHODIMP CBadgeIconSelective::GetOverlayInfo(
 	try
 	{
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-		///*while (true)
+		//while (true)
 		//{
 		//	Sleep(100);
-		//*/}
+		//}
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 		// Get our module's full path
 		CLTRACE(9, "CBadgeIconSelective: GetOverlayInfo: Entry");
@@ -213,14 +213,15 @@ void CBadgeIconSelective::OnDelayedEvent()
 	try
 	{
 		// We lost the badging connection.  Empty the dictionaries.  They will be rebuilt if we can get another connection.
+		CLTRACE(9, "CBadgeIconSelective: OnDelayedEvent: Entry.");
 		_mapBadges.clear();
 		_mapSyncBoxPaths.clear();
 
 		// Restart the CBadgeNetPubSubEvents class.
-		CLTRACE(9, "CBadgeIconSelective: OnDelayedEvent: Entry.");
 		if (_pBadgeNetPubSubEvents != NULL)
 		{
 			// Kill the BadgeNetPubSubEvents threads and free resources.
+    		CLTRACE(9, "CBadgeIconSelective: OnDelayedEvent: Restart the subscription.");
 			_pBadgeNetPubSubEvents->~CBadgeNetPubSubEvents();
 			_pBadgeNetPubSubEvents = NULL;
 
