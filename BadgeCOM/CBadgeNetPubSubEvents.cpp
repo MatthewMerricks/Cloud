@@ -20,9 +20,6 @@
 
 // Initialize static fields.
 bool CBadgeNetPubSubEvents::_fDebugging = false;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-int CBadgeNetPubSubEvents::nTimeoutCountFail = 120;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 /// <summary>
 /// Constructor
@@ -40,9 +37,6 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semSync(0), _semWatcher(0)
         _fRequestSubscribingThreadExit = false;
         _fRequestWatchingThreadExit = false;
         _fTerminating = false;
-        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        nTimeoutCountFail = 120;
-        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         // Initialize the COM system
         CoInitialize(NULL);
@@ -91,6 +85,8 @@ CBadgeNetPubSubEvents::~CBadgeNetPubSubEvents(void)
     try
     {
 		CLTRACE(9, "CBadgeNetPubSubEvents: ~CBadgeNetPubSubEvents: Entry.");
+		_fRequestSubscribingThreadExit = true;              // preemptive strike
+		_fRequestWatchingThreadExit = true;
         _fTerminating = true;
         KillSubscribingThread();
         KillWatchingThread();
@@ -124,6 +120,7 @@ void CBadgeNetPubSubEvents::Initialize()
 {
     try
     {
+		CLTRACE(9, "CBadgeNetPubSubEvents: Initialize: Entry.");
         if (_pPubSubServer == NULL)
         {
             throw new std::exception("Call Initialize() first");
@@ -174,17 +171,24 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
 /// </summary>
 void CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
 {
-    // Start the threads.
-	CLTRACE(9, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: Entry.");
-    bool startedOk = StartSubscribingThread();
-    if (startedOk)
-    {
-        StartWatchingThread();
-    }
-    else
-    {
-    	CLTRACE(1, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: ERROR. Subscribing thread did not start.");
-    }
+	try
+	{
+		// Start the threads.
+		CLTRACE(9, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: Entry.");
+		bool startedOk = StartSubscribingThread();
+		if (startedOk)
+		{
+			StartWatchingThread();
+		}
+		else
+		{
+			CLTRACE(1, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: ERROR. Subscribing thread did not start.");
+		}
+	}
+	catch (std::exception &ex)
+	{
+		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: ERROR: Exception.  Message: %s.", ex.what());
+	}
 }
 
 /// <summary>
@@ -195,9 +199,6 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
     try
     {
         bool fSemaphoreReleased = false;
-		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-		int nTimeoutCount = 30;
-		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 		CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Entry.");
 		if (pUserState == NULL)
@@ -233,10 +234,6 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             EnumCloudAppIconBadgeType badgeType;
             BSTR bsFullPath;                                // allocated by Subscribe.  Must be freed eventually (SysFreeString()).
             hr = pThis->_pPubSubServer->Subscribe(BadgeNet_To_BadgeCom, pThis->_guidSubscription, _kMillisecondsTimeoutSubscribingThread, &eventSubType, &badgeType, &bsFullPath, &result);
-			//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			nTimeoutCount--;
-            nTimeoutCountFail--;
-			//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             if (!SUCCEEDED(hr))
             {
         		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: From Subscribe.  hr: %d.", hr);
@@ -294,6 +291,13 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 
 				// Free the out parameter BSTR allocated by the COM server.
 				SysFreeString(bsFullPath);
+
+                // Exit if we were requested to kill ourselves.
+                if (pThis->_fRequestSubscribingThreadExit || pThis->_fTerminating)
+                {
+				    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: Requested to exit (3).  Break out of loop.");
+                    break;
+                }
             }
             else if (result == RC_SUBSCRIBE_ERROR)
             {
@@ -324,22 +328,11 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             // We're alive
             pThis->_locker.lock();
             {
-				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				if (nTimeoutCount >= 0)
-				{
-	                pThis->_isSubscriberThreadAlive = true;
-				}
-                if (nTimeoutCountFail < 0)
-                {
-				    CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Fire event FireEventSubscriptionWatcherFailed.");
-                    pThis->FireEventSubscriptionWatcherFailed();
-				    CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Back from firing event FireEventSubscriptionWatcherFailed.");
-                }
-				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                //pThis->_isSubscriberThreadAlive = true;				//@@@@@@@@@@@ DEBUG add this back in.
+                pThis->_isSubscriberThreadAlive = true;
 
                 if (!fSemaphoreReleased)
                 {
+				    CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Subscribed. Post starting thread.");
                     fSemaphoreReleased = true;
                     pThis->_semSync.signal();
                 }
@@ -377,15 +370,15 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
         {
             // Wait letting the subscribing thread work.
             fRestartSubscribingThread = false;
-			CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Wait until the next look.");
+			CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Wait until the next look.");
             boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(pThis->_kMillisecondsTimeoutWatchingThread);
-			CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Out of wait.  Check on subscribing thread.");
+			CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Out of wait.  Check on subscribing thread.");
             pThis->_semWatcher.wait(timeout);
 
             // Exit if we should
             if (pThis->_fRequestWatchingThreadExit || pThis->_fTerminating)
             {
-				CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Requested to exit.  Break out of loop.");
+				CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Requested to exit.  Break out of loop.");
                 break;
             }
 
@@ -417,18 +410,21 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
 		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: Exception.  Message: %s.", ex.what());
 		if (pThis != NULL  && !pThis->_fRequestWatchingThreadExit && !pThis->_fTerminating)
 		{
-			CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Requested to exit.  Break out of loop.");
 			try
 			{
+				CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Fire event FireEventSubscriptionWatcherFailed.");
 		        pThis->FireEventSubscriptionWatcherFailed();                // notify the delegates
+				CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Back from firing event FireEventSubscriptionWatcherFailed.");
+
+				pThis->KillSubscribingThread();
 			}
 			catch (std::exception &ex)
 			{
 				CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: Exception(2).  Message: %s.", ex.what());
 			}
-			pThis->KillSubscribingThread();
 		}
     }
+	CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Watchin thread exit.");
 }
 
 /// <summary>
@@ -444,7 +440,7 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
         {
             if (_pPubSubServer != NULL)
             {
-                // Cancel the subscription.
+                // Cancel the subscription the thread may be waiting on.
 				CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Call CancelWaitingSubscription.");
                 EnumPubSubServerCancelWaitingSubscriptionReturnCodes result;
                 HRESULT hr = _pPubSubServer->CancelWaitingSubscription(BadgeNet_To_BadgeCom, _guidSubscription, &result);
@@ -468,16 +464,17 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
         // Try to kill the thread if it is instantiated.
         if (fThreadSubscribingInstantiated)
         {
-            // Request the thread to exit and wait for it.  Kill it if it takes too long.
-				CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Request subscribing thread to exit.");
             bool fThreadDead = false;
+
+			// Request the thread to exit and wait for it.  Kill it if it takes too long.
+			CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Request subscribing thread to exit.");
             _fRequestSubscribingThreadExit = true;
-            for (int i = 0; i < 3; ++i)
+            for (int i = 0; i < 5; ++i)
             {
                 if (IsThreadAlive(_threadSubscribingHandle))
                 {
 					CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Wait for the subscribing thread to exit.");
-                    Sleep(50);
+                    Sleep(100);
                 }
                 else
                 {
@@ -532,12 +529,12 @@ void CBadgeNetPubSubEvents::KillWatchingThread()
         {
 			CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Wait for watching thread to exit.");
             bool fThreadDead = false;
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 5; i++)
             {
                 if (IsThreadAlive(_threadWatchingHandle))
                 {
         			CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Let the watching thread work.");
-                    Sleep(50);
+                    Sleep(100);
                 }
                 else
                 {
@@ -603,6 +600,10 @@ bool CBadgeNetPubSubEvents::StartSubscribingThread()
         // Wait for the thread to be started and subscribed.
         boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(5000);
         result = _semSync.wait(timeout);
+		if (!result)
+		{
+			CLTRACE(1, "BadgeComPubSubEvents: StartSubscribingThread: ERROR: Subscribing thread did not start.");
+		}
     }
     catch (std::exception &ex)
     {
@@ -659,11 +660,7 @@ void CBadgeNetPubSubEvents::RestartSubcribingThread()
 {
 	CLTRACE(9, "CBadgeNetPubSubEvents: RestartSubcribingThread: Entry.");
     KillSubscribingThread();
-    bool startedOk = StartSubscribingThread();
-    if (!startedOk)
-    {
-    	CLTRACE(1, "CBadgeNetPubSubEvents: RestartSubcribingThread: ERROR.  Subscribing thread did not start.");
-    }
+    StartSubscribingThread();
 }
 
 /// <summary>

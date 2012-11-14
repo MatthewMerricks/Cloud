@@ -6199,9 +6199,35 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       subscriptions, but it is not possible to do this from DllMain.  By that time, the threads are already terminated, except the current thread executing in DllMain,
       and the resources are in an inconsistent state.  See: http://msdn.microsoft.com/en-us/library/windows/desktop/ms682583(v=vs.85).aspx
     - We are badging again!  It is very fast to badge, but not to create the badges (logging?).
-    - TODO: Bug? The trace shows cancelling a subscription by event type and guid, but it is not found.  That's because the subscription is by a different event type.  Check it out further.
-  o 11/13/12 Mon: 
-    - 6:??
+    - TODO(Done): Bug? The trace shows cancelling a subscription by event type and guid, but it is not found.  That's because the subscription is by a different event type.  Check it out further.
+  o 11/13/12 Tue: 
+    - 5:15 - 6:45 (Home, DR Appt.)
+    - 8:45 - 18:30
+    - TODO: Have the watching tasks check the subscription pool for dormant subscriptions.  Add a COM method to PubSubServer that will loop through the subscriptions and
+      check each to see that its process is still alive.  If the process is dead, remove the subscription.  Call the method from the watching thread every so often.
+    - TODO: Test the subscribing thread restart on both sides.  Do this with trace and some helper code.  Add trace everywhere needed, then insert code that prevents the setting
+      of the keep-alive flag by the subscribing thread.  Let it run for a while, then inspect the trace.
+    - TODO: Test the wrapper layer Dispose on both sides.  Do this with trace and some helper code.  Add trace everywhere needed, then insert code that terminates the wrapper layer.
+      Let it run, then inspect the trace.
+    - TODO: Compare the wrapper layer code between BadgeNet and BadgeCom.
+    - Time waster: Table "syncs" not found by SqlCe.  Fixed.
+    - The watcher restart works properly on the BadgeCom side.
+    - TODO(Done): Bug: The current BadgeCom Dispose design causes an exception. 
+    - Refactored PubSubServer to use iterators rather than indices to locate subscriptions.
+  o 11/14/12 Wed: 
+    - 6:30 - 18:30
+    - Redesign the BadgeCom BadgeNetPubSubEvents "watcher failed" event to use a thread rather than a timer event.  It appears that the crash is due to a permissions thing.
+    - TODO: Complete the design change from timer event to thread in BadgeCom badging classes.
+    - A good COM tutorial: http://netez.com/2xExplorer/shellFAQ/bg_com.html
+    - The crash turned out to be the lack of CoInitialize(NULL); and CoUninitialize();
+    - The BadgeCom side went through multiple complete restarts, and multiple "watcher restarts subscriber" restarts.  The trace shows no issues.  Move on to the BadgeNet side.
+    - TODO(Done): Bug: IconOverlay.cs, line 267.  Iterating array without being locked.
+    - TODO: Bug: The C# Thread.Abort() method does not instantly stop a thread.  The thread continues running, eventually generating "Thread was being aborted" exception.  Change
+      to using the TaskFactory which should allow cancellation.
+    - Time waster:  I finally figured out what was going on on the C# side.  .Net is forcing STA use of the COM object.  That allows only a single thread into PubSubServer at
+      at time!  I will work on a solution for that tomorrow....
+
+
 
       
 
@@ -7614,6 +7640,7 @@ TODO:
     are no normal termination events.  An exiting process is the only event, and that process may own multiple PubSub subscriptions.
   o Split out the context menu support from BadgeCom.  Also split out all of the matching context menu support in BadgeNet.
   o Move BadgeNet into CloudApiPublic.
+  o Remove project BadgeComPS.
 
 
 

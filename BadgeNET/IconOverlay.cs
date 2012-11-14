@@ -58,7 +58,13 @@ namespace BadgeNET
         private static CLTrace _trace = CLTrace.Instance;
 
         // Constructor for Singleton pattern is private
-        private IconOverlay() { }
+        private IconOverlay()
+        {
+            // Allocate the badging current state flat dictionary.  This dictionary is used to determine the badge path to remove when the
+            // badge type for that path changes.  We send a _kEvent_BadgeNet_AddBadgePath event to the BadgeCom "new" type, and a
+            // _kEvent_BadgeNet_RemoveBadgePath event to the BadgeCom "old" type.
+            _currentBadges = new Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>(FilePathComparer.Instance);
+        }
 
         // Standard IDisposable implementation based on MSDN System.IDisposable
         ~IconOverlay()
@@ -131,12 +137,7 @@ namespace BadgeNET
                 _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
 
                 // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
-                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
-
-                // Allocate the badging current state flat dictionary.  This dictionary is used to determine the badge path to remove when the
-                // badge type for that path changes.  We send a _kEvent_BadgeNet_AddBadgePath event to the BadgeCom "new" type, and a
-                // _kEvent_BadgeNet_RemoveBadgePath event to the BadgeCom "old" type.
-                _currentBadges = new Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>(FilePathComparer.Instance);
+                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
 
                 // Allocate the badging dictionary.  This is a hierarchical dictionary.
                 CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
@@ -257,23 +258,33 @@ namespace BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     // Publish the remove SyncBox folder path event back to all BadgeCom instances.  This will clear any dictionaries involving those folder paths.
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
 
                     // Publish the add SyncBox folder path event back to all BadgeCom instances.
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                    
+                    // Do not want to process COM publishing logic while holding up the lock, so make a copy under the lock instead.
+                    Func<Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>,
+                        IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>>> copyBadgesUnderLock = badgeDict =>
+                        {
+                            lock (badgeDict)
+                            {
+                                return badgeDict.ToArray();
+                            }
+                        };
 
                     // Iterate over the current badge state dictionary and send the badges to BadgeCom. This will populate the BadgeCom instance that just initialized.
                     // Other instances will update from these events only if necessary.
-                    foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in _currentBadges)
+                    foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in copyBadgesUnderLock(_currentBadges))
                     {
                         // Publish a badge add path event to BadgeCom.
-                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)item.Value.Value, item.Key.ToString());
+                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)item.Value.Value, item.Key.ToString());
                     }
                 }
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "IconOverlay: OnPubSubEventReceived: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -444,7 +455,7 @@ namespace BadgeNET
                 {
                     // lock internal list during modification
                     _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. List not processed.");
-                    lock (allBadges)
+                    lock (_currentBadges)
                     {
                         // empty list before adding in all replacement items
                         _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Clear all badges.");
@@ -478,6 +489,7 @@ namespace BadgeNET
         /// <param name="recursivePathBeingDeleted">The recursive path being deleted as a result of the originalDeletedPath being deleted.</param>
         /// <param name="forBadgeType">The recursive associated badge type.</param>
         /// <param name="originalDeletedPath">The original path that was deleted, potentially causing a series of other node deletes.</param>
+        /// <remarks>Assumes the lock is already held on _currentBadges.</remarks>
         /// </summary>
         private void OnAllBadgesRecursiveDelete(FilePath recursivePathBeingDeleted, GenericHolder<cloudAppIconBadgeType> forBadgeType, FilePath originalDeletedPath)
         {
@@ -504,6 +516,7 @@ namespace BadgeNET
         /// <param name="recursiveOldPathBadgeType">The associated badge type of the recursive path being renamed.</param>
         /// <param name="originalOldPath">The original old path being renamed that caused this recursive rename.</param>
         /// <param name="originalNewPath">The original new path that caused this recursive rename.</param>
+        /// <remarks>Assumes the lock is already held on _currentBadges.</remarks>
         private void OnAllBadgesRecursiveRename(FilePath recursiveOldPath, FilePath recursiveRebuiltNewPath, GenericHolder<cloudAppIconBadgeType> recursiveOldPathBadgeType, FilePath originalOldPath, FilePath originalNewPath)
         {
             try
@@ -564,7 +577,7 @@ namespace BadgeNET
                 }
 
                 // lock internal list during modification
-                lock (allBadges)
+                lock (_currentBadges)
                 {
                     // Simply pass this action on to the badge dictionary.  The dictionary will pass recursive deletes back to us.  The recursive
                     // delete will not happen for the toDelete node.
@@ -630,7 +643,7 @@ namespace BadgeNET
                 }
 
                 // lock internal list during modification
-                lock (allBadges)
+                lock (_currentBadges)
                 {
                     // Simply pass this action on to the badge dictionary.  The dictionary will pass recursive renames back to us
                     // as the rename is processes, and those recursive renames will cause the badges to be adjusted.
@@ -750,6 +763,7 @@ namespace BadgeNET
         /// Recursively update the badge state for a node and all of its children.
         /// </summary>
         /// <param name="node">The top node in a hierarchy.</param>
+        /// <remarks>Assumes the lock is already held by the caller on _currentBadges.</remarks>
         private void UpdateBadgeStateInHierarchy(FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> node)
         {
             // Error if no parms.
@@ -806,7 +820,7 @@ namespace BadgeNET
                 }
 
                 // lock internal list during modification
-                lock (allBadges)
+                lock (_currentBadges)
                 {
                     // Retrieve the hierarchy below if this node is selective.
                     FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> selectiveTree = null;
@@ -884,7 +898,7 @@ namespace BadgeNET
             try
             {
                 // lock on dictionary so it is not modified during lookup
-                lock (allBadges)
+                lock (_currentBadges)
                 {
                     foreach (cloudAppIconBadgeType currentBadge in Enum.GetValues(typeof(cloudAppIconBadgeType)).Cast<cloudAppIconBadgeType>())
                     {
@@ -1001,7 +1015,7 @@ namespace BadgeNET
                             {
                                 if (_badgeComPubSubEvents != null)
                                 {
-                                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
                                 }
                             }
                             catch (Exception ex)
@@ -1017,6 +1031,7 @@ namespace BadgeNET
                                     _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
                                     _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
                                     _badgeComPubSubEvents.Dispose();
+                                    _badgeComPubSubEvents = null;
                                 }
                             }
                             catch (Exception ex)
@@ -1025,11 +1040,13 @@ namespace BadgeNET
                             }
 
                             // Clear other references.
-                            if (_currentBadges != null)
+                            lock (_currentBadges)
                             {
-                                _currentBadges.Clear();
+                                if (_currentBadges != null)
+                                {
+                                    _currentBadges.Clear();
+                                }
                             }
-                            _currentBadges = null;
                         }
                     }
                 }
@@ -1049,12 +1066,12 @@ namespace BadgeNET
         /// <summary>
         /// The dictionary that holds the current state of all of the badges.
         /// </summary>
-        private Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>> _currentBadges;
+        private readonly Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>> _currentBadges;
 
         /// <summary>
         /// The hierarhical dictionary that holds all of the badges.  Nodes with null values are assumed to be synced.
         /// </summary>
-        FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> allBadges;
+        private FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> allBadges;
 
         #region notify system of change
         // important (including everything inside)
@@ -1195,7 +1212,7 @@ namespace BadgeNET
                 GenericHolder<cloudAppIconBadgeType> objBadgeType = new GenericHolder<cloudAppIconBadgeType>(badgeType);
 
                 // Lock and query the in-memory database.
-                lock (allBadges)
+                lock (_currentBadges)
                 {
                     // There will be no badge if the path doesn't contain Cloud root
                     //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Locked.");
@@ -1362,6 +1379,7 @@ namespace BadgeNET
         /// <summary>
         /// Update the badging state to match the hierarchical badge dictionary, working from the parent of a node up to the root.
         /// </summary>
+        /// <remarks>Assumes the lock is already held by the caller on _currentBadges.</remarks>
         private void UpdateBadgeStateUpTreeStartingWithParentOfNode(FilePath nodePath, FilePath rootPath)
         {
             if (rootPath == null)
@@ -1388,6 +1406,7 @@ namespace BadgeNET
         /// The new status is read from the allBadges hierarchichal dictionary.  If the new status is different than the
         /// current status, badging events are sent and the current badge status flat dictionary is updated.
         /// </summary>
+        /// <remarks>Assumes the lock is already held by the caller on _currentBadges.</remarks>
         private void UpdateBadgeStateAtPath(FilePath nodePath)
         {
             // Get the new badge type for this nodePath from the hierarchical dictionary.
@@ -1440,7 +1459,7 @@ namespace BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     _trace.writeToLog(9, "IconOverlay: SendAddBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString());
                 }
 	        }
 	        catch (global::System.Exception ex)
@@ -1460,7 +1479,7 @@ namespace BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     _trace.writeToLog(9, "IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventSubType.BadgeNet_RemoveBadgePath, 0 /* not used */, nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveBadgePath, 0 /* not used */, nodePath.ToString());
                 }
 	        }
 	        catch (global::System.Exception ex)

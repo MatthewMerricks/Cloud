@@ -29,8 +29,10 @@ namespace BadgeNET
 
         #region Private fields
 
-        private PubSubServerClass _pubSubServer = null;
         private static CLTrace _trace = CLTrace.Instance;
+        private static bool _fDebugging = false;
+
+        private PubSubServerClass _pubSubServer = null;
         private const int _kMillisecondsTimeoutSubscribingThread = 1000;
         private const int _kMillisecondsTimeoutWatchingThread = 20000;
         private Guid _guidSubscription;
@@ -38,11 +40,14 @@ namespace BadgeNET
         private Thread _threadWatching = null;
         private bool _isSubscriberThreadAlive = false;
         private readonly object _locker = new object();
-        private static bool _fDebugging = false;
         private Semaphore _semSync = null;
         private Semaphore _semWatcher = null;
         private bool _fRequestSubscribingThreadExit = false;
         private bool _fRequestWatchingThreadExit = false;
+        private bool _fTerminating = false;
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        private int _nTimeoutCountFail = 120;
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         
         #endregion
 
@@ -73,18 +78,18 @@ namespace BadgeNET
         /// <summary>
         /// Publish an event to BadgeCom
         /// </summary>
-        public void PublishEventToBadgeCom(EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, string fullPath)
+        public void PublishEventToBadgeCom(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, string fullPath)
         {
             try
             {
-                _trace.writeToLog(9, "BadgeComPubSubEvents: PublishEventToBadgeCom: Entry. eventSubType: {0}. badgeType: {1}. fullPath: {2}.", eventSubType, badgeType, fullPath);
-                if (_pubSubServer == null)
+                _trace.writeToLog(9, "BadgeComPubSubEvents: PublishEventToBadgeCom: Entry. eventType: {0}. eventSubType: {1}. badgeType: {2}. fullPath: {3}.", eventType, eventSubType, badgeType, fullPath);
+                if (_pubSubServer == null || fullPath == null)
                 {
                     throw new Exception("Call Initialize() first");
                 }
 
                 // Publish the event
-                EnumPubSubServerPublishReturnCodes result = _pubSubServer.Publish(EnumEventType.BadgeNet_To_BadgeCom, eventSubType, badgeType, fullPath);
+                EnumPubSubServerPublishReturnCodes result = _pubSubServer.Publish(eventType, eventSubType, badgeType, fullPath);
                 if (result != EnumPubSubServerPublishReturnCodes.RC_PUBLISH_OK)
                 {
                     _trace.writeToLog(1, "BadgeComPubSubEvents: PublishEventToBadgeCom: ERROR: From Publish. Result: {0}.", result.ToString());
@@ -131,13 +136,14 @@ namespace BadgeNET
         /// </summary>
         private void SubscribingThreadProc()
         {
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            int testCount = 30;
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             try
             {
-                _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Entry.");
                 bool fSemaphoreReleased = false;
+                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                int testCount = 30;
+                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+                _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Entry.");
 
                 // Generate a GUID to represent this subscription
                 _guidSubscription = Guid.NewGuid();
@@ -146,7 +152,7 @@ namespace BadgeNET
                 while (true)
                 {
                     // Exit if we should
-                    if (_fRequestSubscribingThreadExit)
+                    if (_fRequestSubscribingThreadExit || _fTerminating)
                     {
                         _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Requested to exit.  Break out of loop.");
                         break;
@@ -159,14 +165,29 @@ namespace BadgeNET
                                  out outEventSubType, out outBadgeType, out outFullPath);
                     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     testCount--;
+                    _nTimeoutCountFail--;
                     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_GOT_EVENT)
                     {
-                        _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Got an event.");
-                        EventHandler<EventArgs> handler = BadgeComInitialized;
-                        if (handler != null)
+                        try
                         {
-                            handler(this, EventArgs.Empty);
+                            _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Got an event.");
+                            EventHandler<EventArgs> handler = BadgeComInitialized;
+                            if (handler != null)
+                            {
+                                handler(this, EventArgs.Empty);
+                            }
+
+                            // Exit if we were requested to kill ourselves.
+                            if (_fRequestSubscribingThreadExit || _fTerminating)
+                            {
+                                _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: Requested to exit (3).  Break out of loop..");
+                                break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
                         }
                     }
                     else if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_ERROR)
@@ -179,14 +200,39 @@ namespace BadgeNET
                         _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: From PubSubServer.Subscribe.  Already cancelled.");
                         break;
                     }
+                    else if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_CANCELLED)
+                    {
+                        _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: This subscription was cancelled.");
+                        break;
+                    }
+                    else
+                    {
+                        // result is RC_SUBSCRIBE_TRY_AGAIN (an event is ready) or RC_SUBSCRIBE_TIMED_OUT (normal cycling).
+                        // Exit if we were requested to kill ourselves.
+                        if (_fRequestSubscribingThreadExit || _fTerminating)
+                        {
+                            _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: Requested to exit (2).  Break out of loop..");
+                            break;
+                        }
+                    }
 
-                    // Keep alive
+                    // We're alive
                     lock (_locker)
                     {
                         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                         if (testCount >= 0)
                         {
                             _isSubscriberThreadAlive = true;
+                        }
+                        if (_nTimeoutCountFail < 0)
+                        {
+                            EventHandler<EventArgs> handler = BadgeComInitializedSubscriptionFailed;
+                            if (handler != null)
+                            {
+                                _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Fire event FireEventSubscriptionWatcherFailed.");
+                                handler(this, EventArgs.Empty);
+                                _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Back from firing event FireEventSubscriptionWatcherFailed.");
+                            }
                         }
                         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                         //_isSubscriberThreadAlive = true;          //@@@@@@@@@@@@ DEBUG add this back.
@@ -203,7 +249,7 @@ namespace BadgeNET
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: Exception(2): Msg: <{0}>.", ex.Message);
             }
 
             _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: Subscriber thread exit.");
@@ -229,7 +275,7 @@ namespace BadgeNET
                     _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Out of wait.  Check the subscribing thread.");
 
                     // Exit if we should
-                    if (_fRequestWatchingThreadExit)
+                    if (_fRequestWatchingThreadExit || _fTerminating)
                     {
                         _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Requested to exit.  Break out of loop.");
                         break;
@@ -240,7 +286,7 @@ namespace BadgeNET
                     {
                         if (!_isSubscriberThreadAlive)
                         {
-                            if (!_fDebugging)
+                            if (!_fDebugging && !_fRequestWatchingThreadExit && !_fTerminating)
                             {
                                 fRestartSubscribingThread = true;
                             }
@@ -252,7 +298,7 @@ namespace BadgeNET
                     // Restart the subscribing thread if we need to
                     if (fRestartSubscribingThread)
                     {
-                        _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Restart subscribing thread.");
+                        _trace.writeToLog(1, "BadgeComPubSubEvents: WatchingThreadProc: Restart subscribing thread.");
                         RestartSubcribingThread();
                     }
                 }
@@ -260,17 +306,24 @@ namespace BadgeNET
             catch (Exception ex)
             {
                 _trace.writeToLog(1, "BadgeComPubSubEvents: WatchingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
-                if (!_fRequestWatchingThreadExit && !_fRequestWatchingThreadExit)
+                if (!_fRequestWatchingThreadExit && !_fRequestWatchingThreadExit && !_fTerminating)
                 {
-                    EventHandler<EventArgs> handler = BadgeComInitializedSubscriptionFailed;
-                    if (handler != null)
+                    try
                     {
-                        _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Fire event BadgeComInitializedSubscriptionFailed.");
-                        handler(this, EventArgs.Empty);
-                    }
+                        EventHandler<EventArgs> handler = BadgeComInitializedSubscriptionFailed;
+                        if (handler != null)
+                        {
+                            _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Fire event BadgeComInitializedSubscriptionFailed.");
+                            handler(this, EventArgs.Empty);
+                            _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Back from firing event BadgeComInitializedSubscriptionFailed.");
+                        }
 
-                    _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Kill the subscribing thread.");
-                    KillSubscribingThread();
+                        KillSubscribingThread();
+                    }
+                    catch (Exception ex2)
+                    {
+                        _trace.writeToLog(1, "BadgeComPubSubEvents: WatchingThreadProc: ERROR: Exception(2): Msg: <{0}>.", ex2.Message);
+                    }
                 }
             }
 
@@ -291,7 +344,7 @@ namespace BadgeNET
                     if (_pubSubServer != null)
                     {
                         // Cancel the subscription the thread may be waiting on.
-                        _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Cancel our subscription.");
+                        _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Call CancelWaitingSubscription.");
                         EnumPubSubServerCancelWaitingSubscriptionReturnCodes result = _pubSubServer.CancelWaitingSubscription(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscription);
                         if (result != EnumPubSubServerCancelWaitingSubscriptionReturnCodes.RC_CANCEL_OK)
                         {
@@ -313,12 +366,12 @@ namespace BadgeNET
                     // Wait for the thread to be gone.  If it takes too long, kill it.
                     _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Request subscribing thread exit.");
                     _fRequestSubscribingThreadExit = true;              // request the thread to exit
-                    for (int i = 0; i < 3; i++)
+                    for (int i = 0; i < 5; i++)
                     {
                         if (_threadSubscribing.IsAlive)
                         {
                             _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Wait for the subscribing thread to exit.");
-                            Thread.Sleep(50);
+                            Thread.Sleep(100);
                         }
                         else
                         {
@@ -370,12 +423,12 @@ namespace BadgeNET
                 {
                     _trace.writeToLog(9, "BadgeComPubSubEvents: KillWatchingThread: Wait for watching thread to exit.");
                     bool fThreadDead = false;
-                    for (int i = 0; i < 3; i++)
+                    for (int i = 0; i < 5; i++)
                     {
                         if (_threadWatching.IsAlive)
                         {
                             _trace.writeToLog(9, "BadgeComPubSubEvents: KillWatchingThread: Let the watching thread work.");
-                            Thread.Sleep(50);
+                            Thread.Sleep(100);
                         }
                         else
                         {
@@ -418,6 +471,13 @@ namespace BadgeNET
 
                 lock (_locker)
                 {
+                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    _nTimeoutCountFail = 120;
+                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+                    // Clear any status this thread might have.
+                    _fRequestSubscribingThreadExit = false;
+
                     // Start a thread to subscribe and process BadgeCom initialization events.  Upon receiving one of these events,
                     // we will send the entire badging database for this process.
                     _threadSubscribing = new Thread(new ThreadStart(SubscribingThreadProc));
@@ -429,7 +489,7 @@ namespace BadgeNET
 
                 if (!result)
                 {
-                    _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribeToBadgeComInitializationEvents: ERROR: Subscribing thread did not start.");
+                    _trace.writeToLog(1, "BadgeComPubSubEvents: StartSubscribingThread: ERROR: Subscribing thread did not start.");
                 }
             }
             catch (Exception ex)
@@ -437,7 +497,7 @@ namespace BadgeNET
                 _trace.writeToLog(1, "BadgeComPubSubEvents: StartSubscribingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
 
-            _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribeToBadgeComInitializationEvents: Exit with code: {0}.", result);
+            _trace.writeToLog(1, "BadgeComPubSubEvents: StartSubscribingThread: Exit with code: {0}.", result);
             return result;
         }
 
@@ -451,6 +511,9 @@ namespace BadgeNET
                 _trace.writeToLog(9, "BadgeComPubSubEvents: StartWatchingThread: Entry.");
                 lock (_locker)
                 {
+                    // Clear any status this thread might have.
+                    _fRequestWatchingThreadExit = false;
+
                     // Start a thread to watch the thread that is watching BadgeCom.  This is necessary because BadgeCom may crash with
                     // the threadWatcher thread waiting for an event to arrive.  That might result in a wait forever.  This thread
                     // will kill the threadWatcher if it waits too long.  If it kills the thread, it will attempt to restart it.
@@ -471,11 +534,7 @@ namespace BadgeNET
         {
             _trace.writeToLog(9, "BadgeComPubSubEvents: RestartSubcribingThread: Entry.");
             KillSubscribingThread();
-            bool startedOk = StartSubscribingThread();
-            if (!startedOk)
-            {
-                _trace.writeToLog(1, "BadgeComPubSubEvents: RestartSubcribingThread: ERROR: Subscribing thread did not start.");
-            }
+            StartSubscribingThread();
         }
 
         #endregion
@@ -515,6 +574,7 @@ namespace BadgeNET
                     {
                         _fRequestSubscribingThreadExit = true;              // preemptive strike
                         _fRequestWatchingThreadExit = true;
+                        _fTerminating = true;
                         KillSubscribingThread();
                         KillWatchingThread();
                     }

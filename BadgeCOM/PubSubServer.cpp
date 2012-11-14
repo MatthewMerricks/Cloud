@@ -227,6 +227,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
         ULONG processId = GetCurrentProcessId();
         ULONG threadId = GetCurrentThreadId();
+        ULONGLONG subscriptionFoundIndex = 0;
 
         // An allocator convertible to any allocator<T, segment_manager_t> type.
         void_allocator alloc_inst(_pSegment->get_segment_manager());
@@ -299,6 +300,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
         offset_ptr<interprocess_semaphore> optrSemaphore;
         if (fSubscriptionFound && fWaitRequired)
         {
+            subscriptionFoundIndex = std::distance(base->subscriptions_.begin(), itFoundSubscription);
             optrSemaphore = itFoundSubscription->pSemaphoreSubscription_;
         }
 
@@ -312,7 +314,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
             if (TimeoutMilliseconds != 0)
             {
                 // Wait for a matching event to arrive.  Use a timed wait.
-				CLTRACE(9, "PubSubServer: Subscribe: Wait with timeout.");
+				CLTRACE(9, "PubSubServer: Subscribe: Wait with timeout. Waiting ProcessId: %lx. ThreadId: %lx. SubscriptionIndex: %llu. Guid: %ls. Semaphore addr: %x.", processId, threadId, subscriptionFoundIndex, CComBSTR(guidId), optrSemaphore.get());
                 boost::posix_time::ptime tNow(boost::posix_time::microsec_clock::universal_time());
                 bool fDidNotTimeOut = optrSemaphore->timed_wait(tNow + boost::posix_time::milliseconds(TimeoutMilliseconds));
                 if (fDidNotTimeOut)
@@ -322,13 +324,14 @@ STDMETHODIMP CPubSubServer::Subscribe(
                 }
                 else
                 {
+					CLTRACE(9, "PubSubServer: Subscribe: Timed out waiting for an event. Return 'timed out'.");
                     nResult = RC_SUBSCRIBE_TIMED_OUT;
                 }
             }
             else
             {
                 // Wait forever for a matching event to arrive.
-				CLTRACE(9, "PubSubServer: Subscribe: Wait forever for an event to arrive.");
+				CLTRACE(9, "PubSubServer: Subscribe: Wait forever for an event to arrive. Waiting ProcessId: %lx. ThreadId: %lx. SubscriptionIndex: %llu. Guid: %ls. Semaphore addr: %x.", processId, threadId, subscriptionFoundIndex, CComBSTR(guidId), optrSemaphore.get());
                 optrSemaphore->wait();
 				CLTRACE(9, "PubSubServer: Subscribe: Got an event or posted by a cancel(2).  Return code 'try again'.");
                 nResult = RC_SUBSCRIBE_TRY_AGAIN;
@@ -344,6 +347,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
             {
                 // We found the subscription again.
                 itFoundSubscription->fWaiting_ = false;        // no longer waiting
+				CLTRACE(9, "PubSubServer: Subscribe: Waiting flag cleared.");
 
                 // Check for a cancellation.
                 if (itFoundSubscription->fCancelled_)
@@ -485,7 +489,8 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
             // Found our subscription.  Post the semaphore to allow the waiting thread to fall through the wait.
             // Set a flag in the subscription to indicate that it is cancelled.  This will prevent the subscribing thread
             // from waiting again.
-			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Found our subscription. Mark cancelled and post it.");
+			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Found our subscription. Mark cancelled and post it. Thread Waiting: %d. ProcessId: %lx. ThreadId: %lx. Semaphore addr: %x. Guid: %s.", 
+                                    itFoundSubscription->fWaiting_, itFoundSubscription->uSubscribingProcessId_, itFoundSubscription->uSubscribingThreadId_, itFoundSubscription->pSemaphoreSubscription_.get(), itFoundSubscription->guidId_);
             itFoundSubscription->fCancelled_ = true;
             itFoundSubscription->pSemaphoreSubscription_->post();
 
