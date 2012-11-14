@@ -39,29 +39,38 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semSync(0), _semWatcher(0)
         _isSubscriberThreadAlive = false;
         _fRequestSubscribingThreadExit = false;
         _fRequestWatchingThreadExit = false;
+        _fTerminating = false;
         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         nTimeoutCountFail = 120;
         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
+        // Initialize the COM system
+        CoInitialize(NULL);
+
         // Create a class factory to instantiate an instance of CPubSubServer.
         IClassFactory *pIClassFactory = NULL;
         HRESULT hr;
+		CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Call CoGetClassObject.");
         hr = CoGetClassObject(CLSID_PubSubServer, CLSCTX_ALL, NULL, IID_IClassFactory, (LPVOID *)&pIClassFactory);
         if (SUCCEEDED(hr) && pIClassFactory != NULL)
         {
             // Instantiate an instance of CPubSubServer
+		    CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Call CreateInstance."); 
             hr = pIClassFactory->CreateInstance(NULL, IID_IPubSubServer, (LPVOID *)&_pPubSubServer);
             if (!SUCCEEDED(hr) || _pPubSubServer == NULL)
             {
+    		    CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR.  PubSubServer not instantiated. Throw."); 
                 throw new std::exception("Error creating an instance of CPubSubServer");
             }
 
             // Release the class factory
+  		    CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Allocated _pPubSubServer: %x.", _pPubSubServer); 
             pIClassFactory->Release();
             pIClassFactory = NULL;
         }
         else
         {
+    		CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR.  Creating class factory. Throw."); 
             throw new std::exception("Error creating a class factory for CPubSubServer.  hr: %d.", hr);
         }
     }
@@ -69,6 +78,7 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semSync(0), _semWatcher(0)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR: Exception.  Message: %s.", ex.what());
     }
+	CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Exit."); 
 }
 
 
@@ -81,6 +91,7 @@ CBadgeNetPubSubEvents::~CBadgeNetPubSubEvents(void)
     try
     {
 		CLTRACE(9, "CBadgeNetPubSubEvents: ~CBadgeNetPubSubEvents: Entry.");
+        _fTerminating = true;
         KillSubscribingThread();
         KillWatchingThread();
     }
@@ -96,6 +107,7 @@ CBadgeNetPubSubEvents::~CBadgeNetPubSubEvents(void)
         {
 			_pPubSubServer->Terminate();
             _pPubSubServer->Release();
+            CoUninitialize();
             _pPubSubServer = NULL;
         }
     }
@@ -209,7 +221,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
         while (true)
         {
             // Exit if we have been requested.
-            if (pThis->_fRequestSubscribingThreadExit)
+            if (pThis->_fRequestSubscribingThreadExit || pThis->_fTerminating)
             {
 				CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Requested to exit.  Break out of loop.");
                 break;
@@ -302,7 +314,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             {
                 // result is RC_SUBSCRIBE_TRY_AGAIN (an event is ready) or RC_SUBSCRIBE_TIMED_OUT (normal cycling).
                 // Exit if we were requested to kill ourselves.
-                if (pThis->_fRequestSubscribingThreadExit)
+                if (pThis->_fRequestSubscribingThreadExit || pThis->_fTerminating)
                 {
 				    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: Requested to exit (2).  Break out of loop.");
                     break;
@@ -371,7 +383,7 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
             pThis->_semWatcher.wait(timeout);
 
             // Exit if we should
-            if (pThis->_fRequestWatchingThreadExit)
+            if (pThis->_fRequestWatchingThreadExit || pThis->_fTerminating)
             {
 				CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Requested to exit.  Break out of loop.");
                 break;
@@ -382,7 +394,7 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
             {
                 if (!pThis->_isSubscriberThreadAlive)
                 {
-                    if (!_fDebugging && !pThis->_fRequestWatchingThreadExit)
+                    if (!_fDebugging && !pThis->_fRequestWatchingThreadExit && !pThis->_fTerminating)
                     {
                         fRestartSubscribingThread = true;
                     }
@@ -403,7 +415,7 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
     catch (std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: Exception.  Message: %s.", ex.what());
-		if (pThis != NULL  && !pThis->_fRequestWatchingThreadExit)
+		if (pThis != NULL  && !pThis->_fRequestWatchingThreadExit && !pThis->_fTerminating)
 		{
 			CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Requested to exit.  Break out of loop.");
 			try
@@ -480,6 +492,8 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
 				CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Call TerminateThread.");
                 TerminateThread(_threadSubscribingHandle, 9999);
             }
+
+            CloseHandle(_threadSubscribingHandle);
         }
 
         _threadSubscribingHandle = NULL;
@@ -538,6 +552,8 @@ void CBadgeNetPubSubEvents::KillWatchingThread()
     			CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Abort the watching thread.");
                 TerminateThread(_threadWatchingHandle, 9999);
             }
+
+            CloseHandle(_threadWatchingHandle);
         }
 
         _threadWatchingHandle = NULL;

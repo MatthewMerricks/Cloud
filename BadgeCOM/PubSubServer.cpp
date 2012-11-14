@@ -500,18 +500,28 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
                 base->mutexSharedMemory_.lock();
                 fIsLocked = true;
 
-                // If not waiting now, remove the subscription
-                if (!itFoundSubscription->fWaiting_)
+                // We released the lock.  The subscription might have moved.  Locate it again.
+                bool fSubscriptionFound = FindSubscription(EventType, guidId, base, &itFoundSubscription);
+                if (fSubscriptionFound)
                 {
-					// Remove this subscription ID from the list of subscriptions created by this instance.
-        			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Erase the subscription.");
-                    RemoveSubscriptionId(itFoundSubscription->nEventType_, itFoundSubscription->guidId_);
+                    // We found it again.  If not waiting now, remove the subscription
+                    if (!itFoundSubscription->fWaiting_)
+                    {
+					    // Remove this subscription ID from the list of subscriptions created by this instance.
+        			    CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Erase the subscription.");
+                        RemoveSubscriptionId(itFoundSubscription->nEventType_, itFoundSubscription->guidId_);
 
-					// Delete the subscription itself
-                    base->subscriptions_.erase(itFoundSubscription);
-                    fCancelOk = true;
-                    break;
+					    // Delete the subscription itself
+                        base->subscriptions_.erase(itFoundSubscription);
+                        fCancelOk = true;
+                        break;
+                    }
                 }
+                else
+                {
+                    // Subscription not found. Someone else must have deleted it.
+                }
+
             }
 
             if (fCancelOk)

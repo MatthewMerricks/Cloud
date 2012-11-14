@@ -65,7 +65,7 @@ private:
     CBadgeNetPubSubEvents *_pBadgeNetPubSubEvents;
     boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType> _mapBadges;             // the dictionary of fullPath->badgeType
     boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType> _mapSyncBoxPaths;       // the list of SyncBox full paths.  Used for O(1) access time.  The badge type is not used (always "none").
-    TTimer<CBadgeIconSyncing> _delayedMethodTimer;
+    HANDLE _threadSubscriptionRestart;
 
     // Private methods
     void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType);
@@ -75,7 +75,7 @@ private:
     void OnEventSubscriptionWatcherFailed();
     std::wstring NormalizePath(std::wstring inPath);
     bool IsPathInRootPath(std::wstring testPath, std::wstring rootPath);
-    void OnDelayedEvent();
+    static void SubscriptionRestartThreadProc(LPVOID pUserState);
     void InitializeBadgeNetPubSubEvents();
 
 public:

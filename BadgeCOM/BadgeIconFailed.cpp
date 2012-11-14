@@ -199,10 +199,22 @@ void CBadgeIconFailed::OnEventSubscriptionWatcherFailed()
 	try
 	{
 		// Restart the CBadgeNetPubSubEvents class, but not here because this event was fired by that
-		// class.  Start a single-fire timer and do it in the timer event.
+		// class.  Start another thread to do it.
 		CLTRACE(9, "CBadgeIconFailed: OnEventSubscriptionWatcherFailed: Entry.  ERROR: Badging failed.");
-		_delayedMethodTimer.SetTimedEvent(this, &CBadgeIconFailed::OnDelayedEvent);
-		_delayedMethodTimer.Start(100 /* start after ms delay */, false /* don't start immediately */, true /* run once */);
+        DWORD dwThreadId;
+        HANDLE handle = CreateThread(NULL,                              // default security
+                    0,                                                  // default stack size
+                    (LPTHREAD_START_ROUTINE)&SubscriptionRestartThreadProc,     // function to run
+                    (LPVOID) this,                                      // thread parameter
+                    0,                                                  // imediately run the thread
+                    &dwThreadId                                         // output thread ID
+                    );
+        if (handle == NULL)
+        {
+            throw new std::exception("Error creating thread");
+        }
+
+        _threadSubscriptionRestart = handle;
 	}
 	catch (std::exception &ex)
 	{
@@ -210,32 +222,46 @@ void CBadgeIconFailed::OnEventSubscriptionWatcherFailed()
 	}
 }
 
-void CBadgeIconFailed::OnDelayedEvent()
+
+/// <summary>
+/// The BadgeNetPubSubEvents watcher failed.  We are no longer subscribed to badging events.  Restart
+/// the subscription service.
+/// </summary>
+void CBadgeIconFailed::SubscriptionRestartThreadProc(LPVOID pUserState)
 {
+    // Cast the user state to an object instance
+	CLTRACE(9, "CBadgeIconFailed: SubscriptionRestartThreadProc: Entry.");
+    CBadgeIconFailed *pThis = (CBadgeIconFailed *)pUserState;
+
 	try
 	{
 		// We lost the badging connection.  Empty the dictionaries.  They will be rebuilt if we can get another connection.
-		CLTRACE(9, "CBadgeIconFailed: OnDelayedEvent: Entry.");
-		_mapBadges.clear();
-		_mapSyncBoxPaths.clear();
+		pThis->_mapBadges.clear();
+		pThis->_mapSyncBoxPaths.clear();
 
 		// Restart the CBadgeNetPubSubEvents class.
-		if (_pBadgeNetPubSubEvents != NULL)
+		if (pThis->_pBadgeNetPubSubEvents != NULL)
 		{
 			// Kill the BadgeNetPubSubEvents threads and free resources.
-    		CLTRACE(9, "CBadgeIconFailed: OnDelayedEvent: Restart the subscription.");
-			_pBadgeNetPubSubEvents->~CBadgeNetPubSubEvents();
-			_pBadgeNetPubSubEvents = NULL;
+    		CLTRACE(9, "CBadgeIconFailed: SubscriptionRestartThreadProc: Restart the subscription.");
+			pThis->_pBadgeNetPubSubEvents->~CBadgeNetPubSubEvents();
+			pThis->_pBadgeNetPubSubEvents = NULL;
 
 			// Restart the BadgeNetPubSubEvents object
-			InitializeBadgeNetPubSubEvents();
+			pThis->InitializeBadgeNetPubSubEvents();
 		}
 	}
 	catch (std::exception &ex)
 	{
-		CLTRACE(1, "CBadgeIconFailed: OnDelayedEvent: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "CBadgeIconFailed: SubscriptionRestartThreadProc: ERROR: Exception.  Message: %s.", ex.what());
 	}
-	CLTRACE(9, "CBadgeIconFailed: OnDelayedEvent: Exit.");
+
+    if (pThis != NULL)
+    {
+        CloseHandle(pThis->_threadSubscriptionRestart);
+        pThis->_threadSubscriptionRestart = NULL;
+    }
+	CLTRACE(9, "CBadgeIconFailed: SubscriptionRestartThreadProc: Exit.");
 }
 
 /// <summary>
