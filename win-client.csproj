@@ -70,7 +70,8 @@
     <ManifestKeyFile>WinClientCertificate.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>win_client.AppStart</StartupObject>
+    <StartupObject>
+    </StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AutomaticUpdaterWPF">
@@ -174,7 +175,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AppDelegate\CLAppDelegate.cs" />
-    <Compile Include="AppStart.cs" />
     <Compile Include="Common\CLAppMessages.cs" />
     <Compile Include="Common\CLBalloonTooltipNotification.cs" />
     <Compile Include="Common\CLConstants.cs" />

@@ -133,6 +133,8 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 
 				bool fEventDelivered = false;
 				bool fSubscriptionRemoved = false;
+
+                // Loop through the subscriptions looking for this particular subscriber
 				for (subscription_vector::iterator itSubscription = base->subscriptions_.begin(); itSubscription != base->subscriptions_.end(); ++itSubscription)
 				{
 					if ((EventType == itSubscription->nEventType_) && (*itGuid == itSubscription->guidId_))
@@ -144,8 +146,9 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 							if (nRetry >= (knRetries - 1))
 							{
 								// Delete this entire subscription and log an error.
-								CLTRACE(9, "PubSubServer: Publish: ERROR: Event queue full.  Delete subscription with GUID<%ls>.", CComBSTR(itSubscription->guidId_));
-								base->subscriptions_.erase(itSubscription);
+								CLTRACE(9, "PubSubServer: Publish: ERROR: Event queue full.  Delete subscription. EventType: %d. GUID<%ls>.", itSubscription->nEventType_, CComBSTR(itSubscription->guidId_));
+                                RemoveSubscriptionId(itSubscription->nEventType_, itSubscription->guidId_);         // remove from subscription IDs being tracked
+								itSubscription = base->subscriptions_.erase(itSubscription);
 								nResult = RC_PUBLISH_AT_LEAST_ONE_EVENT_QUEUE_FULL;
 								fSubscriptionRemoved = true;
 							}
@@ -170,7 +173,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 
 				if (fEventDelivered || fSubscriptionRemoved)
 				{
-					break;
+					break;                          // No more retries
 				}
 
 				// Wait a short time
@@ -249,6 +252,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
             if (itFoundSubscription->fCancelled_)
             {
 				CLTRACE(9, "PubSubServer: Subscribe: Warning: Already cancelled.  Erase the subscription.");
+                RemoveSubscriptionId(itFoundSubscription->nEventType_, itFoundSubscription->guidId_);         // remove from subscription IDs being tracked
                 base->subscriptions_.erase(itFoundSubscription);
                 fSubscriptionFound = false;             // itFoundSubscription not valid now
                 nResult = RC_SUBSCRIBE_ALREADY_CANCELLED;
@@ -489,8 +493,8 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
             // Found our subscription.  Post the semaphore to allow the waiting thread to fall through the wait.
             // Set a flag in the subscription to indicate that it is cancelled.  This will prevent the subscribing thread
             // from waiting again.
-			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Found our subscription. Mark cancelled and post it. Thread Waiting: %d. ProcessId: %lx. ThreadId: %lx. Semaphore addr: %x. Guid: %s.", 
-                                    itFoundSubscription->fWaiting_, itFoundSubscription->uSubscribingProcessId_, itFoundSubscription->uSubscribingThreadId_, itFoundSubscription->pSemaphoreSubscription_.get(), itFoundSubscription->guidId_);
+			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Found our subscription. Mark cancelled and post it. Thread Waiting: %d. ProcessId: %lx. ThreadId: %lx. Semaphore addr: %x. Guid: %ls.", 
+                                    itFoundSubscription->fWaiting_, itFoundSubscription->uSubscribingProcessId_, itFoundSubscription->uSubscribingThreadId_, itFoundSubscription->pSemaphoreSubscription_.get(), CComBSTR(itFoundSubscription->guidId_));
             itFoundSubscription->fCancelled_ = true;
             itFoundSubscription->pSemaphoreSubscription_->post();
 
@@ -509,7 +513,17 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
                 bool fSubscriptionFound = FindSubscription(EventType, guidId, base, &itFoundSubscription);
                 if (fSubscriptionFound)
                 {
-                    // We found it again.  If not waiting now, remove the subscription
+                    // We found it again, but due to a race condition, it might be a new subscription.  If so, we need to cancel it again.
+                    if (!itFoundSubscription->fCancelled_)
+                    {
+                        // The subscriber placed a new subscription.  Cancel it again.
+        			    CLTRACE(9, "PubSubServer: CancelWaitingSubscription: New subscription placed.  Cancel it and post it again.");
+                        itFoundSubscription->fCancelled_ = true;
+                        itFoundSubscription->pSemaphoreSubscription_->post();
+                        continue;
+                    }
+
+                    // If not waiting now, remove the subscription
                     if (!itFoundSubscription->fWaiting_)
                     {
 					    // Remove this subscription ID from the list of subscriptions created by this instance.
@@ -623,7 +637,10 @@ void CPubSubServer::DeleteSubscriptionById(Base * base, CPubSubServer::UniqueSub
 		{
 			if (itSubscription->guidId_ == subscriptionId.guid && itSubscription->nEventType_ == subscriptionId.eventType)
 			{
+				// Remove this subscription ID from the list of subscriptions created by this instance, and erase the subscription itself.
 				CLTRACE(9, "PubSubServer: DeleteSubscriptionById: Delete subscription.  EventType: %d. GUID: %ls.", subscriptionId.eventType, CComBSTR(subscriptionId.guid));
+                RemoveSubscriptionId(itSubscription->nEventType_, itSubscription->guidId_);
+
 				itSubscription = base->subscriptions_.erase(itSubscription);
 			}
 			else

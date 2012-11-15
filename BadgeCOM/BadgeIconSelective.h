@@ -25,7 +25,7 @@ using namespace ATL;
 // CBadgeIconSelective
 
 class ATL_NO_VTABLE CBadgeIconSelective :
-	public CComObjectRootEx<CComSingleThreadModel>,
+	public CComObjectRootEx<CComMultiThreadModel>,
 	public CComCoClass<CBadgeIconSelective, &CLSID_BadgeIconSelective>,
 	public IShellIconOverlayIdentifier,
 	public IDispatchImpl<IBadgeIconSelective, &IID_IBadgeIconSelective, &LIBID_BadgeCOMLib, /*wMajor =*/ 1, /*wMinor =*/ 0>
@@ -77,6 +77,8 @@ private:
     bool IsPathInRootPath(std::wstring testPath, std::wstring rootPath);
     static void SubscriptionRestartThreadProc(LPVOID pUserState);
     void InitializeBadgeNetPubSubEvents();
+    void InitializeBadgeNetPubSubEventsViaThread();
+    static void InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState);
 
 public:
 

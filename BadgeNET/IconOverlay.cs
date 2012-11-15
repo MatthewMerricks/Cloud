@@ -124,20 +124,68 @@ namespace BadgeNET
                 // Capture the Cloud directory path for performance.
                 _filePathCloudDirectory = cloudRoot;
 
-                // Start the PubSub watcher threads.
+                // Start a thread to create and an instance of CBadgeNetPubSubEvents.  This is necessary because the current
+                // thread is a STA thread, and we must instantiate CBadgeNetPubSubEvents as an MTA thread.
                 if (_badgeComPubSubEvents == null)
                 {
-                    _badgeComPubSubEvents = new BadgeComPubSubEvents();
-                    _badgeComPubSubEvents.Initialize();
-                    _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
-                    _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+                    Thread threadInit = new Thread(new ThreadStart(() => 
+                    {
+                        try
+                        {
+                            _trace.writeToLog(9, "IconOverlay: pInitialize: threadInit entry.");
+                            if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
+                            {
+                                _trace.writeToLog(9, "IconOverlay: pInitialize: ERROR.  Wrong threading model.");
+                            }
+
+                            _trace.writeToLog(9, "IconOverlay: pInitialize: Instantiate BadgeComPubSubEvents.");
+                            _badgeComPubSubEvents = new BadgeComPubSubEvents();
+                            _badgeComPubSubEvents.Initialize();
+                            _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
+                            _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+
+                            // Start listening for BadgeCom initialization events.
+                            _trace.writeToLog(9, "IconOverlay: pInitialize: Subscribe to BadgeCom init events.");
+                            _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+
+                            // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
+                            _trace.writeToLog(9, "IconOverlay: pInitialize: Publish SyncBox path: {0}.", _filePathCloudDirectory.ToString());
+                            _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                        }
+
+                    }));
+                    threadInit.SetApartmentState(ApartmentState.MTA);
+                    threadInit.Start();
+                    bool started = threadInit.Join(5000);
+                    if (!started)
+                    {
+                        _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit was not started.");
+                    }
+                    else
+                    {
+                        _trace.writeToLog(9, "IconOverlay: pInitialize: threadInit completed OK.");
+                    }
                 }
 
-                // Start listening for BadgeCom initialization events.
-                _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+                //// Start the PubSub watcher threads.
+                /////&&&&&&&&&
+                //if (_badgeComPubSubEvents == null)
+                //{
+                //    _badgeComPubSubEvents = new BadgeComPubSubEvents();
+                //    _badgeComPubSubEvents.Initialize();
+                //    _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
+                //    _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+                //}
 
-                // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
-                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                //// Start listening for BadgeCom initialization events.
+                //_badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+
+                //// Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
+                //_badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
 
                 // Allocate the badging dictionary.  This is a hierarchical dictionary.
                 CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
@@ -200,48 +248,56 @@ namespace BadgeNET
         {
             try
             {
-                // Delay the execution of the response to this event.  We will attempt to restart BadgeComPubSubEvents.
-                _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: Entry.  ERROR.");
-                _timer = new DispatcherTimer();
-                _timer.Tick += OnDelayedTimerTick;
-                _timer.Interval = new TimeSpan(100);
-                _timer.Start();
+                // Start a thread to kill the current instance of CBadgeNetPubSubEvents and to create a new instance of CBadgeNetPubSubEvents.
+                // This is necessary because the current thread is a STA thread, and we must instantiate CBadgeNetPubSubEvents as an MTA thread.
+                Thread threadRestart = new Thread(new ThreadStart(() => 
+                {
+                    try
+                    {
+                        _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: threadInit entry.");
+                        if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
+                        {
+                            _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR.  Wrong threading model.");
+                        }
+
+                        if (_badgeComPubSubEvents != null)
+                        {
+                            // Kill the subscriptions and dispose the object
+                            _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Kill BadgeComPubSubEvents.");
+                            _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
+                            _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+                            _badgeComPubSubEvents.Dispose();
+                        }
+
+                        // Restart
+                        _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Restart BadgeComPubSubEvents.");
+                        _badgeComPubSubEvents = new BadgeComPubSubEvents();
+                        _badgeComPubSubEvents.Initialize();
+                        _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
+                        _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+
+                        // Start listening for BadgeCom initialization events.
+                        _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Subscribe to BadgeCom init events.");
+                        _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+
+                        // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
+                        _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Publish SyncBox path: {0}.", _filePathCloudDirectory.ToString());
+                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                    }
+
+                }));
+
+                // Start the thread, but don't wait for it to complete because the current thread is the CBadgeComPubSubEvents Watcher thread, and that thread must be killed by the restart logic above.
+                threadRestart.SetApartmentState(ApartmentState.MTA);
+                threadRestart.Start();
             }
             catch (Exception ex)
             {
                 _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// The BadgeCom initialization event subscription threads crashed.  Attempt to restart BadgeComPubSubEvents.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnDelayedTimerTick(object sender, EventArgs e)
-        {
-            try
-            {
-                // Stop the timer
-                _timer.Stop();
-                _timer = null;
-
-                // Kill the subscriptions and dispose the object
-                _trace.writeToLog(1, "IconOverlay: OnDelayedTimerTick: Entry.  Kill BadgeComPubSubEvents.");
-                _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
-                _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
-                _badgeComPubSubEvents.Dispose();
-
-                // Restart
-                _trace.writeToLog(1, "IconOverlay: OnDelayedTimerTick: Entry.  Restart BadgeComPubSubEvents.");
-                _badgeComPubSubEvents = new BadgeComPubSubEvents();
-                _badgeComPubSubEvents.Initialize();
-                _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
-                _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
-            }
-            catch (Exception ex)
-            {
-                _trace.writeToLog(1, "IconOverlay: OnDelayedTimerTick: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
             }
         }
 
@@ -264,10 +320,10 @@ namespace BadgeNET
                     _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
                     
                     // Do not want to process COM publishing logic while holding up the lock, so make a copy under the lock instead.
-                    Func<Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>,
-                        IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>>> copyBadgesUnderLock = badgeDict =>
+                    Func<Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>, object, 
+                        IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>>> copyBadgesUnderLock = (badgeDict, locker) =>
                         {
-                            lock (badgeDict)
+                            lock (locker)
                             {
                                 return badgeDict.ToArray();
                             }
@@ -275,7 +331,7 @@ namespace BadgeNET
 
                     // Iterate over the current badge state dictionary and send the badges to BadgeCom. This will populate the BadgeCom instance that just initialized.
                     // Other instances will update from these events only if necessary.
-                    foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in copyBadgesUnderLock(_currentBadges))
+                    foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in copyBadgesUnderLock(_currentBadges, _currentBadgesLocker))
                     {
                         // Publish a badge add path event to BadgeCom.
                         _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)item.Value.Value, item.Key.ToString());
@@ -455,7 +511,7 @@ namespace BadgeNET
                 {
                     // lock internal list during modification
                     _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. List not processed.");
-                    lock (_currentBadges)
+                    lock (_currentBadgesLocker)
                     {
                         // empty list before adding in all replacement items
                         _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Clear all badges.");
@@ -577,7 +633,7 @@ namespace BadgeNET
                 }
 
                 // lock internal list during modification
-                lock (_currentBadges)
+                lock (_currentBadgesLocker)
                 {
                     // Simply pass this action on to the badge dictionary.  The dictionary will pass recursive deletes back to us.  The recursive
                     // delete will not happen for the toDelete node.
@@ -643,7 +699,7 @@ namespace BadgeNET
                 }
 
                 // lock internal list during modification
-                lock (_currentBadges)
+                lock (_currentBadgesLocker)
                 {
                     // Simply pass this action on to the badge dictionary.  The dictionary will pass recursive renames back to us
                     // as the rename is processes, and those recursive renames will cause the badges to be adjusted.
@@ -820,7 +876,7 @@ namespace BadgeNET
                 }
 
                 // lock internal list during modification
-                lock (_currentBadges)
+                lock (_currentBadgesLocker)
                 {
                     // Retrieve the hierarchy below if this node is selective.
                     FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> selectiveTree = null;
@@ -898,7 +954,7 @@ namespace BadgeNET
             try
             {
                 // lock on dictionary so it is not modified during lookup
-                lock (_currentBadges)
+                lock (_currentBadgesLocker)
                 {
                     foreach (cloudAppIconBadgeType currentBadge in Enum.GetValues(typeof(cloudAppIconBadgeType)).Cast<cloudAppIconBadgeType>())
                     {
@@ -1040,11 +1096,12 @@ namespace BadgeNET
                             }
 
                             // Clear other references.
-                            lock (_currentBadges)
+                            lock (_currentBadgesLocker)
                             {
                                 if (_currentBadges != null)
                                 {
                                     _currentBadges.Clear();
+                                    _currentBadges = null;
                                 }
                             }
                         }
@@ -1066,7 +1123,8 @@ namespace BadgeNET
         /// <summary>
         /// The dictionary that holds the current state of all of the badges.
         /// </summary>
-        private readonly Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>> _currentBadges;
+        private Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>> _currentBadges;
+        private readonly object _currentBadgesLocker = new object();
 
         /// <summary>
         /// The hierarhical dictionary that holds all of the badges.  Nodes with null values are assumed to be synced.
@@ -1138,11 +1196,6 @@ namespace BadgeNET
         private const string PipeName = "BadgeCOM";
 
         /// <summary>
-        /// Timer to support a delayed event.
-        /// </summary>
-        private DispatcherTimer _timer = null;
-
-        /// <summary>
         /// Lockable object used to store running state of the initial badging connection pipe
         /// </summary>
         private pipeRunningHolder pipeLocker = new pipeRunningHolder()
@@ -1212,7 +1265,7 @@ namespace BadgeNET
                 GenericHolder<cloudAppIconBadgeType> objBadgeType = new GenericHolder<cloudAppIconBadgeType>(badgeType);
 
                 // Lock and query the in-memory database.
-                lock (_currentBadges)
+                lock (_currentBadgesLocker)
                 {
                     // There will be no badge if the path doesn't contain Cloud root
                     //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Locked.");

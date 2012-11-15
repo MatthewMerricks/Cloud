@@ -39,11 +39,12 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semSync(0), _semWatcher(0)
         _fTerminating = false;
 
         // Initialize the COM system
-        CoInitialize(NULL);
+        HRESULT hr;
+        hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+		CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: CoInitialize returned %d.", hr);
 
         // Create a class factory to instantiate an instance of CPubSubServer.
         IClassFactory *pIClassFactory = NULL;
-        HRESULT hr;
 		CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Call CoGetClassObject.");
         hr = CoGetClassObject(CLSID_PubSubServer, CLSCTX_ALL, NULL, IID_IClassFactory, (LPVOID *)&pIClassFactory);
         if (SUCCEEDED(hr) && pIClassFactory != NULL)
@@ -469,12 +470,12 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
 			// Request the thread to exit and wait for it.  Kill it if it takes too long.
 			CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Request subscribing thread to exit.");
             _fRequestSubscribingThreadExit = true;
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 3; ++i)
             {
                 if (IsThreadAlive(_threadSubscribingHandle))
                 {
 					CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Wait for the subscribing thread to exit.");
-                    Sleep(100);
+                    Sleep(50);
                 }
                 else
                 {
@@ -529,12 +530,12 @@ void CBadgeNetPubSubEvents::KillWatchingThread()
         {
 			CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Wait for watching thread to exit.");
             bool fThreadDead = false;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 3; i++)
             {
                 if (IsThreadAlive(_threadWatchingHandle))
                 {
         			CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Let the watching thread work.");
-                    Sleep(100);
+                    Sleep(50);
                 }
                 else
                 {

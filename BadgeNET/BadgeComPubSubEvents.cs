@@ -226,6 +226,7 @@ namespace BadgeNET
                         }
                         if (_nTimeoutCountFail < 0)
                         {
+                            _nTimeoutCountFail = 120;
                             EventHandler<EventArgs> handler = BadgeComInitializedSubscriptionFailed;
                             if (handler != null)
                             {
@@ -366,12 +367,12 @@ namespace BadgeNET
                     // Wait for the thread to be gone.  If it takes too long, kill it.
                     _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Request subscribing thread exit.");
                     _fRequestSubscribingThreadExit = true;              // request the thread to exit
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < 3; i++)
                     {
                         if (_threadSubscribing.IsAlive)
                         {
                             _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Wait for the subscribing thread to exit.");
-                            Thread.Sleep(100);
+                            Thread.Sleep(50);
                         }
                         else
                         {
@@ -423,12 +424,12 @@ namespace BadgeNET
                 {
                     _trace.writeToLog(9, "BadgeComPubSubEvents: KillWatchingThread: Wait for watching thread to exit.");
                     bool fThreadDead = false;
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < 3; i++)
                     {
                         if (_threadWatching.IsAlive)
                         {
                             _trace.writeToLog(9, "BadgeComPubSubEvents: KillWatchingThread: Let the watching thread work.");
-                            Thread.Sleep(100);
+                            Thread.Sleep(50);
                         }
                         else
                         {
@@ -471,16 +472,13 @@ namespace BadgeNET
 
                 lock (_locker)
                 {
-                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                    _nTimeoutCountFail = 120;
-                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
                     // Clear any status this thread might have.
                     _fRequestSubscribingThreadExit = false;
 
                     // Start a thread to subscribe and process BadgeCom initialization events.  Upon receiving one of these events,
                     // we will send the entire badging database for this process.
                     _threadSubscribing = new Thread(new ThreadStart(SubscribingThreadProc));
+                    _threadSubscribing.SetApartmentState(ApartmentState.MTA);
                     _threadSubscribing.Start();
                 }
 
@@ -518,6 +516,7 @@ namespace BadgeNET
                     // the threadWatcher thread waiting for an event to arrive.  That might result in a wait forever.  This thread
                     // will kill the threadWatcher if it waits too long.  If it kills the thread, it will attempt to restart it.
                     _threadWatching = new Thread(new ThreadStart(WatchingThreadProc));
+                    _threadWatching.SetApartmentState(ApartmentState.MTA);
                     _threadWatching.Start();
                 }
             }

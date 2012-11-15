@@ -56,13 +56,41 @@ STDMETHODIMP CBadgeIconFailed::GetOverlayInfo(
 		*pdwFlags = ISIOI_ICONFILE | ISIOI_ICONINDEX;
 
 		// Allocate the PubSubEvents system, subscribe to events, and send an initialization event to BadgeNet.
-		InitializeBadgeNetPubSubEvents();
+		InitializeBadgeNetPubSubEventsViaThread();          //@@@@@@@@@@@@@@@@@@@@@@@ DEBUG fix this
 	}
 	catch(std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconFailed: GetOverlayInfo: ERROR: Exception.  Message: %s.", ex.what());
 	}
 	return S_OK;
+}
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG ONLY  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void CBadgeIconFailed::InitializeBadgeNetPubSubEventsViaThread()
+{
+        // Start a thread to subscribe and process BadgeCom initialization events.  Upon receiving one of these events,
+        // we will send the entire badging database for this process.
+        DWORD dwThreadId;
+        HANDLE handle = CreateThread(NULL,                              // default security
+                    0,                                                  // default stack size
+                    (LPTHREAD_START_ROUTINE)&InitializeBadgeNetPubSubEventsThreadProc,     // function to run
+                    (LPVOID) this,                                      // thread parameter
+                    0,                                                  // imediately run the thread
+                    &dwThreadId                                         // output thread ID
+                    );
+        if (handle == NULL)
+        {
+            throw new std::exception("Error creating thread");
+        }
+}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+void CBadgeIconFailed::InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState)
+{
+    // Cast the user state to an object instance
+    CBadgeIconFailed *pThis = (CBadgeIconFailed *)pUserState;
+
+    pThis->InitializeBadgeNetPubSubEvents();
 }
 
 // IShellIconOverlayIdentifier::GetPriority

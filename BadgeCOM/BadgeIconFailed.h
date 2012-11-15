@@ -27,7 +27,7 @@ using namespace ATL;
 // CBadgeIconFailed
 
 class ATL_NO_VTABLE CBadgeIconFailed :
-	public CComObjectRootEx<CComSingleThreadModel>,
+	public CComObjectRootEx<CComMultiThreadModel>,
 	public CComCoClass<CBadgeIconFailed, &CLSID_BadgeIconFailed>,
 	public IShellIconOverlayIdentifier,
 	public IDispatchImpl<IBadgeIconFailed, &IID_IBadgeIconFailed, &LIBID_BadgeCOMLib, /*wMajor =*/ 1, /*wMinor =*/ 0>
@@ -79,6 +79,8 @@ private:
     bool IsPathInRootPath(std::wstring testPath, std::wstring rootPath);
     static void SubscriptionRestartThreadProc(LPVOID pUserState);
     void InitializeBadgeNetPubSubEvents();
+    void InitializeBadgeNetPubSubEventsViaThread();
+    static void InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState);
 
 public:
 
