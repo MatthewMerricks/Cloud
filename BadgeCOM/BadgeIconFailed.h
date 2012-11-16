@@ -33,9 +33,8 @@ class ATL_NO_VTABLE CBadgeIconFailed :
 	public IDispatchImpl<IBadgeIconFailed, &IID_IBadgeIconFailed, &LIBID_BadgeCOMLib, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
-	CBadgeIconFailed()
-	{
-	}
+	CBadgeIconFailed();
+    ~CBadgeIconFailed();
 	
 	// IShellIconOverlayIdentifier Methods
     STDMETHOD(GetOverlayInfo)(LPWSTR pwszIconFile, 

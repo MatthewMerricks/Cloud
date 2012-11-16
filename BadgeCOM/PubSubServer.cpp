@@ -87,7 +87,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
-        base = _pSegment->find_or_construct<Base>("Base")(42, alloc_inst);
+        base = _pSegment->find_or_construct<Base>("Base")(alloc_inst);
 
 		// We want to add this event to the queue for each of the scriptions waiting for this event type, but
 		// one or more of the subscriber's event queues may be full.  If we find a full event queue, we will
@@ -139,7 +139,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 				{
 					if ((EventType == itSubscription->nEventType_) && (*itGuid == itSubscription->guidId_))
 					{
-						// This is a subscriber.  Is its event queue full?
+						// This is a subscriber of this event.  Is its event queue full?
 						if (itSubscription->events_.size() >= _knMaxEventsInEventQueue)
 						{
 							// No more room.  Retry or delete the subscription in error.
@@ -155,7 +155,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 						}
 						else
 						{
-							// Construct this event in shared memory and add it at the back of the event queue for this subscription.
+							// The event queue has room.  Construct this event in shared memory and add it at the back of the event queue for this subscription.
 							CLTRACE(9, "PubSubServer: Publish: Post this event to subscription with GUID<%ls>.", CComBSTR(itSubscription->guidId_));
 							itSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, alloc_inst);
 
@@ -163,7 +163,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 							itSubscription->pSemaphoreSubscription_->post();
 							fEventDelivered = true;
 						}
-						break;
+						break;              // break out of itSubscription loop
 					}
 				}
 
@@ -173,7 +173,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 
 				if (fEventDelivered || fSubscriptionRemoved)
 				{
-					break;                          // No more retries
+					break;                          // No more retries.  Break to next subscriber.
 				}
 
 				// Wait a short time
@@ -236,7 +236,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
-        base = _pSegment->find_or_construct<Base>("Base")(42, alloc_inst);
+        base = _pSegment->find_or_construct<Base>("Base")(alloc_inst);
 
         // Lock the rest under the global shared memory lock in shared memory Base.
 	    base->mutexSharedMemory_.lock();
@@ -262,8 +262,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
                 // An event is waiting.  Return the information.
                 *outEventSubType = itFoundSubscription->events_.begin()->EventSubType_;
                 *outBadgeType = itFoundSubscription->events_.begin()->BadgeType_;
-				//TODO: Is this memory freed by the subscriber?
-                *outFullPath = SysAllocString(itFoundSubscription->events_.begin()->FullPath_.c_str());
+                *outFullPath = SysAllocString(itFoundSubscription->events_.begin()->FullPath_.c_str());             // this is freed explicitly by the subscriber.  On the .Net side, the interop wrapper frees it.
 				CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls.", *outEventSubType, *outBadgeType, *outFullPath);
 
                 // Remove the event from the vector.
@@ -357,14 +356,16 @@ STDMETHODIMP CPubSubServer::Subscribe(
                 if (itFoundSubscription->fCancelled_)
                 {
 				    CLTRACE(9, "PubSubServer: Subscribe: Return code 'cancelled'.");
+                    RemoveSubscriptionId(itFoundSubscription->nEventType_, itFoundSubscription->guidId_);         // remove from subscription IDs being tracked
+                    base->subscriptions_.erase(itFoundSubscription);
                     nResult = RC_SUBSCRIBE_CANCELLED;
                 }
             }
             else
             {
-                // The subscription is gone!  YIKES!
-				CLTRACE(1, "PubSubServer: Subscribe: ERROR.  Subscription missing after wait..");
-                nResult = RC_SUBSCRIBE_ERROR;
+                // The subscription is gone!  Another thread must have cancelled it and erased it.
+				CLTRACE(1, "PubSubServer: Subscribe: Subscription missing after wait..");
+                nResult = RC_SUBSCRIBE_CANCELLED;
             }
 
             // Unlock
@@ -398,7 +399,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 		return E_POINTER;
 	}
 
-	CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Entry. ProcessId: %lu.", ProcessId);
+	CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Entry. ProcessId: %lx.", ProcessId);
     EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes nResult = RC_CANCELBYPROCESSID_NOT_FOUND;
     bool fIsLocked = false;
     Base *base = NULL;
@@ -409,38 +410,51 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
-        base = _pSegment->find_or_construct<Base>("Base")(42, alloc_inst);
+        base = _pSegment->find_or_construct<Base>("Base")(alloc_inst);
 
         // Lock the rest under the global shared memory lock in shared memory Base.
 	    base->mutexSharedMemory_.lock();
         fIsLocked = true;
 
-        // Look for any subscriptions belonging to this process
-        for (int i = 0; i < base->subscriptions_.size(); i++)
-        {
-            ULONG thisProcessId = base->subscriptions_[i].uSubscribingProcessId_;
+        std::vector<UniqueSubscription> subscriptionIdsForProcess;		// list of subscriptions belonging to this process
+
+        // Look for any subscriptions belonging to this process.  Build up a local list of the subscriptions that we will cancel.
+		for (subscription_vector::iterator itSubscription = base->subscriptions_.begin(); itSubscription != base->subscriptions_.end(); ++itSubscription)
+		{
+            ULONG thisProcessId = itSubscription->uSubscribingProcessId_;
             if (thisProcessId == ProcessId)
             {
-				CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Found subscription index %d.", i);
-                EnumPubSubServerCancelWaitingSubscriptionReturnCodes cancelResult;
-                CancelWaitingSubscription(base->subscriptions_[i].nEventType_, base->subscriptions_[i].guidId_, &cancelResult);
-                if (cancelResult == RC_CANCEL_OK)
-                {
-                    if (nResult != RC_CANCELBYPROCESSID_ERROR)
-                    {
-                        nResult = RC_CANCELBYPROCESSID_OK;
-                    }
-                }
-                else
-                {
-                    nResult = RC_CANCELBYPROCESSID_ERROR;
-                }
+                // This is one of our subscriptions.  Add it to a list to cancel.
+				CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Found subscription. EventType: %d. Guid: %ls.", itSubscription->nEventType_, CComBSTR(itSubscription->guidId_));
+                UniqueSubscription thisSubscriptionId;
+                thisSubscriptionId.eventType = itSubscription->nEventType_;
+                thisSubscriptionId.guid = itSubscription->guidId_;
+                subscriptionIdsForProcess.push_back(thisSubscriptionId);
             }
         }
 
         // Unlock
         fIsLocked = false;
         base->mutexSharedMemory_.unlock();
+
+        // Now loop through the local list cancelling subscriptions without the lock.  CancelWaitingSubscription() will lock for
+        // each individual cancellation.
+        for (std::vector<UniqueSubscription>::iterator it = _subscriptionIds.begin(); it != _subscriptionIds.end(); ++it)
+        {
+            EnumPubSubServerCancelWaitingSubscriptionReturnCodes cancelResult;
+            CancelWaitingSubscription(it->eventType, it->guid, &cancelResult);
+            if (cancelResult == RC_CANCEL_OK || cancelResult == RC_CANCEL_NOT_FOUND)
+            {
+                if (nResult != RC_CANCELBYPROCESSID_ERROR)
+                {
+                    nResult = RC_CANCELBYPROCESSID_OK;
+                }
+            }
+            else
+            {
+                nResult = RC_CANCELBYPROCESSID_ERROR;
+            }
+        }
     }
     catch (std::exception &ex)
     {
@@ -479,7 +493,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
-        base = _pSegment->find_or_construct<Base>("Base")(42, alloc_inst);
+        base = _pSegment->find_or_construct<Base>("Base")(alloc_inst);
 
         // Lock the rest under the global shared memory lock in shared memory Base.
 	    base->mutexSharedMemory_.lock();
@@ -510,14 +524,15 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
                 fIsLocked = true;
 
                 // We released the lock.  The subscription might have moved.  Locate it again.
-                bool fSubscriptionFound = FindSubscription(EventType, guidId, base, &itFoundSubscription);
+                fSubscriptionFound = FindSubscription(EventType, guidId, base, &itFoundSubscription);
                 if (fSubscriptionFound)
                 {
                     // We found it again, but due to a race condition, it might be a new subscription.  If so, we need to cancel it again.
                     if (!itFoundSubscription->fCancelled_)
                     {
                         // The subscriber placed a new subscription.  Cancel it again.
-        			    CLTRACE(9, "PubSubServer: CancelWaitingSubscription: New subscription placed.  Cancel it and post it again.");
+            			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: New subscription placed.  Cancel it and post it again. Thread Waiting: %d. ProcessId: %lx. ThreadId: %lx. Semaphore addr: %x. Guid: %ls.", 
+                                    itFoundSubscription->fWaiting_, itFoundSubscription->uSubscribingProcessId_, itFoundSubscription->uSubscribingThreadId_, itFoundSubscription->pSemaphoreSubscription_.get(), CComBSTR(itFoundSubscription->guidId_));
                         itFoundSubscription->fCancelled_ = true;
                         itFoundSubscription->pSemaphoreSubscription_->post();
                         continue;
@@ -539,6 +554,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
                 else
                 {
                     // Subscription not found. Someone else must have deleted it.
+                    break;
                 }
 
             }
@@ -585,9 +601,9 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 /// </Summary>
 STDMETHODIMP CPubSubServer::get_SharedMemoryName(BSTR* pVal)
 {
-	if (_pSegment == NULL)
+	if (_pSegment == NULL || pVal == NULL)
 	{
-		CLTRACE(1, "PubSubServer: get_SharedMemoryName: ERROR. _pSegment is NULL.");
+		CLTRACE(1, "PubSubServer: get_SharedMemoryName: ERROR. _pSegment or pVal is NULL.");
 		return E_POINTER;
 	}
 
@@ -595,7 +611,7 @@ STDMETHODIMP CPubSubServer::get_SharedMemoryName(BSTR* pVal)
 
     try
     {
-        *pVal = SysAllocString(_ksSharedMemoryName);
+        *pVal = SysAllocString(_ksSharedMemoryName);                    // the caller must free this memory.
     }
     catch(std::exception &ex)
     {
@@ -705,7 +721,7 @@ STDMETHODIMP CPubSubServer::Terminate()
 			void_allocator alloc_inst(_pSegment->get_segment_manager());
 
 			// Construct the shared memory Base image and initiliaze it.  This is atomic.
-			base = _pSegment->find_or_construct<Base>("Base")(42, alloc_inst);
+			base = _pSegment->find_or_construct<Base>("Base")(alloc_inst);
 
 			// Lock the rest under the global shared memory lock in shared memory Base.
 			base->mutexSharedMemory_.lock();
@@ -722,10 +738,10 @@ STDMETHODIMP CPubSubServer::Terminate()
             ULONG processId = GetCurrentProcessId();
             ULONG threadId = GetCurrentThreadId();
 
-            CLTRACE(9, "PubSubServer: Terminate: Print subscriptions left.  This process ID: %lu. This thread ID: %lu", processId, threadId);
+            CLTRACE(9, "PubSubServer: Terminate: Print subscriptions left.  This process ID: %lx. This thread ID: %lx", processId, threadId);
     		for (subscription_vector::iterator itSubscription = base->subscriptions_.begin(); itSubscription != base->subscriptions_.end(); ++itSubscription)
             {
-                CLTRACE(9, "PubSubServer: Terminate: Remaining subscription: EventType: %d. ProcessId: %lu. ThreadId: %lu. Guid: %ls.", itSubscription->nEventType_, itSubscription->uSubscribingProcessId_, itSubscription->uSubscribingThreadId_, CComBSTR(itSubscription->guidId_));
+                CLTRACE(9, "PubSubServer: Terminate: Remaining subscription: EventType: %d. ProcessId: %lx. ThreadId: %lx. Guid: %ls.", itSubscription->nEventType_, itSubscription->uSubscribingProcessId_, itSubscription->uSubscribingThreadId_, CComBSTR(itSubscription->guidId_));
             }
             CLTRACE(9, "PubSubServer: Terminate: End of remaining subscriptions.");
 

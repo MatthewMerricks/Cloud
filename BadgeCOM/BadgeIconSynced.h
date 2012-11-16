@@ -31,9 +31,8 @@ class ATL_NO_VTABLE CBadgeIconSynced :
 	public IDispatchImpl<IBadgeIconSynced, &IID_IBadgeIconSynced, &LIBID_BadgeCOMLib, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
-	CBadgeIconSynced()
-	{
-	}
+	CBadgeIconSynced();
+    ~CBadgeIconSynced();
 	
 	// IShellIconOverlayIdentifier Methods
     STDMETHOD(GetOverlayInfo)(LPWSTR pwszIconFile, 

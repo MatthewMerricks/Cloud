@@ -148,9 +148,10 @@ namespace BadgeNET
                             _trace.writeToLog(9, "IconOverlay: pInitialize: Subscribe to BadgeCom init events.");
                             _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
 
-                            // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
-                            _trace.writeToLog(9, "IconOverlay: pInitialize: Publish SyncBox path: {0}.", _filePathCloudDirectory.ToString());
-                            _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                            // Send our badging dictionary to the BadgeCom subscribers.
+                            _trace.writeToLog(9, "IconOverlay: pInitialize: Send badging dictionary.");
+                            BadgeComPubSubEvents_OnBadgeComInitialized(null, null);
+
                         }
                         catch (Exception ex)
                         {
@@ -170,22 +171,6 @@ namespace BadgeNET
                         _trace.writeToLog(9, "IconOverlay: pInitialize: threadInit completed OK.");
                     }
                 }
-
-                //// Start the PubSub watcher threads.
-                /////&&&&&&&&&
-                //if (_badgeComPubSubEvents == null)
-                //{
-                //    _badgeComPubSubEvents = new BadgeComPubSubEvents();
-                //    _badgeComPubSubEvents.Initialize();
-                //    _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
-                //    _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
-                //}
-
-                //// Start listening for BadgeCom initialization events.
-                //_badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
-
-                //// Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
-                //_badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
 
                 // Allocate the badging dictionary.  This is a hierarchical dictionary.
                 CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
@@ -280,9 +265,9 @@ namespace BadgeNET
                         _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Subscribe to BadgeCom init events.");
                         _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
 
-                        // Publish our PubSub event to add this folder path to the dictionaries in the BadgeCom instances.  This is multicast through shared memory to the target BadgeCom instances.
-                        _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Publish SyncBox path: {0}.", _filePathCloudDirectory.ToString());
-                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                        // Send our badging database to all of the BadgeCom subscribers.
+                        _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Send badging database.");
+                        BadgeComPubSubEvents_OnBadgeComInitialized(null, null);
                     }
                     catch (Exception ex)
                     {

@@ -6226,6 +6226,45 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       to using the TaskFactory which should allow cancellation.
     - Time waster:  I finally figured out what was going on on the C# side.  .Net is forcing STA use of the COM object.  That allows only a single thread into PubSubServer at
       at time!  I will work on a solution for that tomorrow....
+  o 11/15/12 Thu: 
+    - 6:30 - 17:45
+    - TODO(Done): In IconOverlay, change the lock to use _currentBadgesLocker.
+    - TODO(Done): Change the wait for thread exit back to 150 ms.
+    - TODO: Make it easier to turn off trace.
+    - COM Threading models: http://msdn.microsoft.com/en-us/library/ms809971.aspx
+    - More COM threading models: http://www.tenouk.com/visualcplusmfc/visualcplusmfc28c.html
+    - Big time waster "threading model" continues...  By creating a new thread on the BadgeCom side, I was able to get it to use CoInitializeEx to set MTA mode for that thread.
+      The same situation exists on the C# side.  Try creating a new thread there.  I proved that the C# thread that instantiates BadgeComPubSubEvents is a STA thread.
+      That finally fixed it.
+    - Now the C# side seems to be working pretty well.
+    - TODO: Bug: Crash on the C# side down in PubSubServer.Publish().
+  o 11/16/12 Fri: 
+    - 7:30 - 18:15
+    - Inspected all of the PubSubServer code for proper locking.
+    - Added try/catch to all BadgeCom event handlers.
+    - Testing the PubSub IPC with full trace on both sides.  Badging is working properly.  Testing the thread and service restarts on the C# side.
+    - TODO: Bug: The cloud folder itself is not being badged as synced.
+    - TODO: Test starting from Cloud, rather than from Explorer.
+    - TODO: Rename guidid.
+    - TODO: Expand or contract the shared memory segment??
+    - TODO: Make a new COM method to check subscriptions against the process IDs.  If the processes are dead, remove the subscriptions.
+    - TODO: Why is PubSubServer:Initialize() called multiple times?  It should just be an instance variable.
+    - TODO: Why both RemoveSubscriptionId() and DeleteSubscriptionById()??
+    - TODO: Use _ksSharedMemoryName instead of string.
+    - TODO: Constant name "Base".
+    - TODO: Refactor to remove fIsLocked.
+    - TODO: Change subscription vector to map<EventType, map<Guid, Subscription>>.
+    - TODO: Line 257.  Consolidate code to an iterator.
+    - TODO: Get rid of RC_CANCEL_ALREADY_CANCELLED?
+    - TODO: Consolidate the hook-up to the segment.
+    - TODO: Make constants out of the timeouts and loop retries.
+    - TODO: In CancelSubscriptionsForProcessId, add a while loop on the count of the local vector because the process may have added a subscription while unlocked.
+    - TODO: In CBadgeNetPubSubEvents, change the guidSubscription to represent the subscriber instead.
+    - TODO: Rename semSync to something that describes synchronizing the starting of the subscription thread.
+    - The system works very well.  All of the trace is normal with no errors.  The test code on the BadgeNet side regularly restarts the subscribing thread, and recycles the whole system.
+    - David and I did a code review, resulting in the TODOs above.
+  o 11/17/12 Sat: 
+    - 5:30 - 
 
 
 
@@ -7641,6 +7680,8 @@ TODO:
   o Split out the context menu support from BadgeCom.  Also split out all of the matching context menu support in BadgeNet.
   o Move BadgeNet into CloudApiPublic.
   o Remove project BadgeComPS.
+  o Selective sync.  Sync everything.  Sync nothing.  Or sync certain folders or files.
+  o If a file is deleted by the server (not the user), move it to a hidden folder.  If it is undeleted again by the server, and the MD5 matches, move it back without having to download it again.  (Implemented on the Mac side).
 
 
 

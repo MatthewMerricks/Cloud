@@ -126,11 +126,11 @@ public:
 		ULONG                       uSubscribingThreadId_;      // the subscribing thread ID (logging only)
 		EnumEventType               nEventType_;                // the event type being subscribed to
 		offset_ptr<interprocess_semaphore>	pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
-        GUID                        guidId_;                    // the unique identifier of this subscription
+        GUID                        guidId_;                    // the unique identifier of the subscriber
 		bool                        fDestructed_;               // true: this object has been destructed
         bool                        fWaiting_;                  // true: the subscribing thread is waiting
         bool                        fCancelled_;                // true: this subscription has been cancelled.
-		EventMessage_vector		    events_;					// a vector of events
+		EventMessage_vector		    events_;					// a vector of events,
 
 		// Constructor
 		Subscription(GUID guidId, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const void_allocator &void_alloc) :
@@ -174,11 +174,10 @@ public:
 	{
 	public:
 		// Put any required global data here.
-		int                 nSampleInt_;         // sample global data
 		interprocess_mutex  mutexSharedMemory_;  // lock to protect the whole Base object
 		subscription_vector subscriptions_;      // a vector of Subscription (the active subscriptions)
 
-		Base(int nSampleInt, const void_allocator &void_alloc) : nSampleInt_(nSampleInt), subscriptions_(void_alloc) {}
+		Base(const void_allocator &void_alloc) : subscriptions_(void_alloc) {}
 	};
 
 	// Definition of the map holding all of the data.  There will just be a single map element with key "base".  The value
@@ -187,11 +186,6 @@ public:
 
 	// Public OLE accessible methods
     STDMETHOD(Initialize)();
-    STDMETHOD(Publish)(EnumEventType EventType,
-            EnumEventSubType EventSubType, 
-            EnumCloudAppIconBadgeType BadgeType, 
-            BSTR *FullPath, 
-            EnumPubSubServerPublishReturnCodes *returnValue);
     STDMETHOD(Subscribe)(
             EnumEventType EventType,
             GUID guidId,
@@ -200,6 +194,11 @@ public:
             EnumCloudAppIconBadgeType *outBadgeType,
             BSTR *outFullPath,
             EnumPubSubServerSubscribeReturnCodes *returnValue);
+    STDMETHOD(Publish)(EnumEventType EventType,
+            EnumEventSubType EventSubType, 
+            EnumCloudAppIconBadgeType BadgeType, 
+            BSTR *FullPath, 
+            EnumPubSubServerPublishReturnCodes *returnValue);
 	STDMETHOD(CancelWaitingSubscription)(EnumEventType EventType, GUID guidId, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
 	STDMETHOD(CancelSubscriptionsForProcessId)(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue);
     STDMETHOD(Terminate)();

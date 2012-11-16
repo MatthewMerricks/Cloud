@@ -28,6 +28,50 @@ using namespace std;
 
 // CBadgeIconSynced
 
+/// <Summary>
+/// Constructor.
+/// </Summary>
+CBadgeIconSynced::CBadgeIconSynced()
+{
+    try
+    {
+	    // Allocate the PubSubEvents system, subscribe to events, and send an initialization event to BadgeNet.
+		CLTRACE(9, "CBadgeIconSynced: CBadgeIconSynced: Entry. Start the subscription threads.");
+	    InitializeBadgeNetPubSubEventsViaThread();
+    }
+    catch (std::exception &ex)
+    {
+		CLTRACE(1, "CBadgeIconSynced: CBadgeIconSynced: ERROR: Exception.  Message: %s.", ex.what());
+    }
+}
+
+/// <Summary>
+/// Destructor.
+/// </Summary>
+CBadgeIconSynced::~CBadgeIconSynced()
+{
+    try
+    {
+		// We lost the badging connection.  Empty the dictionaries.  They will be rebuilt if we can get another connection.
+		CLTRACE(9, "CBadgeIconSynced: ~CBadgeIconSynced: Entry. Shut down this instance.");
+		_mapBadges.clear();
+		_mapSyncBoxPaths.clear();
+
+		// Restart the CBadgeNetPubSubEvents class.
+		if (_pBadgeNetPubSubEvents != NULL)
+		{
+			// Kill the BadgeNetPubSubEvents threads and free resources.
+    		CLTRACE(9, "CBadgeIconSynced: ~CBadgeIconSynced: Terminate the subscriptions.");
+			_pBadgeNetPubSubEvents->~CBadgeNetPubSubEvents();
+			_pBadgeNetPubSubEvents = NULL;
+        }
+    }
+    catch (std::exception &ex)
+    {
+		CLTRACE(1, "CBadgeIconSynced: ~CBadgeIconSynced: ERROR: Exception.  Message: %s.", ex.what());
+    }
+}
+
 // IShellIconOverlayIdentifier::GetOverlayInfo
 // returns The Overlay Icon Location to the system
 // By debugging I found it only runs once when the com object is loaded to the system, thus it cannot return a dynamic icon
@@ -39,12 +83,6 @@ STDMETHODIMP CBadgeIconSynced::GetOverlayInfo(
 {
 	try
 	{
-		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-		//while (true)
-		//{
-		//	Sleep(100);
-		//}
-		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 		// Get our module's full path
 		CLTRACE(9, "CBadgeIconSynced: GetOverlayInfo: Entry");
 		GetModuleFileNameW(_AtlBaseModule.GetModuleInstance(), pwszIconFile, cchMax);
@@ -53,9 +91,6 @@ STDMETHODIMP CBadgeIconSynced::GetOverlayInfo(
 		*pIndex = 1;
 
 		*pdwFlags = ISIOI_ICONFILE | ISIOI_ICONINDEX;
-
-		// Allocate the PubSubEvents system, subscribe to events, and send an initialization event to BadgeNet.
-		InitializeBadgeNetPubSubEventsViaThread();
 	}
 	catch(std::exception &ex)
 	{
@@ -64,9 +99,13 @@ STDMETHODIMP CBadgeIconSynced::GetOverlayInfo(
 	return S_OK;
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG ONLY  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+/// <Summary>
+/// Create a new thread so it can establish itself as a Multithreaded Apartment (MTA) thread for PubSub.
+/// </Summary>
 void CBadgeIconSynced::InitializeBadgeNetPubSubEventsViaThread()
 {
+    try
+    {
         // Start a thread to subscribe and process BadgeCom initialization events.  Upon receiving one of these events,
         // we will send the entire badging database for this process.
         DWORD dwThreadId;
@@ -81,24 +120,46 @@ void CBadgeIconSynced::InitializeBadgeNetPubSubEventsViaThread()
         {
             throw new std::exception("Error creating thread");
         }
+    }
+    catch (std::exception &ex)
+    {
+		CLTRACE(1, "CBadgeIconSynced: InitializeBadgeNetPubSubEventsViaThread: ERROR: Exception.  Message: %s.", ex.what());
+    }
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
+/// <Summary>
+/// Thread procedure to initialize PubSub.
+/// </Summary>
 void CBadgeIconSynced::InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState)
 {
-    // Cast the user state to an object instance
-    CBadgeIconSynced *pThis = (CBadgeIconSynced *)pUserState;
+    try
+    {
+        // Cast the user state to an object instance
+        CBadgeIconSynced *pThis = (CBadgeIconSynced *)pUserState;
 
-    pThis->InitializeBadgeNetPubSubEvents();
+        pThis->InitializeBadgeNetPubSubEvents();
+    }
+    catch (std::exception &ex)
+    {
+		CLTRACE(1, "CBadgeIconSynced: InitializeBadgeNetPubSubEventsThreadProc: ERROR: Exception.  Message: %s.", ex.what());
+    }
 }
 
 // IShellIconOverlayIdentifier::GetPriority
 // returns the priority of this overlay 0 being the highest.
 STDMETHODIMP CBadgeIconSynced::GetPriority(int* pPriority)
 {
-	CLTRACE(9, "CBadgeIconSynced: GetPriority: Entry");
-	// change the following to set priority between multiple overlays
-	*pPriority = 0;
+    try
+    {
+	    CLTRACE(9, "CBadgeIconSynced: GetPriority: Entry");
+	    // change the following to set priority between multiple overlays
+	    *pPriority = 0;
+    }
+    catch (std::exception &ex)
+    {
+		CLTRACE(1, "CBadgeIconSynced: GetPriority: ERROR: Exception.  Message: %s.", ex.what());
+    }
+
 	return S_OK;
 }
 
@@ -108,16 +169,34 @@ typedef HRESULT (WINAPI*pfnGetDispName)(LPCWSTR, LPWSTR, DWORD);
 // Returns whether the object should have this overlay or not 
 STDMETHODIMP CBadgeIconSynced::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
-	//default return value is false (no icon overlay)
+	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+    //static bool fCompletedOnce = false;
+	//while (!fCompletedOnce)
+	//{
+	//	//Sleep(100);
+	//}
+    //fCompletedOnce = true;
+	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+	// Default return value is false (no icon overlay)
 	HRESULT result = S_FALSE;   // or S_OK for icon overlay
 
-	// Should this path be badged?  It will be badged this exact path is found in the the badging dictionary,
-	// and if the current badgeType value matches this icon handler.
-	boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType>::iterator it = _mapBadges.find(pwszPath);
-	if (it != _mapBadges.end() && it->second == cloudAppBadgeSynced)
-	{
-		result = S_OK;			// badge this icon
-	}
+    try
+    {
+	    // Should this path be badged?  It will be badged this exact path is found in the the badging dictionary,
+	    // and if the current badgeType value matches this icon handler.
+		CLTRACE(9, "CBadgeIconSynced: IsMemberOf: Entry. Path: <%ls>.", pwszPath);
+	    boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType>::iterator it = _mapBadges.find(pwszPath);
+	    if (it != _mapBadges.end() && it->second == cloudAppBadgeSynced)
+	    {
+    		CLTRACE(9, "CBadgeIconSynced: IsMemberOf: Badge it!.");
+		    result = S_OK;			// badge this icon
+	    }
+    }
+    catch (std::exception &ex)
+    {
+		CLTRACE(1, "CBadgeIconSynced: IsMemberOf: ERROR: Exception.  Message: %s.", ex.what());
+    }
 
 	return result;
 }
@@ -133,7 +212,7 @@ void CBadgeIconSynced::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeT
 	try
 	{
 		// Add or update the <path,badgeType>
-		CLTRACE(9, "CBadgeIconSynced: OnEventAddBadgePath: Entry. Path: <%ls>.", fullPath);
+		CLTRACE(9, "CBadgeIconSynced: OnEventAddBadgePath: Entry. BadgeType: %d. Path: <%ls>.", badgeType, fullPath);
 		_mapBadges[fullPath] = badgeType;
         SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
 	}
@@ -201,6 +280,7 @@ void CBadgeIconSynced::OnEventRemoveSyncBoxFolderPath(BSTR fullPath)
 		{
 			if (IsPathInRootPath(it->first, fullPath))
 			{
+        		CLTRACE(9, "CBadgeIconSynced: OnEventRemoveSyncBoxFolderPath: Erase path from badging dictionary: %ls.", it->first.c_str());
                 SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, it->first.c_str(), NULL);
 				it = _mapBadges.erase(it);
 			}
@@ -305,6 +385,9 @@ bool CBadgeIconSynced::IsPathInRootPath(std::wstring testPath, std::wstring root
 	}
 }
 
+/// <summary>
+/// Instantiate and initialize the PubSub event subscriber and watcher threads.
+/// </summary>
 void CBadgeIconSynced::InitializeBadgeNetPubSubEvents()
 {
 	try
@@ -325,11 +408,13 @@ void CBadgeIconSynced::InitializeBadgeNetPubSubEvents()
 
 		// Tell BadgeNet we just initialized.
 		BSTR dummy(L"");
+		CLTRACE(9, "CBadgeIconSynced: InitializeBadgeNetPubSubEvents: Call PublishEventToBadgeNet.");
 		_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */);
 	}
 	catch(std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconSynced: InitializeBadgeNetPubSubEvents: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    CLTRACE(9, "CBadgeIconSynced: InitializeBadgeNetPubSubEvents: Exit.");
 }
 

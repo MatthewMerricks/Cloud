@@ -31,9 +31,8 @@ class ATL_NO_VTABLE CBadgeIconSelective :
 	public IDispatchImpl<IBadgeIconSelective, &IID_IBadgeIconSelective, &LIBID_BadgeCOMLib, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
-	CBadgeIconSelective()
-	{
-	}
+	CBadgeIconSelective();
+    ~CBadgeIconSelective();
 	
 	// IShellIconOverlayIdentifier Methods
     STDMETHOD(GetOverlayInfo)(LPWSTR pwszIconFile, 
