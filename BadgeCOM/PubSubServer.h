@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <boost\interprocess\managed_windows_shared_memory.hpp>
 #include <boost\interprocess\containers\map.hpp>
+#include <boost\unordered_map.hpp>
 #include <boost\interprocess\allocators\allocator.hpp>
 #include <boost\interprocess\containers\vector.hpp>
 #include <boost\interprocess\containers\string.hpp>
@@ -22,6 +23,7 @@
 #include <boost\interprocess\sync\scoped_lock.hpp>
 #include <boost\interprocess\detail\move.hpp>
 #include <boost\thread.hpp>
+#include <boost\foreach.hpp>
 #include "Trace.h"
 #include "BadgeCOM_i.h"
 
@@ -77,26 +79,6 @@ public:
 	typedef boost::interprocess::allocator<interprocess_semaphore, segment_manager_t>  semaphore_allocator;   // an allocator for interprocess_semaphore
     typedef boost::interprocess::allocator<WCHAR, segment_manager_t>             wchar_allocator;        // an allocator for wide chars.
     typedef boost::interprocess::basic_string<WCHAR, std::char_traits<WCHAR>, wchar_allocator>  wchar_string;  // a basic_string (which supports formatting).  This is built on a collection of wide chars, allocated by wchar_alloctor.
-
-	// Event types:  Note this is defined in the .IDL file.
-	//enum EnumEventTypeX
-	//{
-	//	BadgeCom_Initilization,
-	//	BadgeNet_AddSyncBoxFolderPath,
-	//	BadgeNet_RemoveSyncBoxFolderPath,
-	//	BadgeNet_AddBadgePath,
-	//	BadgeNet_RemoveBadgePath,
-	//};
-
-	// Badge types:  Note this is defined in the .IDL file.
-	//enum EnumCloudAppIconBadgeTypeX
-	//{
-	//	cloudAppBadgeNone = 0,				// clears a badge overlay, if any
-	//	cloudAppBadgeSynced = 1,			// sets a badge with a checkmark or similar metaphor.
-	//	cloudAppBadgeSyncing = 2,			// sets a badge indicating circular motion, active sync.
-	//	cloudAppBadgeFailed = 3,			// sets a badge with an x indicating failure to sync.
-	//	cloudAppBadgeSyncSelective = 4,		// sets a badge with an - indicating file/folder is selected not to sync.
-	//};
 
 	// Event base class
 	class EventMessage
@@ -164,10 +146,29 @@ public:
 		}
 	};
 
-	// Define the types related to Subscription
+	// GUID Comparison Operator
+	struct GUIDEqualComparer : public std::binary_function<const GUID, const GUID, bool>
+	{
+	    inline bool operator()(const GUID & Left, const GUID & Right) const
+	    {
+			return memcmp(&Left, &Right, sizeof(Left)) == 0;
+		}
+	};
+
+ 	// Define the types related to Subscription
 	typedef boost::interprocess::allocator<Subscription, segment_manager_t>                      subscription_allocator;     // allocator for allocating Subscription
+	typedef boost::interprocess::allocator<GUID, segment_manager_t>								guid_allocator;			// allocator for allocating GUID
+	typedef std::pair<GUID, Subscription>														pair_guid_subscription;	// a pair of GUID, Subscription
+	typedef std::pair<EnumEventType, pair_guid_subscription>									pair_eventtype_pair_guid_subscription;  // a pair(EnumEventType, pair(GUID, Subscription))
+	typedef boost::interprocess::allocator<EnumEventType, segment_manager_t>					eventtype_allocator;	// allocator for allocating EnumEventType
+	typedef boost::interprocess::allocator<pair_guid_subscription, segment_manager_t>			pair_guid_subscription_allocator;  // allocator for pair_guid_subscription
+	typedef boost::interprocess::allocator<pair_eventtype_pair_guid_subscription, segment_manager_t>  pair_eventtype_pair_guid_subscription_allocator;  // allocator for pair(EnumEventType, pair(GUID, Subscription))
+	typedef boost::unordered_map<GUID, Subscription, GUIDEqualComparer, pair_guid_subscription_allocator>  guid_subscription_map;  // a map of GUID => Subscription
+	typedef boost::unordered_map<EnumEventType, guid_subscription_map, std::less<EnumEventType>> eventtype_map_guid_subscription_map;  // a map(EnumEventType, map<GUID, Subscription)>
 	typedef boost::interprocess::vector<Subscription, subscription_allocator>                    subscription_vector;    // a vector of Subscriptions
 	typedef boost::interprocess::allocator<subscription_vector, segment_manager_t>               subscription_vector_allocator;  // allocator for allocating a vector of Subscription.
+	typedef boost::interprocess::allocator<guid_subscription_map, segment_manager_t>			guid_subscription_map_allocator;  // allocator for allocating a map of GUID => Subscription
+	typedef boost::interprocess::allocator<eventtype_map_guid_subscription_map, segment_manager_t> eventtype_map_guid_subscription_map_allocator;  // allocator for allocating map<EnumEventType, map<GUID, Subscription>>
 
 	// Base class to hold all of the data in shared memory.
 	class Base
@@ -175,9 +176,13 @@ public:
 	public:
 		// Put any required global data here.
 		interprocess_mutex  mutexSharedMemory_;  // lock to protect the whole Base object
-		subscription_vector subscriptions_;      // a vector of Subscription (the active subscriptions)
+		eventtype_map_guid_subscription_map subscriptions_;      // a vector of Subscription (the active subscriptions)
 
-		Base(const void_allocator &void_alloc) : subscriptions_(void_alloc) {}
+		Base(eventtype_map_guid_subscription_map::size_type size_type,
+				const eventtype_map_guid_subscription_map::hasher &hasher,
+				const eventtype_map_guid_subscription_map::key_equal &key_equal,
+				const eventtype_map_guid_subscription_map::allocator_type &allocator_type)
+				: subscriptions_(size_type, hasher, key_equal, allocator_type) {}
 	};
 
 	// Definition of the map holding all of the data.  There will just be a single map element with key "base".  The value
@@ -216,8 +221,10 @@ private:
 	// Private methods
     void RemoveTrackedSubscriptionId(EnumEventType eventType, GUID guid);
 	void DeleteSubscriptionById(Base * base, UniqueSubscription subscriptionId);
-    bool FindSubscription(EnumEventType EventType, GUID guidSubscriber, Base *base, subscription_vector::iterator *outItFoundSubscription);
-
+	bool FindSubscription(EnumEventType EventType, GUID guidSubscriber, Base *base, 
+				eventtype_map_guid_subscription_map::iterator *outItEventType,
+				guid_subscription_map::iterator *outItSubscription,
+				offset_ptr<Subscription> *outOptrFoundSubscription);
 	// Private instance fields
 	std::vector<UniqueSubscription> _trackedSubscriptionIds;		// list of subscriptions created by this instance
 
