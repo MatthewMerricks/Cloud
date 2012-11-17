@@ -17,20 +17,24 @@ class CBadgeNetPubSubEvents
 {
 private:
     // Constants
-    static const int _kMillisecondsTimeoutSubscribingThread = 1000;
-    static const int _kMillisecondsTimeoutWatchingThread = 20000;
+    static const int _knSubscriptionTimeoutMs = 1000;							// time to wait for an event to arrive before timing out
+    static const int _knTimeBetweenWatchingThreadChecksMs = 20000;				// time between checks on the subscribing thread
+	static const int _knShortRetries = 5;										// number of retries when giving up short amounts of CPU
+	static const int _knShortRetrySleepMs = 50;									// time to wait when giving up short amounts of CPU
+	static const int _knWaitForSubscriberThreadToStartSleepMs = 5000;			// time to wait for the Subscriber thread to start.
+
 
     // Static private fields
     static bool _fDebugging;
 
     // Private fields
     CPubSubServer *_pPubSubServer;
-    GUID _guidSubscription;
+    GUID _guidSubscriber;
     HANDLE _threadSubscribingHandle;
     HANDLE _threadWatchingHandle;
     bool _isSubscriberThreadAlive;
     boost::mutex _locker;
-    semaphore _semSync;
+    semaphore _semWaitForSubscriptionThreadStart;
     semaphore _semWatcher;
     bool _fRequestSubscribingThreadExit;
     bool _fRequestWatchingThreadExit;

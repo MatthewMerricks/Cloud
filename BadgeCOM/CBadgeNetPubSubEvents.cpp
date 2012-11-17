@@ -24,7 +24,7 @@ bool CBadgeNetPubSubEvents::_fDebugging = false;
 /// <summary>
 /// Constructor
 /// </summary>
-CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semSync(0), _semWatcher(0)
+CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semWaitForSubscriptionThreadStart(0), _semWatcher(0)
 {
     try
     {
@@ -38,8 +38,15 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semSync(0), _semWatcher(0)
         _fRequestWatchingThreadExit = false;
         _fTerminating = false;
 
+        // Generate a GUID to represent this subscription
+        HRESULT hr = CoCreateGuid(&_guidSubscriber);
+        if (!SUCCEEDED(hr))
+        {
+    		CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR: Creating GUID. hr: %d.", hr);
+            throw new std::exception("Error creating GUID");
+        }
+
         // Initialize the COM system
-        HRESULT hr;
         hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 		CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: CoInitialize returned %d.", hr);
 
@@ -211,14 +218,6 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
         // Cast the user state to an object instance
         CBadgeNetPubSubEvents *pThis = (CBadgeNetPubSubEvents *)pUserState;
 
-        // Generate a GUID to represent this subscription
-        HRESULT hr = CoCreateGuid(&pThis->_guidSubscription);
-        if (!SUCCEEDED(hr))
-        {
-    		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Creating GUID. hr: %d.", hr);
-            throw new std::exception("Error creating GUID");
-        }
-
         // Loop waiting for events.
         while (true)
         {
@@ -234,7 +233,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             EnumEventSubType eventSubType;
             EnumCloudAppIconBadgeType badgeType;
             BSTR bsFullPath;                                // allocated by Subscribe.  Must be freed eventually (SysFreeString()).
-            hr = pThis->_pPubSubServer->Subscribe(BadgeNet_To_BadgeCom, pThis->_guidSubscription, _kMillisecondsTimeoutSubscribingThread, &eventSubType, &badgeType, &bsFullPath, &result);
+            hr = pThis->_pPubSubServer->Subscribe(BadgeNet_To_BadgeCom, pThis->_guidSubscriber, _knSubscriptionTimeoutMs, &eventSubType, &badgeType, &bsFullPath, &result);
             if (!SUCCEEDED(hr))
             {
         		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: From Subscribe.  hr: %d.", hr);
@@ -305,11 +304,6 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
         		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: From Subscribe.");
                 break;
             }
-            else if (result == RC_SUBSCRIBE_ALREADY_CANCELLED)
-            {
-        		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: Already Cancelled: From Subscribe.");
-                break;
-            }
             else if (result == RC_SUBSCRIBE_CANCELLED)
             {
         		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: This subscription was cancelled.");
@@ -335,7 +329,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
                 {
 				    CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Subscribed. Post starting thread.");
                     fSemaphoreReleased = true;
-                    pThis->_semSync.signal();
+                    pThis->_semWaitForSubscriptionThreadStart.signal();
                 }
             }
             pThis->_locker.unlock();
@@ -372,7 +366,7 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
             // Wait letting the subscribing thread work.
             fRestartSubscribingThread = false;
 			CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Wait until the next look.");
-            boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(pThis->_kMillisecondsTimeoutWatchingThread);
+            boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(pThis->_knTimeBetweenWatchingThreadChecksMs);
 			CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Out of wait.  Check on subscribing thread.");
             pThis->_semWatcher.wait(timeout);
 
@@ -444,7 +438,7 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
                 // Cancel the subscription the thread may be waiting on.
 				CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Call CancelWaitingSubscription.");
                 EnumPubSubServerCancelWaitingSubscriptionReturnCodes result;
-                HRESULT hr = _pPubSubServer->CancelWaitingSubscription(BadgeNet_To_BadgeCom, _guidSubscription, &result);
+                HRESULT hr = _pPubSubServer->CancelWaitingSubscription(BadgeNet_To_BadgeCom, _guidSubscriber, &result);
                 if (!SUCCEEDED(hr))
                 {
         		    CLTRACE(1, "CBadgeNetPubSubEvents: KillSubscribingThread: ERROR: Cancelling. hr: %d.", hr);
@@ -470,12 +464,12 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
 			// Request the thread to exit and wait for it.  Kill it if it takes too long.
 			CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Request subscribing thread to exit.");
             _fRequestSubscribingThreadExit = true;
-            for (int i = 0; i < 3; ++i)
+            for (int i = 0; i < _knShortRetries; ++i)
             {
                 if (IsThreadAlive(_threadSubscribingHandle))
                 {
 					CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Wait for the subscribing thread to exit.");
-                    Sleep(50);
+                    Sleep(_knShortRetrySleepMs);
                 }
                 else
                 {
@@ -530,12 +524,12 @@ void CBadgeNetPubSubEvents::KillWatchingThread()
         {
 			CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Wait for watching thread to exit.");
             bool fThreadDead = false;
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < _knShortRetries; i++)
             {
                 if (IsThreadAlive(_threadWatchingHandle))
                 {
         			CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Let the watching thread work.");
-                    Sleep(50);
+                    Sleep(_knShortRetrySleepMs);
                 }
                 else
                 {
@@ -599,8 +593,8 @@ bool CBadgeNetPubSubEvents::StartSubscribingThread()
         _locker.unlock();
 
         // Wait for the thread to be started and subscribed.
-        boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(5000);
-        result = _semSync.wait(timeout);
+        boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(_knWaitForSubscriberThreadToStartSleepMs);
+        result = _semWaitForSubscriptionThreadStart.wait(timeout);
 		if (!result)
 		{
 			CLTRACE(1, "BadgeComPubSubEvents: StartSubscribingThread: ERROR: Subscribing thread did not start.");

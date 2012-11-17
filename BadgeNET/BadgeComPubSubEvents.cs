@@ -33,14 +33,17 @@ namespace BadgeNET
         private static bool _fDebugging = false;
 
         private PubSubServerClass _pubSubServer = null;
-        private const int _kMillisecondsTimeoutSubscribingThread = 1000;
-        private const int _kMillisecondsTimeoutWatchingThread = 20000;
-        private Guid _guidSubscription;
+        private const int _knSubscriptionTimeoutMs = 1000;                          // time to wait for an event to arrive before timing out
+        private const int _knTimeBetweenWatchingThreadChecksMs = 20000;             // time between checks on the subscribing thread
+        private const int _knShortRetries = 5;										// number of retries when giving up short amounts of CPU
+        private const int _knShortRetrySleepMs = 50;								// time to wait when giving up short amounts of CPU
+        private const int _knWaitForSubscriberThreadToStartSleepMs = 5000;			// time to wait for the Subscriber thread to start.
+        private Guid _guidSubscriber;
         private Thread _threadSubscribing = null;
         private Thread _threadWatching = null;
         private bool _isSubscriberThreadAlive = false;
         private readonly object _locker = new object();
-        private Semaphore _semSync = null;
+        private Semaphore _semWaitForSubscriptionThreadStart = null;
         private Semaphore _semWatcher = null;
         private bool _fRequestSubscribingThreadExit = false;
         private bool _fRequestWatchingThreadExit = false;
@@ -146,7 +149,7 @@ namespace BadgeNET
                 _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Entry.");
 
                 // Generate a GUID to represent this subscription
-                _guidSubscription = Guid.NewGuid();
+                _guidSubscriber = Guid.NewGuid();
 
                 // Loop waiting for events.
                 while (true)
@@ -161,7 +164,7 @@ namespace BadgeNET
                     EnumEventSubType outEventSubType;
                     EnumCloudAppIconBadgeType outBadgeType;
                     string outFullPath;
-                    EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscription, _kMillisecondsTimeoutSubscribingThread,
+                    EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscriber, _knSubscriptionTimeoutMs,
                                  out outEventSubType, out outBadgeType, out outFullPath);
                     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     testCount--;
@@ -243,7 +246,7 @@ namespace BadgeNET
                         {
                             _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: Subscribed. Post starting thread.");
                             fSemaphoreReleased = true;
-                            _semSync.Release();
+                            _semWaitForSubscriptionThreadStart.Release();
                         }
                     }
                 }
@@ -272,7 +275,7 @@ namespace BadgeNET
                     // Wait letting the subscribing thread work.
                     fRestartSubscribingThread = false;
                     _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Wait for next look.");
-                    _semWatcher.WaitOne(_kMillisecondsTimeoutWatchingThread);
+                    _semWatcher.WaitOne(_knTimeBetweenWatchingThreadChecksMs);
                     _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Out of wait.  Check the subscribing thread.");
 
                     // Exit if we should
@@ -346,7 +349,7 @@ namespace BadgeNET
                     {
                         // Cancel the subscription the thread may be waiting on.
                         _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Call CancelWaitingSubscription.");
-                        EnumPubSubServerCancelWaitingSubscriptionReturnCodes result = _pubSubServer.CancelWaitingSubscription(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscription);
+                        EnumPubSubServerCancelWaitingSubscriptionReturnCodes result = _pubSubServer.CancelWaitingSubscription(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscriber);
                         if (result != EnumPubSubServerCancelWaitingSubscriptionReturnCodes.RC_CANCEL_OK)
                         {
                             _trace.writeToLog(1, "BadgeComPubSubEvents: KillSubscribingThread: ERROR: Cancelling. Result: {0}.", result.ToString());
@@ -367,12 +370,12 @@ namespace BadgeNET
                     // Wait for the thread to be gone.  If it takes too long, kill it.
                     _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Request subscribing thread exit.");
                     _fRequestSubscribingThreadExit = true;              // request the thread to exit
-                    for (int i = 0; i < 3; i++)
+                    for (int i = 0; i < _knShortRetries; i++)
                     {
                         if (_threadSubscribing.IsAlive)
                         {
                             _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Wait for the subscribing thread to exit.");
-                            Thread.Sleep(50);
+                            Thread.Sleep(_knShortRetrySleepMs);
                         }
                         else
                         {
@@ -424,12 +427,12 @@ namespace BadgeNET
                 {
                     _trace.writeToLog(9, "BadgeComPubSubEvents: KillWatchingThread: Wait for watching thread to exit.");
                     bool fThreadDead = false;
-                    for (int i = 0; i < 3; i++)
+                    for (int i = 0; i < _knShortRetries; i++)
                     {
                         if (_threadWatching.IsAlive)
                         {
                             _trace.writeToLog(9, "BadgeComPubSubEvents: KillWatchingThread: Let the watching thread work.");
-                            Thread.Sleep(50);
+                            Thread.Sleep(_knShortRetrySleepMs);
                         }
                         else
                         {
@@ -467,7 +470,7 @@ namespace BadgeNET
             try
             {
                 // The subscription should complete before the watching thread starts
-                _semSync = new Semaphore(0, 1);
+                _semWaitForSubscriptionThreadStart = new Semaphore(0, 1);
                 _semWatcher = new Semaphore(0, 1);
 
                 lock (_locker)
@@ -483,7 +486,7 @@ namespace BadgeNET
                 }
 
                 // Wait for the subscribing thread to start properly
-                result = _semSync.WaitOne(5000);
+                result = _semWaitForSubscriptionThreadStart.WaitOne(_knWaitForSubscriberThreadToStartSleepMs);
 
                 if (!result)
                 {

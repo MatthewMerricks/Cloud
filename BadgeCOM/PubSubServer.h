@@ -126,18 +126,18 @@ public:
 		ULONG                       uSubscribingThreadId_;      // the subscribing thread ID (logging only)
 		EnumEventType               nEventType_;                // the event type being subscribed to
 		offset_ptr<interprocess_semaphore>	pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
-        GUID                        guidId_;                    // the unique identifier of the subscriber
+        GUID                        guidSubscriber_;                    // the unique identifier of the subscriber
 		bool                        fDestructed_;               // true: this object has been destructed
         bool                        fWaiting_;                  // true: the subscribing thread is waiting
         bool                        fCancelled_;                // true: this subscription has been cancelled.
 		EventMessage_vector		    events_;					// a vector of events,
 
 		// Constructor
-		Subscription(GUID guidId, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const void_allocator &void_alloc) :
+		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const void_allocator &void_alloc) :
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
 							nEventType_(nEventType),
-                            guidId_(guidId),
+                            guidSubscriber_(guidSubscriber),
 							fDestructed_(false),
 							fWaiting_(false),
 							fCancelled_(false),
@@ -188,7 +188,7 @@ public:
     STDMETHOD(Initialize)();
     STDMETHOD(Subscribe)(
             EnumEventType EventType,
-            GUID guidId,
+            GUID guidSubscriber,
             LONG TimeoutMilliseconds,
             EnumEventSubType *outEventSubType,
             EnumCloudAppIconBadgeType *outBadgeType,
@@ -199,7 +199,7 @@ public:
             EnumCloudAppIconBadgeType BadgeType, 
             BSTR *FullPath, 
             EnumPubSubServerPublishReturnCodes *returnValue);
-	STDMETHOD(CancelWaitingSubscription)(EnumEventType EventType, GUID guidId, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
+	STDMETHOD(CancelWaitingSubscription)(EnumEventType EventType, GUID guidSubscriber, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
 	STDMETHOD(CancelSubscriptionsForProcessId)(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue);
     STDMETHOD(Terminate)();
 
@@ -214,22 +214,15 @@ private:
     } UniqueSubscription, *P_UniqueSubscription;
 
 	// Private methods
-    void RemoveSubscriptionId(EnumEventType eventType, GUID guid);
+    void RemoveTrackedSubscriptionId(EnumEventType eventType, GUID guid);
 	void DeleteSubscriptionById(Base * base, UniqueSubscription subscriptionId);
-    bool FindSubscription(EnumEventType EventType, GUID guidId, Base *base, subscription_vector::iterator *outItFoundSubscription);
+    bool FindSubscription(EnumEventType EventType, GUID guidSubscriber, Base *base, subscription_vector::iterator *outItFoundSubscription);
 
 	// Private instance fields
-	std::vector<UniqueSubscription> _subscriptionIds;		// list of subscriptions created by this instance
-	boost::mutex _lockerLocal;								// local locker
-	
+	std::vector<UniqueSubscription> _trackedSubscriptionIds;		// list of subscriptions created by this instance
 
 	// Private static fields
     static managed_windows_shared_memory *_pSegment;		// Pointer to the managed native windows shared memory segment.
-	static int _nSegmentReferenceCounter;					// reference counter for _pSegment.
-
-    // Private static constants
-    static const OLECHAR *_ksSharedMemoryName;              // the name of the shared memory segment
-    static const int _knMaxEventsInEventQueue;              // maximum number of events allowed in a subscription's event queue
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(PubSubServer), CPubSubServer)
