@@ -27,7 +27,7 @@ static const int _knMaxEventsInEventQueue = 1000;							// maximum number of eve
 static const int _knShortRetries = 5;										// number of retries when giving up short amounts of CPU
 static const int _knShortRetrySleepMs = 50;									// time to wait when giving up short amounts of CPU
 static const int _knOuterMapBuckets = 10;									// number of buckets for the unordered_map<EventType, unordered_map<GUID, Subscription>>.
-static const int _knInnerMapBuckets = 500;									// number of buckets for the unordered_map<GUID, Subscription>.
+static const int _knInnerMapBuckets = 100;									// number of buckets for the unordered_map<GUID, Subscription>.
 
 // Static constant initializers
 managed_windows_shared_memory *CPubSubServer::_pSegment = NULL;						// pointer to the shared memory segment
@@ -42,7 +42,7 @@ STDMETHODIMP CPubSubServer::Initialize()
 	CLTRACE(9, "PubSubServer: Initialize: Entry");
     try
     {
-		if (_pSegment = NULL)
+		if (_pSegment == NULL)
 		{
 	        _pSegment = new managed_windows_shared_memory(open_or_create, _ksSharedMemoryName, 1024000);
 		}
@@ -88,7 +88,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
-        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, boost::hash<EnumEventType>(), GUIDEqualComparer(), alloc_inst);
+        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 		// We want to add this event to the queue for each of the scriptions waiting for this event type, but
 		// one or more of the subscriber's event queues may be full.  If we find a full event queue, we will
@@ -245,7 +245,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
-        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, boost::hash<EnumEventType>(), GUIDEqualComparer(), alloc_inst);
+        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 	    base->mutexSharedMemory_.lock();
 		try
@@ -291,13 +291,41 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			}
 			else
 			{
-				// Our subscription was not found.  Add a newly constructed subscription to the subscriptions_ map.  We will wait for an event.
-				CLTRACE(9, "PubSubServer: Subscribe: Our subscription was not found.  Construct a new subscription.  Wait required.");
-				std::pair<guid_subscription_map::iterator, bool> retval;
-				retval = outItEventType->second.emplace(guidSubscriber, processId, threadId, EventType, alloc_inst);
+				// Our specific subscription was not found.  We will need to add it.
+				// First, locate the event type element in the outer map<EventType, map<GUID, Subscription>>.  The record may not be there.
+				CLTRACE(9, "PubSubServer: Subscribe: Our specific subscription was not found.");
+				eventtype_map_guid_subscription_map::iterator itMapOuter = base->subscriptions_.find(EventType);
+				if (itMapOuter != base->subscriptions_.end())
+				{
+					// The event type record was found in the outer map.  Add a pair_guid_subscription record to the inner map.
+					CLTRACE(9, "PubSubServer: Subscribe: The EventType record was found in the outer map.  Construct an inner map pair_guid_subscription and add it to the inner map.");
+					std::pair<guid_subscription_map::iterator, bool> retvalEmplace;
+					retvalEmplace = itMapOuter->second.emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, alloc_inst)));
+					retvalEmplace.first->second.fWaiting_ = true;
+					outOptrFoundSubscription = &retvalEmplace.first->second;
+				}
+				else
+				{
+					// The event type was not found in the outer map.  Construct an inner map<GUID, Subscription> and add it to the outer map.
+					CLTRACE(9, "PubSubServer: Subscribe: The EventType record was not found in the outer map.  Construct and add it.");
+					std::pair<guid_subscription_map::iterator, bool> retvalEmplace;
+					guid_subscription_map *mapGuidSubscription = _pSegment->construct<guid_subscription_map>(anonymous_instance)(_knInnerMapBuckets, boost::hash<GUID>(), std::equal_to<GUID>(), alloc_inst);
+					if (mapGuidSubscription == NULL)
+					{
+						throw new std::exception("ERROR: mapGuidSubscrition is NULL");
+					}
+
+					// Add a pair_guid_subscription to the inner map just constructed.
+					retvalEmplace = mapGuidSubscription->emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, alloc_inst)));
+					retvalEmplace.first->second.fWaiting_ = true;
+					outOptrFoundSubscription = &retvalEmplace.first->second;
+
+					// Then add the constructed inner map to the outer map.
+					base->subscriptions_.emplace(pair_eventtype_pair_guid_subscription(EventType, *mapGuidSubscription));
+				}
 
 				// Point our iterator at the Subscription just inserted or located in the map for this event type.
-				retval.first->second.fWaiting_ = true;
+				CLTRACE(9, "PubSubServer: Subscribe: This is a new subscription.  A wait will be required.");
 				fWaitRequired = true;
 				fSubscriptionFound = true;                  // itFoundSubscription valid now
 
@@ -424,7 +452,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
-        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, boost::hash<EnumEventType>(), GUIDEqualComparer(), alloc_inst);
+        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 		// Loop until we don't find any subscriptions for this process
 		while (true)
@@ -519,7 +547,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
-        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, boost::hash<EnumEventType>(), GUIDEqualComparer(), alloc_inst);
+        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 	    base->mutexSharedMemory_.lock();
 		try
@@ -749,7 +777,7 @@ STDMETHODIMP CPubSubServer::Terminate()
 			void_allocator alloc_inst(_pSegment->get_segment_manager());
 
 			// Construct the shared memory Base image and initiliaze it.  This is atomic.
-	        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, boost::hash<EnumEventType>(), GUIDEqualComparer(), alloc_inst);
+	        base = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 			base->mutexSharedMemory_.lock();
 			try

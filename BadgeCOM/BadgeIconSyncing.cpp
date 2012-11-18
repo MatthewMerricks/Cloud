@@ -35,13 +35,22 @@ CBadgeIconSyncing::CBadgeIconSyncing()
 {
     try
     {
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+		//static bool fCompletedOnce = false;
+		//while (!fCompletedOnce)
+		//{
+		//	Sleep(100);
+		//}
+		//fCompletedOnce = true;
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
 	    // Allocate the PubSubEvents system, subscribe to events, and send an initialization event to BadgeNet.
 		CLTRACE(9, "CBadgeIconSyncing: CBadgeIconSyncing: Entry. Start the subscription threads.");
 	    InitializeBadgeNetPubSubEventsViaThread();
     }
     catch (std::exception &ex)
     {
-		CLTRACE(1, "CBadgeIconSyncing: CBadgeIconSyncing: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "CBadgeIconSyncing: CBdgeIconSyncing: ERROR: Exception.  Message: %s.", ex.what());
     }
 }
 
@@ -169,15 +178,6 @@ typedef HRESULT (WINAPI*pfnGetDispName)(LPCWSTR, LPWSTR, DWORD);
 // Returns whether the object should have this overlay or not 
 STDMETHODIMP CBadgeIconSyncing::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
-	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-    //static bool fCompletedOnce = false;
-	//while (!fCompletedOnce)
-	//{
-	//	//Sleep(100);
-	//}
-    //fCompletedOnce = true;
-	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
 	// Default return value is false (no icon overlay)
 	HRESULT result = S_FALSE;   // or S_OK for icon overlay
 

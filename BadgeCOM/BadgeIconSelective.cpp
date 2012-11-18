@@ -35,6 +35,15 @@ CBadgeIconSelective::CBadgeIconSelective()
 {
     try
     {
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+		//static bool fCompletedOnce = false;
+		//while (!fCompletedOnce)
+		//{
+		//	Sleep(100);
+		//}
+		//fCompletedOnce = true;
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
 	    // Allocate the PubSubEvents system, subscribe to events, and send an initialization event to BadgeNet.
 		CLTRACE(9, "CBadgeIconSelective: CBadgeIconSelective: Entry. Start the subscription threads.");
 	    InitializeBadgeNetPubSubEventsViaThread();
@@ -169,15 +178,6 @@ typedef HRESULT (WINAPI*pfnGetDispName)(LPCWSTR, LPWSTR, DWORD);
 // Returns whether the object should have this overlay or not 
 STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
-	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-    //static bool fCompletedOnce = false;
-	//while (!fCompletedOnce)
-	//{
-	//	//Sleep(100);
-	//}
-    //fCompletedOnce = true;
-	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
 	// Default return value is false (no icon overlay)
 	HRESULT result = S_FALSE;   // or S_OK for icon overlay
 

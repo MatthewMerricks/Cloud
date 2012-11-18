@@ -34,6 +34,10 @@
 using namespace ATL;
 using namespace boost::interprocess;
 
+// Forward function definitions
+static std::size_t FNV_hash(const void* dataToHash, std::size_t length);
+static std::size_t hash_value(GUID const& guid);
+
 
 // CPubSubServer
 
@@ -146,25 +150,16 @@ public:
 		}
 	};
 
-	// GUID Comparison Operator
-	struct GUIDEqualComparer : public std::binary_function<const GUID, const GUID, bool>
-	{
-	    inline bool operator()(const GUID & Left, const GUID & Right) const
-	    {
-			return memcmp(&Left, &Right, sizeof(Left)) == 0;
-		}
-	};
-
  	// Define the types related to Subscription
 	typedef boost::interprocess::allocator<Subscription, segment_manager_t>                      subscription_allocator;     // allocator for allocating Subscription
 	typedef boost::interprocess::allocator<GUID, segment_manager_t>								guid_allocator;			// allocator for allocating GUID
 	typedef std::pair<GUID, Subscription>														pair_guid_subscription;	// a pair of GUID, Subscription
-	typedef std::pair<EnumEventType, pair_guid_subscription>									pair_eventtype_pair_guid_subscription;  // a pair(EnumEventType, pair(GUID, Subscription))
 	typedef boost::interprocess::allocator<EnumEventType, segment_manager_t>					eventtype_allocator;	// allocator for allocating EnumEventType
 	typedef boost::interprocess::allocator<pair_guid_subscription, segment_manager_t>			pair_guid_subscription_allocator;  // allocator for pair_guid_subscription
+	typedef boost::unordered_map<GUID, Subscription, boost::hash<GUID>, std::equal_to<GUID>, pair_guid_subscription_allocator>  guid_subscription_map;  // a map of GUID => Subscription
+	typedef std::pair<EnumEventType, guid_subscription_map>										pair_eventtype_pair_guid_subscription;  // a pair(EnumEventType, pair(GUID, Subscription))
 	typedef boost::interprocess::allocator<pair_eventtype_pair_guid_subscription, segment_manager_t>  pair_eventtype_pair_guid_subscription_allocator;  // allocator for pair(EnumEventType, pair(GUID, Subscription))
-	typedef boost::unordered_map<GUID, Subscription, GUIDEqualComparer, pair_guid_subscription_allocator>  guid_subscription_map;  // a map of GUID => Subscription
-	typedef boost::unordered_map<EnumEventType, guid_subscription_map, std::less<EnumEventType>> eventtype_map_guid_subscription_map;  // a map(EnumEventType, map<GUID, Subscription)>
+	typedef boost::unordered_map<EnumEventType, guid_subscription_map, boost::hash<int>, std::equal_to<int>, pair_eventtype_pair_guid_subscription_allocator> eventtype_map_guid_subscription_map;  // a map(EnumEventType, map<GUID, Subscription)>
 	typedef boost::interprocess::vector<Subscription, subscription_allocator>                    subscription_vector;    // a vector of Subscriptions
 	typedef boost::interprocess::allocator<subscription_vector, segment_manager_t>               subscription_vector_allocator;  // allocator for allocating a vector of Subscription.
 	typedef boost::interprocess::allocator<guid_subscription_map, segment_manager_t>			guid_subscription_map_allocator;  // allocator for allocating a map of GUID => Subscription
@@ -179,14 +174,12 @@ public:
 		eventtype_map_guid_subscription_map subscriptions_;      // a vector of Subscription (the active subscriptions)
 
 		Base(eventtype_map_guid_subscription_map::size_type size_type,
-				const eventtype_map_guid_subscription_map::hasher &hasher,
-				const eventtype_map_guid_subscription_map::key_equal &key_equal,
 				const eventtype_map_guid_subscription_map::allocator_type &allocator_type)
-				: subscriptions_(size_type, hasher, key_equal, allocator_type) {}
+				: subscriptions_(size_type, boost::hash<int>(), std::equal_to<int>(), allocator_type) {}
 	};
 
 	// Definition of the map holding all of the data.  There will just be a single map element with key "base".  The value
-	// will be a complex container containing any required global data, plus the vector<Subscription>.
+	// will be a complex container containing any required global data, plus the map<EventType, map<GUID, Subscription>>.
 	typedef boost::interprocess::allocator<Base, segment_manager_t>                              base_allocator;       // allocator for allocating Base
 
 	// Public OLE accessible methods
@@ -231,5 +224,25 @@ private:
 	// Private static fields
     static managed_windows_shared_memory *_pSegment;		// Pointer to the managed native windows shared memory segment.
 };
+
+// FNV hash
+// Modified from: http://programmers.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed
+static std::size_t FNV_hash(const void* dataToHash, std::size_t length)
+{
+  unsigned char* p = (unsigned char *) dataToHash;
+  std::size_t h = 2166136261UL;
+  std::size_t i;
+
+  for(i = 0; i < length; i++)
+    h = (h * 16777619) ^ p[i] ;
+
+  return h;
+}
+
+// GUID hash
+static std::size_t hash_value(GUID const& guid) 
+{
+	return FNV_hash(&guid, sizeof(GUID));
+}
 
 OBJECT_ENTRY_AUTO(__uuidof(PubSubServer), CPubSubServer)
