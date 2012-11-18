@@ -748,7 +748,6 @@ namespace CloudApiPrivate.Model.Settings
 
         // Setting to determine whether the Authorization header is excluded from Trace
         // Added by David
-        private int _traceExcludeAuthorization;
         public bool TraceExcludeAuthorization
         {
             get { return (TraceType & TraceType.AddAuthorization) != TraceType.AddAuthorization; }

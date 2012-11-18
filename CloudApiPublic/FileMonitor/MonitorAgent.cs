@@ -1145,7 +1145,7 @@ namespace CloudApiPublic.FileMonitor
                             if (FilePathComparer.Instance.Equals(renamedOverlap, CurrentEarlierChange.NewPath))
                             {
                                 renamedOverlapChild.Parent = CurrentEarlierChange.OldPath;
-                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(LaterChange, null) }, false);
+                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(LaterChange, null) });
                                 if (replacePathPortionError != null)
                                 {
                                     toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
@@ -1446,7 +1446,7 @@ namespace CloudApiPublic.FileMonitor
                                                             newCreationTime,
                                                             countFileSize);
 
-                                                        CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null) }, false);
+                                                        CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null) });
                                                         if (writeNewMetadataError != null)
                                                         {
                                                             throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.GrabExceptions());
@@ -1489,7 +1489,7 @@ namespace CloudApiPublic.FileMonitor
                             }
                         }
 
-                        CLError queuedChangesSqlError = Indexer.MergeEventsIntoDatabase(queuedChangesNeedMergeToSql.Select(currentQueuedChangeToSql => currentQueuedChangeToSql.Key), false);
+                        CLError queuedChangesSqlError = Indexer.MergeEventsIntoDatabase(queuedChangesNeedMergeToSql.Select(currentQueuedChangeToSql => currentQueuedChangeToSql.Key));
                         if (queuedChangesSqlError != null)
                         {
                             toReturn += new AggregateException("Error adding QueuedChanges within processing/failed changes dependency tree to SQL", queuedChangesSqlError.GrabExceptions());
@@ -2922,7 +2922,7 @@ namespace CloudApiPublic.FileMonitor
                         }
                     }
 
-                    CLError mergeError = Indexer.MergeEventsIntoDatabase(mergeBatch.Select(currentMerge => new FileChangeMerge(currentMerge, null)), false);
+                    CLError mergeError = Indexer.MergeEventsIntoDatabase(mergeBatch.Select(currentMerge => new FileChangeMerge(currentMerge, null)));
                     if (mergeError != null)
                     {
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear

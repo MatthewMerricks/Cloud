@@ -468,5 +468,56 @@ namespace CloudApiPublic.Static
             }
             return entryAssembly.GetName().Name;
         }
+
+        /// <summary>
+        /// Parses a hexadecimal string into an array of bytes
+        /// </summary>
+        /// <param name="hashString"></param>
+        /// <returns></returns>
+        public static byte[] ParseHexadecimalStringToByteArray(string hashString)
+        {
+            if (string.IsNullOrWhiteSpace(hashString))
+            {
+                return null;
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(hashString,
+                "[a-f\\d]{32}",
+                System.Text.RegularExpressions.RegexOptions.Compiled
+                    | System.Text.RegularExpressions.RegexOptions.CultureInvariant
+                    | System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                throw new ArgumentException("hashString must be in a hexadecimal string format with no seperator characters and be 16 bytes in length (32 characters)");
+            }
+
+            char[] hexChars;
+            if (hashString.Length % 2 == 1)
+            {
+                hexChars = new char[hashString.Length + 1];
+                hexChars[0] = '0';
+                hashString.ToCharArray().CopyTo(hexChars, 1);
+            }
+            else
+            {
+                hexChars = hashString.ToCharArray();
+            }
+
+            int hexCharLength = hexChars.Length;
+            byte[] hexBuffer = new byte[hexCharLength / 2 + hexCharLength % 2];
+
+            int hexBufferIndex = 0;
+            for (int charIndex = 0; charIndex < hexCharLength - 1; charIndex += 2)
+            {
+                hexBuffer[hexBufferIndex] = byte.Parse(hexChars[charIndex].ToString(),
+                    System.Globalization.NumberStyles.HexNumber,
+                    System.Globalization.CultureInfo.InvariantCulture);
+                hexBuffer[hexBufferIndex] <<= 4;
+                hexBuffer[hexBufferIndex] += byte.Parse(hexChars[charIndex + 1].ToString(),
+                    System.Globalization.NumberStyles.HexNumber,
+                    System.Globalization.CultureInfo.InvariantCulture);
+                hexBufferIndex++;
+            }
+            return hexBuffer;
+        }
     }
 }

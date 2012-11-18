@@ -68,11 +68,9 @@ namespace CloudApiPublic.FileMonitor.SyncImplementation
         /// <param name="mergeToFroms">The file change events to merge.</param>
         /// <param name="alreadyObtainedLock">true: The indexer lock has already been obtainte.  Default: false.</param>
         /// <returns>An error or null.</returns>
-        public CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms,
-            bool alreadyObtainedLock = false)
+        public CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms)
         {
-            return Indexer.MergeEventsIntoDatabase(mergeToFroms,
-                alreadyObtainedLock);
+            return Indexer.MergeEventsIntoDatabase(mergeToFroms, false);
         }
 
         /// <summary>

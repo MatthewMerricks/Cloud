@@ -100,13 +100,13 @@ namespace CloudApiPublic.Model
             }
             if (err == null)
             {
-                return ((CLError)new Exception(FileStreamFirstMessage)) + fStream;
+                return ((CLError)new Exception(StreamFirstMessage)) + fStream;
             }
 
             err.AddFileStream(fStream);
             return err;
         }
-        public const string FileStreamFirstMessage = "FileStream added first instead of exception";
+        public const string StreamFirstMessage = "FileStream added first instead of exception";
 
         // Added so we can append FileStream objects which can later be disposed upon error handling
         // -David
@@ -135,7 +135,7 @@ namespace CloudApiPublic.Model
         /// Takes all the FileStream instances out of this error and returns them for disposal
         /// </summary>
         /// <returns>Returns dequeued FileStream objects</returns>
-        public IEnumerable<Stream> DequeueFileStreams()
+        public IEnumerable<Stream> DequeueStreams()
         {
             Stream tryCast;
             Func<KeyValuePair<string, object>, Func<string, bool>, Stream> removeAndReturnValue = (currentPair, removeAction) =>
@@ -167,7 +167,7 @@ namespace CloudApiPublic.Model
             {
                 return new FileStream[0];
             }
-            return err.DequeueFileStreams();
+            return err.DequeueStreams();
         }
 
         /// <summary>

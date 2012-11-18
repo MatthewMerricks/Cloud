@@ -25,7 +25,7 @@ namespace CloudApiPublic.SQLIndexer.SqlModel
         // Store the Type for the current generic type
         private static readonly Type CurrentGenericType = typeof(T);
 
-        // Dictionary to story the compiled and uncompiled parser expressions, keyed by the combination of includes as a space-seperated string
+        // Dictionary to store the compiled and uncompiled parser expressions, keyed by the combination of includes as a space-seperated string
         private static readonly Dictionary<string, KeyValuePair<Expression<Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>> ResultParsers =
             new Dictionary<string, KeyValuePair<Expression<Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>>();
 

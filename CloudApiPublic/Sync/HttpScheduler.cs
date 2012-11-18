@@ -31,21 +31,34 @@ namespace CloudApiPublic.Sync
 
         // stores if this scheduler is for uploads or downloads; only one of each type exists
         private SyncDirection Direction;
+
         // the following two bools are used to tell if a scheduler has been previously disposed
         private static bool FromDisposed = false;
         private static bool ToDisposed = false;
 
-        private static ISyncSettings SyncSettings
+        private static string ErrorLogLocation
         {
             get
             {
                 lock (SyncSettingsLocker)
                 {
-                    return _syncSettings;
+                    return _errorLogLocation;
                 }
             }
         }
-        private static ISyncSettings _syncSettings = null;
+        private static string _errorLogLocation = null;
+        private static bool LogErrors
+        {
+            get
+            {
+                lock (SyncSettingsLocker)
+                {
+                    return _logErrors ?? (_errorLogLocation != null);
+                }
+            }
+        }
+        private static Nullable<bool> _logErrors;
+        private static bool SyncSettingsSet = false;
         private static readonly object SyncSettingsLocker = new object();
         #endregion
 
@@ -67,6 +80,7 @@ namespace CloudApiPublic.Sync
         /// Instance accessor for this HttpScheduler, use the return instance as a parameter for [Task].Start
         /// </summary>
         /// <param name="direction">Use From for downloads and To for uploads</param>
+        /// <param name="syncSettings">Settings to use for logging errors</param>
         /// <returns>Returns the appropriate instance of HttpScheduler</returns>
         public static HttpScheduler GetSchedulerByDirection(SyncDirection direction, ISyncSettings syncSettings)
         {
@@ -82,13 +96,22 @@ namespace CloudApiPublic.Sync
                         {
                             lock (SyncSettingsLocker)
                             {
-                                if (HttpScheduler._syncSettings == null)
+                                if (!HttpScheduler.SyncSettingsSet)
                                 {
                                     if (syncSettings == null)
                                     {
                                         throw new NullReferenceException("syncSettings cannot be null");
                                     }
-                                    HttpScheduler._syncSettings = syncSettings;
+                                    if (syncSettings.LogErrors
+                                        && string.IsNullOrWhiteSpace(syncSettings.ErrorLogLocation))
+                                    {
+                                        throw new NullReferenceException("syncSettings ErrorLogLocation cannot be null if syncSettings LogErrors is true");
+                                    }
+
+                                    HttpScheduler._logErrors = syncSettings.LogErrors;
+                                    HttpScheduler._errorLogLocation = syncSettings.ErrorLogLocation;
+
+                                    HttpScheduler.SyncSettingsSet = true;
                                 }
                             }
 
@@ -121,13 +144,23 @@ namespace CloudApiPublic.Sync
                         {
                             lock (SyncSettingsLocker)
                             {
-                                if (HttpScheduler._syncSettings == null)
+                                if (!HttpScheduler.SyncSettingsSet)
                                 {
                                     if (syncSettings == null)
                                     {
                                         throw new NullReferenceException("syncSettings cannot be null");
                                     }
-                                    HttpScheduler._syncSettings = syncSettings;
+
+                                    if (syncSettings.LogErrors
+                                        && string.IsNullOrWhiteSpace(syncSettings.ErrorLogLocation))
+                                    {
+                                        throw new NullReferenceException("syncSettings ErrorLogLocation cannot be null if syncSettings LogErrors is true");
+                                    }
+
+                                    HttpScheduler._logErrors = syncSettings.LogErrors;
+                                    HttpScheduler._errorLogLocation = syncSettings.ErrorLogLocation;
+
+                                    HttpScheduler.SyncSettingsSet = true;
                                 }
                             }
 
@@ -245,7 +278,7 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
-                ((CLError)ex).LogErrors(SyncSettings.ErrorLogLocation, SyncSettings.LogErrors);
+                ((CLError)ex).LogErrors(ErrorLogLocation, LogErrors);
                 return false;
             }
             return true;
@@ -427,7 +460,7 @@ namespace CloudApiPublic.Sync
                 }
             }
             // performs the actual logging of errors, forces logging even if the setting is turned off in the severe case where a message box had to appear
-            aggregatedError.LogErrors(SyncSettings.ErrorLogLocation, overrideLoggingOnMessageBox ? true : SyncSettings.LogErrors);
+            aggregatedError.LogErrors(ErrorLogLocation, overrideLoggingOnMessageBox ? true : LogErrors);
         }
 
         /// <summary>

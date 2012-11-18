@@ -1625,6 +1625,9 @@ namespace CloudApiPublic.SQLIndexer
                                     Dictionary<long, KeyValuePair<FileChange, GenericHolder<bool>>> findOriginal = toUpdate.ToDictionary(currentToUpdate => currentToUpdate.Key,
                                         currentToUpdate => new KeyValuePair<FileChange, GenericHolder<bool>>(currentToUpdate.Value, new GenericHolder<bool>(false)));
 
+                                    // If any event is not found to update, then it can be added via identity insert to its provided event id key, this list stores those keys
+                                    HashSet<long> missingKeys = new HashSet<long>();
+
                                     // Find the existing event for the given id
                                     Event[] toModify = SqlAccessor<Event>.SelectResultSet(indexDB,
                                         "SELECT " +
@@ -1645,7 +1648,9 @@ namespace CloudApiPublic.SQLIndexer
                                     {
                                         foreach (long missingEventId in findOriginal.Keys)
                                         {
-                                            toReturn += new Exception("Unable to find event with id " + missingEventId.ToString() + " to update");
+                                            missingKeys.Add(missingEventId);
+
+                                            //toReturn += new Exception("Unable to find event with id " + missingEventId.ToString() + " to update");
                                         }
                                     }
                                     else
@@ -1679,7 +1684,9 @@ namespace CloudApiPublic.SQLIndexer
                                         {
                                             if (!mergedPair.Value.Value)
                                             {
-                                                toReturn += new Exception("Unable to find event with id " + mergedPair.Key.EventId.ToString() + " to update");
+                                                missingKeys.Add(mergedPair.Key.EventId);
+
+                                                //toReturn += new Exception("Unable to find event with id " + mergedPair.Key.EventId.ToString() + " to update");
                                             }
                                         }
 
@@ -1696,7 +1703,9 @@ namespace CloudApiPublic.SQLIndexer
                                                 unableToFindIndexes.Select(currentUnableToFind => toModify[currentUnableToFind].EventId)
                                                     .Distinct())// Possible to get back multiple Event objects with the same EventId if two or more FileSystemObjects have the same EventId (which is an error)
                                             {
-                                                toReturn += new Exception("Unable to find event with id " + missingEventId.ToString() + " to update");
+                                                missingKeys.Add(missingEventId);
+
+                                                //toReturn += new Exception("Unable to find event with id " + missingEventId.ToString() + " to update");
                                             }
                                         }
 
@@ -1706,11 +1715,58 @@ namespace CloudApiPublic.SQLIndexer
 
                                         if (unableToFindIndexes != null)
                                         {
-                                            foreach (long missingFileSystemObjectId in unableToFindIndexes.Select(currentUnableToFind => toModify[currentUnableToFind].FileSystemObject.FileSystemObjectId))
+                                            foreach (FileSystemObject currentMissingFileSystemObject in unableToFindIndexes.Select(currentUnableToFind => toModify[currentUnableToFind].FileSystemObject))
                                             {
-                                                toReturn += new Exception("Unable to find file system object with id " + missingFileSystemObjectId.ToString() + " to update");
+                                                if (currentMissingFileSystemObject.EventId == null || !missingKeys.Contains((long)currentMissingFileSystemObject.EventId))
+                                                {
+                                                    toReturn += new Exception("Unable to find file system object with id " + currentMissingFileSystemObject.FileSystemObjectId.ToString() + " to update");
+                                                }
                                             }
                                         }
+                                    }
+
+                                    if (missingKeys.Count > 0)
+                                    {
+                                        Event[] identityInsertChanges = missingKeys.Select(currentMissingKey => findOriginal[currentMissingKey].Key)
+                                            .Select(identityInsertChange => new KeyValuePair<FileChange, string>(identityInsertChange, identityInsertChange.NewPath.ToString()))
+                                            .Select(identityInsertChange => new Event()
+                                            {
+                                                EventId = identityInsertChange.Key.EventId,
+                                                FileChangeTypeCategoryId = changeCategoryId,
+                                                FileChangeTypeEnumId = changeEnumsBackward[identityInsertChange.Key.Type],
+                                                FileSystemObject = new FileSystemObject()
+                                                {
+                                                    EventId = identityInsertChange.Key.EventId,
+                                                    CreationTime = identityInsertChange.Key.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                        ? (Nullable<DateTime>)null
+                                                        : identityInsertChange.Key.Metadata.HashableProperties.CreationTime,
+                                                    IsFolder = identityInsertChange.Key.Metadata.HashableProperties.IsFolder,
+                                                    LastTime = identityInsertChange.Key.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                        ? (Nullable<DateTime>)null
+                                                        : identityInsertChange.Key.Metadata.HashableProperties.LastTime,
+                                                    Path = identityInsertChange.Value,
+                                                    Size = identityInsertChange.Key.Metadata.HashableProperties.Size,
+                                                    Revision = identityInsertChange.Key.Metadata.Revision,
+                                                    StorageKey = identityInsertChange.Key.Metadata.StorageKey,
+                                                    TargetPath = (identityInsertChange.Key.Metadata.LinkTargetPath == null ? null : identityInsertChange.Key.Metadata.LinkTargetPath.ToString()),
+                                                    SyncCounter = null,
+                                                    ServerLinked = false,
+
+                                                    // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
+                                                    PathChecksum = StringCRC.Crc(identityInsertChange.Value)
+                                                },
+                                                PreviousPath = (identityInsertChange.Key.OldPath == null
+                                                    ? null
+                                                    : identityInsertChange.Key.OldPath.ToString()),
+                                                SyncFrom = (identityInsertChange.Key.Direction == SyncDirection.From)
+                                            }).ToArray();
+
+                                        SqlAccessor<Event>.InsertRows(indexDB,
+                                            identityInsertChanges,
+                                            identityInsert: true);
+
+                                        SqlAccessor<FileSystemObject>.InsertRows(indexDB,
+                                            identityInsertChanges.Select(identityInsertChange => identityInsertChange.FileSystemObject));
                                     }
                                 }
 
