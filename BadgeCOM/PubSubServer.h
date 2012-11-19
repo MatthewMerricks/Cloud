@@ -12,6 +12,7 @@
 #include <iostream>
 #include <exception>
 #include <limits.h>
+#include <WinVer.h>
 #include <boost\interprocess\managed_windows_shared_memory.hpp>
 #include <boost\interprocess\containers\map.hpp>
 #include <boost\unordered_map.hpp>
@@ -24,6 +25,7 @@
 #include <boost\interprocess\detail\move.hpp>
 #include <boost\thread.hpp>
 #include <boost\foreach.hpp>
+#include <boost\format.hpp>
 #include "Trace.h"
 #include "BadgeCOM_i.h"
 
@@ -199,6 +201,7 @@ public:
             EnumPubSubServerPublishReturnCodes *returnValue);
 	STDMETHOD(CancelWaitingSubscription)(EnumEventType EventType, GUID guidSubscriber, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
 	STDMETHOD(CancelSubscriptionsForProcessId)(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue);
+	STDMETHOD(CleanUpUnusedResources)(EnumPubSubServerCleanUpUnusedResourcesReturnCodes *returnValue);
     STDMETHOD(Terminate)();
 
     // Public OLE accessible properties
@@ -218,6 +221,11 @@ private:
 				eventtype_map_guid_subscription_map::iterator *outItEventType,
 				guid_subscription_map::iterator *outItSubscription,
 				offset_ptr<Subscription> *outOptrFoundSubscription);
+    BOOL IsProcessRunning(DWORD pid);
+    void TraceCurrentStateOfSharedMemory(Base *pBase);
+    std::string GetSharedMemoryNameWithVersion();
+    std::wstring GetSharedMemoryNameWithVersionWide();
+
 	// Private instance fields
 	std::vector<UniqueSubscription> _trackedSubscriptionIds;		// list of subscriptions created by this instance
 

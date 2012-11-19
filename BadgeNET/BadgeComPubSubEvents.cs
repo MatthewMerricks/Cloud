@@ -48,9 +48,6 @@ namespace BadgeNET
         private bool _fRequestSubscribingThreadExit = false;
         private bool _fRequestWatchingThreadExit = false;
         private bool _fTerminating = false;
-        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        private int _nTimeoutCountFail = 120;
-        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         
         #endregion
 
@@ -68,6 +65,9 @@ namespace BadgeNET
                 _trace.writeToLog(9, "BadgeComPubSubEvents: Initialize: Entry.");
                 if (_pubSubServer == null)
                 {
+                    // Generate a GUID to represent this subscription
+                    _guidSubscriber = Guid.NewGuid();
+
                     _pubSubServer = new PubSubServerClass();
                     _pubSubServer.Initialize();
                 }
@@ -142,14 +142,8 @@ namespace BadgeNET
             try
             {
                 bool fSemaphoreReleased = false;
-                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                int testCount = 30;
-                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
                 _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Entry.");
-
-                // Generate a GUID to represent this subscription
-                _guidSubscriber = Guid.NewGuid();
 
                 // Loop waiting for events.
                 while (true)
@@ -166,10 +160,6 @@ namespace BadgeNET
                     string outFullPath;
                     EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscriber, _knSubscriptionTimeoutMs,
                                  out outEventSubType, out outBadgeType, out outFullPath);
-                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                    testCount--;
-                    _nTimeoutCountFail--;
-                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_GOT_EVENT)
                     {
                         try
@@ -198,11 +188,6 @@ namespace BadgeNET
                         _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: From PubSubServer.Subscribe. Exception.");
                         break;
                     }
-                    else if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_ALREADY_CANCELLED)
-                    {
-                        _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: From PubSubServer.Subscribe.  Already cancelled.");
-                        break;
-                    }
                     else if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_CANCELLED)
                     {
                         _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: This subscription was cancelled.");
@@ -222,24 +207,7 @@ namespace BadgeNET
                     // We're alive
                     lock (_locker)
                     {
-                        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                        if (testCount >= 0)
-                        {
-                            _isSubscriberThreadAlive = true;
-                        }
-                        if (_nTimeoutCountFail < 0)
-                        {
-                            _nTimeoutCountFail = 120;
-                            EventHandler<EventArgs> handler = BadgeComInitializedSubscriptionFailed;
-                            if (handler != null)
-                            {
-                                _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Fire event FireEventSubscriptionWatcherFailed.");
-                                handler(this, EventArgs.Empty);
-                                _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Back from firing event FireEventSubscriptionWatcherFailed.");
-                            }
-                        }
-                        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                        //_isSubscriberThreadAlive = true;          //@@@@@@@@@@@@ DEBUG add this back.
+                        _isSubscriberThreadAlive = true;
 
                         // Let the starting thread know we have subscribed, but just once.
                         if (!fSemaphoreReleased)
@@ -305,12 +273,19 @@ namespace BadgeNET
                         _trace.writeToLog(1, "BadgeComPubSubEvents: WatchingThreadProc: Restart subscribing thread.");
                         RestartSubcribingThread();
                     }
+
+                    // Clean any unused shared memory resources.
+                    EnumPubSubServerCleanUpUnusedResourcesReturnCodes result = _pubSubServer.CleanUpUnusedResources();
+                    if (result != EnumPubSubServerCleanUpUnusedResourcesReturnCodes.RC_CLEANUPUNUSEDRESOURCES_OK)
+                    {
+                        _trace.writeToLog(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: From CleanUpUnusedResources. result: {0}.", result);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 _trace.writeToLog(1, "BadgeComPubSubEvents: WatchingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
-                if (!_fRequestWatchingThreadExit && !_fRequestWatchingThreadExit && !_fTerminating)
+                if (!_fRequestWatchingThreadExit && !_fTerminating)
                 {
                     try
                     {

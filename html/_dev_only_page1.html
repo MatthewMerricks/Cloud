@@ -78,7 +78,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><div class="fragment"><div class="line">. Namespaces</div>
-<div class="line">  o CloudSyncBox</div>
+<div class="line">  o ClSync</div>
+<div class="line">  o CLPushNotification</div>
 <div class="line">. Interfaces</div>
 <div class="line">  o ISyncSettings</div>
 <div class="line">    - Required properties:</div>
@@ -86,7 +87,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">      . <span class="keywordtype">string</span> RegistrationInfoApplicationId</div>
 <div class="line">      . <span class="keywordtype">string</span> RegistrationInfoSyncBoxId</div>
 <div class="line">      . <span class="keywordtype">string</span> RegistrationInfoDeviceId</div>
-<div class="line">. SyncBox Class</div>
+<div class="line">. CLSync Class</div>
 <div class="line">  o Constructor</div>
 <div class="line">    - SyncBox(ISyncSettings settings)</div>
 <div class="line">      . settings must be valid</div>
@@ -209,7 +210,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">                   );</div>
 <div class="line">        </div>
 <div class="line">              <span class="comment">// Construct the SyncBox object with the settings.</span></div>
-<div class="line">              SyncBox box = <span class="keyword">new</span> SyncBox(settings);</div>
+<div class="line">              CLSync box = <span class="keyword">new</span> CLSync(settings);</div>
 <div class="line"></div>
 <div class="line">              <span class="comment">// Subscribe to the events (notifications).</span></div>
 <div class="line">              box.ActivityMessage += OnActivityMessage;</div>
@@ -248,7 +249,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --> </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Nov 1 2012 12:38:25 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Nov 19 2012 16:29:48 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

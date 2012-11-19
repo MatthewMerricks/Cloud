@@ -34,10 +34,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BadgeCOMLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+    <Reference Include="BadgeCOMLib">
       <HintPath>..\3rdParty\bin\Release64\BadgeCOMLib.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.Net.Http">
       <HintPath>..\3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>

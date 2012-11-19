@@ -6203,13 +6203,13 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
   o 11/13/12 Tue: 
     - 5:15 - 6:45 (Home, DR Appt.)
     - 8:45 - 18:30
-    - TODO: Have the watching tasks check the subscription pool for dormant subscriptions.  Add a COM method to PubSubServer that will loop through the subscriptions and
+    - TODO(Done): Have the watching tasks check the subscription pool for dormant subscriptions.  Add a COM method to PubSubServer that will loop through the subscriptions and
       check each to see that its process is still alive.  If the process is dead, remove the subscription.  Call the method from the watching thread every so often.
-    - TODO: Test the subscribing thread restart on both sides.  Do this with trace and some helper code.  Add trace everywhere needed, then insert code that prevents the setting
+    - TODO(Done): Test the subscribing thread restart on both sides.  Do this with trace and some helper code.  Add trace everywhere needed, then insert code that prevents the setting
       of the keep-alive flag by the subscribing thread.  Let it run for a while, then inspect the trace.
-    - TODO: Test the wrapper layer Dispose on both sides.  Do this with trace and some helper code.  Add trace everywhere needed, then insert code that terminates the wrapper layer.
+    - TODO(Done): Test the wrapper layer Dispose on both sides.  Do this with trace and some helper code.  Add trace everywhere needed, then insert code that terminates the wrapper layer.
       Let it run, then inspect the trace.
-    - TODO: Compare the wrapper layer code between BadgeNet and BadgeCom.
+    - TODO(Done): Compare the wrapper layer code between BadgeNet and BadgeCom.
     - Time waster: Table "syncs" not found by SqlCe.  Fixed.
     - The watcher restart works properly on the BadgeCom side.
     - TODO(Done): Bug: The current BadgeCom Dispose design causes an exception. 
@@ -6217,12 +6217,12 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
   o 11/14/12 Wed: 
     - 6:30 - 18:30
     - Redesign the BadgeCom BadgeNetPubSubEvents "watcher failed" event to use a thread rather than a timer event.  It appears that the crash is due to a permissions thing.
-    - TODO: Complete the design change from timer event to thread in BadgeCom badging classes.
+    - TODO(Done): Complete the design change from timer event to thread in BadgeCom badging classes.
     - A good COM tutorial: http://netez.com/2xExplorer/shellFAQ/bg_com.html
     - The crash turned out to be the lack of CoInitialize(NULL); and CoUninitialize();
     - The BadgeCom side went through multiple complete restarts, and multiple "watcher restarts subscriber" restarts.  The trace shows no issues.  Move on to the BadgeNet side.
     - TODO(Done): Bug: IconOverlay.cs, line 267.  Iterating array without being locked.
-    - TODO: Bug: The C# Thread.Abort() method does not instantly stop a thread.  The thread continues running, eventually generating "Thread was being aborted" exception.  Change
+    - TODO(Done): Bug: The C# Thread.Abort() method does not instantly stop a thread.  The thread continues running, eventually generating "Thread was being aborted" exception.  Change
       to using the TaskFactory which should allow cancellation.
     - Time waster:  I finally figured out what was going on on the C# side.  .Net is forcing STA use of the COM object.  That allows only a single thread into PubSubServer at
       at time!  I will work on a solution for that tomorrow....
@@ -6230,41 +6230,66 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - 6:30 - 17:45
     - TODO(Done): In IconOverlay, change the lock to use _currentBadgesLocker.
     - TODO(Done): Change the wait for thread exit back to 150 ms.
-    - TODO: Make it easier to turn off trace.
     - COM Threading models: http://msdn.microsoft.com/en-us/library/ms809971.aspx
     - More COM threading models: http://www.tenouk.com/visualcplusmfc/visualcplusmfc28c.html
     - Big time waster "threading model" continues...  By creating a new thread on the BadgeCom side, I was able to get it to use CoInitializeEx to set MTA mode for that thread.
       The same situation exists on the C# side.  Try creating a new thread there.  I proved that the C# thread that instantiates BadgeComPubSubEvents is a STA thread.
       That finally fixed it.
     - Now the C# side seems to be working pretty well.
-    - TODO: Bug: Crash on the C# side down in PubSubServer.Publish().
+    - TODO(Done): Bug: Crash on the C# side down in PubSubServer.Publish().
   o 11/16/12 Fri: 
     - 7:30 - 18:15
     - Inspected all of the PubSubServer code for proper locking.
     - Added try/catch to all BadgeCom event handlers.
     - Testing the PubSub IPC with full trace on both sides.  Badging is working properly.  Testing the thread and service restarts on the C# side.
-    - TODO: Bug: The cloud folder itself is not being badged as synced.
-    - TODO: Test starting from Cloud, rather than from Explorer.
-    - TODO: Rename guidid.
-    - TODO: Expand or contract the shared memory segment??
-    - TODO: Make a new COM method to check subscriptions against the process IDs.  If the processes are dead, remove the subscriptions.
-    - TODO: Why is PubSubServer:Initialize() called multiple times?  It should just be an instance variable.
-    - TODO: Why both RemoveSubscriptionId() and DeleteSubscriptionById()??
-    - TODO: Use _ksSharedMemoryName instead of string.
-    - TODO: Constant name "Base".
-    - TODO: Refactor to remove fIsLocked.
-    - TODO: Change subscription vector to map<EventType, map<Guid, Subscription>>.
-    - TODO: Line 257.  Consolidate code to an iterator.
-    - TODO: Get rid of RC_CANCEL_ALREADY_CANCELLED?
-    - TODO: Consolidate the hook-up to the segment.
-    - TODO: Make constants out of the timeouts and loop retries.
-    - TODO: In CancelSubscriptionsForProcessId, add a while loop on the count of the local vector because the process may have added a subscription while unlocked.
-    - TODO: In CBadgeNetPubSubEvents, change the guidSubscription to represent the subscriber instead.
-    - TODO: Rename semSync to something that describes synchronizing the starting of the subscription thread.
+    - TODO(Done): Bug: The cloud folder itself is not being badged as synced.
+    - TODO(Done): Test starting from Cloud, rather than from Explorer.
+    - TODO(Done): Rename guidid.
+    - TODO(Do this later, maybe): Expand or contract the shared memory segment?  See: http://www.boost.org/doc/libs/1_39_0/doc/html/interprocess/managed_memory_segments.html#interprocess.managed_memory_segments.managed_memory_segment_features.managed_memory_segment_segment_manager
+    - TODO(Done): Make a new COM method to check subscriptions against the process IDs.  If the processes are dead, remove the subscriptions.  Call it at Watcher thread looks.
+    - TODO(Done): Why is PubSubServer:Initialize() called multiple times?  It should just be an instance variable.
+    - TODO(Done): Why both RemoveSubscriptionId() and DeleteSubscriptionById()??
+    - TODO(Done): Use _ksSharedMemoryName instead of string.
+    - TODO(Done): Constant name "Base".
+    - TODO(Done): Refactor to remove fIsLocked.
+    - TODO(Done): Change subscription vector to map<EventType, map<Guid, Subscription>>.
+    - TODO(Done): Line 257.  Consolidate code to an iterator.
+    - TODO(Done): Get rid of RC_CANCEL_ALREADY_CANCELLED?
+    - TODO(Leave it the same): Consolidate the hook-up to the segment.
+    - TODO(Done): Make constants out of the timeouts and loop retries.
+    - TODO(Done): In CancelSubscriptionsForProcessId, add a while loop on the count of the local vector because the process may have added a subscription while unlocked.
+    - TODO(Done): In CBadgeNetPubSubEvents, change the guidSubscription to represent the subscriber instead.
+    - TODO(Done): Rename semSync to something that describes synchronizing the starting of the subscription thread.
     - The system works very well.  All of the trace is normal with no errors.  The test code on the BadgeNet side regularly restarts the subscribing thread, and recycles the whole system.
     - David and I did a code review, resulting in the TODOs above.
-  o 11/17/12 Sat: 
-    - 5:30 - 
+  o 11/17/12 Sat (Home): 
+    - 5:30 - 14:15
+    - GUID comparer: http://omaha.googlecode.com/svn-history/r103/trunk/goopdate/update_response_data.h
+    - The PubSubServer code has been redesigned from vectors to use map<EventType, map<GUID, Subscriber>>.  One build error is left, and it has not been tested.
+  o 11/18/12 Sun (Home): 
+    - 5:30 - 14:30
+    - Custom std::less: http://stackoverflow.com/questions/2282349/specialization-of-templateclass-tp-struct-stdless-in-different-namespace
+    - Custom hash functions for unordered_map: http://marknelson.us/2011/09/03/hash-functions-for-c-unordered-containers/
+    - 32-bit hash function: http://programmers.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed
+    - It finally builds!!!!!   That was a 4-hour time-waster.  The problems had to do with 1) Adding custom GUID hasher and comparer, and 2) Constructing a map inside a map.  Now on to test...
+    - TODO(Done): Bug: Crash trying to construct a subscription map<GUID, Subscription>.  The GUID hash doesn't seem to be working, or not called.
+    - How to insert a container in a container: http://boost.2283326.n4.nabble.com/interprocess-map-of-vectors-td2654445.html
+    - Got it to build and stepped through the new sections, but now some Explorer thread is pinning the CPU....
+  o 11/19/12 Mon: 
+    - 6:45 - 
+    - The hard CPU loop doesn't happen on my work machine.  Maybe it was caused by the Cloud.exe process running while I was testing.  It was an old version.
+    - It badges!  The new design works.
+    - TODO(Done): Are the Explorer shell notifications working properly?
+    - TODO(Done): Fix the return code when cancelling a subscription, and the thread that holds the subscription actually erases the subscription first.
+    - I found a reference on the web that says that DB uses SHChangeNotify(SHNE_UPDATEITEM.  We uwe SHChangeNotify(SHNE_ATTRIBUTES.  I tested it.  It doesn't seeem to make a difference.
+      Explorer doesn't update immediately on this call.  Sometimes it takes a second before the IsMemberOf() function is called.  Leave it at SHNE_ATTRIBUTES.
+    - TODO(Done): Rename the shared memory segment to include the BadgeCom version number.
+    - Implemented the function to clean up subscriptions after orphaned processes.
+    - Tested the badges across Explorer restart.  The badges reappear.
+    - TODO: Change to Boost 1.52.
+    - TODO: Move Boost into git.
+    - Everything is working properly and most of the testing is done.  Move Boost into git, test it one more time, and move on...
+
 
 
 
@@ -7673,7 +7698,7 @@ TODO:
   o Enhance BadgeCOM and BadgeNet to support badging multiple SyncBoxes.
   o Move Context menu support out of BadgeCom and BadgeNet.  This will require another BadgeCom2.
   o Big issue with multiple BadgeComs installed.  New BadgeComs will have new name and class ID.  Don't unregister or delete on uninstall.  On install, don't install or register if already registered.
-  o Don't allow a SyncBox to use the same directory as another SyncBox.
+  o Test whether overlapping SyncBoxes work.
   o Compile Boost to source and push to git.
   o In BadgeCom DllMain, when a process is unloading the DLL, free all PubSub subscriptions owned by the process from shared memory.  This is important mostly for Explorer, since there
     are no normal termination events.  An exiting process is the only event, and that process may own multiple PubSub subscriptions.
@@ -7682,6 +7707,18 @@ TODO:
   o Remove project BadgeComPS.
   o Selective sync.  Sync everything.  Sync nothing.  Or sync certain folders or files.
   o If a file is deleted by the server (not the user), move it to a hidden folder.  If it is undeleted again by the server, and the MD5 matches, move it back without having to download it again.  (Implemented on the Mac side).
+  o Dynamically grow or shrink the shared memory allocation used by PubSubServer.  See: http://www.boost.org/doc/libs/1_39_0/doc/html/interprocess/managed_memory_segments.html#interprocess.managed_memory_segments.managed_memory_segment_features.managed_memory_segment_segment_manager
+  o Implement the new Authorization protocol.
+  o During installation, don't delete old versions of BadgeCom.  Developers may be sharing them.  Install them in System32 and treat them as shared.  Check them from the registry.
+  o Check BadgeCom installation at every Cloud startup.
+  o Rename the shared memory segment to include the version number.
+  o Publish every version of required binary filese (etc.) for developer download.
+  o Get Growls working on Windows 8 desktop.
+  o Get NotifyIcon working on Windows 8 desktop.
+  o Run Cloud.exe.  Stop and start Explorer.  The Cloud icon does not appear in the systray.
+  o Cloud.exe will not start if Explorer is not running.
+  o Make it easier to turn off trace.
+
 
 
 

@@ -64,7 +64,6 @@ CBadgeIconSelective::~CBadgeIconSelective()
 		// We lost the badging connection.  Empty the dictionaries.  They will be rebuilt if we can get another connection.
 		CLTRACE(9, "CBadgeIconSelective: ~CBadgeIconSelective: Entry. Shut down this instance.");
 		_mapBadges.clear();
-		_mapSyncBoxPaths.clear();
 
 		// Restart the CBadgeNetPubSubEvents class.
 		if (_pBadgeNetPubSubEvents != NULL)
@@ -343,7 +342,6 @@ void CBadgeIconSelective::SubscriptionRestartThreadProc(LPVOID pUserState)
 	{
 		// We lost the badging connection.  Empty the dictionaries.  They will be rebuilt if we can get another connection.
 		pThis->_mapBadges.clear();
-		pThis->_mapSyncBoxPaths.clear();
 
 		// Restart the CBadgeNetPubSubEvents class.
 		if (pThis->_pBadgeNetPubSubEvents != NULL)

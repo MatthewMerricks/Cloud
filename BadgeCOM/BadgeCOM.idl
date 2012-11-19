@@ -107,6 +107,12 @@ library BadgeCOMLib
 
         typedef [v1_enum] enum 
         {
+            RC_CLEANUPUNUSEDRESOURCES_OK = 0,               // cleaned up OK
+            RC_CLEANUPUNUSEDRESOURCES_ERROR                 // cleaned up OK
+        } EnumPubSubServerCleanUpUnusedResourcesReturnCodes;
+        
+        typedef [v1_enum] enum 
+        {
             BadgeCom_To_BadgeNet=0,
             BadgeNet_To_BadgeCom,
         } EnumEventType;
@@ -147,9 +153,16 @@ library BadgeCOMLib
                         [in] GUID guidSubscriber,
                         [out, retval] EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
 
-	    [id(5), helpstring("method Terminate")] HRESULT(Terminate)();
+	    [id(5), helpstring("method CancelSubscriptionsForProcessId")] HRESULT(CancelSubscriptionsForProcessId)(
+                        [in] ULONG ProcessId,
+                        [out, retval] EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue);
 
-        [propget, id(6), helpstring("Name associated with the badging shared memory segment."), bindable] HRESULT SharedMemoryName([out, retval] BSTR* pVal);
+	    [id(6), helpstring("method CleanUpUnusedResources")] HRESULT(CleanUpUnusedResources)(
+                        [out, retval] EnumPubSubServerCleanUpUnusedResourcesReturnCodes *returnValue);
+
+	    [id(7), helpstring("method Terminate")] HRESULT(Terminate)();
+
+        [propget, id(8), helpstring("Name associated with the badging shared memory segment."), bindable] HRESULT SharedMemoryName([out, retval] BSTR* pVal);
     };
 
 	[

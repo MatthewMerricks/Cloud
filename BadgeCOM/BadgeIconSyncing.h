@@ -63,7 +63,6 @@ private:
     // Private fields
     CBadgeNetPubSubEvents *_pBadgeNetPubSubEvents;
     boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType> _mapBadges;             // the dictionary of fullPath->badgeType
-    boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType> _mapSyncBoxPaths;       // the list of SyncBox full paths.  Used for O(1) access time.  The badge type is not used (always "none").
     HANDLE _threadSubscriptionRestart;
 
     // Private methods

@@ -398,6 +398,18 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
 				CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: Call RestartSubscribingThread().");
                 pThis->RestartSubcribingThread();
             }
+
+            // Clean any unused shared memory resources.
+            EnumPubSubServerCleanUpUnusedResourcesReturnCodes result;
+            HRESULT hr = pThis->_pPubSubServer->CleanUpUnusedResources(&result);
+            if (!SUCCEEDED(hr))
+            {
+        		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: Exception from CleanUpUnusedResources.  hr: %d.", hr);
+            }
+            else if (result != RC_CLEANUPUNUSEDRESOURCES_OK)
+            {
+        		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: From CleanUpUnusedResources. result: %d.", result);
+            }
         }
     }
     catch (std::exception &ex)

@@ -1,7 +1,8 @@
 
 \begin{DoxyCode}
 . Namespaces
-  o CloudSyncBox
+  o ClSync
+  o CLPushNotification
 . Interfaces
   o ISyncSettings
     - Required properties:
@@ -9,7 +10,7 @@
       . \textcolor{keywordtype}{string} RegistrationInfoApplicationId
       . \textcolor{keywordtype}{string} RegistrationInfoSyncBoxId
       . \textcolor{keywordtype}{string} RegistrationInfoDeviceId
-. SyncBox Class
+. CLSync Class
   o Constructor
     - SyncBox(ISyncSettings settings)
       . settings must be valid
@@ -143,7 +144,7 @@
                    );
         
               \textcolor{comment}{// Construct the SyncBox object with the settings.}
-              SyncBox box = \textcolor{keyword}{new} SyncBox(settings);
+              CLSync box = \textcolor{keyword}{new} CLSync(settings);
 
               \textcolor{comment}{// Subscribe to the events (notifications).}
               box.ActivityMessage += OnActivityMessage;
