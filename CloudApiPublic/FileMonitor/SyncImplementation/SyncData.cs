@@ -20,7 +20,7 @@ using System.Text;
 /// </Summary>
 namespace CloudApiPublic.FileMonitor.SyncImplementation
 {
-    public sealed class SyncData : ISyncDataObject
+    internal sealed class SyncData : ISyncDataObject
     {
         private MonitorAgent Monitor;
         private IndexingAgent Indexer;

@@ -52,7 +52,10 @@ namespace CloudApiPublic
                 {
                     throw new NullReferenceException("settings cannot be null");
                 }
-                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(settings.CloudRoot);
+
+                ISyncSettingsAdvanced copiedSettings = settings.CopySettings();
+
+                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(copiedSettings.CloudRoot);
                 if (!rootInfo.Exists)
                 {
                     rootInfo.Create();
@@ -69,7 +72,7 @@ namespace CloudApiPublic
 
                 // Start the indexer.
                 _trace.writeToLog(9, "SyncBox: Start: Start the indexer.");
-                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, settings.DatabaseFile);
+                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, copiedSettings.DatabaseFile);
                 if (indexCreationError != null)
                 {
                     _trace.writeToLog(1, "SyncBox: Start: ERROR: Exception. Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);
@@ -79,7 +82,7 @@ namespace CloudApiPublic
 
                 // Start the push notification.
                 _trace.writeToLog(9, "SyncBox: Start: Start the notifier.");
-                _notifier = CLNotification.GetInstance(settings);
+                _notifier = CLNotification.GetInstance(copiedSettings);
                 if (_notifier == null)
                 {
                     CLError error = new Exception("Error starting push notification");
@@ -94,7 +97,7 @@ namespace CloudApiPublic
                 _notifier.ConnectionError += OnNotificationConnectionError;
 
                 // Start the monitor
-                CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(settings,
+                CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(copiedSettings,
                     _indexer,
                     out _monitor,
                     out _syncEngine);

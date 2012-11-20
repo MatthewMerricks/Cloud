@@ -59,7 +59,7 @@ namespace CloudApiPublic.Sync.Model
         }
         private ISyncDataObject _syncData;
 
-        public ISyncSettings SyncSettings
+        public ISyncSettingsAdvanced SyncSettings
         {
             get
             {
@@ -71,7 +71,7 @@ namespace CloudApiPublic.Sync.Model
                 return _syncSettings;
             }
         }
-        private ISyncSettings _syncSettings;
+        private ISyncSettingsAdvanced _syncSettings;
 
         public string TempDownloadFolderPath
         {
@@ -152,7 +152,7 @@ namespace CloudApiPublic.Sync.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, ISyncSettings SyncSettings, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
+        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, ISyncSettingsAdvanced SyncSettings, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
         {
             if (SyncData == null)
             {

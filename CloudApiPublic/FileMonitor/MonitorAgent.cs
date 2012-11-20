@@ -34,7 +34,7 @@ namespace CloudApiPublic.FileMonitor
     /// <summary>
     /// Class to cover file monitoring; created with delegates to connect to the SQL indexer and to start Sync communication for new events
     /// </summary>
-    public sealed class MonitorAgent : IDisposable
+    internal sealed class MonitorAgent : IDisposable
     {
         #region public properties
         /// <summary>
@@ -207,7 +207,7 @@ namespace CloudApiPublic.FileMonitor
         /// lock on InitialIndexLocker
         /// </summary>
         private bool IsInitialIndex = true;
-        private readonly ISyncSettings _syncSettings;
+        private readonly ISyncSettingsAdvanced _syncSettings;
         #endregion
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="onQueueingCallback">(optional) action to be executed every time a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns>Returns any error that occurred, or null.</returns>
-        public static CLError CreateNewAndInitialize(ISyncSettings syncSettings,
+        public static CLError CreateNewAndInitialize(ISyncSettingsAdvanced syncSettings,
             IndexingAgent indexer,
             out MonitorAgent newAgent,
             out SyncEngine syncEngine,
@@ -320,7 +320,7 @@ namespace CloudApiPublic.FileMonitor
             return null;
         }
 
-        private MonitorAgent(IndexingAgent Indexer, ISyncSettings SyncSettings)
+        private MonitorAgent(IndexingAgent Indexer, ISyncSettingsAdvanced SyncSettings)
         {
             if (Indexer == null)
             {

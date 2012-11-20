@@ -19,16 +19,6 @@ namespace CloudApiPrivate.Static
 {
     public class CLPrivateHelpers
     {
-        /// <summary>
-        /// Get the friendly name of this computer.
-        /// </summary>
-        /// <returns></returns>
-        public static string GetComputerFriendlyName()
-        {
-            // Todo: should find an algorithm to generate a unique identifier for this device name
-            return Environment.MachineName;
-        }
-
         public static string FormatBytes(long bytes)
         {
             if (bytes == 1)

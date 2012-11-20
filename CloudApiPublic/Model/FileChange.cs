@@ -100,6 +100,7 @@ namespace CloudApiPublic.Model
             }
             return null;
         }
+
         /// <summary>
         /// Returns the MD5 as a lowercase hexadecimal string 32 characters long with no seperators, or null
         /// </summary>
@@ -122,9 +123,10 @@ namespace CloudApiPublic.Model
             }
             return null;
         }
+
         /// <summary>
-        /// Sets the MD5 from a byte array or clears it from null;
-        /// throws exception if MD5 byte array is not 16 length
+        /// Sets the MD5 from a byte array or clears it for null;
+        /// returns an error if MD5 byte array is not 16 length
         /// </summary>
         /// <param name="md5">MD5 bytes to set</param>
         /// <returns>Returns error in setting MD5, if any</returns>
@@ -144,6 +146,23 @@ namespace CloudApiPublic.Model
                 return ex;
             }
             return null;
+        }
+        /// <summary>
+        /// Sets the MD5 from a 32 character hexadecimal string or clears it for a null/empty input;
+        /// returns an error if the string is improperly formatted or if the resulting parsed byte array is not 16 length
+        /// </summary>
+        /// <param name="hashString">MD5 hexadecimal string to set</param>
+        /// <returns>Returns error in setting MD5, if any</returns>
+        public CLError SetMD5(string hashString)
+        {
+            try
+            {
+                return SetMD5(Helpers.ParseHexadecimalStringToByteArray(hashString));
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
         private byte[] MD5 = null;
         public byte FailureCounter = 0;
@@ -190,17 +209,37 @@ namespace CloudApiPublic.Model
                 Type.ToString();
         }
 
+        /// <summary>
+        /// event callback for the UpDownEvent in SyncEngine to allow this upload or download FileChange to add itself
+        /// to an event argument list so the parent can grab all FileChanges in upload or download
+        /// </summary>
         internal void FileChange_UpDown(object sender, UpDownEventArgs e)
         {
+            // fires a callback stored in the event arguments with the current FileChange
             e.SendBackChange(this);
         }
 
+        /// <summary>
+        /// event arguments for UpDownEvent in SyncEngine which stores a callback which will be fired back to the calling method firing the event with every FileChange subscribed to the event
+        /// </summary>
         internal class UpDownEventArgs : EventArgs
         {
+            // stores the callback which will be fired back upon event handling (see FileChange_UpDown above)
             public Action<FileChange> SendBackChange { get; private set; }
 
+            /// <summary>
+            /// Constructs new arguments to fire the UpDownEvent with a supplied callback which will be fired for every FileChange subscribed to the event
+            /// </summary>
+            /// <param name="SendBackChange">Required callback to receive each FileChange which had subscribed to the event</param>
             public UpDownEventArgs(Action<FileChange> SendBackChange)
             {
+                // check that the input parameter was set; if it wasn't, throw an exception
+                if (SendBackChange == null)
+                {
+                    throw new NullReferenceException("SendBackChange cannot be null");
+                }
+
+                // store the callback
                 this.SendBackChange = SendBackChange;
             }
         }

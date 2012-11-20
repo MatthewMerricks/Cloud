@@ -108,8 +108,9 @@
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
+    <Compile Include="PushNotification\PushSettings.cs" />
     <Compile Include="SyncBox\SyncBox.cs" />
-    <Compile Include="SyncSettings\SyncSettings.cs" />
+    <Compile Include="Sync\SyncSettings.cs" />
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
     <Compile Include="Interfaces\ISyncDataObject.cs" />
     <Compile Include="Interfaces\ISyncSettings.cs" />
@@ -214,7 +215,7 @@
     <Compile Include="Sync\Model\PossiblyStreamableAndPossiblyPreexistingErrorFileChange.cs" />
     <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithSyncData.cs" />
     <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithUploadDownloadTask.cs" />
-    <Compile Include="Sync\Sync.cs" />
+    <Compile Include="Sync\SyncEngine.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.resx">

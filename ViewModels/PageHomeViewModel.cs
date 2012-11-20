@@ -390,7 +390,7 @@ namespace win_client.ViewModels
             IsBusy = true;                      // show the busy indicator
 
             // Create cloud device obj
-            CLDevice clDevice = new CLDevice(CLPrivateHelpers.GetComputerFriendlyName());
+            CLDevice clDevice = new CLDevice(Helpers.GetComputerFriendlyName());
 
             CLRegistration registration = new CLRegistration();
             registration.LinkNewDeviceWithLoginAsync(_eMail, _password2, clDevice, LoginCompleteCallback, 30.0, registration);

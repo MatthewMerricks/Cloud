@@ -58,7 +58,7 @@ namespace CloudApiPublic.PushNotification
         private WebSocket _connection = null;
         private MessageReceiver urlReceiver = null;
         private bool _isInitialized = false;
-        private ISyncSettings _syncSettings = null;
+        private readonly ISyncSettingsAdvanced _syncSettings;
         private bool _serviceStarted;               // True: the push notification service has been started.
         private bool _pushConnected = false;
         private int _faultCount = 0;
@@ -78,6 +78,16 @@ namespace CloudApiPublic.PushNotification
         /// <param name="syncSettings">The settings that identify the calling client.  Specifically the AKey differentiates clients.</param>
         public static CLNotification GetInstance(ISyncSettings syncSettings)
         {
+            if (syncSettings == null)
+            {
+                throw new NullReferenceException("syncSettings cannot be null");
+            }
+
+            if (string.IsNullOrWhiteSpace(syncSettings.Akey))
+            {
+                throw new NullReferenceException("syncSettings Akey cannot be null");
+            }
+
             lock (NotificationClientsRunning)
             {
                 string storeAKey = syncSettings.Akey;
@@ -95,24 +105,26 @@ namespace CloudApiPublic.PushNotification
         /// </summary>
         private CLNotification(ISyncSettings syncSettings)
         {
+            if (syncSettings == null)
+            {
+                throw new NullReferenceException("syncSettings cannot be null");
+            }
+
+            // sync settings are copied so that changes require stopping and starting notification services
+            this._syncSettings = Sync.SyncSettingsExtensions.CopySettings(syncSettings);
+
             // Initialize members, etc. here (at static initialization time).
-            ConnectPushNotificationServer(syncSettings);
+            ConnectPushNotificationServer();
         }
 
         /// <summary>
         /// Call to initialize and make a connection to the push notification server.
         /// </summary>
         /// <param name="syncSettings">Settings that contain the connection parameters.</param>
-        public void ConnectPushNotificationServer(ISyncSettings syncSettings)
+        public void ConnectPushNotificationServer()
         {
             _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Entry.");
             bool fallbackToManualPolling = false;
-
-            if (syncSettings == null)
-            {
-                throw new Exception("The syncSettings parameter may not be null.");
-            }
-            _syncSettings = syncSettings;
 
             if (_faultCount >= CLDefinitions.PushNotificationFaultLimitBeforeFallback)
             {
@@ -128,18 +140,18 @@ namespace CloudApiPublic.PushNotification
                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>.", url);
 
                     //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on _syncSettings.TraceExcludeAuthorization !!
-                    if ((syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+                    if ((_syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                     {
-                        Trace.LogCommunication(syncSettings.TraceLocation,
-                            syncSettings.Udid,
-                            syncSettings.Uuid,
+                        Trace.LogCommunication(_syncSettings.TraceLocation,
+                            _syncSettings.Udid,
+                            _syncSettings.Uuid,
                             CommunicationEntryDirection.Request,
                             url,
                             true,
                             null,
                             (string)null,
                             null,
-                            syncSettings.TraceExcludeAuthorization);
+                            _syncSettings.TraceExcludeAuthorization);
                     }
 
                     string webSocketOpenStatus = "Entered action to open WebSocket";
@@ -212,7 +224,7 @@ namespace CloudApiPublic.PushNotification
                 {
                     CLError error = ex;
                     _trace.writeToLog(1, "CLNotification: ConnectPushNotificationServer: ERROR: Exception connecting with the push server. Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-                    error.LogErrors(syncSettings.ErrorLogLocation, syncSettings.LogErrors);
+                    error.LogErrors(_syncSettings.ErrorLogLocation, _syncSettings.LogErrors);
 
                     fallbackToManualPolling = true;
                 }
@@ -287,7 +299,7 @@ namespace CloudApiPublic.PushNotification
                     try
                     {
                         _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: manualPollingIteration is zero.");
-                        castState.ConnectPushNotificationServer(_syncSettings);
+                        castState.ConnectPushNotificationServer();
                     }
                     catch (Exception innerEx)
                     {
@@ -502,7 +514,7 @@ namespace CloudApiPublic.PushNotification
                     try
                     {
                         _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Attempt restart.  Call ConnectPushNotificationServer.");
-                        ConnectPushNotificationServer(_syncSettings);
+                        ConnectPushNotificationServer();
                     }
                     catch (Exception ex)
                     {
@@ -519,10 +531,10 @@ namespace CloudApiPublic.PushNotification
         private class MessageReceiver
         {
             private string _url;
-            private ISyncSettings _innerSyncSettings;
+            private ISyncSettingsAdvanced _innerSyncSettings;
             private EventHandler<NotificationEventArgs> _notificationReceived;
 
-            public MessageReceiver(string url, ISyncSettings syncSettings, EventHandler<NotificationEventArgs> notificationReceived)
+            public MessageReceiver(string url, ISyncSettingsAdvanced syncSettings, EventHandler<NotificationEventArgs> notificationReceived)
             {
                 this._url = url;
                 _innerSyncSettings = syncSettings;

@@ -28,7 +28,7 @@ using SqlSync = CloudApiPublic.SQLIndexer.SqlModel.Sync;
 
 namespace CloudApiPublic.SQLIndexer
 {
-    public sealed class IndexingAgent : IDisposable
+    internal sealed class IndexingAgent : IDisposable
     {
         #region private fields
         // store the path that represents the root of indexing
@@ -76,14 +76,16 @@ namespace CloudApiPublic.SQLIndexer
         /// must be started afterwards with StartInitialIndexing
         /// </summary>
         /// <param name="newIndexer">Output indexing agent</param>
+        /// <param name="userId">String id for the user</param>
+        /// <param name="databaseLocation">(optional) A database storage location unique to a particular user</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, string databaseLocation = null)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, string userId, string databaseLocation = null)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
-                newIndexer = newAgent = new IndexingAgent(databaseLocation);
+                newIndexer = newAgent = new IndexingAgent(databaseLocation, userId);
             }
             catch (Exception ex)
             {
@@ -2072,11 +2074,18 @@ namespace CloudApiPublic.SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
-        private IndexingAgent(string databaseLocation)
+        private IndexingAgent(string databaseLocation, string userId)
         {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new NullReferenceException("userId cannot be null");
+            }
+
             this.indexDBLocation = (databaseLocation == null
                 ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                    "\\" + Helpers.GetDefaultName() + "\\IndexDB.sdf"
+                    "\\" + Helpers.GetDefaultNameFromApplicationName() +
+                    "\\" + userId + // create the default location uniquely for the user
+                    "\\IndexDB.sdf"
                 : new FileInfo(databaseLocation).FullName);
         }
 

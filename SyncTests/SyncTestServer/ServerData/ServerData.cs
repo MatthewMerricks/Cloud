@@ -797,7 +797,9 @@ namespace SyncTestServer
             {
                 throw new NullReferenceException("contentMD5 cannot be null");
             }
-            if (!System.Text.RegularExpressions.Regex.IsMatch(contentMD5, "[a-f\\d]{32}", System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.CultureInvariant | System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            if (!System.Text.RegularExpressions.Regex.IsMatch(contentMD5, // string to check
+                "^[a-f\\d]{32}$", // wrapped in start/end so everything must match; 32 hexadecimal characters without seperators
+                System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.CultureInvariant | System.Text.RegularExpressions.RegexOptions.IgnoreCase))
             {
                 throw new ArgumentException("contentMD5 must be 32 hexadecimal characters");
             }

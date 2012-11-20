@@ -197,6 +197,19 @@ namespace CloudApiPublic.Model
             // Note: no modify folder, that is an invalid modification
         };
 
+        public static readonly string[] SyncHeaderIsFiles =
+        {
+            CLEventTypeDeleteFile,
+            CLEventTypeAddFile,
+            CLEventTypeRenameFile,
+            CLEventTypeModifyFile,
+
+            CLEventTypeDeleteLink,
+            CLEventTypeAddLink,
+            CLEventTypeRenameLink,
+            CLEventTypeModifyLink
+        };
+
         // Cloud Sync Status
         public const string CLEventTypeAccepted = "ok";
         public const string CLEventTypeUpload = "upload";

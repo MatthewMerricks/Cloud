@@ -12,6 +12,9 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
+    /// <summary>
+    /// Do not use the parameterless constructor because the resulting struct will be marked invalid and throw exceptions when retrieving public property values
+    /// </summary>
     public struct FileChangeMerge
     {
         public FileChange MergeFrom
@@ -49,6 +52,13 @@ namespace CloudApiPublic.Model
         }
         private bool _isValid;
 
+        /// <summary>
+        /// Creates the struct for a FileChange merge which can be passed to the event source to update the database (including updating existing rows, adding a new row, or deleting a row);
+        /// Always use this constructor instead of the parameterless constructor
+        /// </summary>
+        /// <param name="MergeTo">The values from this FileChange will update an existing row in the database, or create a new row if neither this nor the MergeFrom change has an EventId;
+        /// Can be null if this FileChange merge is meant for row deletion</param>
+        /// <param name="MergeFrom">This FileChange will be deleted or replaced with the values from MergeTo</param>
         public FileChangeMerge(FileChange MergeTo, FileChange MergeFrom = null)
         {
             // Ensure input variables have proper references set

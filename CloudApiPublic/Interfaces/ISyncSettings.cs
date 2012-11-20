@@ -13,8 +13,7 @@ using System.Text;
 
 namespace CloudApiPublic.Interfaces
 {
-    // Interface to implement which provides settings values used by the SyncBox, SyncEngine, push notifications, or the REST HTTP calls
-    public interface ISyncSettings
+    public interface IAddTraceSettings
     {
         /// <summary>
         /// Location where the error log will be stored (flat text file); Only required to not be null if LogErrors is set to true
@@ -36,6 +35,10 @@ namespace CloudApiPublic.Interfaces
         /// Whether to exclude authorization information (authentication keys, usernames/passwords, etc.) from the trace file; can return based on TraceType (i.e. "return (TraceType & TraceType.AddAuthorization) != TraceType.AddAuthorization;")
         /// </summary>
         bool TraceExcludeAuthorization { get; }
+    }
+
+    public interface IPushSettings
+    {
         /// <summary>
         /// Device id (each user may contain multiple devices, each with a different id), provided by server upon authentication
         /// </summary>
@@ -48,6 +51,24 @@ namespace CloudApiPublic.Interfaces
         /// Authorization key, provided by server upon authentication
         /// </summary>
         string Akey { get; }
+    }
+
+    public interface IPushSettingsAdvanced : IPushSettings, IAddTraceSettings { }
+
+    public interface ISyncSettings : IPushSettings
+    {
+        /// <summary>
+        /// Version letters/numbers used in communication with the server to identify the type of client (i.e. "MyClient01"); do not mimic values passed by other Cloud applications
+        /// </summary>
+        string ClientVersion { get; }
+        /// <summary>
+        /// Full path to the directory to be synced (do not include a trailing slash except for a drive root)
+        /// </summary>
+        string CloudRoot { get; }
+    }
+
+    public interface ISyncSettingsAdvanced : ISyncSettings, IAddTraceSettings
+    {
         /// <summary>
         /// Location to store temporary downloads before they complete downloading and get moved to the final location;
         /// Use a different download folder path for each SyncBox or SyncEngine (the SyncEngine will clean out existing files in the provided directory);
@@ -55,17 +76,9 @@ namespace CloudApiPublic.Interfaces
         /// </summary>
         string TempDownloadFolderFullPath { get; }
         /// <summary>
-        /// Version letters/numbers used in communication with the server to identify the type of client (i.e. "MyClient01"); do not mimic values passed by other Cloud applications
-        /// </summary>
-        string ClientVersion { get; }
-        /// <summary>
         /// Friendly name of the current device (we use computer name)
         /// </summary>
         string DeviceName { get; }
-        /// <summary>
-        /// Full path to the directory to be synced (do not include a trailing slash except for a drive root)
-        /// </summary>
-        string CloudRoot { get; }
         /// <summary>
         /// Full path to a file location where the database will be stored when using a SyncBox (you must handle your own database when using SyncEngine directly); If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
         /// </summary>

@@ -82,7 +82,7 @@ namespace CloudApiPublic.Sync
         /// <param name="direction">Use From for downloads and To for uploads</param>
         /// <param name="syncSettings">Settings to use for logging errors</param>
         /// <returns>Returns the appropriate instance of HttpScheduler</returns>
-        public static HttpScheduler GetSchedulerByDirection(SyncDirection direction, ISyncSettings syncSettings)
+        public static HttpScheduler GetSchedulerByDirection(SyncDirection direction, ISyncSettingsAdvanced syncSettings)
         {
             // switch on input direction so the appropriate output is returned
             switch (direction)

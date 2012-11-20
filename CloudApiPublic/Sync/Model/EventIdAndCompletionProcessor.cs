@@ -42,7 +42,7 @@ namespace CloudApiPublic.Sync.Model
         }
         private ISyncDataObject _syncData;
 
-        public ISyncSettings SyncSettings
+        public ISyncSettingsAdvanced SyncSettings
         {
             get
             {
@@ -53,7 +53,7 @@ namespace CloudApiPublic.Sync.Model
                 return _syncSettings;
             }
         }
-        private ISyncSettings _syncSettings;
+        private ISyncSettingsAdvanced _syncSettings;
 
         public string TempDownloadFolderPath
         {
@@ -77,7 +77,7 @@ namespace CloudApiPublic.Sync.Model
         }
         private bool _isValid;
 
-        public EventIdAndCompletionProcessor(long EventId, ISyncDataObject syncData, ISyncSettings syncSettings, string TempDownloadFolderPath = null)
+        public EventIdAndCompletionProcessor(long EventId, ISyncDataObject syncData, ISyncSettingsAdvanced syncSettings, string TempDownloadFolderPath = null)
         {
             if (syncData == null)
             {

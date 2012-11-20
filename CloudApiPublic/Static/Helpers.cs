@@ -28,6 +28,16 @@ namespace CloudApiPublic.Static
     public static class Helpers
     {
         /// <summary>
+        /// Get the friendly name of this computer.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetComputerFriendlyName()
+        {
+            // Todo: should find an algorithm to generate a unique identifier for this device name
+            return Environment.MachineName;
+        }
+
+        /// <summary>
         /// Creates a default instance of a provided type for use with populating out parameters when exceptions are thrown
         /// </summary>
         /// <param name="toDefault">Type to return</param>
@@ -447,7 +457,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static string GetDefaultName()
+        public static string GetDefaultNameFromApplicationName()
         {
             System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
             foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
@@ -470,53 +480,70 @@ namespace CloudApiPublic.Static
         }
 
         /// <summary>
-        /// Parses a hexadecimal string into an array of bytes
+        /// Parses a hexadecimal string into an array of bytes to return, string must contain only multiples of 2 hexadecimal characters or be null/empty for a null return
         /// </summary>
-        /// <param name="hashString"></param>
-        /// <returns></returns>
+        /// <param name="hashString">Hexadecimal characters to parse or null/empty</param>
+        /// <returns>Returns parsed bytes from input string or null</returns>
         public static byte[] ParseHexadecimalStringToByteArray(string hashString)
         {
+            // case for null return: empty or null input string
             if (string.IsNullOrWhiteSpace(hashString))
             {
                 return null;
             }
 
-            if (!System.Text.RegularExpressions.Regex.IsMatch(hashString,
-                "[a-f\\d]{32}",
-                System.Text.RegularExpressions.RegexOptions.Compiled
-                    | System.Text.RegularExpressions.RegexOptions.CultureInvariant
-                    | System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            // verify string by Regex for validity, throwing an exception for invalid
+            if (!System.Text.RegularExpressions.Regex.IsMatch(hashString, // hash string to check
+                "^([a-f\\d]{2})+$", // wrapped in start/end so the entire string must match; in parentheses: 2 hexadecimal characters, outside: one or more of 2 hexadecimal characters <-- sum of logic, entire string must be multiples of 2 hexadecimal characters
+                System.Text.RegularExpressions.RegexOptions.Compiled // faster for repeatedly running the same pattern, but slower the first time
+                    | System.Text.RegularExpressions.RegexOptions.CultureInvariant // a-f must be standard across all locales
+                    | System.Text.RegularExpressions.RegexOptions.IgnoreCase)) // ignore case (alternative: optionally do not ignore case and add A-F to the regex pattern)
             {
                 throw new ArgumentException("hashString must be in a hexadecimal string format with no seperator characters and be 16 bytes in length (32 characters)");
             }
 
+            #region optional fix to allow for a string with an odd number of hex chars
             char[] hexChars;
-            if (hashString.Length % 2 == 1)
-            {
-                hexChars = new char[hashString.Length + 1];
-                hexChars[0] = '0';
-                hashString.ToCharArray().CopyTo(hexChars, 1);
-            }
-            else
-            {
+            //if (hashString.Length % 2 == 1)
+            //{
+            //    hexChars = new char[hashString.Length + 1];
+            //    hexChars[0] = '0';
+            //    hashString.ToCharArray().CopyTo(hexChars, 1);
+            //}
+            //else
+            //{
                 hexChars = hashString.ToCharArray();
-            }
+            //}
+            #endregion
 
+            // define an int for the length of the input string
             int hexCharLength = hexChars.Length;
+            // define the return byte array with half the length of the input string
             byte[] hexBuffer = new byte[hexCharLength / 2 + hexCharLength % 2];
 
+            // define an int for where to place the current parsed byte from the string
             int hexBufferIndex = 0;
+            // loop through the characters of the input string, skipping alternately
             for (int charIndex = 0; charIndex < hexCharLength - 1; charIndex += 2)
             {
-                hexBuffer[hexBufferIndex] = byte.Parse(hexChars[charIndex].ToString(),
-                    System.Globalization.NumberStyles.HexNumber,
-                    System.Globalization.CultureInfo.InvariantCulture);
+                // parse the current character as half a byte into the current output index
+                hexBuffer[hexBufferIndex] = byte.Parse(hexChars[charIndex].ToString(), // current character as a string
+                    System.Globalization.NumberStyles.HexNumber, // parse as a hexadecimal number
+                    System.Globalization.CultureInfo.InvariantCulture); // a-f must be static across locales
+
+                // first char in a byte is the high half so bitshift it into place
                 hexBuffer[hexBufferIndex] <<= 4;
-                hexBuffer[hexBufferIndex] += byte.Parse(hexChars[charIndex + 1].ToString(),
-                    System.Globalization.NumberStyles.HexNumber,
-                    System.Globalization.CultureInfo.InvariantCulture);
+
+                // parse the character after the current character as the other half a byte into the current output index (will be the low half)
+                hexBuffer[hexBufferIndex] += byte.Parse(hexChars[charIndex + 1].ToString(), // current character as a string
+                    System.Globalization.NumberStyles.HexNumber, // parse as a hexadecimal number
+                    System.Globalization.CultureInfo.InvariantCulture); // a-f must be static across locales
+
+                // increment the index into the output array for the next byte
                 hexBufferIndex++;
             }
+
+            // return the parsed return array
             return hexBuffer;
         }
     }

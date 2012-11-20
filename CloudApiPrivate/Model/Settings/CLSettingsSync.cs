@@ -16,7 +16,7 @@ using System.Text;
 
 namespace CloudApiPrivate.Model.Settings
 {
-    public sealed class CLSettingsSync : ISyncSettings
+    public sealed class CLSettingsSync : ISyncSettingsAdvanced
     {
         #region singleton pattern
         public static CLSettingsSync Instance
