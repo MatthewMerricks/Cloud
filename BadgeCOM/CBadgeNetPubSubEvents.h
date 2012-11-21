@@ -58,6 +58,7 @@ public:
     void SubscribeToBadgeNetEvents();
     static void SubscribingThreadProc(LPVOID pUserState);
     static void WatchingThreadProc(LPVOID pUserState);
+    static void CBadgeNetPubSubEvents::HandleWatchingThreadException(CBadgeNetPubSubEvents *pThis);
     void KillSubscribingThread();
     void KillWatchingThread();
     bool StartSubscribingThread();

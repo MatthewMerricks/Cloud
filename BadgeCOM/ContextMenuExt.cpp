@@ -49,9 +49,10 @@ CContextMenuExt::CContextMenuExt()
 		CLTRACE(9, "ContextMenuExt: CContextMenuExt: Entry.");
 	    m_hRegBmp = LoadBitmap (_AtlBaseModule.GetModuleInstance(), MAKEINTRESOURCE(IDB_BITMAP1) );
 	}
-	catch (...)
-	{
-	}
+    catch (...)
+    {
+		CLTRACE(1, "ContextMenuExt: CContextMenuExt: ERROR: Bad exception.");
+    }
 }
 
 CContextMenuExt::~CContextMenuExt()
@@ -65,9 +66,10 @@ CContextMenuExt::~CContextMenuExt()
 			m_hRegBmp = NULL;
 		}
 	}
-	catch (...)
-	{
-	}
+    catch (...)
+    {
+		CLTRACE(1, "ContextMenuExt: ~CContextMenuExt: ERROR: Bad exception.");
+    }
 }
 
 
@@ -178,8 +180,12 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 	}
 	catch (exception ex)
 	{
-		CLTRACE(9, "ContextMenuExt: Initialize: ERROR: Exception: %s.", ex.what());
+		CLTRACE(1, "ContextMenuExt: Initialize: ERROR: Exception: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "ContextMenuExt: Initialize: ERROR: Bad exception.");
+    }
 
 	// Free resources
 	CLTRACE(9, "ContextMenuExt: Initialize: Free resources.");
@@ -272,8 +278,12 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 	}
 	catch (exception ex)
 	{
-		CLTRACE(9, "ContextMenuExt: QueryContextMenu: Return E_INVALIDARG (4).");
+		CLTRACE(1, "ContextMenuExt: QueryContextMenu: ERROR: Exception: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "ContextMenuExt: QueryContextMenu: ERROR: Bad exception.");
+    }
 	CLTRACE(9, "ContextMenuExt: QueryContextMenu: Return(2) 0.");
 	return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(0));
 }
@@ -344,8 +354,12 @@ STDMETHODIMP CContextMenuExt::GetCommandString (
 	}
 	catch (exception ex)
 	{
-		CLTRACE(9, "ContextMenuExt: GetCommandString: Exception: %s.", ex.what());
+		CLTRACE(1, "ContextMenuExt: GetCommandString: Exception: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "ContextMenuExt: GetCommandString: ERROR: Bad exception.");
+    }
 
 	CLTRACE(9, "ContextMenuExt: GetCommandString: Return S_OK.");
     return S_OK;
@@ -674,8 +688,12 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	}
 	catch (exception ex)
 	{
-		CLTRACE(9, "ContextMenuExt: InvokeCommand: ERROR: Exception: %s.", ex.what());
+		CLTRACE(1, "ContextMenuExt: InvokeCommand: ERROR: Exception: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "ContextMenuExt: InvokeCommand: ERROR: Bad exception.");
+    }
 
 	// Close the pipe handle
     if (PipeHandle != INVALID_HANDLE_VALUE)
@@ -782,8 +800,12 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters)
 	}
 	catch (exception ex)
 	{
-		CLTRACE(9, "ContextMenuExt: ExecuteProcess: ERROR: Exception: %s.", ex.what());
+		CLTRACE(1, "ContextMenuExt: ExecuteProcess: ERROR: Exception: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "ContextMenuExt: ExecuteProcess: ERROR: Bad exception.");
+    }
 
 	CLTRACE(9, "ContextMenuExt: ExecuteProcess: Return -3.");
 	return -3;

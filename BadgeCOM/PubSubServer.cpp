@@ -48,8 +48,13 @@ STDMETHODIMP CPubSubServer::Initialize()
     }
     catch (std::exception &ex)
     {
-        result = E_FAIL;
 		CLTRACE(1, "PubSubServer: Initialize: ERROR: Exception.  Message: %s.", ex.what());
+        result = E_FAIL;
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: Initialize: ERROR: Bad exception.");
+        result = E_FAIL;
     }
 
 	CLTRACE(9, "PubSubServer: Initialize: Exit");
@@ -122,7 +127,14 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		{
 			CLTRACE(1, "PubSubServer: Publish: ERROR: Exception(lock).  Message: %s.", ex.what());
 			pBase->mutexSharedMemory_.unlock();
+            nResult = RC_PUBLISH_ERROR;
 		}
+        catch (...)
+        {
+		    CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception(lock).");
+			pBase->mutexSharedMemory_.unlock();
+            nResult = RC_PUBLISH_ERROR;
+        }
 
 		// Now iterate through the subscribers attempting to deliver the event to each.
 		for (std::vector<GUID>::iterator itGuid = subscribers.begin(); itGuid != subscribers.end(); ++itGuid)
@@ -180,9 +192,16 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 				}
 				catch (std::exception &ex)
 				{
-					CLTRACE(1, "PubSubServer: Publish: ERROR: Exception(lock).  Message: %s.", ex.what());
+					CLTRACE(1, "PubSubServer: Publish: ERROR: Exception(lock, 2).  Message: %s.", ex.what());
 					pBase->mutexSharedMemory_.unlock();
+                    nResult = RC_PUBLISH_ERROR;
 				}
+                catch (...)
+                {
+		            CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception(lock, 2).");
+					pBase->mutexSharedMemory_.unlock();
+                    nResult = RC_PUBLISH_ERROR;
+                }
 
 				if (fEventDelivered || fSubscriptionRemoved || fSubscriptionNotFound)
 				{
@@ -198,6 +217,11 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
     catch(std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: Publish: ERROR: Exception.  Message: %s.", ex.what());
+        nResult = RC_PUBLISH_ERROR;
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception.");
         nResult = RC_PUBLISH_ERROR;
     }
 
@@ -347,9 +371,16 @@ STDMETHODIMP CPubSubServer::Subscribe(
 		}
 		catch (std::exception &ex)
 		{
-			CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock).  Message: %s.", ex.what());
+			CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock, 3).  Message: %s.", ex.what());
 			pBase->mutexSharedMemory_.unlock();
+            nResult = RC_SUBSCRIBE_ERROR;
 		}
+        catch (...)
+        {
+		    CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception(lock, 3).");
+			pBase->mutexSharedMemory_.unlock();
+            nResult = RC_SUBSCRIBE_ERROR;
+        }
 
         // Wait if we should.
         if (fWaitRequired)
@@ -415,14 +446,26 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			}
 			catch (std::exception &ex)
 			{
-				CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock(2)).  Message: %s.", ex.what());
+				CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock, 4).  Message: %s.", ex.what());
 				pBase->mutexSharedMemory_.unlock();
+                nResult = RC_SUBSCRIBE_ERROR;
 			}
+            catch (...)
+            {
+		        CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception(lock, 4).");
+			    pBase->mutexSharedMemory_.unlock();
+                nResult = RC_SUBSCRIBE_ERROR;
+            }
         }
     }
     catch (std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception.  Message: %s.", ex.what());
+        nResult = RC_SUBSCRIBE_ERROR;
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception.");
         nResult = RC_SUBSCRIBE_ERROR;
     }
 
@@ -488,7 +531,14 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 			{
 				CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Exception(lock).  Message: %s.", ex.what());
 				pBase->mutexSharedMemory_.unlock();
-			}
+                nResult = RC_CANCELBYPROCESSID_ERROR;
+            }
+            catch (...)
+            {
+		        CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Bad exception(lock).");
+				pBase->mutexSharedMemory_.unlock();
+                nResult = RC_CANCELBYPROCESSID_ERROR;
+            }
 
 			// We are done if there are no subscriptions to cancel
 			if (subscriptionIdsForProcess.size() <= 0)
@@ -519,6 +569,11 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
     catch (std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Exception.  Message: %s.", ex.what());
+        nResult = RC_CANCELBYPROCESSID_ERROR;
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Bad exception.");
         nResult = RC_CANCELBYPROCESSID_ERROR;
     }
 
@@ -643,13 +698,23 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 		{
 			CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Exception(lock).  Message: %s.", ex.what());
 			pBase->mutexSharedMemory_.unlock();
+			nResult = RC_CANCEL_ERROR;
 		}
-
-
+        catch (...)
+        {
+		    CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Bad exception(lock).");
+			pBase->mutexSharedMemory_.unlock();
+			nResult = RC_CANCEL_ERROR;
+        }
     }
     catch (std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Exception.  Message: %s.", ex.what());
+        nResult = RC_CANCEL_ERROR;
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Bad exception.");
         nResult = RC_CANCEL_ERROR;
     }
 
@@ -677,6 +742,11 @@ STDMETHODIMP CPubSubServer::get_SharedMemoryName(BSTR* pVal)
     catch(std::exception &ex)
     {
         CLTRACE(1, "PubSubServer: get_SharedMemoryName: Exception: %s.", ex.what());
+        nResult = E_OUTOFMEMORY;
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: get_SharedMemoryName: ERROR: Bad exception.");
         nResult = E_OUTOFMEMORY;
     }
 
@@ -728,6 +798,10 @@ void CPubSubServer::DeleteSubscriptionById(Base * pBase, CPubSubServer::UniqueSu
 	{
         CLTRACE(1, "PubSubServer: DeleteSubscriptionById: Exception: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: DeleteSubscriptionById: ERROR: Bad exception.");
+    }
 }
 
 /// <summary>
@@ -760,6 +834,10 @@ bool CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscribe
 	{
         CLTRACE(1, "PubSubServer: FindSubscription: Exception: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: FindSubscription: ERROR: Bad exception.");
+    }
 
     return result;
 }
@@ -799,7 +877,7 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
                         itEvent->ThreadId_,
                         itEvent->EventSubType_,
                         itEvent->BadgeType_,
-                        itEvent->FullPath_
+                        itEvent->FullPath_.c_str()
                         );
                 }
 			}
@@ -808,6 +886,10 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
     catch (std::exception &ex)
     {
         CLTRACE(1, "PubSubServer: TraceCurrentStateOfSharedMemory: Exception: %s.", ex.what());
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: TraceCurrentStateOfSharedMemory: ERROR: Bad exception.");
     }
 }
 
@@ -881,8 +963,15 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 			catch (std::exception &ex)
 			{
 				CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Exception(lock).  Message: %s.", ex.what());
+				pBase->mutexSharedMemory_.unlock();
                 *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
 			}
+            catch (...)
+            {
+		        CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Bad exception(lock).");
+				pBase->mutexSharedMemory_.unlock();
+                *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
+            }
 
 		}
 	}
@@ -891,6 +980,11 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Exception.  Message: %s.", ex.what());
         *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
 	}
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Bad exception.");
+        *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
+    }
 
 	CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Exit.");
     return S_OK;
@@ -946,7 +1040,13 @@ STDMETHODIMP CPubSubServer::Terminate()
 			catch (std::exception &ex)
 			{
 				CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(lock).  Message: %s.", ex.what());
+				pBase->mutexSharedMemory_.unlock();
 			}
+            catch (...)
+            {
+		        CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception(lock).");
+				pBase->mutexSharedMemory_.unlock();
+            }
 
 		}
 	}
@@ -954,6 +1054,10 @@ STDMETHODIMP CPubSubServer::Terminate()
 	{
 		CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception.");
+    }
 
 	// Release the shared memory segment if all instances are finished with it.
     try
@@ -967,6 +1071,10 @@ STDMETHODIMP CPubSubServer::Terminate()
     catch (std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(2).  Message: %s.", ex.what());
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception(2).");
     }
 
 	CLTRACE(9, "PubSubServer: Terminate: Exit.");
@@ -1063,7 +1171,16 @@ std::string CPubSubServer::GetSharedMemoryNameWithVersion()
     }
     catch (std::exception &ex)
     {
-		CLTRACE(1, "PubSubServer: GetSharedMemoryNameWithVersion: ERROR: Exception(2).  Message: %s.", ex.what());
+		CLTRACE(1, "PubSubServer: GetSharedMemoryNameWithVersion: ERROR: Exception.  Message: %s.", ex.what());
+        if (versionInfo != NULL)
+        {
+            delete[] versionInfo;
+            versionInfo = NULL;
+        }
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: GetSharedMemoryNameWithVersion: ERROR: Bad exception.");
         if (versionInfo != NULL)
         {
             delete[] versionInfo;

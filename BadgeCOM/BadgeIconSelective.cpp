@@ -52,6 +52,10 @@ CBadgeIconSelective::CBadgeIconSelective()
     {
 		CLTRACE(1, "CBadgeIconSelective: CBadgeIconSelective: ERROR: Exception.  Message: %s.", ex.what());
     }
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: CBadgeIconSelective: ERROR: Bad exception.");
+    }
 }
 
 /// <Summary>
@@ -77,6 +81,10 @@ CBadgeIconSelective::~CBadgeIconSelective()
     catch (std::exception &ex)
     {
 		CLTRACE(1, "CBadgeIconSelective: ~CBadgeIconSelective: ERROR: Exception.  Message: %s.", ex.what());
+    }
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: ~CBadgeIconSelective: ERROR: Bad exception.");
     }
 }
 
@@ -104,6 +112,11 @@ STDMETHODIMP CBadgeIconSelective::GetOverlayInfo(
 	{
 		CLTRACE(1, "CBadgeIconSelective: GetOverlayInfo: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: GetOverlayInfo: ERROR: Bad exception.");
+    }
+
 	return S_OK;
 }
 
@@ -133,6 +146,10 @@ void CBadgeIconSelective::InitializeBadgeNetPubSubEventsViaThread()
     {
 		CLTRACE(1, "CBadgeIconSelective: InitializeBadgeNetPubSubEventsViaThread: ERROR: Exception.  Message: %s.", ex.what());
     }
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: InitializeBadgeNetPubSubEventsViaThread: ERROR: Bad exception.");
+    }
 }
 
 /// <Summary>
@@ -151,6 +168,10 @@ void CBadgeIconSelective::InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserS
     {
 		CLTRACE(1, "CBadgeIconSelective: InitializeBadgeNetPubSubEventsThreadProc: ERROR: Exception.  Message: %s.", ex.what());
     }
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: InitializeBadgeNetPubSubEventsThreadProc: ERROR: Bad exception.");
+    }
 }
 
 // IShellIconOverlayIdentifier::GetPriority
@@ -166,6 +187,10 @@ STDMETHODIMP CBadgeIconSelective::GetPriority(int* pPriority)
     catch (std::exception &ex)
     {
 		CLTRACE(1, "CBadgeIconSelective: GetPriority: ERROR: Exception.  Message: %s.", ex.what());
+    }
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: GetPriority: ERROR: Bad exception.");
     }
 
 	return S_OK;
@@ -196,6 +221,10 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
     {
 		CLTRACE(1, "CBadgeIconSelective: IsMemberOf: ERROR: Exception.  Message: %s.", ex.what());
     }
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: IsMemberOf: ERROR: Bad exception.");
+    }
 
 	return result;
 }
@@ -219,6 +248,10 @@ void CBadgeIconSelective::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBad
 	{
 		CLTRACE(1, "CBadgeIconSelective: OnEventAddBadgePath: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: OnEventAddBadgePath: ERROR: Bad exception.");
+    }
 }
 
 /// <summary>
@@ -238,6 +271,10 @@ void CBadgeIconSelective::OnEventRemoveBadgePath(BSTR fullPath)
 	{
 		CLTRACE(1, "CBadgeIconSelective: OnEventRemoveBadgePath: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: OnEventRemoveBadgePath: ERROR: Bad exception.");
+    }
 }
 
 /// <summary>
@@ -258,6 +295,10 @@ void CBadgeIconSelective::OnEventAddSyncBoxFolderPath(BSTR fullPath)
 	{
 		CLTRACE(1, "CBadgeIconSelective: OnEventAddSyncBoxFolderPath: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: OnEventAddSyncBoxFolderPath: ERROR: Bad exception.");
+    }
 }
 
 /// <summary>
@@ -293,6 +334,10 @@ void CBadgeIconSelective::OnEventRemoveSyncBoxFolderPath(BSTR fullPath)
 	{
 		CLTRACE(1, "CBadgeIconSelective: OnEventRemoveSyncBoxFolderPath: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: OnEventRemoveSyncBoxFolderPath: ERROR: Bad exception.");
+    }
 }
 
 /// <summary>
@@ -325,6 +370,10 @@ void CBadgeIconSelective::OnEventSubscriptionWatcherFailed()
 	{
 		CLTRACE(1, "CBadgeIconSelective: OnEventSubscriptionWatcherFailed: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: OnEventSubscriptionWatcherFailed: ERROR: Bad exception.");
+    }
 }
 
 
@@ -359,6 +408,10 @@ void CBadgeIconSelective::SubscriptionRestartThreadProc(LPVOID pUserState)
 	{
 		CLTRACE(1, "CBadgeIconSelective: SubscriptionRestartThreadProc: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: SubscriptionRestartThreadProc: ERROR: Bad exception.");
+    }
 
     if (pThis != NULL)
     {
@@ -413,6 +466,10 @@ void CBadgeIconSelective::InitializeBadgeNetPubSubEvents()
 	{
 		CLTRACE(1, "CBadgeIconSelective: InitializeBadgeNetPubSubEvents: ERROR: Exception.  Message: %s.", ex.what());
 	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconSelective: InitializeBadgeNetPubSubEvents: ERROR: Bad exception.");
+    }
     CLTRACE(9, "CBadgeIconSelective: InitializeBadgeNetPubSubEvents: Exit.");
 }
 

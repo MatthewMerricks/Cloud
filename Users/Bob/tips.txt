@@ -6276,7 +6276,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - How to insert a container in a container: http://boost.2283326.n4.nabble.com/interprocess-map-of-vectors-td2654445.html
     - Got it to build and stepped through the new sections, but now some Explorer thread is pinning the CPU....
   o 11/19/12 Mon: 
-    - 6:45 - 
+    - 6:45 - 18:30
     - The hard CPU loop doesn't happen on my work machine.  Maybe it was caused by the Cloud.exe process running while I was testing.  It was an old version.
     - It badges!  The new design works.
     - TODO(Done): Are the Explorer shell notifications working properly?
@@ -6286,9 +6286,17 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - TODO(Done): Rename the shared memory segment to include the BadgeCom version number.
     - Implemented the function to clean up subscriptions after orphaned processes.
     - Tested the badges across Explorer restart.  The badges reappear.
-    - TODO: Change to Boost 1.52.
-    - TODO: Move Boost into git.
+    - TODO(Aborted): Change to Boost 1.52.  A note on the boost site says that this change is moderately disruptive.  I will stick with the tested V1.51.
+    - TODO(Done): Move Boost into git.
     - Everything is working properly and most of the testing is done.  Move Boost into git, test it one more time, and move on...
+  o 11/20/12 Tue: 
+    - 6:30 - 18:00
+    - I spent 3/4ths of the time working with Ultrabac and their tech support and sales people to test Gary's Samsung Series 9 laptop with Bitlocker.  I performed an image backup
+      and successfully restored it.
+    - Boost has been moved to git.  The shared memory PubSub project is complete except for testing in the different environments.
+  o 11/21/12 Wed: 
+    - 6:30 - 
+    - 
 
 
 
