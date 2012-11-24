@@ -58,6 +58,12 @@
     <ClCompile Include="Trace.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PubSubServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CBadgeNetPubSubEvents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -123,6 +129,18 @@
     <ClInclude Include="Trace.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PubSubServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CBadgeNetPubSubEvents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TemplateTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BoostSemaphore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BadgeCOM.rc">
@@ -172,6 +190,9 @@
     </None>
     <None Include="JsonSerialization\json_valueiterator.inl">
       <Filter>Header Files</Filter>
+    </None>
+    <None Include="PubSubServer.rgs">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

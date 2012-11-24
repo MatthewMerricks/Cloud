@@ -22,9 +22,10 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using CloudApiPublic.Support;
-using CloudApiPrivate.Common;
 using System.Runtime.InteropServices;
 using BadgeNET.Static;
+using BadgeCOMLib;
+using CloudApiPublic.Interfaces;
 
 namespace BadgeNET
 {
@@ -57,7 +58,13 @@ namespace BadgeNET
         private static CLTrace _trace = CLTrace.Instance;
 
         // Constructor for Singleton pattern is private
-        private IconOverlay() { }
+        private IconOverlay()
+        {
+            // Allocate the badging current state flat dictionary.  This dictionary is used to determine the badge path to remove when the
+            // badge type for that path changes.  We send a _kEvent_BadgeNet_AddBadgePath event to the BadgeCom "new" type, and a
+            // _kEvent_BadgeNet_RemoveBadgePath event to the BadgeCom "old" type.
+            _currentBadges = new Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>(FilePathComparer.Instance);
+        }
 
         // Standard IDisposable implementation based on MSDN System.IDisposable
         ~IconOverlay()
@@ -74,12 +81,17 @@ namespace BadgeNET
         /// </summary>
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
         /// <param name="pathRootDirectory">The full path of the Cloud root directory.</param>
-        public static CLError Initialize(string pathRootDirectory, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        public static CLError Initialize(ISyncSettings syncSettings, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
+                if (syncSettings == null)
+                {
+                    throw new NullReferenceException("syncSettings cannot be null");
+                }
+
                 _trace.writeToLog(9, "IconOverlay: Initialize: Entry.");
-                return Instance.pInitialize(pathRootDirectory, initialList);
+                return Instance.pInitialize(syncSettings.CloudRoot, initialList);
             }
             catch (Exception ex)
             {
@@ -88,7 +100,7 @@ namespace BadgeNET
                 return ex;
             }
         }
-        private CLError pInitialize(string pathRootDirectory, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        private CLError pInitialize(string cloudRoot, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
@@ -109,14 +121,60 @@ namespace BadgeNET
                 MessageEvents.BadgePathDeleted += MessageEvents_BadgePathDeleted;
                 MessageEvents.BadgePathRenamed += MessageEvents_BadgePathRenamed;
 
-                bool initialListContainsItem = false;
-
                 // Capture the Cloud directory path for performance.
-                filePathCloudDirectory = pathRootDirectory;
+                _filePathCloudDirectory = cloudRoot;
+
+                // Start a thread to create and an instance of CBadgeNetPubSubEvents.  This is necessary because the current
+                // thread is a STA thread, and we must instantiate CBadgeNetPubSubEvents as an MTA thread.
+                if (_badgeComPubSubEvents == null)
+                {
+                    Thread threadInit = new Thread(new ThreadStart(() => 
+                    {
+                        try
+                        {
+                            _trace.writeToLog(9, "IconOverlay: pInitialize: threadInit entry.");
+                            if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
+                            {
+                                _trace.writeToLog(9, "IconOverlay: pInitialize: ERROR.  Wrong threading model.");
+                            }
+
+                            _trace.writeToLog(9, "IconOverlay: pInitialize: Instantiate BadgeComPubSubEvents.");
+                            _badgeComPubSubEvents = new BadgeComPubSubEvents();
+                            _badgeComPubSubEvents.Initialize();
+                            _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
+                            _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+
+                            // Start listening for BadgeCom initialization events.
+                            _trace.writeToLog(9, "IconOverlay: pInitialize: Subscribe to BadgeCom init events.");
+                            _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+
+                            // Send our badging dictionary to the BadgeCom subscribers.
+                            _trace.writeToLog(9, "IconOverlay: pInitialize: Send badging dictionary.");
+                            BadgeComPubSubEvents_OnBadgeComInitialized(null, null);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                        }
+
+                    }));
+                    threadInit.SetApartmentState(ApartmentState.MTA);
+                    threadInit.Start();
+                    bool started = threadInit.Join(5000);
+                    if (!started)
+                    {
+                        _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit was not started.");
+                    }
+                    else
+                    {
+                        _trace.writeToLog(9, "IconOverlay: pInitialize: threadInit completed OK.");
+                    }
+                }
 
                 // Allocate the badging dictionary.  This is a hierarchical dictionary.
                 CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
-                    rootPath: filePathCloudDirectory,
+                    rootPath: _filePathCloudDirectory,
                     pathDictionary: out allBadges,
                     recursiveDeleteCallback: OnAllBadgesRecursiveDelete,
                     recursiveRenameCallback: OnAllBadgesRecursiveRename);
@@ -138,11 +196,8 @@ namespace BadgeNET
                 if (initialList != null
                     && (initialListArray = initialList.ToArray()).Length > 0)
                 {
-                    // store that initial list contained an item so system can be notified later
-                    _trace.writeToLog(9, "IconOverlay: pInitialize: Got initial list.");
-                    initialListContainsItem = true;
-
                     // loop through initial list for badged objects to add to local dictionary
+                    _trace.writeToLog(9, "IconOverlay: pInitialize: Got initial list.");
                     for (int initialListCounter = 0; initialListCounter < initialListArray.Length; initialListCounter++)
                     {
                         // only keep track of badges that are not "synced"
@@ -159,23 +214,119 @@ namespace BadgeNET
 
                 _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes.");
                 StartBadgeCOMPipes();
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                return ex;
+            }
+            _trace.writeToLog(9, "IconOverlay: pInitialize: Return success.");
+            return null;
+        }
 
-                // initial list contained an item so notify the system to update
-                if (initialListContainsItem)
+        /// <summary>
+        /// The BadgeCom initialization event watcher threads died.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed(object sender, EventArgs e)
+        {
+            try
+            {
+                // Start a thread to kill the current instance of CBadgeNetPubSubEvents and to create a new instance of CBadgeNetPubSubEvents.
+                // This is necessary because the current thread is a STA thread, and we must instantiate CBadgeNetPubSubEvents as an MTA thread.
+                Thread threadRestart = new Thread(new ThreadStart(() => 
                 {
-                    //Parameterless call to notify will force OS to update all icons
-                    _trace.writeToLog(9, "IconOverlay: Initial list contains items.  Notify Explorer to repaint all icons.");
-                    NotifySystemForBadgeUpdate();
+                    try
+                    {
+                        _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: threadInit entry.");
+                        if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
+                        {
+                            _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR.  Wrong threading model.");
+                        }
+
+                        if (_badgeComPubSubEvents != null)
+                        {
+                            // Kill the subscriptions and dispose the object
+                            _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Kill BadgeComPubSubEvents.");
+                            _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
+                            _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+                            _badgeComPubSubEvents.Dispose();
+                        }
+
+                        // Restart
+                        _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Restart BadgeComPubSubEvents.");
+                        _badgeComPubSubEvents = new BadgeComPubSubEvents();
+                        _badgeComPubSubEvents.Initialize();
+                        _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
+                        _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+
+                        // Start listening for BadgeCom initialization events.
+                        _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Subscribe to BadgeCom init events.");
+                        _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+
+                        // Send our badging database to all of the BadgeCom subscribers.
+                        _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Send badging database.");
+                        BadgeComPubSubEvents_OnBadgeComInitialized(null, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                    }
+
+                }));
+
+                // Start the thread, but don't wait for it to complete because the current thread is the CBadgeComPubSubEvents Watcher thread, and that thread must be killed by the restart logic above.
+                threadRestart.SetApartmentState(ApartmentState.MTA);
+                threadRestart.Start();
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Callback indicating that we received a BadgeCom initialization event.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BadgeComPubSubEvents_OnBadgeComInitialized(object sender, EventArgs e)
+        {
+            try
+            {
+                _trace.writeToLog(9, "IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry.");
+                if (_badgeComPubSubEvents != null)
+                {
+                    // Publish the remove SyncBox folder path event back to all BadgeCom instances.  This will clear any dictionaries involving those folder paths.
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+
+                    // Publish the add SyncBox folder path event back to all BadgeCom instances.
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                    
+                    // Do not want to process COM publishing logic while holding up the lock, so make a copy under the lock instead.
+                    Func<Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>, object, 
+                        IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>>> copyBadgesUnderLock = (badgeDict, locker) =>
+                        {
+                            lock (locker)
+                            {
+                                return badgeDict.ToArray();
+                            }
+                        };
+
+                    // Iterate over the current badge state dictionary and send the badges to BadgeCom. This will populate the BadgeCom instance that just initialized.
+                    // Other instances will update from these events only if necessary.
+                    foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in copyBadgesUnderLock(_currentBadges, _currentBadgesLocker))
+                    {
+                        // Publish a badge add path event to BadgeCom.
+                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)item.Value.Value, item.Key.ToString());
+                    }
                 }
             }
             catch (Exception ex)
             {
-                CLError error = ex;
-                _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-                return ex;
+                _trace.writeToLog(1, "IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
-            _trace.writeToLog(9, "IconOverlay: Return success.");
-            return null;
         }
 
         void MessageEvents_BadgePathRenamed(object sender, BadgePathRenamedArgs e)
@@ -331,21 +482,21 @@ namespace BadgeNET
                     if (!isInitialized)
                     {
                         _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Not initialized yet.  Initialize.");
-                        Initialize(pathRootDirectory, initialList);
+                        pInitialize(pathRootDirectory, initialList);
                         // store that list was already processed by initialization
                         listProcessed = true;
                     }
                 }
 
                 // Capture the Cloud directory path for performance.
-                filePathCloudDirectory = pathRootDirectory;
+                _filePathCloudDirectory = pathRootDirectory;
 
                 // if list was not already processed by initialization
                 if (!listProcessed)
                 {
                     // lock internal list during modification
                     _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. List not processed.");
-                    lock (allBadges)
+                    lock (_currentBadgesLocker)
                     {
                         // empty list before adding in all replacement items
                         _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Clear all badges.");
@@ -363,10 +514,6 @@ namespace BadgeNET
                             }
                         }
                     }
-
-                    //Parameterless call to notify will force OS to update all icons
-                    _trace.writeToLog(9, "IconOverlay: pInitializeOrReplace. Notify Explorer to refresh all icons.");
-                    NotifySystemForBadgeUpdate();
                 }
             }
             catch (Exception ex)
@@ -383,10 +530,23 @@ namespace BadgeNET
         /// <param name="recursivePathBeingDeleted">The recursive path being deleted as a result of the originalDeletedPath being deleted.</param>
         /// <param name="forBadgeType">The recursive associated badge type.</param>
         /// <param name="originalDeletedPath">The original path that was deleted, potentially causing a series of other node deletes.</param>
+        /// <remarks>Assumes the lock is already held on _currentBadges.</remarks>
         /// </summary>
         private void OnAllBadgesRecursiveDelete(FilePath recursivePathBeingDeleted, GenericHolder<cloudAppIconBadgeType> forBadgeType, FilePath originalDeletedPath)
         {
-            // No need to notify system because the files are already gone
+            try
+            {
+                // Remove this path from the current flat dictionary if it exists, and send a remove badge path event to BadgeCom.
+                if (_currentBadges.ContainsKey(recursivePathBeingDeleted))
+                {
+                    SendRemoveBadgePathEvent(recursivePathBeingDeleted);
+                    _currentBadges.Remove(recursivePathBeingDeleted);
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "IconOverlay: OnAllBadgesRecursiveDelete: ERROR: Exception: Msg: <{0}>.", ex.Message);
+            }
         }
 
         /// <summary>
@@ -397,17 +557,42 @@ namespace BadgeNET
         /// <param name="recursiveOldPathBadgeType">The associated badge type of the recursive path being renamed.</param>
         /// <param name="originalOldPath">The original old path being renamed that caused this recursive rename.</param>
         /// <param name="originalNewPath">The original new path that caused this recursive rename.</param>
+        /// <remarks>Assumes the lock is already held on _currentBadges.</remarks>
         private void OnAllBadgesRecursiveRename(FilePath recursiveOldPath, FilePath recursiveRebuiltNewPath, GenericHolder<cloudAppIconBadgeType> recursiveOldPathBadgeType, FilePath originalOldPath, FilePath originalNewPath)
-        {
-            // Need to notify operating system that inner files/folders get their badges updated
-            NotifySystemForBadgeUpdate(recursiveRebuiltNewPath);
-        }
-
-        public static CLError DeleteBadgePath(FilePath toDelete, out bool isDeleted)
         {
             try
             {
-                return Instance.pDeleteBadgePath(toDelete, out isDeleted);
+                // Remove the old path if it exists, and update BadgeCom.
+                if (_currentBadges.ContainsKey(recursiveOldPath))
+                {
+                    SendRemoveBadgePathEvent(recursiveOldPath);
+                    _currentBadges.Remove(recursiveOldPath);
+                }
+
+                // Send an add badge path at the new path, and update the flat dictionary
+                SendAddBadgePathEvent(recursiveRebuiltNewPath, recursiveOldPathBadgeType);
+                _currentBadges[recursiveRebuiltNewPath] =  recursiveOldPathBadgeType;
+
+                            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "IconOverlay: OnAllBadgesRecursiveRename: ERROR: Exception: Msg: <{0}>.", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Invoked by the indexer through queued events to delete a badge path in the hierarchical dictionary.
+        /// This will also communicate the changes to BadgeCom and maintain the flat current badges dictionary.
+        /// </summary>
+        /// <param name="toDelete">The path being deleted.</param>
+        /// <param name="isDeleted">(output) true: the path was deleted.</param>
+        /// <param name="isPending">True: the event is pending.</param>
+        /// <returns></returns>
+        public static CLError DeleteBadgePath(FilePath toDelete, out bool isDeleted, bool isPending = false)
+        {
+            try
+            {
+                return Instance.pDeleteBadgePath(toDelete, out isDeleted, isPending);
             }
             catch (Exception ex)
             {
@@ -415,27 +600,42 @@ namespace BadgeNET
                 return ex;
             }
         }
-        private CLError pDeleteBadgePath(FilePath toDelete, out bool isDeleted)
+        // Private instance method to delete the badge path.
+        private CLError pDeleteBadgePath(FilePath toDelete, out bool isDeleted, bool isPending = false, bool alreadyCheckedInitialized = false)
         {
             try
             {
-
-                lock (this)
+                if (!alreadyCheckedInitialized)
                 {
-                    if (!isInitialized)
+                    lock (this)
                     {
-                        _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. ERROR: THROW: Must be initialized before renaming badge paths.");
-                        throw new Exception("IconOverlay must be initialized before renaming badge paths");
+                        if (!isInitialized)
+                        {
+                            _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. ERROR: THROW: Must be initialized before renaming badge paths.");
+                            throw new Exception("IconOverlay must be initialized before renaming badge paths");
+                        }
+                    }
+                }
+
+                // lock internal list during modification
+                lock (_currentBadgesLocker)
+                {
+                    // Simply pass this action on to the badge dictionary.  The dictionary will pass recursive deletes back to us.  The recursive
+                    // delete will not happen for the toDelete node.
+                    _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. Pass this delete to the dictionary.");
+                    isDeleted = allBadges.Remove(toDelete);
+
+                    // If this event is pending, we need to add it back to the hierarchical badge dictionary so it will show "syncing" until the event is completed.
+                    if (isPending)
+                    {
+                        pSetBadgeType(toDelete, new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing), alreadyCheckedInitialized: true);
                     }
 
-                    // lock internal list during modification
-                    lock (allBadges)
-                    {
-                        // Simply pass this action on to the badge dictionary.  The dictionary will pass recursive deletes back to us,
-                        // but if the children do not exist we do not need to notify the system anyways
-                        _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. Pass this delete to the dictionary.");
-                        isDeleted = allBadges.Remove(toDelete);
-                    }
+                    // Update badges for anything changed up the tree.  The nodes below will be deleted so we don't need to process those..
+                    UpdateBadgeStateUpTreeStartingWithParentOfNode(toDelete, _filePathCloudDirectory.ToString());
+
+                    // Update the badge for this specific node.
+                    UpdateBadgeStateAtPath(toDelete);
                 }
             }
             catch (Exception ex)
@@ -447,7 +647,8 @@ namespace BadgeNET
         }
 
         /// <summary>
-        /// When a path is renamed, the badges must be adjusted to reflect the new path.
+        /// Invoked by the indexer through queued events to update the hierarchical badge path dictionary for this rename event.
+        /// This also updates the BadgeCom badges and maintains the matching current badge state flat dictionary.
         /// </summary>
         /// <param name="oldPath">The old path.</param>
         /// <param name="newPath">The new path.</param>
@@ -466,6 +667,7 @@ namespace BadgeNET
                 return error;
             }
         }
+        // Private instance method to rename the badge path.
         private CLError pRenameBadgePath(FilePath oldPath, FilePath newPath)
         {
             try
@@ -482,19 +684,72 @@ namespace BadgeNET
                 }
 
                 // lock internal list during modification
-                lock (allBadges)
+                lock (_currentBadgesLocker)
                 {
                     // Simply pass this action on to the badge dictionary.  The dictionary will pass recursive renames back to us
                     // as the rename is processes, and those recursive renames will cause the badges to be adjusted.
+                    // Put in a check if both paths already have values so we can overwrite at the new path.
                     _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. Pass this rename to the dictionary.");
-                    // Put in a check if both paths already have values so we can overwrite at the new path
                     if (allBadges.ContainsKey(oldPath))
                     {
                         if (allBadges.ContainsKey(newPath))
                         {
                             allBadges.Remove(newPath);
                         }
-                        return allBadges.Rename(oldPath, newPath);
+
+                        // Perform the rename.  This may cause an error.  If it does, there will be no changes in the badge
+                        // hierarchical dictionary.  Recover from the error by manually performing the rename.  Grab the hierarchy at and
+                        // below the oldPath.  Then delete the oldPath (which will delete the oldPath node and its children).  Then
+                        // loop through the hierarchy and manually apply each of the renames.  Set the badge and update the BadgeCom
+                        // badges, and the current badge flat dictionary.
+                        CLError error = allBadges.Rename(oldPath, newPath);
+                        if (error != null)
+                        {
+                            _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. ERROR: Renaming in allBadges. Msg: <{0}>.  Code: {1}.", error.errorDescription, error.errorCode);
+
+                            FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
+                            CLError errGrab = allBadges.GrabHierarchyForPath(oldPath, out tree, suppressException: true);
+                            if (errGrab == null
+                                && tree != null)
+                            {
+                                // Delete the oldPath.
+                                bool isDeleted;
+                                pDeleteBadgePath(oldPath, out isDeleted, isPending: false, alreadyCheckedInitialized: true);
+
+                                // Chase the hierarchy grabbed above and manually apply all of the renames.  Also set the BadgeCom and
+                                // current badge flat dictionary badge states as we go.  This essentially adds back the deleted tree
+                                // using the new names.
+                                ManuallyApplyRenamesInHierarchyAndUpdateBadgeState(tree, oldPath, newPath);
+                                return null;
+                            }
+                            else
+                            {
+                                if (errGrab == null)
+                                {
+                                    errGrab = new Exception("ERROR: Grabbing oldPath hierarchy: tree is null");
+                                }
+                                _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. ERROR: Grabbing oldPath hierarchy. Msg: <{0}>.  Code: {1}.", errGrab.errorDescription, errGrab.errorCode);
+                                return errGrab;
+                            }
+                        }
+                        else
+                        {
+                            // No rename error.  Update the badge state for anything changed up the tree.
+                            //TODO: This could be optimized by processing either of these (oldPath or newPath) first, then processing
+                            // the other path only up to the point one below the overlapping root path.
+                            UpdateBadgeStateUpTreeStartingWithParentOfNode(newPath, _filePathCloudDirectory.ToString());
+                            UpdateBadgeStateUpTreeStartingWithParentOfNode(oldPath, _filePathCloudDirectory.ToString());
+
+                            // Update the badge for this node
+                            GenericHolder<cloudAppIconBadgeType> newBadgeType;
+                            pFindBadge(newPath, out newBadgeType);        // always returns a badgeType, even if an error occurs.
+                            SendRemoveBadgePathEvent(oldPath);
+                            SendAddBadgePathEvent(newPath, newBadgeType);
+                            _currentBadges.Remove(oldPath);
+                            _currentBadges[newPath] = newBadgeType;
+
+                            return null;
+                        }
                     }
                     else
                     {
@@ -508,6 +763,64 @@ namespace BadgeNET
                 _trace.writeToLog(1, "IconOverlay: pRenameBadgePath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return error;
             }
+        }
+
+        /// <summary>
+        /// Recursively apply a rename to a node and all of its children.
+        /// </summary>
+        /// <param name="node">The top node in a hierarchy.</param>
+        /// <param name="oldPath">The old path.</param>
+        /// <param name="newPath">The new path.</param>
+        private void ManuallyApplyRenamesInHierarchyAndUpdateBadgeState(FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> node, FilePath oldPath, FilePath newPath)
+        {
+            // Error if no parms.
+            if (node == null)
+            {
+                throw new Exception("node must not be null");
+            }
+            if (oldPath == null)
+            {
+                throw new Exception("oldPath must not be null");
+            }
+            if (newPath == null)
+            {
+                throw new Exception("newPath must not be null");
+            }
+
+            // Loop through all of the node's children
+            foreach (FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> child in node.Children)
+            {
+                ManuallyApplyRenamesInHierarchyAndUpdateBadgeState(child, oldPath, newPath);
+            }
+
+            // Process this node.  First apply the rename.
+            FilePath.ApplyRename(node.Value.Key, oldPath, newPath);
+
+            // Now add the badge back in and notify BadgeCom, etc.
+            pSetBadgeType(node.Value.Key, node.Value.Value, alreadyCheckedInitialized: true);
+        }
+
+        /// <summary>
+        /// Recursively update the badge state for a node and all of its children.
+        /// </summary>
+        /// <param name="node">The top node in a hierarchy.</param>
+        /// <remarks>Assumes the lock is already held by the caller on _currentBadges.</remarks>
+        private void UpdateBadgeStateInHierarchy(FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> node)
+        {
+            // Error if no parms.
+            if (node == null)
+            {
+                throw new Exception("node must not be null");
+            }
+
+            // Loop through all of the node's children
+            foreach (FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> child in node.Children)
+            {
+                UpdateBadgeStateInHierarchy(child);
+            }
+
+            // Process this node.  First apply the rename.
+            UpdateBadgeStateAtPath(node.Value.Key);
         }
 
         /// <summary>
@@ -529,24 +842,45 @@ namespace BadgeNET
                 return ex;
             }
         }
-        private CLError pSetBadgeType(FilePath filePath, GenericHolder<cloudAppIconBadgeType> newType)
+        private CLError pSetBadgeType(FilePath filePath, GenericHolder<cloudAppIconBadgeType> newType, bool alreadyCheckedInitialized = false)
         {
             try
             {
-                // ensure this is initialized
-                //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Path: {0}, Type: {1}.", filePath.ToString(), newType.Value.ToString());
-                lock (this)
+                if (!alreadyCheckedInitialized)
                 {
-                    if (!isInitialized)
+                    // ensure this is initialized
+                    //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Path: {0}, Type: {1}.", filePath.ToString(), newType.Value.ToString());
+                    lock (this)
                     {
-                        //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. ERROR: THROW: Must be initialized before setting badges.");
-                        throw new Exception("IconOverlay must be initialized before setting badges");
+                        if (!isInitialized)
+                        {
+                            //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. ERROR: THROW: Must be initialized before setting badges.");
+                            throw new Exception("IconOverlay must be initialized before setting badges");
+                        }
                     }
                 }
 
                 // lock internal list during modification
-                lock (allBadges)
+                lock (_currentBadgesLocker)
                 {
+                    // Retrieve the hierarchy below if this node is selective.
+                    FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> selectiveTree = null;
+                    if (newType.Equals(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncSelective)))
+                    {
+                        CLError errGrab = allBadges.GrabHierarchyForPath(filePath, out selectiveTree, suppressException: true);
+                        if (errGrab != null
+                            || selectiveTree == null)
+                        {
+                            if (errGrab == null)
+                            {
+                                errGrab = new Exception("ERROR: Grabbing filePath hierarchy: tree is null");
+                            }
+                            _trace.writeToLog(9, "IconOverlay: pRenameBadgePath. ERROR: Grabbing filePath hierarchy. Msg: <{0}>.  Code: {1}.", errGrab.errorDescription, errGrab.errorCode);
+                            return errGrab;
+                        }
+
+                    }
+
                     // newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
                     //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Add this type to the dictionary.");
                     if (newType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
@@ -557,27 +891,20 @@ namespace BadgeNET
                     {
                         allBadges[filePath] = newType;
                     }
-                }
 
-                // Notify this node, and all of the parents until the node is null, or equal to the Cloud path.
-                FilePath node = filePath;
-                while (node != null)
-                {
-                    // Notify the file system that this icon needs to be updated.
-                    //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Notify Explorer for path {0}.", node.ToString());
-                    NotifySystemForBadgeUpdate(node);
+                    // Update badges for anything changed up the tree
+                    UpdateBadgeStateUpTreeStartingWithParentOfNode(filePath, _filePathCloudDirectory.ToString());
 
-                    // Quit if we notified the Cloud directory root
-                    if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
+                    // Potentially update badges in this node's children
+                    if (selectiveTree != null)
                     {
-                        //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Break.  At Cloud root.");
-                        break;
+                        // Update the badge state in the grabbed selective tree.
+                        UpdateBadgeStateInHierarchy(selectiveTree);
                     }
 
-                    // Chain up
-                    node = node.Parent;
+                    // Update the badge for this node
+                    UpdateBadgeStateAtPath(filePath);
                 }
-                //_trace.writeToLog(9, "IconOverlay: pSetBadgeType. Exit.");
             }
             catch (Exception ex)
             {
@@ -612,7 +939,7 @@ namespace BadgeNET
             try
             {
                 // lock on dictionary so it is not modified during lookup
-                lock (allBadges)
+                lock (_currentBadgesLocker)
                 {
                     foreach (cloudAppIconBadgeType currentBadge in Enum.GetValues(typeof(cloudAppIconBadgeType)).Cast<cloudAppIconBadgeType>())
                     {
@@ -704,29 +1031,6 @@ namespace BadgeNET
                                 _trace.writeToLog(9, "IconOverlay: Dispose. PipeLocker.");
                                 pipeLocker.pipeRunning = false;
 
-                                // Dispose the badging streams
-                                foreach (KeyValuePair<cloudAppIconBadgeType, NamedPipeServerBadge> currentStreamToKill in pipeBadgeServers)
-                                {
-                                    try
-                                    {
-                                        // cleanup initial pipe connection
-                                        try
-                                        {
-                                            _trace.writeToLog(9, "IconOverlay: Dispose. Stop NamedPipeBadge for badge type {0}.", currentStreamToKill.Key.ToString());
-                                            currentStreamToKill.Value.Stop();
-                                        }
-                                        catch
-                                        {
-                                            _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception stopping NamedPipeBadge for badge type {0}.", currentStreamToKill.Key.ToString());
-                                        }
-                                    }
-                                    catch
-                                    {
-                                        _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (2).");
-                                    }
-                                }
-                                pipeBadgeServers.Clear();
-
                                 // Dispose the context menu stream
                                 try
                                 {
@@ -746,6 +1050,45 @@ namespace BadgeNET
                                     _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (3).");
                                 }
                             }
+
+                            // Tell BadgeCom instances that we are going down.
+                            try
+                            {
+                                if (_badgeComPubSubEvents != null)
+                                {
+                                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncBoxFolderPath event. Msg: <{0}>.", ex.Message);
+                            }
+
+                            // Terminate the BadgeCom initialization watcher
+                            try
+                            {
+                                if (_badgeComPubSubEvents != null)
+                                {
+                                    _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
+                                    _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+                                    _badgeComPubSubEvents.Dispose();
+                                    _badgeComPubSubEvents = null;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: <{0}>.", ex.Message);
+                            }
+
+                            // Clear other references.
+                            lock (_currentBadgesLocker)
+                            {
+                                if (_currentBadges != null)
+                                {
+                                    _currentBadges.Clear();
+                                    _currentBadges = null;
+                                }
+                            }
                         }
                     }
                 }
@@ -760,12 +1103,18 @@ namespace BadgeNET
         /// <summary>
         /// The Cloud directory path captured as a FilePath at initialization.
         /// </summary>
-        private FilePath filePathCloudDirectory { get; set; }
+        private FilePath _filePathCloudDirectory { get; set; }
+
+        /// <summary>
+        /// The dictionary that holds the current state of all of the badges.
+        /// </summary>
+        private Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>> _currentBadges;
+        private readonly object _currentBadgesLocker = new object();
 
         /// <summary>
         /// The hierarhical dictionary that holds all of the badges.  Nodes with null values are assumed to be synced.
         /// </summary>
-        FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> allBadges;
+        private FilePathDictionary<GenericHolder<cloudAppIconBadgeType>> allBadges;
 
         #region notify system of change
         // important (including everything inside)
@@ -840,20 +1189,14 @@ namespace BadgeNET
         };
 
         /// <summary>
-        /// Creates the named pipe server streams to handle badge type communications from the COM object icon overlays
-        /// </summary>
-        private Dictionary<cloudAppIconBadgeType, NamedPipeServerBadge> pipeBadgeServers = new Dictionary<cloudAppIconBadgeType, NamedPipeServerBadge>()
-        {
-            { cloudAppIconBadgeType.cloudAppBadgeSyncing, null },
-            { cloudAppIconBadgeType.cloudAppBadgeSynced, null },
-            { cloudAppIconBadgeType.cloudAppBadgeSyncSelective, null },
-            { cloudAppIconBadgeType.cloudAppBadgeFailed, null }
-        };
-
-        /// <summary>
         /// Creates the named pipe server stream for the shell extension context menu support.
         /// </summary>
         private NamedPipeServerContextMenu pipeContextMenuServer = null;
+
+        /// <summary>
+        /// BadgeComInitWatcher threads subscribe and monitor initialization events from BadgeCom (Explorer shell extension).
+        /// </summary>
+        private BadgeComPubSubEvents _badgeComPubSubEvents = null;
 
         /// <summary>
         /// Object type of pipeLocker
@@ -872,24 +1215,10 @@ namespace BadgeNET
         {
             try
             {
-                // create the processing threads for each server stream (one for each badge type)
-                _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Entry.");
-                foreach (cloudAppIconBadgeType currentBadgeType in new List<cloudAppIconBadgeType>(pipeBadgeServers.Keys))
-                {
-                    // Create a thread to handle this badge type
-                    NamedPipeServerBadge serverBadge = new NamedPipeServerBadge();
-                    serverBadge.UserState = new NamedPipeServerBadge_UserState { BadgeType = currentBadgeType, ShouldIconBeBadged = this.ShouldIconBeBadged, FilePathCloudDirectory = filePathCloudDirectory };
-                    serverBadge.PipeName = Environment.UserName + "/" + PipeName + currentBadgeType;
-                    serverBadge.Run();
-
-                    // Remember this thread for Dispose.
-                    pipeBadgeServers[currentBadgeType] = serverBadge;
-                }
-
                 // Set up the thread params to start the pipe to listen to shell extension context menu messages
                 _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Start new server pipe for the context menu.");
                 NamedPipeServerContextMenu serverContextMenu = new NamedPipeServerContextMenu();
-                serverContextMenu.UserState = new NamedPipeServerContextMenu_UserState { FilePathCloudDirectory = filePathCloudDirectory };
+                serverContextMenu.UserState = new NamedPipeServerContextMenu_UserState { FilePathCloudDirectory = _filePathCloudDirectory };
                 serverContextMenu.PipeName = Environment.UserName + "/" + PipeName + "/ContextMenu";
                 serverContextMenu.Run();
 
@@ -921,11 +1250,11 @@ namespace BadgeNET
                 GenericHolder<cloudAppIconBadgeType> objBadgeType = new GenericHolder<cloudAppIconBadgeType>(badgeType);
 
                 // Lock and query the in-memory database.
-                lock (allBadges)
+                lock (_currentBadgesLocker)
                 {
                     // There will be no badge if the path doesn't contain Cloud root
                     //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Locked.");
-                    if (objFilePath.Contains(filePathCloudDirectory))
+                    if (objFilePath.Contains(_filePathCloudDirectory))
                     {
                         // If the value at this path is set and it is our type, then badge.
                         //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Contains Cloud root.");
@@ -939,9 +1268,12 @@ namespace BadgeNET
                         }
                         else
                         {
+                            // This specific node wasn't found, so it is assumed to be synced, but we won't actually badge as synced.
+                            // Instead, we will search the children and determine a badge state from the children.
+                            // 
                             // If an item is marked selective, then none of its children (whole hierarchy of children) should be badged.
                             //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. TryGetValue not successful.");
-                            if (!FilePathComparer.Instance.Equals(objFilePath, filePathCloudDirectory))
+                            if (!FilePathComparer.Instance.Equals(objFilePath, _filePathCloudDirectory))
                             {
                                 // Recurse through parents of this node up to and including the CloudPath.
                                 //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Recurse thru parents.");
@@ -962,9 +1294,9 @@ namespace BadgeNET
                                         }
                                     }
 
-                                    // Quit if we notified the Cloud directory root
+                                    // Quit if we are at the Cloud directory root
                                     //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?");
-                                    if (FilePathComparer.Instance.Equals(node, filePathCloudDirectory))
+                                    if (FilePathComparer.Instance.Equals(node, _filePathCloudDirectory))
                                     {
                                         //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node.");
                                         break;
@@ -1007,7 +1339,7 @@ namespace BadgeNET
         {
             try
             {
-                // Get the hierarchy of children of this node.
+                // Get the hierarchy of children of this node, including this node.
                 //_trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Get the hierarchy for path: {0}.", objFilePath.ToString());
                 FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
                 CLError error = AllBadges.GrabHierarchyForPath(objFilePath, out tree, suppressException: true);
@@ -1068,9 +1400,9 @@ namespace BadgeNET
                         return cloudAppIconBadgeType.cloudAppBadgeSynced;
                     case cloudAppIconBadgeType.cloudAppBadgeSyncing:
                         return cloudAppIconBadgeType.cloudAppBadgeSyncing;
-                    case cloudAppIconBadgeType.cloudAppBadgeFailed:
+                    case cloudAppIconBadgeType.cloudAppBadgeFailed:             // the current node had no explicit value, and this child is failed, so the parent is syncing.
                         return cloudAppIconBadgeType.cloudAppBadgeSyncing;
-                    case cloudAppIconBadgeType.cloudAppBadgeSyncSelective:
+                    case cloudAppIconBadgeType.cloudAppBadgeSyncSelective:      // the current node had no explicit value, and this child is selective, return synced (which is actually the default value, and will cause the recursion to continue looking).
                         return cloudAppIconBadgeType.cloudAppBadgeSynced;
                 }
             }
@@ -1080,6 +1412,118 @@ namespace BadgeNET
             }
 
             return cloudAppIconBadgeType.cloudAppBadgeSynced;
+        }
+
+        /// <summary>
+        /// Update the badging state to match the hierarchical badge dictionary, working from the parent of a node up to the root.
+        /// </summary>
+        /// <remarks>Assumes the lock is already held by the caller on _currentBadges.</remarks>
+        private void UpdateBadgeStateUpTreeStartingWithParentOfNode(FilePath nodePath, FilePath rootPath)
+        {
+            if (rootPath == null)
+            {
+                throw new NullReferenceException("rootPath cannot be null");
+            }
+
+            // Loop up the tree starting with the parent of the parm node.
+            FilePath node = nodePath;
+            while (node != null
+                && node.Parent != null
+                && !FilePathComparer.Instance.Equals(node, rootPath))
+            {
+                // Update the badging state at this node.  This will send events to BadgeCom, and will keep the current badge flat dictionary up to date.
+                UpdateBadgeStateAtPath(node.Parent);
+
+                // Chain up
+                node = node.Parent;
+            }
+        }
+
+        /// <summary>
+        /// Update the badging state in all BadgeCom instances.  Also maintain the current badge status in a flat dictionary (_currentBadges).
+        /// The new status is read from the allBadges hierarchichal dictionary.  If the new status is different than the
+        /// current status, badging events are sent and the current badge status flat dictionary is updated.
+        /// </summary>
+        /// <remarks>Assumes the lock is already held by the caller on _currentBadges.</remarks>
+        private void UpdateBadgeStateAtPath(FilePath nodePath)
+        {
+            // Get the new badge type for this nodePath from the hierarchical dictionary.
+            GenericHolder<cloudAppIconBadgeType> hierarchicalBadgeType;
+            pFindBadge(nodePath, out hierarchicalBadgeType);        // always returns a badgeType, even if an error occurs.
+
+            // Get the current badge type for this nodePath from the flat dictionary.
+            GenericHolder<cloudAppIconBadgeType> flatBadgeType;
+            _currentBadges.TryGetValue(nodePath, out flatBadgeType);
+
+            // Only process if they are different
+            if ((flatBadgeType == null && hierarchicalBadgeType != null)
+                || (flatBadgeType != null && !flatBadgeType.Equals(hierarchicalBadgeType)))
+            {
+                if (flatBadgeType != null)
+                {
+                    if (hierarchicalBadgeType != null)
+                    {
+                        // They are different and both specified.  Remove and add.
+                        SendRemoveBadgePathEvent(nodePath);
+                        SendAddBadgePathEvent(nodePath, hierarchicalBadgeType);
+                        _currentBadges[nodePath] = hierarchicalBadgeType;
+                    }
+                    else
+                    {
+                        // They are different and there is no hierarchical badge.  Remove.
+                        SendRemoveBadgePathEvent(nodePath);
+                        _currentBadges.Remove(nodePath);
+                    }
+                }
+                else
+                {
+                    // They are different and there is no flat badge.  Add.
+                    SendAddBadgePathEvent(nodePath, hierarchicalBadgeType);
+                    _currentBadges.Add(nodePath, hierarchicalBadgeType);
+                }
+            }
+        }
+
+        
+        /// <summary>
+        /// Send an add badge path event to all BadgeCom instances.
+        /// </summary>
+        /// <param name="nodePath">The path to add.</param>
+        /// <param name="badgeType">The relevant badgeType.  Only the instances that filter for this type will process the event.</param>
+        private void SendAddBadgePathEvent(FilePath nodePath, GenericHolder<cloudAppIconBadgeType> badgeType)
+        {
+            try 
+	        {
+                if (_badgeComPubSubEvents != null)
+                {
+                    _trace.writeToLog(9, "IconOverlay: SendAddBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString());
+                }
+	        }
+	        catch (global::System.Exception ex)
+	        {
+                _trace.writeToLog(1, "IconOverlay: SendAddBadgePathEvent. Exception.  Msg: {0}.", ex.Message);
+	        }
+        }
+
+        /// <summary>
+        /// Send a remove badge path event to all BadgeCom instances.
+        /// </summary>
+        /// <param name="nodePath">The path to remove.</param>
+        private void SendRemoveBadgePathEvent(FilePath nodePath)
+        {
+            try 
+	        {
+                if (_badgeComPubSubEvents != null)
+                {
+                    _trace.writeToLog(9, "IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveBadgePath, 0 /* not used */, nodePath.ToString());
+                }
+	        }
+	        catch (global::System.Exception ex)
+	        {
+                _trace.writeToLog(1, "IconOverlay: SendRemoveBadgePathEvent. Exception.  Msg: {0}.", ex.Message);
+	        }
         }
         #endregion
 
@@ -1213,7 +1657,7 @@ namespace BadgeNET
                                         break;
                                     case SyncDirection.To:
                                         bool isDeleted;
-                                        IconOverlay.DeleteBadgePath(mergedEvent.NewPath, out isDeleted);
+                                        IconOverlay.DeleteBadgePath(mergedEvent.NewPath, out isDeleted, true);
                                         break;
                                     default:
                                         throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());

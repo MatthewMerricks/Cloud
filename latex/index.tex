@@ -9,24 +9,62 @@ See how easy it is\-:
 
 
 \begin{DoxyCode}
-\textcolor{comment}{// ...}
+\textcolor{keyword}{public} \textcolor{keyword}{static} \textcolor{keyword}{class }MyApplication
+\{
+    \textcolor{keyword}{public} \textcolor{keyword}{static} \textcolor{keywordtype}{int} main(\textcolor{keywordtype}{string}[] args)
+    \{
+        \textcolor{comment}{// ...}
+        \textcolor{comment}{// Set the parameters for your SyncBox.}
+        ISyncSettings settings = \textcolor{keyword}{new} SyncSettings(
+            SyncBoxFolderFullPath: \textcolor{stringliteral}{"<full path of SyncBox folder>"},
+            RegistrationInfoApplicationId: \textcolor{stringliteral}{"..."},   \textcolor{comment}{// provided by the
+       registration process}
+            RegistrationInfoSyncBoxId: \textcolor{stringliteral}{"..."},       \textcolor{comment}{// provided by the
+       application developer through the registration process}
+            RegistrationInfoDeviceId: \textcolor{stringliteral}{"..."},        \textcolor{comment}{// provided by the
+       registration process}
+            DatabaseFileFullPath: \textcolor{stringliteral}{"<full path and filename.ext of the database
+       file>"},
+                );
+        
+        \textcolor{comment}{// Construct the SyncBox object with the settings.}
+        CLSync box = \textcolor{keyword}{new} CLSync(settings);
 
-\textcolor{comment}{// Set the parameters for your SyncBox.}
-ISyncSettings settings = \textcolor{keyword}{new} ISyncSettings(
-            settings.udid = \textcolor{stringliteral}{"..."};          \textcolor{comment}{// supplied via account
-       registration}
-            settings.uuid = \textcolor{stringliteral}{"..."};          \textcolor{comment}{// supplied via account
-       registration}
-            settings.akey = \textcolor{stringliteral}{"..."};          \textcolor{comment}{// supplied via account
-       registration}
-            settings.CloudRoot = \textcolor{stringliteral}{"C:\(\backslash\)Users\(\backslash\)ThisUser\(\backslash\)SyncBox1"};
-        );
+        \textcolor{comment}{// Subscribe to the events (notifications).}
+        box.ActivityMessage += OnActivityMessage;
+    
+        \textcolor{comment}{// Start syncing}
+        box.Start(); 
+    
+        \textcolor{comment}{// ...}
+    
+        \textcolor{comment}{// Stop syncing}
+        box.Stop();
+        \textcolor{comment}{// ...}
+    \}
 
-\textcolor{comment}{// Start syncing the SyncBox}
-SyncBox box = \textcolor{keyword}{new} SyncBox(settings);
-box.Start();
+    \textcolor{keyword}{private} \textcolor{keywordtype}{void} OnActivityMessage(\textcolor{keywordtype}{object} sender, ActivityMessageArgs e)
+    \{
+        \textcolor{comment}{// Handle the event}
+        \textcolor{keywordflow}{switch} (e.Message.MessageType)
+        \{
+            \textcolor{keywordflow}{case} EnumMessageType.Informational:
+                MessageBox.Show(\textcolor{stringliteral}{"Informational message: "} + e.Message.Message);
+        \textcolor{comment}{// example only}
+                \textcolor{keywordflow}{break};
 
-\textcolor{comment}{// ...}
+            \textcolor{keywordflow}{case} EnumMessageType.SyncStarted:
+                MessageBox.Show(\textcolor{stringliteral}{"Sync has started"});    \textcolor{comment}{// example only}
+                \textcolor{keywordflow}{break};
+
+            \textcolor{keywordflow}{case} EnumMessageType.SyncStopped:
+                MessageBox.Show(\textcolor{stringliteral}{"Sync has stopped"});    \textcolor{comment}{// example only}
+                \textcolor{keywordflow}{break};
+
+            \textcolor{comment}{// other cases....}
+        \}
+    \}
+\}
 \end{DoxyCode}
 
 

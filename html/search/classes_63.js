@@ -2,6 +2,7 @@ var searchData=
 [
   ['claccount',['CLAccount',['../class_cloud_api_public_1_1_model_1_1_c_l_account.html',1,'CloudApiPublic::Model']]],
   ['classattribute',['ClassAttribute',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_sql_access_1_1_class_attribute.html',1,'CloudApiPublic::SQLIndexer::SqlModel::SqlAccess']]],
+  ['clcopyfiles',['CLCopyFiles',['../class_cloud_api_public_1_1_support_1_1_c_l_copy_files.html',1,'CloudApiPublic::Support']]],
   ['cldevice',['CLDevice',['../class_cloud_api_public_1_1_model_1_1_c_l_device.html',1,'CloudApiPublic::Model']]],
   ['clerror',['CLError',['../class_cloud_api_public_1_1_model_1_1_c_l_error.html',1,'CloudApiPublic::Model']]],
   ['cljsonresultwitherror',['CLJsonResultWithError',['../class_cloud_api_public_1_1_model_1_1_c_l_json_result_with_error.html',1,'CloudApiPublic::Model']]],

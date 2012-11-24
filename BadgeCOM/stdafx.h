@@ -17,7 +17,8 @@
 
 #include "targetver.h"
 
-#define _ATL_APARTMENT_THREADED
+//#define _ATL_APARTMENT_THREADED           //@@@@@@@@@@@@@&&&&&&&&&&&&&
+#define _ATL_FREE_THREADED
 
 #define _ATL_NO_AUTOMATIC_NAMESPACE
 
@@ -32,3 +33,4 @@
 #include <atlctl.h>
 #include <comdef.h>
 #include <ShlObj.h>
+#include <windows.h>

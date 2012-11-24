@@ -69,6 +69,10 @@
   <PropertyGroup>
     <ManifestKeyFile>WinClientCertificate.pfx</ManifestKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="AutomaticUpdaterWPF">
       <HintPath>3rdParty\bin\Release\AutomaticUpdaterWPF.dll</HintPath>
@@ -535,6 +539,7 @@
     <None Include="Artwork\PublicFolderIcon.icns" />
     <None Include="Artwork\SidebarCloud.icns" />
     <AppDesigner Include="Properties\" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
     <EmbeddedResource Include="Resources\CloudRestart" />
     <EmbeddedResource Include="Resources\CloudMoveCloudFolder" />

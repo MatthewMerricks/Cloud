@@ -59,6 +59,7 @@
     <Reference Include="Microsoft.Net.Http">
       <HintPath>..\3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\3rdParty\bin\Debug\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -108,6 +109,7 @@
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
+    <Compile Include="Support\CLCopyFiles.cs" />
     <Compile Include="SyncBox\SyncBox.cs" />
     <Compile Include="SyncSettings\SyncSettings.cs" />
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />

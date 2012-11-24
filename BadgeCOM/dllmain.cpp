@@ -14,9 +14,17 @@
 
 CBadgeCOMModule _AtlModule;
 
+HINSTANCE g_hBadgeComInstance = NULL;
+
 // DLL Entry Point
 extern "C" BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-	hInstance;
+	switch (dwReason)
+    {
+        case DLL_PROCESS_ATTACH:
+            g_hBadgeComInstance = hInstance;
+            break;
+    }
+
 	return _AtlModule.DllMain(dwReason, lpReserved); 
 }
