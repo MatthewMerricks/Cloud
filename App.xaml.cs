@@ -11,7 +11,7 @@ using GalaSoft.MvvmLight.Threading;
 using win_client.ViewModels;
 using win_client.AppDelegate;
 using win_client.Common;
-using BadgeNET;
+using CloudApiPublic.BadgeNET;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Static;

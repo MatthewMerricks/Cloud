@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CloudApiPublic.Support;
-using BadgeNET;
+using CloudApiPublic.BadgeNET;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 

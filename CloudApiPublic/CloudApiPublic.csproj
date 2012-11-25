@@ -46,6 +46,10 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BadgeCOMLib">
+      <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\3rdParty\bin\Release\EntityFramework.dll</HintPath>
     </Reference>
@@ -106,6 +110,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BadgeNET\BadgeComPubSubEvents.cs" />
+    <Compile Include="BadgeNET\Enums.cs" />
+    <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />

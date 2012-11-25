@@ -344,7 +344,6 @@
 		<row><td>AutomaticUpdaterWPF.dll</td><td>{FE1F7E2A-260D-45C0-9F93-57BFEC15505B}</td><td>INSTALLDIR</td><td>2</td><td/><td>automaticupdaterwpf.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeCOM.dll</td><td>{893D7843-DB77-4282-B4EB-3C2A6DCBC332}</td><td>X86</td><td>2</td><td/><td>badgecom.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeCOM.dll1</td><td>{09F994D0-24E1-456A-AE45-7A72BC97519A}</td><td>AMD64</td><td>2</td><td/><td>badgecom.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>BadgeNET.Primary_output</td><td>{F9A20767-A22D-4D83-A21A-B3FA86EDFA95}</td><td>INSTALLDIR</td><td>2</td><td/><td>badgenet.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td>{84489268-EDF1-4D66-9B57-F8AED3BEC035}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapiprivate.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPublic.Primary_output</td><td>{9A53BE05-DFC9-4056-9738-B1C423D7D923}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapipublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSendTo.Primary_output</td><td>{6AA194B5-728C-4238-AC8C-AE7EF0287F60}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsendto.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1941,7 +1940,6 @@
 		<row><td>AlwaysInstall</td><td>AutomaticUpdaterWPF.dll</td></row>
 		<row><td>AlwaysInstall</td><td>BadgeCOM.dll</td></row>
 		<row><td>AlwaysInstall</td><td>BadgeCOM.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>BadgeNET.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudApiPrivate.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudApiPublic.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudSendTo.Primary_output</td></row>
@@ -2014,7 +2012,6 @@
 		<row><td>automaticupdaterwpf.dll</td><td>AutomaticUpdaterWPF.dll</td><td>AUTOMA~1.DLL|AutomaticUpdaterWPF.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\AutomaticUpdaterWPF.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll</td><td>BadgeCOM.dll</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\Release\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\x64\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
-		<row><td>badgenet.primary_output</td><td>BadgeNET.Primary_output</td><td>BadgeNET.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;BadgeNET&gt;|Built</td><td>3</td><td/></row>
 		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\WyUpdater\wyUpdate\client.wyc</td><td>1</td><td/></row>
 		<row><td>cloudapiprivate.primary_outp</td><td>CloudApiPrivate.Primary_output</td><td>CloudApiPrivate.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPrivate&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudapipublic.primary_outpu</td><td>CloudApiPublic.Primary_output</td><td>CloudApiPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPublic&gt;|Built</td><td>3</td><td/></row>
@@ -2327,7 +2324,6 @@
 		<row><td>AutomaticUpdaterWPF.dll</td><td/><td/><td>_ED74303C_9035_4C54_858D_A85315CD21D3_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>BadgeCOM.dll</td><td/><td/><td>_C5B2510B_5A22_45FF_8B64_1D81F76BB2B6_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>BadgeCOM.dll1</td><td/><td/><td>_D14DBBFE_947B_4CAC_A12B_EA302A56D440_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>BadgeNET.Primary_output</td><td/><td/><td>_68A1F3C3_1D5C_4F81_B265_5C456D2987FE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td/><td/><td>_6027BBEB_0CBE_4E7D_B0B7_579A78009BD1_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudApiPublic.Primary_output</td><td/><td/><td>_35D1CFEA_D23D_4ABF_AF5B_40465997CA48_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSendTo.Primary_output</td><td/><td/><td>_8C137BC7_C97F_4636_A1F0_1A2ADCBC28A8_FILTER</td><td/><td/><td/><td/></row>

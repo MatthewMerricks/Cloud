@@ -660,10 +660,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="BadgeNET\BadgeNET.csproj">
-      <Project>{77014147-1a34-4bf6-8fc4-3c85984f8e2e}</Project>
-      <Name>BadgeNET</Name>
-    </ProjectReference>
     <ProjectReference Include="CloudApiPrivate\CloudApiPrivate.csproj">
       <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
       <Name>CloudApiPrivate</Name>
