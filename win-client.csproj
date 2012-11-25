@@ -233,6 +233,7 @@
       <DependentUpon>Resources.fr.resx</DependentUpon>
     </Compile>
     <Compile Include="Services\Badging\CLBadgingService.cs" />
+    <Compile Include="Services\ContextMenu\CLContextMenuService.cs" />
     <Compile Include="Services\FileSystemMonitoring\CLFSMonitoringService.cs" />
     <Compile Include="Services\NetworkMonitoring\CLNetworkMonitorService.cs" />
     <Compile Include="Services\Notification\CLNotificationService.cs" />
@@ -670,6 +671,10 @@
     <ProjectReference Include="CloudApiPublic\CloudApiPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudApiPublic</Name>
+    </ProjectReference>
+    <ProjectReference Include="ContextMenuNET\ContextMenuNET.csproj">
+      <Project>{7478b101-1e7e-446a-961a-56f97324f34c}</Project>
+      <Name>ContextMenuNET</Name>
     </ProjectReference>
     <ProjectReference Include="Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
       <Project>{3697919f-7a1e-43ba-bfdb-3eec2553dd44}</Project>

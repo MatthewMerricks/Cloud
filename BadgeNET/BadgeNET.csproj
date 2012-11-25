@@ -61,19 +61,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BadgeComPubSubEvents.cs" />
-    <Compile Include="ContextMenuObject.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IconOverlay.cs" />
-    <Compile Include="NamedPipeServer.cs" />
-    <Compile Include="NamedPipeServerContextMenu.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Static\NativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CloudApiPrivate\CloudApiPrivate.csproj">
-      <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
-      <Name>CloudApiPrivate</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudApiPublic</Name>

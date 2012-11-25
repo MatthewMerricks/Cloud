@@ -211,9 +211,10 @@ namespace BadgeNET
                         }
                     }
                 }
-
+#if TRASH
                 _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes.");
                 StartBadgeCOMPipes();
+#endif // TRASH &&&&
             }
             catch (Exception ex)
             {
@@ -1032,6 +1033,7 @@ namespace BadgeNET
                                 pipeLocker.pipeRunning = false;
 
                                 // Dispose the context menu stream
+#if TRASH
                                 try
                                 {
                                     // cleanup initial pipe connection
@@ -1049,6 +1051,7 @@ namespace BadgeNET
                                 {
                                     _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (3).");
                                 }
+#endif // TRASH &&&&
                             }
 
                             // Tell BadgeCom instances that we are going down.
@@ -1191,7 +1194,9 @@ namespace BadgeNET
         /// <summary>
         /// Creates the named pipe server stream for the shell extension context menu support.
         /// </summary>
+#if TRASH        
         private NamedPipeServerContextMenu pipeContextMenuServer = null;
+#endif  // TRASH &&&&&
 
         /// <summary>
         /// BadgeComInitWatcher threads subscribe and monitor initialization events from BadgeCom (Explorer shell extension).
@@ -1211,6 +1216,7 @@ namespace BadgeNET
         /// <summary>
         /// Initializes listener threads for NamedPipeServerStreams to talk to BadgeCOM objects
         /// </summary>
+#if TRASH         
         private void StartBadgeCOMPipes()
         {
             try
@@ -1231,6 +1237,7 @@ namespace BadgeNET
                 _trace.writeToLog(1, "IconOverlay: StartBadgeCOMPipes: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
+#endif // TRASH &&&&
 
         /// <summary>
         /// Determine whether this icon should be badged by this badge handler.

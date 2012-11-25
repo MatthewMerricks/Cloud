@@ -15,6 +15,7 @@ using win_client.Services.Badging;
 using win_client.Services.UiActivity;
 using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
+using win_client.Services.ContextMenu;
 using CloudApiPrivate.Common;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.FileMonitor.SyncImplementation;
@@ -120,6 +121,7 @@ namespace win_client.Services.ServicesManager
                         // before the initial list is passed (via InitializeOrReplace)
                         //TODO: Handle any CLErrors returned from these services.
                         CLBadgingService.Instance.BeginBadgingServices();
+                        CLContextMenuService.Instance.BeginContextMenuServices();
                         CLUIActivityService.Instance.BeginUIActivityService();
                         CLNetworkMonitorService.Instance.BeginNetworkMonitoring();
                         CLFSMonitoringService.Instance.BeginFileSystemMonitoring();
@@ -156,6 +158,7 @@ namespace win_client.Services.ServicesManager
                     {
                         _trace.writeToLog(1, "CLServicesManager: StopCoreServices: Stop core services.");
                         CLUIActivityService.Instance.EndUIActivityService();
+                        CLContextMenuService.Instance.EndContextMenuServices();
                         CLBadgingService.Instance.EndBadgingServices();
 
                         //TODO: Enable to hook all user processes for the start of a drag/drop operation

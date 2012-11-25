@@ -27,7 +27,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
-using BadgeNET;
+using ContextMenuNET;
 using Microsoft.Win32.SafeHandles;
 using CloudSendTo.Static;
 using System.IO;
@@ -231,7 +231,7 @@ namespace CloudSendTo
 				    }
 			    }
 
-			    // Gather and send the information to BadgeNet in Cloud.exe if we got a connection.
+			    // Gather and send the information to ContextMenuNET in Cloud.exe if we got a connection.
 			    if (!pipeConnectionFailed)
 			    {
 				    // Get the coordinates of the current Explorer window
@@ -259,7 +259,7 @@ namespace CloudSendTo
 
 				    Trace.WriteLine(String.Format("CloudSendTo: Main: Add the window screen rectangle (LTRB): {0},{1},{2},{3}.", rMyRect.left, rMyRect.top, rMyRect.right, rMyRect.bottom));
                     ContextMenuObject root = new ContextMenuObject();
-                    root.rectExplorerWindowCoordinates = new BadgeNET.RECT();
+                    root.rectExplorerWindowCoordinates = new ContextMenuNET.RECT();
                     root.rectExplorerWindowCoordinates.left = rMyRect.left;
                     root.rectExplorerWindowCoordinates.top = rMyRect.top;
                     root.rectExplorerWindowCoordinates.right = rMyRect.right;
@@ -276,7 +276,7 @@ namespace CloudSendTo
                     // Serialize this object to JSON
                     string payloadToSend = JsonConvert.SerializeObject(root);
 
-				    // Write it to Cloud.exe BadgeNet.
+				    // Write it to Cloud.exe ContextMenuNET.
                     bool success = true;
                     try 
 	                {
@@ -317,7 +317,7 @@ namespace CloudSendTo
 	        // Close the pipe handle
             if (clientPipeHandle != null)
 	        {
-		        Trace.WriteLine("CBadgeIconFailed: Main: Close the pipe handle.");
+		        Trace.WriteLine("CloudSendTo: Main: Close the pipe handle.");
                 clientPipeHandle.Close();
                 clientPipeHandle = null;
 	        }
