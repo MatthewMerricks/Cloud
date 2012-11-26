@@ -37,6 +37,59 @@ namespace CloudApiPublic
         /// no longer functional.
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
+        
+        /// <summary>
+        /// Writes a new set of sync states to the database after a sync completes,
+        /// requires newRootPath to be set on the first sync or on any sync with a new root path
+        /// </summary>
+        /// <param name="syncId">New sync Id from server</param>
+        /// <param name="syncedEventIds">Enumerable of event ids processed in sync</param>
+        /// <param name="syncCounter">Output sync counter local identity</param>
+        /// <returns>Returns an error that occurred during recording the sync, if any</returns>
+        public CLError RecordCompletedSync(string syncId, IEnumerable<long> syncedEventIds, out long syncCounter)
+        {
+            if (_monitor != null)
+            {
+                try
+                {
+                    return _monitor.SyncData.RecordCompletedSync(syncId, syncedEventIds, out syncCounter, _monitor.GetCurrentPath());
+                }
+                catch (Exception ex)
+                {
+                    syncCounter = Helpers.DefaultForType<long>();
+                    return ex;
+                }
+            }
+            else
+            {
+                syncCounter = Helpers.DefaultForType<long>();
+                return new NullReferenceException("Monitor cannot be null");
+            }
+        }
+        
+        /// <summary>
+        /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
+        /// </summary>
+        /// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
+        /// <returns>Returns any error that occurred while wiping the database index</returns>
+        public CLError WipeIndex()
+        {
+            if (_monitor != null)
+            {
+                try
+                {
+                    return _monitor.SyncData.WipeIndex(_monitor.GetCurrentPath());
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+            else
+            {
+                return new NullReferenceException("Monitor cannot be null");
+            }
+        }
 
         /// <summary>
         /// Initialize the SyncBox and start syncing its contents to the Cloud server, and to other devices
@@ -195,19 +248,22 @@ namespace CloudApiPublic
         /// <summary>
         /// Stop syncing the SyncBox, and free all resources.
         /// </summary>
-        private void ReleaseResources()
+        private CLError ReleaseResources()
         {
+            CLError toReturn = null;
+
             if (_monitor != null)
             {
                 try
                 {
                     MonitorStatus monitorIsStopped;
-                    _monitor.Stop(out monitorIsStopped);
+                    toReturn = _monitor.Stop(out monitorIsStopped);
                     _monitor.Dispose();
                     _monitor = null;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    toReturn += ex;
                 }
             }
 
@@ -218,8 +274,9 @@ namespace CloudApiPublic
                     _notifier.DisconnectPushNotificationServer();
                     _notifier = null;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    toReturn += ex;
                 }
             }
 
@@ -230,8 +287,9 @@ namespace CloudApiPublic
                     _indexer.Dispose();
                     _indexer = null;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    toReturn += ex;
                 }
             }
 
@@ -242,10 +300,13 @@ namespace CloudApiPublic
                     _syncEngine.Dispose();
                     _syncEngine = null;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    toReturn += ex;
                 }
             }
+
+            return toReturn;
         }
 
         /// <summary>

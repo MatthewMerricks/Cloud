@@ -350,7 +350,7 @@ namespace win_client.AppDelegate
 
                 // Clear database (will start again at SID "0")
                 _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Wipe the index.");
-                win_client.Services.FileSystemMonitoring.CLFSMonitoringService.Instance.IndexingAgent.WipeIndex(Settings.Instance.CloudFolderPath);
+                win_client.Services.FileSystemMonitoring.CLFSMonitoringService.Instance.SyncBox.WipeIndex();
 
                 //// stop services.
                 //CLAppDelegate *delegate = [NSApp delegate];

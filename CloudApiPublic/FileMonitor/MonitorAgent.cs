@@ -78,6 +78,14 @@ namespace CloudApiPublic.FileMonitor
         }
 
         private readonly ReaderWriterLockSlim InitialIndexLocker = new ReaderWriterLockSlim();
+
+        public ISyncDataObject SyncData
+        {
+            get
+            {
+                return _syncData;
+            }
+        }
         #endregion
 
         #region private fields and property
@@ -90,7 +98,7 @@ namespace CloudApiPublic.FileMonitor
         private GenericHolder<bool> NextSyncQueued = new GenericHolder<bool>(false);
 
         private readonly IndexingAgent Indexer;
-        private readonly ISyncDataObject SyncData;
+        private readonly ISyncDataObject _syncData;
 
         // store the optional logging boolean initialization parameter
         private bool LogProcessingFileChanges;
@@ -242,7 +250,7 @@ namespace CloudApiPublic.FileMonitor
             try
             {
                 // Create sync engine
-                syncEngine = new SyncEngine(new SyncData(newAgent, indexer), syncSettings);
+                syncEngine = new SyncEngine(newAgent._syncData, syncSettings);
             }
             catch (Exception ex)
             {
@@ -332,7 +340,7 @@ namespace CloudApiPublic.FileMonitor
             }
             this._syncSettings = SyncSettings;
             this.Indexer = Indexer;
-            this.SyncData = new SyncData(this, Indexer);
+            this._syncData = new SyncData(this, Indexer);
         }
         // Standard IDisposable implementation based on MSDN System.IDisposable
         ~MonitorAgent()

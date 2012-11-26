@@ -24,6 +24,30 @@ namespace CloudApiPublic.FileMonitor.SyncImplementation
     {
         private MonitorAgent Monitor;
         private IndexingAgent Indexer;
+        
+        /// <summary>
+        /// Writes a new set of sync states to the database after a sync completes,
+        /// requires newRootPath to be set on the first sync or on any sync with a new root path
+        /// </summary>
+        /// <param name="syncId">New sync Id from server</param>
+        /// <param name="syncedEventIds">Enumerable of event ids processed in sync</param>
+        /// <param name="syncCounter">Output sync counter local identity</param>
+        /// <param name="newRootPath">Optional new root path for location of sync root, must be set on first sync</param>
+        /// <returns>Returns an error that occurred during recording the sync, if any</returns>
+        public CLError RecordCompletedSync(string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, FilePath newRootPath = null)
+        {
+            return this.Indexer.RecordCompletedSync(syncId, syncedEventIds, out syncCounter, newRootPath);
+        }
+        
+        /// <summary>
+        /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
+        /// </summary>
+        /// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
+        /// <returns>Returns any error that occurred while wiping the database index</returns>
+        public CLError WipeIndex(string newRootPath)
+        {
+            return this.Indexer.WipeIndex(newRootPath);
+        }
 
         /// <summary>
         /// The SyncData constructor.  Specify the file monitor agent and

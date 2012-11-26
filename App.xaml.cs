@@ -102,7 +102,7 @@ namespace win_client
                         // Wipe the index to cause a re-index.
                         _trace.writeToLog(9, "App.xaml: OnStartup: Wipe the index to cause a re-index.");
                         long syncCounter;
-                        CLFSMonitoringService.Instance.IndexingAgent.RecordCompletedSync(null, new long[0], out syncCounter, Settings.Instance.CloudFolderPath);
+                        CLFSMonitoringService.Instance.SyncBox.RecordCompletedSync(null, new long[0], out syncCounter);
                     }
                     catch (Exception ex)
                     {
