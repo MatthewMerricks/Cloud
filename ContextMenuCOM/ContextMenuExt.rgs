@@ -1,0 +1,46 @@
+HKCR
+{
+	NoRemove CLSID
+	{
+		ForceRemove {EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7} = s 'ContextMenuExt Class'
+		{
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Both'
+			}
+			TypeLib = s '{0368C347-E635-4FD7-B26F-F3AC0A088AA4}'
+			Version = s '1.0'
+		}
+	}
+	NoRemove *
+	{
+		NoRemove shellex
+		{
+			NoRemove ContextMenuHandlers
+			{
+				{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}
+			}
+
+		}
+	}
+	NoRemove lnkfile
+	{
+		NoRemove shellex
+		{
+			NoRemove ContextMenuHandlers
+			{
+				{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}
+			}
+		}
+	}
+	NoRemove Folder
+	{
+		NoRemove shellex
+		{
+			NoRemove ContextMenuHandlers
+			{
+				{EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7}
+			}
+		}
+	}
+}

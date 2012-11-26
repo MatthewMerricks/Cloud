@@ -1,0 +1,45 @@
+//
+// ContextMenuCOM.idl
+// Cloud Windows COM
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+// ContextMenuCOM.idl : IDL source for ContextMenuCOM
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (ContextMenuCOM.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+
+[
+	uuid(0368C347-E635-4FD7-B26F-F3AC0A088AA4),
+	helpstring("ContextMenuCOMLib 1.0 Type Library"),
+	version(1.0)
+]
+library ContextMenuCOMLib
+{
+	importlib("stdole2.tlb");
+
+    [
+	    object,
+	    uuid(AB106C13-A5A9-43F4-AA96-01EDE8395F86),
+   		helpstring("IContextMenuExt Interface"),
+        pointer_default(unique)
+    ]
+    interface IContextMenuExt : IUnknown{
+    };
+
+	[
+		uuid(EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7)		
+	]
+	coclass ContextMenuExt
+	{
+		[default] interface IContextMenuExt;
+	};
+};
+
+import "shobjidl.idl";

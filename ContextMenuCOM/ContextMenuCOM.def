@@ -1,0 +1,17 @@
+;
+; ContextMenuCOM.def
+; Cloud Windows COM
+;
+; Created By BobS.
+; Copyright (c) Cloud.com. All rights reserved.
+
+; ContextMenuCOM.def : Declares the module parameters.
+
+LIBRARY
+
+EXPORTS
+	DllCanUnloadNow		PRIVATE
+	DllGetClassObject	PRIVATE
+	DllRegisterServer	PRIVATE
+	DllUnregisterServer	PRIVATE
+	DllInstall		    PRIVATE
