@@ -125,7 +125,7 @@ namespace CloudApiPublic
 
                 // Start the indexer.
                 _trace.writeToLog(9, "SyncBox: Start: Start the indexer.");
-                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, copiedSettings.DatabaseFile);
+                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, settings.Uuid, copiedSettings.DatabaseFile);
                 if (indexCreationError != null)
                 {
                     _trace.writeToLog(1, "SyncBox: Start: ERROR: Exception. Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);
