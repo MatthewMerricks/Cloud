@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CloudApiPublic.Support;
-using BadgeNET;
+using CloudApiPublic.BadgeNET;
 using CloudApiPublic.Model;
 using CloudApiPrivate.Model.Settings;
 
@@ -66,7 +66,7 @@ namespace win_client.Services.Badging
             {
                 if (!isBadgingInitialized)
                 {
-                    CLError initializeError = IconOverlay.Initialize(Settings.Instance.CloudFolderPath);
+                    CLError initializeError = IconOverlay.Initialize(CLSettingsSync.Instance);
                     if (initializeError != null)
                     {
                         _trace.writeToLog(1, "CLBadgingServices: BeginBadgingServices: ERROR: From IconOverlay.Initialize. Msg: <{0}>. Code: {1}.", initializeError.errorDescription, initializeError.errorCode);

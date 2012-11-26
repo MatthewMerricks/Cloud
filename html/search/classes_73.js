@@ -7,7 +7,7 @@ var searchData=
   ['sqlenum',['SqlEnum',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_sql_enum.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
   ['stringcrc',['StringCRC',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_string_c_r_c.html',1,'CloudApiPublic::SQLIndexer']]],
   ['sync',['Sync',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_sync.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
-  ['syncbox',['SyncBox',['../class_cloud_api_public_1_1_sync_box_1_1_sync_box.html',1,'CloudApiPublic::SyncBox']]],
+  ['syncbox',['SyncBox',['../class_cloud_api_public_1_1_sync_box.html',1,'CloudApiPublic']]],
   ['syncdata',['SyncData',['../class_cloud_api_public_1_1_file_monitor_1_1_sync_implementation_1_1_sync_data.html',1,'CloudApiPublic::FileMonitor::SyncImplementation']]],
   ['syncedobject',['SyncedObject',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_synced_object.html',1,'CloudApiPublic::SQLIndexer']]],
   ['syncsettings',['SyncSettings',['../class_cloud_api_public_1_1_file_monitor_1_1_sync_settings_1_1_sync_settings.html',1,'CloudApiPublic::FileMonitor::SyncSettings']]]

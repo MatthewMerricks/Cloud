@@ -56,19 +56,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CloudSendTo.cs" />
-    <Compile Include="ManagementObjectSearcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Static\NativeMethods.cs" />
-    <Compile Include="StreamString.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BadgeNET\BadgeNET.csproj">
-      <Project>{77014147-1a34-4bf6-8fc4-3c85984f8e2e}</Project>
-      <Name>BadgeNET</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CloudApiPrivate\CloudApiPrivate.csproj">
       <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
       <Name>CloudApiPrivate</Name>
@@ -77,10 +71,13 @@
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudApiPublic</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ContextMenuNET\ContextMenuNET.csproj">
+      <Project>{7478b101-1e7e-446a-961a-56f97324f34c}</Project>
+      <Name>ContextMenuNET</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="cloud.ico" />
-    <Content Include="tips.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

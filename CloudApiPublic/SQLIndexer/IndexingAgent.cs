@@ -1140,10 +1140,16 @@ namespace CloudApiPublic.SQLIndexer
                                                     MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(newPath), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(newPath, out isDeleted);
                                                 }
 
+                                                // If any of the previous pending events from the database are both not in the list of completed events and match the current completed event's path,
+                                                // then badge that path as syncing, because there is at least one remaining pended event.
                                                 if (existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
                                                     setBadge(PathState.Syncing, newPath);
+                                                }
+                                                else if (!previousEvent.SyncFrom)
+                                                {
+                                                    setBadge(PathState.Synced, newPath);
                                                 }
                                                 break;
                                             case FileChangeType.Modified:
@@ -1247,6 +1253,7 @@ namespace CloudApiPublic.SQLIndexer
                                                     MessageEvents.RenameBadgePath(this, new RenameBadgePath(oldPath, newPath));   // Message to invoke BadgeNet.IconOverlay.RenameBadgePath(oldPath, newPath);
                                                 }
 
+                                                // If there are no other events pending at this same path, mark the renamed path as synced.
                                                 if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
@@ -2050,6 +2057,10 @@ namespace CloudApiPublic.SQLIndexer
                                 bool isDeleted;
                                 MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(currentEvent.FileSystemObject.Path), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
                             }
+                            else
+                            {
+                                setBadgeSynced(currentEvent.FileSystemObject.Path);
+                            }
                             break;
                         case FileChangeType.Renamed:
                             if (currentEvent.SyncFrom)
@@ -2322,6 +2333,11 @@ namespace CloudApiPublic.SQLIndexer
                     {
                         changeList.Add(possibleDeletion);
                     }
+                }
+
+                foreach (FilePath initiallySyncedBadge in indexPaths.Keys)
+                {
+                    MessageEvents.SetPathState(this, new SetBadge(PathState.Synced, initiallySyncedBadge));
                 }
 
                 // Callback on initial index completion

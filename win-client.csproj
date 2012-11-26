@@ -69,6 +69,10 @@
   <PropertyGroup>
     <ManifestKeyFile>WinClientCertificate.pfx</ManifestKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="AutomaticUpdaterWPF">
       <HintPath>3rdParty\bin\Release\AutomaticUpdaterWPF.dll</HintPath>
@@ -229,6 +233,7 @@
       <DependentUpon>Resources.fr.resx</DependentUpon>
     </Compile>
     <Compile Include="Services\Badging\CLBadgingService.cs" />
+    <Compile Include="Services\ContextMenu\CLContextMenuService.cs" />
     <Compile Include="Services\FileSystemMonitoring\CLFSMonitoringService.cs" />
     <Compile Include="Services\NetworkMonitoring\CLNetworkMonitorService.cs" />
     <Compile Include="Services\Notification\CLNotificationService.cs" />
@@ -535,6 +540,7 @@
     <None Include="Artwork\PublicFolderIcon.icns" />
     <None Include="Artwork\SidebarCloud.icns" />
     <AppDesigner Include="Properties\" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
     <EmbeddedResource Include="Resources\CloudRestart" />
     <EmbeddedResource Include="Resources\CloudMoveCloudFolder" />
@@ -654,10 +660,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="BadgeNET\BadgeNET.csproj">
-      <Project>{77014147-1a34-4bf6-8fc4-3c85984f8e2e}</Project>
-      <Name>BadgeNET</Name>
-    </ProjectReference>
     <ProjectReference Include="CloudApiPrivate\CloudApiPrivate.csproj">
       <Project>{02780ac8-0096-407a-b2d4-2ab98821ea47}</Project>
       <Name>CloudApiPrivate</Name>
@@ -665,6 +667,10 @@
     <ProjectReference Include="CloudApiPublic\CloudApiPublic.csproj">
       <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
       <Name>CloudApiPublic</Name>
+    </ProjectReference>
+    <ProjectReference Include="ContextMenuNET\ContextMenuNET.csproj">
+      <Project>{7478b101-1e7e-446a-961a-56f97324f34c}</Project>
+      <Name>ContextMenuNET</Name>
     </ProjectReference>
     <ProjectReference Include="Dialog.Abstractions.Wpf\Dialog.Abstractions.Wpf.csproj">
       <Project>{3697919f-7a1e-43ba-bfdb-3eec2553dd44}</Project>
