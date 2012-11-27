@@ -25,6 +25,7 @@ using CloudApiPublic.Support;
 using System.Runtime.InteropServices;
 using BadgeCOMLib;
 using CloudApiPublic.Interfaces;
+using CloudApiPublic.Sync;
 
 namespace CloudApiPublic.BadgeNET
 {
@@ -55,6 +56,7 @@ namespace CloudApiPublic.BadgeNET
         private static IconOverlay _instance = null;
         private static object InstanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance;
+        private static ISyncSettingsAdvanced _syncSettings;
 
         // Constructor for Singleton pattern is private
         private IconOverlay()
@@ -88,6 +90,12 @@ namespace CloudApiPublic.BadgeNET
                 {
                     throw new NullReferenceException("syncSettings cannot be null");
                 }
+
+                // Copy sync settings in case third party attempts to change values without restarting sync 
+                _syncSettings = SyncSettingsExtensions.CopySettings(syncSettings);
+
+                // Initialize trace in case it is not already initialized.
+                CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel);
 
                 _trace.writeToLog(9, "IconOverlay: Initialize: Entry.");
                 return Instance.pInitialize(syncSettings.CloudRoot, initialList);

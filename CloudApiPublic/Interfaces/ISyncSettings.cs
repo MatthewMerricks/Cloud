@@ -16,10 +16,6 @@ namespace CloudApiPublic.Interfaces
     public interface IAddTraceSettings
     {
         /// <summary>
-        /// Location where the error log will be stored (flat text file); Only required to not be null if LogErrors is set to true
-        /// </summary>
-        string ErrorLogLocation { get; }
-        /// <summary>
         /// Whether to log errors to a flat text file
         /// </summary>
         bool LogErrors { get; }
@@ -35,6 +31,10 @@ namespace CloudApiPublic.Interfaces
         /// Whether to exclude authorization information (authentication keys, usernames/passwords, etc.) from the trace file; can return based on TraceType (i.e. "return (TraceType & TraceType.AddAuthorization) != TraceType.AddAuthorization;")
         /// </summary>
         bool TraceExcludeAuthorization { get; }
+        /// <summary>
+        /// Specify 1 for the only the most important traces.  Use a higher number for more detail.
+        /// </summary>
+        int TraceLevel { get; }
     }
 
     public interface IPushSettings

@@ -108,9 +108,9 @@ Inheritance diagram for CloudApiPublic.Sync.HttpScheduler:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a7cf74c44d4599e5694487dbc6d21b2fc"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_cloud_api_public_1_1_sync_1_1_http_scheduler.html">HttpScheduler</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_sync_1_1_http_scheduler.html#a7cf74c44d4599e5694487dbc6d21b2fc">GetSchedulerByDirection</a> (<a class="el" href="namespace_cloud_api_public_1_1_static.html#a8ba5d1f6d06fa058730616f021c8974f">SyncDirection</a> direction, <a class="el" href="interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings.html">ISyncSettings</a> syncSettings)</td></tr>
-<tr class="memdesc:a7cf74c44d4599e5694487dbc6d21b2fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Instance accessor for this <a class="el" href="class_cloud_api_public_1_1_sync_1_1_http_scheduler.html" title="Extended TaskScheduler for Sync upload and download tasks to limit concurrency and handle exceptions;...">HttpScheduler</a>, use the return instance as a parameter for [Task].Start  <a href="#a7cf74c44d4599e5694487dbc6d21b2fc"></a><br/></td></tr>
-<tr class="separator:a7cf74c44d4599e5694487dbc6d21b2fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38a2cbc4cc59a26e4d05f618f0f2c19d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_cloud_api_public_1_1_sync_1_1_http_scheduler.html">HttpScheduler</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_sync_1_1_http_scheduler.html#a38a2cbc4cc59a26e4d05f618f0f2c19d">GetSchedulerByDirection</a> (<a class="el" href="namespace_cloud_api_public_1_1_static.html#a8ba5d1f6d06fa058730616f021c8974f">SyncDirection</a> direction, <a class="el" href="interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html">ISyncSettingsAdvanced</a> syncSettings)</td></tr>
+<tr class="memdesc:a38a2cbc4cc59a26e4d05f618f0f2c19d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Instance accessor for this <a class="el" href="class_cloud_api_public_1_1_sync_1_1_http_scheduler.html" title="Extended TaskScheduler for Sync upload and download tasks to limit concurrency and handle exceptions;...">HttpScheduler</a>, use the return instance as a parameter for [Task].Start  <a href="#a38a2cbc4cc59a26e4d05f618f0f2c19d"></a><br/></td></tr>
+<tr class="separator:a38a2cbc4cc59a26e4d05f618f0f2c19d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b654a57f79ca5b29982a697e017814e"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_sync_1_1_http_scheduler.html#a5b654a57f79ca5b29982a697e017814e">DisposeBothSchedulers</a> ()</td></tr>
 <tr class="memdesc:a5b654a57f79ca5b29982a697e017814e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds the HttpSchedulers that exist and are not yet disposed and disposes them  <a href="#a5b654a57f79ca5b29982a697e017814e"></a><br/></td></tr>
 <tr class="separator:a5b654a57f79ca5b29982a697e017814e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -167,7 +167,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsGCOverridden
 
 </div>
 </div>
-<a class="anchor" id="a7cf74c44d4599e5694487dbc6d21b2fc"></a>
+<a class="anchor" id="a38a2cbc4cc59a26e4d05f618f0f2c19d"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -183,7 +183,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsGCOverridden
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings.html">ISyncSettings</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html">ISyncSettingsAdvanced</a>&#160;</td>
           <td class="paramname"><em>syncSettings</em>&#160;</td>
         </tr>
         <tr>
@@ -203,6 +203,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsGCOverridden
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">direction</td><td>Use From for downloads and To for uploads</td></tr>
+    <tr><td class="paramname">syncSettings</td><td>Settings to use for logging errors</td></tr>
   </table>
   </dd>
 </dl>
@@ -239,7 +240,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsGCOverridden
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2012 16:29:49 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Nov 27 2012 10:28:43 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

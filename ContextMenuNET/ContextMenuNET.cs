@@ -28,7 +28,7 @@ using CloudApiPublic.Interfaces;
 namespace ContextMenuNET
 {
     /// <summary>
-    /// ContextMenuServer listens for context menu messages from the BadgeCOM shell extension.  The messages are sent when the user
+    /// ContextMenuServer listens for context menu messages from the ContextMenuCOM shell extension.  The messages are sent when the user
     /// has selected one or more files or folders in Explorer, and has selected the primary context menu "Share with Cloud", or the
     /// secondary Send-To context menu item "Share with Cloud".  This server receives the event and the list of files/folders.
     /// The files and/or folders are copied to the Cloud folder root.
@@ -114,9 +114,9 @@ namespace ContextMenuNET
                 // Capture the Cloud directory path for performance.
                 _filePathCloudDirectory = cloudRoot;
 
-                // Start the named pipes for communicating with BadgeCOM.
-                _trace.writeToLog(9, "ContextMenuServer: StartBadgeCOMPipes.");
-                StartBadgeCOMPipes();
+                // Start the named pipes for communicating with ContextMenuCOM.
+                _trace.writeToLog(9, "ContextMenuServer: pInitialize: StartContextMenuCOMPipes.");
+                StartContextMenuCOMPipes();
             }
             catch (Exception ex)
             {
@@ -274,14 +274,14 @@ namespace ContextMenuNET
         private FilePath _filePathCloudDirectory { get; set; }
 
 
-        #region methods to interface with BadgeCOM
+        #region methods to interface with ContextMenuCOM
         #region variables, constants, and local classes
         /// <summary>
         /// Constant pipename for initial badging connections and appended for unique return connections
         /// (must match pipename used by COM objects).  The actual pipe name is of the form:
-        /// "<UserName>/BadgeCOM/ContextMenu".</UserName>
+        /// "<UserName>/ContextMenuCOM/ContextMenu".</UserName>
         /// </summary>
-        private const string PipeName = "BadgeCOM";
+        private const string PipeName = "ContextMenuCOM";
 
         /// <summary>
         /// Lockable object used to store running state of the initial badging connection pipe
@@ -307,14 +307,14 @@ namespace ContextMenuNET
         #endregion
 
         /// <summary>
-        /// Initializes listener threads for NamedPipeServerStreams to talk to BadgeCOM objects
+        /// Initializes listener threads for NamedPipeServerStreams to talk to ContextMenuCOM objects
         /// </summary>
-        private void StartBadgeCOMPipes()
+        private void StartContextMenuCOMPipes()
         {
             try
             {
                 // Set up the thread params to start the pipe to listen to shell extension context menu messages
-                _trace.writeToLog(9, "ContextMenuServer: StartBadgeCOMPipes. Start new server pipe for the context menu.");
+                _trace.writeToLog(9, "ContextMenuServer: StartContextMenuCOMPipes. Start new server pipe for the context menu.");
                 NamedPipeServerContextMenu serverContextMenu = new NamedPipeServerContextMenu();
                 serverContextMenu.UserState = new NamedPipeServerContextMenu_UserState { FilePathCloudDirectory = _filePathCloudDirectory };
                 serverContextMenu.PipeName = Environment.UserName + "/" + PipeName + "/ContextMenu";
@@ -326,7 +326,7 @@ namespace ContextMenuNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                _trace.writeToLog(1, "ContextMenuServer: StartBadgeCOMPipes: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "ContextMenuServer: StartContextMenuCOMPipes: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
         #endregion

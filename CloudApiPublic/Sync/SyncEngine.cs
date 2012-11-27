@@ -91,6 +91,10 @@ namespace CloudApiPublic.Sync
                 throw new NullReferenceException("syncSettings Uuid cannot be null");
             }
 
+            // Initialize trace in case it is not already initialized.
+            CLTrace.Initialize(this.syncSettings.TraceLocation, "Cloud", "log", this.syncSettings.TraceLevel);
+            CLTrace.Instance.writeToLog(9, "SyncEngine: SyncEngine: Entry.");
+
             this.DefaultTempDownloadsPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" +
                 Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
                 "\\" + this.syncSettings.Uuid + // unique downloads location for each user
@@ -221,7 +225,7 @@ namespace CloudApiPublic.Sync
                             }
                             if (err != null)
                             {
-                                err.LogErrors(storeSettings.ErrorLogLocation, storeSettings.LogErrors);
+                                err.LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
                             }
                         }
                         catch
@@ -257,7 +261,7 @@ namespace CloudApiPublic.Sync
                 }
                 else
                 {
-                    ((CLError)ex).LogErrors(storeSettings.ErrorLogLocation, storeSettings.LogErrors);
+                    ((CLError)ex).LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
                 }
             }
         }
@@ -718,7 +722,7 @@ namespace CloudApiPublic.Sync
                                                     // if an error occurred storing the completion, then log it
                                                     if (sqlCompleteError != null)
                                                     {
-                                                        sqlCompleteError.LogErrors(completeState.Result.SyncSettings.ErrorLogLocation,
+                                                        sqlCompleteError.LogErrors(completeState.Result.SyncSettings.TraceLocation,
                                                             completeState.Result.SyncSettings.LogErrors);
                                                     }
                                                 }
@@ -1295,7 +1299,7 @@ namespace CloudApiPublic.Sync
                                             // if an error occurred storing the completion, then log it
                                             if (sqlCompleteError != null)
                                             {
-                                                sqlCompleteError.LogErrors(eventCompletion.Result.SyncSettings.ErrorLogLocation, eventCompletion.Result.SyncSettings.LogErrors);
+                                                sqlCompleteError.LogErrors(eventCompletion.Result.SyncSettings.TraceLocation, eventCompletion.Result.SyncSettings.LogErrors);
                                             }
                                         }
                                     }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
@@ -1454,7 +1458,8 @@ namespace CloudApiPublic.Sync
                     toReturn); // return error to aggregate with more errors
 
                 // advanced trace, SyncRunEndRequeuedFailures
-                if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow
+                    && errorsToQueue != null) // <-- fixed a parameter exception on the Enumerable.Select extension method used in the trace statement
                 {
                     Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
                 }
@@ -1496,7 +1501,7 @@ namespace CloudApiPublic.Sync
                     // if there was any error content besides streams to dispose, then log the errors
                     if (!onlyErrorIsFileStream)
                     {
-                        toReturn.LogErrors(syncSettings.ErrorLogLocation, syncSettings.LogErrors);
+                        toReturn.LogErrors(syncSettings.TraceLocation, syncSettings.LogErrors);
                     }
                 }
 
@@ -2285,7 +2290,7 @@ namespace CloudApiPublic.Sync
                                         }
 
                                         // log the error
-                                        err.LogErrors(castState.SyncSettings.ErrorLogLocation, castState.SyncSettings.LogErrors);
+                                        err.LogErrors(castState.SyncSettings.TraceLocation, castState.SyncSettings.LogErrors);
                                     }
                                 }
 
@@ -2562,7 +2567,7 @@ namespace CloudApiPublic.Sync
             catch (Exception innerEx)
             {
                 // log error that occurred in attempting to clean up the error
-                ((CLError)innerEx).LogErrors(exceptionState.SyncSettings.ErrorLogLocation, exceptionState.SyncSettings.LogErrors);
+                ((CLError)innerEx).LogErrors(exceptionState.SyncSettings.TraceLocation, exceptionState.SyncSettings.LogErrors);
             }
         }
 
@@ -3379,7 +3384,7 @@ namespace CloudApiPublic.Sync
             catch (Exception innerEx)
             {
                 // log the error that occurred trying to cleanup after a download error
-                ((CLError)innerEx).LogErrors(exceptionState.SyncSettings.ErrorLogLocation, exceptionState.SyncSettings.LogErrors);
+                ((CLError)innerEx).LogErrors(exceptionState.SyncSettings.TraceLocation, exceptionState.SyncSettings.LogErrors);
             }
         }
         /// <summary>
@@ -3706,7 +3711,7 @@ namespace CloudApiPublic.Sync
                         // if there was an error adding the dependencies to the processing queue, then log the error
                         if (err != null)
                         {
-                            err.LogErrors(syncSettings.ErrorLogLocation, syncSettings.LogErrors);
+                            err.LogErrors(syncSettings.TraceLocation, syncSettings.LogErrors);
                         }
                     }
                     catch (Exception ex)
@@ -3735,7 +3740,7 @@ namespace CloudApiPublic.Sync
                         }
                         
                         // log the error
-                        ((CLError)new Exception("Error adding dependencies of a completed file download to the processing queue", ex)).LogErrors(syncSettings.ErrorLogLocation, syncSettings.LogErrors);
+                        ((CLError)new Exception("Error adding dependencies of a completed file download to the processing queue", ex)).LogErrors(syncSettings.TraceLocation, syncSettings.LogErrors);
                     }
                 }
             }

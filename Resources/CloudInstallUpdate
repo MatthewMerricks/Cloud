@@ -29,13 +29,19 @@
    Dim windowsPath
    Dim cachePathWc
    Dim cachePathWyUpdateAu
+   Dim currentDate
+   Dim sApplicationDataLocalFolderPath
    
    Set objFileSys = wscript.CreateObject("Scripting.FileSystemObject") 
    Set objShell = wscript.createObject("wscript.shell") 
  
    shouldTrace = True
    shouldExplorerBeStarted = False
-   logFileFullPath = objFileSys.GetSpecialFolder(2) & "\CloudTrace.log"
+   currentDate = Date
+
+   sApplicationDataLocalFolderPath = objShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
+   logFileFullPath = sApplicationDataLocalFolderPath & "\Cloud\Trace-" & currentDate.Year & "-" & PadDigits(currentDate.Month, 2) & "-" & PadDigits(currentDate.Day, 2) & "-" & "CloudVbs.log"
+
    windowsPath = objShell.ExpandEnvironmentStrings("%windir%")
    sExplorerPath = windowsPath & "\explorer.exe"
    cachePathWc = objShell.ExpandEnvironmentStrings("%userprofile%") & "\wc"

@@ -118,14 +118,14 @@ enum \hyperlink{namespace_cloud_api_public_1_1_static_a5c3e1c9c171c6fc2d14d98e75
  \}
 \begin{DoxyCompactList}\small\item\em \end{DoxyCompactList}\item 
 enum \hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Trace\-Type} \-: int \{ \\*
-{\bfseries Not\-Enabled} = 0x00, 
-{\bfseries Communication} = 0x01, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Not\-Enabled} = 0x00, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Communication} = 0x01, 
 \hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Add\-Authorization} = 0x02, 
-{\bfseries Communication\-Include\-Authorization} = 0x03, 
+\hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Communication\-Include\-Authorization} = 0x03, 
 \\*
-{\bfseries File\-Change\-Flow} = 0x04
+\hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{File\-Change\-Flow} = 0x04
  \}
-\begin{DoxyCompactList}\small\item\em Types of Trace Log entries; must match Trace\-Log.\-xsd \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Types of Trace Log entries (flags); must match Trace\-Log.\-xsd \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Enumeration Type Documentation}
@@ -272,13 +272,21 @@ Enumeration for direction of sync
 \subsubsection[{Trace\-Type}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Cloud\-Api\-Public.\-Static.\-Trace\-Type} \-: int}}\label{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}
 
 
-Types of Trace \hyperlink{class_cloud_api_public_1_1_static_1_1_log}{Log} entries; must match Trace\-Log.\-xsd 
+Types of Trace \hyperlink{class_cloud_api_public_1_1_static_1_1_log}{Log} entries (flags); must match Trace\-Log.\-xsd 
 
 \begin{Desc}
 \item[Enumerator\-: ]\par
 \begin{description}
-\index{Add\-Authorization@{Add\-Authorization}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Add\-Authorization@{Add\-Authorization}}\item[{\em 
+\index{Not\-Enabled@{Not\-Enabled}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Not\-Enabled@{Not\-Enabled}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Not\-Enabled}\label{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}
+}]No general trace (errors are handled seperately) \index{Communication@{Communication}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Communication@{Communication}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Communication}\label{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}
+}]Communication tracing estimates the H\-T\-T\-P headers and body content during communication; when used without the Add\-Authorization flag, authorization parameters will be exluded such as authentication tokens or user/pass \index{Add\-Authorization@{Add\-Authorization}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Add\-Authorization@{Add\-Authorization}}\item[{\em 
 \hypertarget{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Add\-Authorization}\label{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}
-}]Add\-Authorization is only valid in conjunction with Communication (Communication\-Include\-Authorization) \end{description}
+}]Add\-Authorization is only valid in conjunction with Communication (Communication\-Include\-Authorization); Adding this will cause authorization parameters to appear in communication trace such as authentication tokens or user/pass (in plain text!!!) \index{Communication\-Include\-Authorization@{Communication\-Include\-Authorization}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!Communication\-Include\-Authorization@{Communication\-Include\-Authorization}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Communication\-Include\-Authorization}\label{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}
+}]See flags Communication and Add\-Authorization tags for this combination flag \index{File\-Change\-Flow@{File\-Change\-Flow}!Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}}\index{Cloud\-Api\-Public\-::\-Static@{Cloud\-Api\-Public\-::\-Static}!File\-Change\-Flow@{File\-Change\-Flow}}\item[{\em 
+\hypertarget{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{File\-Change\-Flow}\label{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}
+}]Logging the flow of File\-Changes is extremely costly, use for development purposes only \end{description}
 \end{Desc}
 

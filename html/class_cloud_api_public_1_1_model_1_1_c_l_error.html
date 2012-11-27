@@ -111,9 +111,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>AddFileStream</b> (St
 <tr class="memitem:a4e663afbfc99de8521f9a9440b3eb410"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4e663afbfc99de8521f9a9440b3eb410"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>AddException</b> (Exception ex, bool replaceErrorDescription=false)</td></tr>
 <tr class="separator:a4e663afbfc99de8521f9a9440b3eb410"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74f5cb28db3f4ca09c664298a2381d52"><td class="memItemLeft" align="right" valign="top">IEnumerable&lt; Stream &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html#a74f5cb28db3f4ca09c664298a2381d52">DequeueFileStreams</a> ()</td></tr>
-<tr class="memdesc:a74f5cb28db3f4ca09c664298a2381d52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes all the FileStream instances out of this error and returns them for disposal  <a href="#a74f5cb28db3f4ca09c664298a2381d52"></a><br/></td></tr>
-<tr class="separator:a74f5cb28db3f4ca09c664298a2381d52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c13631040d4109222701c2869de8e08"><td class="memItemLeft" align="right" valign="top">IEnumerable&lt; Stream &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html#a7c13631040d4109222701c2869de8e08">DequeueStreams</a> ()</td></tr>
+<tr class="memdesc:a7c13631040d4109222701c2869de8e08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes all the FileStream instances out of this error and returns them for disposal  <a href="#a7c13631040d4109222701c2869de8e08"></a><br/></td></tr>
+<tr class="separator:a7c13631040d4109222701c2869de8e08"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add9bcf1572e5b8777988ee71fe3667c7"><td class="memItemLeft" align="right" valign="top">Exception&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html#add9bcf1572e5b8777988ee71fe3667c7">GrabFirstException</a> ()</td></tr>
 <tr class="memdesc:add9bcf1572e5b8777988ee71fe3667c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the first exception contained in errorInfo within this <a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>  <a href="#add9bcf1572e5b8777988ee71fe3667c7"></a><br/></td></tr>
 <tr class="separator:add9bcf1572e5b8777988ee71fe3667c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -171,9 +171,9 @@ string&#160;</td><td class="memItemRight" valign="bottom"><b>errorDescription</b
 <tr class="memitem:a28253daef958732303fb02d49a0a28ed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a28253daef958732303fb02d49a0a28ed"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>errorCode</b></td></tr>
 <tr class="separator:a28253daef958732303fb02d49a0a28ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:addcadeb1e44fb42379f81fb4289b17e7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="addcadeb1e44fb42379f81fb4289b17e7"></a>
-const string&#160;</td><td class="memItemRight" valign="bottom"><b>FileStreamFirstMessage</b> = &quot;FileStream added first instead of exception&quot;</td></tr>
-<tr class="separator:addcadeb1e44fb42379f81fb4289b17e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a10267512ec5de04dfa5a0db4d7e94262"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a10267512ec5de04dfa5a0db4d7e94262"></a>
+const string&#160;</td><td class="memItemRight" valign="bottom"><b>StreamFirstMessage</b> = &quot;FileStream added first instead of exception&quot;</td></tr>
+<tr class="separator:a10267512ec5de04dfa5a0db4d7e94262"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="properties"></a>
 Properties</h2></td></tr>
@@ -182,32 +182,6 @@ Properties</h2></td></tr>
 <tr class="separator:ae29296bb1f6e7b0992166ecc3df26662"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a74f5cb28db3f4ca09c664298a2381d52"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">IEnumerable&lt;Stream&gt; CloudApiPublic.Model.CLError.DequeueFileStreams </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Takes all the FileStream instances out of this error and returns them for disposal </p>
-<dl class="section return"><dt>Returns</dt><dd>Returns dequeued FileStream objects</dd></dl>
-
-</div>
-</div>
 <a class="anchor" id="a8dae51e34bafa27b7d769cdf6687bd62"></a>
 <div class="memitem">
 <div class="memproto">
@@ -237,6 +211,32 @@ Properties</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns dequeued FileStream objects</dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a7c13631040d4109222701c2869de8e08"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">IEnumerable&lt;Stream&gt; CloudApiPublic.Model.CLError.DequeueStreams </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Takes all the FileStream instances out of this error and returns them for disposal </p>
 <dl class="section return"><dt>Returns</dt><dd>Returns dequeued FileStream objects</dd></dl>
 
 </div>
@@ -496,7 +496,7 @@ Properties</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2012 16:29:48 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Nov 27 2012 10:28:42 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

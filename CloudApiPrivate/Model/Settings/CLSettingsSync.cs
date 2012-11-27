@@ -36,16 +36,6 @@ namespace CloudApiPrivate.Model.Settings
         private CLSettingsSync() { }
         #endregion
 
-        /// <summary>
-        /// Only required if LogErrors is set to true
-        /// </summary>
-        public string ErrorLogLocation
-        {
-            get
-            {
-                return Settings.Instance.ErrorLogLocation;
-            }
-        }
         public bool LogErrors
         {
             get
@@ -77,6 +67,16 @@ namespace CloudApiPrivate.Model.Settings
                 return Settings.Instance.TraceExcludeAuthorization;
             }
         }
+
+        public int TraceLevel
+        {
+            get
+            {
+                return Settings.Instance.TraceLevel;
+
+            }
+        }
+
         public string Udid
         {
             get

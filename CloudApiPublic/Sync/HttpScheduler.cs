@@ -36,27 +36,17 @@ namespace CloudApiPublic.Sync
         private static bool FromDisposed = false;
         private static bool ToDisposed = false;
 
-        private static string ErrorLogLocation
-        {
-            get
-            {
-                lock (SyncSettingsLocker)
-                {
-                    return _errorLogLocation;
-                }
-            }
-        }
-        private static string _errorLogLocation = null;
         private static bool LogErrors
         {
             get
             {
                 lock (SyncSettingsLocker)
                 {
-                    return _logErrors ?? (_errorLogLocation != null);
+                    return _logErrors ?? false;
                 }
             }
         }
+        private static ISyncSettingsAdvanced _syncSettings;
         private static Nullable<bool> _logErrors;
         private static bool SyncSettingsSet = false;
         private static readonly object SyncSettingsLocker = new object();
@@ -103,13 +93,13 @@ namespace CloudApiPublic.Sync
                                         throw new NullReferenceException("syncSettings cannot be null");
                                     }
                                     if (syncSettings.LogErrors
-                                        && string.IsNullOrWhiteSpace(syncSettings.ErrorLogLocation))
+                                        && string.IsNullOrWhiteSpace(syncSettings.TraceLocation))
                                     {
-                                        throw new NullReferenceException("syncSettings ErrorLogLocation cannot be null if syncSettings LogErrors is true");
+                                        throw new NullReferenceException("syncSettings TraceLocation cannot be null if syncSettings LogErrors is true");
                                     }
 
+                                    HttpScheduler._syncSettings = syncSettings;
                                     HttpScheduler._logErrors = syncSettings.LogErrors;
-                                    HttpScheduler._errorLogLocation = syncSettings.ErrorLogLocation;
 
                                     HttpScheduler.SyncSettingsSet = true;
                                 }
@@ -152,13 +142,12 @@ namespace CloudApiPublic.Sync
                                     }
 
                                     if (syncSettings.LogErrors
-                                        && string.IsNullOrWhiteSpace(syncSettings.ErrorLogLocation))
+                                        && string.IsNullOrWhiteSpace(syncSettings.TraceLocation))
                                     {
-                                        throw new NullReferenceException("syncSettings ErrorLogLocation cannot be null if syncSettings LogErrors is true");
+                                        throw new NullReferenceException("syncSettings TraceLocation cannot be null if syncSettings LogErrors is true");
                                     }
 
                                     HttpScheduler._logErrors = syncSettings.LogErrors;
-                                    HttpScheduler._errorLogLocation = syncSettings.ErrorLogLocation;
 
                                     HttpScheduler.SyncSettingsSet = true;
                                 }
@@ -278,7 +267,7 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
-                ((CLError)ex).LogErrors(ErrorLogLocation, LogErrors);
+                ((CLError)ex).LogErrors(_syncSettings.TraceLocation, LogErrors);
                 return false;
             }
             return true;
@@ -460,7 +449,7 @@ namespace CloudApiPublic.Sync
                 }
             }
             // performs the actual logging of errors, forces logging even if the setting is turned off in the severe case where a message box had to appear
-            aggregatedError.LogErrors(ErrorLogLocation, overrideLoggingOnMessageBox ? true : LogErrors);
+            aggregatedError.LogErrors(_syncSettings.TraceLocation, overrideLoggingOnMessageBox ? true : LogErrors);
         }
 
         /// <summary>

@@ -1,12 +1,16 @@
 \hypertarget{struct_cloud_api_public_1_1_model_1_1_file_change_merge}{\section{Cloud\-Api\-Public.\-Model.\-File\-Change\-Merge Struct Reference}
 \label{struct_cloud_api_public_1_1_model_1_1_file_change_merge}\index{Cloud\-Api\-Public.\-Model.\-File\-Change\-Merge@{Cloud\-Api\-Public.\-Model.\-File\-Change\-Merge}}
 }
+
+
+Do not use the parameterless constructor because the resulting struct will be marked invalid and throw exceptions when retrieving public property values  
+
+
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{struct_cloud_api_public_1_1_model_1_1_file_change_merge_ad841a9bbfbc41d406dabe10167b750ad}{{\bfseries File\-Change\-Merge} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} Merge\-To, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} Merge\-From=null)}\label{struct_cloud_api_public_1_1_model_1_1_file_change_merge_ad841a9bbfbc41d406dabe10167b750ad}
-
-\end{DoxyCompactItemize}
+\hyperlink{struct_cloud_api_public_1_1_model_1_1_file_change_merge_ad841a9bbfbc41d406dabe10167b750ad}{File\-Change\-Merge} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} Merge\-To, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} Merge\-From=null)
+\begin{DoxyCompactList}\small\item\em Creates the struct for a \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} merge which can be passed to the event source to update the database (including updating existing rows, adding a new row, or deleting a row); Always use this constructor instead of the parameterless constructor \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Properties}
 \begin{DoxyCompactItemize}
 \item 
@@ -19,6 +23,33 @@
 \hypertarget{struct_cloud_api_public_1_1_model_1_1_file_change_merge_a2532bffa04b1f680998f65a67efca6e4}{bool {\bfseries Is\-Valid}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}}\label{struct_cloud_api_public_1_1_model_1_1_file_change_merge_a2532bffa04b1f680998f65a67efca6e4}
 
 \end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Do not use the parameterless constructor because the resulting struct will be marked invalid and throw exceptions when retrieving public property values 
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{struct_cloud_api_public_1_1_model_1_1_file_change_merge_ad841a9bbfbc41d406dabe10167b750ad}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change\-Merge@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change\-Merge}!File\-Change\-Merge@{File\-Change\-Merge}}
+\index{File\-Change\-Merge@{File\-Change\-Merge}!CloudApiPublic::Model::FileChangeMerge@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change\-Merge}}
+\subsubsection[{File\-Change\-Merge}]{\setlength{\rightskip}{0pt plus 5cm}Cloud\-Api\-Public.\-Model.\-File\-Change\-Merge.\-File\-Change\-Merge (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Change}}]{Merge\-To, }
+\item[{{\bf File\-Change}}]{Merge\-From = {\ttfamily null}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{struct_cloud_api_public_1_1_model_1_1_file_change_merge_ad841a9bbfbc41d406dabe10167b750ad}
+
+
+Creates the struct for a \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} merge which can be passed to the event source to update the database (including updating existing rows, adding a new row, or deleting a row); Always use this constructor instead of the parameterless constructor 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Merge\-To} & The values from this \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} will update an existing row in the database, or create a new row if neither this nor the Merge\-From change has an Event\-Id; Can be null if this \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} merge is meant for row deletion\\
+\hline
+{\em Merge\-From} & This \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} will be deleted or replaced with the values from Merge\-To\\
+\hline
+\end{DoxyParams}
 
 
 The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}

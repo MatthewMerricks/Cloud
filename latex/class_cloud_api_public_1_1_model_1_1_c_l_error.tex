@@ -16,7 +16,7 @@ enum {\bfseries Error\-Codes} \-: int \{ {\bfseries Exception} = 9999
 \hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a4e663afbfc99de8521f9a9440b3eb410}{void {\bfseries Add\-Exception} (Exception ex, bool replace\-Error\-Description=false)}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a4e663afbfc99de8521f9a9440b3eb410}
 
 \item 
-I\-Enumerable$<$ Stream $>$ \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a74f5cb28db3f4ca09c664298a2381d52}{Dequeue\-File\-Streams} ()
+I\-Enumerable$<$ Stream $>$ \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a7c13631040d4109222701c2869de8e08}{Dequeue\-Streams} ()
 \begin{DoxyCompactList}\small\item\em Takes all the File\-Stream instances out of this error and returns them for disposal \end{DoxyCompactList}\item 
 Exception \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_add9bcf1572e5b8777988ee71fe3667c7}{Grab\-First\-Exception} ()
 \begin{DoxyCompactList}\small\item\em Returns the first exception contained in error\-Info within this \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \end{DoxyCompactList}\item 
@@ -67,7 +67,7 @@ const string \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error_a94652dc5
 \hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a28253daef958732303fb02d49a0a28ed}{int {\bfseries error\-Code}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a28253daef958732303fb02d49a0a28ed}
 
 \item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_addcadeb1e44fb42379f81fb4289b17e7}{const string {\bfseries File\-Stream\-First\-Message} = \char`\"{}File\-Stream added first instead of exception\char`\"{}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_addcadeb1e44fb42379f81fb4289b17e7}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a10267512ec5de04dfa5a0db4d7e94262}{const string {\bfseries Stream\-First\-Message} = \char`\"{}File\-Stream added first instead of exception\char`\"{}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a10267512ec5de04dfa5a0db4d7e94262}
 
 \end{DoxyCompactItemize}
 \subsection*{Properties}
@@ -78,20 +78,6 @@ Dictionary$<$ string, object $>$ \hyperlink{class_cloud_api_public_1_1_model_1_1
 
 
 \subsection{Member Function Documentation}
-\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a74f5cb28db3f4ca09c664298a2381d52}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Dequeue\-File\-Streams@{Dequeue\-File\-Streams}}
-\index{Dequeue\-File\-Streams@{Dequeue\-File\-Streams}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
-\subsubsection[{Dequeue\-File\-Streams}]{\setlength{\rightskip}{0pt plus 5cm}I\-Enumerable$<$Stream$>$ Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Dequeue\-File\-Streams (
-\begin{DoxyParamCaption}
-{}
-\end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a74f5cb28db3f4ca09c664298a2381d52}
-
-
-Takes all the File\-Stream instances out of this error and returns them for disposal 
-
-\begin{DoxyReturn}{Returns}
-Returns dequeued File\-Stream objects
-\end{DoxyReturn}
 \hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a8dae51e34bafa27b7d769cdf6687bd62}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Dequeue\-File\-Streams@{Dequeue\-File\-Streams}}
 \index{Dequeue\-File\-Streams@{Dequeue\-File\-Streams}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
 \subsubsection[{Dequeue\-File\-Streams}]{\setlength{\rightskip}{0pt plus 5cm}static I\-Enumerable$<$Stream$>$ Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Dequeue\-File\-Streams (
@@ -108,6 +94,20 @@ Takes all the File\-Stream instances out of a \hyperlink{class_cloud_api_public_
 {\em err} & \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} for File\-Stream dequeue\\
 \hline
 \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns dequeued File\-Stream objects
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_c_l_error_a7c13631040d4109222701c2869de8e08}{\index{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}!Dequeue\-Streams@{Dequeue\-Streams}}
+\index{Dequeue\-Streams@{Dequeue\-Streams}!CloudApiPublic::Model::CLError@{Cloud\-Api\-Public\-::\-Model\-::\-C\-L\-Error}}
+\subsubsection[{Dequeue\-Streams}]{\setlength{\rightskip}{0pt plus 5cm}I\-Enumerable$<$Stream$>$ Cloud\-Api\-Public.\-Model.\-C\-L\-Error.\-Dequeue\-Streams (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_c_l_error_a7c13631040d4109222701c2869de8e08}
+
+
+Takes all the File\-Stream instances out of this error and returns them for disposal 
+
 \begin{DoxyReturn}{Returns}
 Returns dequeued File\-Stream objects
 \end{DoxyReturn}

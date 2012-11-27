@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using System.Threading;
+using CloudApiPublic.Static;
 
 namespace CloudApiPublic.Support
 {
@@ -23,11 +24,10 @@ namespace CloudApiPublic.Support
     {
         private static CLTrace _instance;
         private static object _instanceLocker = new object();
-        //Restore to turn on trace@@@@@@private static int _maxPriority = 10;  // set this to the highest priority to log
-        //Restore to turn off trace@@@@@@private static int _maxPriority = -1;  // set this to the highest priority to log
         private static int _maxPriority = 10;  // set this to the highest priority to log
         private static string _logDir = null;
-        private static string _logFile = null;
+        private static string _traceCategory = null;
+        private static string _fileExtensionWithoutPeriod = null;
 
         /// <summary>
         /// Private constructor to prevent instance creation
@@ -47,12 +47,50 @@ namespace CloudApiPublic.Support
                     if (_instance == null)
                     {
                         _instance = new CLTrace();
-                        _logDir = Path.GetTempPath();
-                        _logFile = string.Format(@"\Trace-{0:yyyy-MM-dd}.txt", DateTime.Now);
-                        //Directory.CreateDirectory(_logDir);
                     }
                 }
                 return _instance;
+            }
+        }
+
+        /// <summary>
+        /// Call this function before any other CLTrace call.
+        /// </summary>
+        /// <param name="TraceDirectory">The full path of the trace directory.</param>
+        /// <param name="TraceCategory">The name of the trace category.</param>
+        /// <param name="FileExtensionWithoutPeriod">e.g.: "log".</param>
+        /// <param name="TraceLevel">-1: No trace.  Enter 0 for most important traces.  Higher numbers for greater detail.</param>
+        public static void Initialize(string TraceDirectory, string TraceCategory, string FileExtensionWithoutPeriod, int TraceLevel)
+        {
+            try
+            {
+                if (TraceDirectory == null)
+                {
+                    throw new Exception("TraceDirectory must not be null");
+                }
+                if (TraceCategory == null)
+                {
+                    throw new Exception("TraceCategory must not be null");
+                }
+                if (FileExtensionWithoutPeriod == null)
+                {
+                    throw new Exception("FileExtensionWithoutPeriod must not be null");
+                }
+
+                lock (_instanceLocker)
+                {
+                    // Initialize only once
+                    if (_logDir == null)
+                    {
+                        _maxPriority = TraceLevel;
+                        _fileExtensionWithoutPeriod = FileExtensionWithoutPeriod;
+                        _traceCategory = TraceCategory;
+                        _logDir = TraceDirectory;
+                    }
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -65,11 +103,15 @@ namespace CloudApiPublic.Support
         {
             try
             {
+
                 // Only write high priority messages
-                if (priority <= _maxPriority)
+                if (_logDir == null || priority <= _maxPriority)
                 {
+                    string logLocation = Helpers.CheckLogFileExistance(TraceLocation: _logDir, UserDeviceId: null, TraceCategory: _traceCategory, 
+                            FileExtensionWithoutPeriod: _fileExtensionWithoutPeriod, OnNewTraceFile: null, OnPreviousCompletion: null);
+
                     // Lock while writing to prevent contention for the log file
-                    lock (_instance)
+                    lock (Helpers.LogFileLocker)
                     {
                         // Format the string
                         string message = string.Format(format, args);
@@ -78,12 +120,10 @@ namespace CloudApiPublic.Support
                         LogMessage logEntry = new LogMessage(priority, message);
 
                         // Log to the VS output window, or to DbgView
-                        Debug.WriteLine(string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message));
-
-                        string logPath = _logDir + _logFile;
+                        //Debug.WriteLine(string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message));
 
                         // This could be optimised to prevent opening and closing the file for each write
-                        using (FileStream fs = File.Open(logPath, FileMode.Append, FileAccess.Write, FileShare.Write))
+                        using (FileStream fs = File.Open(logLocation, FileMode.Append, FileAccess.Write, FileShare.Write))
                         {
                             using (StreamWriter log = new StreamWriter(fs))
                             {

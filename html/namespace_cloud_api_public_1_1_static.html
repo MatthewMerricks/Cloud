@@ -225,15 +225,15 @@ Enumerations</h2></td></tr>
 <tr class="memdesc:a5c3e1c9c171c6fc2d14d98e753f33c72"><td class="mdescLeft">&#160;</td><td class="mdescRight"> <a href="namespace_cloud_api_public_1_1_static.html#a5c3e1c9c171c6fc2d14d98e753f33c72">More...</a><br/></td></tr>
 <tr class="separator:a5c3e1c9c171c6fc2d14d98e753f33c72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e5ae8f2a85f427de3d6c8a5afcbb029"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_cloud_api_public_1_1_static.html#a7e5ae8f2a85f427de3d6c8a5afcbb029">TraceType</a> : int { <br/>
-&#160;&#160;<b>NotEnabled</b> = 0x00, 
-<b>Communication</b> = 0x01, 
+&#160;&#160;<a class="el" href="namespace_cloud_api_public_1_1_static.html#a7e5ae8f2a85f427de3d6c8a5afcbb029">NotEnabled</a> = 0x00, 
+<a class="el" href="namespace_cloud_api_public_1_1_static.html#a7e5ae8f2a85f427de3d6c8a5afcbb029">Communication</a> = 0x01, 
 <a class="el" href="namespace_cloud_api_public_1_1_static.html#a7e5ae8f2a85f427de3d6c8a5afcbb029">AddAuthorization</a> = 0x02, 
-<b>CommunicationIncludeAuthorization</b> = 0x03, 
+<a class="el" href="namespace_cloud_api_public_1_1_static.html#a7e5ae8f2a85f427de3d6c8a5afcbb029">CommunicationIncludeAuthorization</a> = 0x03, 
 <br/>
-&#160;&#160;<b>FileChangeFlow</b> = 0x04
+&#160;&#160;<a class="el" href="namespace_cloud_api_public_1_1_static.html#a7e5ae8f2a85f427de3d6c8a5afcbb029">FileChangeFlow</a> = 0x04
 <br/>
  }</td></tr>
-<tr class="memdesc:a7e5ae8f2a85f427de3d6c8a5afcbb029"><td class="mdescLeft">&#160;</td><td class="mdescRight">Types of Trace Log entries; must match TraceLog.xsd  <a href="namespace_cloud_api_public_1_1_static.html#a7e5ae8f2a85f427de3d6c8a5afcbb029">More...</a><br/></td></tr>
+<tr class="memdesc:a7e5ae8f2a85f427de3d6c8a5afcbb029"><td class="mdescLeft">&#160;</td><td class="mdescRight">Types of Trace Log entries (flags); must match TraceLog.xsd  <a href="namespace_cloud_api_public_1_1_static.html#a7e5ae8f2a85f427de3d6c8a5afcbb029">More...</a><br/></td></tr>
 <tr class="separator:a7e5ae8f2a85f427de3d6c8a5afcbb029"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
@@ -433,10 +433,22 @@ Enumerations</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Types of Trace <a class="el" href="class_cloud_api_public_1_1_static_1_1_log.html">Log</a> entries; must match TraceLog.xsd </p>
+<p>Types of Trace <a class="el" href="class_cloud_api_public_1_1_static_1_1_log.html">Log</a> entries (flags); must match TraceLog.xsd </p>
 <dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" id="a7e5ae8f2a85f427de3d6c8a5afcbb029"></a>NotEnabled</em>&nbsp;</td><td>
+<p>No general trace (errors are handled seperately) </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a7e5ae8f2a85f427de3d6c8a5afcbb029"></a>Communication</em>&nbsp;</td><td>
+<p>Communication tracing estimates the HTTP headers and body content during communication; when used without the AddAuthorization flag, authorization parameters will be exluded such as authentication tokens or user/pass </p>
+</td></tr>
 <tr><td valign="top"><em><a class="anchor" id="a7e5ae8f2a85f427de3d6c8a5afcbb029"></a>AddAuthorization</em>&nbsp;</td><td>
-<p>AddAuthorization is only valid in conjunction with Communication (CommunicationIncludeAuthorization) </p>
+<p>AddAuthorization is only valid in conjunction with Communication (CommunicationIncludeAuthorization); Adding this will cause authorization parameters to appear in communication trace such as authentication tokens or user/pass (in plain text!!!) </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a7e5ae8f2a85f427de3d6c8a5afcbb029"></a>CommunicationIncludeAuthorization</em>&nbsp;</td><td>
+<p>See flags Communication and AddAuthorization tags for this combination flag </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a7e5ae8f2a85f427de3d6c8a5afcbb029"></a>FileChangeFlow</em>&nbsp;</td><td>
+<p>Logging the flow of FileChanges is extremely costly, use for development purposes only </p>
 </td></tr>
 </table>
 </dd>
@@ -447,7 +459,7 @@ Enumerations</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2012 16:29:49 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Nov 27 2012 10:28:43 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

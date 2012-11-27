@@ -69,7 +69,7 @@ void Trace::DetermineMaximumTraceLevel()
     {
         // Read the configuration file 
         std::wstring wsConfigFile(_wsTraceDirectory);
-        wsConfigFile.append(L"\\CloudTraceLevel.txt");
+        wsConfigFile.append(L"\\CloudTraceLevel.ini");
 
         std::wifstream ifs(wsConfigFile.c_str());
         std::wstring wsTracePriority((std::istreambuf_iterator<WCHAR>(ifs)), std::istreambuf_iterator<WCHAR>());
@@ -212,7 +212,7 @@ void Trace::PerhapsChangeTraceFilename()
     	    WCHAR wsTime[200];
 		    WCHAR wsBuff[200];
     	    wcsftime(wsTime, sizeof(wsTime) / sizeof(WCHAR), L"%Y-%m-%d", timeinfo);
-		    wsprintf(wsBuff, L"\\TraceCloudShellExt-%ls.txt", wsTime);
+		    wsprintf(wsBuff, L"\\Trace-%ls-CloudShellExt.log", wsTime);
 		    _wsTraceFileFullPath = _wsTraceDirectory + wsBuff;
 
             // Start another thread to delete old trace files.
@@ -245,11 +245,11 @@ void Trace::DeleteOldTraceFilesThreadProc(LPVOID pUserState)
 
 	try
 	{
-		// Enumerate the files by wild card "<TraceDirectory>\TraceCloudShellExt*.txt".
+		// Enumerate the files by wild card "<TraceDirectory>\TraceCloudShellExt*.log".
         if (pThis != NULL)
         {
-            // Enumerate files by wild card TraceDirectory\TraceCloudShellExt*.txt
-            std::wstring searchKey = pThis->_wsTraceDirectory + L"\\TraceCloudShellExt-????-??-??.txt";
+            // Enumerate files by wild card TraceDirectory\TraceCloudShellExt*.log
+            std::wstring searchKey = pThis->_wsTraceDirectory + L"\\TraceCloudShellExt-????-??-??.log";
             std::vector<std::wstring> fileList;
             int nFiles = pThis->GetFileList(searchKey, fileList);
             if (nFiles > 0)
@@ -314,7 +314,7 @@ void Trace::DeleteOldTraceFilesThreadProc(LPVOID pUserState)
 
 /// <summary>
 /// Check the trace directory for old trace files.  Delete them as necessary.
-/// Usage:  Call with searchkey like L"c:\\abc\\*.txt";
+/// Usage:  Call with searchkey like L"c:\\abc\\*.log";
 /// </summary>
 int Trace::GetFileList(std::wstring &wsSearchKey, std::vector<std::wstring> &outList)
 {
