@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="ContextMenuCOM.cpp" />
+    <ClCompile Include="ContextMenuCOM_i.c" />
+    <ClCompile Include="ContextMenuExt.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="JsonSerialization\json_reader.cpp">
+      <Filter>JsonSerialization</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonSerialization\json_value.cpp">
+      <Filter>JsonSerialization</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonSerialization\json_writer.cpp">
+      <Filter>JsonSerialization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\BadgeCOM\Trace.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ContextMenuCOM_i.h" />
+    <ClInclude Include="ContextMenuExt.h" />
+    <ClInclude Include="dllmain.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="resource1.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="JsonSerialization\autolink.h">
+      <Filter>JsonSerialization</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\config.h">
+      <Filter>JsonSerialization</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\features.h">
+      <Filter>JsonSerialization</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\forwards.h">
+      <Filter>JsonSerialization</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\json.h">
+      <Filter>JsonSerialization</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\json_batchallocator.h">
+      <Filter>JsonSerialization</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\reader.h">
+      <Filter>JsonSerialization</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\value.h">
+      <Filter>JsonSerialization</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonSerialization\writer.h">
+      <Filter>JsonSerialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\BadgeCOM\Trace.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ContextMenuCOM.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="ContextMenuCOM.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ContextMenuCOM.def" />
+    <None Include="ContextMenuCOM.rgs" />
+    <None Include="ContextMenuExt.rgs" />
+    <None Include="ReadMe.txt" />
+    <None Include="JsonSerialization\json_internalarray.inl">
+      <Filter>JsonSerialization</Filter>
+    </None>
+    <None Include="JsonSerialization\json_internalmap.inl">
+      <Filter>JsonSerialization</Filter>
+    </None>
+    <None Include="JsonSerialization\json_valueiterator.inl">
+      <Filter>JsonSerialization</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="JsonSerialization">
+      <UniqueIdentifier>{f819bdcb-bfb4-4294-9a08-ae59122577e2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cloud16.bmp" />
+  </ItemGroup>
+</Project>

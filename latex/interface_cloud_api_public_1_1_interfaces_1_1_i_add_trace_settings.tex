@@ -1,0 +1,65 @@
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings}{\section{Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings Interface Reference}
+\label{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings}\index{Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings}}
+}
+Inheritance diagram for Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=1.836066cm]{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings}
+\end{center}
+\end{figure}
+\subsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+string \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_acdd869808512ad6cf46038e0479e7e94}{Error\-Log\-Location}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Location where the error log will be stored (flat text file); Only required to not be null if Log\-Errors is set to true \end{DoxyCompactList}\item 
+bool \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a408aee5af8022c8d372501af301459a6}{Log\-Errors}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Whether to log errors to a flat text file \end{DoxyCompactList}\item 
+\hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Trace\-Type} \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_ac48528e64d5cf0ffce04bc93463d138e}{Trace\-Type}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Type of additional tracing outside of error logging to perform, flag Add\-Authorization is invalid if flag Communication is not also set \end{DoxyCompactList}\item 
+string \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a5a3de8f9ca58461e90bdaa48538596e3}{Trace\-Location}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Location where the trace file (does not include errors) will be stored; Only required to not be null if Trace\-Type has any flags set (Trace\-Type.\-Not\-Enabled means no flags are set) \end{DoxyCompactList}\item 
+bool \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a29cd00532a90fca920517cfb163b0a42}{Trace\-Exclude\-Authorization}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Whether to exclude authorization information (authentication keys, usernames/passwords, etc.) from the trace file; can return based on Trace\-Type (i.\-e. \char`\"{}return (\-Trace\-Type \& Trace\-Type.\-Add\-Authorization) != Trace\-Type.\-Add\-Authorization;\char`\"{}) \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Property Documentation}
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_acdd869808512ad6cf46038e0479e7e94}{\index{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}!Error\-Log\-Location@{Error\-Log\-Location}}
+\index{Error\-Log\-Location@{Error\-Log\-Location}!CloudApiPublic::Interfaces::IAddTraceSettings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}}
+\subsubsection[{Error\-Log\-Location}]{\setlength{\rightskip}{0pt plus 5cm}string Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings.\-Error\-Log\-Location\hspace{0.3cm}{\ttfamily [get]}}}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_acdd869808512ad6cf46038e0479e7e94}
+
+
+Location where the error log will be stored (flat text file); Only required to not be null if Log\-Errors is set to true 
+
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a408aee5af8022c8d372501af301459a6}{\index{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}!Log\-Errors@{Log\-Errors}}
+\index{Log\-Errors@{Log\-Errors}!CloudApiPublic::Interfaces::IAddTraceSettings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}}
+\subsubsection[{Log\-Errors}]{\setlength{\rightskip}{0pt plus 5cm}bool Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings.\-Log\-Errors\hspace{0.3cm}{\ttfamily [get]}}}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a408aee5af8022c8d372501af301459a6}
+
+
+Whether to log errors to a flat text file 
+
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a29cd00532a90fca920517cfb163b0a42}{\index{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}!Trace\-Exclude\-Authorization@{Trace\-Exclude\-Authorization}}
+\index{Trace\-Exclude\-Authorization@{Trace\-Exclude\-Authorization}!CloudApiPublic::Interfaces::IAddTraceSettings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}}
+\subsubsection[{Trace\-Exclude\-Authorization}]{\setlength{\rightskip}{0pt plus 5cm}bool Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings.\-Trace\-Exclude\-Authorization\hspace{0.3cm}{\ttfamily [get]}}}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a29cd00532a90fca920517cfb163b0a42}
+
+
+Whether to exclude authorization information (authentication keys, usernames/passwords, etc.) from the trace file; can return based on Trace\-Type (i.\-e. \char`\"{}return (\-Trace\-Type \& Trace\-Type.\-Add\-Authorization) != Trace\-Type.\-Add\-Authorization;\char`\"{}) 
+
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a5a3de8f9ca58461e90bdaa48538596e3}{\index{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}!Trace\-Location@{Trace\-Location}}
+\index{Trace\-Location@{Trace\-Location}!CloudApiPublic::Interfaces::IAddTraceSettings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}}
+\subsubsection[{Trace\-Location}]{\setlength{\rightskip}{0pt plus 5cm}string Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings.\-Trace\-Location\hspace{0.3cm}{\ttfamily [get]}}}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a5a3de8f9ca58461e90bdaa48538596e3}
+
+
+Location where the trace file (does not include errors) will be stored; Only required to not be null if Trace\-Type has any flags set (Trace\-Type.\-Not\-Enabled means no flags are set) 
+
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_ac48528e64d5cf0ffce04bc93463d138e}{\index{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}!Trace\-Type@{Trace\-Type}}
+\index{Trace\-Type@{Trace\-Type}!CloudApiPublic::Interfaces::IAddTraceSettings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}}
+\subsubsection[{Trace\-Type}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Trace\-Type} Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings.\-Trace\-Type\hspace{0.3cm}{\ttfamily [get]}}}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_ac48528e64d5cf0ffce04bc93463d138e}
+
+
+Type of additional tracing outside of error logging to perform, flag Add\-Authorization is invalid if flag Communication is not also set 
+
+
+
+The documentation for this interface was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-Interfaces/I\-Sync\-Settings.\-cs\end{DoxyCompactItemize}

@@ -1,0 +1,212 @@
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{\section{Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay Class Reference}
+\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}\index{Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay@{Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay}}
+}
+
+
+\hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} is responsible for keeping a list of badges and synchronizing them with Badge\-C\-O\-M (the Windows shell extensions for icon overlays)  
+
+
+Inheritance diagram for Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a7119d27992df785f47d557e14d5e9b23}{\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} {\bfseries p\-Shutdown} ()}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a7119d27992df785f47d557e14d5e9b23}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a0a8528ffadca5944cf5ae96893a0ebae}{Initialize} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} sync\-Settings, I\-Enumerable$<$ Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, Generic\-Holder$<$ \hyperlink{namespace_cloud_api_public_1_1_badge_n_e_t_afab91a750338fef6bd4ef08f5381c4e4}{cloud\-App\-Icon\-Badge\-Type} $>$$>$$>$ initial\-List=null)
+\begin{DoxyCompactList}\small\item\em Initialize \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} badge C\-O\-M object processing with or without initial list (initial list can be added later by a call to Initialize\-Or\-Replace) ¡¡ Do not call this method a second time nor after Initialize\-Or\-Replace has been called !! \end{DoxyCompactList}\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_af9c443529da96d9b3961d065b2e4205d}{Is\-Badging\-Initialized} (out bool is\-Initialized)
+\begin{DoxyCompactList}\small\item\em Returns whether \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} is already initialized. If it is initialized, do not initialize it again. \end{DoxyCompactList}\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_ad75df3cb907cd47580f35b2571fe5add}{Initialize\-Or\-Replace} (string path\-Root\-Directory, I\-Enumerable$<$ Key\-Value\-Pair$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, Generic\-Holder$<$ \hyperlink{namespace_cloud_api_public_1_1_badge_n_e_t_afab91a750338fef6bd4ef08f5381c4e4}{cloud\-App\-Icon\-Badge\-Type} $>$$>$$>$ initial\-List)
+\begin{DoxyCompactList}\small\item\em Runs Initialize if \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} has not started processing with the provided list or replaces existing list with provided list. Can be run multiple times \end{DoxyCompactList}\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a866f6571484e3d57489973d13560af79}{Delete\-Badge\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} to\-Delete, out bool is\-Deleted, bool is\-Pending=false)
+\begin{DoxyCompactList}\small\item\em Invoked by the indexer through queued events to delete a badge path in the hierarchical dictionary. This will also communicate the changes to Badge\-Com and maintain the flat current badges dictionary. \end{DoxyCompactList}\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a81102aae58189aa619fbe2fd59feb79d}{Rename\-Badge\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} old\-Path, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} new\-Path)
+\begin{DoxyCompactList}\small\item\em Invoked by the indexer through queued events to update the hierarchical badge path dictionary for this rename event. This also updates the Badge\-Com badges and maintains the matching current badge state flat dictionary. \end{DoxyCompactList}\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_aef637c9c2436e382a414f57b41616a7f}{set\-Badge\-Type} (Generic\-Holder$<$ \hyperlink{namespace_cloud_api_public_1_1_badge_n_e_t_afab91a750338fef6bd4ef08f5381c4e4}{cloud\-App\-Icon\-Badge\-Type} $>$ type, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} for\-File\-At\-Path)
+\begin{DoxyCompactList}\small\item\em Changes badge displayed on icon overlay to new type or removes badge. \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} must be initialized first \end{DoxyCompactList}\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_ad7bae47f9ab165fecf5c4340e852dc97}{get\-Badge\-Type\-For\-File\-At\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} path, out Generic\-Holder$<$ \hyperlink{namespace_cloud_api_public_1_1_badge_n_e_t_afab91a750338fef6bd4ef08f5381c4e4}{cloud\-App\-Icon\-Badge\-Type} $>$ badge\-Type)
+\begin{DoxyCompactList}\small\item\em Returns badge type for a given file path, if it exists \end{DoxyCompactList}\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a8f74dc2eee27f8f712f9588c7150c8fd}{Shutdown} ()
+\begin{DoxyCompactList}\small\item\em Call this on application shutdown to clean out open named pipes to badge C\-O\-M objects and to notify the system immediately to remove badges. Do not initialize again after shutting down \end{DoxyCompactList}\item 
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_ab43988af96d0decabbb8e67a7f52f970}{static void {\bfseries Queue\-New\-Event\-Badge} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} merged\-Event, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} event\-To\-Remove)}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_ab43988af96d0decabbb8e67a7f52f970}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a597856e231a8e6ab43484b854f83b249}{static void {\bfseries Queue\-Set\-Badge} (\hyperlink{namespace_cloud_api_public_1_1_badge_n_e_t_afab91a750338fef6bd4ef08f5381c4e4}{cloud\-App\-Icon\-Badge\-Type} badge\-Type, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} badge\-Path)}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a597856e231a8e6ab43484b854f83b249}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} is responsible for keeping a list of badges and synchronizing them with Badge\-C\-O\-M (the Windows shell extensions for icon overlays) 
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a866f6571484e3d57489973d13560af79}{\index{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}!Delete\-Badge\-Path@{Delete\-Badge\-Path}}
+\index{Delete\-Badge\-Path@{Delete\-Badge\-Path}!CloudApiPublic::BadgeNET::IconOverlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}}
+\subsubsection[{Delete\-Badge\-Path}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay.\-Delete\-Badge\-Path (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{to\-Delete, }
+\item[{out bool}]{is\-Deleted, }
+\item[{bool}]{is\-Pending = {\ttfamily false}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a866f6571484e3d57489973d13560af79}
+
+
+Invoked by the indexer through queued events to delete a badge path in the hierarchical dictionary. This will also communicate the changes to Badge\-Com and maintain the flat current badges dictionary. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\-Delete} & The path being deleted.\\
+\hline
+{\em is\-Deleted} & (output) true\-: the path was deleted.\\
+\hline
+{\em is\-Pending} & True\-: the event is pending.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_ad7bae47f9ab165fecf5c4340e852dc97}{\index{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}!get\-Badge\-Type\-For\-File\-At\-Path@{get\-Badge\-Type\-For\-File\-At\-Path}}
+\index{get\-Badge\-Type\-For\-File\-At\-Path@{get\-Badge\-Type\-For\-File\-At\-Path}!CloudApiPublic::BadgeNET::IconOverlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}}
+\subsubsection[{get\-Badge\-Type\-For\-File\-At\-Path}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay.\-get\-Badge\-Type\-For\-File\-At\-Path (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{path, }
+\item[{out Generic\-Holder$<$ {\bf cloud\-App\-Icon\-Badge\-Type} $>$}]{badge\-Type}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_ad7bae47f9ab165fecf5c4340e852dc97}
+
+
+Returns badge type for a given file path, if it exists 
+
+
+\begin{DoxyParams}{Parameters}
+{\em file\-Path} & path of file to check\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a0a8528ffadca5944cf5ae96893a0ebae}{\index{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}!Initialize@{Initialize}}
+\index{Initialize@{Initialize}!CloudApiPublic::BadgeNET::IconOverlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}}
+\subsubsection[{Initialize}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay.\-Initialize (
+\begin{DoxyParamCaption}
+\item[{{\bf I\-Sync\-Settings}}]{sync\-Settings, }
+\item[{I\-Enumerable$<$ Key\-Value\-Pair$<$ {\bf File\-Path}, Generic\-Holder$<$ {\bf cloud\-App\-Icon\-Badge\-Type} $>$$>$$>$}]{initial\-List = {\ttfamily null}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a0a8528ffadca5944cf5ae96893a0ebae}
+
+
+Initialize \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} badge C\-O\-M object processing with or without initial list (initial list can be added later by a call to Initialize\-Or\-Replace) ¡¡ Do not call this method a second time nor after Initialize\-Or\-Replace has been called !! 
+
+
+\begin{DoxyParams}{Parameters}
+{\em initial\-List} & (optional) list to start with for badged objects, filepaths in keys must not be null nor empty\\
+\hline
+{\em path\-Root\-Directory} & The full path of the Cloud root directory.\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_ad75df3cb907cd47580f35b2571fe5add}{\index{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}!Initialize\-Or\-Replace@{Initialize\-Or\-Replace}}
+\index{Initialize\-Or\-Replace@{Initialize\-Or\-Replace}!CloudApiPublic::BadgeNET::IconOverlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}}
+\subsubsection[{Initialize\-Or\-Replace}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay.\-Initialize\-Or\-Replace (
+\begin{DoxyParamCaption}
+\item[{string}]{path\-Root\-Directory, }
+\item[{I\-Enumerable$<$ Key\-Value\-Pair$<$ {\bf File\-Path}, Generic\-Holder$<$ {\bf cloud\-App\-Icon\-Badge\-Type} $>$$>$$>$}]{initial\-List}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_ad75df3cb907cd47580f35b2571fe5add}
+
+
+Runs Initialize if \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} has not started processing with the provided list or replaces existing list with provided list. Can be run multiple times 
+
+
+\begin{DoxyParams}{Parameters}
+{\em initial\-List} & list to start with for badged objects, all filepaths in keys must not be null nor empty\\
+\hline
+{\em path\-Root\-Directory} & The full path to the Cloud root directory.\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_af9c443529da96d9b3961d065b2e4205d}{\index{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}!Is\-Badging\-Initialized@{Is\-Badging\-Initialized}}
+\index{Is\-Badging\-Initialized@{Is\-Badging\-Initialized}!CloudApiPublic::BadgeNET::IconOverlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}}
+\subsubsection[{Is\-Badging\-Initialized}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay.\-Is\-Badging\-Initialized (
+\begin{DoxyParamCaption}
+\item[{out bool}]{is\-Initialized}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_af9c443529da96d9b3961d065b2e4205d}
+
+
+Returns whether \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} is already initialized. If it is initialized, do not initialize it again. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em is\-Initialized} & Return value\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Error if it exists
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a81102aae58189aa619fbe2fd59feb79d}{\index{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}!Rename\-Badge\-Path@{Rename\-Badge\-Path}}
+\index{Rename\-Badge\-Path@{Rename\-Badge\-Path}!CloudApiPublic::BadgeNET::IconOverlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}}
+\subsubsection[{Rename\-Badge\-Path}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay.\-Rename\-Badge\-Path (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{old\-Path, }
+\item[{{\bf File\-Path}}]{new\-Path}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a81102aae58189aa619fbe2fd59feb79d}
+
+
+Invoked by the indexer through queued events to update the hierarchical badge path dictionary for this rename event. This also updates the Badge\-Com badges and maintains the matching current badge state flat dictionary. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em old\-Path} & The old path.\\
+\hline
+{\em new\-Path} & The new path.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_aef637c9c2436e382a414f57b41616a7f}{\index{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}!set\-Badge\-Type@{set\-Badge\-Type}}
+\index{set\-Badge\-Type@{set\-Badge\-Type}!CloudApiPublic::BadgeNET::IconOverlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}}
+\subsubsection[{set\-Badge\-Type}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay.\-set\-Badge\-Type (
+\begin{DoxyParamCaption}
+\item[{Generic\-Holder$<$ {\bf cloud\-App\-Icon\-Badge\-Type} $>$}]{type, }
+\item[{{\bf File\-Path}}]{for\-File\-At\-Path}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_aef637c9c2436e382a414f57b41616a7f}
+
+
+Changes badge displayed on icon overlay to new type or removes badge. \hyperlink{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay}{Icon\-Overlay} must be initialized first 
+
+
+\begin{DoxyParams}{Parameters}
+{\em file\-Path} & path of file to badge/unbadge, must not be null nor empty\\
+\hline
+{\em new\-Type} & new badge type (use null to remove badge)\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a8f74dc2eee27f8f712f9588c7150c8fd}{\index{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}!Shutdown@{Shutdown}}
+\index{Shutdown@{Shutdown}!CloudApiPublic::BadgeNET::IconOverlay@{Cloud\-Api\-Public\-::\-Badge\-N\-E\-T\-::\-Icon\-Overlay}}
+\subsubsection[{Shutdown}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-Badge\-N\-E\-T.\-Icon\-Overlay.\-Shutdown (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay_a8f74dc2eee27f8f712f9588c7150c8fd}
+
+
+Call this on application shutdown to clean out open named pipes to badge C\-O\-M objects and to notify the system immediately to remove badges. Do not initialize again after shutting down 
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-Badge\-N\-E\-T/Icon\-Overlay.\-cs\end{DoxyCompactItemize}

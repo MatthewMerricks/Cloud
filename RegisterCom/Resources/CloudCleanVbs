@@ -27,13 +27,27 @@
    Dim logFileFullPath
    Dim sScriptFile
    Dim g_sFolderPath 
+   Dim sApplicationDataLocalFolderPath
    
    Set filesys = wscript.CreateObject("Scripting.FileSystemObject") 
    Set objShell = wscript.createObject("wscript.shell") 
  
    shouldTrace = True
    shouldExplorerBeStarted = True
-   logFileFullPath = filesys.GetSpecialFolder(2) & "\CloudTrace.log"
+
+    ' Pad a number with leading zeros
+    Function PadDigits(n, totalDigits) 
+        PadDigits = Right(string(totalDigits,"0") & n, totalDigits) 
+    End Function 
+    
+   sApplicationDataLocalFolderPath = objShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
+   Dim currentYear
+   Dim currentMonth
+   Dim currentDay
+   currentYear = Year(Date)
+   currentMonth = PadDigits(Month(Date), 2)
+   currentDay = PadDigits(Day(Date), 2)
+   logFileFullPath = sApplicationDataLocalFolderPath & "\Cloud\Trace-" & currentYear & "-" & PadDigits(currentMonth, 2) & "-" & PadDigits(currentDay, 2) & "-" & "CloudVbs.log"
    
    ' Trace function
    Sub WriteLog(LogMessage)
@@ -208,6 +222,12 @@
             If filesys.FileExists(sCommonFilesCloudAlternatePath & "\BadgeCom.dll") Then
                WriteLog "CloudClean: Delete file: " & sCommonFilesCloudAlternatePath & "\BadgeCom.dll"
                filesys.DeleteFile sCommonFilesCloudAlternatePath & "\BadgeCom.dll", True
+            End If
+            
+            ' Delete the alternate ContextMenuCom.dll if it is present.
+            If filesys.FileExists(sCommonFilesCloudAlternatePath & "\ContextMenuCom.dll") Then
+               WriteLog "CloudClean: Delete file: " & sCommonFilesCloudAlternatePath & "\ContextMenuCom.dll"
+               filesys.DeleteFile sCommonFilesCloudAlternatePath & "\ContextMenuCom.dll", True
             End If
             
             ' Deleting folders will fail if it is our current directory.  Change to the user's Temp directory to avoid this problem.

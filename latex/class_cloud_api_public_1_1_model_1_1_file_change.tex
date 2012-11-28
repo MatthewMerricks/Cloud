@@ -15,8 +15,8 @@ Inheritance diagram for Cloud\-Api\-Public.\-Model.\-File\-Change\-:\begin{figur
 \subsection*{Classes}
 \begin{DoxyCompactItemize}
 \item 
-class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args}{Up\-Down\-Event\-Args}
-\end{DoxyCompactItemize}
+class {\bfseries Up\-Down\-Event\-Args}
+\begin{DoxyCompactList}\small\item\em event arguments for Up\-Down\-Event in Sync\-Engine which stores a callback which will be fired back to the calling method firing the event with every \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} subscribed to the event \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -25,22 +25,15 @@ class \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_ev
 \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_ac993cd49c746972e2f557a5bda7ecd0a}{Get\-M\-D5\-Lowercase\-String} (out string md5)
 \begin{DoxyCompactList}\small\item\em Returns the M\-D5 as a lowercase hexadecimal string 32 characters long with no seperators, or null \end{DoxyCompactList}\item 
 \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_afe3e710aa632b5c7091843dcc2fd8dcc}{Set\-M\-D5} (byte\mbox{[}$\,$\mbox{]} md5)
-\begin{DoxyCompactList}\small\item\em Sets the M\-D5 from a byte array or clears it from null; throws exception if M\-D5 byte array is not 16 length \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Sets the M\-D5 from a byte array or clears it for null; returns an error if M\-D5 byte array is not 16 length \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_a8843655fa58db477e9520d5f055b6406}{Set\-M\-D5} (string hash\-String)
+\begin{DoxyCompactList}\small\item\em Sets the M\-D5 from a 32 character hexadecimal string or clears it for a null/empty input; returns an error if the string is improperly formatted or if the resulting parsed byte array is not 16 length \end{DoxyCompactList}\item 
 \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_af7e47a037f28e2ef8c2b76ca0157cebf}{File\-Change} (object Delay\-Completed\-Locker)
 \begin{DoxyCompactList}\small\item\em Constructor with required fields of abstract base class, Delay\-Completed\-Locker to lock upon delay completion must be provided for syncing the Delay\-Completed boolean \end{DoxyCompactList}\item 
 \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_adc8f11183263555d2facbf4354106797}{File\-Change} ()
 \begin{DoxyCompactList}\small\item\em Constructor for an object to store parameters, but not be delay-\/processable \end{DoxyCompactList}\item 
 override string \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_abf7bd8fb9c0b7bfcada1aa39a568a13b}{To\-String} ()
-\begin{DoxyCompactList}\small\item\em Overriding To\-String so that Quick\-Watch will show Key\-Value pairs of File\-Paths, File\-Changes as \{ \mbox{[}Path\mbox{]}, \mbox{[}File or folder\mbox{]} \mbox{[}Change\-Type\mbox{]} \} \end{DoxyCompactList}\item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a4479a6e0a93d64b884fa4d48c03f6c86}{void {\bfseries File\-Change\-\_\-\-Up\-Down} (object sender, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args}{Up\-Down\-Event\-Args} e)}\label{class_cloud_api_public_1_1_model_1_1_file_change_a4479a6e0a93d64b884fa4d48c03f6c86}
-
-\end{DoxyCompactItemize}
-\subsection*{Static Public Member Functions}
-\begin{DoxyCompactItemize}
-\item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a43701aa92aec24c4624080d15ba1fedf}{static void {\bfseries Run\-Un\-Down\-Event} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args}{Up\-Down\-Event\-Args} callback)}\label{class_cloud_api_public_1_1_model_1_1_file_change_a43701aa92aec24c4624080d15ba1fedf}
-
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Overriding To\-String so that Quick\-Watch will show Key\-Value pairs of File\-Paths, File\-Changes as \{ \mbox{[}Path\mbox{]}, \mbox{[}File or folder\mbox{]} \mbox{[}Change\-Type\mbox{]} \} \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -48,12 +41,6 @@ override string \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_abf7
 
 \item 
 \hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a7cd99f56c8ec93e35a9dbdcce37d673a}{byte {\bfseries Not\-Found\-For\-Stream\-Counter} = 0}\label{class_cloud_api_public_1_1_model_1_1_file_change_a7cd99f56c8ec93e35a9dbdcce37d673a}
-
-\end{DoxyCompactItemize}
-\subsection*{Static Public Attributes}
-\begin{DoxyCompactItemize}
-\item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_acb806601af19f3fd48c2ccd78d1438fd}{static readonly object {\bfseries Up\-Down\-Event\-Locker} = new object()}\label{class_cloud_api_public_1_1_model_1_1_file_change_acb806601af19f3fd48c2ccd78d1438fd}
 
 \end{DoxyCompactItemize}
 \subsection*{Properties}
@@ -76,13 +63,6 @@ long \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_aef22ff9ac6993f
 \item 
 bool \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_aa979e65ac9cd9783870afe5b25137296}{Do\-Not\-Add\-To\-S\-Q\-L\-Index}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}
 \begin{DoxyCompactList}\small\item\em Boolean set when already indexed events are requeued in the \hyperlink{namespace_cloud_api_public_1_1_file_monitor}{File\-Monitor}, defaults to false \end{DoxyCompactList}\end{DoxyCompactItemize}
-\subsection*{Events}
-\begin{DoxyCompactItemize}
-\item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_aa21bd352b70154e019ff6cf0069396e9}{static Event\-Handler\\*
-$<$ \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args}{Up\-Down\-Event\-Args} $>$ {\bfseries Up\-Down\-Event}}\label{class_cloud_api_public_1_1_model_1_1_file_change_aa21bd352b70154e019ff6cf0069396e9}
-
-\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -168,11 +148,30 @@ Returns error in retrieving M\-D5, if any
 )\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_afe3e710aa632b5c7091843dcc2fd8dcc}
 
 
-Sets the M\-D5 from a byte array or clears it from null; throws exception if M\-D5 byte array is not 16 length 
+Sets the M\-D5 from a byte array or clears it for null; returns an error if M\-D5 byte array is not 16 length 
 
 
 \begin{DoxyParams}{Parameters}
 {\em md5} & M\-D5 bytes to set\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns error in setting M\-D5, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_change_a8843655fa58db477e9520d5f055b6406}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}!Set\-M\-D5@{Set\-M\-D5}}
+\index{Set\-M\-D5@{Set\-M\-D5}!CloudApiPublic::Model::FileChange@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Change}}
+\subsubsection[{Set\-M\-D5}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-Model.\-File\-Change.\-Set\-M\-D5 (
+\begin{DoxyParamCaption}
+\item[{string}]{hash\-String}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_change_a8843655fa58db477e9520d5f055b6406}
+
+
+Sets the M\-D5 from a 32 character hexadecimal string or clears it for a null/empty input; returns an error if the string is improperly formatted or if the resulting parsed byte array is not 16 length 
+
+
+\begin{DoxyParams}{Parameters}
+{\em hash\-String} & M\-D5 hexadecimal string to set\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}

@@ -1059,9 +1059,17 @@ namespace CloudApiPublic.Static
         [MethodImpl(MethodImplOptions.Synchronized)]
         private static void WriteLogEntry(Entry logEntry, string traceLocation, string UserDeviceId, string UniqueUserId)
         {
-            string logLocation = CheckLogFileExistance(traceLocation, UserDeviceId, UniqueUserId);
+            string logLocation = Helpers.CheckLogFileExistance(traceLocation, UserDeviceId, "Sync", "xml", 
+                new Action<TextWriter, string>((logWriter, finalLocation) =>
+                    { 
+                        logWriter.Write(LogXmlStart(finalLocation, "UDid: {" + UserDeviceId + "}, UUid: {" + UniqueUserId + "}"));
+                    }),
+                new Action<TextWriter>((logWriter) =>
+                    {
+                        logWriter.Write(Environment.NewLine + "</Log>");
+                    }));
 
-            lock (LogFileLocker)
+            lock (Helpers.LogFileLocker)
             {
                 XmlWriterSettings logWriterSettings = new XmlWriterSettings();
                 logWriterSettings.OmitXmlDeclaration = true;
@@ -1103,157 +1111,6 @@ namespace CloudApiPublic.Static
                 "    <Copyright>Implementation of TraceLog.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved.</Copyright>" + Environment.NewLine +
                 "    <Creator>" + creator + "</Creator>" + Environment.NewLine +
                 "  </Copyright>";
-        }
-        private static readonly object LogFileLocker = new object();
-        private static Nullable<DateTime> LastDayLogCreated = null;
-        // the calling method should wrap this private helper in a try/catch
-        private static string CheckLogFileExistance(string traceLocation, string UserDeviceId, string UniqueUserId)
-        {
-            string logLocation = traceLocation + UserDeviceId;
-
-            FileInfo logFile = new FileInfo(logLocation);
-            // store the current date (UTC)
-            DateTime currentDate = DateTime.UtcNow.Date;
-
-            string finalLocation = logFile.FullName +
-                currentDate.ToString("yyyyMMdd") + // formats to YYYYMMDD
-                ".xml";
-
-            bool logAlreadyExists = File.Exists(finalLocation);
-            
-            lock (LogFileLocker)
-            {
-                if (!logAlreadyExists
-                    || LastDayLogCreated == null
-                    || currentDate.Year != ((DateTime)LastDayLogCreated).Year
-                    || currentDate.Month != ((DateTime)LastDayLogCreated).Month
-                    || currentDate.Day != ((DateTime)LastDayLogCreated).Day)
-                {
-                    // if the parent directory of the log file does not exist then create it
-                    if (!logFile.Directory.Exists)
-                    {
-                        logFile.Directory.Create();
-                    }
-
-                    // create a list for storing all the dates encoded into existing log file names
-                    List<DateTime> logDates = new List<DateTime>();
-                    // define boolean for whether the existing list of logs contains the current date,
-                    // defaulting to it not being found
-                    bool currentDateFound = false;
-
-                    // loop through all files within the parent directory of the log files
-                    foreach (FileInfo currentFile in logFile.Directory.EnumerateFiles())
-                    {
-                        // if the current file to check has the name of a log file
-                        // and if its length is consistent with adding a date and the file extension,
-                        // then process the current file as a log file
-                        if (currentFile.Name.StartsWith(logFile.Name)
-                            && currentFile.Name.Length == (logFile.Name.Length + 12))//12 is the sum of 4 and 8; 4 is the length of ".xml", the file extension; 8 is the length of the date time format YYYYMMDD
-                        {
-                            // pull out the portion of the file name of the date;
-                            // should be in the format YYYYMMDD
-                            string nameDatePortion = currentFile.Name.Substring(logFile.Name.Length, currentFile.Name.Length - logFile.Name.Length - 4); //4 is the length of ".xml", the file extension
-
-                            // run a series of int.TryParse on the date portions of the file name
-                            int nameDateYear;
-                            if (int.TryParse(nameDatePortion.Substring(0, 4), out nameDateYear))
-                            {
-                                int nameDateMonth;
-                                if (int.TryParse(nameDatePortion.Substring(4, 2), out nameDateMonth))
-                                {
-                                    int nameDateDay;
-                                    if (int.TryParse(nameDatePortion.Substring(6), out nameDateDay))
-                                    {
-                                        // all date time part parsing was successful,
-                                        // but it is still possible one of the components is outside an acceptable range to construct a datetime
-
-                                        try
-                                        {
-                                            // create the DateTime from parts
-                                            DateTime nameDate = new DateTime(nameDateYear, nameDateMonth, nameDateDay, currentDate.Hour, currentDate.Minute, currentDate.Second, DateTimeKind.Utc);
-                                            // if the date portion of the parsed DateTime each match the same portions of the current date,
-                                            // then mark the currentDateFound as true
-                                            if (nameDate.Year == currentDate.Year
-                                                && nameDate.Month == currentDate.Month
-                                                && nameDate.Day == currentDate.Day)
-                                            {
-                                                currentDateFound = true;
-                                            }
-                                            // add the parsed DateTime to the list of all log files found
-                                            logDates.Add(nameDate);
-                                        }
-                                        catch
-                                        {
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    const int keepCount = 10;
-                    int currentCount = currentDateFound ? 0 : 1;
-                    bool lastTraceClosed = currentDateFound;
-
-                    // loop through the log files older than the most recent 10
-                    foreach (DateTime logToRemove in logDates.OrderByDescending(orderDate => orderDate.Ticks))
-                    {
-                        // build the log file path based on the current date to delete
-                        string currentDeletePath = logFile.FullName +
-                            logToRemove.ToString("yyyyMMdd") + // formats to YYYYMMDD
-                            ".xml";
-
-                        if (currentCount < keepCount)
-                        {
-                            if (!lastTraceClosed)
-                            {
-                                lastTraceClosed = true;
-                                try
-                                {
-                                    using (TextWriter logWriter = File.AppendText(currentDeletePath))
-                                    {
-                                        logWriter.Write(Environment.NewLine + "</Log>");
-                                    }
-                                }
-                                catch
-                                {
-                                }
-                            }
-                            currentCount++;
-                        }
-                        else
-                        {
-                            // attempt to delete the current, old log file
-                            try
-                            {
-                                File.Delete(currentDeletePath);
-                            }
-                            catch
-                            {
-                            }
-                        }
-                    }
-
-                    LastDayLogCreated = currentDate;
-                }
-
-                if (!logAlreadyExists)
-                {
-                    // if the parent directory of the log file does not exist then create it
-                    if (!logFile.Directory.Exists)
-                    {
-                        logFile.Directory.Create();
-                    }
-
-                    using (TextWriter logWriter = File.CreateText(finalLocation))
-                    {
-                        logWriter.Write(LogXmlStart(finalLocation,
-                            "UDid: {" + UserDeviceId + "}, UUid: {" + UniqueUserId + "}"));
-                    }
-                }
-            }
-
-            return finalLocation;
         }
         private static bool IsSyncFromBySyncDirection(SyncDirection direction)
         {

@@ -99,6 +99,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a5c4b8088f3cb0bf9930a547d23859386"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_sync_box.html#a5c4b8088f3cb0bf9930a547d23859386">RecordCompletedSync</a> (string syncId, IEnumerable&lt; long &gt; syncedEventIds, out long syncCounter)</td></tr>
+<tr class="memdesc:a5c4b8088f3cb0bf9930a547d23859386"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a new set of sync states to the database after a sync completes, requires newRootPath to be set on the first sync or on any sync with a new root path  <a href="#a5c4b8088f3cb0bf9930a547d23859386"></a><br/></td></tr>
+<tr class="separator:a5c4b8088f3cb0bf9930a547d23859386"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a706f9683ae7b97190e9e4c27bcf6aa04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_sync_box.html#a706f9683ae7b97190e9e4c27bcf6aa04">WipeIndex</a> ()</td></tr>
+<tr class="memdesc:a706f9683ae7b97190e9e4c27bcf6aa04"><td class="mdescLeft">&#160;</td><td class="mdescRight">¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!  <a href="#a706f9683ae7b97190e9e4c27bcf6aa04"></a><br/></td></tr>
+<tr class="separator:a706f9683ae7b97190e9e4c27bcf6aa04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0ad47eda9e97480349950618ec266fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_sync_box.html#ae0ad47eda9e97480349950618ec266fa">Start</a> (<a class="el" href="interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings.html">ISyncSettings</a> settings)</td></tr>
 <tr class="memdesc:ae0ad47eda9e97480349950618ec266fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the <a class="el" href="class_cloud_api_public_1_1_sync_box.html" title="A class used to create a SyncBox to synchronize the contents of a local disk directory. ">SyncBox</a> and start syncing its contents to the Cloud server, and to other devices registering the same <a class="el" href="class_cloud_api_public_1_1_sync_box.html" title="A class used to create a SyncBox to synchronize the contents of a local disk directory. ">SyncBox</a>.  <a href="#ae0ad47eda9e97480349950618ec266fa"></a><br/></td></tr>
 <tr class="separator:ae0ad47eda9e97480349950618ec266fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -116,6 +122,57 @@ Events</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A class used to create a <a class="el" href="class_cloud_api_public_1_1_sync_box.html" title="A class used to create a SyncBox to synchronize the contents of a local disk directory. ">SyncBox</a> to synchronize the contents of a local disk directory. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a5c4b8088f3cb0bf9930a547d23859386"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a> CloudApiPublic.SyncBox.RecordCompletedSync </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>syncId</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">IEnumerable&lt; long &gt;&#160;</td>
+          <td class="paramname"><em>syncedEventIds</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">out long&#160;</td>
+          <td class="paramname"><em>syncCounter</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Writes a new set of sync states to the database after a sync completes, requires newRootPath to be set on the first sync or on any sync with a new root path </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">syncId</td><td>New sync Id from server</td></tr>
+    <tr><td class="paramname">syncedEventIds</td><td>Enumerable of event ids processed in sync</td></tr>
+    <tr><td class="paramname">syncCounter</td><td>Output sync counter local identity</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns an error that occurred during recording the sync, if any</dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ae0ad47eda9e97480349950618ec266fa"></a>
 <div class="memitem">
 <div class="memproto">
@@ -174,6 +231,38 @@ Events</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a706f9683ae7b97190e9e4c27bcf6aa04"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a> CloudApiPublic.SyncBox.WipeIndex </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !! </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">newRootPath</td><td>Full path string to directory to sync without any trailing slash (except for drive letter root)</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns any error that occurred while wiping the database index</dd></dl>
+
+</div>
+</div>
 <h2 class="groupheader">Event Documentation</h2>
 <a class="anchor" id="a37dc0c1c783ead1a4404e90016d9df60"></a>
 <div class="memitem">
@@ -195,7 +284,7 @@ Events</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2012 16:29:48 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Nov 27 2012 10:28:41 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

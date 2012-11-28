@@ -5,6 +5,7 @@ using namespace std;
 
 bool Trace::_fInstanceFlag = false;
 Trace* Trace::_single = NULL;
+volatile long Trace::instanceInitialized = 0;
 CRITICAL_SECTION Trace::_cs;
 
 /// <Summary>
@@ -15,7 +16,7 @@ Trace* Trace::getInstance()
     try
     {
         // First time initialization
-        if(!_fInstanceFlag)
+        if (InterlockedIncrement(&instanceInitialized) == 1)
         {
             _single = new Trace();
             _fInstanceFlag = true;
@@ -69,7 +70,7 @@ void Trace::DetermineMaximumTraceLevel()
     {
         // Read the configuration file 
         std::wstring wsConfigFile(_wsTraceDirectory);
-        wsConfigFile.append(L"\\CloudTraceLevel.txt");
+        wsConfigFile.append(L"\\CloudTraceLevel.ini");
 
         std::wifstream ifs(wsConfigFile.c_str());
         std::wstring wsTracePriority((std::istreambuf_iterator<WCHAR>(ifs)), std::istreambuf_iterator<WCHAR>());
@@ -98,57 +99,59 @@ void Trace::DetermineMaximumTraceLevel()
 /// </Summary>
 void Trace::write(int priority, char *szFormat, ...)
 {
-	EnterCriticalSection(&Trace::_cs);
-#ifndef _DEBUG
-	return;
-#endif
-	if (!_fTraceEnabled || priority > _nMaxPriorityToTrace)
-	{
-		LeaveCriticalSection(&Trace::_cs);
-		return;
-	}
+    try
+    {
+	    EnterCriticalSection(&Trace::_cs);
+	    if (!_fTraceEnabled || priority > _nMaxPriorityToTrace)
+	    {
+		    LeaveCriticalSection(&Trace::_cs);
+		    return;
+	    }
 
-    // Change the trace file name if the date has changed, and manage the number of trace files in the trace directory.
-    PerhapsChangeTraceFilename();
+        // Change the trace file name if the date has changed, and manage the number of trace files in the trace directory.
+        PerhapsChangeTraceFilename();
 
-    // Start the variable arg list.
-	va_list vl;
-	va_start(vl, szFormat);
+        // Start the variable arg list.
+	    va_list vl;
+	    va_start(vl, szFormat);
 
-	// Open the trace file for output.  Allow other processes to append to the file also to intermix the entries.
-	_streamTrace = _wfsopen(_wsTraceFileFullPath.c_str(), L"a", _SH_DENYNO);
-	if (_streamTrace == NULL)
-	{
-		_fTraceEnabled = false;
-		va_end(vl);
-		LeaveCriticalSection(&Trace::_cs);
-		return;
-	}
+	    // Open the trace file for output.  Allow other processes to append to the file also to intermix the entries.
+	    _streamTrace = _wfsopen(_wsTraceFileFullPath.c_str(), L"a", _SH_DENYNO);
+	    if (_streamTrace == NULL)
+	    {
+		    _fTraceEnabled = false;
+		    va_end(vl);
+		    LeaveCriticalSection(&Trace::_cs);
+		    return;
+	    }
 
-	// Get the thread ID and process ID
-	DWORD threadId = GetCurrentThreadId();
-	DWORD processId = GetCurrentProcessId();
+	    // Get the thread ID and process ID
+	    DWORD threadId = GetCurrentThreadId();
+	    DWORD processId = GetCurrentProcessId();
 	
-	// Get the current local time
-    SYSTEMTIME st, lt;
-    GetSystemTime(&st);
-    GetLocalTime(&lt);
+	    // Get the current local time
+        SYSTEMTIME st, lt;
+        GetSystemTime(&st);
+        GetLocalTime(&lt);
 
-    // Trace the line prefix
-	fprintf(_streamTrace, "CPP_%04d-%02d-%02d_%02d:%02d:%02d-%03d_P%lx-T%lx_", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds, processId, threadId);
+        // Trace the line prefix
+	    fprintf(_streamTrace, "CPP_%04d-%02d-%02d_%02d:%02d:%02d-%03d_P%lx-T%lx_", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds, processId, threadId);
 
-	// Trace the message
-	vfprintf(_streamTrace, szFormat, vl);
+	    // Trace the message
+	    vfprintf(_streamTrace, szFormat, vl);
 
-    // Add a newline
-	fprintf(_streamTrace, "\n");
+        // Add a newline
+	    fprintf(_streamTrace, "\n");
 
-	// Close the stream to flush the data
-	fclose(_streamTrace);
+	    // Close the stream to flush the data
+	    fclose(_streamTrace);
 
-	va_end(vl);
-	LeaveCriticalSection(&Trace::_cs);
-
+	    va_end(vl);
+    }
+    catch (...)
+    {
+    }
+    LeaveCriticalSection(&Trace::_cs);
 }
 
 /// <Summary>
@@ -212,7 +215,7 @@ void Trace::PerhapsChangeTraceFilename()
     	    WCHAR wsTime[200];
 		    WCHAR wsBuff[200];
     	    wcsftime(wsTime, sizeof(wsTime) / sizeof(WCHAR), L"%Y-%m-%d", timeinfo);
-		    wsprintf(wsBuff, L"\\TraceCloudShellExt-%ls.txt", wsTime);
+		    wsprintf(wsBuff, L"\\Trace-%ls-CloudShellExt.log", wsTime);
 		    _wsTraceFileFullPath = _wsTraceDirectory + wsBuff;
 
             // Start another thread to delete old trace files.
@@ -245,11 +248,11 @@ void Trace::DeleteOldTraceFilesThreadProc(LPVOID pUserState)
 
 	try
 	{
-		// Enumerate the files by wild card "<TraceDirectory>\TraceCloudShellExt*.txt".
+		// Enumerate the files by wild card "<TraceDirectory>\TraceCloudShellExt*.log".
         if (pThis != NULL)
         {
-            // Enumerate files by wild card TraceDirectory\TraceCloudShellExt*.txt
-            std::wstring searchKey = pThis->_wsTraceDirectory + L"\\TraceCloudShellExt-????-??-??.txt";
+            // Enumerate files by wild card TraceDirectory\TraceCloudShellExt*.log
+            std::wstring searchKey = pThis->_wsTraceDirectory + L"\\TraceCloudShellExt-????-??-??.log";
             std::vector<std::wstring> fileList;
             int nFiles = pThis->GetFileList(searchKey, fileList);
             if (nFiles > 0)
@@ -314,7 +317,7 @@ void Trace::DeleteOldTraceFilesThreadProc(LPVOID pUserState)
 
 /// <summary>
 /// Check the trace directory for old trace files.  Delete them as necessary.
-/// Usage:  Call with searchkey like L"c:\\abc\\*.txt";
+/// Usage:  Call with searchkey like L"c:\\abc\\*.log";
 /// </summary>
 int Trace::GetFileList(std::wstring &wsSearchKey, std::vector<std::wstring> &outList)
 {

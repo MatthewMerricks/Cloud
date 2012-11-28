@@ -88,11 +88,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#properties">Properties</a> &#124;
-<a href="#events">Events</a> &#124;
 <a href="class_cloud_api_public_1_1_model_1_1_file_change-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">CloudApiPublic.Model.FileChange Class Reference</div>  </div>
@@ -113,7 +110,8 @@ Inheritance diagram for CloudApiPublic.Model.FileChange:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args.html">UpDownEventArgs</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>UpDownEventArgs</b></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event arguments for UpDownEvent in SyncEngine which stores a callback which will be fired back to the calling method firing the event with every <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html" title="Class for storing information about a file system change to be passed to the sync service for process...">FileChange</a> subscribed to the event <br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -125,8 +123,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ac993cd49c746972e2f557a5bda7ecd0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the MD5 as a lowercase hexadecimal string 32 characters long with no seperators, or null  <a href="#ac993cd49c746972e2f557a5bda7ecd0a"></a><br/></td></tr>
 <tr class="separator:ac993cd49c746972e2f557a5bda7ecd0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe3e710aa632b5c7091843dcc2fd8dcc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html#afe3e710aa632b5c7091843dcc2fd8dcc">SetMD5</a> (byte[] md5)</td></tr>
-<tr class="memdesc:afe3e710aa632b5c7091843dcc2fd8dcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the MD5 from a byte array or clears it from null; throws exception if MD5 byte array is not 16 length  <a href="#afe3e710aa632b5c7091843dcc2fd8dcc"></a><br/></td></tr>
+<tr class="memdesc:afe3e710aa632b5c7091843dcc2fd8dcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the MD5 from a byte array or clears it for null; returns an error if MD5 byte array is not 16 length  <a href="#afe3e710aa632b5c7091843dcc2fd8dcc"></a><br/></td></tr>
 <tr class="separator:afe3e710aa632b5c7091843dcc2fd8dcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8843655fa58db477e9520d5f055b6406"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html#a8843655fa58db477e9520d5f055b6406">SetMD5</a> (string hashString)</td></tr>
+<tr class="memdesc:a8843655fa58db477e9520d5f055b6406"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the MD5 from a 32 character hexadecimal string or clears it for a null/empty input; returns an error if the string is improperly formatted or if the resulting parsed byte array is not 16 length  <a href="#a8843655fa58db477e9520d5f055b6406"></a><br/></td></tr>
+<tr class="separator:a8843655fa58db477e9520d5f055b6406"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7e47a037f28e2ef8c2b76ca0157cebf"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html#af7e47a037f28e2ef8c2b76ca0157cebf">FileChange</a> (object DelayCompletedLocker)</td></tr>
 <tr class="memdesc:af7e47a037f28e2ef8c2b76ca0157cebf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor with required fields of abstract base class, DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean  <a href="#af7e47a037f28e2ef8c2b76ca0157cebf"></a><br/></td></tr>
 <tr class="separator:af7e47a037f28e2ef8c2b76ca0157cebf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -136,15 +137,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:abf7bd8fb9c0b7bfcada1aa39a568a13b"><td class="memItemLeft" align="right" valign="top">override string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html#abf7bd8fb9c0b7bfcada1aa39a568a13b">ToString</a> ()</td></tr>
 <tr class="memdesc:abf7bd8fb9c0b7bfcada1aa39a568a13b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overriding ToString so that QuickWatch will show KeyValue pairs of FilePaths, FileChanges as { [Path], [File or folder] [ChangeType] }  <a href="#abf7bd8fb9c0b7bfcada1aa39a568a13b"></a><br/></td></tr>
 <tr class="separator:abf7bd8fb9c0b7bfcada1aa39a568a13b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4479a6e0a93d64b884fa4d48c03f6c86"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4479a6e0a93d64b884fa4d48c03f6c86"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>FileChange_UpDown</b> (object sender, <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args.html">UpDownEventArgs</a> e)</td></tr>
-<tr class="separator:a4479a6e0a93d64b884fa4d48c03f6c86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a43701aa92aec24c4624080d15ba1fedf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a43701aa92aec24c4624080d15ba1fedf"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>RunUnDownEvent</b> (<a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args.html">UpDownEventArgs</a> callback)</td></tr>
-<tr class="separator:a43701aa92aec24c4624080d15ba1fedf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -154,12 +146,6 @@ byte&#160;</td><td class="memItemRight" valign="bottom"><b>FailureCounter</b> = 
 <tr class="memitem:a7cd99f56c8ec93e35a9dbdcce37d673a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7cd99f56c8ec93e35a9dbdcce37d673a"></a>
 byte&#160;</td><td class="memItemRight" valign="bottom"><b>NotFoundForStreamCounter</b> = 0</td></tr>
 <tr class="separator:a7cd99f56c8ec93e35a9dbdcce37d673a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:acb806601af19f3fd48c2ccd78d1438fd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acb806601af19f3fd48c2ccd78d1438fd"></a>
-static readonly object&#160;</td><td class="memItemRight" valign="bottom"><b>UpDownEventLocker</b> = new object()</td></tr>
-<tr class="separator:acb806601af19f3fd48c2ccd78d1438fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="properties"></a>
 Properties</h2></td></tr>
@@ -187,13 +173,6 @@ long&#160;</td><td class="memItemRight" valign="bottom"><b>InMemoryId</b><code> 
 <tr class="memitem:aa979e65ac9cd9783870afe5b25137296"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html#aa979e65ac9cd9783870afe5b25137296">DoNotAddToSQLIndex</a><code> [get, set]</code></td></tr>
 <tr class="memdesc:aa979e65ac9cd9783870afe5b25137296"><td class="mdescLeft">&#160;</td><td class="mdescRight">Boolean set when already indexed events are requeued in the <a class="el" href="namespace_cloud_api_public_1_1_file_monitor.html" title="Monitor a local file system folder as a SyncBox. ">FileMonitor</a>, defaults to false  <a href="#aa979e65ac9cd9783870afe5b25137296"></a><br/></td></tr>
 <tr class="separator:aa979e65ac9cd9783870afe5b25137296"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="events"></a>
-Events</h2></td></tr>
-<tr class="memitem:aa21bd352b70154e019ff6cf0069396e9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa21bd352b70154e019ff6cf0069396e9"></a>
-static EventHandler<br class="typebreak"/>
-&lt; <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change_1_1_up_down_event_args.html">UpDownEventArgs</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>UpDownEvent</b></td></tr>
-<tr class="separator:aa21bd352b70154e019ff6cf0069396e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class for storing information about a file system change to be passed to the sync service for processing, implements DelayProcessable to allow timer-delayed action processing (one time only per instance) </p>
@@ -344,10 +323,43 @@ static EventHandler<br class="typebreak"/>
 </table>
 </div><div class="memdoc">
 
-<p>Sets the MD5 from a byte array or clears it from null; throws exception if MD5 byte array is not 16 length </p>
+<p>Sets the MD5 from a byte array or clears it for null; returns an error if MD5 byte array is not 16 length </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">md5</td><td>MD5 bytes to set</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns error in setting MD5, if any</dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a8843655fa58db477e9520d5f055b6406"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a> CloudApiPublic.Model.FileChange.SetMD5 </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>hashString</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the MD5 from a 32 character hexadecimal string or clears it for a null/empty input; returns an error if the string is improperly formatted or if the resulting parsed byte array is not 16 length </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hashString</td><td>MD5 hexadecimal string to set</td></tr>
   </table>
   </dd>
 </dl>
@@ -542,7 +554,7 @@ static EventHandler<br class="typebreak"/>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2012 16:29:49 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Nov 27 2012 10:28:42 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

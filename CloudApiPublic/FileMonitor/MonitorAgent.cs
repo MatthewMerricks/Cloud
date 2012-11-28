@@ -236,6 +236,10 @@ namespace CloudApiPublic.FileMonitor
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
+            // Initialize Cloud trace in case it is not already initialized.
+            CLTrace.Initialize(syncSettings.TraceLocation, "Cloud", "log", syncSettings.TraceLevel);
+            CLTrace.Instance.writeToLog(9, "MonitorAgent: CreateNewAndInitialize: Entry");
+
             try
             {
                 newAgent = new MonitorAgent(indexer, syncSettings);
@@ -1842,7 +1846,7 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="newLockState"></param>
         private void setDirectoryAccessControl(bool newLockState)
         {
-            // Need to implement:
+            //TODO: Need to implement:
             //http://msdn.microsoft.com/en-us/library/cc144063(VS.85).aspx
             // Copy Hook Handler will interface similar to BadgeCOM to BadgeNET;
             // it can store the watched path after it is retrieved so it can ignore any
@@ -2934,7 +2938,7 @@ namespace CloudApiPublic.FileMonitor
                     if (mergeError != null)
                     {
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                        mergeError.LogErrors(_syncSettings.ErrorLogLocation, true);
+                        mergeError.LogErrors(_syncSettings.TraceLocation, true);
                         MessageBox.Show("An error occurred adding a file system event to the database:" + Environment.NewLine +
                             string.Join(Environment.NewLine,
                                 mergeError.GrabExceptions().Select(currentError => (currentError is AggregateException
@@ -2962,7 +2966,7 @@ namespace CloudApiPublic.FileMonitor
                                 nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
 
                             // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                            ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncSettings.ErrorLogLocation, true);
+                            ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncSettings.TraceLocation, true);
                             MessageBox.Show(noEventIdErrorMessage);
                         }
 
