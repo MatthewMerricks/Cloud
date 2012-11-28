@@ -893,6 +893,12 @@ namespace CloudApiPublic.Sync
                                 }
                             }
 
+                            Func<FileChangeMerge, FileChangeMerge> setToAddToSQL = toAdd =>
+                                {
+                                    toAdd.MergeTo.DoNotAddToSQLIndex = false;
+                                    return toAdd;
+                                };
+
                             // Merge in server values into DB (storage key, revision, etc) and add new Sync From events
                             syncData.mergeToSql(
 
@@ -907,7 +913,7 @@ namespace CloudApiPublic.Sync
                                 .Where(currentMerge => currentMerge.Changed)
 
                                 // reselect filtered changes into FileChangeMerge
-                                .Select(currentMerge => new FileChangeMerge(currentMerge.FileChange, null)));
+                                .Select(currentMerge => setToAddToSQL(new FileChangeMerge(currentMerge.FileChange))));
 
                             // if there were changes in error during communication, then loop through them to add their streams and exceptions to the return error
                             if (changesInError != null)
@@ -4797,6 +4803,10 @@ namespace CloudApiPublic.Sync
                                                         },
                                                         newMetadata.Hash); // file MD5 hash or null for folder
 
+                                                    // make sure to add change to SQL
+                                                    newPathCreation.DoNotAddToSQLIndex = false;
+                                                    currentChange.DoNotAddToSQLIndex = false;
+
                                                     // merge the creation of the new FileChange for a pseudo Sync From creation event with the event source database, storing any error that occurs
                                                     CLError newPathCreationError = syncData.mergeToSql(new[] { new FileChangeMerge(newPathCreation, currentChange) });
                                                     // if an error occurred merging the new FileChange with the event source database, then rethrow the error
@@ -5292,12 +5302,17 @@ namespace CloudApiPublic.Sync
                                                             currentChange.Type = FileChangeType.Created;
                                                             // change conflict path to the new conflict path
                                                             currentChange.NewPath = finalizedNewPath;
+                                                            // <David fix for a file creation with an old path> file creations should not have an old path (only for renames)
+                                                            currentChange.OldPath = null;
                                                             // clear the revision (since it will be a new file)
                                                             currentChange.Metadata.Revision = null;
                                                             // update associated Metadatas with the revision change
                                                             currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
                                                             // clear the storage key (since it will be a new file)
                                                             currentChange.Metadata.StorageKey = null;
+
+                                                            // make sure to add change to SQL
+                                                            currentChange.DoNotAddToSQLIndex = false;
 
                                                             // declare a new FileChange with dependencies for moving the conflict file to the new conflict path
                                                             FileChangeWithDependencies reparentConflict;
@@ -5382,8 +5397,10 @@ namespace CloudApiPublic.Sync
                                                             long storeEventId = currentChange.EventId;
                                                             // wipe the event id so a new event can be added
                                                             currentChange.EventId = 0;
+
                                                             // write the original conflict as a file creation to upload to the server to the event source database, storing any error that occurred
                                                             CLError addModifiedConflictAsCreate = syncData.mergeToSql(new FileChangeMerge[] { new FileChangeMerge(currentChange) });
+
                                                             // if an error occurred writing the original conflict as a file creation, then remove the added rename change and readd the reverted conflict change to the event source database and rethrow the error
                                                             if (addModifiedConflictAsCreate != null)
                                                             {
@@ -5391,6 +5408,7 @@ namespace CloudApiPublic.Sync
                                                                 currentChange.EventId = storeEventId;
                                                                 currentChange.Type = storeType;
                                                                 currentChange.NewPath = storePath;
+
                                                                 syncData.mergeToSql(new[] { new FileChangeMerge(currentChange) });
 
                                                                 throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.GrabExceptions());
@@ -6032,6 +6050,11 @@ namespace CloudApiPublic.Sync
                                             },
                                             newMetadata.Hash); // file MD5 hash or null for folder
 
+
+                                    // make sure to add change to SQL
+                                    newPathCreation.DoNotAddToSQLIndex = false;
+                                    currentChange.DoNotAddToSQLIndex = false;
+
                                     // merge the creation of the new FileChange for a pseudo Sync From creation event with the event source database, storing any error that occurs
                                     CLError newPathCreationError = syncData.mergeToSql(new[] { new FileChangeMerge(newPathCreation, currentChange) });
                                     // if an error occurred merging the new FileChange with the event source database, then rethrow the error
@@ -6441,6 +6464,9 @@ namespace CloudApiPublic.Sync
                 {
                     // remove the badge at the current path by setting it as synced
                     MessageEvents.SetPathState(toRetry.FileChange, new SetBadge(PathState.Synced, toRetry.FileChange.NewPath));
+
+                    // make sure to add change to SQL
+                    toRetry.FileChange.DoNotAddToSQLIndex = false;
 
                     // remove the cancelled out event from the event source database
                     syncData.mergeToSql(new[] { new FileChangeMerge(null, toRetry.FileChange) });
