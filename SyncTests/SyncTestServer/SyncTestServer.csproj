@@ -42,10 +42,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionProcessors\file_objects.cs" />
+    <Compile Include="ActionProcessors\folder_objects.cs" />
     <Compile Include="ActionProcessors\get_file.cs" />
     <Compile Include="ActionProcessors\private.cs" />
     <Compile Include="ActionProcessors\put_file.cs" />
     <Compile Include="ActionProcessors\SubProcessors\from_cloud.cs" />
+    <Compile Include="ActionProcessors\SubProcessors\metadata.cs" />
     <Compile Include="ActionProcessors\SubProcessors\purge_pending.cs" />
     <Compile Include="ActionProcessors\SubProcessors\to_cloud.cs" />
     <Compile Include="ActionProcessors\sync.cs" />

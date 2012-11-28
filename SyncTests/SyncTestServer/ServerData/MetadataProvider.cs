@@ -1002,7 +1002,7 @@ namespace SyncTestServer
             {
                 if (!UserEvents.TryGetValue(userId, out currentUserEvents))
                 {
-                    return Enumerable.Empty<FileChange>();
+                    yield break;
                 }
             }
 
@@ -1114,6 +1114,8 @@ namespace SyncTestServer
 
             HashSet<int> visitedFileIndexes = new HashSet<int>();
 
+            Dictionary<int, FileChange> filteredFileIndexesToChange = new Dictionary<int, FileChange>();
+
             for (int copiedEventIndex = 0; copiedEventIndex < copiedEvents.Length; copiedEventIndex++)
             {
                 if (copiedEvents[copiedEventIndex].FileChange != null
@@ -1126,19 +1128,24 @@ namespace SyncTestServer
 
                     bool initiallyCreated = copiedEvents[copiedEventIndex].FileChange.Type == CloudApiPublic.Static.FileChangeType.Created;
 
-                    FilePathDictionary<FileChange> trackCurrentFileEvent;
-
-                    CLError currentFileEventError = FilePathDictionary<FileChange>.CreateAndInitialize(new FilePath(string.Empty), out trackCurrentFileEvent);
-
-                    if (currentFileEventError != null)
-                    {
-                        throw new AggregateException("Error creating trackCurrentFileEvent", currentFileEventError.GrabExceptions());
-                    }
-
-                    trackCurrentFileEvent.Add(copiedEvents[copiedEventIndex].FileChange.NewPath.Copy(), copiedEvents[copiedEventIndex].FileChange);
+                    List<KeyValuePair<int, FileChange>> currentFileEventStack = new List<KeyValuePair<int, FileChange>>(new[]
+                        {
+                            new KeyValuePair<int, FileChange>(copiedEventIndex, copiedEvents[copiedEventIndex].FileChange)
+                        });
 
                     if (copiedEvents[copiedEventIndex].FileChange.Type != CloudApiPublic.Static.FileChangeType.Deleted)
                     {
+                        FilePathDictionary<object> trackCurrentFileEvent;
+
+                        CLError currentFileEventError = FilePathDictionary<object>.CreateAndInitialize(new FilePath(string.Empty), out trackCurrentFileEvent);
+
+                        if (currentFileEventError != null)
+                        {
+                            throw new AggregateException("Error creating trackCurrentFileEvent", currentFileEventError.GrabExceptions());
+                        }
+
+                        trackCurrentFileEvent.Add(copiedEvents[copiedEventIndex].FileChange.NewPath.Copy(), new object());
+
                         for (int subsequentEventIndex = copiedEventIndex + 1; subsequentEventIndex < copiedEvents.Length; subsequentEventIndex++)
                         {
                             bool terminateSearch = false;
@@ -1161,7 +1168,7 @@ namespace SyncTestServer
                                             break;
 
                                         case CloudApiPublic.Static.FileChangeType.Renamed:
-                                            FilePathHierarchicalNode<FileChange> renameHierarchy;
+                                            FilePathHierarchicalNode<object> renameHierarchy;
                                             CLError grabHierarchyError = trackCurrentFileEvent.GrabHierarchyForPath(copiedEvents[subsequentEventIndex].FileChange.OldPath, out renameHierarchy, suppressException: true);
                                             if (grabHierarchyError != null)
                                             {
@@ -1170,10 +1177,11 @@ namespace SyncTestServer
                                             if (renameHierarchy != null)
                                             {
                                                 trackCurrentFileEvent.Rename(copiedEvents[subsequentEventIndex].FileChange.OldPath, copiedEvents[subsequentEventIndex].FileChange.NewPath.Copy());
-
-                                                //trackCurrentFileEvent.Values.Single().
                                             }
                                             break;
+
+                                        case CloudApiPublic.Static.FileChangeType.Modified:
+                                            throw new ArgumentException("copiedEvents at subsequentEventIndex is a folder with Modified FileChange Type");
 
                                         default:
                                             throw new ArgumentException("copiedEvents at subsequentEventIndex has an unknown FileChange Type: " + copiedEvents[subsequentEventIndex].FileChange.Type.ToString());
@@ -1181,19 +1189,138 @@ namespace SyncTestServer
                                 }
                                 else
                                 {
-                                    visitedFileIndexes.Add(subsequentEventIndex);
+                                    switch (copiedEvents[subsequentEventIndex].FileChange.Type)
+                                    {
+                                        case CloudApiPublic.Static.FileChangeType.Created:
+                                            break;
+
+                                        case CloudApiPublic.Static.FileChangeType.Deleted:
+                                            if (FilePathComparer.Instance.Equals(copiedEvents[subsequentEventIndex].FileChange.NewPath, trackCurrentFileEvent.Keys.Single()))
+                                            {
+                                                visitedFileIndexes.Add(subsequentEventIndex);
+
+                                                currentFileEventStack.Add(new KeyValuePair<int, FileChange>(subsequentEventIndex, copiedEvents[subsequentEventIndex].FileChange));
+
+                                                terminateSearch = true;
+                                            }
+                                            break;
+
+                                        case CloudApiPublic.Static.FileChangeType.Modified:
+                                            if (FilePathComparer.Instance.Equals(copiedEvents[subsequentEventIndex].FileChange.NewPath, trackCurrentFileEvent.Keys.Single()))
+                                            {
+                                                visitedFileIndexes.Add(subsequentEventIndex);
+
+                                                if (initiallyCreated)
+                                                {
+                                                    currentFileEventStack.Clear();
+
+                                                    trackCurrentFileEvent.Clear();
+
+                                                    FileChange convertToCreate = new FileChange()
+                                                    {
+                                                        Metadata = new FileMetadata()
+                                                        {
+                                                            HashableProperties = copiedEvents[subsequentEventIndex].FileChange.Metadata.HashableProperties,
+                                                            LinkTargetPath = copiedEvents[subsequentEventIndex].FileChange.Metadata.LinkTargetPath.Copy(),
+                                                            Revision = copiedEvents[subsequentEventIndex].FileChange.Metadata.Revision,
+                                                            StorageKey = copiedEvents[subsequentEventIndex].FileChange.Metadata.StorageKey
+                                                        },
+                                                        NewPath = copiedEvents[subsequentEventIndex].FileChange.NewPath,
+                                                        Type = CloudApiPublic.Static.FileChangeType.Created
+                                                    };
+
+                                                    currentFileEventStack.Add(new KeyValuePair<int, FileChange>(subsequentEventIndex, convertToCreate));
+                                                }
+                                                else
+                                                {
+                                                    List<int> removeModifies = new List<int>();
+                                                    for (int removeModify = currentFileEventStack.Count - 1; removeModify >= 0; removeModify--)
+                                                    {
+                                                        if (currentFileEventStack[removeModify].Value.Type == CloudApiPublic.Static.FileChangeType.Modified)
+                                                        {
+                                                            removeModifies.Add(removeModify);
+                                                        }
+                                                    }
+                                                    foreach (int removeModify in removeModifies)
+                                                    {
+                                                        currentFileEventStack.RemoveAt(removeModify);
+                                                    }
+
+                                                    currentFileEventStack.Add(new KeyValuePair<int, FileChange>(subsequentEventIndex, copiedEvents[subsequentEventIndex].FileChange));
+                                                }
+                                            }
+                                            break;
+
+                                        case CloudApiPublic.Static.FileChangeType.Renamed:
+                                            if (FilePathComparer.Instance.Equals(copiedEvents[subsequentEventIndex].FileChange.OldPath, trackCurrentFileEvent.Keys.Single()))
+                                            {
+                                                visitedFileIndexes.Add(subsequentEventIndex);
+
+                                                trackCurrentFileEvent.Rename(copiedEvents[subsequentEventIndex].FileChange.OldPath, copiedEvents[subsequentEventIndex].FileChange.NewPath.Copy());
+
+                                                currentFileEventStack.Add(new KeyValuePair<int, FileChange>(subsequentEventIndex, copiedEvents[subsequentEventIndex].FileChange));
+                                            }
+                                            break;
+
+                                        default:
+                                            throw new ArgumentException("copiedEvents at subsequentEventIndex has an unknown FileChange Type: " + copiedEvents[subsequentEventIndex].FileChange.Type.ToString());
+                                    }
                                 }
                             }
+
+                            if (terminateSearch)
+                            {
+                                if (initiallyCreated)
+                                {
+                                    currentFileEventStack.Clear();
+                                }
+                                else
+                                {
+                                    List<int> removeModifies = new List<int>();
+                                    for (int removeModify = currentFileEventStack.Count - 1; removeModify >= 0; removeModify--)
+                                    {
+                                        if (currentFileEventStack[removeModify].Value.Type == CloudApiPublic.Static.FileChangeType.Modified)
+                                        {
+                                            removeModifies.Add(removeModify);
+                                        }
+                                    }
+                                    foreach (int removeModify in removeModifies)
+                                    {
+                                        currentFileEventStack.RemoveAt(removeModify);
+                                    }
+                                }
+
+                                break;
+                            }
                         }
+                    }
+
+                    foreach (KeyValuePair<int, FileChange> currentFilteredFileEvent in currentFileEventStack)
+                    {
+                        filteredFileIndexesToChange.Add(currentFilteredFileEvent.Key, currentFilteredFileEvent.Value);
                     }
                 }
             }
 
-            return copiedEvents.Where(currentEvent => currentEvent.FileChange == null
-                    || currentEvent.FileChange.Metadata == null
-                    || currentEvent.FileChange.Metadata.HashableProperties.IsFolder
-                    || !pendingStorageKeys.Contains(currentEvent.FileChange.Metadata.StorageKey))
-                .Select(currentEvent => currentEvent.FileChange);
+            for (int copiedEventIndex = 0; copiedEventIndex < copiedEvents.Length; copiedEventIndex++)
+            {
+                if (copiedEvents[copiedEventIndex].FileChange == null
+                    || copiedEvents[copiedEventIndex].FileChange.Metadata == null)
+                {
+                    if (!visitedFileIndexes.Contains(copiedEventIndex))
+                    {
+                        yield return copiedEvents[copiedEventIndex].FileChange;
+                    }
+                    else if (!pendingStorageKeys.Contains(copiedEvents[copiedEventIndex].FileChange.Metadata.StorageKey))
+                    {
+                        FileChange filteredFileEvent;
+                        if (filteredFileIndexesToChange.TryGetValue(copiedEventIndex, out filteredFileEvent))
+                        {
+                            yield return filteredFileEvent;
+                        }
+                    }
+                }
+            }
         }
 
         private static void ApplyRenameToHierarchy(UserEvent currentEvent, FilePathHierarchicalNode<Tuple<UserEvent, int, bool>> applyFilePathNode)
@@ -1564,6 +1691,39 @@ namespace SyncTestServer
             }
 
             return toReturn;
+        }
+
+        public FileMetadata GetMetadataAtPath(int userId, FilePath relativePathFromRoot)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("MetadataProvider is not initialized");
+                }
+            }
+
+            FilePathDictionary<FileMetadata> foundMetadata;
+            lock (UserMetadata)
+            {
+                if (!UserMetadata.TryGetValue(userId, out foundMetadata))
+                {
+                    return null;
+                }
+            }
+
+            lock (foundMetadata)
+            {
+                FileMetadata toReturn;
+                if (foundMetadata.TryGetValue(relativePathFromRoot, out toReturn))
+                {
+                    return toReturn;
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
     }
 }

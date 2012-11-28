@@ -25,5 +25,6 @@ namespace SyncTestServer
         void ApplyClientEventToServer(long syncId, User currentUser, Device currentDevice, CloudApiPublic.JsonContracts.Event toEvent);
         bool WriteUpload(Stream toWrite, string storageKey, long contentLength, string contentMD5, User currentUser, bool disposeStreamAfterWrite = true);
         Stream GetDownload(string storageKey, User currentUser, out long fileSize);
+        CloudApiPublic.JsonContracts.Metadata GetLatestMetadataAtPath(User currentUser, string relativePathFromRoot, bool isFolder);
     }
 }

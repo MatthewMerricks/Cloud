@@ -624,6 +624,7 @@ namespace SyncTestServer
             {
                 lock (fileId.SyncRoot)
                 {
+                    Guid storeFileId = fileId.FileId;
                     fileRemoved = fileId.RemoveUserUsage(userId, userRelativePath);
 
                     if (fileRemoved)
@@ -673,11 +674,18 @@ namespace SyncTestServer
                     if ((!fileId.IsValid || !fileId.Pending)
                         && storageKey != EmptyFileStorageKey)
                     {
-                        string fileToDelete = storageFolder + "\\" + fileId.FileId.ToString();
-                        fileId.GetDownloadingCount(new KeyValuePair<Action<object>, object>(state =>
+                        string fileToDelete = storageFolder + "\\" + storeFileId.ToString();
+                        if (fileId.IsValid)
                         {
-                            File.Delete((string)state);
-                        }, fileToDelete));
+                            fileId.GetDownloadingCount(new KeyValuePair<Action<object>, object>(state =>
+                            {
+                                File.Delete((string)state);
+                            }, fileToDelete));
+                        }
+                        else
+                        {
+                            File.Delete(fileToDelete);
+                        }
                     }
                 }
             }

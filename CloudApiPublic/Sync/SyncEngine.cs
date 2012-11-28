@@ -5336,9 +5336,12 @@ namespace CloudApiPublic.Sync
                                                                 throw new AggregateException("Error creating reparentConflict", reparentCreateError.GrabExceptions());
                                                             }
 
-                                                            // TODO: Comment here
+                                                            // if the current change already exists in the database then it may have been in the initial changes to communicate,
+                                                            // so the current change will need to be added to a list which will be checked to make sure all changes to communicate were processed
                                                             if (currentChange.EventId > 0)
                                                             {
+                                                                // if the current change had a stream (which it should for file uploads),
+                                                                // then it needs to be disposed because it is now a dependency which needs to go through sync to recommunicate for a new storage key
                                                                 if (currentStream != null)
                                                                 {
                                                                     try
@@ -5350,20 +5353,28 @@ namespace CloudApiPublic.Sync
                                                                     }
                                                                 }
 
-                                                                PossiblyStreamableFileChange dependencyHidden = new PossiblyStreamableFileChange(currentChange,
-                                                                    currentStream,
-                                                                    true);
+                                                                // wrap the current event so it can be added to the converted dependencies list
+                                                                PossiblyStreamableFileChange dependencyHidden = new PossiblyStreamableFileChange(currentChange, // current event
+                                                                    currentStream, // current stream, or null if it had not existed
+                                                                    true); // this change will be added to errors anyways, so invalid nullability of the Stream is not important for reprocessing
 
+                                                                // declare array for grabbing converted dependencies for current event id
                                                                 PossiblyStreamableFileChange[] currentEventIdDependencies;
+                                                                // try to grab the converted dependencies for the current event id and if successful, then the existing array will need to be expanded with the current event
                                                                 if (changesConvertedToDependencies.TryGetValue(currentChange.EventId, out currentEventIdDependencies))
                                                                 {
+                                                                    // create an array with length one larger than the previous array
                                                                     PossiblyStreamableFileChange[] previousDependenciesPlusOne = new PossiblyStreamableFileChange[currentEventIdDependencies.Length + 1];
-                                                                    Array.Copy(currentEventIdDependencies,
-                                                                        previousDependenciesPlusOne,
-                                                                        currentEventIdDependencies.Length);
+                                                                    // copy everything from the previous array into the expanded array
+                                                                    Array.Copy(currentEventIdDependencies, // previous array
+                                                                        previousDependenciesPlusOne, // expanded array
+                                                                        currentEventIdDependencies.Length); // grab everything from the previous array
+                                                                    // set the added slot in the array as the current event
                                                                     previousDependenciesPlusOne[currentEventIdDependencies.Length] = dependencyHidden;
+                                                                    // set the array for the current event id as the expanded array
                                                                     changesConvertedToDependencies[currentChange.EventId] = previousDependenciesPlusOne;
                                                                 }
+                                                                // else if converted dependencies could not be grabbed for the current event id, then add a new array with the current event
                                                                 else
                                                                 {
                                                                     changesConvertedToDependencies.Add(currentChange.EventId, new[]
@@ -5609,20 +5620,26 @@ namespace CloudApiPublic.Sync
                             }
                         }
 
-                        // TODO: need to comment here
+                        // declare an array for the events which do not appear in the output lists because they are dependencies for the current event id
                         PossiblyStreamableFileChange[] tryGetConvertedDependencies;
+                        // if we didn't already find both the current event id and the current stream in either the incomplete changes or the completed changes,
+                        // try to get the events which do not appear in the output lists for the current event id and if successful, then the event was found and may need to check if the events not in the output lists include the current stream
                         if ((!foundEventId && !foundMatchedStream)
                             && changesConvertedToDependencies.TryGetValue(currentOriginalChangeToFind.FileChange.EventId, out tryGetConvertedDependencies))
                         {
+                            // event id was found in the events in error
                             foundEventId = true;
 
+                            // if the current event has a stream, then check the streams from the events in error for the current stream
                             if (currentOriginalChangeToFind.Stream != null)
                             {
+                                // if the streams from events in error contain the current stream, then mark the stream as found
                                 if (tryGetConvertedDependencies.Any(currentConvertedDependency => currentConvertedDependency.Stream == currentOriginalChangeToFind.Stream))
                                 {
                                     foundMatchedStream = true;
                                 }
                             }
+                            // else if the current event does not have a stream, there is no need to check for the stream in the other lists, so mark it found
                             else
                             {
                                 foundMatchedStream = true;

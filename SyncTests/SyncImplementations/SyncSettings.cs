@@ -42,7 +42,7 @@ namespace SyncTests.SyncImplementations
             get
             {
                 return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                    "\\Cloud\\ErrorLog";
+                    "\\SyncTests\\ErrorLog";
             }
         }
         public bool LogErrors
@@ -67,7 +67,7 @@ namespace SyncTests.SyncImplementations
             get
             {
                 return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                   "\\Cloud\\Trace";
+                   "\\SyncTests\\Trace";
             }
         }
         public bool TraceExcludeAuthorization

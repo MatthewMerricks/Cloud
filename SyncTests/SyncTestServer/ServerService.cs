@@ -40,7 +40,9 @@ namespace SyncTestServer
             global::SyncTestServer.ActionProcessors.sync.Instance,
             global::SyncTestServer.ActionProcessors.@private.Instance,
             global::SyncTestServer.ActionProcessors.get_file.Instance,
-            global::SyncTestServer.ActionProcessors.put_file.Instance
+            global::SyncTestServer.ActionProcessors.put_file.Instance,
+            global::SyncTestServer.ActionProcessors.file_objects.Instance,
+            global::SyncTestServer.ActionProcessors.folder_objects.Instance
         };
         private readonly Dictionary<string, HttpActionProcessor> HttpPrefixToActionProcessor = ActionProcessors.ToDictionary(httpPrefix => httpPrefix.HttpPrefix,
             StringComparer.InvariantCultureIgnoreCase);

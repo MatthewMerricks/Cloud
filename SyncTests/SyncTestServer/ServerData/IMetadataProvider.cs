@@ -25,5 +25,6 @@ namespace SyncTestServer
         bool UpdateMetadata(long syncId, int userId, Guid deviceId, string revision, FilePath relativePathFromRoot, FileMetadata metadata, out bool isPending, out bool newUpload, out bool conflict, byte[] MD5 = null);
         IEnumerable<FileChange> ChangesSinceSyncId(long syncId, int userId);
         IEnumerable<KeyValuePair<FilePath, FileMetadata>> PurgeUserPendingsByDevice(int userId, Guid deviceId);
+        FileMetadata GetMetadataAtPath(int userId, FilePath relativePathFromRoot);
     }
 }

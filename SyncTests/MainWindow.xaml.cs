@@ -203,12 +203,18 @@ namespace SyncTests
                 {
                     try
                     {
-                        string dbLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                            "\\SyncTests\\IndexDB.sdf";
+                        string baseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
+                            "\\SyncTests";
 
-                        if (System.IO.File.Exists(dbLocation))
+                        foreach (string currentUserDirectory in System.IO.Directory.EnumerateDirectories(baseDir))
                         {
-                            System.IO.File.Delete(dbLocation);
+                            string dbLocation = currentUserDirectory +
+                                "\\IndexDB.sdf";
+
+                            if (System.IO.File.Exists(dbLocation))
+                            {
+                                System.IO.File.Delete(dbLocation);
+                            }
                         }
                     }
                     catch

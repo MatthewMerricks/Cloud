@@ -843,6 +843,58 @@ namespace SyncTestServer
 
             return _serverStorage.ReadFile(storageKey, currentUser.Id, out fileSize);
         }
+
+        public CloudApiPublic.JsonContracts.Metadata GetLatestMetadataAtPath(User currentUser, string relativePathFromRoot, bool isFolder)
+        {
+            lock (Initialized)
+            {
+                if (!Initialized.Value)
+                {
+                    throw new Exception("Not Initialized, call InitializeServer first");
+                }
+            }
+
+            if (currentUser == null)
+            {
+                throw new NullReferenceException("currentUser cannot be null");
+            }
+
+            FilePath queryPath;
+            if (string.IsNullOrWhiteSpace(relativePathFromRoot))
+            {
+                queryPath = new FilePath(string.Empty);
+            }
+            else
+            {
+                queryPath = SyncTestServer.Static.Helpers.BuildFilePathFromEmptyRootRelativePath((relativePathFromRoot[relativePathFromRoot.Length - 1] == '/'
+                    ? relativePathFromRoot.Substring(0, relativePathFromRoot.Length - 1)
+                    : relativePathFromRoot), true);
+            }
+
+            FileMetadata getMetadata = _metadataProvider.GetMetadataAtPath(currentUser.Id, queryPath);
+
+            if (getMetadata == null
+                || getMetadata.HashableProperties.IsFolder != isFolder)
+            {
+                return null;
+            }
+
+            return new CloudApiPublic.JsonContracts.Metadata()
+            {
+                CreatedDate = getMetadata.HashableProperties.CreationTime,
+                Deleted = false,
+                ModifiedDate = getMetadata.HashableProperties.LastTime,
+                RelativePath = relativePathFromRoot,
+                IsFolder = isFolder,
+                Icon = (isFolder ? null : string.Empty),
+                MimeType = "application/octet-stream",
+                Revision = getMetadata.Revision,
+                Hash = getMetadata.Revision,
+                StorageKey = getMetadata.StorageKey,
+                Version = "1.0",
+                Size = getMetadata.HashableProperties.Size
+            };
+        }
         #endregion
 
         private static FilePath GenerateFilePathFromForwardSlashRelativePath(string relativePath)
