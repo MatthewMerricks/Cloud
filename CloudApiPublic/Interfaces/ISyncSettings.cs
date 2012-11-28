@@ -32,7 +32,7 @@ namespace CloudApiPublic.Interfaces
         /// </summary>
         bool TraceExcludeAuthorization { get; }
         /// <summary>
-        /// Specify 1 for the only the most important traces.  Use a higher number for more detail.
+        /// Specify 1 for the only the most important traces.  Use a higher number for more detail.  Specify 0 to disable Cloud trace.
         /// </summary>
         int TraceLevel { get; }
     }

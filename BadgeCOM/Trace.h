@@ -31,6 +31,7 @@ private:
     static bool _fInstanceFlag;
     static Trace *_single;
 	static CRITICAL_SECTION _cs;
+    volatile static long instanceInitialized;
 
     // Private instance fields
     std::wstring _wsTraceDirectory;
@@ -50,7 +51,7 @@ private:
     {
         // Private constructor
         _streamTrace = NULL;
-        _nMaxPriorityToTrace = LONG_MAX;
+        _nMaxPriorityToTrace = 0;
         _fTraceEnabled = 0;
         _nYear = 0;
         _nMonth = 0;
@@ -69,6 +70,7 @@ public:
     void PerhapsChangeTraceFilename();
     static void DeleteOldTraceFilesThreadProc(LPVOID pUserState);
     int GetFileList(std::wstring &wsSearchKey, std::vector<std::wstring> &outList);
+
     // Public destructor.
     ~Trace()
     {

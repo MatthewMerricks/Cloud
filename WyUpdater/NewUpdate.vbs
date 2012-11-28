@@ -59,7 +59,6 @@
     Dim version
     Dim versionUnderscore
     Dim ftpRootPath
-    Dim currentDate
     Dim sApplicationDataLocalFolderPath
    
     ' Trace function
@@ -206,10 +205,15 @@
     set objShell = createObject("WScript.Shell")   
     
     shouldTrace = true
-    currentDate = Date
 
     sApplicationDataLocalFolderPath = objShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
-    logFileFullPath = sApplicationDataLocalFolderPath & "\Cloud\Trace-" & currentDate.Year & "-" & PadDigits(currentDate.Month, 2) & "-" & PadDigits(currentDate.Day, 2) & "-" & "CloudVbs.log"
+    Dim currentYear
+    Dim currentMonth
+    Dim currentDay
+    currentYear = Year(Date)
+    currentMonth = PadDigits(Month(Date), 2)
+    currentDay = PadDigits(Day(Date), 2)
+    logFileFullPath = sApplicationDataLocalFolderPath & "\Cloud\Trace-" & currentYear & "-" & PadDigits(currentMonth, 2) & "-" & PadDigits(currentDay, 2) & "-" & "CloudVbs.log"
 
     ' @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MULTILINE INPUT DIALOG @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
     'The function will open an IE window and prompt the user for input  using IE. Function returns the user input.   

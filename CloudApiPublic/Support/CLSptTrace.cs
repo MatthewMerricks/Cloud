@@ -59,7 +59,7 @@ namespace CloudApiPublic.Support
         /// <param name="TraceDirectory">The full path of the trace directory.</param>
         /// <param name="TraceCategory">The name of the trace category.</param>
         /// <param name="FileExtensionWithoutPeriod">e.g.: "log".</param>
-        /// <param name="TraceLevel">-1: No trace.  Enter 0 for most important traces.  Higher numbers for greater detail.</param>
+        /// <param name="TraceLevel">0: No trace.  Enter 1 for most important traces.  Higher numbers for greater detail.</param>
         public static void Initialize(string TraceDirectory, string TraceCategory, string FileExtensionWithoutPeriod, int TraceLevel)
         {
             try
@@ -107,7 +107,7 @@ namespace CloudApiPublic.Support
                 // Only write high priority messages
                 if (_logDir == null || priority <= _maxPriority)
                 {
-                    string logLocation = Helpers.CheckLogFileExistance(TraceLocation: _logDir, UserDeviceId: null, TraceCategory: _traceCategory, 
+                    string logFilePath = Helpers.CheckLogFileExistance(TraceLocation: _logDir, UserDeviceId: null, TraceCategory: _traceCategory, 
                             FileExtensionWithoutPeriod: _fileExtensionWithoutPeriod, OnNewTraceFile: null, OnPreviousCompletion: null);
 
                     // Lock while writing to prevent contention for the log file
@@ -123,7 +123,7 @@ namespace CloudApiPublic.Support
                         //Debug.WriteLine(string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message));
 
                         // This could be optimised to prevent opening and closing the file for each write
-                        using (FileStream fs = File.Open(logLocation, FileMode.Append, FileAccess.Write, FileShare.Write))
+                        using (FileStream fs = File.Open(logFilePath, FileMode.Append, FileAccess.Write, FileShare.Write))
                         {
                             using (StreamWriter log = new StreamWriter(fs))
                             {

@@ -12,41 +12,52 @@
 	' Parameter 3: "P": Pin.  "U": Unpin.
 	' Parameter 4: "T": Taskbar.  "S": Start menu.
 	' Parameter 5: "D": Self-destruct.  "S": Remain.  Don't delete the script.
-    ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Program Files (x86)\Cloud.com\Cloud" "ShowCloudFolder" <P/U> <T/S> <D/S>
+   ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this PinToTaskbar.vbs file>" "C:\Program Files (x86)\Cloud.com\Cloud" "ShowCloudFolder" <P/U> <T/S> <D/S>
     
-    Option Explicit 
+   Option Explicit 
 
-    Const ForReading = 1
-    Const ForWriting = 2
-    Const ForAppending = 8
-    'Const CSIDL_COMMON_PROGRAMS = &H17 
+   Const ForReading = 1
+   Const ForWriting = 2
+   Const ForAppending = 8
+   'Const CSIDL_COMMON_PROGRAMS = &H17 
 
-    Dim objShell
-    Dim filesys
-    Dim targetFolder 
-    Dim LnkFilePath 
-    Dim LnkFile
-    Dim logFileFullPath
-	Dim sScriptFile
-	Dim sAction
-    Dim currentDate
-    Dim sApplicationDataLocalFolderPath
+   Dim objShell
+   Dim objShell2
+   Dim filesys
+   Dim targetFolder 
+   Dim LnkFilePath 
+   Dim LnkFile
+   Dim logFileFullPath
+   Dim sScriptFile
+   Dim sAction
+   Dim sApplicationDataLocalFolderPath
 
-    ' Global variables
-    Dim shouldTrace
-	Dim shouldSelfDestruct
+   ' Global variables
+   Dim shouldTrace
+   Dim shouldSelfDestruct
    
-    Set objShell = CreateObject("Shell.Application") 
-    Set filesys = CreateObject("Scripting.FileSystemObject") 
+   Set objShell = CreateObject("Shell.Application") 
+   Set objShell2 = CreateObject("WScript.Shell")
+   Set filesys = CreateObject("Scripting.FileSystemObject") 
 
 	shouldSelfDestruct = True
  
-    ' Set the following variable to False to turn off trace   
-    shouldTrace = True
-    currentDate = Date
+   ' Set the following variable to False to turn off trace   
+   shouldTrace = True
 
-    sApplicationDataLocalFolderPath = objShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
-    logFileFullPath = sApplicationDataLocalFolderPath & "\Cloud\Trace-" & currentDate.Year & "-" & PadDigits(currentDate.Month, 2) & "-" & PadDigits(currentDate.Day, 2) & "-" & "CloudVbs.log"
+   ' Pad a number with leading zeros
+   Function PadDigits(n, totalDigits) 
+       PadDigits = Right(string(totalDigits,"0") & n, totalDigits) 
+   End Function 
+    
+   sApplicationDataLocalFolderPath = objShell2.ExpandEnvironmentStrings("%LOCALAPPDATA%")
+   Dim currentYear
+   Dim currentMonth
+   Dim currentDay
+   currentYear = Year(Date)
+   currentMonth = PadDigits(Month(Date), 2)
+   currentDay = PadDigits(Day(Date), 2)
+   logFileFullPath = sApplicationDataLocalFolderPath & "\Cloud\Trace-" & currentYear & "-" & PadDigits(currentMonth, 2) & "-" & PadDigits(currentDay, 2) & "-" & "CloudVbs.log"
 
     ' Trace function
     Sub WriteLog(LogMessage)
