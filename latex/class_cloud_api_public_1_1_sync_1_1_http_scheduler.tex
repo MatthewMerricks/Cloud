@@ -15,7 +15,7 @@ Inheritance diagram for Cloud\-Api\-Public.\-Sync.\-Http\-Scheduler\-:\begin{fig
 \subsection*{Static Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-static \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler} \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a7cf74c44d4599e5694487dbc6d21b2fc}{Get\-Scheduler\-By\-Direction} (\hyperlink{namespace_cloud_api_public_1_1_static_a8ba5d1f6d06fa058730616f021c8974f}{Sync\-Direction} direction, \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} sync\-Settings)
+static \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler} \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a38a2cbc4cc59a26e4d05f618f0f2c19d}{Get\-Scheduler\-By\-Direction} (\hyperlink{namespace_cloud_api_public_1_1_static_a8ba5d1f6d06fa058730616f021c8974f}{Sync\-Direction} direction, \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced}{I\-Sync\-Settings\-Advanced} sync\-Settings)
 \begin{DoxyCompactList}\small\item\em Instance accessor for this \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler}, use the return instance as a parameter for \mbox{[}Task\mbox{]}.Start \end{DoxyCompactList}\item 
 static void \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a5b654a57f79ca5b29982a697e017814e}{Dispose\-Both\-Schedulers} ()
 \begin{DoxyCompactList}\small\item\em Finds the Http\-Schedulers that exist and are not yet disposed and disposes them \end{DoxyCompactList}\end{DoxyCompactItemize}
@@ -61,14 +61,14 @@ Extended Task\-Scheduler for \hyperlink{namespace_cloud_api_public_1_1_sync}{Syn
 
 Finds the Http\-Schedulers that exist and are not yet disposed and disposes them 
 
-\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a7cf74c44d4599e5694487dbc6d21b2fc}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler@{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler}!Get\-Scheduler\-By\-Direction@{Get\-Scheduler\-By\-Direction}}
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a38a2cbc4cc59a26e4d05f618f0f2c19d}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler@{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler}!Get\-Scheduler\-By\-Direction@{Get\-Scheduler\-By\-Direction}}
 \index{Get\-Scheduler\-By\-Direction@{Get\-Scheduler\-By\-Direction}!CloudApiPublic::Sync::HttpScheduler@{Cloud\-Api\-Public\-::\-Sync\-::\-Http\-Scheduler}}
 \subsubsection[{Get\-Scheduler\-By\-Direction}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf Http\-Scheduler} Cloud\-Api\-Public.\-Sync.\-Http\-Scheduler.\-Get\-Scheduler\-By\-Direction (
 \begin{DoxyParamCaption}
 \item[{{\bf Sync\-Direction}}]{direction, }
-\item[{{\bf I\-Sync\-Settings}}]{sync\-Settings}
+\item[{{\bf I\-Sync\-Settings\-Advanced}}]{sync\-Settings}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a7cf74c44d4599e5694487dbc6d21b2fc}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_sync_1_1_http_scheduler_a38a2cbc4cc59a26e4d05f618f0f2c19d}
 
 
 Instance accessor for this \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_scheduler}{Http\-Scheduler}, use the return instance as a parameter for \mbox{[}Task\mbox{]}.Start 
@@ -76,6 +76,8 @@ Instance accessor for this \hyperlink{class_cloud_api_public_1_1_sync_1_1_http_s
 
 \begin{DoxyParams}{Parameters}
 {\em direction} & Use From for downloads and To for uploads\\
+\hline
+{\em sync\-Settings} & Settings to use for logging errors\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}

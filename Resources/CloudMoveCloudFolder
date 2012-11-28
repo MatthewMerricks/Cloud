@@ -31,13 +31,28 @@
    Dim windowsPath
    Dim fromCloudFolderPath
    Dim toCloudFolderPath
+   Dim sApplicationDataLocalFolderPath
    
    Set objFileSys = wscript.CreateObject("Scripting.FileSystemObject") 
    Set objShell = wscript.createObject("wscript.shell") 
  
    shouldTrace = True
    shouldCloudBeStarted = True
-   logFileFullPath = objFileSys.GetSpecialFolder(2) & "\CloudTrace.log"
+
+   ' Pad a number with leading zeros
+   Function PadDigits(n, totalDigits) 
+       PadDigits = Right(string(totalDigits,"0") & n, totalDigits) 
+   End Function 
+    
+   sApplicationDataLocalFolderPath = objShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
+   Dim currentYear
+   Dim currentMonth
+   Dim currentDay
+   currentYear = Year(Date)
+   currentMonth = PadDigits(Month(Date), 2)
+   currentDay = PadDigits(Day(Date), 2)
+   logFileFullPath = sApplicationDataLocalFolderPath & "\Cloud\Trace-" & currentYear & "-" & PadDigits(currentMonth, 2) & "-" & PadDigits(currentDay, 2) & "-" & "CloudVbs.log"
+
    windowsPath = objShell.ExpandEnvironmentStrings("%windir%")
    
    ' Trace function

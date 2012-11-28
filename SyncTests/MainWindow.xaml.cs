@@ -160,7 +160,7 @@ namespace SyncTests
                 {
                     MessageBox.Show("TestClient started");
 
-                    CloudApiPublic.SyncBox testBox = new CloudApiPublic.SyncBox();
+                    CloudApiPublic.CLSync testBox = new CloudApiPublic.CLSync();
                     testBox.Start(SyncImplementations.SyncSettings.Instance);
 
                     //CloudApiPublic.Sync.SyncEngine testEngine = new CloudApiPublic.Sync.SyncEngine(SyncImplementations.SyncData.Instance,

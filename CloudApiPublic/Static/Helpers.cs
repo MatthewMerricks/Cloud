@@ -587,7 +587,7 @@ namespace CloudApiPublic.Static
             //}
             //else
             //{
-                hexChars = hashString.ToCharArray();
+            hexChars = hashString.ToCharArray();
             //}
             #endregion
 
@@ -621,5 +621,235 @@ namespace CloudApiPublic.Static
             // return the parsed return array
             return hexBuffer;
         }
+
+        #region Choose and Maintain Trace File Names
+        
+        public class TraceFile
+        {
+            public DateTime dateFromFileName { get; set; }
+            public string fullPath { get; set; }
+        }
+
+        internal static readonly object LogFileLocker = new object();
+        internal static Dictionary<string, Nullable<DateTime>> DictLastDayLogCreatedByTraceCategory = new Dictionary<string, DateTime?>();
+
+        // 
+        /// <summary>
+        /// This function creates the target trace file and maintains up to 10 daily trace files per category.
+        /// Trace file names will look like:
+        ///     "<TraceLocation>\Trace-2012-11-27-<TraceCategory>-<UserDeviceId>.
+        /// </summary>
+        /// <remarks>The calling method should wrap this private helper in a try/catch.</remarks>
+        /// <param name="TraceLocation">The full path of the directory to contain the trace files.</param>
+        /// <param name="UserDeviceId">The relevant device ID, or null.</param>
+        /// <param name="TraceCategory">The trace category.  This will appear in the trace file name.</param>
+        /// <param name="FileExtensionWithoutPeriod">The file extension to use.  e.g., "log" or "xml".</param>
+        /// <param name="OnNewTraceFile">An action that will be driven when a new trace file is created.</param>
+        /// <param name="OnPreviousCompletion">An action that will be driven on the old trace file when a trace file rolls over.</param>
+        /// <param name="UniqueUserId">The relevant unique user ID, or null</param>
+        /// <returns>string: The full path and filename.ext of the trace file to use.</returns>
+        internal static string CheckLogFileExistance(string TraceLocation, string UniqueUserId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, string, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
+        {
+            // Get the last day we created a trace file for this category
+            if (String.IsNullOrWhiteSpace(TraceCategory))
+            {
+                throw new Exception("TraceCategory must not be null");
+            }
+            Nullable<DateTime> LastDayLogCreated;
+            bool isValueOk = DictLastDayLogCreatedByTraceCategory.TryGetValue(TraceCategory, out LastDayLogCreated);
+            if (!isValueOk)
+            {
+                LastDayLogCreated = null;
+            }
+
+            // Build the base of this category's trace file search pattern.  This will be something like:
+            // <TraceLocation>\Trace-2012-11-27-<TraceCategory>.  The search path will be something like:
+            // <TraceLocation>\Trace-????-??-??-<TraceCategory>.
+            // Make sure TraceLocation ends with a backslash.
+            string localTraceLocation;
+            if (TraceLocation.EndsWith(@"\"))
+            {
+                localTraceLocation = TraceLocation;
+            }
+            else
+            {
+                localTraceLocation = TraceLocation + @"\";
+            }
+
+            // store the current date (UTC)
+            DateTime currentDate = DateTime.UtcNow.Date;
+
+            // Build the base full path without the extension.
+            string logLocationBaseForCategoryWithoutExtension = localTraceLocation + "Trace-" +
+                currentDate.ToString("yyyy-MM-dd-") + // formats to "YYYY-MM-DD-"
+                TraceCategory;
+            FileInfo logFileBaseForCategoryWithoutExtension = new FileInfo(logLocationBaseForCategoryWithoutExtension);
+
+            // Build the search string for enumeration within the directory.
+            string logFilenameExtensionSearchString = "Trace-????-??-??-" + TraceCategory + "*." + FileExtensionWithoutPeriod;
+
+            // Build the final full path of the trace file with filename and extension.
+            string finalLocation = logFileBaseForCategoryWithoutExtension.FullName +
+
+                // Removed device id from trace file name since now my trace files have SyncBoxId for every entry -David
+                //(UserDeviceId == null ? "" : "-" + UserDeviceId) +
+
+                "." + FileExtensionWithoutPeriod;
+
+            bool logAlreadyExists = File.Exists(finalLocation);
+
+            lock (LogFileLocker)
+            {
+                if (!logAlreadyExists
+                    || LastDayLogCreated == null
+                    || currentDate.Year != ((DateTime)LastDayLogCreated).Year
+                    || currentDate.Month != ((DateTime)LastDayLogCreated).Month
+                    || currentDate.Day != ((DateTime)LastDayLogCreated).Day)
+                {
+                    // if the parent directory of the log file does not exist then create it
+                    if (!logFileBaseForCategoryWithoutExtension.Directory.Exists)
+                    {
+                        logFileBaseForCategoryWithoutExtension.Directory.Create();
+                    }
+
+                    // create a list for storing all the dates encoded into existing log file names
+                    List<TraceFile> logTraceFilesToPossiblyDelete = new List<TraceFile>();
+
+                    // define boolean for whether the existing list of logs contains the current date,
+                    // defaulting to it not being found
+                    bool currentDateFound = false;
+
+                    // loop through all files within the parent directory of the log files
+                    foreach (FileInfo currentFile in logFileBaseForCategoryWithoutExtension.Directory.EnumerateFiles(logFilenameExtensionSearchString))
+                    {
+                        // pull out the portion of the file name of the date;
+                        // should be in the format YYYY-MM-DD
+                        string nameDatePortion = currentFile.Name.Substring(6, 10);
+
+                        // run a series of int.TryParse on the date portions of the file name
+                        int nameDateYear;
+                        if (int.TryParse(nameDatePortion.Substring(0, 4), out nameDateYear))
+                        {
+                            int nameDateMonth;
+                            if (int.TryParse(nameDatePortion.Substring(5, 2), out nameDateMonth))
+                            {
+                                int nameDateDay;
+                                if (int.TryParse(nameDatePortion.Substring(8), out nameDateDay))
+                                {
+                                    // all date time part parsing was successful,
+                                    // but it is still possible one of the components is outside an acceptable range to construct a datetime
+
+                                    try
+                                    {
+                                        // create the DateTime from parts
+                                        DateTime nameDate = new DateTime(nameDateYear, nameDateMonth, nameDateDay, currentDate.Hour, currentDate.Minute, currentDate.Second, DateTimeKind.Utc);
+                                        // if the date portion of the parsed DateTime each match the same portions of the current date,
+                                        // then mark the currentDateFound as true
+                                        if (nameDate.Year == currentDate.Year
+                                            && nameDate.Month == currentDate.Month
+                                            && nameDate.Day == currentDate.Day)
+                                        {
+                                            currentDateFound = true;
+                                        }
+                                        // add the parsed DateTime to the list of all log files found
+                                        logTraceFilesToPossiblyDelete.Add(new TraceFile { dateFromFileName = nameDate, fullPath = currentFile.FullName });
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    const int keepCount = 10;
+                    int currentCount = currentDateFound ? 0 : 1;
+                    bool lastTraceClosed = currentDateFound;
+
+                    // loop through the log files older than the most recent 10
+                    foreach (TraceFile logToRemove in logTraceFilesToPossiblyDelete.OrderByDescending(thisFile => thisFile.dateFromFileName.Ticks))
+                    {
+                        // Get the full path of this file that we might delete.
+                        string currentDeletePath = logToRemove.fullPath;
+
+                        if (currentCount < keepCount)
+                        {
+                            if (!lastTraceClosed)
+                            {
+                                lastTraceClosed = true;
+
+                                if (OnPreviousCompletion != null)
+                                {
+                                    try
+                                    {
+                                        using (TextWriter logWriter = File.AppendText(currentDeletePath))
+                                        {
+                                            OnPreviousCompletion(logWriter);
+                                            //logWriter.Write(Environment.NewLine + "</Log>");
+                                        }
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+
+                                try
+                                {
+                                    using (TextWriter logWriter = File.AppendText(currentDeletePath))
+                                    {
+                                        logWriter.Write(Environment.NewLine + "</Log>");
+                                    }
+                                }
+                                catch
+                                {
+                                }
+                            }
+                            currentCount++;
+                        }
+                        else
+                        {
+                            // attempt to delete the current, old log file
+                            try
+                            {
+                                File.Delete(currentDeletePath);
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+
+                    DictLastDayLogCreatedByTraceCategory[TraceCategory] = currentDate;
+                }
+
+                if (!logAlreadyExists)
+                {
+                    // if the parent directory of the log file does not exist then create it
+                    if (!logFileBaseForCategoryWithoutExtension.Directory.Exists)
+                    {
+                        logFileBaseForCategoryWithoutExtension.Directory.Create();
+                    }
+
+                    if (OnNewTraceFile != null)
+                    {
+                        try
+                        {
+                            using (TextWriter logWriter = File.CreateText(finalLocation))
+                            {
+                                OnNewTraceFile(logWriter, finalLocation, UniqueUserId, UserDeviceId);
+                                //logWriter.Write(LogXmlStart(finalLocation,
+                                //    "UDid: {" + UserDeviceId + "}, UUid: {" + UniqueUserId + "}"));
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+            }
+
+            return finalLocation;
+        }
+        #endregion
     }
 }

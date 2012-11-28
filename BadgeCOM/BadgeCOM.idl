@@ -61,13 +61,6 @@ library BadgeCOMLib
     };
     [
 	    object,
-	    uuid(D2D46453-4FB1-4B94-A571-F65F7B5BF0DF),
-	    pointer_default(unique)
-    ]
-    interface IContextMenuExt : IUnknown{
-    };
-    [
-	    object,
 	    uuid(7ADF06AF-3F02-4686-9704-B94A1667D284),
         dual,
 	    nonextensible,
@@ -192,13 +185,6 @@ library BadgeCOMLib
 	coclass BadgeIconFailed
 	{
 		[default] interface IBadgeIconFailed;
-	};
-	[
-		uuid(EEA3DF1B-BB65-498A-9DD9-5BCDA9DDD1D7)		
-	]
-	coclass ContextMenuExt
-	{
-		[default] interface IContextMenuExt;
 	};
 	[
 		uuid(53AC487B-051C-476F-AE8A-FE660AA427B8)		

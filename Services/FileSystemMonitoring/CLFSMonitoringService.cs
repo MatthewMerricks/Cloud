@@ -29,7 +29,7 @@ namespace win_client.Services.FileSystemMonitoring
         //public MonitorAgent MonitorAgent { get; private set; }
         //public IndexingAgent IndexingAgent { get; private set; }
         //public SyncEngine SyncEngine { get; private set; }
-        internal CloudApiPublic.SyncBox SyncBox { get; private set; }
+        internal CloudApiPublic.CLSync SyncBox { get; private set; }
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -67,7 +67,7 @@ namespace win_client.Services.FileSystemMonitoring
 
             try
             {
-                SyncBox = new CloudApiPublic.SyncBox();
+                SyncBox = new CloudApiPublic.CLSync();
             }
             catch (Exception ex)
             {

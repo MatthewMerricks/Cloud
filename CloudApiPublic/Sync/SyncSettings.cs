@@ -82,19 +82,6 @@ namespace CloudApiPublic.Sync
     internal sealed class AdvancedSyncSettings : ISyncSettingsAdvanced
     {
         /// <summary>
-        /// Only required if LogErrors is set to true
-        /// </summary>
-        public string ErrorLogLocation
-        {
-            get
-            {
-                return _errorLogLocation;
-            }
-        }
-        private string _errorLogLocation;
-
-
-        /// <summary>
         /// Set to true if errors should be logged.
         /// </summary>
         public bool LogErrors
@@ -142,6 +129,18 @@ namespace CloudApiPublic.Sync
             }
         }
         private bool _traceExcludeAuthorization;
+
+        /// <summary>
+        /// Specify 1 for the only the most important traces.  Use a higher number for more detail.
+        /// </summary>
+        public int TraceLevel
+        {
+            get
+            {
+                return _traceLevel;
+            }
+        }
+        private int _traceLevel;
 
         public string Udid
         {
@@ -219,11 +218,11 @@ namespace CloudApiPublic.Sync
         private string _databaseFile = null;
 
         public AdvancedSyncSettings(
-                    string errorLogLocation,
                     bool logErrors,
                     TraceType traceType,
                     string traceLocation,
                     bool traceExcludeAuthorization,
+                    int traceLevel,
                     string udid,
                     string uuid,
                     string akey,
@@ -233,11 +232,11 @@ namespace CloudApiPublic.Sync
                     string cloudRoot,
                     string databaseFile)
         {
-            this._errorLogLocation = errorLogLocation;
             this._logErrors = logErrors;
             this._traceType = traceType;
             this._traceLocation = traceLocation;
             this._traceExcludeAuthorization = traceExcludeAuthorization;
+            this._traceLevel = traceLevel;
             this._udid = udid;
             this._uuid = uuid;
             this._akey = akey;
@@ -253,11 +252,12 @@ namespace CloudApiPublic.Sync
     {
         public static AdvancedSyncSettings CopySettings(this ISyncSettingsAdvanced toCopy)
         {
-            return new AdvancedSyncSettings(toCopy.ErrorLogLocation,
+            return new AdvancedSyncSettings(
                 toCopy.LogErrors,
                 toCopy.TraceType,
                 toCopy.TraceLocation,
                 toCopy.TraceExcludeAuthorization,
+                toCopy.TraceLevel,
                 toCopy.Udid,
                 toCopy.Uuid,
                 toCopy.Akey,
@@ -273,11 +273,12 @@ namespace CloudApiPublic.Sync
             ISyncSettingsAdvanced advancedCopy = toCopy as ISyncSettingsAdvanced;
             if (advancedCopy == null)
             {
-                return new AdvancedSyncSettings(null,
+                return new AdvancedSyncSettings(
                     false,
                     TraceType.NotEnabled,
                     null,
                     true,
+                    0,
                     toCopy.Udid,
                     toCopy.Uuid,
                     toCopy.Akey,
@@ -295,11 +296,12 @@ namespace CloudApiPublic.Sync
 
         public static AdvancedSyncSettings CopySettings(this IPushSettingsAdvanced toCopy)
         {
-            return new AdvancedSyncSettings(toCopy.ErrorLogLocation,
+            return new AdvancedSyncSettings(
                 toCopy.LogErrors,
                 toCopy.TraceType,
                 toCopy.TraceLocation,
                 toCopy.TraceExcludeAuthorization,
+                toCopy.TraceLevel,
                 toCopy.Udid,
                 toCopy.Uuid,
                 toCopy.Akey,
@@ -318,11 +320,12 @@ namespace CloudApiPublic.Sync
                 ISyncSettings syncCopy = toCopy as ISyncSettings;
                 if (syncCopy == null)
                 {
-                    return new AdvancedSyncSettings(null,
+                    return new AdvancedSyncSettings(
                         false,
                         TraceType.NotEnabled,
                         null,
                         true,
+                        0,
                         toCopy.Udid,
                         toCopy.Uuid,
                         toCopy.Akey,

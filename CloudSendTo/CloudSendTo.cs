@@ -77,8 +77,8 @@ namespace CloudSendTo
                     return;
 		        }
 
-			    // Build the pipe name.  This will be (no escapes): "\\.\Pipe\<UserName>/BadgeCOM/ContextMenu"
-			    string pipeName = "\\\\.\\Pipe\\" + Environment.UserName + "/BadgeCOM/ContextMenu";
+                // Build the pipe name.  This will be (no escapes): "\\.\Pipe\<UserName>/ContextMenuCOM/ContextMenu"
+                string pipeName = "\\\\.\\Pipe\\" + Environment.UserName + "/ContextMenuCOM/ContextMenu";
 
 			    // Try to open the named pipe identified by the pipe name.
 			    while (!pipeConnectionFailed)

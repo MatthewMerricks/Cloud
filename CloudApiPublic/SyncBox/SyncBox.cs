@@ -23,7 +23,7 @@ namespace CloudApiPublic
     /// <summary>
     /// A class used to create a SyncBox to synchronize the contents of a local disk directory.
     /// </summary>
-    public class SyncBox
+    public class CLSync
     {
         private MonitorAgent _monitor = null;
         private IndexingAgent _indexer = null;
@@ -108,6 +108,9 @@ namespace CloudApiPublic
 
                 ISyncSettingsAdvanced copiedSettings = settings.CopySettings();
 
+                // Initialize trace in case it is not already initialized.
+                CLTrace.Initialize(copiedSettings.TraceLocation, "Cloud", "log", copiedSettings.TraceLevel);
+
                 System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(copiedSettings.CloudRoot);
                 if (!rootInfo.Exists)
                 {
@@ -125,7 +128,7 @@ namespace CloudApiPublic
 
                 // Start the indexer.
                 _trace.writeToLog(9, "SyncBox: Start: Start the indexer.");
-                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, settings.Uuid, copiedSettings.DatabaseFile);
+                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, copiedSettings.Uuid, copiedSettings.DatabaseFile);
                 if (indexCreationError != null)
                 {
                     _trace.writeToLog(1, "SyncBox: Start: ERROR: Exception. Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);
@@ -231,7 +234,10 @@ namespace CloudApiPublic
         private void OnNotificationPerformManualSyncFrom(object sender, NotificationEventArgs e)
         {
             // Pass this event on to the file monitor.
-            _monitor.PushNotification(e.Message);
+            if (_monitor != null)
+            {
+                _monitor.PushNotification(e.Message);
+            }
         }
 
         /// <summary>
@@ -242,7 +248,10 @@ namespace CloudApiPublic
         private void OnNotificationReceived(object sender, NotificationEventArgs e)
         {
             // Let the file monitor know about this event.
-            _monitor.PushNotification(e.Message);
+            if (_monitor != null)
+            {
+                _monitor.PushNotification(e.Message);
+            }
         }
 
         /// <summary>

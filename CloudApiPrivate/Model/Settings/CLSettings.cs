@@ -194,6 +194,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kMainWindowPlacement = "main_window_placement";
         public const string kTraceType = "trace_type";
         public const string kTraceLocation = "trace_location";
+        public const string kTraceLevel = "trace_level";
         public const string kShouldAddShowCloudFolderOnDesktop = "should_add_show_cloud_folder_on_desktop";
         public const string kShouldAddShowCloudFolderInExplorerFavorites = "should_add_show_cloud_folder_in_explorer_favorites";
         public const string kShouldAddShowCloudFolderInInternetExplorerFavorites = "should_add_show_cloud_folder_in_internet_explorer_favorites";
@@ -702,19 +703,6 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        // Setting for error log location
-        // Added by David
-        private string _errorLogLocation;
-        public string ErrorLogLocation
-        {
-            get { return _errorLogLocation; }
-            set
-            {
-                _errorLogLocation = value;
-                SettingsBase.Write<string>(kLogErrorLocation, value);
-            }
-        }
-
         // Setting to determine whether to log trace to disk
         // Added by David
         private int _traceType;
@@ -743,6 +731,18 @@ namespace CloudApiPrivate.Model.Settings
             {
                 _traceLocation = value;
                 SettingsBase.Write<string>(kTraceLocation, value);
+            }
+        }
+
+        // Setting for trace log level
+        private int _traceLevel;
+        public int TraceLevel
+        {
+            get { return _traceLevel; }
+            set
+            {
+                _traceLevel = value;
+                SettingsBase.Write<int>(kTraceLevel, value);
             }
         }
 
@@ -864,9 +864,8 @@ namespace CloudApiPrivate.Model.Settings
 
             // Logging
             _logErrors = 0;
-            _errorLogLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                "\\Cloud\\ErrorLog";
             _traceType = 0;
+            _traceLevel = 0;
 
             //TODO: Bugbug Remove this debug only setting before release.  This forces trace to be on (causing a performance issue).
             _logErrors = 1;
@@ -875,7 +874,7 @@ namespace CloudApiPrivate.Model.Settings
             // _traceType of zero implies the following:
             //_traceExcludeAuthorization = 1;
             _traceLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                "\\Cloud\\Trace";
+                "\\Cloud";
 
             // General
             _startCloudAppWithSystem = true;
@@ -946,12 +945,6 @@ namespace CloudApiPrivate.Model.Settings
             }
             
             string tempString;
-            isPresent = SettingsBase.ReadIfPresent<string>(kLogErrorLocation, out tempString);
-            if (isPresent)
-            {
-                _errorLogLocation = tempString;
-            }
-
             isPresent = SettingsBase.ReadIfPresent<int>(kTraceType, out temp);
             if (isPresent)
             {
@@ -962,6 +955,12 @@ namespace CloudApiPrivate.Model.Settings
             if (isPresent)
             {
                 _traceLocation = tempString;
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<int>(kTraceLevel, out temp);
+            if (isPresent)
+            {
+                _traceLevel = temp;
             }
 
             // Historic bandwidth

@@ -344,10 +344,13 @@
 		<row><td>AutomaticUpdaterWPF.dll</td><td>{FE1F7E2A-260D-45C0-9F93-57BFEC15505B}</td><td>INSTALLDIR</td><td>2</td><td/><td>automaticupdaterwpf.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeCOM.dll</td><td>{893D7843-DB77-4282-B4EB-3C2A6DCBC332}</td><td>X86</td><td>2</td><td/><td>badgecom.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeCOM.dll1</td><td>{09F994D0-24E1-456A-AE45-7A72BC97519A}</td><td>AMD64</td><td>2</td><td/><td>badgecom.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOMLib.dll</td><td>{44614B23-D144-4D11-A86A-45EE8506F0CD}</td><td>INSTALLDIR</td><td>2</td><td/><td>badgecomlib.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td>{84489268-EDF1-4D66-9B57-F8AED3BEC035}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapiprivate.primary_outp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPublic.Primary_output</td><td>{9A53BE05-DFC9-4056-9738-B1C423D7D923}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapipublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSendTo.Primary_output</td><td>{6AA194B5-728C-4238-AC8C-AE7EF0287F60}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsendto.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudUpdater.exe</td><td>{1E65DA1C-18C7-4BB7-AED6-473C7B9753CA}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudupdater.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ContextMenuCOM.dll</td><td>{2D248298-C166-4D51-8CC4-89AFBBE9C88C}</td><td>AMD64</td><td>2</td><td/><td>contextmenucom.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ContextMenuCOM.dll1</td><td>{0C18F3A7-3329-4A70-8E73-87D84DAFBBDF}</td><td>X86</td><td>2</td><td/><td>contextmenucom.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td>{0D8DF327-F492-416E-9D7A-45516132482A}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.abstractions.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td>{45AB52EC-5E33-4DF5-9D14-F444FA8E02A4}</td><td>INSTALLDIR</td><td>2</td><td/><td>dialog.implementors.wpf.prim</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ErikEJ.SqlCe40.dll</td><td>{53B764E4-20F9-4C4D-A175-DA4BC68EB2B5}</td><td>INSTALLDIR</td><td>2</td><td/><td>erikej.sqlce40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1940,10 +1943,13 @@
 		<row><td>AlwaysInstall</td><td>AutomaticUpdaterWPF.dll</td></row>
 		<row><td>AlwaysInstall</td><td>BadgeCOM.dll</td></row>
 		<row><td>AlwaysInstall</td><td>BadgeCOM.dll1</td></row>
+		<row><td>AlwaysInstall</td><td>BadgeCOMLib.dll</td></row>
 		<row><td>AlwaysInstall</td><td>CloudApiPrivate.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudApiPublic.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudSendTo.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudUpdater.exe</td></row>
+		<row><td>AlwaysInstall</td><td>ContextMenuCOM.dll</td></row>
+		<row><td>AlwaysInstall</td><td>ContextMenuCOM.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>Dialog.Abstractions.Wpf.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>Dialog.Implementors.Wpf.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>ErikEJ.SqlCe40.dll</td></row>
@@ -2012,11 +2018,14 @@
 		<row><td>automaticupdaterwpf.dll</td><td>AutomaticUpdaterWPF.dll</td><td>AUTOMA~1.DLL|AutomaticUpdaterWPF.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\AutomaticUpdaterWPF.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll</td><td>BadgeCOM.dll</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\Release\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\x64\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
+		<row><td>badgecomlib.dll</td><td>BadgeCOMLib.dll</td><td>BADGEC~1.DLL|BadgeCOMLib.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\BadgeCOMLib.dll</td><td>1</td><td/></row>
 		<row><td>client.wyc</td><td>ISX_DEFAULTCOMPONENT1</td><td>client.wyc</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\WyUpdater\wyUpdate\client.wyc</td><td>1</td><td/></row>
 		<row><td>cloudapiprivate.primary_outp</td><td>CloudApiPrivate.Primary_output</td><td>CloudApiPrivate.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPrivate&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudapipublic.primary_outpu</td><td>CloudApiPublic.Primary_output</td><td>CloudApiPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPublic&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudsendto.primary_output</td><td>CloudSendTo.Primary_output</td><td>CloudSendTo.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSendTo&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudupdater.exe</td><td>CloudUpdater.exe</td><td>CLOUDU~1.EXE|CloudUpdater.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\CloudUpdater.exe</td><td>1</td><td/></row>
+		<row><td>contextmenucom.dll</td><td>ContextMenuCOM.dll</td><td>CONTEX~1.DLL|ContextMenuCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release64\ContextMenuCOM.dll</td><td>1</td><td/></row>
+		<row><td>contextmenucom.dll1</td><td>ContextMenuCOM.dll1</td><td>CONTEX~1.DLL|ContextMenuCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\ContextMenuCOM.dll</td><td>1</td><td/></row>
 		<row><td>dialog.abstractions.wpf.prim</td><td>Dialog.Abstractions.Wpf.Primary_output</td><td>Dialog.Abstractions.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Abstractions.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>dialog.implementors.wpf.prim</td><td>Dialog.Implementors.Wpf.Primary_output</td><td>Dialog.Implementors.Wpf.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Dialog.Implementors.Wpf&gt;|Built</td><td>3</td><td/></row>
 		<row><td>erikej.sqlce40.dll</td><td>ErikEJ.SqlCe40.dll</td><td>ERIKEJ~1.DLL|ErikEJ.SqlCe40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</td><td>1</td><td/></row>
@@ -2039,7 +2048,7 @@
 		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt1</td><td>ISX_DEFAULTCOMPONENT5</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\x86\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>regid.2000_12.com.cloud_clou</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
-		<row><td>regid.2000_12.com.cloud_clou1</td><td>ISO19770_SystemTag</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Source\Projects\win-client\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
+		<row><td>regid.2000_12.com.cloud_clou1</td><td>ISO19770_SystemTag</td><td>REGID2~1.SWI|regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetup\CloudSetup\Express\Interm\regid.2000-12.com.cloud,cloud_70D06C5E-4DE9-4198-900D-FA6AECEB1645.swidtag</td><td>1</td><td/></row>
 		<row><td>registercom.exe</td><td>RegisterCom.exe</td><td>REGIST~1.EXE|RegisterCom.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe</td><td>1</td><td/></row>
 		<row><td>registercom.exe.config</td><td>ISX_DEFAULTCOMPONENT1</td><td>REGIST~1.CON|RegisterCom.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\bin\Release\RegisterCom.exe.config</td><td>1</td><td/></row>
 		<row><td>showcloudfolder.primary_outp</td><td>ShowCloudFolder.Primary_output</td><td>ShowCloudFolder.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ShowCloudFolder&gt;|Built</td><td>3</td><td/></row>
@@ -2324,10 +2333,13 @@
 		<row><td>AutomaticUpdaterWPF.dll</td><td/><td/><td>_ED74303C_9035_4C54_858D_A85315CD21D3_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>BadgeCOM.dll</td><td/><td/><td>_C5B2510B_5A22_45FF_8B64_1D81F76BB2B6_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>BadgeCOM.dll1</td><td/><td/><td>_D14DBBFE_947B_4CAC_A12B_EA302A56D440_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>BadgeCOMLib.dll</td><td/><td/><td>_10585BB4_BA11_49ED_87E7_12A47C054527_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudApiPrivate.Primary_output</td><td/><td/><td>_6027BBEB_0CBE_4E7D_B0B7_579A78009BD1_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudApiPublic.Primary_output</td><td/><td/><td>_35D1CFEA_D23D_4ABF_AF5B_40465997CA48_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSendTo.Primary_output</td><td/><td/><td>_8C137BC7_C97F_4636_A1F0_1A2ADCBC28A8_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudUpdater.exe</td><td/><td/><td>_9D933A0F_642B_465A_8E23_986B9BFB96A9_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ContextMenuCOM.dll</td><td/><td/><td>_87257D4A_A7DF_4188_920D_3CA54E2C6A0A_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ContextMenuCOM.dll1</td><td/><td/><td>_D92A7278_ECD3_41CC_80CD_C186CE7B3FAE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Abstractions.Wpf.Primary_output</td><td/><td/><td>_20049C24_C097_4693_B36E_AE931F83388C_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Dialog.Implementors.Wpf.Primary_output</td><td/><td/><td>_03BAA0A3_E5E9_4BAE_A8DC_7916EB10CC2F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ErikEJ.SqlCe40.dll</td><td/><td/><td>_D061E4D3_FFDD_4EEE_8483_F32C676D05BC_FILTER</td><td/><td/><td/><td/></row>

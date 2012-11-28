@@ -113,6 +113,10 @@ namespace CloudApiPublic.PushNotification
             // sync settings are copied so that changes require stopping and starting notification services
             this._syncSettings = Sync.SyncSettingsExtensions.CopySettings(syncSettings);
 
+            // Initialize trace in case it is not already initialized.
+            CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel);
+            CLTrace.Instance.writeToLog(9, "CLNotification: CLNotification: Entry");
+
             // Initialize members, etc. here (at static initialization time).
             ConnectPushNotificationServer();
         }
@@ -224,7 +228,7 @@ namespace CloudApiPublic.PushNotification
                 {
                     CLError error = ex;
                     _trace.writeToLog(1, "CLNotification: ConnectPushNotificationServer: ERROR: Exception connecting with the push server. Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-                    error.LogErrors(_syncSettings.ErrorLogLocation, _syncSettings.LogErrors);
+                    error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
 
                     fallbackToManualPolling = true;
                 }
@@ -291,7 +295,7 @@ namespace CloudApiPublic.PushNotification
                 {
                     storeManualPollingError = ex;
                     _trace.writeToLog(1, "CLNotification: FallbackToManualPolling: ERROR: Exception occurred trying to reconnect to push after manually polling. Msg: <{0}>, Code: {1}.", storeManualPollingError.errorDescription, storeManualPollingError.errorCode);
-                    storeManualPollingError.LogErrors(_syncSettings.ErrorLogLocation, _syncSettings.LogErrors);
+                    storeManualPollingError.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 }
 
                 if (manualPollingIteration == 0)
@@ -325,7 +329,7 @@ namespace CloudApiPublic.PushNotification
                             forceErrors = true;
                             if (!_syncSettings.LogErrors)
                             {
-                                storeManualPollingError.LogErrors(_syncSettings.ErrorLogLocation, true);
+                                storeManualPollingError.LogErrors(_syncSettings.TraceLocation, true);
                             }
 
                             // Serious error, unable to reconnect to push notification AND unable to manually poll
@@ -345,7 +349,7 @@ namespace CloudApiPublic.PushNotification
                             Thread.Sleep(MillisecondManualPollingInterval);
                         }
 
-                        error.LogErrors(_syncSettings.ErrorLogLocation, forceErrors || _syncSettings.LogErrors);
+                        error.LogErrors(_syncSettings.TraceLocation, forceErrors || _syncSettings.LogErrors);
                     }
                 }
                 else
@@ -389,7 +393,7 @@ namespace CloudApiPublic.PushNotification
                 forceErrors = true;
 
                 CLError innerError = ex;
-                innerError.LogErrors(_syncSettings.ErrorLogLocation, true);
+                innerError.LogErrors(_syncSettings.TraceLocation, true);
                 _trace.writeToLog(1, "CLNotification: OnConnectionError: ERROR. Error while restarting WebSocket.  Msg: <{0}>, Code: {1}.", innerError.errorDescription, innerError.errorCode);
 
                 global::System.Windows.MessageBox.Show("Cloud has stopped receiving sync events from other devices with errors:" + Environment.NewLine +
@@ -397,7 +401,7 @@ namespace CloudApiPublic.PushNotification
                     "AND" + Environment.NewLine + ex.Message);
             }
             CLError error = e.Exception;
-            error.LogErrors(_syncSettings.ErrorLogLocation, forceErrors || _syncSettings.LogErrors);
+            error.LogErrors(_syncSettings.TraceLocation, forceErrors || _syncSettings.LogErrors);
             _trace.writeToLog(1, "CLNotification: OnConnectionError: ERROR.  Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
         }
 
@@ -412,7 +416,7 @@ namespace CloudApiPublic.PushNotification
             {
                 CLError error = ex;
                 // Always log errors here because we had a serious case where we had to display a message
-                error.LogErrors(_syncSettings.ErrorLogLocation, true);
+                error.LogErrors(_syncSettings.TraceLocation, true);
                 _trace.writeToLog(1, "CLNotification: OnConnectionClosed: ERROR. Error while restarting WebSocket.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
 
                 global::System.Windows.MessageBox.Show("Cloud has stopped receiving sync events from other devices with error:" + Environment.NewLine +
@@ -519,7 +523,7 @@ namespace CloudApiPublic.PushNotification
                     catch (Exception ex)
                     {
                         CLError error = ex;
-                        error.LogErrors(_syncSettings.ErrorLogLocation, _syncSettings.LogErrors);
+                        error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                         _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR. Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
 
                         ThreadPool.UnsafeQueueUserWorkItem(FallbackToManualPolling, this);

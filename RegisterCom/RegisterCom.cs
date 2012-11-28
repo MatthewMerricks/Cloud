@@ -176,13 +176,22 @@ namespace RegisterCom
                     bitness = "amd64";
                 }
 
-                // See if BadgeCOM exists at that path.
+                // See if BadgeCOM exists in the installation directory at the "bitness" path.
                 string pathBadgeCOM = Path.Combine(firstArg, bitness + "\\BadgeCOM.dll");
                 _trace.writeToLog(1, "RegisterCom: Main: Source path of BadgeCOM.dll: <{0}>.", pathBadgeCOM);
                 if (!File.Exists(pathBadgeCOM))
                 {
                     _trace.writeToLog(1, "RegisterCom: Main: ERROR.  Could not find BadgeCOM.dll at path {0}.", pathBadgeCOM);
                     return 3;
+                }
+
+                // See if ContextMenuCOM exists in the installation directory at the "bitness" path.
+                string pathContextMenuCOM = Path.Combine(firstArg, bitness + "\\ContextMenuCOM.dll");
+                _trace.writeToLog(1, "RegisterCom: Main: Source path of ContextMenuCOM.dll: <{0}>.", pathContextMenuCOM);
+                if (!File.Exists(pathContextMenuCOM))
+                {
+                    _trace.writeToLog(1, "RegisterCom: Main: ERROR.  Could not find ContextMenuCOM.dll at path {0}.", pathContextMenuCOM);
+                    return 4;
                 }
 
                 // Stop Explorer
@@ -220,7 +229,7 @@ namespace RegisterCom
                         // Start Explorer
                         _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
                         Process.Start(explorerLocation);
-                        return 6;
+                        return 5;
                     }
 
                     // Copy msvcr100.dll
@@ -240,7 +249,7 @@ namespace RegisterCom
                         // Start Explorer
                         _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
                         Process.Start(explorerLocation);
-                        return 7;
+                        return 6;
                     }
 
                     // Copy atl100.dll
@@ -260,18 +269,37 @@ namespace RegisterCom
                         // Start Explorer
                         _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
                         Process.Start(explorerLocation);
-                        return 8;
+                        return 7;
                     }
                 }
 
                 // Register BadgeCOM.dll in the ProgramFiles CommonFiles folder.
-                string pathUninstallFiles = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
+                string pathRegistration = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
 
-                _trace.writeToLog(1, "RegisterCom: Main: Call RegisterAssembly. Path: <{0}>.", pathUninstallFiles);
-                rcLocal = RegisterAssembly(pathUninstallFiles);
+                _trace.writeToLog(1, "RegisterCom: Main: Call RegisterAssembly. Path: <{0}>.", pathRegistration);
+                rcLocal = RegisterAssembly(pathRegistration);
                 if (rcLocal != 0)
                 {
-                    _trace.writeToLog(1, "RegisterCom: ERROR: From RegisterAssembly. rc: {0}.", rcLocal);
+                    _trace.writeToLog(1, "RegisterCom: ERROR: From RegisterAssembly, registering BadgeCom. rc: {0}.", rcLocal);
+
+                    // Start Explorer
+                    _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
+                    Process.Start(explorerLocation);
+                    return 8;
+                }
+
+                // Register ContextMenuCOM.dll in the ProgramFiles CommonFiles folder.
+                _trace.writeToLog(1, "RegisterCom: Main: Call RegisterAssembly. Path: <{0}>.", pathRegistration);
+                pathRegistration = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\ContextMenuCOM.dll";
+                rcLocal = RegisterAssembly(pathRegistration);
+                if (rcLocal != 0)
+                {
+                    _trace.writeToLog(1, "RegisterCom: ERROR: From RegisterAssembly, registering . rc: {0}.", rcLocal);
+
+                    // Start Explorer
+                    _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
+                    Process.Start(explorerLocation);
+                    return 9;
                 }
 
                 _trace.writeToLog(1, "RegisterCom: Main: Installation exit.  rc: {0}.", rcLocal);
@@ -317,6 +345,7 @@ namespace RegisterCom
         ///                                     From                                            To
         /// 32-bit systems:
         ///   - BadgeCom.dll                    Program Files\Cloud.Com\Cloud\x86               Program Files\Common Files\Cloud.Com\Cloud
+        ///   - ContextMenuCom.dll              Program Files\Cloud.Com\Cloud\x86               Program Files\Common Files\Cloud.Com\Cloud
         ///   - RegisterCom.exe                 Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
         ///   - CloudApiPrivate.dll             Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
         ///   - CloudApiPublic.dll              Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
@@ -324,6 +353,8 @@ namespace RegisterCom
         /// 64-bit systems:
         ///   - BadgeCom.dll                    Program Files (x86)\Cloud.Com\Cloud\amd64       Program Files\Common Files\Cloud.Com\Cloud
         ///   - BadgeCom.dll                    Program Files (x86)\Cloud.Com\Cloud\x86         Program Files (x86)\Common Files\Cloud.Com\Cloud
+        ///   - ContextMenuCom.dll              Program Files (x86)\Cloud.Com\Cloud\amd64       Program Files\Common Files\Cloud.Com\Cloud
+        ///   - ContextMenuCom.dll              Program Files (x86)\Cloud.Com\Cloud\x86         Program Files (x86)\Common Files\Cloud.Com\Cloud
         ///   - RegisterCom.exe                 Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
         ///   - CloudApiPrivate.dll             Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
         ///   - CloudApiPublic.dll              Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
@@ -360,16 +391,25 @@ namespace RegisterCom
                 // Copy the files
                 if (IntPtr.Size == 4)
                 {
-                    // 32-bit 
+                    // 32-bit BadgeCom
                     _trace.writeToLog(1, "RegisterCom: CopyFilesNeededForUninstall: Copy 32-bit BadgeCom.dll.");
                     CopyFileWithDeleteFirst(fromDirectory + "\\x86", to32BitDirectory, "BadgeCOM.dll");
+
+                    // 32-bit ContextMenuCom
+                    _trace.writeToLog(1, "RegisterCom: CopyFilesNeededForUninstall: Copy 32-bit ContextMenuCom.dll.");
+                    CopyFileWithDeleteFirst(fromDirectory + "\\x86", to32BitDirectory, "ContextMenuCOM.dll");
                 }
                 else
                 {
-                    // 64-bit 
+                    // 64-bit BadgeCom
                     _trace.writeToLog(1, "RegisterCom: CopyFilesNeededForUninstall: Copy 64-bit and 32-bit BadgeCom.dll.");
                     CopyFileWithDeleteFirst(fromDirectory + "\\x86", to32BitDirectory, "BadgeCOM.dll");
                     CopyFileWithDeleteFirst(fromDirectory + "\\amd64", to64BitDirectory, "BadgeCOM.dll");
+
+                    // 64-bit ContextMenuCom
+                    _trace.writeToLog(1, "RegisterCom: CopyFilesNeededForUninstall: Copy 64-bit and 32-bit ContextMenuCom.dll.");
+                    CopyFileWithDeleteFirst(fromDirectory + "\\x86", to32BitDirectory, "ContextMenuCOM.dll");
+                    CopyFileWithDeleteFirst(fromDirectory + "\\amd64", to64BitDirectory, "ContextMenuCOM.dll");
                 }
 
                 // Copy the AnyCpu files
@@ -401,7 +441,7 @@ namespace RegisterCom
                 string fromPath = fromDirectory + "\\" + filenameExt;
                 string toPath = toDirectory + "\\" + filenameExt;
 
-                // Found BadgeCOM.dll.  We will copy it to System32 as CloudBadgeCom.dll.  Delete the target first
+                // Delete the file if it is found at the target path.
                 if (File.Exists(toPath))
                 {
                     _trace.writeToLog(1, "RegisterCom: CopyFileWithDeleteFirst: Delete existing file <{0}>.", toPath);
@@ -492,6 +532,20 @@ namespace RegisterCom
                     _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR.  BadgeCOM.dll not found at path {0}.", pathToCopiedBadgeCOM);
                 }
 
+                // The ContextMenuCOM.dll was registered in the ProgramFiles CommonFiles directory.  Find it there and unregister it.
+                string pathToCopiedContextMenuCOM = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\ContextMenuCOM.dll";
+                if (File.Exists(pathToCopiedContextMenuCOM))
+                {
+                    // Unregister ContextMenuCOM
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ContextMenuCOM exists at path <{0}>.  Unregister it.", pathToCopiedContextMenuCOM);
+                    UnregisterAssembly(pathToCopiedContextMenuCOM);
+
+                }
+                else
+                {
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR.  ContextMenuCOM.dll not found at path {0}.", pathToCopiedContextMenuCOM);
+                }
+
                 // Remove all of the Cloud folder shortcuts
                 _trace.writeToLog(1, "RegisterCom: UninstallCOM: Remove Cloud folder shortcuts.");
                 CLShortcuts.RemoveCloudFolderShortcuts(Settings.Instance.CloudFolderPath);
@@ -525,7 +579,7 @@ namespace RegisterCom
                 // Finalize the uninstall.  We are running in this assembly, and this assembly has various DLLs loaded and locked, so we can't
                 // just delete them.  We would like to delete all of the files recursively up to c:\program files (x86)\Cloud.com (including Cloud.com)),
                 // assuming that the user hasn't added any files that we or the installer don't know about.  We will save a VBScript file in the user's
-                // temp directory.  We will start a new process naming cscript and the VBScript file.  The VBScript file will unregister BadgeCom, clean
+                // temp directory.  We will start a new process naming cscript and the VBScript file.  The VBScript file will clean
                 // up the program files directory, and then delete itself.  We will just exit here so the files will be unlocked so they can
                 // be cleaned up.  Under normal circumstances, the entire ProgramFiles Cloud.com directory should be removed.  The VBScript program will
                 // restart Explorer.
@@ -740,7 +794,7 @@ namespace RegisterCom
 
 
         /// <summary>
-        /// Always show the Cloud icon on the taskbar, rather than up in the pop-up icon list.
+        ///TODO: Always show the Cloud icon on the taskbar, rather than up in the pop-up icon list.
         /// Searches for a notify icon by application path in the registry and updates the key to always show, always hide, or hide when inactive
         /// WhenToShow should be 16 (Dec) for always (verified), 17 (dec) for never (I'm guessing on this), and 18 (Dec) for hide when inactive (verified).
         /// This will return success status.  Highly suggest putting a local setting variable in to only run this once per machine....

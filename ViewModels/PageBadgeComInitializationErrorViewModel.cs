@@ -37,7 +37,7 @@ namespace win_client.ViewModels
 {
          
     /// <summary>
-    /// Page to control the multiple pages of the tour.
+    /// Page to display an error to the user at initalization.  Usually caused by an error initializing to the BadgeCom or ContextMenuCom shell extensions.
     /// </summary>
     public class PageBadgeComInitializationErrorViewModel : ValidatingViewModelBase, ICleanup
     {

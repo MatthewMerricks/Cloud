@@ -8,5 +8,6 @@ var searchData=
   ['purgepending',['PurgePending',['../class_cloud_api_public_1_1_json_contracts_1_1_purge_pending.html',1,'CloudApiPublic::JsonContracts']]],
   ['purgependingresponse',['PurgePendingResponse',['../class_cloud_api_public_1_1_json_contracts_1_1_purge_pending_response.html',1,'CloudApiPublic::JsonContracts']]],
   ['push',['Push',['../class_cloud_api_public_1_1_json_contracts_1_1_push.html',1,'CloudApiPublic::JsonContracts']]],
-  ['pushresponse',['PushResponse',['../class_cloud_api_public_1_1_json_contracts_1_1_push_response.html',1,'CloudApiPublic::JsonContracts']]]
+  ['pushresponse',['PushResponse',['../class_cloud_api_public_1_1_json_contracts_1_1_push_response.html',1,'CloudApiPublic::JsonContracts']]],
+  ['pushsettings',['PushSettings',['../class_cloud_api_public_1_1_push_notification_1_1_push_settings.html',1,'CloudApiPublic::PushNotification']]]
 ];

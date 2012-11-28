@@ -62,7 +62,7 @@ namespace win_client.Views
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.ErrorLogLocation, Settings.Instance.LogErrors);
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(9, "PageHome: PageHome: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
                 System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (PageHome).  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
                 global::System.Windows.Application.Current.Shutdown(0);

@@ -14,17 +14,13 @@
 #include "lmcons.h"
 #include <stdexcept>
 #include "resource.h"
-#include "Trace.h"
+#include "..\BadgeCOM\Trace.h"
 #include "psapi.h"
 
 using namespace std;
 
 // Debug trace
-#ifdef _DEBUG
-	#define CLTRACE(intPriority, szFormat, ...) //#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
-#else
-	#define CLTRACE(intPriority, szFormat, ...)
-#endif // _DEBUG
+#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
 
 // Forward function definitions
 size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters);
@@ -46,6 +42,15 @@ CContextMenuExt::CContextMenuExt()
 {
 	try
 	{
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+		//static bool fCompletedOnce = false;
+		//while (!fCompletedOnce)
+		//{
+		//	Sleep(100);
+		//}
+		//fCompletedOnce = true;
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
 		CLTRACE(9, "ContextMenuExt: CContextMenuExt: Entry.");
 	    m_hRegBmp = LoadBitmap (_AtlBaseModule.GetModuleInstance(), MAKEINTRESOURCE(IDB_BITMAP1) );
 	}
@@ -439,10 +444,10 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 				return E_FAIL;
 			}
 
-			// Build the pipe name.  This will be (no escapes): "\\.\Pipe\<UserName>/BadgeCOM/ContextMenu"
+			// Build the pipe name.  This will be (no escapes): "\\.\Pipe\<UserName>/ContextMenuCOM/ContextMenu"
 			std::wstring pipeName = L"\\\\.\\Pipe\\";
 			pipeName.append(lpszUsername);
-			pipeName.append(L"/BadgeCOM/ContextMenu");
+			pipeName.append(L"/ContextMenuCOM/ContextMenu");
 
 			// Try to open the named pipe identified by the pipe name.
 			while (!pipeConnectionFailed)
@@ -609,7 +614,7 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 				}
 			}
 
-			// Gather and send the information to BadgeNet in Cloud.exe if we got a connection.
+			// Gather and send the information to ContextMenuNet in Cloud.exe if we got a connection.
 			if (!pipeConnectionFailed)
 			{
 				// Get the coordinates of the current Explorer window
@@ -655,7 +660,7 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 				std::string outputJson = writer.write( root );
 				outputJson.append("\n");			// add a newline to force end of line on the server side.
 
-				// Write it to Cloud.exe BadgeNet.
+				// Write it to Cloud.exe ContextMenuNet.
 				CLTRACE(9, "ContextMenuExt: InvokeCommand: Write the JSON to the pipe.");
 				if (WriteFile(PipeHandle,
 							outputJson.c_str(),
@@ -698,7 +703,7 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	// Close the pipe handle
     if (PipeHandle != INVALID_HANDLE_VALUE)
 	{
-		CLTRACE(1, "CBadgeIconFailed: InvokeCommand: Close the pipe handle.");
+		CLTRACE(1, "ContextMenuExt: InvokeCommand: Close the pipe handle.");
 		CloseHandle(PipeHandle);
 		PipeHandle = INVALID_HANDLE_VALUE;
 	}

@@ -1,0 +1,103 @@
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_sync_engine}{\section{Cloud\-Api\-Public.\-Sync.\-Sync\-Engine Class Reference}
+\label{class_cloud_api_public_1_1_sync_1_1_sync_engine}\index{Cloud\-Api\-Public.\-Sync.\-Sync\-Engine@{Cloud\-Api\-Public.\-Sync.\-Sync\-Engine}}
+}
+
+
+Processes events between an input event source (I\-Sync\-Data\-Object) and the server with callbacks for grabbing, rearranging, or updating events; also fires global event callbacks with status  
+
+
+Inheritance diagram for Cloud\-Api\-Public.\-Sync.\-Sync\-Engine\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_cloud_api_public_1_1_sync_1_1_sync_engine}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cloud_api_public_1_1_sync_1_1_sync_engine_a3f309497452e69510b6a87ad5004d646}{Sync\-Engine} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object}{I\-Sync\-Data\-Object} sync\-Data, \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} sync\-Settings, int Http\-Timeout\-Milliseconds=180000, byte Max\-Number\-Of\-Failure\-Retries=20, byte Max\-Number\-Of\-Not\-Founds=10, int Error\-Processing\-Millisecond\-Interval=10000)
+\begin{DoxyCompactList}\small\item\em Engine constructor \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_sync_1_1_sync_engine_a2fd9968f27d029e66e432cc90030e817}{Run} (bool responding\-To\-Push\-Notification)
+\begin{DoxyCompactList}\small\item\em Primary method for all syncing (both From and To), full contention between multiple simultaneous access on the same \hyperlink{class_cloud_api_public_1_1_sync_1_1_sync_engine}{Sync\-Engine} (each thread blocks until previous threads complete their syncs) \end{DoxyCompactList}\item 
+void \hyperlink{class_cloud_api_public_1_1_sync_1_1_sync_engine_abb41dd157521158572cd9ce50065fc06}{Shutdown} ()
+\begin{DoxyCompactList}\small\item\em Call this to terminate all sync threads including active uploads and downloads; after calling this, a restart is required to sync again \end{DoxyCompactList}\item 
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_sync_engine_ae2f6f59bd5dd203f72fd2ffd0d2c9fd7}{void {\bfseries Dispose} ()}\label{class_cloud_api_public_1_1_sync_1_1_sync_engine_ae2f6f59bd5dd203f72fd2ffd0d2c9fd7}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Processes events between an input event source (I\-Sync\-Data\-Object) and the server with callbacks for grabbing, rearranging, or updating events; also fires global event callbacks with status 
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_sync_engine_a3f309497452e69510b6a87ad5004d646}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Sync\-Engine@{Cloud\-Api\-Public\-::\-Sync\-::\-Sync\-Engine}!Sync\-Engine@{Sync\-Engine}}
+\index{Sync\-Engine@{Sync\-Engine}!CloudApiPublic::Sync::SyncEngine@{Cloud\-Api\-Public\-::\-Sync\-::\-Sync\-Engine}}
+\subsubsection[{Sync\-Engine}]{\setlength{\rightskip}{0pt plus 5cm}Cloud\-Api\-Public.\-Sync.\-Sync\-Engine.\-Sync\-Engine (
+\begin{DoxyParamCaption}
+\item[{{\bf I\-Sync\-Data\-Object}}]{sync\-Data, }
+\item[{{\bf I\-Sync\-Settings}}]{sync\-Settings, }
+\item[{int}]{Http\-Timeout\-Milliseconds = {\ttfamily 180000}, }
+\item[{byte}]{Max\-Number\-Of\-Failure\-Retries = {\ttfamily 20}, }
+\item[{byte}]{Max\-Number\-Of\-Not\-Founds = {\ttfamily 10}, }
+\item[{int}]{Error\-Processing\-Millisecond\-Interval = {\ttfamily 10000}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_sync_1_1_sync_engine_a3f309497452e69510b6a87ad5004d646}
+
+
+Engine constructor 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sync\-Data} & Event source\\
+\hline
+{\em sync\-Settings} & Settings source\\
+\hline
+{\em Http\-Timeout\-Milliseconds} & Milliseconds to wait before presuming communication failure\\
+\hline
+{\em Max\-Number\-Of\-Failure\-Retries} & Number of times to retry an event dependency tree before stopping\\
+\hline
+{\em Max\-Number\-Of\-Not\-Founds} & Number of times to retry an event that keeps getting a not found error before presuming the event was cancelled out, should be less than Max\-Number\-Of\-Failure\-Retries\\
+\hline
+{\em Error\-Processing\-Millisecond\-Interval} & Milliseconds to delay between each attempt at reprocessing queued failures\\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_sync_engine_a2fd9968f27d029e66e432cc90030e817}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Sync\-Engine@{Cloud\-Api\-Public\-::\-Sync\-::\-Sync\-Engine}!Run@{Run}}
+\index{Run@{Run}!CloudApiPublic::Sync::SyncEngine@{Cloud\-Api\-Public\-::\-Sync\-::\-Sync\-Engine}}
+\subsubsection[{Run}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-Sync.\-Sync\-Engine.\-Run (
+\begin{DoxyParamCaption}
+\item[{bool}]{responding\-To\-Push\-Notification}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_sync_1_1_sync_engine_a2fd9968f27d029e66e432cc90030e817}
+
+
+Primary method for all syncing (both From and To), full contention between multiple simultaneous access on the same \hyperlink{class_cloud_api_public_1_1_sync_1_1_sync_engine}{Sync\-Engine} (each thread blocks until previous threads complete their syncs) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em responding\-To\-Push\-Notification} & Without any File\-Changes to process, \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync} communication will only occur if this parameter is set to true\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error that occurred while processing
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_sync_1_1_sync_engine_abb41dd157521158572cd9ce50065fc06}{\index{Cloud\-Api\-Public\-::\-Sync\-::\-Sync\-Engine@{Cloud\-Api\-Public\-::\-Sync\-::\-Sync\-Engine}!Shutdown@{Shutdown}}
+\index{Shutdown@{Shutdown}!CloudApiPublic::Sync::SyncEngine@{Cloud\-Api\-Public\-::\-Sync\-::\-Sync\-Engine}}
+\subsubsection[{Shutdown}]{\setlength{\rightskip}{0pt plus 5cm}void Cloud\-Api\-Public.\-Sync.\-Sync\-Engine.\-Shutdown (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_sync_1_1_sync_engine_abb41dd157521158572cd9ce50065fc06}
+
+
+Call this to terminate all sync threads including active uploads and downloads; after calling this, a restart is required to sync again 
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-Sync/Sync\-Engine.\-cs\end{DoxyCompactItemize}

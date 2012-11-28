@@ -79,6 +79,29 @@ namespace win_client
                 }
             }
 
+            // Read the trace level for the Cloud trace.
+            try
+            {
+                string traceLevelFilePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.None) + "\\Cloud\\CloudTraceLevel.ini";
+
+                if (File.Exists(traceLevelFilePath))
+                {
+                    string readIni = File.ReadAllText(traceLevelFilePath);
+                    int readValue;
+                    if (!string.IsNullOrWhiteSpace(readIni)
+                        && int.TryParse(readIni, out readValue))
+                    {
+                        Settings.Instance.TraceLevel = readValue;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            // Initialize the Cloud tracing.
+            CLTrace.Initialize(TraceDirectory: Settings.Instance.TraceType != TraceType.NotEnabled ? Settings.Instance.TraceLocation : null, TraceCategory: "Cloud", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel);
+
             // Change the Cloud folder location if we have just been restarted from the CloudMoveCloudFolder.vbs VBScript.
             lock (Settings.Instance.MovingCloudFolderTargetPath)
             {

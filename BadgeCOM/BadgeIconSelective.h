@@ -12,7 +12,6 @@
 #include "BadgeCOM_i.h"
 #include "CBadgeNetPubSubEvents.h"
 #include <boost\unordered_map.hpp>
-#include "TemplateTimer.h"
 #include <ShlObj.h>
 #include <comdef.h>
 

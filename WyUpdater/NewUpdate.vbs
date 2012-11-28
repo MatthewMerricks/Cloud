@@ -59,6 +59,7 @@
     Dim version
     Dim versionUnderscore
     Dim ftpRootPath
+    Dim sApplicationDataLocalFolderPath
    
     ' Trace function
     Sub WriteLog(LogMessage)
@@ -72,6 +73,11 @@
            set objLogFile = Nothing
         End If
     End Sub
+
+    ' Pad a number with leading zeros
+    Function PadDigits(n, totalDigits) 
+        PadDigits = Right(string(totalDigits,"0") & n, totalDigits) 
+    End Function 
     
     ' Create the wyBuild XML file
     sub CreateXmlFile(parmVersion, parmNewVersion, parmChanges, parmCloudProgramFilesX86Path, _
@@ -199,7 +205,15 @@
     set objShell = createObject("WScript.Shell")   
     
     shouldTrace = true
-    logFileFullPath = objFileSys.GetSpecialFolder(2) & "\CloudTrace.log"
+
+    sApplicationDataLocalFolderPath = objShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
+    Dim currentYear
+    Dim currentMonth
+    Dim currentDay
+    currentYear = Year(Date)
+    currentMonth = PadDigits(Month(Date), 2)
+    currentDay = PadDigits(Day(Date), 2)
+    logFileFullPath = sApplicationDataLocalFolderPath & "\Cloud\Trace-" & currentYear & "-" & PadDigits(currentMonth, 2) & "-" & PadDigits(currentDay, 2) & "-" & "CloudVbs.log"
 
     ' @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MULTILINE INPUT DIALOG @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
     'The function will open an IE window and prompt the user for input  using IE. Function returns the user input.   
