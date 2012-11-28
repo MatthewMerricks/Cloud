@@ -1,4 +1,11 @@
-﻿using CloudApiPublic.Interfaces;
+﻿//
+// SyncSettings.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using CloudApiPublic.Interfaces;
 using CloudApiPublic.Static;
 using System;
 using System.Collections.Generic;

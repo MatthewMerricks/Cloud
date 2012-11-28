@@ -1,4 +1,12 @@
-﻿<Window x:Class="SyncTests.MainWindow"
+﻿<!--
+//
+// MainWindow.xaml
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+-->
+<Window x:Class="SyncTests.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="350" Width="525">

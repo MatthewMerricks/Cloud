@@ -4509,6 +4509,9 @@ namespace CloudApiPublic.Sync
                     CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncSettings.CloudRoot ?? string.Empty),
                         out alreadyVisitedRenames);
 
+                    // create a dictionary mapping event id to changes which were moved as dependencies under new pseudo-Sync From changes (i.e. conflict)
+                    Dictionary<long, PossiblyStreamableFileChange[]> changesConvertedToDependencies = new Dictionary<long, PossiblyStreamableFileChange[]>();
+
                     // loop for all the indexes in the response events
                     for (int currentEventIndex = 0; currentEventIndex < deserializedResponse.Events.Length; currentEventIndex++)
                     {
@@ -4773,26 +4776,26 @@ namespace CloudApiPublic.Sync
 
                                                     // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
                                                     FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange()
+                                                        {
+                                                            Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
+                                                            NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
+                                                            Type = FileChangeType.Created, // a create to download a new file or process a new folder
+                                                            Metadata = new FileMetadata()
                                                             {
-                                                                Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
-                                                                NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
-                                                                Type = FileChangeType.Created, // a create to download a new file or process a new folder
-                                                                Metadata = new FileMetadata()
-                                                                {
-                                                                    //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+                                                                //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                                                    HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
-                                                                        newMetadata.ModifiedDate, // last modified time for this file system object
-                                                                        newMetadata.CreatedDate, // creation time for this file system object
-                                                                        newMetadata.Size), // file size or null for folders
-                                                                    Revision = newMetadata.Revision, // file revision or null for folders
-                                                                    StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                                                    LinkTargetPath = (newMetadata.TargetPath == null
-                                                                        ? null // if server metadata does not have a shortcut file target path, then use null
-                                                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + newMetadata.TargetPath.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
-                                                                }
-                                                            },
-                                                            newMetadata.Hash); // file MD5 hash or null for folder
+                                                                HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
+                                                                    newMetadata.ModifiedDate, // last modified time for this file system object
+                                                                    newMetadata.CreatedDate, // creation time for this file system object
+                                                                    newMetadata.Size), // file size or null for folders
+                                                                Revision = newMetadata.Revision, // file revision or null for folders
+                                                                StorageKey = newMetadata.StorageKey, // file storage key or null for folders
+                                                                LinkTargetPath = (newMetadata.TargetPath == null
+                                                                    ? null // if server metadata does not have a shortcut file target path, then use null
+                                                                    : (syncSettings.CloudRoot ?? string.Empty) + "\\" + newMetadata.TargetPath.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                            }
+                                                        },
+                                                        newMetadata.Hash); // file MD5 hash or null for folder
 
                                                     // merge the creation of the new FileChange for a pseudo Sync From creation event with the event source database, storing any error that occurs
                                                     CLError newPathCreationError = syncData.mergeToSql(new[] { new FileChangeMerge(newPathCreation, currentChange) });
@@ -5318,6 +5321,43 @@ namespace CloudApiPublic.Sync
                                                                 throw new AggregateException("Error creating reparentConflict", reparentCreateError.GrabExceptions());
                                                             }
 
+                                                            // TODO: Comment here
+                                                            if (currentChange.EventId > 0)
+                                                            {
+                                                                if (currentStream != null)
+                                                                {
+                                                                    try
+                                                                    {
+                                                                        currentStream.Dispose();
+                                                                    }
+                                                                    catch
+                                                                    {
+                                                                    }
+                                                                }
+
+                                                                PossiblyStreamableFileChange dependencyHidden = new PossiblyStreamableFileChange(currentChange,
+                                                                    currentStream,
+                                                                    true);
+
+                                                                PossiblyStreamableFileChange[] currentEventIdDependencies;
+                                                                if (changesConvertedToDependencies.TryGetValue(currentChange.EventId, out currentEventIdDependencies))
+                                                                {
+                                                                    PossiblyStreamableFileChange[] previousDependenciesPlusOne = new PossiblyStreamableFileChange[currentEventIdDependencies.Length + 1];
+                                                                    Array.Copy(currentEventIdDependencies,
+                                                                        previousDependenciesPlusOne,
+                                                                        currentEventIdDependencies.Length);
+                                                                    previousDependenciesPlusOne[currentEventIdDependencies.Length] = dependencyHidden;
+                                                                    changesConvertedToDependencies[currentChange.EventId] = previousDependenciesPlusOne;
+                                                                }
+                                                                else
+                                                                {
+                                                                    changesConvertedToDependencies.Add(currentChange.EventId, new[]
+                                                                    {
+                                                                        dependencyHidden
+                                                                    });
+                                                                }
+                                                            }
+
                                                             // remove the previous conflict change from the event source database, storing any error that occurred
                                                             CLError removalOfPreviousChange = syncData.mergeToSql(new[] { new FileChangeMerge(null, currentChange) });
                                                             // if an error occurred removing the previous conflict change, then rethrow the error
@@ -5545,6 +5585,26 @@ namespace CloudApiPublic.Sync
                                 }
                             }
                             // else if the current event does not have a stream, there is no need to check for the stream in the other lists, so mark it found
+                            else
+                            {
+                                foundMatchedStream = true;
+                            }
+                        }
+
+                        // TODO: need to comment here
+                        PossiblyStreamableFileChange[] tryGetConvertedDependencies;
+                        if ((!foundEventId && !foundMatchedStream)
+                            && changesConvertedToDependencies.TryGetValue(currentOriginalChangeToFind.FileChange.EventId, out tryGetConvertedDependencies))
+                        {
+                            foundEventId = true;
+
+                            if (currentOriginalChangeToFind.Stream != null)
+                            {
+                                if (tryGetConvertedDependencies.Any(currentConvertedDependency => currentConvertedDependency.Stream == currentOriginalChangeToFind.Stream))
+                                {
+                                    foundMatchedStream = true;
+                                }
+                            }
                             else
                             {
                                 foundMatchedStream = true;

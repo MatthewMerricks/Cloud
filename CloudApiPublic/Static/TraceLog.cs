@@ -459,6 +459,8 @@ namespace CloudApiPublic.Static
 
         private int threadIdField;
 
+        private string syncBoxId;
+
         /// <remarks/>
         public int Type
         {
@@ -508,6 +510,19 @@ namespace CloudApiPublic.Static
             set
             {
                 this.threadIdField = value;
+            }
+        }
+
+        /// <remarks/>
+        public string SyncBoxId
+        {
+            get
+            {
+                return this.syncBoxId;
+            }
+            set
+            {
+                this.syncBoxId = value;
             }
         }
     }

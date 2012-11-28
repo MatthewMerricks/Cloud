@@ -1,4 +1,11 @@
-﻿using SyncTestServer.Static;
+﻿//
+// FindFileResult.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using SyncTestServer.Static;
 using System;
 using System.Collections.Generic;
 using System.IO;

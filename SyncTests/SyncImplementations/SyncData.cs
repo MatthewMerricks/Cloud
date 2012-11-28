@@ -1,4 +1,11 @@
-﻿using CloudApiPublic.Interfaces;
+﻿//
+// SyncData.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
 using System;
 using System.Collections.Generic;
@@ -28,6 +35,17 @@ namespace SyncTests.SyncImplementations
         private SyncData() { }
         #endregion
 
+        public CLError WipeIndex(string newRootPath)
+        {
+            return null;
+        }
+
+        public CLError RecordCompletedSync(string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, FilePath newRootPath = null)
+        {
+            syncCounter = -1;
+            return null;
+        }
+
         public CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError)
@@ -37,8 +55,7 @@ namespace SyncTests.SyncImplementations
             return null;
         }
 
-        public CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms,
-            bool alreadyObtainedLock = false)
+        public CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms)
         {
             return null;
         }

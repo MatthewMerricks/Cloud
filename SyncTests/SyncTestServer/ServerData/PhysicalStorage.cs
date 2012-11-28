@@ -1,4 +1,11 @@
-﻿using CloudApiPublic.Model;
+﻿//
+// PhysicalStorage.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using CloudApiPublic.Model;
 using SyncTestServer.Model;
 using SyncTestServer.Static;
 using System;

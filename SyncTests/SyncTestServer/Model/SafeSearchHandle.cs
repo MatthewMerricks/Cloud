@@ -1,4 +1,11 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿//
+// SafeSearchHandle.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using Microsoft.Win32.SafeHandles;
 using SyncTestServer.Static;
 using System;
 using System.Collections.Generic;

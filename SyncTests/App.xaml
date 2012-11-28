@@ -1,4 +1,12 @@
-﻿<Application x:Class="SyncTests.App"
+﻿<!--
+//
+// App.xaml
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+-->
+<Application x:Class="SyncTests.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">

@@ -1,5 +1,5 @@
 ﻿//
-// AdvancedSyncSettings.cs
+// SyncSettings.cs
 // Cloud Windows
 //
 // Created By DavidBruck.

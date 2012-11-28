@@ -910,6 +910,7 @@ namespace CloudApiPublic.Static
                     Time = DateTime.UtcNow,
                     ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
                     ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,
+                    SyncBoxId = UserDeviceId,
                     PositionInFlow = position,
                     FileChanges = traceChangesArray
                 };
@@ -1035,6 +1036,7 @@ namespace CloudApiPublic.Static
                 Time = DateTime.UtcNow,
                 ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
                 ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,
+                SyncBoxId = UserDeviceId,
                 Direction = Direction,
                 Uri = DomainAndMethodUri,
                 Headers = (headers == null

@@ -1,4 +1,11 @@
-﻿using CloudApiPublic.Model;
+﻿//
+// purge_pending.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using CloudApiPublic.Model;
 using SyncTestServer.Model;
 using System;
 using System.Collections.Generic;

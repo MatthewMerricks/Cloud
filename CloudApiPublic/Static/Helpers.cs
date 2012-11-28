@@ -62,6 +62,9 @@ namespace CloudApiPublic.Static
             return (T)DefaultForType(typeof(T));
         }
 
+        /// <summary>
+        /// MethodInfo for the generic-typed Helpers.DefaultForType(of T); this can be used for compiling dynamic expressions
+        /// </summary>
         public static readonly MethodInfo DefaultForTypeInfo = typeof(Helpers)
             .GetMethod("DefaultForType",
                 BindingFlags.Public | BindingFlags.Static,
@@ -137,12 +140,25 @@ namespace CloudApiPublic.Static
         // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
         // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
         // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-        // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+        // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        /// <summary>
+        /// Copy of System.Web.HttpUtility.JavaScriptStringEncode copied under rights from Mono so we do not need .NET 4.0 full:
+        /// Encodes string content so it can be used as a json tag value
+        /// </summary>
+        /// <param name="value">String content to encode</param>
+        /// <returns>Returns as encoded</returns>
         public static string JavaScriptStringEncode(string value)
         {
             return JavaScriptStringEncode(value, false);
         }
 
+        /// <summary>
+        /// Copy of System.Web.HttpUtility.JavaScriptStringEncode copied under rights from Mono so we do not need .NET 4.0 full:
+        /// Encodes string content so it can be used as a json tag value
+        /// </summary>
+        /// <param name="value">String content to encode</param>
+        /// <param name="addDoubleQuotes">Whether to add double quotes around the return value such as for a json tag value</param>
+        /// <returns>Returns as encoded</returns>
         public static string JavaScriptStringEncode(string value, bool addDoubleQuotes)
         {
             if (String.IsNullOrEmpty(value))
@@ -222,6 +238,14 @@ namespace CloudApiPublic.Static
         }
         #endregion
 
+        /// <summary>
+        /// Extension in the fashion of other Enumerable expressions in System.Linq which filters a list to remove duplicates of items by a provided selector using the selector type's default IEqualityComparer
+        /// </summary>
+        /// <typeparam name="TSource">Type of the input and output enumerables</typeparam>
+        /// <typeparam name="TKey">Type of the property used for distict selection</typeparam>
+        /// <param name="source">Extension source parameter for the pre-filtered input enumerable</param>
+        /// <param name="keySelector">Selector for parameter used for distict comparison</param>
+        /// <returns>Returns enumerable filtered for duplicates</returns>
         public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
         {
             HashSet<TKey> seenKeys = new HashSet<TKey>();
@@ -234,6 +258,11 @@ namespace CloudApiPublic.Static
             }
         }
 
+        /// <summary>
+        /// Copies everything from a Stream (such as an HttpWebRequest ResponseStream) into a new Stream (boxed from MemoryStream) to allow for added functionality such as Seek and Write
+        /// </summary>
+        /// <param name="inputStream">Stream to copy and then close</param>
+        /// <returns>Returns the copied Stream</returns>
         public static Stream CopyHttpWebResponseStreamAndClose(Stream inputStream)
         {
             byte[] buffer = new byte[FileConstants.BufferSize];
@@ -250,6 +279,12 @@ namespace CloudApiPublic.Static
             return ms;
         }
 
+        /// <summary>
+        /// Extension for dequeueing one item at a time off the top of a generic-typed LinkedList(of T) and yield returning it, runs until all items are dequeued
+        /// </summary>
+        /// <typeparam name="T">The generic type parameter of provided input parameter</typeparam>
+        /// <param name="toDequeue">Input list to dequeue</param>
+        /// <returns>Returns enumerable of dequeued items</returns>
         public static IEnumerable<T> DequeueAll<T>(this LinkedList<T> toDequeue)
         {
             while (toDequeue.Count > 0)
@@ -260,6 +295,11 @@ namespace CloudApiPublic.Static
             }
         }
 
+        /// <summary>
+        /// Builds the query string portion for a url by pairs of keys to values, keys and values must already be url-encoded
+        /// </summary>
+        /// <param name="queryStrings">Pairs of keys and values for query string</param>
+        /// <returns>Returns query string (with no additional url-encoding of keys or values)</returns>
         public static string QueryStringBuilder(IEnumerable<KeyValuePair<string, string>> queryStrings)
         {
             if (queryStrings == null)
@@ -291,6 +331,9 @@ namespace CloudApiPublic.Static
             return toReturn.ToString();
         }
 
+        /// <summary>
+        /// Determines whether two DateTimes are within one second of one another using (DateTime instance).CompareTo
+        /// </summary>
         public static bool DateTimesWithinOneSecond(DateTime firstTime, DateTime secondTime)
         {
             if (firstTime == null && secondTime == null)
@@ -327,6 +370,13 @@ namespace CloudApiPublic.Static
             }
         }
 
+        /// <summary>
+        /// Wraps an Action under a try/catch with a customizable number of retry attempts with optional delay in between, finally silences or rethrows the last error
+        /// </summary>
+        /// <param name="toRun"></param>
+        /// <param name="throwExceptionOnFailure"></param>
+        /// <param name="numRetries"></param>
+        /// <param name="millisecondsBetweenRetries"></param>
         public static void RunActionWithRetries(Action toRun, bool throwExceptionOnFailure, int numRetries = 5, int millisecondsBetweenRetries = 50)
         {
             if (toRun == null)
@@ -354,7 +404,8 @@ namespace CloudApiPublic.Static
                             throw;
                         }
                     }
-                    else if (millisecondsBetweenRetries > 0)
+                    else if (millisecondsBetweenRetries > 0
+                        && millisecondsBetweenRetries > 0)
                     {
                         Thread.Sleep(millisecondsBetweenRetries);
                     }
@@ -379,10 +430,9 @@ namespace CloudApiPublic.Static
             return algorithm;
         }
 
-        /*  
-         * encryptString 
-         * provides simple encryption of a string, with a given password 
-         */
+        /// <summary>
+        /// provides simple encryption of a string, with a given password 
+        /// </summary>
         public static string EncryptString(string clearText, string password)
         {
             SymmetricAlgorithm algorithm = getAlgorithm(password);
@@ -394,10 +444,9 @@ namespace CloudApiPublic.Static
             return Convert.ToBase64String(ms.ToArray());
         }
 
-        /* 
-         * decryptString 
-         * provides simple decryption of a string, with a given password 
-         */
+        /// <summary>
+        /// provides simple decryption of a string, with a given password
+        /// </summary>
         public static string DecryptString(string cipherText, string password)
         {
             SymmetricAlgorithm algorithm = getAlgorithm(password);
@@ -410,6 +459,9 @@ namespace CloudApiPublic.Static
         }
         #endregion
 
+        /// <summary>
+        /// Extension method to generate a new DateTime from an existing DateTime except only copies with accuracy to the second, rounding down (has no milliseconds or nanoseconds)
+        /// </summary>
         public static DateTime DropSubSeconds(this DateTime toTruncate)
         {
             return new DateTime(toTruncate.Year,
@@ -421,11 +473,23 @@ namespace CloudApiPublic.Static
                 toTruncate.Kind);
         }
 
+        /// <summary>
+        /// Generic-typed method to run Convert.ChangeType on an object to convert it to the generic type; will throw exceptions on conversion failure or trying to convert null to a non-nullable type
+        /// </summary>
+        /// <typeparam name="T">Type to convert to</typeparam>
+        /// <param name="toConvert">Object to convert</param>
+        /// <returns>Returns converted object</returns>
         public static T ConvertTo<T>(object toConvert)
         {
             return (T)ConvertTo(toConvert, typeof(T));
         }
 
+        /// <summary>
+        /// Runs Convert.ChangeType on an object to convert it to the specified type; will throw exceptions on conversion failure; will return a null for null input even if the specified type is non-nullable
+        /// </summary>
+        /// <typeparam name="T">Type to convert to</typeparam>
+        /// <param name="toConvert">Object to convert</param>
+        /// <returns>Returns converted object</returns>
         public static object ConvertTo(object toConvert, Type newType)
         {
             if (toConvert == null)
@@ -436,6 +500,9 @@ namespace CloudApiPublic.Static
             return Convert.ChangeType(toConvert, Nullable.GetUnderlyingType(newType) ?? newType);
         }
 
+        /// <summary>
+        /// MethodInfo for the generic-typed Helpers.ConvertTo(of T); this can be used for compiling dynamic expressions
+        /// </summary>
         public static readonly MethodInfo ConvertToInfo = typeof(Helpers)
             .GetMethod("ConvertTo",
                 BindingFlags.Static | BindingFlags.Public,
@@ -443,6 +510,11 @@ namespace CloudApiPublic.Static
                 new Type[] { typeof(object) },
                 null);
 
+        /// <summary>
+        /// Uses Win32 API to accurately determine the location of the mouse cursor relative to the origin of the specified Visual element
+        /// </summary>
+        /// <param name="relativeTo">Element for origin base for the cursor point</param>
+        /// <returns>Returns the mouse cursor position relative to the Visual element origin</returns>
         public static Point CorrectGetPosition(Visual relativeTo)
         {
             try
@@ -457,6 +529,9 @@ namespace CloudApiPublic.Static
             }
         }
 
+        /// <summary>
+        /// Pulls the name of the currently running application (such as for AppData directory names); first from AssemblyProduct, second from AssemblyTitle, and last from (executing Assembly).GetName()
+        /// </summary>
         public static string GetDefaultNameFromApplicationName()
         {
             System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();

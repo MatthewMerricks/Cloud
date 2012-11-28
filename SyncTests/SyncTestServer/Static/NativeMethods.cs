@@ -1,4 +1,11 @@
-﻿using SyncTestServer.Model;
+﻿//
+// NativeMethods.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using SyncTestServer.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
