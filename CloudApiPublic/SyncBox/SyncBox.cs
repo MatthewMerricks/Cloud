@@ -23,7 +23,7 @@ namespace CloudApiPublic
     /// <summary>
     /// A class used to create a SyncBox to synchronize the contents of a local disk directory.
     /// </summary>
-    public class SyncBox
+    public class CLSync
     {
         private MonitorAgent _monitor = null;
         private IndexingAgent _indexer = null;
