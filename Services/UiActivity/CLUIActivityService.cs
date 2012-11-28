@@ -16,7 +16,6 @@ using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
 using Hardcodet.Wpf.TaskbarNotification;
 using win_client.Common;
-using win_client.Services.Notification;
 using win_client.ViewModels;
 using System.Threading;
 

@@ -99,14 +99,15 @@ namespace win_client.Common
                 // TODO: Set a shortcut to the Cloud folder onto the Desktop.
                 // TODO: Add our Cloud app menu and icon to the System Tray.  Set it to be always visible.
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 CLError err = new CLError();
                 err.errorDomain = CLError.ErrorDomain_Application;
                 err.errorDescription = Resources.Resources.appDelegateExceptionCreatingFolder;
                 err.errorCode = (int)CLError.ErrorCodes.Exception;
-                err.errorInfo.Add(CLError.ErrorInfo_Exception, e);
+                err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
                 error = err;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 creationTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
                 return;
             }
@@ -177,6 +178,8 @@ namespace win_client.Common
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(9, "CLCreateCloudFolder: IsNewCloudFolderLocationValid: ERROR. Exception.  Msg: <{0}>.", ex.Message);
                 return false;
             }

@@ -123,7 +123,7 @@ namespace win_client.ViewModels
         private Visibility _taskbarIconMenuActivation = Visibility.Visible;
 
         /// <summary>
-        /// Sets and gets the TaskbarIconVisibility property.
+        /// Sets and gets the TaskbarIconMenuActivation property.
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
         public Visibility TaskbarIconMenuActivation
@@ -152,7 +152,7 @@ namespace win_client.ViewModels
         private Visibility _taskbarIconPopupActivation = Visibility.Visible;
 
         /// <summary>
-        /// Sets and gets the TaskbarIconVisibility property.
+        /// Sets and gets the TaskbarIconMenuPopupActivation property.
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
         public Visibility TaskbarIconMenuPopupActivation

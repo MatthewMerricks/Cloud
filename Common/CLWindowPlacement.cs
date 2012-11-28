@@ -18,6 +18,7 @@ using CloudApiPublic.Support;
 using win_client.Static;
 using System.Windows.Interop;
 using win_client.Model;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Common
 {
@@ -96,6 +97,7 @@ namespace win_client.Common
             {
                 // Parsing placement XML failed. Fail silently.
                 CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLWindowPlacement: SetPlacement: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
@@ -120,6 +122,7 @@ namespace win_client.Common
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLWindowPlacement: GetPlacement: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
                 return String.Empty;
             }

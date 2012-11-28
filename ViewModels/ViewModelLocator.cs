@@ -23,7 +23,6 @@ using win_client.Model;
 using win_client.Views;
 using win_client.ViewModels;
 using win_client.Common;
-using win_client.Services.Notification;
 using GalaSoft.MvvmLight.Messaging;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Dialog.Implementors.Wpf.MVVM.Services;
@@ -97,9 +96,6 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<DialogPreferencesNetworkProxiesViewModel>();
             SimpleIoc.Default.Register<DialogPreferencesNetworkBandwidthViewModel>();
             SimpleIoc.Default.Register<DialogCheckForUpdatesViewModel>();
-
-            // Growls
-            SimpleIoc.Default.Register<FancyBalloon>();
 
             // EventMessageReceiver
             // (also doubles as WindowSyncStatusViewModel)
@@ -484,20 +480,6 @@ namespace win_client.ViewModels
             get
             {
                 return ServiceLocator.Current.GetInstance<DialogCheckForUpdatesViewModel>();
-            }
-        }
-
-        /// <summary>
-        /// Gets the FancyBalloon property.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
-            "CA1822:MarkMembersAsStatic",
-            Justification = "This non-static member is needed for data binding purposes.")]
-        public FancyBalloon FancyBalloon
-        {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<FancyBalloon>();
             }
         }
 

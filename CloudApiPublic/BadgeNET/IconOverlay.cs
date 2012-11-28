@@ -143,6 +143,7 @@ namespace CloudApiPublic.BadgeNET
                             if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
                             {
                                 _trace.writeToLog(9, "IconOverlay: pInitialize: ERROR.  Wrong threading model.");
+                                throw new Exception("Wrong threading model");
                             }
 
                             _trace.writeToLog(9, "IconOverlay: pInitialize: Instantiate BadgeComPubSubEvents.");
@@ -163,6 +164,7 @@ namespace CloudApiPublic.BadgeNET
                         catch (Exception ex)
                         {
                             _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                            throw;
                         }
 
                     }));
@@ -172,6 +174,7 @@ namespace CloudApiPublic.BadgeNET
                     if (!started)
                     {
                         _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit was not started.");
+                        throw new Exception("threadInit was not started.");
                     }
                     else
                     {
@@ -225,6 +228,7 @@ namespace CloudApiPublic.BadgeNET
             }
             catch (Exception ex)
             {
+                isInitialized = false;
                 _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
                 return ex;
             }
@@ -241,6 +245,15 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Just return if we aren't initialized.
+                lock (this)
+                {
+                    if (!isInitialized)
+                    {
+                        return;
+                    }
+                }
+
                 // Start a thread to kill the current instance of CBadgeNetPubSubEvents and to create a new instance of CBadgeNetPubSubEvents.
                 // This is necessary because the current thread is a STA thread, and we must instantiate CBadgeNetPubSubEvents as an MTA thread.
                 Thread threadRestart = new Thread(new ThreadStart(() => 
@@ -303,6 +316,15 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Just return if we aren't initialized.
+                lock (this)
+                {
+                    if (!isInitialized)
+                    {
+                        return;
+                    }
+                }
+
                 _trace.writeToLog(9, "IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry.");
                 if (_badgeComPubSubEvents != null)
                 {
@@ -339,6 +361,15 @@ namespace CloudApiPublic.BadgeNET
 
         void MessageEvents_BadgePathRenamed(object sender, BadgePathRenamedArgs e)
         {
+            // Just return if we aren't initialized.
+            lock (this)
+            {
+                if (!isInitialized)
+                {
+                    return;
+                }
+            }
+
             CLError error = RenameBadgePath(e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath);
             if (error != null)
             {
@@ -349,6 +380,15 @@ namespace CloudApiPublic.BadgeNET
 
         void MessageEvents_BadgePathDeleted(object sender, BadgePathDeletedArgs e)
         {
+            // Just return if we aren't initialized.
+            lock (this)
+            {
+                if (!isInitialized)
+                {
+                    return;
+                }
+            }
+
             bool isDeleted;
             CLError error = DeleteBadgePath(e.DeleteBadgePath.PathToDelete, out isDeleted);
             if (error != null)
@@ -364,6 +404,15 @@ namespace CloudApiPublic.BadgeNET
 
         private void MessageEvents_QueueSetBadgeChanged(object sender, SetBadgeQueuedArgs e)
         {
+            // Just return if we aren't initialized.
+            lock (this)
+            {
+                if (!isInitialized)
+                {
+                    return;
+                }
+            }
+
             cloudAppIconBadgeType convertedState = ConvertBadgeState(e.SetBadge.BadgeState);
             QueueSetBadge(convertedState, e.SetBadge.PathToBadge);
             e.MarkHandled();
@@ -371,12 +420,30 @@ namespace CloudApiPublic.BadgeNET
 
         private void MessageEvents_FileChangeMergeToStateChanged(object sender, FileChangeMergeToStateArgs e)
         {
+            // Just return if we aren't initialized.
+            lock (this)
+            {
+                if (!isInitialized)
+                {
+                    return;
+                }
+            }
+
             QueueNewEventBadge(e.MergedFileChanges.MergeTo, e.MergedFileChanges.MergeFrom);
             e.MarkHandled();
         }
 
         private void MessageEvents_PathStateChanged(object sender, SetBadgeQueuedArgs e)
         {
+            // Just return if we aren't initialized.
+            lock (this)
+            {
+                if (!isInitialized)
+                {
+                    return;
+                }
+            }
+
             cloudAppIconBadgeType convertedState = ConvertBadgeState(e.SetBadge.BadgeState);
             QueueSetBadge(convertedState, e.SetBadge.PathToBadge);
             e.MarkHandled();
@@ -526,6 +593,7 @@ namespace CloudApiPublic.BadgeNET
             }
             catch (Exception ex)
             {
+                isInitialized = false;
                 CLError error = ex;
                 _trace.writeToLog(1, "IconOverlay: pInitializeOrReplace: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
@@ -544,6 +612,15 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Just return if we aren't initialized.
+                lock (this)
+                {
+                    if (!isInitialized)
+                    {
+                        return;
+                    }
+                }
+
                 // Remove this path from the current flat dictionary if it exists, and send a remove badge path event to BadgeCom.
                 if (_currentBadges.ContainsKey(recursivePathBeingDeleted))
                 {
@@ -570,6 +647,15 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Just return if we aren't initialized.
+                lock (this)
+                {
+                    if (!isInitialized)
+                    {
+                        return;
+                    }
+                }
+
                 // Remove the old path if it exists, and update BadgeCom.
                 if (_currentBadges.ContainsKey(recursiveOldPath))
                 {
@@ -946,6 +1032,15 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // ensure this is initialized
+                lock (this)
+                {
+                    if (!isInitialized)
+                    {
+                        throw new Exception("IconOverlay must be initialized before setting badges");
+                    }
+                }
+
                 // lock on dictionary so it is not modified during lookup
                 lock (_currentBadgesLocker)
                 {

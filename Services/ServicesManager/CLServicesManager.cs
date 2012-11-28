@@ -13,7 +13,6 @@ using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
 using win_client.Services.Badging;
 using win_client.Services.UiActivity;
-using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
 using win_client.Services.ContextMenu;
 using CloudApiPrivate.Common;
@@ -131,10 +130,7 @@ namespace win_client.Services.ServicesManager
                             // -David
                             //CLSyncService.Instance.BeginSyncServices();
                         }
-                        if (CLNetworkMonitorService.Instance.CloudReach)
-                        {
-                            CLNotificationService.Instance.ConnectPushNotificationServer();
-                        }
+
                         //TODO: Enable to hook all user processes for the start of a drag/drop operation
                         //DragDropServer.DragDropServer.Instance.StartDragDropServer();
 
@@ -164,7 +160,6 @@ namespace win_client.Services.ServicesManager
                         //TODO: Enable to hook all user processes for the start of a drag/drop operation
                         //DragDropServer.DragDropServer.Instance.StopDragDropServer();
 
-                        CLNotificationService.Instance.DisconnectPushNotificationServer();
                         CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                         CLFSMonitoringService.Instance.EndFileSystemMonitoring();
                         DelayProcessable<FileChange>.TerminateAllProcessing();

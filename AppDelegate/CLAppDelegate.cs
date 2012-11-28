@@ -385,6 +385,7 @@ namespace win_client.AppDelegate
             catch (Exception ex)
             {
                 error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
             }
             _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Exit.");
@@ -494,6 +495,7 @@ namespace win_client.AppDelegate
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
             }
         }
@@ -544,6 +546,7 @@ namespace win_client.AppDelegate
                 catch (Exception ex)
                 {
                     error += ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                     _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception(2): Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
                 }
             }
@@ -929,6 +932,7 @@ namespace win_client.AppDelegate
                 catch (Exception ex)
                 {
                     CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                     _trace.writeToLog(1, "CLAppDelegate: LocateMovedCloudFolder: ERROR: Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 }
             }
@@ -1051,8 +1055,11 @@ namespace win_client.AppDelegate
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+
                 foundOriginalPath = null;
                 foundDeletionTimeLocal = (DateTime)Helpers.DefaultForType(typeof(DateTime));
                 foundPathToDeletedCloudFolderRFile = null;
