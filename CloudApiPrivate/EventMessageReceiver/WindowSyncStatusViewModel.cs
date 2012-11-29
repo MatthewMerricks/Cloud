@@ -166,11 +166,30 @@ namespace CloudApiPrivate.EventMessageReceiver
                         in dispatchersToFire)
                     {
                         Application.Current.Dispatcher.BeginInvoke(currentDispatch.Item1,
+                            DispatcherPriority.Render,
                             currentDispatch.Item2,
                             currentDispatch.Item3,
                             currentDispatch.Item4,
                             currentDispatch.Item5,
                             currentDispatch.Item6);
+                    }
+
+                    object pulseback = new object();
+
+                    lock (pulseback)
+                    {
+                        Application.Current.Dispatcher.BeginInvoke((Action<object, object>)((innerList, innerPulseback) =>
+                            {
+                                lock (innerPulseback)
+                                {
+                                    Monitor.Pulse(innerPulseback);
+                                }
+                            }),
+                            DispatcherPriority.Render,
+                            thisReceiver.ListFilesUploading,
+                            pulseback);
+
+                        Monitor.Wait(pulseback);
                     }
 
                     if (atLeastOneDispatcherFired)
@@ -237,11 +256,30 @@ namespace CloudApiPrivate.EventMessageReceiver
                         in dispatchersToFire)
                     {
                         Application.Current.Dispatcher.BeginInvoke(currentDispatch.Item1,
+                            DispatcherPriority.Render,
                             currentDispatch.Item2,
                             currentDispatch.Item3,
                             currentDispatch.Item4,
                             currentDispatch.Item5,
                             currentDispatch.Item6);
+                    }
+
+                    object pulseback = new object();
+
+                    lock (pulseback)
+                    {
+                        Application.Current.Dispatcher.BeginInvoke((Action<object, object>)((innerList, innerPulseback) =>
+                            {
+                                lock (innerPulseback)
+                                {
+                                    Monitor.Pulse(innerPulseback);
+                                }
+                            }),
+                            DispatcherPriority.Render,
+                            thisReceiver.ListFilesDownloading,
+                            pulseback);
+
+                        Monitor.Wait(pulseback);
                     }
 
                     if (atLeastOneDispatcherFired)
