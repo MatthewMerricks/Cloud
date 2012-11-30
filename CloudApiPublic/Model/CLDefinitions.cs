@@ -193,7 +193,8 @@ namespace CloudApiPublic.Model
         {
             CLEventTypeDeleteFolder,
             CLEventTypeAddFolder,
-            CLEventTypeRenameFolder
+            CLEventTypeRenameFolder,
+            CLEventTypeMoveFolder,
             // Note: no modify folder, that is an invalid modification
         };
 
@@ -202,11 +203,13 @@ namespace CloudApiPublic.Model
             CLEventTypeDeleteFile,
             CLEventTypeAddFile,
             CLEventTypeRenameFile,
+            CLEventTypeMoveFile,
             CLEventTypeModifyFile,
 
             CLEventTypeDeleteLink,
             CLEventTypeAddLink,
             CLEventTypeRenameLink,
+            CLEventTypeMoveLink,
             CLEventTypeModifyLink
         };
 

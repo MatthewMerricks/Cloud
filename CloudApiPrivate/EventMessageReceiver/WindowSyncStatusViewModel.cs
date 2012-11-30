@@ -25,7 +25,8 @@ using System.Windows.Threading;
 
 namespace CloudApiPrivate.EventMessageReceiver
 {
-    // class WindowSyncStatusViewModel
+    // class WindowSyncStatusViewModel <-- this message receiver acts as view models for multiple wpf controls, i.e. sync status window and growls
+    // see other partial class for base summary
     public sealed partial class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IDisposable
     {
         // private fields for WindowSyncStatusViewModel
