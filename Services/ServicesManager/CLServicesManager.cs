@@ -119,7 +119,6 @@ namespace win_client.Services.ServicesManager
                         // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
                         // before the initial list is passed (via InitializeOrReplace)
                         //TODO: Handle any CLErrors returned from these services.
-                        CLBadgingService.Instance.BeginBadgingServices();
                         CLContextMenuService.Instance.BeginContextMenuServices();
                         CLUIActivityService.Instance.BeginUIActivityService();
                         CLNetworkMonitorService.Instance.BeginNetworkMonitoring();
@@ -155,7 +154,6 @@ namespace win_client.Services.ServicesManager
                         _trace.writeToLog(1, "CLServicesManager: StopCoreServices: Stop core services.");
                         CLUIActivityService.Instance.EndUIActivityService();
                         CLContextMenuService.Instance.EndContextMenuServices();
-                        CLBadgingService.Instance.EndBadgingServices();
 
                         //TODO: Enable to hook all user processes for the start of a drag/drop operation
                         //DragDropServer.DragDropServer.Instance.StopDragDropServer();

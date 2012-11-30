@@ -123,8 +123,10 @@
 
 			' Set the mode (Self destruct or don't)
 		    if Left(wscript.Arguments(4), 1) = "D" then
+                WriteLog("PinToTaskbar: shouldSelfDestruct is true")
 				shouldSelfDestruct = True
 			else
+                WriteLog("PinToTaskbar: shouldSelfDestruct is false")
 				shouldSelfDestruct = False
 			end if
     
@@ -153,6 +155,7 @@
                             If (verb.Name = sAction) Then 
 					            WriteLog("PinToTaskbar: Found the Taskbar verb.")
                                 verb.DoIt 
+					            WriteLog("PinToTaskbar: After DoIt.")
                             End If 
                         Next 
                     End If 

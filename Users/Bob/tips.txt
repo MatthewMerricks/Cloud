@@ -6413,6 +6413,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
           - Big projects:
             . Complete the sync unit and functional testing.  "Create functional test project for SyncEngine (not necessarilly including push notifications or file monitoring) 
               along with a matching in-process server for controlling responses.", "Create schema for describing client/server functional test scenarios for SyncEngine."
+            . Big localization project (C#, XAML, C++??)
           - Medium projects:
             . Develop an API for HTTP REST and move it into CloudApiPublic.  Modify the rest of the Cloud code to use this API.
             . Split out the context menu support from BadgeCom.  Also split out all of the matching context menu support in BadgeNet(DONE).  Update install/uninstall.
@@ -6482,6 +6483,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
             . What is BoostSemaphore.h in BadgeCOM?  Make sure that it uses WaitForSingle/MultipleObjects.
             . Objectize IconOverlay?
             . BadgeCom PubSubEvents.  Initialize should return an error, and all subsequent calls should return error (IconOverlay failed to initialize).
+            . Change SyncBox class to CLSync.
         o Projects that will not be completed by January:
           - The Cloud app is currently designed to support a single Cloud folder, especially the shell integration.  Show Cloud Folder: Which SyncBox?  Redesign Cloud.exe to support
             multiple SyncBoxes.  Also, what about growls and sync status?  Each SyncBox will have up to 6 upload/download threads, and each SyncBox will have its own set of
@@ -6588,6 +6590,136 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - ContextMenuCOM pulled out of BadgeCOM.  It works, but still needs to be integrated into install/uninstall.
     - Gary's first day.
     - Meeting with the Citrix Online folks.
+  o 11/27/12 Tue: 
+    - 6:45 - 18:30
+    - TODO(Done): Move the VBScript trace to AppData\Local\Cloud.
+    - TODO(Done): Rename the TraceCloudShellExt-yyyy-mm-dd.txt to the standard convention.
+    - TODO(Done): If no device ID, just eliminate the string and end at the category.
+    - TODO(Done): Change file extensions to .log.
+    - Reworked the trace to all be in the same AppData\Local\Cloud directory, and normalized the names.  Also updated the settings and allowed a .ini file to control the trace level.  Removed the ErrorLogLocation setting.
+  o 11/28/12 Wed: 
+    - 6:30 - 18:30
+    - TODO(Done): Fix up CLError.LogErrors() to use the same trace file path generator.
+    - TODO(Done): Bug: Explorer seems to hang and badging doesn't work.
+    - TODO(Done): Bug: Uninstall doesn't start Explorer.
+    - Tested all of the trace code.  It works.  Pushed to master.  Scott has started testing with the current version.
+    - TODO(Done): Remove Services\Notification\FancyBalloon.xaml/xaml.cs.
+    - TODO(Done): Remove Services\Notification\FancyPopup.xaml/xaml.cs.
+    - TODO(Done): Remove Services\Notification\FancyTooltip.xaml/xaml.cs.
+    - TODO(Done): Remove Services\Notification\CLNotificationService.cs.
+    - Debugging a crash in PubSubServer.  It looks like it was because of mismatched code???
+  o 11/29/12 Thu: 
+    - 6:30 - 12:00 (office)
+    - 17:00 - 18:30 (home)
+    - Phil's documentation of the new V0 auth support: https://cloudcom2.podio.com/servers/item/22363038
+    - HMAC SHA-256 class: http://msdn.microsoft.com/en-us/library/system.security.cryptography.hmacsha256.aspx
+    - REST MDS documentation on github: https://github.com/CloudCom/mds-app-v2/commit/2882b03a6179a67f019ab8b1a32a93d362c2b421
+    - Ruby client cliff paths: https://github.com/CloudCom/ruby-cloud-client/blob/master/bin/cloud_client
+    - Ruby client registering and authorizing to cliff: https://github.com/CloudCom/ruby-cloud-client/blob/master/spec/client_api_spec.rb
+    - Running ruby client:
+      . git clone git@github.com:CloudCom/ruby-cloud-client.git
+      . cd ruby-cloud-client/
+      . bundle install
+      . bin/cloud_client
+      . bin/cloud_client help api:doc
+      . bin/cloud_client api:list
+      . bin/cloud_client api:doc auth.service_enable
+      . vim spec/client_api_spec.rb (change the localhost addresses to use the real cliff URLs)
+      . ruby spec/client_api_spec.rb
+    - New authorization design:
+      . Just getting into this...
+      . Chuck's ruby test client:
+        o Main module: https://github.com/CloudCom/ruby-cloud-client/blob/master/spec/client_api_spec.rb
+        o signed_request method: https://github.com/CloudCom/ruby-cloud-client/blob/master/lib/ruby-cloud-client/rest_client/request.rb
+        o Fixed client: client_id, client_secret.  
+          - What is this?  What does it represent?
+          - I believe this is a bootstrap into the new world.  It is the existing WindowsClient client_id and
+            client_secret that we have always embedded in the Windows client.  We will be removing this
+            and it will be retrieved via protocol in some yet-to-be determined manner.
+        o User: first_name, last_name, email, password
+        o device: friendly_name, device_uuid, os_type, os_version, app_version.
+          - What is device_uuid?  Who assigns it?
+        o CloudApi.oauth.register:
+          - Request: user, device, client_id, client_secret
+          - Response: Only that it gets success.
+          - This is like the existing registration request.
+          - I believe this just creates the client_id record on the auth server if it doesn't exist.
+        o CloudApi.oauth.login:
+          - Request: user.email, user.password, client.client_id, client.client_secret
+          - Response: Must be successful, and returns a unique user_id.  e.g.: 42.
+        o CloudAPI.auth.account_details
+          - Request: user_id (from login)
+          - Response: Must be successful, and returns a unique account_id.  e.g.: 4242
+          - Returns the account_id for this user_id.
+        o CloudAPI.auth.application_create
+          - Request: account_id (from account_details), client_params: {name, application_namespace}.  "name" and "application_namespace" are supplied by the user creating the application.
+          - Response: Must be successful
+          - Creates an application in this account_id and adds it to the list of applications in this account_id.
+        o CloudAPI.auth.application_list
+          - Request: account_id
+          - Response: Must be successful, list of applications for this account_id.
+          - The sample app prints the first such application.
+        o CloudAPI.auth.service_types
+          - Request: null
+          - Response: Must succeed.  Returns a list of service types (svc_type)
+          - No request parameter is sent!  This is the list of global service types that the platform supports.
+        o CloudApi.auth.service_enable
+          - Request: account_id, application_id, service_type_id (svc_type:code)
+          - Response: Must succeed.
+          - Loop over the service types and enable the services desired.
+        o CloudAPI.auth.application_details
+          - Request: account_id, application_id
+          - Response: Must succeed. Returns details about the application.
+        o CloudAPI.auth.create_sync_box
+          - Request: quota_size, body signed_request with app.key and app.secret
+          - Response: Must succeed.  Returns the SyncBox ID.
+        o CloudAPI.auth.sync_boxes
+          - Request: Body signed_request with app.key and app.secret.
+          - Response: Must succeeed.  List of sync boxes.
+        o CloudAPI.auth.service_disable
+          - Request: account_id, application_id, service_type_id (svc_type:code)
+          - Response: Must succeed
+          - Loop through all of the services that need to be disabled.
+
+      . Servers:
+        o Cloud Auth
+          - Create developer account (sign up with user ID, password.  Select features, etc.).
+          - Developer can create Application (provides a key and secret).
+          - Within Application, Developer can enable/disable services (e.g., Sync, Push, etc.).
+          - Within the Sync service, the Developer can create sync boxes (each with a SyncBox ID).
+        o Developer Auth
+          - Users are known only by the developer.
+          - Developer creates the application and distributes it.
+          - The user launches the application and signs into the Developer Auth server.
+          - The app creates a device ID to represent the device the app is running on.
+          - 
+        o Mds
+        o Push
+        o Upd
+    - Windows Phone 8 Build videos: http://channel9.msdn.com/Events/Build/2012/2-013
+    - Time-waster: Trying to get the VPN working on my home machine.  I was sort of successful.  At least it works the same
+      as my work machine, except that the session continually resets.
+    - Developer documentation: http://developer.cliff.cloudburrito.com
+    - Platform documentation: https://platform-auth.cliff.cloudburrito.com/
+  o 11/30/12 Fri: 
+    - 7:45 - 18:30
+    - Moved the TODO list to PivotalTracker.
+    - Completed the documentation of Chuck's ruby_client.
+    - Next: We need to start the sample app and get that working.
+    - That requires the Http REST API to be working.
+    - What has Gary started?
+    - New OAuth2 API server code: https://github.com/CloudCom/mds-app-v2/blob/platform/app/controllers/api/v1/file_objects_controller.rb
+    - Reworked IconOverlay to be an object, and initialized it in CLSync.  Badging doesn't work yet.
+    - Fixed an issue with RegisterCom trace.  Trace wasn't initialized.
+    - Debugging an intialization error with David.  It works after building on my machine.
+    - Debugging a problem with PinToTaskBar.vbs.
+  o 12/1/12 Sat: (home)
+    - 5:305 - 
+
+
+
+
+
 
 
           
@@ -7865,193 +7997,166 @@ TODO:
                are no normal termination events.  An exiting process is the only event, and that process may own multiple PubSub subscriptions.
   x (11/25/12) Move BadgeNet into CloudApiPublic.
   x (11/25/12) Explorer uses 100 CPU sometimes when loading BadgeCom.
-  o The ViewModelLocator.Cleanup() function should call of the ViewModel.Cleanup functions.
-  o Don't allow network or unmountable drives for the Cloud directory.
-  o Finder: Test that Finder's badges disappear when killing the client.
-  o Finder: Add localization resources for IconBadge and Finder.
-  o Finder Lion: Multiple-selection and right-click doesn't add the Share item to the context menu. Unfortunately that will require additional swizzling on the Lion base.
-  o Finder:  Check this.  Release the message from the hook to the server thread in the server thread.
-  o Finder bug: Select files on Flowview then switch to column view and click the "DoThings" toolbar icon.  No paths appear, even though there are two files selected.
-  o Finder bug: Alias files are always badged like their target files, whether either is in or out of the cloud folder.  Both files should only be badged when
-    they physically reside inside the cloud folder.
-  o Check all of the C# blocks for proper boxing of in/out data.
-  o Implement code to handle case sensitive paths.
-  W Implement long kernel paths. 
-  o Change the CLDefinition public const strings to enums.
-  o Protect the security tokens in memory some way.
-  W Watch the cloud folder for a move/rename or a delete.  Warn the user and allow him to abort.  If the user says go ahead with the action, unlink or use the new location.
-  o Move the supported language list to CLDefinitions.
-  o Add help buttons to the preferences dialogs and make them functional with some type of help system (web or application).
-  o Bind all tooltips to localizable resources.
-  o When exiting the dialogs, give focus back to the PagePreferences so the proper button will light up.
-  o Change all RelayCommands to the new ICommand model.
-  o On the Cloud folder merge dialog, clicking the X turns into a merge.  Not what the user expected.  Change this to somehow recognize the
-    click on the X as a request to exit the app.
-  o The CleanShutdown code may cause the Cloud app to prevent system shutdown.  Test that and correct it if needed.
-  o In DialogCloudMessageBoxView, parameterize the focused button.
-  o Make the animation to the system tray smoother with a shrinking image.
-  o Change all resource string keys to enums or constant string references so we can search for their use.
-  o Bind all strings in XAML to localizable resources.  Actually, all strings everywhere.
-  o PagePreferences: Color the button that is active in the frame? Or draw a dashed rectangle around it?
-  o Mac: New Preferences Check for Updates view CLPrefUpdateView 
-  o Mac updated Preferences FramePreferencesGeneral view options.
-  W Add Recently Changed file/folder support.
-  W Full database encryption.  Data encryption vs. full-file encryption?
-  W Add items to the systray context menu, Mac source CLAppController, menu: MainMenu.xib (Status Item)
-    - (0.0% of 5.0GB used,, All files are up to date)
-    - Recently changed files/folders ->
-    - Get more space...
-    - Help...
-    - Launch Cloud.com...
-    - Open Cloud folder
-    - Toggle syncing (pause/resume syncing)
-    - Failed files/folders ->
-  W Add network reachability support, and test.
-  W Add "close lid" support, and test.
-  o Add Quick Launch shortcut support for XP.
-  o Implement the Windows-equivalent of KeyChain (Windows Vault).
-  W Reimplement the full installation to use WiX.
-  o Test the automatic check for updates after some number of days.
-  o Restore open folders and positions on a restart of Explorer.
-  o If in the cloud directory, change the context menu item to read "Share..."?
-  o Open Explorer window in Favorites/Recent Places.  Two context menu items are added.  The first seems to trace through the shortcut.  The 2nd is the shortcut.
-  o Add a splash graphic while launching.
-  o Uninstall hung waiting for Cloud to exit (with the "Close application" option selected) (just once).
-  o MsConfig shows the Cloud.exe startup manufacturer as "Unknown".
-  o When changing the cloud folder icon preference warn the user that a restart of Explorer is required.  Close all Explorer windows.  Restart Explorer on OK.
-  o Add our shell extensions to the approved list.
-  W Place the systray icon on the taskbar permanently.
-  o Provide some dynamic way to turn traceWrite trace on and off (special file in installation directory?)
-  o Change all MVVMLight RaisePropertyChanged to David's NotifyPropertyChanged.
-  o Fix the Busy Indicator to use a converter to set Visibility to Collapsed in design mode.
-  o Fix error on shutdown during an update operation from Cloud: 01:02:39.568 PM_2648_1_CLModalErrorDialog: DisplayModalMessageBox:  Message: Are you sure you want to quit the Cloud.com application setup?.
-  o Remove the systray cloud icon on context menu click of Check for Updates.
-  o In CloudUpdater, find a better way to wait for Explorer to be fully operational after restart (rather than just sleeping an arbitrary amount of time).
-  o Move Cloud traceWrite trace files to the appdata cloud dir.
-  o Delete Cloud traceWrite trace files older than 10 days.
-  o Download updates but don't allow install unless the user is an administrator.  Put up a message on Install Now.
-  o CloudUpdater is sometimes not killing processes when asked to do so.  It just hangs.
-  o Protect the DialogCheckForUpdates action with a dialog that indicates that Cloud (and possibly Explorer) will be closed.  Continue?  Yes, No.
-  o Take shell integration out of RegisterCom?.  What is this????
-  o Vista, XP and Win7X86: The taskbar show-cloud-folder icon is not showing.
-  o Change the NewUpdate script to ask the user to copy the entire CommonFiles\Cloud.com folder to WyBuild instead of manually making the directories in WyBuild.
-  o In BadgeCom, identify ignored file types and immediately return "no badge".
+  x (11/28/12) Change SyncBox class to CLSync.
+  x (11/28/12) Remove CLFSMonitoringService (deprecated). (Reworked and comments removed).
+  x (11/28/12) BadgeCom PubSubEvents.  Initialize should return an error, and all subsequent calls should return error (IconOverlay failed to initialize).
+  x (11/28/12) Add a splash graphic while launching.
+  x (11/28/12) Make it easier to turn off trace.
+  x (11/28/12) Remove project BadgeComPS.
+  x (11/28/12) SQLIndexer needs to be initialized with ISyncSettings, and add a field for database location.  Default to the user's AppData Cloud directory if null (filename based on the Akey).
+  x (11/28/12) Trace.cs: Line 1013.  LogCommunication: Use a regular expression to test for proper JSON serialization format, instead of causing an exception.
+              Seen in JsonTextReader.cs, line 1348 Convert.ToInt64(number, CultureInfo.InvariantCulture).  Number is like "----C".
+              Set in Sync.cs, line 2209.  e.g., "---Completed file download---";.   Fix in trace: regular expression to detect valid JSON before removing
+             the authorization key.
+o Projects for later
+  - Big projects:
+    . Complete the sync unit and functional testing.  "Create functional test project for SyncEngine (not necessarilly including push notifications or file monitoring) 
+      along with a matching in-process server for controlling responses.", "Create schema for describing client/server functional test scenarios for SyncEngine."
+    . Localization project (C#, XAML, C++??)
+  - Medium projects:
+    . Develop an API for HTTP REST and move it into CloudApiPublic.  Modify the rest of the Cloud code to use this API.
+    . Split out the context menu support from BadgeCom.  Also split out all of the matching context menu support in BadgeNet(DONE).  Update install/uninstall.
+    . Http REST documentation.
+    . CloudApiPublic documentation, hiding all of the private interfaces and definitions.
+    . Develop, test and document the sample app.  Test overlapping SyncBoxes.
+    . Issue with multiple BadgeComs installed.  New BadgeComs will have new name and class ID.  Don't unregister or delete on uninstall.  On install, don't install or register if already registered.
+    . Implement the device list with automatic updates via push, and a refresh button.
+    . Change the default badge state to "syncing".
+    . Design and develop an API to allow files/folders to be downloaded on demand rather than automatically.
+    . Programmatically locate all applications that have BadgeCom.dll locked.  Use Restart Manager.
+    . Kill Cloud.exe.  The badges don't disappear from Explorer.  The watcher should be freeing the badges.
+    . Implement the new Authorization protocol and switch to the "cliff" servers.
+  - Small projects:
+    . Run Cloud.exe.  Stop and start Explorer.  The Cloud icon does not appear in the systray.
+    . Cloud.exe will not start if Explorer is not running.
+    . Publish the SDK for download from http://web-edge.cloudburrito.com.
+    . During installation, don't delete old versions of BadgeCom.  Developers may be sharing them.  Install them in System32 and treat them as shared.  Check them from the registry.
+    . Check BadgeCom installation at every Cloud startup.  Put up growl "Badging is disabled".
+    . Move all definitions from CloudApiPublic\Model\CLDefinitions.cs out to another module if they are not needed in CloudApiPublic.
+    . Move URLs from CloudApiPublic\Model\CLDefinitions.cs to ISyncSettings.
+    . Remove all references to System.IO and replace them with Win32 calls.  Too many bugs.
+    . Implement Preferences Quota.  Get quota information from the MDS route (Get /user/usage).
+    . Sign in to Cloud.  The code never sets the CompletedSetup Settings flag.  Due to Udid processing?
+    . When using Autoupdater from Preferences, disable the button to show DialogCheckForUpdates if there are changes to preferences.
+    . Add Version.txt file with a fixed version format inside to identify the version installed.
+    . On Preferences Move Cloud folder, flag an operation to move it, then restart.  On restart, 1) Rename index for new path. (optimization). Wipe index?  Can do this for both cases?
+    . Fix the Preferences:About background to be continuous?
+    . Set and check tab order on all frames and dialogs.
+    . Allow the cloud directory location to be anywhere except the drive root, or overlapped with system directories.
+    . UI to request a resync operation.
+    . Before release, make sure all trace is turned off or managed in some way.
+    . Protect the DialogCheckForUpdates action with a dialog that indicates that Cloud (and possibly Explorer) will be closed.  Continue?  Yes, No.
+    . Download updates but don't allow install unless the user is an administrator.  Put up a message on Install Now.
+    . Remove the systray cloud icon on context menu click of Check for Updates.
+    . Fix error on shutdown during an update operation from Cloud: 01:02:39.568 PM_2648_1_CLModalErrorDialog: DisplayModalMessageBox:  Message: Are you sure you want to quit the Cloud.com application setup?.
+    . When changing the cloud folder icon preference warn the user that a restart of Explorer is required.  Close all Explorer windows.  Restart Explorer on OK.
+    . Test the automatic check for updates after some number of days.
+    . PagePreferences: Color the button that is active in the frame? Or draw a dashed rectangle around it?
+    . The CleanShutdown code may cause the Cloud app to prevent system shutdown.  Test that and correct it if needed.
+    . When exiting the dialogs, give focus back to the PagePreferences so the proper button will light up.
+    . Check all of the C# blocks for proper boxing of in/out data.
+    . On ApplySyncFromFilechange if target exists check if modified time is more recent.
+    . Change all project files including 3rdParty sources to require matching version and public key token on required assemblies.
+    . Finish global events on FileChange for uploads/downloads to respond to sync changes.
+    . When applying a Sync From delete, do not delete file if modified or created date is newer.
+    . Add shutdown notification on SQLIndexer to shutdown during initial indexing.
+    . When FileChanges are removed from QueuedChanges upon assigning dependencies, add to SQL.
+    . For FileChanges that reached max retry failures, need to keep calculating dependencies.
+    . Add bit to FileSystemObjects SQL table to signify max error count reached.
+    . Include server not found errors for file not found counter behavior (Sync From file download).
+    . If a FileChange's dependency hierarchy is altered, reset failure counters.
+    . Need to test disconnect while subscribed to websockets; we saw an unhandled exception occur.
+    . Filter PushNotifications so they are not sent if no events caused a change to the cloud directory (such as all are 'exists').
+    . Remove unimplemented Preference options.
+    . **What is BoostSemaphore.h in BadgeCOM?  Make sure that it uses WaitForSingle/MultipleObjects.
+    . Objectize IconOverlay?
+    . **LogErrors on all CLErrors.
+o Projects for later
+  - The Cloud app is currently designed to support a single Cloud folder, especially the shell integration.  Show Cloud Folder: Which SyncBox?  Redesign Cloud.exe to support
+    multiple SyncBoxes.  Also, what about growls and sync status?  Each SyncBox will have up to 6 upload/download threads, and each SyncBox will have its own set of
+    status and error messages.
+  - Windows 8 desktop
+  - Windows RT
+  - Windows 8 Phone  
+  - Dynamically grow or shrink the shared memory allocation used by PubSubServer.  See: http://www.boost.org/doc/libs/1_39_0/doc/html/interprocess/managed_memory_segments.html#interprocess.managed_memory_segments.managed_memory_segment_features.managed_memory_segment_segment_manager
+  - Selective sync.  Sync everything.  Sync nothing.  Or sync certain folders or files.  Use special shortcuts badged selective?  Right-click to download?
+  - If a file is deleted by the server (not the user), move it to a hidden folder.  If it is undeleted again by the server, and the MD5 matches, move it back without having to download it again.  (Implemented on the Mac side).
+  - When core services pause is implemented, the manual polling should synchronously do a SyncFrom and return exceptions that would be aggregated.  If all manual polls fail in a batch, then enter the paused state.
+  - Implement core services pause, and a core services pause watcher thread.
+  - Implement the Log, Errors and Save Log buttons on the detailed status window.
+  - Implement Server Side Events as a fall-back for WebSockets.
+  - Completely relogo CloudUpdater.exe.
+  - When preferences UI is running, the taskbar has two cloud icons that look the same.
+  - Fix bug: User movesCloud folder while system is running.
+  - Add keyboard accelerators for the email and password fields on PageHome.
+  - Alt-tab shows an extra window "Check for Updates", even when it is hidden.
+  - Modify the InstallShield artwork.
+  - On Win7Sp1X86, the installer unpacks and then minimizes to the taskbar.  The user has to restore it to start the installation.  InstallShield problem?
+  - In BadgeCom, identify ignored file types and immediately return "no badge".
     . File attributes:
-      - Hidden
-      - Offline
-      - System
-      - Temporary
-      - SqlIndexer/Static/NativeMethods.
+      o Hidden
+      o Offline
+      o System
+      o Temporary
+      o SqlIndexer/Static/NativeMethods.
     . If file path is a shortcut, and if the target file is in the cloud folder, or is the cloud folder, then process the path as though it were the target path.
     . BadgeCom should also send the shortcut path, and BadgeNet should keep a dictionary of the shortcuts for the purpose of notifying Explorer using the
       shortcut path when the status has changed on the target file.  BadgeNet should also run a clean thread to watch the shortcut dictionary.  It will verify that 
       the shortcut exists, and that the shortcut still points to a file in the cloud directory.  If not, the entry is deleted or modified (if the cloud 
       relative path has changed) in the shortcut directory.  What is this????
-  o On Win7Sp1X86, the installer unpacks and then minimizes to the taskbar.  The user has to restore it to start the installation.  InstallShield problem?
-  o Programmatically locate all applications that have BadgeCom.dll locked.  Use Restart Manager.
-  o Before release, make sure all trace is turned off or managed in some way.
-
-  o Modify the InstallShield artwork.
-  o Alt-tab shows an extra window "Check for Updates", even when it is hidden.
-  o UI to request a resync operation.
-  o Allow the cloud directory location to be anywhere except the drive root, or overlapped with system directories.
-  o Change the default badge state to "syncing".
-  o Set and check tab order on all frames and dialogs .
-  o Add keyboard accelerators for the email and password fields on PageHome.
-  o Fix the Preferences:About background to be continuous?
-  o Fix bug: User moves Cloud folder while system is running.
-  o On Preferences Move Cloud folder, flag an operation to move it, then restart.  On restart, 1) Rename index for new path. (optimization).
-    Wipe index?  Can do this for both cases?
-  o Add Version.txt file with a fixed version format inside to identify the version installed.
-  o When preferences UI is running, the taskbar has two cloud icons that look the same.
-  o Implement the device list with automatic updates via push, and a refresh button.
-  o When using Autoupdater from Preferences, disable the button to show DialogCheckForUpdates if there are changes to preferences.
-  o Completely relogo CloudUpdater.exe.
-  o Implement Server Side Events as a fall-back for WebSockets.
-  o Implement the Log, Errors and Save Log buttons on the detailed status window.
-  o Sign in to Cloud.  The code never sets the CompletedSetup Settings flag.  Due to Udid processing?
-  o When core services pause is implemented, the manual polling should synchronously do a SyncFrom and return exceptions that would be aggregated.  If all manual polls fail in a batch, then enter the paused state.
-  o Implement core services pause, and a core services pause watcher thread.
-  o Trace.cs: Line 1013.  LogCommunication: Use a regular expression to test for proper JSON serialization format, instead of causing an exception.
-    Seen in JsonTextReader.cs, line 1348 Convert.ToInt64(number, CultureInfo.InvariantCulture).  Number is like "----C".
-    Set in Sync.cs, line 2209.  e.g., "---Completed file download---";.   Fix in trace: regular expression to detect valid JSON before removing
-    the authorization key.
-  o Implement Preferences Quota.  Get quota information from the sync/to-cloud response:
-                Quota information is now being returned in the sync/to_cloud response.  The data is:
-                quota:{limit: <integer>, local:<integer>, shared:<integer>}
-                Also, there is an MDS route, GET /user/usage that will return the same thing.
-  o Remove all references to System.IO and replace them with Win32 calls.  Too many bugs.
-  o SQL indexer needs to be initialized with ISyncSettings, and add a field for database location.  Default to the user's AppData Cloud directory if null (filename based on the Akey).
-  o Move URLs from CloudApiPublic\Model\CLDefinitions.cs to ISyncSettings.
-  o Move all definitions from CloudApiPublic\Model\CLDefinitions.cs out to another module if they are not needed in CloudApiPublic.
-  o Issue with multiple BadgeComs installed.  New BadgeComs will have new name and class ID.  Don't unregister or delete on uninstall.  On install, don't install or register if already registered.
-  o Test overlapping SyncBoxes.
-  o Split out the context menu support from BadgeCom.  Also split out all of the matching context menu support in BadgeNet(DONE).  Update install/uninstall.
-  o Move BadgeNet into CloudApiPublic.
-  o Remove project BadgeComPS.
-  o Selective sync.  Sync everything.  Sync nothing.  Or sync certain folders or files.
-  o If a file is deleted by the server (not the user), move it to a hidden folder.  If it is undeleted again by the server, and the MD5 matches, move it back without having to download it again.  (Implemented on the Mac side).
-  o Dynamically grow or shrink the shared memory allocation used by PubSubServer.  See: http://www.boost.org/doc/libs/1_39_0/doc/html/interprocess/managed_memory_segments.html#interprocess.managed_memory_segments.managed_memory_segment_features.managed_memory_segment_segment_manager
-  o Implement the new Authorization protocol.
-  o During installation, don't delete old versions of BadgeCom.  Developers may be sharing them.  Install them in System32 and treat them as shared.  Check them from the registry.
-  o Check BadgeCom installation at every Cloud startup.
-  o Publish every version of required binary filese (etc.) for developer download.
-  o Get Growls working on Windows 8 desktop.
-  o Get NotifyIcon working on Windows 8 desktop.
-  o Run Cloud.exe.  Stop and start Explorer.  The Cloud icon does not appear in the systray.
-  o Cloud.exe will not start if Explorer is not running.
-  o Make it easier to turn off trace.
-  o The Cloud app is currently designed to support a single Cloud folder, especially the shell integration.  Show Cloud Folder: Which SyncBox?  Redesign Cloud.exe to support
-    multiple SyncBoxes.  Also, what about growls and sync status?  Each SyncBox will have up to 6 upload/download threads, and each SyncBox will have its own set of
-    status and error messages.
-  o Complete the sync unit and functional testing.
-  o Develop test and document the sample app.
-  o Develop an API for HTTP REST and move it into CloudApiPublic.  Modify the rest of the Cloud code to use this API.
-  o Switch from Sql Server Compact Edition to SqlLite.
-  o Fix CreateWindowEx code that is used in NotifyIconForWpf 3rd party library so it doesn't error on Win8.
-  o On ApplySyncFromFilechange if target exists check if modified time is more recent.
-  o Change all project files including 3rdParty sources to require matching version and public key token on required assemblies.
-  o Create a copy hook handler or similar to synchronize renames/moves with moving downloaded files.
-  o Create a copy hook handler or similar to prevent or synchronize renaming or deleting the cloud directory while running.
-  o Need cancelation ability on upload/download tasks.
-  o Finish global events on FileChange for uploads/downloads to respond to sync changes.
-  o Check result of String CRC hasher on BigEndian architectures VS LittleEndian.
-  o Make sure that Cloud uninstaller deletes files that are added in wyUpdate updates.  Also want to delete trace.log; already tested that it is not removed.
-  o Handle file/folder path lengths greater than Windows limit.
-  o When applying a Sync From delete, do not delete file if modified or created date is newer.
-  o Reverse badge so syncing is default.
-  o add shutdown notification on SQLIndexer to shutdown during initial indexing.
-  o When FileChanges are removed from QueuedChanges upon assigning dependencies, add to SQL.
-  o For FileChanges that reached max retry failures, need to keep calculating dependencies.
-  o Add bit to FileSystemObjects SQL table to signify max error count reached.
-  o Include server not found errors for file not found counter behavior (Sync From file download).
-  o If a FileChange's dependency hierarchy is altered, reset failure counters.
-  o Need to test disconnect while subscribed to websockets; we saw an unhandled exception occur.
-  o Create functional test project for SyncEngine (not necessarilly including push notifications or file monitoring) along with a matching in-process server for controlling responses.
-  o Create schema for describing client/server functional test scenarios for SyncEngine.
-  o Filter PushNotifications so they are not sent if no events caused a change to the cloud directory (such as all are 'exists').
-  o Remove unimplemented Preference options.
-  o &&&&&&&&&&&&&& Above added to January todo list.
-  o Design and develop an API to allow files/folders to be downloaded on demand rather than automatically.
-  o What is BoostSemaphore.h in BadgeCOM?  Make sure that it uses WaitForSingle/MultipleObjects.
-  o Objectize IconOverlay?
-  o BadgeCom PubSubEvents.  Initialize should return an error, and all subsequent calls should return error (IconOverlay failed to initialize).
-  o Kill Cloud.exe.  The badges don't disappear from Explorer.  The watcher should be freeing the badges.
-  
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
+  - Change the NewUpdate script to ask the user to copy the entire CommonFiles\Cloud.com folder to WyBuild instead of manually making the directories in WyBuild.
+  - Vista, XP and Win7X86: The taskbar show-cloud-folder icon is not showing.
+  - Take shell integration out of RegisterCom?.  What is this????
+  - CloudUpdater is sometimes not killing processes when asked to do so.  It just hangs.
+  - Delete Cloud traceWrite trace files older than 10 days.
+  - Move Cloud traceWrite trace files to the appdata cloud dir.
+  - In CloudUpdater, find a better way to wait for Explorer to be fully operational after restart (rather than just sleeping an arbitrary amount of time).
+  - Fix the Busy Indicator to use a converter to set Visibility to Collapsed in design mode.
+  - Change all MVVMLight RaisePropertyChanged to David's NotifyPropertyChanged.
+  - Provide some dynamic way to turn traceWrite trace on and off (special file in installation directory?)
+  - Place the systray icon on the taskbar permanently.
+  - Add our shell extensions to the approved list.
+  - MsConfig shows the Cloud.exe startup manufacturer as "Unknown".
+  - Uninstall hung waiting for Cloud to exit (with the "Close application" option selected) (just once).
+  - Open Explorer window in Favorites/Recent Places.  Two context menu items are added.  The first seems to trace through the shortcut.  The 2nd is the shortcut.
+  - If in the cloud directory, change the context menu item to read "Share..."?
+  - Restore open folders and positions on a restart of Explorer.
+  - Reimplement the full installation to use WiX.
+  - Implement the Windows-equivalent of KeyChain (Windows Vault).
+  - Add Quick Launch shortcut support for XP.
+  - Add "close lid" support, and test.
+  - Add network reachability support, and test.
+  - Add items to the systray context menu, Mac source CLAppController, menu: MainMenu.xib (Status Item)
+    . (0.0% of 5.0GB used,, All files are up to date)
+    . Recently changed files/folders ->
+    . Get more space...
+    . Help...
+    . Toggle syncing (pause/resume syncing)
+    . Failed files/folders ->
+  - Switch from Sql Server Compact Edition to SqlLite.
+  - Add Recently Changed file/folder support.
+  - Bind all strings in XAML to localizable resources.  Actually, all strings everywhere.
+  - Change all resource string keys to enums or constant string references so we can search for their use.
+  - Make the animation to the system tray smoother with a shrinking image.
+  - In DialogCloudMessageBoxView, parameterize the focused button.
+  - On the Cloud folder merge dialog, clicking the X turns into a merge.  Not what the user expected.  Change this to somehow recognize the
+      click on the X as a request to exit the app.
+  - Change all RelayCommands to the new ICommand model.
+  - Bind all tooltips to localizable resources.
+  - Add help buttons to the preferences dialogs and make them functional with some type of help system (web or application).
+  - Move the supported language list to CLDefinitions.
+  - Watch the cloud folder for a move/rename or a delete.  Warn the user and allow him to abort.  If the user says go ahead with the action, unlink or use the new location.
+  - Protect the security tokens in memory some way.
+  - Change the CLDefinition public const strings to enums.
+  - Implement long kernel paths. 
+  - Implement code to handle case sensitive paths.
+  - Don't allow network or unmountable drives for the Cloud directory.
+  - The ViewModelLocator.Cleanup() function should call of the ViewModel.Cleanup functions.
+  - Add ICleanup interface to all view models and call them when shutting down.  Note: Cleanup doesn't get called when the user clicks the 'X'????
+  - Fix CreateWindowEx code that is used in NotifyIconForWpf 3rd party library so it doesn't error on Win8.
+  - Create a copy hook handler or similar to synchronize renames/moves with moving downloaded files.
+  - Create a copy hook handler or similar to prevent or synchronize renaming or deleting the cloud directory while running.
+  - Need cancelation ability on upload/download tasks.
+  - Check result of String CRC hasher on BigEndian architectures VS LittleEndian.
+  - Make sure that Cloud uninstaller deletes files that are added in wyUpdate updates.  Also want to delete trace.log; already tested that it is not removed.
 

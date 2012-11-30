@@ -650,7 +650,9 @@ namespace CloudApiPrivate.Common
                 // Wait if we should
                 if (shouldWaitForCompletion)
                 {
+                    _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Wait for completion.");
                     p.WaitForExit(3000);            // wait for this action to complete
+                    _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: After wait for completion.");
                 }
             }
             catch (Exception ex)

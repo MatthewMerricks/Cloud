@@ -1,0 +1,122 @@
+\hypertarget{class_cloud_api_public_1_1_c_l_sync}{\section{Cloud\-Api\-Public.\-C\-L\-Sync Class Reference}
+\label{class_cloud_api_public_1_1_c_l_sync}\index{Cloud\-Api\-Public.\-C\-L\-Sync@{Cloud\-Api\-Public.\-C\-L\-Sync}}
+}
+
+
+A class used to create a Sync\-Box to synchronize the contents of a local disk directory.  
+
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_ae42abebf3134701ec50ea49002eb8291}{Record\-Completed\-Sync} (string sync\-Id, I\-Enumerable$<$ long $>$ synced\-Event\-Ids, out long sync\-Counter)
+\begin{DoxyCompactList}\small\item\em Writes a new set of sync states to the database after a sync completes, requires new\-Root\-Path to be set on the first sync or on any sync with a new root path \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_a3bbf0e1f002b7cedd12e16562c071dce}{Wipe\-Index} ()
+\begin{DoxyCompactList}\small\item\em ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !! \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_ac5c1d1e5f40e739f0074678a8c8399ce}{Start} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} settings)
+\begin{DoxyCompactList}\small\item\em Initialize the Sync\-Box and start syncing its contents to the Cloud server, and to other devices registering the same Sync\-Box. \end{DoxyCompactList}\item 
+void \hyperlink{class_cloud_api_public_1_1_c_l_sync_aa76639968094d5dec2ec19e10163612f}{Stop} ()
+\begin{DoxyCompactList}\small\item\em Stop syncing the Sync\-Box and free resources. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Events}
+\begin{DoxyCompactItemize}
+\item 
+Event\-Handler\\*
+$<$ \hyperlink{class_cloud_api_public_1_1_push_notification_1_1_notification_error_event_args}{Notification\-Error\-Event\-Args} $>$ \hyperlink{class_cloud_api_public_1_1_c_l_sync_a986a038f0f504de78c6ea811dacb0b21}{Push\-Notification\-Error}
+\begin{DoxyCompactList}\small\item\em Event fired when a serious notification error has occurred. Push notification is no longer functional. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A class used to create a Sync\-Box to synchronize the contents of a local disk directory. 
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_c_l_sync_ae42abebf3134701ec50ea49002eb8291}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Record\-Completed\-Sync@{Record\-Completed\-Sync}}
+\index{Record\-Completed\-Sync@{Record\-Completed\-Sync}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
+\subsubsection[{Record\-Completed\-Sync}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-C\-L\-Sync.\-Record\-Completed\-Sync (
+\begin{DoxyParamCaption}
+\item[{string}]{sync\-Id, }
+\item[{I\-Enumerable$<$ long $>$}]{synced\-Event\-Ids, }
+\item[{out long}]{sync\-Counter}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_ae42abebf3134701ec50ea49002eb8291}
+
+
+Writes a new set of sync states to the database after a sync completes, requires new\-Root\-Path to be set on the first sync or on any sync with a new root path 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sync\-Id} & New sync Id from server\\
+\hline
+{\em synced\-Event\-Ids} & Enumerable of event ids processed in sync\\
+\hline
+{\em sync\-Counter} & Output sync counter local identity\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns an error that occurred during recording the sync, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_c_l_sync_ac5c1d1e5f40e739f0074678a8c8399ce}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Start@{Start}}
+\index{Start@{Start}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
+\subsubsection[{Start}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-C\-L\-Sync.\-Start (
+\begin{DoxyParamCaption}
+\item[{{\bf I\-Sync\-Settings}}]{settings}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_ac5c1d1e5f40e739f0074678a8c8399ce}
+
+
+Initialize the Sync\-Box and start syncing its contents to the Cloud server, and to other devices registering the same Sync\-Box. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em settings} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_c_l_sync_aa76639968094d5dec2ec19e10163612f}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Stop@{Stop}}
+\index{Stop@{Stop}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
+\subsubsection[{Stop}]{\setlength{\rightskip}{0pt plus 5cm}void Cloud\-Api\-Public.\-C\-L\-Sync.\-Stop (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_aa76639968094d5dec2ec19e10163612f}
+
+
+Stop syncing the Sync\-Box and free resources. 
+
+\hypertarget{class_cloud_api_public_1_1_c_l_sync_a3bbf0e1f002b7cedd12e16562c071dce}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Wipe\-Index@{Wipe\-Index}}
+\index{Wipe\-Index@{Wipe\-Index}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
+\subsubsection[{Wipe\-Index}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-C\-L\-Sync.\-Wipe\-Index (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_a3bbf0e1f002b7cedd12e16562c071dce}
+
+
+¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !! 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\-Root\-Path} & Full path string to directory to sync without any trailing slash (except for drive letter root)\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error that occurred while wiping the database index
+\end{DoxyReturn}
+
+
+\subsection{Event Documentation}
+\hypertarget{class_cloud_api_public_1_1_c_l_sync_a986a038f0f504de78c6ea811dacb0b21}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Push\-Notification\-Error@{Push\-Notification\-Error}}
+\index{Push\-Notification\-Error@{Push\-Notification\-Error}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
+\subsubsection[{Push\-Notification\-Error}]{\setlength{\rightskip}{0pt plus 5cm}Event\-Handler$<${\bf Notification\-Error\-Event\-Args}$>$ Cloud\-Api\-Public.\-C\-L\-Sync.\-Push\-Notification\-Error}}\label{class_cloud_api_public_1_1_c_l_sync_a986a038f0f504de78c6ea811dacb0b21}
+
+
+Event fired when a serious notification error has occurred. Push notification is no longer functional. 
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-Sync\-Box/C\-L\-Sync.\-cs\end{DoxyCompactItemize}
