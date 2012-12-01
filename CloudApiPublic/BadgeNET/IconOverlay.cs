@@ -651,7 +651,7 @@ namespace CloudApiPublic.BadgeNET
                     }
                 }
 
-                if (!this._filePathCloudDirectory.Contains(toDelete))
+                if (toDelete.Contains(this._filePathCloudDirectory))
                 {
                     isDeleted = false;
                     return null;
@@ -857,7 +857,7 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
-                if (!this._filePathCloudDirectory.Contains(filePath))
+                if (!filePath.Contains(this._filePathCloudDirectory))
                 {
                     return null;
                 }
@@ -1602,7 +1602,7 @@ namespace CloudApiPublic.BadgeNET
                         }
                     }
 
-                    return setBadgeQueue.Dequeue();
+                    return toReturn;
                 }
             };
 

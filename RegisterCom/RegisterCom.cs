@@ -24,6 +24,7 @@ using CloudApiPublic.Support;
 using Microsoft.Win32;
 using RegisterCom.Static;
 using System.Runtime.InteropServices;
+using CloudApiPublic.Static;
 
 namespace RegisterCom
 {
@@ -112,6 +113,30 @@ namespace RegisterCom
 
             try
             {
+                // Read the trace level for the Cloud trace.
+                try
+                {
+                    string traceLevelFilePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\Cloud\\CloudTraceLevel.ini";
+
+                    if (File.Exists(traceLevelFilePath))
+                    {
+                        string readIni = File.ReadAllText(traceLevelFilePath);
+                        int readValue;
+                        if (!string.IsNullOrWhiteSpace(readIni)
+                            && int.TryParse(readIni, out readValue))
+                        {
+                            Settings.Instance.TraceLevel = readValue;
+                        }
+                    }
+                }
+                catch
+                {
+                }
+
+                // Initialize the Cloud tracing.
+                CLTrace.Initialize(TraceDirectory: Settings.Instance.TraceType != TraceType.NotEnabled ? Settings.Instance.TraceLocation : null, TraceCategory: "RegisterCOM", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel);
+
+                // Start
                 _trace.writeToLog(1, "RegisterCom: Main program starting.");
                 _trace.writeToLog(1, "RegisterCom: Main: Arg count: {0}.", args.Length);
 

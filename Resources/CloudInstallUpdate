@@ -56,18 +56,40 @@
    cachePathWc = objShell.ExpandEnvironmentStrings("%userprofile%") & "\wc"
    cachePathWyUpdateAu = objShell.ExpandEnvironmentStrings("%appdata%") & "\wyUpdate AU"
    
-   ' Trace function
-   Sub WriteLog(LogMessage)
-      Dim objLogFile
- 
-      If shouldTrace Then
-         wscript.echo Now() & ": " & LogMessage
-         Set objLogFile = objFileSys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
-         objLogFile.Writeline(Now() & ": " & LogMessage)
-         objLogFile.Close
-         set objLogFile = Nothing
-      End If
-   End Sub
+    ' Trace function
+    Sub WriteLog(LogMessage)
+        If shouldTrace Then
+            ' Write to DbgView
+            wscript.echo Now() & ": " & LogMessage
+
+            On Error Resume Next 
+
+            fFinished = False
+            Do
+                Dim objLogFile
+                Dim fFinished
+
+                ' Try to open the log file
+                Set objLogFile = filesys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
+                If Err.Number = 70 Then
+                    ' The file is locked
+                    wscript.Sleep 50
+                ElseIf Err.Number <> 0 then
+                    wscript.Echo  "PinToTaskbar: WriteLog: Unexpected Error #: " & Err.Number
+                    fFinished = True
+                Else
+                    ' The file opened.  Write to it.
+                    fFinished = True
+                    objLogFile.Writeline(Now() & ": " & LogMessage)
+                    objLogFile.Close
+                    set objLogFile = Nothing
+                End If
+                Err.Clear
+            Loop until fFinished
+
+            On Error GoTo 0
+        End If
+    End Sub
 
    ' Check to see if a process is is running   
    Function IsProcessRunning(processPath, processFileNameExt)
@@ -104,22 +126,22 @@
 
        WriteLog("CloudInstallUpdate: RecursiveDelete: Entry. Path: >" & strDirectory & ">.")
        If Not objFileSys.FolderExists(strDirectory & "\") Then
-	       WriteLog("CloudInstallUpdate: RecursiveDelete: This folder does not exist.  Just return.")
-		   exit sub
+           WriteLog("CloudInstallUpdate: RecursiveDelete: This folder does not exist.  Just return.")
+           exit sub
        End If 
 
        Set objFolder = objFileSys.GetFolder(strDirectory)
        WriteLog("CloudInstallUpdate: RecursiveDelete: Delete all files in the directory.  File count: " & objFolder.Files.Count & ".")
        objFileSys.DeleteFile(strDirectory & "\*.*"), DeleteReadOnly
 
-	   ' Files are gone at this level, now delete all of the folders at this level.
+       ' Files are gone at this level, now delete all of the folders at this level.
        WriteLog("CloudInstallUpdate: RecursiveDelete: Loop deleting folders.  Count: " & objFolder.SubFolders.Count & ".")
        For Each objSubFolder In objFolder.SubFolders
-	       WriteLog("CloudInstallUpdate: RecursiveDelete: Delete SubFolder: <" & objSubFolder.Path & ">.")
+           WriteLog("CloudInstallUpdate: RecursiveDelete: Delete SubFolder: <" & objSubFolder.Path & ">.")
            RecursiveDelete objSubFolder.Path
        Next
 
-	   ' Now delete this folder
+       ' Now delete this folder
        WriteLog("CloudInstallUpdate: RecursiveDelete: Delete the folder at this level now: <" & strDirectory & ">.")
        objFolder.Delete True
    End Sub
@@ -139,87 +161,87 @@
       Private Sub Class_Initialize
          WriteLog("CloudInstallUpdate: Constructor entry.")
 
-		 Dim index
+         Dim index
 
          ' Determine the program files directory to use
          WriteLog("CloudInstallUpdate: OS Platform: " & CSI_GetOsBits() & "-bits.")
-		 if CSI_GetOsBits() = "32" then
+         if CSI_GetOsBits() = "32" then
              programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES%")
-			 if programFilesX86Path = "%PROGRAMFILES%" then
-				 WriteLog("CloudInstallUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
+             if programFilesX86Path = "%PROGRAMFILES%" then
+                 WriteLog("CloudInstallUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
                  Exit Sub
-			 end if
-		 else
+             end if
+         else
              programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES(X86)%")
-			 if programFilesX86Path = "%PROGRAMFILES(X86)%" then
-				 WriteLog("CloudInstallUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
+             if programFilesX86Path = "%PROGRAMFILES(X86)%" then
+                 WriteLog("CloudInstallUpdate: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
                  Exit Sub
-			 end if
-		 end if
+             end if
+         end if
          WriteLog("CloudInstallUpdate: Main: programFilesX86Path: " & programFilesX86Path)
          WriteLog("CloudInstallUpdate: Main: sExplorerPath: " & sExplorerPath)
          WriteLog("CloudInstallUpdate: Main: windowsPath: " & windowsPath)
          WriteLog("CloudInstallUpdate: Main: cachePathWc: " & cachePathWc)
          WriteLog("CloudInstallUpdate: Main: cachePathWyUpdateAu: " & cachePathWyUpdateAu)
 
-		 ' Wait for Cloud.exe to exit.  Don't wait too long.
-		 index = 0
+         ' Wait for Cloud.exe to exit.  Don't wait too long.
+         index = 0
          WriteLog("CloudInstallUpdate: Main: Wait for Cloud to exit.")
-		 Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "Cloud.exe")
-		     wscript.Sleep 500
-			 index = index + 1
-			 if index > 10 then			' 5 seconds
-	             WriteLog "CloudInstallUpdate: ERROR: Cloud did not exit.  Timed out."
-			     Exit Do
-			 end if
-		 Loop
+         Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "Cloud.exe")
+             wscript.Sleep 500
+             index = index + 1
+             if index > 10 then			' 5 seconds
+                 WriteLog "CloudInstallUpdate: ERROR: Cloud did not exit.  Timed out."
+                 Exit Do
+             end if
+         Loop
          WriteLog "CloudInstallUpdate: After wait for Cloud to exit."
 
-		 ' If Explorer is running, kill it (in case it wasn't killed before (as it should be by RegisterCom)).
+         ' If Explorer is running, kill it (in case it wasn't killed before (as it should be by RegisterCom)).
          WriteLog "CloudInstallUpdate: Check for Explorer running."
          if IsProcessRunning(windowsPath, "explorer.exe") Then
              WriteLog "CloudInstallUpdate: Kill Explorer."
-			 shouldExplorerBeStarted = true
+             shouldExplorerBeStarted = true
              objShell.Run "taskkill /f /im explorer.exe", 0, true
               
              ' Wait for Explorer to exit
              WriteLog "CloudInstallUpdate: Wait for Explorer to exit."
-			 index = 0
-			 Do While IsProcessRunning(windowsPath, "explorer.exe")
-			     Wscript.Sleep 500
-				 index = index + 1
-				 if index > 10 then			' 5 seconds
-		             WriteLog "CloudInstallUpdate: ERROR: Explorer did not exit after killing it.  Timed out."
-				     Exit Do
-				 end if
-			 Loop
+             index = 0
+             Do While IsProcessRunning(windowsPath, "explorer.exe")
+                 Wscript.Sleep 500
+                 index = index + 1
+                 if index > 10 then			' 5 seconds
+                     WriteLog "CloudInstallUpdate: ERROR: Explorer did not exit after killing it.  Timed out."
+                     Exit Do
+                 end if
+             Loop
          End If
          WriteLog "CloudInstallUpdate: After wait for Explorer to exit."
 
-		 ' Launch CloudUpdater.exe and wait for it to exit.  Run it in a normal window.
+         ' Launch CloudUpdater.exe and wait for it to exit.  Run it in a normal window.
          WriteLog "CloudInstallUpdate: Launch CloudUpdater and wait. Command line: " & "<" & """" & programFilesX86Path & "\Cloud.com\Cloud\CloudUpdater.exe"" /skipinfo>"
-		 objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\CloudUpdater.exe"" /skipinfo", 1, true
+         objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\CloudUpdater.exe"" /skipinfo", 1, true
          WriteLog "CloudInstallUpdate: Back from CloudUpdater."
 
-		 ' Clear the CloudUpdater cache directories so Cloud:AutoUpdater will determine the proper update status.
+         ' Clear the CloudUpdater cache directories so Cloud:AutoUpdater will determine the proper update status.
          WriteLog "CloudInstallUpdate: Recursively delete: <" & cachePathWc & ">."
-		 RecursiveDelete cachePathWc
+         RecursiveDelete cachePathWc
          WriteLog "CloudInstallUpdate: Recursively delete: <" & cachePathWyUpdateAu & ">."
-		 RecursiveDelete cachePathWyUpdateAu
+         RecursiveDelete cachePathWyUpdateAu
 
-		 ' Start Explorer
+         ' Start Explorer
          WriteLog "CloudInstallUpdate: Start Explorer: " & sExplorerPath
          objShell.Run """" & sExplorerPath & """"
          WriteLog "CloudInstallUpdate: After starting Explorer."
          shouldExplorerBeStarted = False
 
-		 'TODO: We should wait until Explorer is ready to properly function, but no longer.  The following is a hack.
+         'TODO: We should wait until Explorer is ready to properly function, but no longer.  The following is a hack.
          WriteLog "CloudInstallUpdate: Sleep waiting for Explorer to be ready."
-		 wscript.Sleep 5000
+         wscript.Sleep 5000
 
-		 ' Launch Cloud.exe again, but don't wait around for it to start.
+         ' Launch Cloud.exe again, but don't wait around for it to start.
          WriteLog "CloudInstallUpdate: Launch Cloud.exe."
-		 objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\Cloud.exe""", 1, false
+         objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\Cloud.exe""", 1, false
 
          WriteLog "CloudInstallUpdate: Exit normally"
       End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
