@@ -87,7 +87,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#events">Events</a> &#124;
 <a href="class_cloud_api_public_1_1_badge_n_e_t_1_1_badge_com_pub_sub_events-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">CloudApiPublic.BadgeNET.BadgeComPubSubEvents Class Reference</div>  </div>
@@ -107,27 +106,9 @@ Inheritance diagram for CloudApiPublic.BadgeNET.BadgeComPubSubEvents:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a1db23ca4b59065355bae07fb1754dc3c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_badge_n_e_t_1_1_badge_com_pub_sub_events.html#a1db23ca4b59065355bae07fb1754dc3c">Initialize</a> ()</td></tr>
-<tr class="memdesc:a1db23ca4b59065355bae07fb1754dc3c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize and load the BadgeCom PubSubServer.  <a href="#a1db23ca4b59065355bae07fb1754dc3c"></a><br/></td></tr>
-<tr class="separator:a1db23ca4b59065355bae07fb1754dc3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff79f63ce7a5015fc8201d2f6c162ec1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_badge_n_e_t_1_1_badge_com_pub_sub_events.html#aff79f63ce7a5015fc8201d2f6c162ec1">PublishEventToBadgeCom</a> (EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, string fullPath)</td></tr>
-<tr class="memdesc:aff79f63ce7a5015fc8201d2f6c162ec1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Publish an event to BadgeCom  <a href="#aff79f63ce7a5015fc8201d2f6c162ec1"></a><br/></td></tr>
-<tr class="separator:aff79f63ce7a5015fc8201d2f6c162ec1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa33f0a14fea734e2e82098c0d8972eed"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_badge_n_e_t_1_1_badge_com_pub_sub_events.html#aa33f0a14fea734e2e82098c0d8972eed">SubscribeToBadgeComInitializationEvents</a> ()</td></tr>
-<tr class="memdesc:aa33f0a14fea734e2e82098c0d8972eed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start a thread which will subscribe to BadgeCom_Initialization events.  <a href="#aa33f0a14fea734e2e82098c0d8972eed"></a><br/></td></tr>
-<tr class="separator:aa33f0a14fea734e2e82098c0d8972eed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd8ebb3dd0bcfa8b9430697c06d9bbfa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_badge_n_e_t_1_1_badge_com_pub_sub_events.html#afd8ebb3dd0bcfa8b9430697c06d9bbfa">Dispose</a> ()</td></tr>
 <tr class="memdesc:afd8ebb3dd0bcfa8b9430697c06d9bbfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Standard IDisposable implementation based on MSDN System.IDisposable.  <a href="#afd8ebb3dd0bcfa8b9430697c06d9bbfa"></a><br/></td></tr>
 <tr class="separator:afd8ebb3dd0bcfa8b9430697c06d9bbfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="events"></a>
-Events</h2></td></tr>
-<tr class="memitem:a7d3f740e67bc30875acb4928c9c95f3b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7d3f740e67bc30875acb4928c9c95f3b"></a>
-EventHandler&lt; EventArgs &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>BadgeComInitialized</b></td></tr>
-<tr class="separator:a7d3f740e67bc30875acb4928c9c95f3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae968cb36a091f847141f42c312f4c272"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae968cb36a091f847141f42c312f4c272"></a>
-EventHandler&lt; EventArgs &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>BadgeComInitializedSubscriptionFailed</b></td></tr>
-<tr class="separator:ae968cb36a091f847141f42c312f4c272"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class to watch for initialization events from BadgeCom (Explorer shell extension). </p>
@@ -157,111 +138,13 @@ EventHandler&lt; EventArgs &gt;&#160;</td><td class="memItemRight" valign="botto
 
 </div>
 </div>
-<a class="anchor" id="a1db23ca4b59065355bae07fb1754dc3c"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void CloudApiPublic.BadgeNET.BadgeComPubSubEvents.Initialize </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Initialize and load the BadgeCom PubSubServer. </p>
-
-</div>
-</div>
-<a class="anchor" id="aff79f63ce7a5015fc8201d2f6c162ec1"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void CloudApiPublic.BadgeNET.BadgeComPubSubEvents.PublishEventToBadgeCom </td>
-          <td>(</td>
-          <td class="paramtype">EnumEventType&#160;</td>
-          <td class="paramname"><em>eventType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">EnumEventSubType&#160;</td>
-          <td class="paramname"><em>eventSubType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">EnumCloudAppIconBadgeType&#160;</td>
-          <td class="paramname"><em>badgeType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>fullPath</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Publish an event to BadgeCom </p>
-
-</div>
-</div>
-<a class="anchor" id="aa33f0a14fea734e2e82098c0d8972eed"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void CloudApiPublic.BadgeNET.BadgeComPubSubEvents.SubscribeToBadgeComInitializationEvents </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Start a thread which will subscribe to BadgeCom_Initialization events. </p>
-
-</div>
-</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>CloudApiPublic/BadgeNET/BadgeComPubSubEvents.cs</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Nov 27 2012 10:28:41 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Nov 30 2012 14:03:49 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

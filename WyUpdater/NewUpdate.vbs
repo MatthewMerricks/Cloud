@@ -63,14 +63,36 @@
    
     ' Trace function
     Sub WriteLog(LogMessage)
-        Dim objLogFile
-    
         If shouldTrace Then
-           'wscript.echo Now() & ": " & LogMessage
-           Set objLogFile = objFileSys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
-           objLogFile.Writeline(Now() & ": " & LogMessage)
-           objLogFile.Close
-           set objLogFile = Nothing
+            ' Write to DbgView
+            wscript.echo Now() & ": " & LogMessage
+
+            On Error Resume Next 
+
+            fFinished = False
+            Do
+                Dim objLogFile
+                Dim fFinished
+
+                ' Try to open the log file
+                Set objLogFile = filesys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
+                If Err.Number = 70 Then
+                    ' The file is locked
+                    wscript.Sleep 50
+                ElseIf Err.Number <> 0 then
+                    wscript.Echo  "PinToTaskbar: WriteLog: Unexpected Error #: " & Err.Number
+                    fFinished = True
+                Else
+                    ' The file opened.  Write to it.
+                    fFinished = True
+                    objLogFile.Writeline(Now() & ": " & LogMessage)
+                    objLogFile.Close
+                    set objLogFile = Nothing
+                End If
+                Err.Clear
+            Loop until fFinished
+
+            On Error GoTo 0
         End If
     End Sub
 

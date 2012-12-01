@@ -1,4 +1,5 @@
-﻿//
+﻿#if TRASH
+//
 //  CLBadgingService.cs
 //  Cloud Windows
 //
@@ -57,7 +58,7 @@ namespace win_client.Services.Badging
         public void BeginBadgingServices()
         {
             bool isBadgingInitialized;
-            CLError badgingInitializedError = IconOverlay.IsBadgingInitialized(out isBadgingInitialized);
+            CLError badgingInitializedError = IsBadgingInitialized(out isBadgingInitialized);
             if (badgingInitializedError != null)
             {
                 _trace.writeToLog(1, "CLBadgingServices: BeginBadgingServices: ERROR: From IconOverlay.IsBadingInitialized. Msg: <{0}>. Code: {1}.", badgingInitializedError.errorDescription, badgingInitializedError.errorCode);
@@ -66,7 +67,7 @@ namespace win_client.Services.Badging
             {
                 if (!isBadgingInitialized)
                 {
-                    CLError initializeError = IconOverlay.Initialize(CLSettingsSync.Instance);
+                    CLError initializeError = Initialize(CLSettingsSync.Instance);
                     if (initializeError != null)
                     {
                         _trace.writeToLog(1, "CLBadgingServices: BeginBadgingServices: ERROR: From IconOverlay.Initialize. Msg: <{0}>. Code: {1}.", initializeError.errorDescription, initializeError.errorCode);
@@ -80,7 +81,7 @@ namespace win_client.Services.Badging
         /// </summary>
         public void EndBadgingServices()
         {
-            CLError error = IconOverlay.Shutdown();
+            CLError error = Shutdown();
             if (error != null)
             {
                 _trace.writeToLog(1, "CLBadgingServices: EndBadgingServices: ERROR: From IconOverlay.Shutdonw. Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
@@ -88,3 +89,4 @@ namespace win_client.Services.Badging
         }
     }
 }
+#endif // TRASH

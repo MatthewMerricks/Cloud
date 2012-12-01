@@ -14,7 +14,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:tb="clr-namespace:Hardcodet.Wpf.TaskbarNotification;assembly=Hardcodet.Wpf.TaskbarNotification"
-    xmlns:local="clr-namespace:win_client.Services.Notification"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     xmlns:resx="clr-namespace:win_client.Resources"
     DataContext="{Binding PageInvisibleViewModel, Source={StaticResource Locator}}" 
@@ -64,12 +63,14 @@
             </tb:TaskbarIcon.TrayPopup>
             -->
 
+            <!--
             <tb:TaskbarIcon.TrayToolTip>
-                <!-- the control will be put into a tooltip with an explicit DataContext -->
-                <!-- <local:FancyToolTip Opacity="0.85" InfoText="{Binding Path=ToolTipText}" /> -->
-                <local:FancyToolTip Opacity="0.85" />
-                <!-- InfoText="Not Used!" -->
+                // the control will be put into a tooltip with an explicit DataContext
+                // <local:FancyToolTip Opacity="0.85" InfoText="{Binding Path=ToolTipText}" /> 
+                // <local:FancyToolTip Opacity="0.85" />
+                // InfoText="Not Used!"
             </tb:TaskbarIcon.TrayToolTip>
+            -->
 
         </tb:TaskbarIcon>
     </Grid>

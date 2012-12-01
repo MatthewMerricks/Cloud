@@ -51,7 +51,7 @@ Trace* Trace::getInstance()
             }
 
             // Add a "Starting..." record to the trace.
-            _single->write(0, "Starting...");
+            _single->write(0, "Starting... TraceEnabled: %d. MaxPriority: %d.", _single->_fTraceEnabled, _single->_nMaxPriorityToTrace);
         }
     }
     catch (...)

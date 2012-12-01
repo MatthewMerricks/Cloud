@@ -236,19 +236,6 @@
     <Compile Include="Services\ContextMenu\CLContextMenuService.cs" />
     <Compile Include="Services\FileSystemMonitoring\CLFSMonitoringService.cs" />
     <Compile Include="Services\NetworkMonitoring\CLNetworkMonitorService.cs" />
-    <Compile Include="Services\Notification\CLNotificationService.cs" />
-    <Compile Include="Services\Notification\FancyBalloon.xaml.cs">
-      <DependentUpon>FancyBalloon.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Services\Notification\FancyPopup.xaml.cs">
-      <DependentUpon>FancyPopup.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Services\Notification\FancyToolTip.xaml.cs">
-      <DependentUpon>FancyToolTip.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Services\Notification\WelcomeBalloon.xaml.cs">
-      <DependentUpon>WelcomeBalloon.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Services\ServicesManager\CLServicesManager.cs" />
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
     <Compile Include="Static\NativeMethods.cs" />
@@ -372,22 +359,6 @@
     <Page Include="NavigationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Services\Notification\FancyBalloon.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Services\Notification\FancyPopup.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Services\Notification\FancyToolTip.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Services\Notification\WelcomeBalloon.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="Skins\NotifyIconResources.xaml">
       <SubType>Designer</SubType>
@@ -551,6 +522,7 @@
     <Resource Include="BadgeCOM\Synced.ico" />
     <Resource Include="BadgeCOM\Syncing.ico" />
     <EmbeddedResource Include="Resources\CloudInstallUpdate" />
+    <SplashScreen Include="Artwork\WinClient_Splash.png" />
     <Content Include="x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

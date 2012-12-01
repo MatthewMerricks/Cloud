@@ -129,6 +129,8 @@ namespace win_client
                     }
                     catch (Exception ex)
                     {
+                        CLError error = ex;
+                        error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                         _trace.writeToLog(1, "App.xaml: OnStartup: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                         MessageBox.Show(String.Format("Error starting the Cloud application. Startup exception: <{0}>.", ex.Message), "Oh Snap!", MessageBoxButton.OK);
                         this.Shutdown(0);

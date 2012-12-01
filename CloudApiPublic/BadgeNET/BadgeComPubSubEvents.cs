@@ -18,7 +18,7 @@ namespace CloudApiPublic.BadgeNET
     /// <summary>
     /// Class to watch for initialization events from BadgeCom (Explorer shell extension).
     /// </summary>
-    public sealed class BadgeComPubSubEvents : IDisposable
+    internal sealed class BadgeComPubSubEvents : IDisposable
     {
         #region Public events
 
@@ -52,8 +52,6 @@ namespace CloudApiPublic.BadgeNET
         #endregion
 
         #region Public methods
-
-
         /// <summary>
         /// Initialize and load the BadgeCom PubSubServer.
         /// </summary>

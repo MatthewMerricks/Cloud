@@ -26,9 +26,6 @@ namespace win_client.Services.FileSystemMonitoring
         static readonly CLFSMonitoringService _instance = new CLFSMonitoringService();
         private static Boolean _isLoaded = false;
         private static CLTrace _trace = CLTrace.Instance;
-        //public MonitorAgent MonitorAgent { get; private set; }
-        //public IndexingAgent IndexingAgent { get; private set; }
-        //public SyncEngine SyncEngine { get; private set; }
         internal CloudApiPublic.CLSync SyncBox { get; private set; }
 
         /// <summary>
@@ -54,23 +51,14 @@ namespace win_client.Services.FileSystemMonitoring
         /// </summary>
         private CLFSMonitoringService()
         {
-            // Initialize members, etc. here (at static initialization time).
-
-            //// Start the indexer at the first reference of the FSM.
-            //IndexingAgent indexerToSet;
-            //CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out indexerToSet);
-            //if (indexerToSet == null)
-            //{
-            //    _trace.writeToLog(1, "CLFSMonitoringService: ERROR: Creating the indexer.");
-            //}
-            //IndexingAgent = indexerToSet;
-
             try
             {
                 SyncBox = new CloudApiPublic.CLSync();
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLFSMonitoringService: ERROR: Creating the SyncBox. Msg: <{0}>", ex.Message);
             }
         }
@@ -80,59 +68,14 @@ namespace win_client.Services.FileSystemMonitoring
         /// </summary>
         public void BeginFileSystemMonitoring()
         {
-            // Todo: handle index creation error
-
-            //MonitorAgent monitorToSet;
-            //SyncEngine enginetoSet;
-            //CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(CLSettingsSync.Instance,
-            //    IndexingAgent,
-            //    out monitorToSet,
-            //    out enginetoSet);
-
-            //if (fileMonitorCreationError != null)
-            //{
-            //    _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Creating the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorCreationError.errorDescription, fileMonitorCreationError.errorCode);
-            //}
-            //else
-            //{
-            //    if (monitorToSet != null
-            //        && enginetoSet != null)
-            //    {
-            //        try
-            //        {
-            //            this.MonitorAgent = monitorToSet;
-            //            this.SyncEngine = enginetoSet;
-
-            //            CLAppMessages.Message_DidReceivePushNotificationFromServer.Register(monitorToSet,
-            //                (Action<CloudApiPublic.JsonContracts.NotificationResponse>)monitorToSet.PushNotification);
-
-            //            MonitorStatus returnStatus;
-            //            CLError fileMonitorStartError = MonitorAgent.Start(out returnStatus);
-            //            if (fileMonitorStartError != null)
-            //            {
-            //                _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, fileMonitorStartError.errorCode);
-            //            }
-
-            //            CLError indexerStartError = IndexingAgent.StartInitialIndexing(MonitorAgent.BeginProcessing,
-            //                MonitorAgent.GetCurrentPath);
-            //            if (indexerStartError != null)
-            //            {
-            //                _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the indexer.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, indexerStartError.errorCode);
-            //            }
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Exception.  Msg: <{0}>.", ex.Message);
-            //        }
-            //    }
-            //}
-
             try
             {
                 SyncBox.Start(CLSettingsSync.Instance);
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the SyncBox. Msg: <{0}>", ex.Message);
             }
         }
@@ -142,37 +85,14 @@ namespace win_client.Services.FileSystemMonitoring
         /// </summary>
         public void EndFileSystemMonitoring()
         {
-            //try
-            //{
-            //    if (MonitorAgent != null)
-            //    {
-            //        MonitorAgent.Dispose();
-            //        MonitorAgent = null;
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring disposing MonitorAgent: ERROR: Exception.  Msg: <{0}>.", ex.Message);
-            //}
-            //try
-            //{
-            //    if (SyncEngine != null)
-            //    {
-            //        SyncEngine.Dispose();
-            //        SyncEngine = null;
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring disposing SyncEngine: ERROR: Exception.  Msg: <{0}>.", ex.Message);
-            //}
-
             try
             {
                 SyncBox.Stop();
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring. ERROR: Stop SyncBox. Msg: <{0}>", ex.Message);
             }
         }
