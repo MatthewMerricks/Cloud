@@ -106,16 +106,39 @@ namespace win_client.Views
             CLAppMessages.Message_BalloonTooltipSystemTrayNotification.Register(this, (tooltipInfo) => { OnCLBalloonTooltipNotificationMessage(tooltipInfo); });
             CLAppMessages.Message_GrowlSystemTrayNotification.Register(this, (growlInfo) => { OnMessage_GrowlSystemTrayNotificationMessage(growlInfo); });
             CLAppMessages.PageInvisible_TriggerOutOfSystemTrayAnimation.Register(this, (uri) => { OnPageInvisible_TriggerOutOfSystemTrayAnimation(uri); });
+            CLAppMessages.Message_PageInvisible_ResetNotifyIcon.Register(this, (msg) => { OnMessage_PageInvisible_ResetNotifyIcon(msg); });
 
             // Set the containing window to be invisible
             CLAppDelegate.HideMainWindow(Window.GetWindow(this));
 
             // Set the system tray tooltip.
-            tb.TrayToolTip = null;                      // use the standard Windows tooltip (fancy WPF tooltips are available)
+            tb.tb.TrayToolTip = null;                      // use the standard Windows tooltip (fancy WPF tooltips are available)
 
             // Start the core services.
             var dispatcher = Dispatcher.CurrentDispatcher;
             dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(100), () => { CLAppDelegate.Instance.startCloudAppServicesAndUI(); });
+        }
+
+        /// <summary>
+        /// Explorer was restarted.  Reset the NotifyIcon.
+        /// </summary>
+        /// <param name="msg"></param>
+        private void OnMessage_PageInvisible_ResetNotifyIcon(string msg)
+        {
+            // Reset the NotifyIcon
+            if (tb != null)
+            {
+                PageInvisibleViewModel dc = (PageInvisibleViewModel)tb.DataContext;     // remember the datacontext
+                LayoutRoot.Children.Remove(tb);                 // remove the only control from the grid
+                tb.tb.Dispose();                                // dispose it
+
+                // Create a new control and add it back in.
+                tb = new UserControls.TrayIcon();               // create a new user control, same specs
+                tb.DataContext = dc;                            // set the data context
+                LayoutRoot.Children.Add(tb);                    // add it back into the grid
+                tb.Visibility = System.Windows.Visibility.Visible;  // make it visible
+            }
+
         }
 
         /// <summary>
@@ -149,12 +172,12 @@ namespace win_client.Views
             if (tooltipInfo.CustomIcon != null)
             {
                 _trace.writeToLog(9, "PageInvisible: OnCLBalloonTooltipNotificationMessage: Show custom icon.");
-                tb.ShowBalloonTip(tooltipInfo.Title, tooltipInfo.Text, tooltipInfo.CustomIcon);
+                tb.tb.ShowBalloonTip(tooltipInfo.Title, tooltipInfo.Text, tooltipInfo.CustomIcon);
             }
             else
             {
                 _trace.writeToLog(9, "PageInvisible: OnCLBalloonTooltipNotificationMessage: Show normal icon.");
-                tb.ShowBalloonTip(tooltipInfo.Title, tooltipInfo.Text, tooltipInfo.IconType);
+                tb.tb.ShowBalloonTip(tooltipInfo.Title, tooltipInfo.Text, tooltipInfo.IconType);
             }
         }
 
@@ -169,9 +192,9 @@ namespace win_client.Views
             // Prebind the close event on the growl to close the balloon
             growlInfo.NeedsClose += (sender, e) =>
                 {
-                    if (tb.CustomBalloon.Child == ((CLGrowlNotification)sender).WpfControl)
+                    if (tb.tb.CustomBalloon.Child == ((CLGrowlNotification)sender).WpfControl)
                     {
-                        tb.CloseBalloon();
+                        tb.tb.CloseBalloon();
                     }
                 };
 
@@ -180,7 +203,7 @@ namespace win_client.Views
                 if (!growlInfo.WasClosed)
                 {
                     // Show this growl over the system tray.  It will automatically fade after several seconds.
-                    tb.ShowCustomBalloon(growlInfo.WpfControl, growlInfo.Animation, growlInfo.TimeoutMilliseconds);
+                    tb.tb.ShowCustomBalloon(growlInfo.WpfControl, growlInfo.Animation, growlInfo.TimeoutMilliseconds);
                 }
             }
         }

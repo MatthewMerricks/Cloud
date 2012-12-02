@@ -13,14 +13,14 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-    xmlns:tb="clr-namespace:Hardcodet.Wpf.TaskbarNotification;assembly=Hardcodet.Wpf.TaskbarNotification"
+    xmlns:tbIcon="clr-namespace:win_client.UserControls"
     xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
     xmlns:resx="clr-namespace:win_client.Resources"
     DataContext="{Binding PageInvisibleViewModel, Source={StaticResource Locator}}" 
     mc:Ignorable="d" d:DesignWidth="624" d:DesignHeight="442"
     Width="0" Height="0"
       >
-
+    
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -30,50 +30,7 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <Page.Triggers>
-        <EventTrigger RoutedEvent="tb:TaskbarIcon.TrayToolTipOpen" SourceName="tb" />
-    </Page.Triggers>
-    
-    <!-- <Grid x:Name="LayoutRoot" Visibility="Collapsed"> -->
     <Grid x:Name="LayoutRoot">
-        <!--
-      THE TASKBARICON ELEMENT WAS DECLARED INLINE IN ORDER TO USE DATABINDING
-      FOR ITS PROPERTIES. IN  A REAL-LIFE APP, YOU'D PROBABLY RATHER DECLARE
-      IT IN A RESOURCE DICTIONARY SO YOU CAN ALSO USE IT IF THERE IS NO WINDOW
-      OPEN.
-    -->
-
-        <tb:TaskbarIcon
-        x:Name="tb"
-        VerticalAlignment="Top"
-        IconSource="/Cloud;component/Artwork/cloud.ico"
-        ToolTipText="Cloud"
-        ContextMenu="{StaticResource tbMenu}"
-        Visibility="{Binding TaskbarIconVisibility, Mode=TwoWay}"
-        MenuActivation="LeftOrRightClick"
-        DoubleClickCommand="{Binding ShowPreferencesPageCommand, Mode=OneTime}"
-        DoubleClickCommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-        >
-                       
-            <!-- TODO: Add the following code, and add the command on this line to the list above to cause the test popup on left click: PopupActivation="LeftClick"-->
-            <!--
-            <tb:TaskbarIcon.TrayPopup>
-                // the control will be put into a popup with an explicit DataContext 
-                <local:FancyPopup />
-            </tb:TaskbarIcon.TrayPopup>
-            -->
-
-            <!--
-            <tb:TaskbarIcon.TrayToolTip>
-                // the control will be put into a tooltip with an explicit DataContext
-                // <local:FancyToolTip Opacity="0.85" InfoText="{Binding Path=ToolTipText}" /> 
-                // <local:FancyToolTip Opacity="0.85" />
-                // InfoText="Not Used!"
-            </tb:TaskbarIcon.TrayToolTip>
-            -->
-
-        </tb:TaskbarIcon>
+        <tbIcon:TrayIcon x:Name="tb"/>
     </Grid>
-
-    
 </Page>

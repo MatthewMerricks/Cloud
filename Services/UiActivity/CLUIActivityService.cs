@@ -35,7 +35,7 @@ namespace win_client.Services.UiActivity
         private static object _instanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance;
         private System.Threading.Timer _pollTimer = null;
-        private uint _timerTestCount = 0;               //&&&& testing
+        private uint _timerTestCount = 0;               // test and debug only
 
         /// <summary>
         /// Access Instance to get the singleton object.

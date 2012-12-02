@@ -51,6 +51,7 @@ namespace win_client.Common
             Message_PageSetupSelector_ShouldChooseCloudFolder,
             Message_DialogCheckForUpdates_ShouldCheckForUpdates,
             Message_WindowSyncStatus_ShouldClose,
+            Message_PageInvisible_ResetNotifyIcon,
 #if TRASH
             Message_DragDropServer_ShouldShowSystrayDropWindow,
             Message_DragDropServer_ShouldHideSystrayDropWindow,
@@ -391,6 +392,22 @@ namespace win_client.Common
 
             public static string DefaultParameter = string.Empty;
         }
+
+        public static class Message_PageInvisible_ResetNotifyIcon
+        {
+            public static void Send(string notUsed)
+            {
+                Messenger.Default.Send(notUsed, MessageTypes.Message_PageInvisible_ResetNotifyIcon);
+            }
+
+            public static void Register(object recipient, Action<string> action)
+            {
+                Messenger.Default.Register(recipient, MessageTypes.Message_PageInvisible_ResetNotifyIcon, action);
+            }
+
+            public static string DefaultParameter = string.Empty;
+        }
+        
 
 #if TRASH
         public static class Message_DragDropServer_ShouldShowSystrayDropWindow

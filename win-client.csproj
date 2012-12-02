@@ -239,8 +239,9 @@
     <Compile Include="Services\ServicesManager\CLServicesManager.cs" />
     <Compile Include="Services\UiActivity\CLUIActivityService.cs" />
     <Compile Include="Static\NativeMethods.cs" />
-    <Compile Include="SystemTray\HookWrapper.cs" />
-    <Compile Include="SystemTray\TrayIcon.cs" />
+    <Compile Include="UserControls\TrayIcon.xaml.cs">
+      <DependentUpon>TrayIcon.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModelHelpers\CLModalMessageBoxDialogs.cs" />
     <Compile Include="ViewModels\FramePreferencesShortcutsViewModel.cs" />
     <Compile Include="ViewModels\DialogCheckForUpdatesViewModel.cs" />
@@ -371,6 +372,10 @@
     <Page Include="Skins\MainSkin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserControls\TrayIcon.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\WindowSyncStatus.xaml">
       <Generator>MSBuild:Compile</Generator>

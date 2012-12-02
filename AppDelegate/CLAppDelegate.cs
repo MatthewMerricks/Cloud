@@ -26,7 +26,6 @@ using CloudApiPublic.Model;
 using CloudApiPrivate.Static;
 using System.Security.Permissions;
 using System.Windows.Media.Imaging;
-using win_client.SystemTray.TrayIcon;
 using win_client.ViewModels;
 using win_client.Views;
 using win_client.Resources;
@@ -288,37 +287,9 @@ namespace win_client.AppDelegate
         //- (BOOL)unlinkFromCloudDotCom
         public void UnlinkFromCloudDotComSync(out CLError error)
         {
-            // Merged 7/26/12
-            //BOOL rc = YES;
-
-            //// todo: tell cloud service to untrust this device and wait for confirmation.
-            //CLRegistration *regstration = [[CLRegistration alloc] init];
-            //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
-            
-
-            //// stop services.
-            //CLAppDelegate *delegate = [NSApp delegate];
-            //[delegate stopCloudAppServicesAndUI];
-
-            //// clean our settings
-            //[[CLSettings sharedSettings] resetSettings];
-
-            //[[CLCoreDataController defaultController] removeCoreDataStore];
-
-            //// Stop the badging agent.  Do this synchronously because the system may be immediately exiting.
-            //NSString *path = [[[NSBundle mainBundle] pathForResource:@"LICENSE" ofType:@""] stringByDeletingLastPathComponent];
-            //NSString *cmd = [path stringByAppendingString:@"/CloudApp.bundle/CloudApp.app/Contents/MacOS/CloudApp -d"];
-            //system([cmd UTF8String]);
-
-            //return rc;
-            //&&&& 
-
-            //BOOL rc = YES;
-            // Note: allocated below.
-
-            // Don't run this twice
             try
             {
+                // Don't run this twice
                 _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Entry.");
                 if (_isUnlinked)
                 {
@@ -506,22 +477,7 @@ namespace win_client.AppDelegate
         //- (void)stopCloudAppServicesAndUI
         public void StopCloudAppServicesAndUI()
         {
-            // Merged 7/20/12
-            // // Remove the status item from the menu bar.
-            // [[NSStatusBar systemStatusBar] removeStatusItem:[self.appController statusItem]];
-            // [self.appController setStatusItem:nil];
-
-            // // Stop core services
-            // [[CLServicesManager sharedService] stopCoreServices];
-            //&&&&
-
-            // // Remove the status item from the menu bar.
-            // [[NSStatusBar systemStatusBar] removeStatusItem:[self.appController statusItem]];
-            // [self.appController setStatusItem:nil];
-            // TODO: Remove the system tray icon?
-
-            // // Stop core services
-            // [[CLServicesManager sharedService] stopCoreServices];
+            // Stop core services
             CLServicesManager.Instance.StopCoreServices();
         }
 
@@ -682,22 +638,10 @@ namespace win_client.AppDelegate
         //- (void)cloudFolderHasBeenDeleted:(NSString *)path
         void CloudFolderHasBeenDeleted(string path)
         {
-            // Merged 7/20//12
-            // // here we have to halt. this means the folder has been deleted.
-            // [self stopCloudAppServicesAndUI];
-    
-            // // show the repair window
-            // self.folderMissingController = [[CLFolderMissingController alloc] initWithWindowNibName:@"CLFolderMissingController"];
-            // [self.folderMissingController setCloudFolderPath:path];
-            // [self.folderMissingController showWindow:self.folderMissingController.window];
-            // [self.folderMissingController.window orderFrontRegardless];
-            ///&&&&
-            ///
-            // // here we have to halt. this means the folder has been deleted.
-            // [self stopCloudAppServicesAndUI];
+            // Here we have to halt. this means the folder has been deleted.
             StopCloudAppServicesAndUI();
 
-            // // show the repair window
+            //TODO: // show the repair window
             // self.folderMissingController = [[CLFolderMissingController alloc] initWithWindowNibName:@"CLFolderMissingController"];
             // [self.folderMissingController setCloudFolderPath:path];
             // [self.folderMissingController showWindow:self.folderMissingController.window];
@@ -707,67 +651,6 @@ namespace win_client.AppDelegate
 
         void SetupCloudAppLaunchMode()
         {
-            // Merged 7/19/12
-            // // todo: here we should go back to our cloud and verify if
-            // // device is still valid to help make the correct determination if we need to
-            // // setup or not.
-
-            // BOOL setupNeeded = YES;
-            // BOOL shouldStartCoreServices = YES;
-
-            // if ([[CLSettings sharedSettings] completedSetup]) {
-
-            //     setupNeeded = NO;
-
-            //     if ([[NSFileManager defaultManager] fileExistsAtPath:[[CLSettings sharedSettings] cloudFolderPath]] == NO) {
-
-            //         NSData *bookmark = [[CLSettings sharedSettings] bookmarkDataForCloudFolder];
-            //         NSURL *cloudFolderURL = [NSURL URLByResolvingBookmarkData:bookmark
-            //                                                           options:NSURLBookmarkResolutionWithoutUI
-            //                                                     relativeToURL:NULL
-            //                                               bookmarkDataIsStale:NO
-            //                                                             error:NULL];
-
-            //         NSString *cloudFolderPath = [cloudFolderURL path];
-
-            //         if (cloudFolderPath != nil) {
-
-            //             if ([cloudFolderPath rangeOfString:@".Trash"].location != NSNotFound) { // folder got moved to trash, ask user to restore.
-
-            //                 shouldStartCoreServices = NO;
-            //                 [self cloudFolderHasBeenDeleted:cloudFolderPath];
-            //             }
-            //             else {
-
-            //                 [[CLSettings sharedSettings] updateCloudFolderPath:cloudFolderPath]; // automatically pick up the new folder location.
-            //             }
-            //         }
-            //         else {
-
-            //             shouldStartCoreServices = NO;
-            //             [self cloudFolderHasBeenDeleted:nil]; // we couldn't find the folder, ask the user to locate it. 
-            //         }
-            //     }
-            // }
-
-            // if (setupNeeded == YES) {
-
-            //     // can't start our core services if we're not setup
-            //     shouldStartCoreServices = NO;
-
-            //     // welcome our new user
-            //     self.welcomeController  = [[CLWelcomeWindowController alloc] initWithWindowNibName:@"CLWelcomeWindowController"];
-            //     [self.welcomeController showWindow:self.welcomeController.window];
-            //     [[self.welcomeController window] orderFrontRegardless];
-            // }
-
-            // if (shouldStartCoreServices == YES) {
-
-            //     // business as usual, let's take this sync for a spin!
-            //     [self startCloudAppServicesAndUI];
-            // }
-            //&&&&
-
             // // todo: here we should go back to our cloud and verify if
             // // device is still valid to help make the correct determination if we need to
             // // setup or not.
@@ -886,28 +769,6 @@ namespace win_client.AppDelegate
         /// <returns>string: The moved cloud folder, or null.</returns>
         private static string LocateMovedCloudFolder()
         {
-            //using (OleDbConnection conn = new OleDbConnection(
-            //"Provider=Search.CollatorDSO;Extended Properties='Application=Windows';"))
-            //{
-            //    conn.Open();
-            //    OleDbCommand cmd = new OleDbCommand("SELECT TOP 1 System.ItemPathDisplay FROM SYSTEMINDEX WHERE " +
-            //        "System.ItemType = 'Directory' AND System.DateCreated >= '2012-01-01 12:00:00' AND System.DateCreated < '2012-07-21 12:00:00'", conn);
-
-            //    using (OleDbDataReader reader = cmd.ExecuteReader())
-            //    {
-            //        while (reader.Read())
-            //        {
-            //            List<object> row = new List<object>();
-
-            //            for (int i = 0; i < reader.FieldCount; i++)
-            //            {
-            //                row.Add(reader[i]);
-            //            }
-
-            //        }
-            //    }
-            //}
-            //&&&&
             DateTime cloudFolderCreationTimeUtc = Settings.Instance.CloudFolderCreationTimeUtc;
             DateTime cloudFolderCreationTimeUtcPlusOneSecond = cloudFolderCreationTimeUtc + TimeSpan.FromSeconds(1);
             string sCloudFolderCreationTimeUtc = cloudFolderCreationTimeUtc.ToString("yyyy-MM-dd HH:mm:ss");
