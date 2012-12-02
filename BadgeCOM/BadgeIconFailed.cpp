@@ -234,9 +234,12 @@ void CBadgeIconFailed::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeT
 	try
 	{
 		// Add or update the <path,badgeType>
-		CLTRACE(9, "CBadgeIconFailed: OnEventAddBadgePath: Entry. Add to dictionary. BadgeType: %d. Path: <%ls>.", badgeType, fullPath);
-		_mapBadges[fullPath] = badgeType;
-        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
+		if (badgeType == cloudAppBadgeFailed)
+		{
+			CLTRACE(9, "CBadgeIconFailed: OnEventAddBadgePath: Entry. Add to dictionary. BadgeType: %d. Path: <%ls>.", badgeType, fullPath);
+			_mapBadges[fullPath] = badgeType;
+			SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
+		}
 	}
 	catch(std::exception &ex)
 	{

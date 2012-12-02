@@ -134,7 +134,8 @@ namespace RegisterCom
                 }
 
                 // Initialize the Cloud tracing.
-                CLTrace.Initialize(TraceDirectory: Settings.Instance.TraceType != TraceType.NotEnabled ? Settings.Instance.TraceLocation : null, TraceCategory: "RegisterCOM", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel);
+                CLTrace.Initialize(TraceLocation: Settings.Instance.TraceType != TraceType.NotEnabled ? Settings.Instance.TraceLocation : null, 
+                    TraceCategory: "RegisterCOM", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel, LogErrors: Settings.Instance.LogErrors);
 
                 // Start
                 _trace.writeToLog(1, "RegisterCom: Main program starting.");
@@ -249,6 +250,8 @@ namespace RegisterCom
                     }
                     catch (Exception ex)
                     {
+                        CLError error = ex;
+                        error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                         _trace.writeToLog(1, "RegisterCom: Main: ERROR: Exception(3).  Msg: {0}.", ex.Message);
 
                         // Start Explorer
@@ -269,6 +272,8 @@ namespace RegisterCom
                     }
                     catch (Exception ex)
                     {
+                        CLError error = ex;
+                        error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                         _trace.writeToLog(1, "RegisterCom: Main: ERROR: Exception(4).  Msg: {0}.", ex.Message);
 
                         // Start Explorer
@@ -289,6 +294,8 @@ namespace RegisterCom
                     }
                     catch (Exception ex)
                     {
+                        CLError error = ex;
+                        error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                         _trace.writeToLog(1, "RegisterCom: Main: ERROR: Exception(5).  Msg: {0}.", ex.Message);
 
                         // Start Explorer
@@ -332,6 +339,8 @@ namespace RegisterCom
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 StringBuilder exBuilder = new StringBuilder("RegisterCom: Main: ERROR: Outer exception: ");
                 int tabCount = 0;
 
@@ -445,6 +454,8 @@ namespace RegisterCom
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "RegisterCom: CopyFilesNeededForUninstall: ERROR: Exception.  Msg: {0}.", ex.Message);
                 return 200;
             }
@@ -478,6 +489,8 @@ namespace RegisterCom
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "RegisterCom: CopyFileWithDeleteFirst: ERROR: Exception.  Msg: {0}.", ex.Message);
                 throw;
             }
@@ -523,6 +536,8 @@ namespace RegisterCom
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "RegisterCom: StopExplorer: ERROR: Exception: Msg: <{0}.", ex.Message);
             }
             _trace.writeToLog(1, "RegisterCom: StopExplorer: Return. explorerLocation: <{0}>.", explorerLocation);
@@ -619,6 +634,8 @@ namespace RegisterCom
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR.  Exception.  Msg: {0}.", ex.Message);
 
                 // Restart Explorer
@@ -692,6 +709,8 @@ namespace RegisterCom
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "RegisterCom: FinalizeUninstall: ERROR: Exception. Msg: {0}.", ex.Message);
                 return 4;
             }
@@ -735,6 +754,8 @@ namespace RegisterCom
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "RegisterCom: IsExplorerRunning: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
 
@@ -778,6 +799,8 @@ namespace RegisterCom
                 }
                 catch (Exception ex)
                 {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                     _trace.writeToLog(1, "RegisterCom: RegisterAssembly: ERROR.  Exception.  Msg: <{0}>.", ex.Message);
                     rc = 2;
                 }
@@ -808,6 +831,8 @@ namespace RegisterCom
                 }
                 catch (Exception ex)
                 {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                     _trace.writeToLog(1, "RegisterCom: UnregisterAssembly: ERROR.  Exception.  Msg: <{0}>.", ex.Message);
                 }
             }

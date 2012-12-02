@@ -30,6 +30,7 @@ using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using CleanShutdown.Messaging;
 using GalaSoft.MvvmLight.Command;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Views
 {
@@ -194,6 +195,8 @@ namespace win_client.Views
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 return ex;
             }
             return null;

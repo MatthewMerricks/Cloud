@@ -79,7 +79,7 @@ namespace CloudApiPublic.BadgeNET
                 _syncSettings = SyncSettingsExtensions.CopySettings(syncSettings);
 
                 // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel);
+                CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
 
                 _trace.writeToLog(9, "IconOverlay: Initialize: Entry.");
                 return pInitialize(syncSettings.CloudRoot, initialList);
@@ -87,6 +87,7 @@ namespace CloudApiPublic.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: Initialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
@@ -132,7 +133,7 @@ namespace CloudApiPublic.BadgeNET
 
                             _trace.writeToLog(9, "IconOverlay: pInitialize: Instantiate BadgeComPubSubEvents.");
                             _badgeComPubSubEvents = new BadgeComPubSubEvents();
-                            _badgeComPubSubEvents.Initialize();
+                            _badgeComPubSubEvents.Initialize(_syncSettings);
                             _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
                             _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
 
@@ -147,6 +148,8 @@ namespace CloudApiPublic.BadgeNET
                         }
                         catch (Exception ex)
                         {
+                            CLError error = ex;
+                            error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                             _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
                             throw;
                         }
@@ -167,15 +170,15 @@ namespace CloudApiPublic.BadgeNET
                 }
 
                 // Allocate the badging dictionary.  This is a hierarchical dictionary.
-                CLError error = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
+                CLError errorCreatingBadgingDictionary = FilePathDictionary<GenericHolder<cloudAppIconBadgeType>>.CreateAndInitialize(
                     rootPath: _filePathCloudDirectory,
                     pathDictionary: out allBadges,
                     recursiveDeleteCallback: OnAllBadgesRecursiveDelete,
                     recursiveRenameCallback: OnAllBadgesRecursiveRename);
-                if (error != null)
+                if (errorCreatingBadgingDictionary != null)
                 {
                     _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: THROW: Error from CreateAndInitialize.");
-                    throw new Exception(String.Format("IconOverlay: pInitialize: ERROR from CreateAndInitialize: <{0}>, Code: {1}", error.errorDescription, error.errorCode));
+                    throw new Exception(String.Format("IconOverlay: pInitialize: ERROR from CreateAndInitialize: <{0}>, Code: {1}", errorCreatingBadgingDictionary.errorDescription, errorCreatingBadgingDictionary.errorCode));
                 }
 
                 if (allBadges == null)
@@ -208,6 +211,8 @@ namespace CloudApiPublic.BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 isInitialized = false;
                 _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
                 return ex;
@@ -258,7 +263,7 @@ namespace CloudApiPublic.BadgeNET
                         // Restart
                         _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Restart BadgeComPubSubEvents.");
                         _badgeComPubSubEvents = new BadgeComPubSubEvents();
-                        _badgeComPubSubEvents.Initialize();
+                        _badgeComPubSubEvents.Initialize(_syncSettings);
                         _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
                         _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
 
@@ -272,6 +277,8 @@ namespace CloudApiPublic.BadgeNET
                     }
                     catch (Exception ex)
                     {
+                        CLError error = ex;
+                        error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                         _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: <{0}>, Code: {1}.", ex.Message);
                     }
 
@@ -283,6 +290,8 @@ namespace CloudApiPublic.BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
             }
         }
@@ -335,6 +344,8 @@ namespace CloudApiPublic.BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
@@ -469,6 +480,7 @@ namespace CloudApiPublic.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: IsBadgingInitialized: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 isInitialized = Helpers.DefaultForType<bool>();
                 return ex;
@@ -548,6 +560,7 @@ namespace CloudApiPublic.BadgeNET
             {
                 isInitialized = false;
                 CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: InitializeOrReplace: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
@@ -583,6 +596,8 @@ namespace CloudApiPublic.BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: OnAllBadgesRecursiveDelete: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
@@ -623,6 +638,8 @@ namespace CloudApiPublic.BadgeNET
                             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: OnAllBadgesRecursiveRename: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
@@ -680,6 +697,8 @@ namespace CloudApiPublic.BadgeNET
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 isDeleted = Helpers.DefaultForType<bool>();
                 return ex;
             }
@@ -785,6 +804,7 @@ namespace CloudApiPublic.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: RenameBadgePath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return error;
             }
@@ -925,6 +945,7 @@ namespace CloudApiPublic.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: setBadgeType: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
@@ -968,6 +989,7 @@ namespace CloudApiPublic.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: getBadgeTypeForFileAtPath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 badgeType = new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced);
                 return ex;
@@ -990,6 +1012,7 @@ namespace CloudApiPublic.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: pShutdown: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 return ex;
             }
@@ -1069,6 +1092,8 @@ namespace CloudApiPublic.BadgeNET
                             }
                             catch (Exception ex)
                             {
+                                CLError error = ex;
+                                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                                 _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncBoxFolderPath event. Msg: <{0}>.", ex.Message);
                             }
 
@@ -1085,6 +1110,8 @@ namespace CloudApiPublic.BadgeNET
                             }
                             catch (Exception ex)
                             {
+                                CLError error = ex;
+                                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                                 _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: <{0}>.", ex.Message);
                             }
 
@@ -1239,6 +1266,7 @@ namespace CloudApiPublic.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: StartBadgeCOMPipes: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }
@@ -1335,6 +1363,7 @@ namespace CloudApiPublic.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(9, "IconOverlay: ShouldIconBeBadged. Exception.  Normal? Msg: {0}, Code: (1).", error.errorDescription, error.errorCode);
                 return false;
             }
@@ -1514,6 +1543,8 @@ namespace CloudApiPublic.BadgeNET
 	        }
 	        catch (global::System.Exception ex)
 	        {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: SendAddBadgePathEvent. Exception.  Msg: {0}.", ex.Message);
 	        }
         }
@@ -1534,6 +1565,8 @@ namespace CloudApiPublic.BadgeNET
 	        }
 	        catch (global::System.Exception ex)
 	        {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: SendRemoveBadgePathEvent. Exception.  Msg: {0}.", ex.Message);
 	        }
         }

@@ -217,6 +217,8 @@ namespace win_client.Views
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(9, "PageInvisible: HandleNavigated: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 return ex;
             }
@@ -380,6 +382,8 @@ namespace win_client.Views
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "PageInvisible: OnConfirmShutdownMessage: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 try
                 {
@@ -485,6 +489,7 @@ namespace win_client.Views
             catch (Exception ex)
             {
                 CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "PageInvisible: AnimateWindow: ERROR: Exception.  Message: {0}, Code: {1}.", error.errorDescription, error.errorCode);
             }
         }

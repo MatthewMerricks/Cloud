@@ -114,7 +114,7 @@ namespace CloudApiPublic.PushNotification
             this._syncSettings = Sync.SyncSettingsExtensions.CopySettings(syncSettings);
 
             // Initialize trace in case it is not already initialized.
-            CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel);
+            CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "CLNotification: CLNotification: Entry");
 
             // Initialize members, etc. here (at static initialization time).
@@ -628,7 +628,10 @@ namespace CloudApiPublic.PushNotification
                 _trace.writeToLog(1, "CLNotification: DisconnectPushNotificationServer: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
 
-            NotificationClientsRunning.Remove(_syncSettings.Akey);
+            if (_syncSettings != null && !String.IsNullOrWhiteSpace(_syncSettings.Akey))
+            {
+                NotificationClientsRunning.Remove(_syncSettings.Akey);
+            }
             _isInitialized = false;
         }
     }

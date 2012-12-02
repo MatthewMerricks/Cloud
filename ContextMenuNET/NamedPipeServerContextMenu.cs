@@ -50,6 +50,7 @@ namespace ContextMenuNET
                 catch (Exception ex)
                 {
                     CLError error = ex;
+                    error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                     _trace.writeToLog(9, "NamedPipeServerContextMenu: ProcessClientCommunication: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
                 }
             }

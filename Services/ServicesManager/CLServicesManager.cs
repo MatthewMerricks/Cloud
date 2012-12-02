@@ -138,6 +138,8 @@ namespace win_client.Services.ServicesManager
                 }
                 catch (Exception ex)
                 {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                     _trace.writeToLog(1, "CLServicesManager: StartCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 }
             }
@@ -172,6 +174,8 @@ namespace win_client.Services.ServicesManager
                 }
                 catch (Exception ex)
                 {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                     _trace.writeToLog(1, "CLServicesManager: StopCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 }
                 finally

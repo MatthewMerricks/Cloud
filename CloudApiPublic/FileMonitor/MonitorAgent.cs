@@ -237,7 +237,7 @@ namespace CloudApiPublic.FileMonitor
             bool logProcessing = false)
         {
             // Initialize Cloud trace in case it is not already initialized.
-            CLTrace.Initialize(syncSettings.TraceLocation, "Cloud", "log", syncSettings.TraceLevel);
+            CLTrace.Initialize(syncSettings.TraceLocation, "Cloud", "log", syncSettings.TraceLevel, syncSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "MonitorAgent: CreateNewAndInitialize: Entry");
 
             try

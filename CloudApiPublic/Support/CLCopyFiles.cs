@@ -51,9 +51,10 @@ namespace CloudApiPublic.Support
             }
 	        catch (Exception ex)
 	        {
-                CLError err = ex;
+                CLError error = ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 CLTrace.Instance.writeToLog(1, "CLCopyFiles: CopyFileOrDirectoryWithUi: ERROR: Exception. Msg: <{0}>, Code: {1} while copying file <{2}> to file <{3}>.", 
-                    err.errorDescription, err.errorCode, source, target);
+                    error.errorDescription, error.errorCode, source, target);
 	        }
         }
     }

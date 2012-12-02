@@ -607,6 +607,8 @@ namespace win_client.ViewModels
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "PagePreferencesViewModel: RestartCloud: ERROR: Exception. Msg: {0}.", ex.Message);
             }
         }

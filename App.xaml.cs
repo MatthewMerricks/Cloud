@@ -100,7 +100,8 @@ namespace win_client
             }
 
             // Initialize the Cloud tracing.
-            CLTrace.Initialize(TraceDirectory: Settings.Instance.TraceType != TraceType.NotEnabled ? Settings.Instance.TraceLocation : null, TraceCategory: "Cloud", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel);
+            CLTrace.Initialize(TraceLocation: Settings.Instance.TraceType != TraceType.NotEnabled ? Settings.Instance.TraceLocation : null, 
+                TraceCategory: "Cloud", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel, LogErrors: Settings.Instance.LogErrors);
 
             // Change the Cloud folder location if we have just been restarted from the CloudMoveCloudFolder.vbs VBScript.
             lock (Settings.Instance.MovingCloudFolderTargetPath)

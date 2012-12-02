@@ -25,9 +25,24 @@ namespace CloudApiPublic.Support
         private static CLTrace _instance;
         private static object _instanceLocker = new object();
         private static int _maxPriority = 10;  // set this to the highest priority to log
-        private static string _logDir = null;
         private static string _traceCategory = null;
         private static string _fileExtensionWithoutPeriod = null;
+
+        // This is a copy of the Settings.TraceLocation setting.
+        public string TraceLocation
+        {
+            get { return _traceLocation; }
+            set { _traceLocation = value; }
+        }
+        private static string _traceLocation;
+        
+        // This is a copy of the Settings.LogErrors setting.
+        public bool LogErrors
+        {
+            get { return _logErrors; }
+            set { _logErrors = value; }
+        }
+        private static bool _logErrors = false;      // trace errors
 
         /// <summary>
         /// Private constructor to prevent instance creation
@@ -56,17 +71,18 @@ namespace CloudApiPublic.Support
         /// <summary>
         /// Call this function before any other CLTrace call.
         /// </summary>
-        /// <param name="TraceDirectory">The full path of the trace directory.</param>
+        /// <param name="TraceLocation">The full path of the trace directory.</param>
         /// <param name="TraceCategory">The name of the trace category.</param>
         /// <param name="FileExtensionWithoutPeriod">e.g.: "log".</param>
         /// <param name="TraceLevel">0: No trace.  Enter 1 for most important traces.  Higher numbers for greater detail.</param>
-        public static void Initialize(string TraceDirectory, string TraceCategory, string FileExtensionWithoutPeriod, int TraceLevel)
+        /// <param name="LogErrors">The Settings LogErrors setting.</param>
+        public static void Initialize(string TraceLocation, string TraceCategory, string FileExtensionWithoutPeriod, int TraceLevel, bool LogErrors)
         {
             try
             {
-                if (TraceDirectory == null)
+                if (TraceLocation == null)
                 {
-                    throw new NullReferenceException("TraceDirectory must not be null");
+                    throw new NullReferenceException("TraceLocation must not be null");
                 }
                 if (TraceCategory == null)
                 {
@@ -80,14 +96,15 @@ namespace CloudApiPublic.Support
                 lock (_instanceLocker)
                 {
                     // Initialize only once
-                    if (_logDir == null)
+                    if (_traceLocation == null)
                     {
                         _maxPriority = TraceLevel;
                         _fileExtensionWithoutPeriod = FileExtensionWithoutPeriod;
                         _traceCategory = TraceCategory;
-                        _logDir = TraceDirectory;
+                        _traceLocation = TraceLocation;
+                        _logErrors = LogErrors;
                         _instance.writeToLog(1, "CLSptTrace: Initialize: Trace initialized, TraceLevel: {0}. Extension: {1}. Category: {2}. Dir: {3}.", 
-                                TraceLevel, FileExtensionWithoutPeriod, TraceCategory, TraceDirectory);
+                                TraceLevel, FileExtensionWithoutPeriod, TraceCategory, TraceLocation);
                     }
                     else
                     {
@@ -111,12 +128,12 @@ namespace CloudApiPublic.Support
             {
 
                 // Only write high priority messages
-                if ((_logDir == null || priority <= _maxPriority)
+                if ((_traceLocation == null || priority <= _maxPriority)
                     
                     // only trace if trace category was set via initialization to prevent an exception being thrown -David
                     && _traceCategory != null)
                 {
-                    string logFilePath = Helpers.CheckLogFileExistance(TraceLocation: _logDir, UniqueUserId: null, UserDeviceId: null, TraceCategory: _traceCategory, 
+                    string logFilePath = Helpers.CheckLogFileExistance(TraceLocation: _traceLocation, UniqueUserId: null, UserDeviceId: null, TraceCategory: _traceCategory, 
                             FileExtensionWithoutPeriod: _fileExtensionWithoutPeriod, OnNewTraceFile: null, OnPreviousCompletion: null);
 
                     // Lock while writing to prevent contention for the log file
