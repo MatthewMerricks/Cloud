@@ -97,7 +97,10 @@ namespace CloudApiPublic.Model
             }
         }
 
-        // Implicitly converts DirectoryInfo to FilePath, loses all data except the path itself
+        
+        /// <summary>
+        /// Implicitly converts DirectoryInfo to FilePath, loses all data except the path itself
+        /// </summary>
         public static implicit operator FilePath(DirectoryInfo directory)
         {
             // Null check and return for nulls
@@ -109,7 +112,9 @@ namespace CloudApiPublic.Model
             return new FilePath(directory.Name, directory.Parent);
         }
 
-        // Implicitly converts FileInfo to FilePath, loses all data except the path itself
+        /// <summary>
+        /// Implicitly converts FileInfo to FilePath, loses all data except the path itself
+        /// </summary>
         public static implicit operator FilePath(FileInfo file)
         {
             // Null check and return for nulls
@@ -120,9 +125,11 @@ namespace CloudApiPublic.Model
 
             return new FilePath(file.Name, file.Directory);
         }
-
-        // Implicitly converts a full path string to FilePath by first creating a DirectoryInfo
-        // (which is then implicitly converted)
+        
+        /// <summary>
+        /// Implicitly converts a full path string to FilePath by first creating a DirectoryInfo
+        /// (which is then implicitly converted)
+        /// </summary>
         public static implicit operator FilePath(string fullPath)
         {
             // Null check and return for nulls
@@ -131,9 +138,38 @@ namespace CloudApiPublic.Model
                 return null;
             }
 
-            // Must use DirectoryInfo implicit converter instead of FileInfo because
-            // "C:\\" produces a FileInfo without a name
-            return new DirectoryInfo(fullPath);
+            ////// Cannot use System.IO for paths due to size limitation
+            //// Must use DirectoryInfo implicit converter instead of FileInfo because
+            //// "C:\\" produces a FileInfo without a name
+            //return new DirectoryInfo(fullPath);
+
+            if (fullPath.StartsWith("\\\\?\\"))
+            {
+                return fullPath.Substring(4);
+            }
+
+            int lastSlash;
+            if ((lastSlash = fullPath.LastIndexOf("\\")) < -1)
+            {
+                throw new ArgumentException("fullPath is not a properly formatted file or folder absolute path");
+            }
+
+            int firstSlash;
+            if ((firstSlash = fullPath.IndexOf("\\")) == lastSlash)
+            {
+                if (fullPath.EndsWith(":\\"))
+                {
+                    return new FilePath(fullPath);
+                }
+
+                return new FilePath(fullPath.Substring(lastSlash + 1),
+                    fullPath.Substring(0, lastSlash + 1));
+            }
+            else
+            {
+                return new FilePath(fullPath.Substring(lastSlash + 1),
+                    fullPath.Substring(0, lastSlash));
+            }
         }
 
         /// <summary>
@@ -172,6 +208,13 @@ namespace CloudApiPublic.Model
             return null;
         }
 
+        /// <summary>
+        /// Builds a string portion of a path after a specified relative root to the end of the given full path, possibly swapping the slashes for communication
+        /// </summary>
+        /// <param name="fullPath">Path to make relative</param>
+        /// <param name="relativeRoot">Full path to the root base of the relative path to return</param>
+        /// <param name="replaceWithForwardSlashes">Whether to replace the default Windows backslash in the resulting path with forward slash for directory seperation</param>
+        /// <returns>Returns the relative path</returns>
         public static string GetRelativePath(FilePath fullPath, FilePath relativeRoot, bool replaceWithForwardSlashes)
         {
             if (fullPath == null)
@@ -191,9 +234,16 @@ namespace CloudApiPublic.Model
             {
                 return relativePath.Replace('\\', '/');
             }
+            
             return relativePath;
         }
 
+        /// <summary>
+        /// Builds a string portion of a path after a specified relative root to the end of this FilePath, possibly swapping the slashes for communication
+        /// </summary>
+        /// <param name="relativeRoot">Full path to the root base of the relative path to return</param>
+        /// <param name="replaceWithForwardSlashes">Whether to replace the default Windows backslash in the resulting path with forward slash for directory seperation</param>
+        /// <returns>Returns the relative path</returns>
         public string GetRelativePath(FilePath relativeRoot, bool replaceWithForwardSlashes)
         {
             return GetRelativePath(this, relativeRoot, replaceWithForwardSlashes);
@@ -243,6 +293,13 @@ namespace CloudApiPublic.Model
             return Contains(this, innerPath);
         }
 
+        /// <summary>
+        /// Modifies a FilePath to swap a parent structure at a certain point to effectively rename it via an exact path rename or a rename of a parent directory;
+        /// be careful because it modifies the actual FilePath which may be referenced elsewhere and not meant to be changed
+        /// </summary>
+        /// <param name="toModify">The path to apply a rename which will be modified</param>
+        /// <param name="rootOldPath">Previous path which was renamed, either the exact path to rename or a path to a parent directory</param>
+        /// <param name="rootNewPath">The new path of the rename after the change from the rootOldPath name</param>
         public static void ApplyRename(FilePath toModify, FilePath rootOldPath, FilePath rootNewPath)
         {
             if (toModify == null)

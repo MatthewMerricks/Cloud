@@ -4199,9 +4199,18 @@ namespace CloudApiPublic.Sync
                                     ModifiedDate = currentEvent.FileChange.Metadata.HashableProperties.LastTime, // when this file system object was last modified
                                     RelativeFromPath = (currentEvent.FileChange.OldPath == null
                                         ? null // null for a null OldPath
-                                        : currentEvent.FileChange.OldPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true)), // path relative to the root with slashes switched for an OldPath
-                                    RelativePath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true), // path relative to the root with slashes switched for the NewPath (this one should be the one read for everything except renames, but set it anyways)
-                                    RelativeToPath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true), // path relative to the root with slashes switched for the NewPath (this one should be the one read only for renames, but set it anyways)
+                                        : currentEvent.FileChange.OldPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true) + // path relative to the root with slashes switched for an OldPath
+                                            (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
+                                                ? "/" // append forward slash at end of folder paths
+                                                : string.Empty)),
+                                    RelativePath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read for everything except renames, but set it anyways)
+                                        (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
+                                            ? "/" // append forward slash at end of folder paths
+                                            : string.Empty),
+                                    RelativeToPath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read only for renames, but set it anyways)
+                                        (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
+                                            ? "/" // append forward slash at end of folder paths
+                                            : string.Empty),
                                     Revision = currentEvent.FileChange.Metadata.Revision, // last communicated revision for this FileChange
                                     Size = currentEvent.FileChange.Metadata.HashableProperties.Size, // the file size (or null for folders)
                                     StorageKey = currentEvent.FileChange.Metadata.StorageKey, // the server location for storage of this file (or null for a folder); probably not read
@@ -4467,7 +4476,7 @@ namespace CloudApiPublic.Sync
 
                                         // else if the current event does have metadata (non-rename events), then build the path from the root path plus the metadata path
                                         : (syncSettings.CloudRoot ?? string.Empty) + "\\" +
-                                            (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\')));
+                                            (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')));
                                 }
                             }
                             catch
@@ -4486,7 +4495,7 @@ namespace CloudApiPublic.Sync
                                     
                                     // append Sync From event relative path to the root path to build the full path for comparison
                                     (syncSettings.CloudRoot ?? string.Empty) + "\\" +
-                                    (deserializedResponse.Events[currentEventIndex].Metadata.RelativePath ?? deserializedResponse.Events[currentEventIndex].Metadata.RelativeToPath).Replace('/', '\\')))
+                                    (deserializedResponse.Events[currentEventIndex].Metadata.RelativePathWithoutEnclosingSlashes ?? deserializedResponse.Events[currentEventIndex].Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')))
                                 {
                                     // from event is duplicate, add its index to duplicates
                                     duplicatedEvents.Add(currentEventIndex);
@@ -4610,10 +4619,10 @@ namespace CloudApiPublic.Sync
                                 {
                                     // set the new path by appending the relative path to the root
                                     findNewPath = (syncSettings.CloudRoot ?? string.Empty) + "\\" +
-                                        (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\');
+                                        (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\');
                                     // set the old path for rename events by appending the relative path to the root, or null for non-renames
                                     findOldPath = (CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action)
-                                        ? (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')
+                                        ? (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')
                                         : null);
                                     // set the MD5 hash, or null for non-files
                                     findHash = currentEvent.Metadata.Hash;
@@ -4624,7 +4633,7 @@ namespace CloudApiPublic.Sync
                                         currentEvent.Metadata.Size); // the size of a file or null for non-files
                                     findLinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
                                         ? null // if the current event has no shortcut target path, then set the target path as null
-                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\")); // else if the current event has a shortcut path, then create the shortcut path by appending a relative path to the root
+                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")); // else if the current event has a shortcut path, then create the shortcut path by appending a relative path to the root
                                     // set the revision from the current file, or null for non-files
                                     findRevision = currentEvent.Metadata.Revision;
                                     // set the storage key from the current file, or null for non-files
@@ -4803,7 +4812,7 @@ namespace CloudApiPublic.Sync
                                                                 StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                                 LinkTargetPath = (newMetadata.TargetPath == null
                                                                     ? null // if server metadata does not have a shortcut file target path, then use null
-                                                                    : (syncSettings.CloudRoot ?? string.Empty) + "\\" + newMetadata.TargetPath.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                                    : (syncSettings.CloudRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
                                                             }
                                                         },
                                                         newMetadata.Hash); // file MD5 hash or null for folder
@@ -5903,10 +5912,10 @@ namespace CloudApiPublic.Sync
                             CreateFileChangeFromBaseChangePlusHash(new FileChange() // create a FileChange with dependencies and set the hash, start by creating a new FileChange input
                             {
                                 Direction = SyncDirection.From, // current communcation direction is Sync From (only Sync From events, not mixed like Sync To events)
-                                NewPath = (syncSettings.CloudRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath).Replace('/', '\\'), // new location of change
+                                NewPath = (syncSettings.CloudRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'), // new location of change
                                 OldPath = (currentEvent.Metadata.RelativeFromPath == null
                                     ? null // if the current event is not a rename, then it has no previous path
-                                    : (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPath.Replace('/', '\\')), // if the current event is a rename, grab the previous path
+                                    : (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')), // if the current event is a rename, grab the previous path
                                 Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action), // grab the type of change from the action string
                                 Metadata = new FileMetadata()
                                 {
@@ -5920,7 +5929,7 @@ namespace CloudApiPublic.Sync
                                     StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
                                     LinkTargetPath = (currentEvent.Metadata.TargetPath == null
                                         ? null // if current event is a folder or a file which is not a shortcut, then there is no shortcut target path
-                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPath.Replace("/", "\\")) // else if the current event is a shortcut file, then grab the shortcut path
+                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else if the current event is a shortcut file, then grab the shortcut path
                                 }
                             },
                             currentEvent.Metadata.Hash), // grab the MD5 hash
@@ -6067,7 +6076,7 @@ namespace CloudApiPublic.Sync
                                                     StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                     LinkTargetPath = (newMetadata.TargetPath == null
                                                         ? null // if server metadata does not have a shortcut file target path, then use null
-                                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + newMetadata.TargetPath.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
                                                 }
                                             },
                                             newMetadata.Hash); // file MD5 hash or null for folder

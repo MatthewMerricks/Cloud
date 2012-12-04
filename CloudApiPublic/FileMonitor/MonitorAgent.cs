@@ -2093,8 +2093,7 @@ namespace CloudApiPublic.FileMonitor
                                 & (FileAttributes.Hidden// ignore hidden files
                                     | FileAttributes.Offline// ignore offline files (data is not available on them)
                                     | FileAttributes.System// ignore system files
-                                    | FileAttributes.Temporary// ignore temporary files
-                                    ))
+                                    | FileAttributes.Temporary))// ignore temporary files
                             && (isFolder ? true : !FileIsShortcut(file))))// allow change if it is a folder or if it is a file that is not a shortcut
                     {
                         DateTime lastTime;
@@ -2502,11 +2501,11 @@ namespace CloudApiPublic.FileMonitor
         /// Compares a previous index with new values and returns metadata for a new index if a difference is found
         /// </summary>
         /// <param name="previousMetadata">Metadata from existing index</param>
-        /// <param name="filePath">Path to file or folder</param>
         /// <param name="isFolder">True for folder or false for file</param>
         /// <param name="lastTime">The greater of the times for last accessed and last written for file or folder</param>
         /// <param name="creationTime">Time of creation of file or folder</param>
         /// <param name="size">File size for file or null for folder</param>
+        /// <param name="targetPath">The target path for a shortcut file, if any</param>
         /// <returns>Returns null if a difference was not found, otherwise the new metadata to use</returns>
         private FileMetadata ReplacementMetadataIfDifferent(FileMetadata previousMetadata,
             bool isFolder,

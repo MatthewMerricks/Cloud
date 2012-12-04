@@ -23,7 +23,7 @@ namespace CloudApiPublic.Sync
     /// Extended TaskScheduler for Sync upload and download tasks to limit concurrency and handle exceptions;
     /// grab one instance or the over via static method GetSchedulerByDirection
     /// </summary>
-    public sealed class HttpScheduler : TaskScheduler, IDisposable
+    internal sealed class HttpScheduler : TaskScheduler, IDisposable
     {
         #region private fields
         private const int _fromConcurrencyLevel = 6;// Limit of 6 simultaneous downloads
@@ -36,18 +36,7 @@ namespace CloudApiPublic.Sync
         private static bool FromDisposed = false;
         private static bool ToDisposed = false;
 
-        private static bool LogErrors
-        {
-            get
-            {
-                lock (SyncSettingsLocker)
-                {
-                    return _logErrors ?? false;
-                }
-            }
-        }
         private static ISyncSettingsAdvanced _syncSettings;
-        private static Nullable<bool> _logErrors;
         private static bool SyncSettingsSet = false;
         private static readonly object SyncSettingsLocker = new object();
         #endregion
@@ -99,7 +88,6 @@ namespace CloudApiPublic.Sync
                                     }
 
                                     HttpScheduler._syncSettings = syncSettings;
-                                    HttpScheduler._logErrors = syncSettings.LogErrors;
 
                                     HttpScheduler.SyncSettingsSet = true;
                                 }
@@ -147,7 +135,7 @@ namespace CloudApiPublic.Sync
                                         throw new NullReferenceException("syncSettings TraceLocation cannot be null if syncSettings LogErrors is true");
                                     }
 
-                                    HttpScheduler._logErrors = syncSettings.LogErrors;
+                                    HttpScheduler._syncSettings = syncSettings;
 
                                     HttpScheduler.SyncSettingsSet = true;
                                 }
@@ -267,7 +255,7 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
-                ((CLError)ex).LogErrors(_syncSettings.TraceLocation, LogErrors);
+                ((CLError)ex).LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 return false;
             }
             return true;
@@ -449,7 +437,7 @@ namespace CloudApiPublic.Sync
                 }
             }
             // performs the actual logging of errors, forces logging even if the setting is turned off in the severe case where a message box had to appear
-            aggregatedError.LogErrors(_syncSettings.TraceLocation, overrideLoggingOnMessageBox ? true : LogErrors);
+            aggregatedError.LogErrors(_syncSettings.TraceLocation, overrideLoggingOnMessageBox ? true : _syncSettings.LogErrors);
         }
 
         /// <summary>

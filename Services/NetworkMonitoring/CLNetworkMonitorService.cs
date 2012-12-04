@@ -27,7 +27,6 @@ namespace win_client.Services.Badging
             get { return _cloudReach; }
             private set { _cloudReach = value; }
         }
-        
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -76,7 +75,10 @@ namespace win_client.Services.Badging
         {
             try
             {
-                HttpScheduler.DisposeBothSchedulers();
+                //// HttpScheduler was made internal, this call is now available statically in CLSync
+                //HttpScheduler.DisposeBothSchedulers();
+
+                CloudApiPublic.CLSync.PermanentShutdownHttpSchedulers();
             }
             catch (Exception ex)
             {

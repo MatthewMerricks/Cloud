@@ -91,11 +91,98 @@ namespace CloudApiPublic.JsonContracts
         [DataMember(Name = CLDefinitions.CLMetadataCloudPath, IsRequired = false)]
         public string RelativePath { get; set; }
 
+        public string RelativePathWithoutEnclosingSlashes
+        {
+            get
+            {
+                if (RelativePath == null)
+                {
+                    return null;
+                }
+
+                if (RelativePath[RelativePath.Length - 1] == '/')
+                {
+                    if (RelativePath[0] == '/')
+                    {
+                        return RelativePath.Substring(1, RelativePath.Length - 2);
+                    }
+                    else
+                    {
+                        return RelativePath.Substring(0, RelativePath.Length - 1);
+                    }
+                }
+                else if (RelativePath[0] == '/')
+                {
+                    return RelativePath.Substring(1, RelativePath.Length - 1);
+                }
+
+                return RelativePath;
+            }
+        }
+
         [DataMember(Name = CLDefinitions.CLMetadataFromPath, IsRequired = false)]
         public string RelativeFromPath { get; set; }
 
+        public string RelativeFromPathWithoutEnclosingSlashes
+        {
+            get
+            {
+                if (RelativeFromPath == null)
+                {
+                    return null;
+                }
+
+                if (RelativeFromPath[RelativeFromPath.Length - 1] == '/')
+                {
+                    if (RelativeFromPath[0] == '/')
+                    {
+                        return RelativeFromPath.Substring(1, RelativeFromPath.Length - 2);
+                    }
+                    else
+                    {
+                        return RelativeFromPath.Substring(0, RelativeFromPath.Length - 1);
+                    }
+                }
+                else if (RelativeToPath[0] == '/')
+                {
+                    return RelativeFromPath.Substring(1, RelativeFromPath.Length - 1);
+                }
+
+                return RelativeFromPath;
+            }
+        }
+
         [DataMember(Name = CLDefinitions.CLMetadataToPath, IsRequired = false)]
         public string RelativeToPath { get; set; }
+
+        public string RelativeToPathWithoutEnclosingSlashes
+        {
+            get
+            {
+                if (RelativeToPath == null)
+                {
+                    return null;
+                }
+
+                if (RelativeToPath[RelativeToPath.Length - 1] == '/')
+                {
+                    if (RelativeToPath[0] == '/')
+                    {
+                        return RelativeToPath.Substring(1, RelativeToPath.Length - 2);
+                    }
+                    else
+                    {
+                        return RelativeToPath.Substring(0, RelativeToPath.Length - 1);
+                    }
+                }
+                else if (RelativeToPath[0] == '/')
+                {
+                    return RelativeToPath.Substring(1, RelativeToPath.Length - 1);
+                }
+
+                return RelativeToPath;
+            }
+        }
 
         [DataMember(Name = CLDefinitions.CLMetadataFileIsDirectory, IsRequired = false)]
         public Nullable<bool> IsFolder { get; set; }
@@ -111,6 +198,35 @@ namespace CloudApiPublic.JsonContracts
 
         [DataMember(Name = CLDefinitions.CLMetadataFileTarget, IsRequired = false)]
         public string TargetPath { get; set; }
+
+        public string TargetPathWithoutEnclosingSlashes
+        {
+            get
+            {
+                if (TargetPath == null)
+                {
+                    return null;
+                }
+
+                if (TargetPath[TargetPath.Length - 1] == '/')
+                {
+                    if (TargetPath[0] == '/')
+                    {
+                        return TargetPath.Substring(1, TargetPath.Length - 2);
+                    }
+                    else
+                    {
+                        return TargetPath.Substring(0, TargetPath.Length - 1);
+                    }
+                }
+                else if (TargetPath[0] == '/')
+                {
+                    return TargetPath.Substring(1, TargetPath.Length - 1);
+                }
+
+                return TargetPath;
+            }
+        }
 
         [DataMember(Name = CLDefinitions.CLMetadataVersion, IsRequired = false)]
         public string Version { get; set; }

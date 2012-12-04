@@ -112,6 +112,25 @@ namespace RegisterCom
 
             try
             {
+                int failTraceAppend = 0;
+
+                try
+                {
+                    string traceLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\Cloud";
+
+                    if (!Directory.Exists(traceLocation))
+                    {
+                        Directory.CreateDirectory(traceLocation);
+                    }
+
+                    CLTrace.Initialize(traceLocation, "RegisterCom", "log", 9);
+                }
+                catch
+                {
+                    // unable to trace
+                    failTraceAppend = 10;
+                }
+
                 _trace.writeToLog(1, "RegisterCom: Main program starting.");
                 _trace.writeToLog(1, "RegisterCom: Main: Arg count: {0}.", args.Length);
 
@@ -121,7 +140,7 @@ namespace RegisterCom
                 if (args.Length == 0)
                 {
                     _trace.writeToLog(1, "RegisterCom: Main: ERROR. No args.  Exit.");
-                    return 1;
+                    return failTraceAppend + 1;
                 }
 
                 string firstArg = args[0];
@@ -152,7 +171,7 @@ namespace RegisterCom
                     // This is uninstall
                     _trace.writeToLog(1, "RegisterCom: Main: Call UninstallCOM.");
                     int rc = UninstallCOM();
-                    return rc;
+                    return failTraceAppend + rc;
                 }
 
                 // Installation.  The first parm should point to the Cloud program files directory.
@@ -160,7 +179,7 @@ namespace RegisterCom
                 {
                     // No arguments.
                     _trace.writeToLog(1, "RegisterCom: Main: ERROR.  No arguments.");
-                    return 2;
+                    return failTraceAppend + 2;
                 }
 
                 // Determine whether 32-bit or 64-bit architecture
@@ -182,7 +201,7 @@ namespace RegisterCom
                 if (!File.Exists(pathBadgeCOM))
                 {
                     _trace.writeToLog(1, "RegisterCom: Main: ERROR.  Could not find BadgeCOM.dll at path {0}.", pathBadgeCOM);
-                    return 3;
+                    return failTraceAppend + 3;
                 }
 
                 // See if ContextMenuCOM exists in the installation directory at the "bitness" path.
@@ -191,7 +210,7 @@ namespace RegisterCom
                 if (!File.Exists(pathContextMenuCOM))
                 {
                     _trace.writeToLog(1, "RegisterCom: Main: ERROR.  Could not find ContextMenuCOM.dll at path {0}.", pathContextMenuCOM);
-                    return 4;
+                    return failTraceAppend + 4;
                 }
 
                 // Stop Explorer
@@ -206,7 +225,7 @@ namespace RegisterCom
                 if (rcLocal != 0)
                 {
                     _trace.writeToLog(1, "RegisterCom: Main: ERROR: From CopyFilesNeededForUninstall: rc: {0}.", rcLocal);
-                    return rcLocal;
+                    return failTraceAppend + rcLocal;
                 }
 
                 // Copy the VC100 files only for 64-bit systems
@@ -229,7 +248,7 @@ namespace RegisterCom
                         // Start Explorer
                         _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
                         Process.Start(explorerLocation);
-                        return 5;
+                        return failTraceAppend + 5;
                     }
 
                     // Copy msvcr100.dll
@@ -249,7 +268,7 @@ namespace RegisterCom
                         // Start Explorer
                         _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
                         Process.Start(explorerLocation);
-                        return 6;
+                        return failTraceAppend + 6;
                     }
 
                     // Copy atl100.dll
@@ -269,7 +288,7 @@ namespace RegisterCom
                         // Start Explorer
                         _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
                         Process.Start(explorerLocation);
-                        return 7;
+                        return failTraceAppend + 7;
                     }
                 }
 
@@ -285,7 +304,7 @@ namespace RegisterCom
                     // Start Explorer
                     _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
                     Process.Start(explorerLocation);
-                    return 8;
+                    return failTraceAppend + 8;
                 }
 
                 // Register ContextMenuCOM.dll in the ProgramFiles CommonFiles folder.
@@ -299,7 +318,7 @@ namespace RegisterCom
                     // Start Explorer
                     _trace.writeToLog(1, "RegisterCom: Main: Start Explorer");
                     Process.Start(explorerLocation);
-                    return 9;
+                    return failTraceAppend + 9;
                 }
 
                 _trace.writeToLog(1, "RegisterCom: Main: Installation exit.  rc: {0}.", rcLocal);

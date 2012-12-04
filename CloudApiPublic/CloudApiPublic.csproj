@@ -118,7 +118,7 @@
     <Compile Include="Model\TransferUpdateArgs.cs" />
     <Compile Include="PushNotification\PushSettings.cs" />
     <Compile Include="Support\CLCopyFiles.cs" />
-    <Compile Include="SyncBox\SyncBox.cs" />
+    <Compile Include="CLSync\CLSync.cs" />
     <Compile Include="Sync\SyncSettings.cs" />
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
     <Compile Include="Interfaces\ISyncDataObject.cs" />

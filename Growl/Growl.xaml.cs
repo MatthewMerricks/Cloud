@@ -29,10 +29,11 @@ using win_client.Common;
 namespace win_client.Growl
 {
     /// <summary>
-    /// Interaction logic for Growl.xaml
+    /// Interaction logic for Growl.xaml, which is a view which can "pop up" above the taskbar icon for display messages
     /// </summary>
     public partial class Growl : GrowlBase
     {
+        // private enum to define the state of the static Growl and it's attachment to EventMessageReceiver changes
         private enum RunningState
         {
             NeverStarted,
