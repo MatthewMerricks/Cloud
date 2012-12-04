@@ -18,8 +18,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Navigation;
+using System.Windows.Interop;
 using System.IO;
-using win_client.SystemTray.TrayIcon;
 using win_client.AppDelegate;
 using System.Windows.Forms;
 using win_client.Model;
@@ -41,7 +41,6 @@ namespace win_client
     {
         #region Private Instance Variables
 
-        private TrayIcon m_trayIcon;
         private bool disposed = false;
         private CLTrace _trace = CLTrace.Instance;
 
@@ -64,9 +63,9 @@ namespace win_client
                 this.NavigationService.Navigating += NavigationService_Navigating;
                 this.Closing += MyNavigationWindow_Closing;
 
-                _trace.writeToLog(9, "NavigationWindow: MyNavigationWindow constructor: Call InitializeComponent.");
+                _trace.writeToLog(9, "NavigationWindow: NavigationWindow constructor: Call InitializeComponent.");
                 InitializeComponent();
-                _trace.writeToLog(9, "NavigationWindow: MyNavigationWindow constructor: After InitializeComponent.");
+                _trace.writeToLog(9, "NavigationWindow: NavigationWindow constructor: After InitializeComponent.");
 
                 // Register messages
                 Messenger.Default.Register<CleanShutdown.Messaging.NotificationMessageAction<bool>>(
@@ -80,11 +79,11 @@ namespace win_client
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(9, "MyNavigationWindow: PageHome: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(9, "NavigationWindow: NavigationWindow: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
                 System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (MyNavigationWindow).  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
                 global::System.Windows.Application.Current.Shutdown(0);
             }
-            _trace.writeToLog(9, "NavigationWindow: MyNavigationWindow constructor: Exit.");
+            _trace.writeToLog(9, "NavigationWindow: NavigationWindow constructor: Exit.");
         }
 
         #endregion
@@ -108,7 +107,7 @@ namespace win_client
         /// </summary>
         void MyNavigationWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            _trace.writeToLog(9, "NavigationWindow: MyNavigationWindow_Closingr: Entry.");
+            _trace.writeToLog(9, "NavigationWindow: MyNavigationWindow_Closing: Entry.");
             e.Cancel = ShutdownService.RequestShutdown();
 
             // Save the position of the window if we will be shutting down, and if the window
@@ -149,43 +148,32 @@ namespace win_client
         }
 
         /// <summary>
-        /// Wait for the SourceInitialized event to set up the tray icon.
+        /// Capture the SourceInitialized event.  This function is used to add a WndProc hook so we
+        /// can watch for particular window messages.
         /// </summary>
-        private void Window_SourceInitialized(object sender, EventArgs e)
+        protected override void OnSourceInitialized(EventArgs e)
         {
-            // Put the window back where it was.
-            //this.SetPlacement(Settings.Instance.MainWindowPlacement);
-
-            // Have to wait for source-initialized event to set up the
-            // tray icon, or the windows handle will be null
-            // Create the tray-icon manager object, and register for events
-            m_trayIcon = new TrayIcon(this);
-            m_trayIcon.LeftDoubleClick += new EventHandler(TrayIcon_LeftDoubleClick);
-
+            base.OnSourceInitialized(e);
+            HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+            source.AddHook(WndProc);
         }
 
         /// <summary>
-        /// Hide the tray icon if the window is visible, and vice versa.
+        /// Handle window messages.
         /// </summary>
-        private void Window_StateChanged(object sender, EventArgs e)
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-
-            // If this window is minimized...
-            if (WindowState == System.Windows.WindowState.Minimized)
+            // Look for a message to indicate that Explorer has restarted and we should restore our NotifyIcon.
+            // Message 0xC09F is apparently sent when Explorer restarts.
+            if (msg == 0xC09F)
             {
-                //TODO: RKS Original code.  Necessary?
-                //// Make sure tray icon is visible
-                //if (!m_trayIcon.IsIconVisible)
-                //    m_trayIcon.Show(global::win_client.Resources.Resources.SystemTrayIcon, "I'm In The Tray!");
-            }
-            else
-            {
-
-                // Make sure tray icon is hidden
-                if (m_trayIcon.IsIconVisible)
-                    m_trayIcon.Hide();
+                if (this.Visibility != global::System.Windows.Visibility.Visible)
+                {
+                    ResetNotifyIcon();
+                }
             }
 
+            return IntPtr.Zero;
         }
 
         /// <summary>
@@ -197,6 +185,20 @@ namespace win_client
             if (WindowState == System.Windows.WindowState.Minimized)
                 WindowState = System.Windows.WindowState.Normal;
 
+        }
+
+        private void ResetNotifyIcon()
+        {
+            try 
+	        {
+                CLAppMessages.Message_PageInvisible_ResetNotifyIcon.Send("");       // have the view reset the NotifyIcon
+	        }
+	        catch (Exception ex)
+	        {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(9, "NavigationWindow: ResetNotifyIcon: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
+            }
         }
 
         #endregion
@@ -227,11 +229,6 @@ namespace win_client
                 if (disposing) 
                 { 
                     // Free managed resources, if any
-                    if (m_trayIcon != null)
-                    {
-                        m_trayIcon.Dispose();
-                        m_trayIcon = null;
-                    }
                 } 
 
                 // Free native (unmanaged) resources, if any

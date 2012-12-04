@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['pushnotificationerror',['PushNotificationError',['../class_cloud_api_public_1_1_sync_box.html#a37dc0c1c783ead1a4404e90016d9df60',1,'CloudApiPublic::SyncBox']]]
+  ['pushnotificationerror',['PushNotificationError',['../class_cloud_api_public_1_1_c_l_sync.html#a986a038f0f504de78c6ea811dacb0b21',1,'CloudApiPublic::CLSync']]]
 ];

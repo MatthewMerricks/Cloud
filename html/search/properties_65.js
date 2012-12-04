@@ -2,7 +2,6 @@ var searchData=
 [
   ['entry',['Entry',['../class_cloud_api_public_1_1_static_1_1_log.html#aee2ad7e696b713b58944ce47ba685905',1,'CloudApiPublic::Static::Log']]],
   ['errorinfo',['errorInfo',['../class_cloud_api_public_1_1_model_1_1_c_l_error.html#ae29296bb1f6e7b0992166ecc3df26662',1,'CloudApiPublic::Model::CLError']]],
-  ['errorloglocation',['ErrorLogLocation',['../interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings.html#acdd869808512ad6cf46038e0479e7e94',1,'CloudApiPublic::Interfaces::IAddTraceSettings']]],
   ['errorpostingsyncfromserver',['ErrorPostingSyncFromServer',['../class_cloud_api_public_1_1_resources_1_1_resources.html#a0c0b014f3adbc0748726c33e75f54510',1,'CloudApiPublic::Resources::Resources']]],
   ['errorpostingsynctoserver',['ErrorPostingSyncToServer',['../class_cloud_api_public_1_1_resources_1_1_resources.html#aee243a146f3f50aa829353a1de9edfd6',1,'CloudApiPublic::Resources::Resources']]],
   ['errorputtinguploadordownloadtoserver',['ErrorPuttingUploadOrDownloadToServer',['../class_cloud_api_public_1_1_resources_1_1_resources.html#a933b73178f56c88ee5e2c1226836ed93',1,'CloudApiPublic::Resources::Resources']]],

@@ -14,7 +14,6 @@ var searchData=
   ['devicename',['DeviceName',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html#a6c77d27d7e668673e0739f84d500e5f4',1,'CloudApiPublic::Interfaces::ISyncSettingsAdvanced']]],
   ['direction',['Direction',['../class_cloud_api_public_1_1_model_1_1_file_change.html#ae9286566d391fe9d646db55e20b1ccab',1,'CloudApiPublic.Model.FileChange.Direction()'],['../class_cloud_api_public_1_1_static_1_1_communication_entry.html#a1ce7240a45fbab0747aed47f1cdd65fe',1,'CloudApiPublic.Static.CommunicationEntry.Direction()']]],
   ['disconnectpushnotificationserver',['DisconnectPushNotificationServer',['../class_cloud_api_public_1_1_push_notification_1_1_c_l_notification.html#a121fca2675b1ac57dac038554edf8fb9',1,'CloudApiPublic::PushNotification::CLNotification']]],
-  ['dispose',['Dispose',['../class_cloud_api_public_1_1_badge_n_e_t_1_1_badge_com_pub_sub_events.html#afd8ebb3dd0bcfa8b9430697c06d9bbfa',1,'CloudApiPublic::BadgeNET::BadgeComPubSubEvents']]],
   ['disposebothschedulers',['DisposeBothSchedulers',['../class_cloud_api_public_1_1_sync_1_1_http_scheduler.html#a5b654a57f79ca5b29982a697e017814e',1,'CloudApiPublic::Sync::HttpScheduler']]],
   ['donotaddtosqlindex',['DoNotAddToSQLIndex',['../class_cloud_api_public_1_1_model_1_1_file_change.html#aa979e65ac9cd9783870afe5b25137296',1,'CloudApiPublic::Model::FileChange']]],
   ['download',['Download',['../class_cloud_api_public_1_1_json_contracts_1_1_download.html',1,'CloudApiPublic::JsonContracts']]]

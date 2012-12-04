@@ -510,6 +510,8 @@ namespace win_client.Views
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: Exception. Msg: {0}.", ex.Message);
             }
 

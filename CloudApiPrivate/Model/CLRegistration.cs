@@ -1003,6 +1003,7 @@ namespace CloudApiPrivate.Model
             catch (Exception ex)
             {
                 error += ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 _trace.writeToLog(1, "CLRegistration: UnlinkDeviceWithAccessKey: ERROR: Exception. Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
             }
 

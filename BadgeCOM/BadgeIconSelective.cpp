@@ -234,9 +234,12 @@ void CBadgeIconSelective::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBad
 	try
 	{
 		// Add or update the <path,badgeType>
-		CLTRACE(9, "CBadgeIconSelective: OnEventAddBadgePath: Entry. BadgeType: %d. Path: <%ls>.", badgeType, fullPath);
-		_mapBadges[fullPath] = badgeType;
-        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
+		if (badgeType == cloudAppBadgeSyncSelective)
+		{
+			CLTRACE(9, "CBadgeIconSelective: OnEventAddBadgePath: Entry. BadgeType: %d. Path: <%ls>.", badgeType, fullPath);
+			_mapBadges[fullPath] = badgeType;
+			SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
+		}
 	}
 	catch(std::exception &ex)
 	{

@@ -92,7 +92,7 @@ namespace CloudApiPublic.Sync
             }
 
             // Initialize trace in case it is not already initialized.
-            CLTrace.Initialize(this.syncSettings.TraceLocation, "Cloud", "log", this.syncSettings.TraceLevel);
+            CLTrace.Initialize(this.syncSettings.TraceLocation, "Cloud", "log", this.syncSettings.TraceLevel, this.syncSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "SyncEngine: SyncEngine: Entry.");
 
             this.DefaultTempDownloadsPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" +

@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using CloudApiPublic.Support;
 using CloudApiPublic.Sync;
+using CloudApiPublic.Model;
+using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Services.Badging
 {
@@ -82,6 +84,8 @@ namespace win_client.Services.Badging
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLNetworkMonitorService: EndNetworkMonitoring: ERROR: Exception. Msg: <{0}>.", ex.Message);
             }
         }

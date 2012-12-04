@@ -17,6 +17,7 @@ using CloudApiPublic.SQLIndexer;
 using CloudApiPublic.PushNotification;
 using CloudApiPublic.Static;
 using CloudApiPublic.Sync;
+using CloudApiPublic.BadgeNET;
 
 namespace CloudApiPublic
 {
@@ -25,19 +26,21 @@ namespace CloudApiPublic
     /// </summary>
     public class CLSync
     {
+        private IconOverlay _iconOverlay = null;
         private MonitorAgent _monitor = null;
         private IndexingAgent _indexer = null;
         private CLNotification _notifier = null;
         private bool _isStarted = false;
         private static CLTrace _trace = CLTrace.Instance;
         private SyncEngine _syncEngine = null;
+        private ISyncSettingsAdvanced _syncSettings = null;
 
         /// <summary>
         /// Event fired when a serious notification error has occurred.  Push notification is
         /// no longer functional.
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
-        
+
         /// <summary>
         /// Writes a new set of sync states to the database after a sync completes,
         /// requires newRootPath to be set on the first sync or on any sync with a new root path
@@ -56,6 +59,8 @@ namespace CloudApiPublic
                 }
                 catch (Exception ex)
                 {
+                    CLError error = ex;
+                    error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                     syncCounter = Helpers.DefaultForType<long>();
                     return ex;
                 }
@@ -66,7 +71,7 @@ namespace CloudApiPublic
                 return new NullReferenceException("Monitor cannot be null");
             }
         }
-        
+
         /// <summary>
         /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
         /// </summary>
@@ -82,6 +87,8 @@ namespace CloudApiPublic
                 }
                 catch (Exception ex)
                 {
+                    CLError error = ex;
+                    error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                     return ex;
                 }
             }
@@ -99,50 +106,60 @@ namespace CloudApiPublic
         /// <returns></returns>
         public CLError Start(ISyncSettings settings)
         {
-            try 
-	        {
+            try
+            {
                 if (settings == null)
                 {
                     throw new NullReferenceException("settings cannot be null");
                 }
 
-                ISyncSettingsAdvanced copiedSettings = settings.CopySettings();
+                _syncSettings = settings.CopySettings();
 
                 // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(copiedSettings.TraceLocation, "Cloud", "log", copiedSettings.TraceLevel);
+                CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
 
-                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(copiedSettings.CloudRoot);
+                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncSettings.CloudRoot);
                 if (!rootInfo.Exists)
                 {
                     rootInfo.Create();
                 }
 
                 // Don't start twice.
-                _trace.writeToLog(1, "SyncBox: Start: Entry.");
+                _trace.writeToLog(1, "CLSync: Start: Entry.");
                 if (_isStarted)
                 {
                     CLError error = new Exception("Already started");
-                    _trace.writeToLog(1, "SyncBox: Start: ERROR: {0}.", error.errorDescription);
+                    _trace.writeToLog(1, "CLSync: Start: ERROR: {0}.", error.errorDescription);
                     return error;
                 }
 
+                // Start badging
+                _iconOverlay = new IconOverlay();
+                CLError iconOverlayError = _iconOverlay.Initialize(settings);
+                if (iconOverlayError != null)
+                {
+                    _trace.writeToLog(1, "CLSync: Start: ERROR: Exception. Msg: {0}. Code: {1}.", iconOverlayError.errorDescription, iconOverlayError.errorCode);
+                    ReleaseResources();
+                    return iconOverlayError;
+                }
+
                 // Start the indexer.
-                _trace.writeToLog(9, "SyncBox: Start: Start the indexer.");
-                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, copiedSettings.Uuid, copiedSettings.DatabaseFile);
+                _trace.writeToLog(9, "CLSync: Start: Start the indexer.");
+                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, _syncSettings.Uuid, _syncSettings.DatabaseFile);
                 if (indexCreationError != null)
                 {
-                    _trace.writeToLog(1, "SyncBox: Start: ERROR: Exception. Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);
+                    _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);
                     ReleaseResources();
                     return indexCreationError;
                 }
 
                 // Start the push notification.
-                _trace.writeToLog(9, "SyncBox: Start: Start the notifier.");
-                _notifier = CLNotification.GetInstance(copiedSettings);
+                _trace.writeToLog(9, "CLSync: Start: Start the notifier.");
+                _notifier = CLNotification.GetInstance(_syncSettings);
                 if (_notifier == null)
                 {
                     CLError error = new Exception("Error starting push notification");
-                    _trace.writeToLog(1, "SyncBox: Start: ERROR(2): {0}.", error.errorDescription);
+                    _trace.writeToLog(1, "CLSync: Start: ERROR(2): {0}.", error.errorDescription);
                     ReleaseResources();
                     return error;
                 }
@@ -153,14 +170,14 @@ namespace CloudApiPublic
                 _notifier.ConnectionError += OnNotificationConnectionError;
 
                 // Start the monitor
-                CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(copiedSettings,
+                CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(_syncSettings,
                     _indexer,
                     out _monitor,
                     out _syncEngine);
 
                 if (fileMonitorCreationError != null)
                 {
-                    _trace.writeToLog(1, "SyncBox: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, fileMonitorCreationError.errorCode);
+                    _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(3). Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, fileMonitorCreationError.errorCode);
                     _indexer.Dispose();
                     _indexer = null;
                     ReleaseResources();
@@ -176,7 +193,7 @@ namespace CloudApiPublic
                             CLError fileMonitorStartError = _monitor.Start(out returnStatus);
                             if (fileMonitorStartError != null)
                             {
-                                _trace.writeToLog(1, "SyncBox: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, fileMonitorStartError.errorCode);
+                                _trace.writeToLog(1, "CLSync: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, fileMonitorStartError.errorCode);
                                 ReleaseResources();
                                 return fileMonitorStartError;
                             }
@@ -186,23 +203,27 @@ namespace CloudApiPublic
                                             _monitor.GetCurrentPath);
                             if (indexerStartError != null)
                             {
-                                _trace.writeToLog(1, "SyncBox: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, indexerStartError.errorCode);
+                                _trace.writeToLog(1, "CLSync: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, indexerStartError.errorCode);
                                 ReleaseResources();
                                 return indexerStartError;
                             }
                         }
                         catch (Exception ex)
                         {
-                            _trace.writeToLog(1, "SyncBox: Start: ERROR: Exception(2).  Msg: <{0}>.", ex.Message);
+                            CLError error = ex;
+                            error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                            _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(4).  Msg: <{0}>.", ex.Message);
                             ReleaseResources();
                             return ex;
                         }
                     }
                 }
-	        }
-	        catch (Exception ex)
-	        {
-                _trace.writeToLog(1, "SyncBox: Start: ERROR: Exception(3).  Msg: <{0}>.", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(5).  Msg: <{0}>.", ex.Message);
                 ReleaseResources();
                 return ex;
             }
@@ -218,10 +239,10 @@ namespace CloudApiPublic
         private void OnNotificationConnectionError(object sender, NotificationErrorEventArgs e)
         {
             // Tell the application
-            _trace.writeToLog(1, "SyncBox: OnConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorManualPoll.errorDescription, e.ErrorWebSockets.errorDescription);
+            _trace.writeToLog(1, "CLSync: OnConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorManualPoll.errorDescription, e.ErrorWebSockets.errorDescription);
             if (PushNotificationError != null)
             {
-                _trace.writeToLog(1, "SyncBox: OnConnectionError: Notify the application.");
+                _trace.writeToLog(1, "CLSync: OnConnectionError: Notify the application.");
                 PushNotificationError(this, e);
             }
         }
@@ -265,10 +286,12 @@ namespace CloudApiPublic
             {
                 try
                 {
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: Stop the file monitor.");
                     MonitorStatus monitorIsStopped;
                     toReturn = _monitor.Stop(out monitorIsStopped);
                     _monitor.Dispose();
                     _monitor = null;
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: File monitor stopped.");
                 }
                 catch (Exception ex)
                 {
@@ -280,8 +303,10 @@ namespace CloudApiPublic
             {
                 try
                 {
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: Disconnect PushNotificationServer.");
                     _notifier.DisconnectPushNotificationServer();
                     _notifier = null;
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: PushNotificationServer disconnected.");
                 }
                 catch (Exception ex)
                 {
@@ -293,8 +318,10 @@ namespace CloudApiPublic
             {
                 try
                 {
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: Stop the Indexer.");
                     _indexer.Dispose();
                     _indexer = null;
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: Indexer stopped.");
                 }
                 catch (Exception ex)
                 {
@@ -306,8 +333,10 @@ namespace CloudApiPublic
             {
                 try
                 {
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: Stop the sync engine.");
                     _syncEngine.Dispose();
                     _syncEngine = null;
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: Sync engine stopped.");
                 }
                 catch (Exception ex)
                 {
@@ -315,6 +344,25 @@ namespace CloudApiPublic
                 }
             }
 
+            if (_iconOverlay != null)
+            {
+                try
+                {
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: Stop IconOverlay.");
+                    _iconOverlay.Shutdown();
+                    _iconOverlay = null;
+                    _trace.writeToLog(9, "CLSync: ReleaseResources: IconOverlay stopped.");
+                }
+                catch (Exception ex)
+                {
+                    toReturn += ex;
+                }
+            }
+
+            if (toReturn != null)
+            {
+                toReturn.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+            }
             return toReturn;
         }
 
@@ -323,7 +371,7 @@ namespace CloudApiPublic
         /// </summary>
         public void Stop()
         {
-            _trace.writeToLog(1, "SyncBox: Stop: Entry.");
+            _trace.writeToLog(1, "CLSync: Stop: Entry.");
             ReleaseResources();
         }
 

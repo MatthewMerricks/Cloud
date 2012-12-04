@@ -41,10 +41,12 @@ namespace ContextMenuNET
                         stream.EndWaitForConnection(ar);
                     }
                 } 
-                catch (Exception er) 
+                catch (Exception ex) 
                 {
-                    CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: ERROR: Exception: Msg: {0}.", er.Message);
-                    e = er; 
+                    CLError error = ex;
+                    error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                    CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: ERROR: Exception: Msg: {0}.", ex.Message);
+                    e = ex; 
                 }
 
                 //CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: Set the connectEvent.");
@@ -236,6 +238,7 @@ namespace ContextMenuNET
             {
                 // If there are no more avail connections (254 is in use already) then just keep looping until one is avail 
                 CLError error = ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: ERROR: Exception.  Msg: {0}. Code: {1}. Wait 50 ms and try again.", error.errorDescription, error.errorCode);
                 Thread.Sleep(50);
             }

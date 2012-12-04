@@ -12,8 +12,6 @@
         Visibility="Hidden"
         ShowInTaskbar="False"
         ShowActivated="False"
-        SourceInitialized="Window_SourceInitialized" 
-        StateChanged="Window_StateChanged"
         Icon="Artwork/Cloud.ico">
 
 </NavigationWindow>

@@ -55,18 +55,40 @@
 
    windowsPath = objShell.ExpandEnvironmentStrings("%windir%")
    
-   ' Trace function
-   Sub WriteLog(LogMessage)
-      Dim objLogFile
- 
-      If shouldTrace Then
-         wscript.echo Now() & ": " & LogMessage
-         Set objLogFile = objFileSys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
-         objLogFile.Writeline(Now() & ": " & LogMessage)
-         objLogFile.Close
-         set objLogFile = Nothing
-      End If
-   End Sub
+    ' Trace function
+    Sub WriteLog(LogMessage)
+        If shouldTrace Then
+            ' Write to DbgView
+            wscript.echo Now() & ": " & LogMessage
+
+            On Error Resume Next 
+
+            fFinished = False
+            Do
+                Dim objLogFile
+                Dim fFinished
+
+                ' Try to open the log file
+                Set objLogFile = filesys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
+                If Err.Number = 70 Then
+                    ' The file is locked
+                    wscript.Sleep 50
+                ElseIf Err.Number <> 0 then
+                    wscript.Echo  "PinToTaskbar: WriteLog: Unexpected Error #: " & Err.Number
+                    fFinished = True
+                Else
+                    ' The file opened.  Write to it.
+                    fFinished = True
+                    objLogFile.Writeline(Now() & ": " & LogMessage)
+                    objLogFile.Close
+                    set objLogFile = Nothing
+                End If
+                Err.Clear
+            Loop until fFinished
+
+            On Error GoTo 0
+        End If
+    End Sub
 
    ' Check to see if Explorer is running   
    Function IsProcessRunning(processPath, processFileNameExt)
@@ -106,7 +128,7 @@
       Private Sub Class_Initialize
           WriteLog("CloudMoveCloudFolder: Constructor entry.")
    
-   		  Dim index
+          Dim index
           Dim index2
    
           ' Don't run if we don't have the necessary parameters
@@ -116,59 +138,59 @@
               Exit Sub
           End If
    
-   		  fromCloudFolderPath =  wscript.Arguments(0) 
+          fromCloudFolderPath =  wscript.Arguments(0) 
           WriteLog("CloudMoveCloudFolder: fromCloudFolderPath: " & fromCloudFolderPath)
    
-   		  toCloudFolderPath =  wscript.Arguments(1) 
+          toCloudFolderPath =  wscript.Arguments(1) 
           WriteLog("CloudMoveCloudFolder: toCloudFolderPath: " & toCloudFolderPath)
    
           ' Determine the program files directory to use
           WriteLog("CloudMoveCloudFolder: OS Platform: " & CSI_GetOsBits() & "-bits.")
-   		  if CSI_GetOsBits() = "32" then
+          if CSI_GetOsBits() = "32" then
               programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES%")
-   			  if programFilesX86Path = "%PROGRAMFILES%" then
-   			      WriteLog("CloudMoveCloudFolder: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
+              if programFilesX86Path = "%PROGRAMFILES%" then
+                  WriteLog("CloudMoveCloudFolder: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
                   Exit Sub
-   			  end if
-   		  else
+              end if
+          else
               programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES(X86)%")
-   			  if programFilesX86Path = "%PROGRAMFILES(X86)%" then
-   			      WriteLog("CloudMoveCloudFolder: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
+              if programFilesX86Path = "%PROGRAMFILES(X86)%" then
+                  WriteLog("CloudMoveCloudFolder: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
                   Exit Sub
-   			  end if
-   		  end if
+              end if
+          end if
           WriteLog("CloudMoveCloudFolder: Main: programFilesX86Path: " & programFilesX86Path)
           WriteLog("CloudMoveCloudFolder: Main: windowsPath: " & windowsPath)
    
-   		  ' Wait for Cloud.exe to exit.  Don't wait too long.
-   		  index = 0
+          ' Wait for Cloud.exe to exit.  Don't wait too long.
+          index = 0
           WriteLog("CloudMoveCloudFolder: Main: Wait for Cloud to exit.")
-   		  Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "Cloud.exe")
-   		     wscript.Sleep 500
-   			  index = index + 1
-   			  if index > 10 then			' 5 seconds
-   	            WriteLog "CloudMoveCloudFolder: ERROR: Cloud did not exit.  Timed out.  Kill it now."
+          Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "Cloud.exe")
+             wscript.Sleep 500
+              index = index + 1
+              if index > 10 then			' 5 seconds
+                WriteLog "CloudMoveCloudFolder: ERROR: Cloud did not exit.  Timed out.  Kill it now."
                   objShell.Run "taskkill /f /im cloud.exe", 0, true
    
                   ' Wait for Cloud to exit
                   WriteLog "CloudMoveCloudFolder: Wait for Cloud to exit."
-   			      index2 = 0
-   			      Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "cloud.exe")
+                  index2 = 0
+                  Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\Cloud", "cloud.exe")
                       Wscript.Sleep 500
                       index2 = index2 + 1
                       if index2 > 10 then			' 5 seconds
                           WriteLog "CloudMoveCloudFolder: ERROR: Cloud did not exit after killing it.  Timed out."
                           shouldCloudBeStarted = False
                           Exit Do
-   				       end if
-   			      Loop
+                       end if
+                  Loop
                   Exit Do
-   			  end if
-   		  Loop
+              end if
+          Loop
           WriteLog "CloudMoveCloudFolder: After wait for Cloud to exit."
    
-   		  ' Actually move the Cloud folder now.
-   		  objFileSys.MoveFolder fromCloudFolderPath, toCloudFolderPath
+          ' Actually move the Cloud folder now.
+          objFileSys.MoveFolder fromCloudFolderPath, toCloudFolderPath
    
           ' Don't restart Cloud if Explorer is not running.  Cloud depends on Explorer.
           WriteLog "CloudMoveCloudFolder: Check for Explorer."
@@ -177,10 +199,10 @@
               shouldCloudBeStarted = False
           End If
    
-   		  ' Launch Cloud.exe again if we should.
+          ' Launch Cloud.exe again if we should.
           if shouldCloudBeStarted then
               WriteLog "CloudMoveCloudFolder: Launch Cloud.exe."
-   		     objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\Cloud.exe""", 1, false
+             objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\Cloud.exe""", 1, false
               shouldCloudBeStarted = False
           end if
    
@@ -192,7 +214,7 @@
           ' Finally
           WriteLog("CloudMoveCloudFolder: Exiting constructor (finally).")
 
-		  ' Restart Cloud.exe if we should
+          ' Restart Cloud.exe if we should
           if shouldCloudBeStarted Then
               WriteLog "CloudMoveCloudFolder: Launch Cloud.exe."
               objShell.Run """" & programFilesX86Path & "\Cloud.com\Cloud\Cloud.exe""", 1, false

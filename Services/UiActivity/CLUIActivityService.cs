@@ -16,9 +16,9 @@ using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
 using Hardcodet.Wpf.TaskbarNotification;
 using win_client.Common;
-using win_client.Services.Notification;
 using win_client.ViewModels;
 using System.Threading;
+using CloudApiPublic.Model;
 
 namespace win_client.Services.UiActivity
 {
@@ -35,7 +35,7 @@ namespace win_client.Services.UiActivity
         private static object _instanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance;
         private System.Threading.Timer _pollTimer = null;
-        private uint _timerTestCount = 0;               //&&&& testing
+        private uint _timerTestCount = 0;               // test and debug only
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -88,6 +88,8 @@ namespace win_client.Services.UiActivity
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 _trace.writeToLog(1, "CLUIActivityService: BeginUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -107,6 +109,8 @@ namespace win_client.Services.UiActivity
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 _trace.writeToLog(1, "CLUIActivityService: EndUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message);
             }
         }

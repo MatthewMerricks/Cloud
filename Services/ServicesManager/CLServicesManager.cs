@@ -13,7 +13,6 @@ using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
 using win_client.Services.Badging;
 using win_client.Services.UiActivity;
-using win_client.Services.Notification;
 using win_client.Services.FileSystemMonitoring;
 using win_client.Services.ContextMenu;
 using CloudApiPrivate.Common;
@@ -120,7 +119,6 @@ namespace win_client.Services.ServicesManager
                         // Allows icon overlays to start receiving calls to SetOrRemoveBadge,
                         // before the initial list is passed (via InitializeOrReplace)
                         //TODO: Handle any CLErrors returned from these services.
-                        CLBadgingService.Instance.BeginBadgingServices();
                         CLContextMenuService.Instance.BeginContextMenuServices();
                         CLUIActivityService.Instance.BeginUIActivityService();
                         CLNetworkMonitorService.Instance.BeginNetworkMonitoring();
@@ -131,10 +129,7 @@ namespace win_client.Services.ServicesManager
                             // -David
                             //CLSyncService.Instance.BeginSyncServices();
                         }
-                        if (CLNetworkMonitorService.Instance.CloudReach)
-                        {
-                            CLNotificationService.Instance.ConnectPushNotificationServer();
-                        }
+
                         //TODO: Enable to hook all user processes for the start of a drag/drop operation
                         //DragDropServer.DragDropServer.Instance.StartDragDropServer();
 
@@ -143,6 +138,8 @@ namespace win_client.Services.ServicesManager
                 }
                 catch (Exception ex)
                 {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                     _trace.writeToLog(1, "CLServicesManager: StartCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 }
             }
@@ -159,12 +156,10 @@ namespace win_client.Services.ServicesManager
                         _trace.writeToLog(1, "CLServicesManager: StopCoreServices: Stop core services.");
                         CLUIActivityService.Instance.EndUIActivityService();
                         CLContextMenuService.Instance.EndContextMenuServices();
-                        CLBadgingService.Instance.EndBadgingServices();
 
                         //TODO: Enable to hook all user processes for the start of a drag/drop operation
                         //DragDropServer.DragDropServer.Instance.StopDragDropServer();
 
-                        CLNotificationService.Instance.DisconnectPushNotificationServer();
                         CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                         CLFSMonitoringService.Instance.EndFileSystemMonitoring();
                         DelayProcessable<FileChange>.TerminateAllProcessing();
@@ -179,6 +174,8 @@ namespace win_client.Services.ServicesManager
                 }
                 catch (Exception ex)
                 {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                     _trace.writeToLog(1, "CLServicesManager: StopCoreServices: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 }
                 finally

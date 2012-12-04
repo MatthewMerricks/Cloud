@@ -7,6 +7,7 @@
 //
 
 using CloudApiPrivate.EventMessageReceiver;
+using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Model;
 using System;
 using System.Collections.Generic;
@@ -62,6 +63,8 @@ namespace win_client.Growl
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 return ex;
             }
             return null;
@@ -145,6 +148,8 @@ namespace win_client.Growl
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 return ex;
             }
             return null;

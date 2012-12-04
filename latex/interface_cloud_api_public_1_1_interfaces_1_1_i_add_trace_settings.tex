@@ -10,8 +10,6 @@ Inheritance diagram for Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Setting
 \subsection*{Properties}
 \begin{DoxyCompactItemize}
 \item 
-string \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_acdd869808512ad6cf46038e0479e7e94}{Error\-Log\-Location}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
-\begin{DoxyCompactList}\small\item\em Location where the error log will be stored (flat text file); Only required to not be null if Log\-Errors is set to true \end{DoxyCompactList}\item 
 bool \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a408aee5af8022c8d372501af301459a6}{Log\-Errors}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
 \begin{DoxyCompactList}\small\item\em Whether to log errors to a flat text file \end{DoxyCompactList}\item 
 \hyperlink{namespace_cloud_api_public_1_1_static_a7e5ae8f2a85f427de3d6c8a5afcbb029}{Trace\-Type} \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_ac48528e64d5cf0ffce04bc93463d138e}{Trace\-Type}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
@@ -19,17 +17,12 @@ bool \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settin
 string \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a5a3de8f9ca58461e90bdaa48538596e3}{Trace\-Location}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
 \begin{DoxyCompactList}\small\item\em Location where the trace file (does not include errors) will be stored; Only required to not be null if Trace\-Type has any flags set (Trace\-Type.\-Not\-Enabled means no flags are set) \end{DoxyCompactList}\item 
 bool \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a29cd00532a90fca920517cfb163b0a42}{Trace\-Exclude\-Authorization}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
-\begin{DoxyCompactList}\small\item\em Whether to exclude authorization information (authentication keys, usernames/passwords, etc.) from the trace file; can return based on Trace\-Type (i.\-e. \char`\"{}return (\-Trace\-Type \& Trace\-Type.\-Add\-Authorization) != Trace\-Type.\-Add\-Authorization;\char`\"{}) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Whether to exclude authorization information (authentication keys, usernames/passwords, etc.) from the trace file; can return based on Trace\-Type (i.\-e. \char`\"{}return (\-Trace\-Type \& Trace\-Type.\-Add\-Authorization) != Trace\-Type.\-Add\-Authorization;\char`\"{}) \end{DoxyCompactList}\item 
+int \hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_aafa54c3e44b46a667daf7219dcbce0ce}{Trace\-Level}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
+\begin{DoxyCompactList}\small\item\em Specify 1 for the only the most important traces. Use a higher number for more detail. Specify 0 to disable Cloud trace. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Property Documentation}
-\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_acdd869808512ad6cf46038e0479e7e94}{\index{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}!Error\-Log\-Location@{Error\-Log\-Location}}
-\index{Error\-Log\-Location@{Error\-Log\-Location}!CloudApiPublic::Interfaces::IAddTraceSettings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}}
-\subsubsection[{Error\-Log\-Location}]{\setlength{\rightskip}{0pt plus 5cm}string Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings.\-Error\-Log\-Location\hspace{0.3cm}{\ttfamily [get]}}}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_acdd869808512ad6cf46038e0479e7e94}
-
-
-Location where the error log will be stored (flat text file); Only required to not be null if Log\-Errors is set to true 
-
 \hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a408aee5af8022c8d372501af301459a6}{\index{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}!Log\-Errors@{Log\-Errors}}
 \index{Log\-Errors@{Log\-Errors}!CloudApiPublic::Interfaces::IAddTraceSettings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}}
 \subsubsection[{Log\-Errors}]{\setlength{\rightskip}{0pt plus 5cm}bool Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings.\-Log\-Errors\hspace{0.3cm}{\ttfamily [get]}}}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a408aee5af8022c8d372501af301459a6}
@@ -43,6 +36,13 @@ Whether to log errors to a flat text file
 
 
 Whether to exclude authorization information (authentication keys, usernames/passwords, etc.) from the trace file; can return based on Trace\-Type (i.\-e. \char`\"{}return (\-Trace\-Type \& Trace\-Type.\-Add\-Authorization) != Trace\-Type.\-Add\-Authorization;\char`\"{}) 
+
+\hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_aafa54c3e44b46a667daf7219dcbce0ce}{\index{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}!Trace\-Level@{Trace\-Level}}
+\index{Trace\-Level@{Trace\-Level}!CloudApiPublic::Interfaces::IAddTraceSettings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}}
+\subsubsection[{Trace\-Level}]{\setlength{\rightskip}{0pt plus 5cm}int Cloud\-Api\-Public.\-Interfaces.\-I\-Add\-Trace\-Settings.\-Trace\-Level\hspace{0.3cm}{\ttfamily [get]}}}\label{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_aafa54c3e44b46a667daf7219dcbce0ce}
+
+
+Specify 1 for the only the most important traces. Use a higher number for more detail. Specify 0 to disable Cloud trace. 
 
 \hypertarget{interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings_a5a3de8f9ca58461e90bdaa48538596e3}{\index{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}!Trace\-Location@{Trace\-Location}}
 \index{Trace\-Location@{Trace\-Location}!CloudApiPublic::Interfaces::IAddTraceSettings@{Cloud\-Api\-Public\-::\-Interfaces\-::\-I\-Add\-Trace\-Settings}}

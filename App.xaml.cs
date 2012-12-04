@@ -100,7 +100,8 @@ namespace win_client
             }
 
             // Initialize the Cloud tracing.
-            CLTrace.Initialize(TraceDirectory: Settings.Instance.TraceType != TraceType.NotEnabled ? Settings.Instance.TraceLocation : null, TraceCategory: "Cloud", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel);
+            CLTrace.Initialize(TraceLocation: Settings.Instance.TraceType != TraceType.NotEnabled ? Settings.Instance.TraceLocation : null, 
+                TraceCategory: "Cloud", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel, LogErrors: Settings.Instance.LogErrors);
 
             // Change the Cloud folder location if we have just been restarted from the CloudMoveCloudFolder.vbs VBScript.
             lock (Settings.Instance.MovingCloudFolderTargetPath)
@@ -129,6 +130,8 @@ namespace win_client
                     }
                     catch (Exception ex)
                     {
+                        CLError error = ex;
+                        error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                         _trace.writeToLog(1, "App.xaml: OnStartup: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                         MessageBox.Show(String.Format("Error starting the Cloud application. Startup exception: <{0}>.", ex.Message), "Oh Snap!", MessageBoxButton.OK);
                         this.Shutdown(0);

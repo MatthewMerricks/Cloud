@@ -87,6 +87,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#properties">Properties</a> &#124;
 <a href="class_cloud_api_public_1_1_support_1_1_c_l_trace-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -103,6 +104,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a48d83268eca0ea148c25094b3b343192"><td class="mdescLeft">&#160;</td><td class="mdescRight">The single instance method that writes to the log file  <a href="#a48d83268eca0ea148c25094b3b343192"></a><br/></td></tr>
 <tr class="separator:a48d83268eca0ea148c25094b3b343192"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a01ee05e2bb4b135b85f6046209c1b55e"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_support_1_1_c_l_trace.html#a01ee05e2bb4b135b85f6046209c1b55e">Initialize</a> (string TraceDirectory, string TraceCategory, string FileExtensionWithoutPeriod, int TraceLevel)</td></tr>
+<tr class="memdesc:a01ee05e2bb4b135b85f6046209c1b55e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call this function before any other <a class="el" href="class_cloud_api_public_1_1_support_1_1_c_l_trace.html" title="A Logging class implementing the Singleton pattern ">CLTrace</a> call.  <a href="#a01ee05e2bb4b135b85f6046209c1b55e"></a><br/></td></tr>
+<tr class="separator:a01ee05e2bb4b135b85f6046209c1b55e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="properties"></a>
 Properties</h2></td></tr>
 <tr class="memitem:a0861d3bda40d01c666acb82cef1cb595"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_cloud_api_public_1_1_support_1_1_c_l_trace.html">CLTrace</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_support_1_1_c_l_trace.html#a0861d3bda40d01c666acb82cef1cb595">Instance</a><code> [get]</code></td></tr>
@@ -112,6 +119,63 @@ Properties</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A Logging class implementing the Singleton pattern </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a01ee05e2bb4b135b85f6046209c1b55e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void CloudApiPublic.Support.CLTrace.Initialize </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>TraceDirectory</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>TraceCategory</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>FileExtensionWithoutPeriod</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>TraceLevel</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Call this function before any other <a class="el" href="class_cloud_api_public_1_1_support_1_1_c_l_trace.html" title="A Logging class implementing the Singleton pattern ">CLTrace</a> call. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">TraceDirectory</td><td>The full path of the trace directory.</td></tr>
+    <tr><td class="paramname">TraceCategory</td><td>The name of the trace category.</td></tr>
+    <tr><td class="paramname">FileExtensionWithoutPeriod</td><td>e.g.: "log".</td></tr>
+    <tr><td class="paramname">TraceLevel</td><td>0: No trace. Enter 1 for most important traces. Higher numbers for greater detail.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="a48d83268eca0ea148c25094b3b343192"></a>
 <div class="memitem">
 <div class="memproto">
@@ -190,7 +254,7 @@ Properties</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Nov 27 2012 10:28:43 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Nov 30 2012 14:10:06 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

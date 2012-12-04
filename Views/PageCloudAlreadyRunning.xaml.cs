@@ -26,6 +26,7 @@ using win_client.AppDelegate;
 using win_client.Model;
 using CloudApiPublic.Model;
 using CleanShutdown.Messaging;
+using CloudApiPublic.Support;
 
 namespace win_client.Views
 {
@@ -86,6 +87,8 @@ namespace win_client.Views
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 return ex;
             }
             return null;

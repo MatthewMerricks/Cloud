@@ -390,6 +390,7 @@ namespace win_client.ViewModels
             catch (Exception ex)
             {
                 error = ex;
+                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 return;
             }
             error = null;
