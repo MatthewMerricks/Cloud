@@ -193,23 +193,29 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
     }
 
 	// Free resources
-	CLTRACE(9, "ContextMenuExt: Initialize: Free resources.");
-	if (hDropCurrentChar != NULL)
-	{
-		free(hDropCurrentChar);
-		hDropCurrentChar = NULL;
-	}
-	if (hDrop != NULL)
-	{
-		GlobalUnlock(stg.hGlobal);
-		hDrop = NULL;
-	}
+    try
+    {
+	    CLTRACE(9, "ContextMenuExt: Initialize: Free resources.");
+	    if (hDropCurrentChar != NULL)
+	    {
+		    free(hDropCurrentChar);
+		    hDropCurrentChar = NULL;
+	    }
+	    if (hDrop != NULL)
+	    {
+		    GlobalUnlock(stg.hGlobal);
+		    hDrop = NULL;
+	    }
 
-	if (allocatedStgMedium)
-	{
-		ReleaseStgMedium(&stg);
-		allocatedStgMedium = false;
-	}
+	    if (allocatedStgMedium)
+	    {
+		    ReleaseStgMedium(&stg);
+		    allocatedStgMedium = false;
+	    }
+    }
+    catch (...)
+    {
+    }
 
 
 	CLTRACE(9, "ContextMenuExt: Initialize: Return E_INVALIDARG (4).");
@@ -375,7 +381,6 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 {
 	// don't know what most of this does
 
-	CLTRACE(9, "ContextMenuExt: InvokeCommand: Entry.");
 	BOOL fEx = FALSE;
 	BOOL fUnicode = FALSE;
 	HANDLE PipeHandle = INVALID_HANDLE_VALUE;
@@ -384,6 +389,7 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	try
 	{
 		// Check to see if the Cloud.exe program is there.  Don't add the menu item if we can't start Cloud.
+    	CLTRACE(9, "ContextMenuExt: InvokeCommand: Entry.");
 		if (!IsCloudExePresent())
 		{
 			CLTRACE(9, "ContextMenuExt: InvokeCommand: Cloud.exe is not present.  Return.");
@@ -701,12 +707,18 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
     }
 
 	// Close the pipe handle
-    if (PipeHandle != INVALID_HANDLE_VALUE)
-	{
-		CLTRACE(1, "ContextMenuExt: InvokeCommand: Close the pipe handle.");
-		CloseHandle(PipeHandle);
-		PipeHandle = INVALID_HANDLE_VALUE;
-	}
+    try
+    {
+        if (PipeHandle != INVALID_HANDLE_VALUE)
+	    {
+		    CLTRACE(1, "ContextMenuExt: InvokeCommand: Close the pipe handle.");
+		    CloseHandle(PipeHandle);
+		    PipeHandle = INVALID_HANDLE_VALUE;
+	    }
+    }
+    catch (...)
+    {
+    }
 
 	CLTRACE(9, "ContextMenuExt: InvokeCommand: Return OK.");
 	return S_OK;
@@ -890,29 +902,53 @@ bool isProcessRunning(string pName)
 // Get the full path\filename.ext of Cloud.exe
 std::wstring GetCloudExeFullPath()
 {
-	CLTRACE(9, "ContextMenuExt: GetCloudExeFullPath: Entry.");
-	TCHAR programFilesDirectory[MAX_PATH];
-	SHGetSpecialFolderPathW(0, programFilesDirectory, CSIDL_PROGRAM_FILESX86, FALSE);
-	std::wstring cloudExeLocation(L"\"");
-	cloudExeLocation.append(programFilesDirectory);
-	cloudExeLocation.append(L"\\Cloud.com\\Cloud\\Cloud.exe\"");
-	CLTRACE(9, "ContextMenuExt: GetCloudExeFullPath: Return Cloud.exe path <%ls>.", cloudExeLocation.c_str());
-	return cloudExeLocation;
+    std::wstring cloudExeLocation(L"\"");
+
+    try
+    {
+	    CLTRACE(9, "ContextMenuExt: GetCloudExeFullPath: Entry.");
+	    TCHAR programFilesDirectory[MAX_PATH];
+	    SHGetSpecialFolderPathW(0, programFilesDirectory, CSIDL_PROGRAM_FILESX86, FALSE);
+	    cloudExeLocation.append(programFilesDirectory);
+	    cloudExeLocation.append(L"\\Cloud.com\\Cloud\\Cloud.exe\"");
+	    CLTRACE(9, "ContextMenuExt: GetCloudExeFullPath: Return Cloud.exe path <%ls>.", cloudExeLocation.c_str());
+    }
+    catch (std::exception &ex)
+    {
+		CLTRACE(1, "ContextMenuExt: GetCloudExeFullPath: ERROR: Exception: %s.", ex.what());
+    }
+    catch (...)
+    {
+		CLTRACE(1, "ContextMenuExt: GetCloudExeFullPath: ERROR: Bad exception.");
+    }
+
+    return cloudExeLocation;
 }
 
 // Determine whether Cloud.exe is present.
 bool IsCloudExePresent()
 {
-	CLTRACE(9, "ContextMenuExt: IsCloudExePresent: Entry");
-	std::wstring pathCloudExe = GetCloudExeFullPath();
-	CLTRACE(9, "ContextMenuExt: IsCloudExePresent: Cloud.exe is at path %ls.", pathCloudExe.c_str());
+    try
+    {
+	    CLTRACE(9, "ContextMenuExt: IsCloudExePresent: Entry");
+	    std::wstring pathCloudExe = GetCloudExeFullPath();
+	    CLTRACE(9, "ContextMenuExt: IsCloudExePresent: Cloud.exe is at path %ls.", pathCloudExe.c_str());
 
-	if(INVALID_FILE_ATTRIBUTES == GetFileAttributesW(pathCloudExe.c_str()) && GetLastError() == ERROR_FILE_NOT_FOUND) 
-	{ 
-		// File not found 
-		CLTRACE(9, "ContextMenuExt: IsCloudExePresent: ERROR: FIle not found.  Return.");
-		return false;
-	} 
+	    if(INVALID_FILE_ATTRIBUTES == GetFileAttributesW(pathCloudExe.c_str()) && GetLastError() == ERROR_FILE_NOT_FOUND) 
+	    { 
+		    // File not found 
+		    CLTRACE(9, "ContextMenuExt: IsCloudExePresent: ERROR: FIle not found.  Return.");
+		    return false;
+	    } 
+    }
+    catch (std::exception &ex)
+    {
+		CLTRACE(1, "ContextMenuExt: IsCloudExePresent: ERROR: Exception: %s.", ex.what());
+    }
+    catch (...)
+    {
+		CLTRACE(1, "ContextMenuExt: IsCloudExePresent: ERROR: Bad exception.");
+    }
 
 	CLTRACE(9, "ContextMenuExt: IsCloudExePresent: Cloud.exe exists.  Return.");
 	return true;
