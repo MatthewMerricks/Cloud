@@ -38,9 +38,9 @@ STDMETHODIMP CPubSubServer::Initialize()
 {
     HRESULT result = S_OK;
 
-	CLTRACE(9, "PubSubServer: Initialize: Entry");
     try
     {
+    	CLTRACE(9, "PubSubServer: Initialize: Entry");
 		if (_pSegment == NULL)
 		{
 	        _pSegment = new managed_windows_shared_memory(open_or_create, GetSharedMemoryNameWithVersion().c_str(), 1024000);
@@ -72,18 +72,19 @@ STDMETHODIMP CPubSubServer::Initialize()
 /// <returns>(int via returnValue: See RC_PUBLISH_*.</returns>
 STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType EventSubType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, EnumPubSubServerPublishReturnCodes *returnValue)
 {
-	if (_pSegment == NULL || returnValue == NULL || FullPath == NULL)
-	{
-		CLTRACE(1, "PubSubServer: Publish: ERROR. _pSegment, FullPath and returnValue must all be non-NULL.");
-		return E_POINTER;
-	}
-
-	CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls.", EventType, EventSubType, BadgeType, *FullPath);
     EnumPubSubServerPublishReturnCodes nResult = RC_PUBLISH_OK;                // assume no error
-    Base *pBase = NULL;
 
     try
     {
+	    if (_pSegment == NULL || returnValue == NULL || FullPath == NULL)
+	    {
+		    CLTRACE(1, "PubSubServer: Publish: ERROR. _pSegment, FullPath and returnValue must all be non-NULL.");
+		    return E_POINTER;
+	    }
+
+	    CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls.", EventType, EventSubType, BadgeType, *FullPath);
+        Base *pBase = NULL;
+
         ULONG processId = GetCurrentProcessId();
         ULONG threadId = GetCurrentThreadId();
 		std::vector<GUID> subscribers;
@@ -245,20 +246,21 @@ STDMETHODIMP CPubSubServer::Subscribe(
             BSTR *outFullPath,
             EnumPubSubServerSubscribeReturnCodes *returnValue)
 {
-	if (_pSegment == NULL || returnValue == NULL || outEventSubType == NULL || outBadgeType == NULL || outFullPath == NULL)
-	{
-		CLTRACE(1, "PubSubServer: Subscribe: ERROR. One or more required parameters are NULL.");
-		return E_POINTER;
-	}
-
-	CLTRACE(9, "PubSubServer: Subscribe: Entry. EventType: %d. GUID: %ls. TimeoutMilliseconds: %d.", EventType, CComBSTR(guidSubscriber), TimeoutMilliseconds);
     EnumPubSubServerSubscribeReturnCodes nResult;
-    Base *pBase = NULL;
-	bool fSubscriptionFound;
-	subscription_vector::iterator itFoundSubscription;
 
     try
     {
+	    if (_pSegment == NULL || returnValue == NULL || outEventSubType == NULL || outBadgeType == NULL || outFullPath == NULL)
+	    {
+		    CLTRACE(1, "PubSubServer: Subscribe: ERROR. One or more required parameters are NULL.");
+		    return E_POINTER;
+	    }
+
+	    CLTRACE(9, "PubSubServer: Subscribe: Entry. EventType: %d. GUID: %ls. TimeoutMilliseconds: %d.", EventType, CComBSTR(guidSubscriber), TimeoutMilliseconds);
+        Base *pBase = NULL;
+	    bool fSubscriptionFound;
+	    subscription_vector::iterator itFoundSubscription;
+
         bool fWaitRequired = false;
 		offset_ptr<interprocess_semaphore> optrSemaphore;
 
@@ -479,19 +481,20 @@ STDMETHODIMP CPubSubServer::Subscribe(
 /// </Summary>
 STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue)
 {
-	if (_pSegment == NULL || returnValue == NULL)
-	{
-		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR. _pSegment, and returnValue must all be non-NULL.");
-		return E_POINTER;
-	}
-
-	CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Entry. ProcessId: %lx.", ProcessId);
     EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes nResult = RC_CANCELBYPROCESSID_NOT_FOUND;
-    Base *pBase = NULL;
-	std::vector<UniqueSubscription> subscriptionIdsForProcess;		// list of subscriptions belonging to this process
 
     try
     {
+	    if (_pSegment == NULL || returnValue == NULL)
+	    {
+		    CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR. _pSegment, and returnValue must all be non-NULL.");
+		    return E_POINTER;
+	    }
+
+	    CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Entry. ProcessId: %lx.", ProcessId);
+        Base *pBase = NULL;
+	    std::vector<UniqueSubscription> subscriptionIdsForProcess;		// list of subscriptions belonging to this process
+
         // An allocator convertible to any allocator<T, segment_manager_t> type.
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
@@ -587,18 +590,19 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 /// </Summary>
 STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, GUID guidSubscriber, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue)
 {
-	if (_pSegment == NULL || returnValue == NULL)
-	{
-		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR. _pSegment, and returnValue must all be non-NULL.");
-		return E_POINTER;
-	}
-
-	CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Entry. EventType: %d. GUID: %ls.", EventType, CComBSTR(guidSubscriber));
     EnumPubSubServerCancelWaitingSubscriptionReturnCodes nResult;
-    Base *pBase = NULL;
 
     try
     {
+	    if (_pSegment == NULL || returnValue == NULL)
+	    {
+		    CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR. _pSegment, and returnValue must all be non-NULL.");
+		    return E_POINTER;
+	    }
+
+	    CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Entry. EventType: %d. GUID: %ls.", EventType, CComBSTR(guidSubscriber));
+        Base *pBase = NULL;
+
         // An allocator convertible to any allocator<T, segment_manager_t> type.
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
@@ -728,16 +732,17 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 /// </Summary>
 STDMETHODIMP CPubSubServer::get_SharedMemoryName(BSTR* pVal)
 {
-	if (_pSegment == NULL || pVal == NULL)
-	{
-		CLTRACE(1, "PubSubServer: get_SharedMemoryName: ERROR. _pSegment or pVal is NULL.");
-		return E_POINTER;
-	}
-
     HRESULT nResult = S_OK;
 
     try
     {
+	    if (_pSegment == NULL || pVal == NULL)
+	    {
+		    CLTRACE(1, "PubSubServer: get_SharedMemoryName: ERROR. _pSegment or pVal is NULL.");
+		    return E_POINTER;
+	    }
+
+
         *pVal = SysAllocString(GetSharedMemoryNameWithVersionWide().c_str());                    // the caller must free this memory.
     }
     catch(std::exception &ex)
@@ -899,17 +904,18 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
 /// </summary>
 STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnusedResourcesReturnCodes *returnValue)
 {
-	if (_pSegment == NULL || returnValue == NULL)
-	{
-		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR. _pSegment, and returnValue must all be non-NULL.");
-		return E_POINTER;
-	}
-
-	// Remove any subscriptions owned by this instance
-	CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Entry.");
-    Base *pBase = NULL;
 	try
 	{
+	    if (_pSegment == NULL || returnValue == NULL)
+	    {
+		    CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR. _pSegment, and returnValue must all be non-NULL.");
+		    return E_POINTER;
+	    }
+
+	    // Remove any subscriptions owned by this instance
+	    CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Entry.");
+        Base *pBase = NULL;
+
         *returnValue = RC_CLEANUPUNUSEDRESOURCES_OK;
 		if (_pSegment != NULL)
 		{
@@ -996,11 +1002,12 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 /// </summary>
 STDMETHODIMP CPubSubServer::Terminate()
 {
-	// Remove any subscriptions owned by this instance
-	CLTRACE(9, "PubSubServer: Terminate: Entry.");
-    Base *pBase = NULL;
 	try
 	{
+	    // Remove any subscriptions owned by this instance
+	    CLTRACE(9, "PubSubServer: Terminate: Entry.");
+        Base *pBase = NULL;
+
 		if (_pSegment != NULL)
 		{
 			// An allocator convertible to any allocator<T, segment_manager_t> type.

@@ -151,7 +151,14 @@ void Trace::write(int priority, char *szFormat, ...)
     catch (...)
     {
     }
-    LeaveCriticalSection(&Trace::_cs);
+
+    try
+    {
+        LeaveCriticalSection(&Trace::_cs);
+    }
+    catch (...)
+    {
+    }
 }
 
 /// <Summary>
