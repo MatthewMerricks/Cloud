@@ -26,6 +26,7 @@ using win_client.Model;
 using CleanShutdown;
 using CleanShutdown.Helpers;
 using win_client.Common;
+using win_client.Static;
 using GalaSoft.MvvmLight.Messaging;
 using CleanShutdown.Messaging;
 using CloudApiPrivate.Model.Settings;
@@ -43,6 +44,7 @@ namespace win_client
 
         private bool disposed = false;
         private CLTrace _trace = CLTrace.Instance;
+        private uint _taskbarCreatedWndMsg = 0;
 
         #endregion
 
@@ -155,6 +157,7 @@ namespace win_client
         {
             base.OnSourceInitialized(e);
             HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+            _taskbarCreatedWndMsg = NativeMethods.RegisterWindowMessage(NativeMethods.TBM_CREATE_STRING);
             source.AddHook(WndProc);
         }
 
@@ -165,7 +168,7 @@ namespace win_client
         {
             // Look for a message to indicate that Explorer has restarted and we should restore our NotifyIcon.
             // Message 0xC09F is apparently sent when Explorer restarts.
-            if (msg == 0xC09F)
+            if (_taskbarCreatedWndMsg != 0 && msg == _taskbarCreatedWndMsg)
             {
                 if (this.Visibility != global::System.Windows.Visibility.Visible)
                 {

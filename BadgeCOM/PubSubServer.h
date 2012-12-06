@@ -83,8 +83,6 @@ public:
 	typedef boost::interprocess::allocator<int_vector, segment_manager_t>        int_vector_allocator;   // an allocator for allocating vectors of ints.
 	typedef boost::interprocess::vector<int_vector, int_vector_allocator>        int_vector_vector;      // an int_vector_vector is a vecctor of (vectors of ints)
 	typedef boost::interprocess::allocator<interprocess_semaphore, segment_manager_t>  semaphore_allocator;   // an allocator for interprocess_semaphore
-    typedef boost::interprocess::vector<interprocess_semaphore, semaphore_allocator>  semaphore_vector;  // a vector of interprocess_semaphores
-    typedef boost::interprocess::allocator<semaphore_vector, segment_manager_t>  semaphore_vector_allocator;  // an allocator for a vector os interprocess_semaphores
     typedef boost::interprocess::allocator<WCHAR, segment_manager_t>             wchar_allocator;        // an allocator for wide chars.
     typedef boost::interprocess::basic_string<WCHAR, std::char_traits<WCHAR>, wchar_allocator>  wchar_string;  // a basic_string (which supports formatting).  This is built on a collection of wide chars, allocated by wchar_alloctor.
 
@@ -112,11 +110,12 @@ public:
 	class Subscription
 	{
 	public:
+        ULONG                       uSignature_;                 // 0xCACACACACA
 		ULONG                       uSubscribingProcessId_;     // the subscribing process ID (logging only)
 		ULONG                       uSubscribingThreadId_;      // the subscribing thread ID (logging only)
 		EnumEventType               nEventType_;                // the event type being subscribed to
-        interprocess_semaphore      semaphoreSubscription_;     // this subscription's semaphore
-        GUID                        guidSubscriber_;            // the unique identifier of the subscriber
+		offset_ptr<interprocess_semaphore>	pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
+        GUID                        guidSubscriber_;                    // the unique identifier of the subscriber
 		bool                        fDestructed_;               // true: this object has been destructed
         bool                        fWaiting_;                  // true: the subscribing thread is waiting
         bool                        fCancelled_;                // true: this subscription has been cancelled.
@@ -124,6 +123,7 @@ public:
 
 		// Constructor
 		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const void_allocator &void_alloc) :
+                            uSignature_(0xCACACACACACACACA),
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
 							nEventType_(nEventType),
@@ -132,13 +132,25 @@ public:
 							fWaiting_(false),
 							fCancelled_(false),
 							events_(void_alloc)
-                            semaphoreSubscription_(0)
 		{
+			// The interprocess_semaphore object is marked not copyable, and this prevented compilation.  Change it to a pointer
+			// reference to allow the object to be copied to get past the compiler error.  The actual semaphore should be allocated in
+			// shared memory by this constructor, and it should be deallocated when this subscription is destructed.
+			 pSemaphoreSubscription_ = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
 		}
 
 		// Destructor
 		~Subscription()
 		{
+			// Don't do this twice
+			if (fDestructed_)
+			{
+				return;
+			}
+			fDestructed_ = true;
+
+			// Deallocate the semaphore
+			pSemaphoreSubscription_->~interprocess_semaphore();
 		}
 	};
 

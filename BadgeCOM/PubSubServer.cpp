@@ -178,7 +178,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 							outOptrFoundSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, alloc_inst);
 
 							// Post the subscription's semaphore.
-							outOptrFoundSubscription->semaphoreSubscription_.post();
+							outOptrFoundSubscription->pSemaphoreSubscription_->post();
 							fEventDelivered = true;
 						}
 					}
@@ -262,7 +262,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 	    subscription_vector::iterator itFoundSubscription;
 
         bool fWaitRequired = false;
-		interprocess_semaphore *plocalFoundSemaphore;
+		interprocess_semaphore *pFoundSemaphore = NULL;
 
         ULONG processId = GetCurrentProcessId();
         ULONG threadId = GetCurrentThreadId();
@@ -366,8 +366,8 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			// Without the lock, the subscriptions may move around in shared memory, but the semaphore itself will remain fixed.
 			if (fSubscriptionFound && fWaitRequired)
 			{
-				plocalFoundSemaphore = &outOptrFoundSubscription->semaphoreSubscription_;
-				CLTRACE(9, "PubSubServer: Subscribe: plocalSemaphore local address under lock: %x.", plocalFoundSemaphore);
+				pFoundSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
+				CLTRACE(9, "PubSubServer: Subscribe: optrSemaphore local address under lock: %x.", pFoundSemaphore);
 			}
 
 			pBase->mutexSharedMemory_.unlock();
@@ -391,9 +391,9 @@ STDMETHODIMP CPubSubServer::Subscribe(
             if (TimeoutMilliseconds != 0)
             {
                 // Wait for a matching event to arrive.  Use a timed wait.
-				CLTRACE(9, "PubSubServer: Subscribe: Wait with timeout. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore local addr: %x.", processId, threadId, CComBSTR(guidSubscriber), plocalFoundSemaphore);
+				CLTRACE(9, "PubSubServer: Subscribe: Wait with timeout. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore local addr: %x.", processId, threadId, CComBSTR(guidSubscriber), pFoundSemaphore);
                 boost::posix_time::ptime tNow(boost::posix_time::microsec_clock::universal_time());
-                bool fDidNotTimeOut = plocalFoundSemaphore->timed_wait(tNow + boost::posix_time::milliseconds(TimeoutMilliseconds));
+                bool fDidNotTimeOut = pFoundSemaphore->timed_wait(tNow + boost::posix_time::milliseconds(TimeoutMilliseconds));
                 if (fDidNotTimeOut)
                 {
 					CLTRACE(9, "PubSubServer: Subscribe: Got an event or posted by a cancel. Return code 'try again'.");
@@ -408,8 +408,8 @@ STDMETHODIMP CPubSubServer::Subscribe(
             else
             {
                 // Wait forever for a matching event to arrive.
-				CLTRACE(9, "PubSubServer: Subscribe: Wait forever for an event to arrive. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore addr: %x.", processId, threadId, CComBSTR(guidSubscriber), plocalFoundSemaphore.get());
-                plocalFoundSemaphore->wait();
+				CLTRACE(9, "PubSubServer: Subscribe: Wait forever for an event to arrive. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore addr: %x.", processId, threadId, CComBSTR(guidSubscriber), pFoundSemaphore);
+                pFoundSemaphore->wait();
 				CLTRACE(9, "PubSubServer: Subscribe: Got an event or posted by a cancel(2).  Return code 'try again'.");
                 nResult = RC_SUBSCRIBE_TRY_AGAIN;
             }
@@ -627,7 +627,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 										outOptrFoundSubscription->uSubscribingThreadId_, outOptrFoundSubscription->pSemaphoreSubscription_.get(), 
 										CComBSTR(outOptrFoundSubscription->guidSubscriber_));
 				outOptrFoundSubscription->fCancelled_ = true;
-				outOptrFoundSubscription->semaphoreSubscription_.post();
+				outOptrFoundSubscription->pSemaphoreSubscription_->post();
 
 				// Give the thread a chance to exit the wait.
 				bool fCancelOk = false;
@@ -652,7 +652,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 										outOptrFoundSubscription->uSubscribingThreadId_, outOptrFoundSubscription->pSemaphoreSubscription_.get(), 
 										CComBSTR(outOptrFoundSubscription->guidSubscriber_));
 							outOptrFoundSubscription->fCancelled_ = true;
-							outOptrFoundSubscription->semaphoreSubscription_.post();
+							outOptrFoundSubscription->pSemaphoreSubscription_->post();
 							continue;
 						}
 

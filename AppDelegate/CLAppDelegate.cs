@@ -304,15 +304,16 @@ namespace win_client.AppDelegate
                 //// clean our settings
                 //[[CLSettings sharedSettings] resetSettings];
                 _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Reset settings.");
+                string copyAkey = Settings.Instance.Akey;
                 Settings.Instance.resetSettings();
 
                 //CLRegistration *regstration = [[CLRegistration alloc] init];
                 //rc = [regstration unlinkDeviceWithAccessKey:[[CLSettings sharedSettings] aKey]];
-                if (!String.IsNullOrEmpty(Settings.Instance.Akey))
+                if (!String.IsNullOrEmpty(copyAkey))
                 {
                     _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Unlink from the server.");
                     CLRegistration registration = new CLRegistration();
-                    registration.UnlinkDeviceWithAccessKey(Settings.Instance.Akey, out error);
+                    registration.UnlinkDeviceWithAccessKey(copyAkey, out error);
                 }
                 else
                 {

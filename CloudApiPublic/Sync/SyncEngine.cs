@@ -3208,7 +3208,7 @@ namespace CloudApiPublic.Sync
                             new PossiblyStreamableFileChange(castState.FileToDownload, null), // event which failed
                             castState.SyncData, // event source for updating when needed
                             castState.SyncSettings), // settings for tracing or logging errors
-                        "Error in upload Task, see inner exception", // exception message
+                        "Error in download Task, see inner exception", // exception message
                         ex); // original exception
 
                     // rethrow (will be handled by the task unhandled exception handler in HttpScheduler which runs upon garbage collection of exceptions)

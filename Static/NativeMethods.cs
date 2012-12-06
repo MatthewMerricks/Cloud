@@ -154,6 +154,10 @@ namespace win_client.Static
 
         [DllImport("shell32.dll")]
         public static extern bool Shell_NotifyIcon(uint dwMessage, [In] ref NOTIFYICONDATA pnid);
+
+        public const string TBM_CREATE_STRING = "TaskbarCreated";
+        [DllImport("user32.dll")]
+        public static extern uint RegisterWindowMessage(string lpString);
         #endregion
 
         #region drag drop server

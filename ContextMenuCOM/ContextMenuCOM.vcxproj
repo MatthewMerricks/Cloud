@@ -1187,7 +1187,7 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(T
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)3rdParty\src\Boost_1_51</AdditionalIncludeDirectories>
     </ClCompile>
@@ -1292,7 +1292,7 @@ tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configurati
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)3rdParty\src\Boost_1_51</AdditionalIncludeDirectories>
     </ClCompile>
