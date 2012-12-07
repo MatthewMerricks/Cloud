@@ -113,6 +113,7 @@
     <Compile Include="BadgeNET\BadgeComPubSubEvents.cs" />
     <Compile Include="BadgeNET\Enums.cs" />
     <Compile Include="BadgeNET\IconOverlay.cs" />
+    <Compile Include="CLSync\CLSyncStartStatus.cs" />
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />

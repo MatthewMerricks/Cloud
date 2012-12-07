@@ -440,10 +440,6 @@ namespace CloudApiPrivate.EventMessageReceiver
                     (isUpload
                         ? thisReceiver.UploadEventIdToStatusFileTransferIndex
                         : thisReceiver.DownloadEventIdToStatusFileTransferIndex).Remove(currentParameter.Key);
-
-                    (isUpload
-                        ? thisReceiver.UploadEventIdToQueuedUpdateParameters
-                        : thisReceiver.DownloadEventIdToQueuedUpdateParameters).Remove(currentParameter.Key);
                 }
                 else
                 {

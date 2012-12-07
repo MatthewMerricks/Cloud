@@ -70,7 +70,8 @@ namespace win_client.Services.FileSystemMonitoring
         {
             try
             {
-                SyncBox.Start(CLSettingsSync.Instance);
+                CloudApiPublic.CLSyncStartStatus startStatus;
+                SyncBox.Start(CLSettingsSync.Instance, out startStatus);
             }
             catch (Exception ex)
             {

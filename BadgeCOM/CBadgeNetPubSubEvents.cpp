@@ -10,13 +10,7 @@
 
 
 // Debug trace
-#ifdef _DEBUG
-	//#define CLTRACE(intPriority, szFormat, ...) 
-	#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
-#else	
-	#define CLTRACE(intPriority, szFormat, ...)
-	//#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
-#endif // _DEBUG
+#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
 
 // Initialize static fields.
 bool CBadgeNetPubSubEvents::_fDebugging = false;

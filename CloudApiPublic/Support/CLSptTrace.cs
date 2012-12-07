@@ -12,6 +12,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using CloudApiPublic.Static;
+using System.Text.RegularExpressions;
 
 namespace CloudApiPublic.Support
 {
@@ -126,7 +127,6 @@ namespace CloudApiPublic.Support
         {
             try
             {
-
                 // Only write high priority messages
                 if ((_traceLocation == null || priority <= _maxPriority)
                     
@@ -136,11 +136,48 @@ namespace CloudApiPublic.Support
                     string logFilePath = Helpers.CheckLogFileExistance(TraceLocation: _traceLocation, UniqueUserId: null, UserDeviceId: null, TraceCategory: _traceCategory, 
                             FileExtensionWithoutPeriod: _fileExtensionWithoutPeriod, OnNewTraceFile: null, OnPreviousCompletion: null);
 
+                    int formatParamCount = Regex.Matches(format,
+                        @"\{\d+[^\{\}]*\}",
+                        RegexOptions.Compiled
+                            | RegexOptions.CultureInvariant).Count;
+
+                    if (args == null)
+                    {
+                        args = new object[0];
+                    }
+
+                    object[] copiedArgs;
+                    if (args.Length == formatParamCount)
+                    {
+                        copiedArgs = args;
+                    }
+                    else
+                    {
+                        copiedArgs = new object[formatParamCount];
+                        if (args.Length > formatParamCount)
+                        {
+                            Array.Copy(args, copiedArgs, formatParamCount);
+                        }
+                        else // args.Length < formatParamCount
+                        {
+                            Array.Copy(args, copiedArgs, args.Length);
+
+                            // example:
+                            // 3 args (0, 1, 2)
+                            // 5 format params (0 through 4)
+                            // start at 3, go to 4
+                            for (int missingArgument = args.Length; missingArgument < formatParamCount; missingArgument++)
+                            {
+                                copiedArgs[missingArgument] = "¡¡MissingArg" + missingArgument.ToString() + "!!";
+                            }
+                        }
+                    }
+
                     // Lock while writing to prevent contention for the log file
                     lock (Helpers.LogFileLocker)
                     {
                         // Format the string
-                        string message = string.Format(format, args);
+                        string message = string.Format(format, copiedArgs);
 
                         // Create the entry
                         LogMessage logEntry = new LogMessage(priority, message);

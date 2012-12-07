@@ -120,10 +120,20 @@ namespace CloudApiPublic.BadgeNET
                 // thread is a STA thread, and we must instantiate CBadgeNetPubSubEvents as an MTA thread.
                 if (_badgeComPubSubEvents == null)
                 {
-                    Thread threadInit = new Thread(new ThreadStart(() => 
+                    AutoResetEvent waitHandleInitialize = new AutoResetEvent(false);
+                    GenericHolder<bool> initializeSuccessHolder = new GenericHolder<bool>(false);
+
+                    Thread threadInit = new Thread(new ParameterizedThreadStart(state =>
                     {
+                        Nullable<KeyValuePair<AutoResetEvent, GenericHolder<bool>>> castState = state as Nullable<KeyValuePair<AutoResetEvent, GenericHolder<bool>>>;
+
                         try
                         {
+                            if (castState == null)
+                            {
+                                throw new NullReferenceException("threadInit castState should not be null");
+                            }
+
                             _trace.writeToLog(9, "IconOverlay: threadInit: threadInit entry.");
                             if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
                             {
@@ -137,6 +147,26 @@ namespace CloudApiPublic.BadgeNET
                             _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
                             _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed += _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
 
+                            KeyValuePair<AutoResetEvent, GenericHolder<bool>> nonNullState = (KeyValuePair<AutoResetEvent, GenericHolder<bool>>)castState;
+                            nonNullState.Value.Value = true;
+                            nonNullState.Key.Set();
+                        }
+                        catch (Exception ex)
+                        {
+                            CLError error = ex;
+                            error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
+
+                            if (castState != null)
+                            {
+                                KeyValuePair<AutoResetEvent, GenericHolder<bool>> nonNullState = (KeyValuePair<AutoResetEvent, GenericHolder<bool>>)castState;
+                                nonNullState.Value.Value = false;
+                                nonNullState.Key.Set();
+                            }
+                        }
+
+                        try
+                        {
                             // Start listening for BadgeCom initialization events.
                             _trace.writeToLog(9, "IconOverlay: threadInit: Subscribe to BadgeCom init events.");
                             _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
@@ -150,15 +180,16 @@ namespace CloudApiPublic.BadgeNET
                         {
                             CLError error = ex;
                             error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                            _trace.writeToLog(1, "IconOverlay: threadInit: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
-                            throw;
+                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
                         }
                         _trace.writeToLog(9, "IconOverlay: threadInit: Exit thread.");
                     }));
                     threadInit.SetApartmentState(ApartmentState.MTA);
-                    threadInit.Start();
-                    bool started = threadInit.Join(5000);
-                    if (!started)
+
+                    threadInit.Start(new KeyValuePair<AutoResetEvent, GenericHolder<bool>>(waitHandleInitialize, initializeSuccessHolder));
+
+                    if (!waitHandleInitialize.WaitOne(5000)
+                        || !initializeSuccessHolder.Value)
                     {
                         _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit was not started.");
                         throw new Exception("threadInit was not started.");
@@ -214,7 +245,7 @@ namespace CloudApiPublic.BadgeNET
                 CLError error = ex;
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 isInitialized = false;
-                _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 return ex;
             }
             _trace.writeToLog(9, "IconOverlay: pInitialize: Return success.");

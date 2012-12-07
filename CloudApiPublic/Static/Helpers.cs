@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -620,6 +621,320 @@ namespace CloudApiPublic.Static
 
             // return the parsed return array
             return hexBuffer;
+        }
+
+        /// <summary>
+        /// Checks the length of a path to sync to prevent download failures for long server paths.
+        /// Uses a dynamic length based on directory so the same structure can be used across all supported versions of Windows: XP and up.
+        /// For example C:\Documents and Settings\MyLongUserNameIsHere\BigApplicationName is the maximum length and translates to C:\Users\MyLongUserNameIsHere\BigApplicationName which is artificially more restricted (65 chars versus 48 chars)
+        /// </summary>
+        /// <param name="syncRootFullPath">Full path of directory to sync</param>
+        /// <param name="tooLongChars">(output) Number of characters over the max limit given the current directory and full path length</param>
+        /// <returns>Returns an error if the provided path was too long, otherwise null</returns>
+        public static CLError CheckSyncRootLength(string syncRootFullPath, out int tooLongChars)
+        {
+            tooLongChars = 0; // base max length for root is 65 characters (excluding trailing slash), anything beyond that are "too long characters"
+            try
+            {
+                FilePath rootPathObject = syncRootFullPath;
+
+                string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile); // \Users\[current user]
+                string usersDirectory = userProfile.Substring(0, userProfile.LastIndexOf('\\')); // \Users
+                FilePath usersDirectoryObject = usersDirectory;
+
+                if (rootPathObject.Contains(usersDirectoryObject, true))
+                {
+                    if (usersDirectory.EndsWith("Users", StringComparison.InvariantCultureIgnoreCase)) // Vista and up
+                    {
+                        if (FilePathComparer.Instance.Equals(usersDirectoryObject, rootPathObject))
+                        {
+                            if (syncRootFullPath.Length > 48) // 17 characters more restrictive: LEN("Documents and Settings") - LEN("Users")
+                            {
+                                tooLongChars = syncRootFullPath.Length - 48;
+                                throw new Exception();
+                            }
+                        }
+                        else
+                        {
+                            string partAfterUsers = rootPathObject.GetRelativePath(usersDirectoryObject, false);
+                            int nextSlashAfterUserProfile = partAfterUsers.IndexOf("\\", 1);
+
+                            // store if user is Public since Public translated back to All Users which adds 3 characters more restriction
+                            bool userIsPublic = partAfterUsers.Equals("\\Public", StringComparison.InvariantCultureIgnoreCase)
+                                || (nextSlashAfterUserProfile != -1
+                                    && string.Equals(partAfterUsers.Substring(1, nextSlashAfterUserProfile - 1),
+                                        "Public",
+                                        StringComparison.InvariantCultureIgnoreCase));
+
+                            if (nextSlashAfterUserProfile != -1)
+                            {
+                                int slashAfterNextComponent = partAfterUsers.IndexOf('\\', nextSlashAfterUserProfile + 1);
+                                string entireNextComponent = partAfterUsers.Substring(nextSlashAfterUserProfile + 1);
+                                if (entireNextComponent.Equals("Documents", StringComparison.InvariantCultureIgnoreCase)
+                                    || (slashAfterNextComponent != -1
+                                        && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
+                                            "Documents",
+                                            StringComparison.InvariantCultureIgnoreCase)))
+                                {
+                                    if (syncRootFullPath.Length > (userIsPublic ? 42 : 45)) // 20 characters more restrictive: LEN("Documents and Settings\<user>\My Documents") - LEN("Users\<user>\Documents")
+                                    {
+                                        tooLongChars = syncRootFullPath.Length - (userIsPublic ? 42 : 45);
+                                        throw new Exception();
+                                    }
+                                }
+                                else if (entireNextComponent.Equals("Pictures", StringComparison.InvariantCultureIgnoreCase)
+                                    || (slashAfterNextComponent != -1
+                                        && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
+                                            "Pictures",
+                                            StringComparison.InvariantCultureIgnoreCase)))
+                                {
+                                    if (syncRootFullPath.Length > (userIsPublic ? 29 : 32)) // 33 characters more restrictive: LEN("Documents and Settings\<user>\My Documents\My Pictures") - LEN("Users\<user>\Pictures")
+                                    {
+                                        tooLongChars = syncRootFullPath.Length - (userIsPublic ? 29 : 32);
+                                        throw new Exception();
+                                    }
+                                }
+                                else if (entireNextComponent.Equals("Music", StringComparison.InvariantCultureIgnoreCase)
+                                    || (slashAfterNextComponent != -1
+                                        && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
+                                            "Music",
+                                            StringComparison.InvariantCultureIgnoreCase)))
+                                {
+                                    if (syncRootFullPath.Length > (userIsPublic ? 29 : 32)) // 33 characters more restrictive: LEN("Documents and Settings\<user>\My Documents\My Music") - LEN("Users\<user>\Music")
+                                    {
+                                        tooLongChars = syncRootFullPath.Length - (userIsPublic ? 29 : 32);
+                                        throw new Exception();
+                                    }
+                                }
+                                else if (!userIsPublic // Public user does not have AppData
+                                    && (entireNextComponent.Equals("AppData", StringComparison.InvariantCultureIgnoreCase)
+                                        || (slashAfterNextComponent != -1
+                                            && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
+                                                "AppData",
+                                                StringComparison.InvariantCultureIgnoreCase))))
+                                {
+                                    if (slashAfterNextComponent == -1)
+                                    {
+                                        if (syncRootFullPath.Length > 65) // not more restrictive because Windows XP has no equivalent for the exact path "%userprofile%\AppData"
+                                        {
+                                            tooLongChars = syncRootFullPath.Length - 65;
+                                            throw new Exception();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        string partAfterAppData = partAfterUsers.Substring(slashAfterNextComponent);
+                                        int nextSlashAfterAppData = partAfterAppData.IndexOf("\\", 1);
+                                        string entireAppDataFolder = partAfterUsers.Substring(slashAfterNextComponent + 1);
+                                        if (entireAppDataFolder.Equals("Roaming", StringComparison.InvariantCultureIgnoreCase)
+                                            || (nextSlashAfterAppData != -1
+                                                && string.Equals(partAfterAppData.Substring(1, nextSlashAfterAppData - 1),
+                                                    "Roaming",
+                                                    StringComparison.InvariantCultureIgnoreCase)))
+                                        {
+                                            if (partAfterAppData.StartsWith("\\Roaming" +
+                                                    ((FilePath)Environment.GetFolderPath(Environment.SpecialFolder.StartMenu)).GetRelativePath(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), false),
+                                                StringComparison.InvariantCultureIgnoreCase))
+                                            {
+                                                if (syncRootFullPath.Length > 65) // not more restrictive because Windows XP actually has a shorter equivalent path for "%userprofile%\AppData\Roaming\Microsoft\Windows\Start Menu" which is "%userprofile%\Start Menu"
+                                                {
+                                                    tooLongChars = syncRootFullPath.Length - 65;
+                                                    throw new Exception();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (syncRootFullPath.Length > 47) // 18 characters more restrictive: LEN("Documents and Settings\<user>\Application Data") - LEN("Users\<user>\AppData\Roaming")
+                                                {
+                                                    tooLongChars = syncRootFullPath.Length - 47;
+                                                    throw new Exception();
+                                                }
+                                            }
+                                        }
+                                        // The following is an extremely restrictive case to be compatible between Windows XP and later: Local application data would only allow 7 dynamic characters (such as a 5 character username and a 1 character application name or 7 character username and no application name)
+                                        else if (entireAppDataFolder.Equals("Local", StringComparison.InvariantCultureIgnoreCase)
+                                            || (nextSlashAfterAppData != -1
+                                                && string.Equals(partAfterAppData.Substring(1, nextSlashAfterAppData - 1),
+                                                    "Local",
+                                                    StringComparison.InvariantCultureIgnoreCase)))
+                                        {
+                                            if (syncRootFullPath.Length > 30) // 35 characters more restrictive: LEN("Documents and Settigns\<user>\Local Settings\Application Data") - LEN("Users\<user>\AppData\Local")
+                                            {
+                                                tooLongChars = syncRootFullPath.Length - 30;
+                                                throw new Exception();
+                                            }
+                                        }
+                                        // Remaining cases inside AppData which are not Local or Roaming, none have equivalents in Windows XP
+                                        else
+                                        {
+                                            if (syncRootFullPath.Length > 65) // not more restrictive than Windows XP because AppData only has equivalents for Local and Roaming
+                                            {
+                                                tooLongChars = syncRootFullPath.Length - 65;
+                                                throw new Exception();
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (syncRootFullPath.Length > (userIsPublic ? 45 : 48)) // 17 characters more restrictive: LEN("Documents and Settings") - LEN("Users")
+                                {
+                                    tooLongChars = syncRootFullPath.Length - (userIsPublic ? 45 : 48);
+                                    throw new Exception();
+                                }
+                            }
+                            else if (syncRootFullPath.Length > (userIsPublic ? 45 : 48)) // 17 characters more restrictive: LEN("Documents and Settings") - LEN("Users")
+                            {
+                                tooLongChars = syncRootFullPath.Length - (userIsPublic ? 45 : 48);
+                                throw new Exception();
+                            }
+                        }
+                    }
+                    else // "Documents and Settings" for XP
+                    {
+                        if (FilePathComparer.Instance.Equals(usersDirectoryObject, rootPathObject))
+                        {
+                            if (syncRootFullPath.Length > 65)
+                            {
+                                tooLongChars = syncRootFullPath.Length - 65;
+                                throw new Exception();
+                            }
+                        }
+                        else
+                        {
+                            string partAfterUsers = rootPathObject.GetRelativePath(usersDirectoryObject, false);
+                            int nextSlashAfterUserProfile = partAfterUsers.IndexOf("\\", 1);
+
+                            if (nextSlashAfterUserProfile != -1
+                                && !string.Equals(partAfterUsers.Substring(1, nextSlashAfterUserProfile - 1),
+                                    "Public",
+                                    StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                int slashAfterNextComponent = partAfterUsers.IndexOf('\\', nextSlashAfterUserProfile + 1);
+                                string entireNextComponent = partAfterUsers.Substring(nextSlashAfterUserProfile + 1);
+                                if (entireNextComponent.Equals("Start Menu", StringComparison.InvariantCultureIgnoreCase)
+                                    || (slashAfterNextComponent != -1
+                                        && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
+                                            "Start Menu",
+                                            StringComparison.InvariantCultureIgnoreCase)))
+                                {
+                                    if (syncRootFullPath.Length > 48) // 17 characters more restrictive: LEN("Users\<user>\AppData\Roaming\Microsoft\Windows\Start Menu") - LEN("Documents and Settings\<user>\Start Menu")
+                                    {
+                                        tooLongChars = syncRootFullPath.Length - 48;
+                                        throw new Exception();
+                                    }
+                                }
+                                else if (syncRootFullPath.Length > 65)
+                                {
+                                    tooLongChars = syncRootFullPath.Length - 65;
+                                    throw new Exception();
+                                }
+                            }
+                            else if (syncRootFullPath.Length > 65)
+                            {
+                                tooLongChars = syncRootFullPath.Length - 65;
+                                throw new Exception();
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (usersDirectory.EndsWith("Users", StringComparison.InvariantCultureIgnoreCase)) // Vista and up
+                    {
+                        if (rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), true)
+                            || rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonTemplates), true))
+                        {
+                            if (syncRootFullPath.Length > 62) // 3 characters more restrictive: LEN("Documents and Settings\All Users") - LEN("ProgramData\Microsoft\Windows") !! note: ProgramData could also contain Start Menu and Templates before but we calculate by most restriction
+                            {
+                                tooLongChars = syncRootFullPath.Length - 62;
+                                throw new Exception();
+                            }
+                        }
+                        else if (syncRootFullPath.Length > 65)
+                        {
+                            tooLongChars = syncRootFullPath.Length - 65;
+                            throw new Exception();
+                        }
+                    }
+                    else
+                    {
+                        if (rootPathObject.Contains(Environment.GetEnvironmentVariable("SystemDrive") + "\\ProgramData\\Start Menu", true)
+                            && rootPathObject.Contains(Environment.GetEnvironmentVariable("SystemDrive") + "\\ProgramData\\Templates", true))
+                        {
+                            if (syncRootFullPath.Length > 44)
+                            {
+                                tooLongChars = syncRootFullPath.Length - 44;
+                                throw new Exception();
+                            }
+                        }
+                        else if (syncRootFullPath.Length > 65)
+                        {
+                            tooLongChars = syncRootFullPath.Length - 65;
+                            throw new Exception();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                return new ArgumentException("syncRootFullPath is too long by " + tooLongChars.ToString() + " character" + (tooLongChars == 1 ? string.Empty : "s"));
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Checks for a bad full path for sync (does not check if path was too long for root which must be done after this check);
+        /// Path cannot have empty directory portions (i.e. C:\NextWillBeEmpty\\LastWasEmpty;
+        /// Path cannot have a trailing slash (i.e. C:\SeeNextSlash\);
+        /// Root of path cannot represent anything besides a drive letter (i.e. \RelativePath\);
+        /// Root of path cannot represent anything besides a fixed drive or a removable disk (i.e. net use X: \\computer name\share name)
+        /// </summary>
+        /// <param name="syncRootFullPath">Full path of directory to sync</param>
+        /// <returns>Returns an error if the provided path was bad, otherwise null</returns>
+        public static CLError CheckForBadPath(string syncRootFullPath)
+        {
+            FilePath rootPathObject = syncRootFullPath;
+
+            try
+            {
+                FilePath checkForEmptyName = rootPathObject;
+                while (checkForEmptyName != null)
+                {
+                    if (string.IsNullOrEmpty(checkForEmptyName.Name))
+                    {
+                        throw new ArgumentException("settings.CloudRoot cannot have an empty directory name for any directory in the parent path hierarchy and cannot have a trailing slash");
+                    }
+
+                    if (checkForEmptyName.Parent == null)
+                    {
+                        if (!Regex.IsMatch(checkForEmptyName.Name,
+                            "^[a-z]:\\\\$",
+                            RegexOptions.CultureInvariant
+                                | RegexOptions.Compiled
+                                | RegexOptions.IgnoreCase))
+                        {
+                            throw new ArgumentException("settings.CloudRoot must start at a drive letter");
+                        }
+
+                        DriveInfo rootDrive = new DriveInfo(checkForEmptyName.Name.Substring(0, 1));
+                        switch (rootDrive.DriveType)
+                        {
+                            case DriveType.CDRom:
+                            case DriveType.Network:
+                            case DriveType.NoRootDirectory:
+                            case DriveType.Ram:
+                            case DriveType.Unknown:
+                                throw new ArgumentException("settings.CloudRoot root drive letter represents an invalid DriveType: " + rootDrive.DriveType.ToString());
+                        }
+                    }
+
+                    checkForEmptyName = checkForEmptyName.Parent;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
 
         #region Choose and Maintain Trace File Names
