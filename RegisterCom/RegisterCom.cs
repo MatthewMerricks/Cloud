@@ -523,10 +523,11 @@ namespace RegisterCom
         /// <returns>string: The path to the Explorer.exe file.</returns>
         private static string StopExplorer()
         {
-            string explorerLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+            string explorerLocation = String.Empty;
             try
             {
                 // Kill Explorer
+                explorerLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
                 _trace.writeToLog(9, "RegisterCom: StopExplorer: Entry. Explorer location: <{0}>.", explorerLocation);
                 ProcessStartInfo taskKillInfo = new ProcessStartInfo();
                 taskKillInfo.CreateNoWindow = true;
@@ -574,187 +575,262 @@ namespace RegisterCom
                 _trace.writeToLog(9, "RegisterCom: UninstallCOM: Stop Explorer");
                 explorerLocation = StopExplorer();
 
-                // The BadgeCOM.dll was registered in the ProgramFiles CommonFiles directory.  Find it there and unregister it.
-                string pathToCopiedBadgeCOM = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
-                if (File.Exists(pathToCopiedBadgeCOM))
+                try
                 {
-                    // Unregister BadgeCOM
-                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: BadgeCOM exists at path <{0}>.  Unregister it.", pathToCopiedBadgeCOM);
-                    UnregisterAssembly(pathToCopiedBadgeCOM);
-
-                }
-                else
-                {
-                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: ERROR.  BadgeCOM.dll not found at path {0}.", pathToCopiedBadgeCOM);
-                }
-
-                // The ContextMenuCOM.dll was registered in the ProgramFiles CommonFiles directory.  Find it there and unregister it.
-                string pathToCopiedContextMenuCOM = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\ContextMenuCOM.dll";
-                if (File.Exists(pathToCopiedContextMenuCOM))
-                {
-                    // Unregister ContextMenuCOM
-                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: ContextMenuCOM exists at path <{0}>.  Unregister it.", pathToCopiedContextMenuCOM);
-                    UnregisterAssembly(pathToCopiedContextMenuCOM);
-
-                }
-                else
-                {
-                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR.  ContextMenuCOM.dll not found at path {0}.", pathToCopiedContextMenuCOM);
-                }
-
-                // Remove all of the Cloud folder shortcuts
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: Remove Cloud folder shortcuts.");
-                CLShortcuts.RemoveCloudFolderShortcuts(Settings.Instance.CloudFolderPath);
-
-                // Clear the settings.
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: Clear settings.");
-                string copyAkey = Settings.Instance.Akey;
-                Settings.Instance.resetSettings();
-
-                // Remotely unlink this computer from the account.
-                if (!String.IsNullOrEmpty(copyAkey))
-                {
-                    CLError error = null;
-                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Remotely unlink this device.");
-                    CLRegistration registration = new CLRegistration();
-                    registration.UnlinkDeviceWithAccessKey(copyAkey, out error);
-                    if (error != null)
+                    // The BadgeCOM.dll was registered in the ProgramFiles CommonFiles directory.  Find it there and unregister it.
+                    string pathToCopiedBadgeCOM = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
+                    if (File.Exists(pathToCopiedBadgeCOM))
                     {
-                        _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Remotely unlinking. Msg: <{0}>. Code: {1}>.", error.errorDescription, error.errorCode);
+                        // Unregister BadgeCOM
+                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: BadgeCOM exists at path <{0}>.  Unregister it.", pathToCopiedBadgeCOM);
+                        UnregisterAssembly(pathToCopiedBadgeCOM);
+
+                    }
+                    else
+                    {
+                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: ERROR.  BadgeCOM.dll not found at path {0}.", pathToCopiedBadgeCOM);
                     }
                 }
-
-                // Delete the database file to force a re-index at the next start.
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: Start deleting databases.");
-                FilePath indexDBLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Cloud";
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: IndexDBLocation: {0}.", indexDBLocation.ToString());
-
-                // C:\Users\<user>
-                // C:\Documents and Settings\<user>
-                string localUserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: localUserProfile: {0}.", indexDBLocation.ToString());
-                FilePath localUserProfileObject = localUserProfile;
-                // C:\Users\<user>\AppData\Local minus C:\Users\<user> equals \AppData\Local
-                // C:\Documents and Settings\<user>\Local Settings minus C:\Documents and Settings\<user> equals \Local Settings
-                string localAppDataFolderName = ((FilePath)Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)).GetRelativePath(localUserProfileObject, replaceWithForwardSlashes: false);
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: localAppDataFolderName: {0}.", localAppDataFolderName);
-                // C:\Users
-                // C:\Documents and Settings
-                string userParentDirectory = localUserProfile.Substring(0, localUserProfile.LastIndexOf("\\"));
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: userParentDirectory: {0}.", userParentDirectory);
-
-                // Loop through all of the user directories looking for \AppData\Local\Cloud directories to clean up.
-                DirectoryInfo ioParentDirectory = new DirectoryInfo(userParentDirectory);
-                foreach (DirectoryInfo currentUserDirectory in ioParentDirectory.EnumerateDirectories())
+                catch (Exception ex)
                 {
-                    try
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception: Msg: <{0}.", ex.Message);
+                }
+
+                try
+                {
+                    // The ContextMenuCOM.dll was registered in the ProgramFiles CommonFiles directory.  Find it there and unregister it.
+                    string pathToCopiedContextMenuCOM = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\ContextMenuCOM.dll";
+                    if (File.Exists(pathToCopiedContextMenuCOM))
                     {
-                        // C:\Users\<enumerating user>\AppData\Local\Cloud
-                        // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud
-                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Top of user directory loop.  currentUserDirectory: {0}.", currentUserDirectory);
-                        DirectoryInfo cloudAppData = new DirectoryInfo(
-                            // C:\Users\<enumerating user>
-                            // C:\Documents and Settings\<enumerating user>
-                            currentUserDirectory.FullName +
+                        // Unregister ContextMenuCOM
+                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: ContextMenuCOM exists at path <{0}>.  Unregister it.", pathToCopiedContextMenuCOM);
+                        UnregisterAssembly(pathToCopiedContextMenuCOM);
 
-                            // C:\Users\<user>\AppData\Local\Cloud minus C:\Users\<user> equals \AppData\Local\Cloud
-                            // C:\Documents and Settings\<user>\Local Settings\Cloud minus C:\Documents and Settings\<user> equals \Local Settings\Cloud
-                            indexDBLocation.GetRelativePath(localUserProfileObject, false));
+                    }
+                    else
+                    {
+                        _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR.  ContextMenuCOM.dll not found at path {0}.", pathToCopiedContextMenuCOM);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (2): Msg: <{0}.", ex.Message);
+                }
 
-                        // Loop through all of the subdirectories in this user's AppData\Local\Cloud directory.  We are looking for
-                        // any SyncBox directories.  These are directories numbered by the SyncBox ID.  Delete the entire
-                        // directory if we can.
-                        foreach (DirectoryInfo currentSyncBox in cloudAppData.EnumerateDirectories())
+                try
+                {
+                    // Remove all of the Cloud folder shortcuts
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Remove Cloud folder shortcuts.");
+                    CLShortcuts.RemoveCloudFolderShortcuts(Settings.Instance.CloudFolderPath);
+                }
+                catch (Exception ex)
+                {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (3): Msg: <{0}.", ex.Message);
+                }
+
+                string copyAkey = null;
+                try
+                {
+                    // Clear the settings.
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Clear settings.");
+                    copyAkey = Settings.Instance.Akey;
+                    Settings.Instance.resetSettings();
+                }
+                catch (Exception ex)
+                {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (4): Msg: <{0}.", ex.Message);
+                }
+
+                try
+                {
+                    // Remotely unlink this computer from the account.
+                    if (!String.IsNullOrEmpty(copyAkey))
+                    {
+                        CLError error = null;
+                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Remotely unlink this device.");
+                        CLRegistration registration = new CLRegistration();
+                        registration.UnlinkDeviceWithAccessKey(copyAkey, out error);
+                        if (error != null)
                         {
-                            bool fIsSyncBoxDirectory = false;
-                            try
-                            {
-                                // C:\Users\<enumerating user>\AppData\Local\Cloud\<sync box id>\IndexDB.sdf
-                                // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud\<sync box id>\IndexDB.sdf
-                                _trace.writeToLog(9, "RegisterCom: UninstallCOM: Top of SyncBox directory loop.  currentSyncBox: {0}.", currentSyncBox.FullName);
-                                string currentSyncBoxDB = currentSyncBox.FullName + "\\IndexDB.sdf";
-                                _trace.writeToLog(9, "RegisterCom: UninstallCOM: currentSyncBoxDB: {0}.", currentSyncBoxDB);
-                                if (File.Exists(currentSyncBoxDB))
-                                {
-                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the database file: {0}.", currentSyncBoxDB);
-                                    fIsSyncBoxDirectory = true;
-                                    File.Delete(currentSyncBoxDB);
-                                }
-                            }
-                            catch
-                            {
-                            }
-
-                            try
-                            {
-                                // C:\Users\<enumerating user>\AppData\Local\Cloud\<sync box id>\DownloadTemp
-                                // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud\<sync box id>\DownloadTemp
-                                string currentTempDownloads = currentSyncBox.FullName + "\\DownloadTemp";
-                                _trace.writeToLog(9, "RegisterCom: UninstallCOM: currentTempDownloads: {0}.", currentTempDownloads);
-                                if (Directory.Exists(currentTempDownloads))
-                                {
-                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the currentTempDownloads directory: {0}.", currentTempDownloads);
-                                    fIsSyncBoxDirectory = true;
-                                    Directory.Delete(currentTempDownloads, true);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                CLError error = ex;
-                                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                                _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception: Msg: <{0}>.", ex.Message);
-                            }
-
-                            try
-                            {
-                                // Delete the entire SyncBox directory now.
-                                if (fIsSyncBoxDirectory)
-                                {
-                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the SyncBox directory.  currentSyncBox: {0}.", currentSyncBox.FullName);
-                                    Directory.Delete(currentSyncBox.FullName);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                CLError error = ex;
-                                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                                _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (2): Msg: <{0}>.", ex.Message);
-                            }
+                            _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Remotely unlinking. Msg: <{0}>. Code: {1}>.", error.errorDescription, error.errorCode);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        CLError error = ex;
-                        error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                        _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (3): Msg: <{0}>.", ex.Message);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (5): Msg: <{0}.", ex.Message);
                 }
 
-                // Finalize the uninstall.  We are running in this assembly, and this assembly has various DLLs loaded and locked, so we can't
-                // just delete them.  We would like to delete all of the files recursively up to c:\program files (x86)\Cloud.com (including Cloud.com)),
-                // assuming that the user hasn't added any files that we or the installer don't know about.  We will save a VBScript file in the user's
-                // temp directory.  We will start a new process naming cscript and the VBScript file.  The VBScript file will clean
-                // up the program files directory, and then delete itself.  We will just exit here so the files will be unlocked so they can
-                // be cleaned up.  Under normal circumstances, the entire ProgramFiles Cloud.com directory should be removed.  The VBScript program will
-                // restart Explorer.
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: Call FinalizeUninstall.");
-                int rc = FinalizeUninstall();
-                if (rc != 0)
+                try
                 {
-                    // Restart Explorer
-                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Start Explorer.");
-                    Process.Start(explorerLocation);
+                    // Delete the database file to force a re-index at the next start.
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Start deleting databases.");
+                    FilePath indexDBLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Cloud";
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: IndexDBLocation: {0}.", indexDBLocation.ToString());
+
+                    // C:\Users\<user>
+                    // C:\Documents and Settings\<user>
+                    string localUserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: localUserProfile: {0}.", indexDBLocation.ToString());
+                    FilePath localUserProfileObject = localUserProfile;
+                    // C:\Users\<user>\AppData\Local minus C:\Users\<user> equals \AppData\Local
+                    // C:\Documents and Settings\<user>\Local Settings minus C:\Documents and Settings\<user> equals \Local Settings
+                    string localAppDataFolderName = ((FilePath)Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)).GetRelativePath(localUserProfileObject, replaceWithForwardSlashes: false);
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: localAppDataFolderName: {0}.", localAppDataFolderName);
+                    // C:\Users
+                    // C:\Documents and Settings
+                    string userParentDirectory = localUserProfile.Substring(0, localUserProfile.LastIndexOf("\\"));
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: userParentDirectory: {0}.", userParentDirectory);
+
+                    // Loop through all of the user directories looking for \AppData\Local\Cloud directories to clean up.
+                    DirectoryInfo ioParentDirectory = new DirectoryInfo(userParentDirectory);
+                    foreach (DirectoryInfo currentUserDirectory in ioParentDirectory.EnumerateDirectories())
+                    {
+                        try
+                        {
+                            // C:\Users\<enumerating user>\AppData\Local\Cloud
+                            // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud
+                            _trace.writeToLog(9, "RegisterCom: UninstallCOM: Top of user directory loop.  currentUserDirectory: {0}.", currentUserDirectory);
+                            DirectoryInfo cloudAppData = new DirectoryInfo(
+                                // C:\Users\<enumerating user>
+                                // C:\Documents and Settings\<enumerating user>
+                                currentUserDirectory.FullName +
+
+                                // C:\Users\<user>\AppData\Local\Cloud minus C:\Users\<user> equals \AppData\Local\Cloud
+                                // C:\Documents and Settings\<user>\Local Settings\Cloud minus C:\Documents and Settings\<user> equals \Local Settings\Cloud
+                                indexDBLocation.GetRelativePath(localUserProfileObject, false));
+
+                            // Loop through all of the subdirectories in this user's AppData\Local\Cloud directory.  We are looking for
+                            // any SyncBox directories.  These are directories numbered by the SyncBox ID.  Delete the entire
+                            // directory if we can.
+                            foreach (DirectoryInfo currentSyncBox in cloudAppData.EnumerateDirectories())
+                            {
+                                bool fIsSyncBoxDirectory = false;
+                                try
+                                {
+                                    // C:\Users\<enumerating user>\AppData\Local\Cloud\<sync box id>\IndexDB.sdf
+                                    // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud\<sync box id>\IndexDB.sdf
+                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Top of SyncBox directory loop.  currentSyncBox: {0}.", currentSyncBox.FullName);
+                                    string currentSyncBoxDB = currentSyncBox.FullName + "\\IndexDB.sdf";
+                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: currentSyncBoxDB: {0}.", currentSyncBoxDB);
+                                    if (File.Exists(currentSyncBoxDB))
+                                    {
+                                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the database file: {0}.", currentSyncBoxDB);
+                                        fIsSyncBoxDirectory = true;
+                                        File.Delete(currentSyncBoxDB);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    CLError error = ex;
+                                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (6): Msg: <{0}>.", ex.Message);
+                                }
+
+                                try
+                                {
+                                    // C:\Users\<enumerating user>\AppData\Local\Cloud\<sync box id>\DownloadTemp
+                                    // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud\<sync box id>\DownloadTemp
+                                    string currentTempDownloads = currentSyncBox.FullName + "\\DownloadTemp";
+                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: currentTempDownloads: {0}.", currentTempDownloads);
+                                    if (Directory.Exists(currentTempDownloads))
+                                    {
+                                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the currentTempDownloads directory: {0}.", currentTempDownloads);
+                                        fIsSyncBoxDirectory = true;
+                                        Directory.Delete(currentTempDownloads, true);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    CLError error = ex;
+                                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (7): Msg: <{0}>.", ex.Message);
+                                }
+
+                                try
+                                {
+                                    // Delete the entire SyncBox directory now.
+                                    if (fIsSyncBoxDirectory)
+                                    {
+                                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the SyncBox directory.  currentSyncBox: {0}.", currentSyncBox.FullName);
+                                        Directory.Delete(currentSyncBox.FullName);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    CLError error = ex;
+                                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (8): Msg: <{0}>.", ex.Message);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            CLError error = ex;
+                            error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                            _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (9): Msg: <{0}>.", ex.Message);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    CLError error = ex;
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (10): Msg: <{0}>.", ex.Message);
+                }
+
+                try
+                {
+                    // Finalize the uninstall.  We are running in this assembly, and this assembly has various DLLs loaded and locked, so we can't
+                    // just delete them.  We would like to delete all of the files recursively up to c:\program files (x86)\Cloud.com (including Cloud.com)),
+                    // assuming that the user hasn't added any files that we or the installer don't know about.  We will save a VBScript file in the user's
+                    // temp directory.  We will start a new process naming cscript and the VBScript file.  The VBScript file will clean
+                    // up the program files directory, and then delete itself.  We will just exit here so the files will be unlocked so they can
+                    // be cleaned up.  Under normal circumstances, the entire ProgramFiles Cloud.com directory should be removed.  The VBScript program will
+                    // restart Explorer.
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Call FinalizeUninstall.");
+                    int rc = FinalizeUninstall();
+                    if (rc != 0)
+                    {
+                        // Restart Explorer
+                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Start Explorer.");
+                        Process.Start(explorerLocation);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    CLError error = ex;
+                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (11): Msg: <{0}>.", ex.Message);
                 }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: ERROR.  Exception.  Msg: {0}.", ex.Message);
+                _trace.writeToLog(9, "RegisterCom: UninstallCOM: ERROR.  Exception (12).  Msg: {0}.", ex.Message);
 
-                // Restart Explorer
-                _trace.writeToLog(9, "RegisterCom: UninstallCOM: Start Explorer.");
-                Process.Start(explorerLocation);
+                try
+                {
+                    // Restart Explorer
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Start Explorer.");
+                    Process.Start(explorerLocation);
+                }
+                catch (Exception ex2)
+                {
+                    CLError error2 = ex2;
+                    error2.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                    _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Exception (11): Msg: <{0}>.", ex2.Message);
+                }
 
                 return 105;
             }
