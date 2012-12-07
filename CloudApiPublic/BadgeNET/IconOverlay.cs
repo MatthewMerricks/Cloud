@@ -134,14 +134,14 @@ namespace CloudApiPublic.BadgeNET
                                 throw new NullReferenceException("threadInit castState should not be null");
                             }
 
-                            _trace.writeToLog(9, "IconOverlay: pInitialize: threadInit entry.");
+                            _trace.writeToLog(9, "IconOverlay: threadInit: threadInit entry.");
                             if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
                             {
-                                _trace.writeToLog(9, "IconOverlay: pInitialize: ERROR.  Wrong threading model.");
+                                _trace.writeToLog(9, "IconOverlay: threadInit: ERROR.  Wrong threading model.");
                                 throw new Exception("Wrong threading model");
                             }
 
-                            _trace.writeToLog(9, "IconOverlay: pInitialize: Instantiate BadgeComPubSubEvents.");
+                            _trace.writeToLog(9, "IconOverlay: threadInit: Instantiate BadgeComPubSubEvents.");
                             _badgeComPubSubEvents = new BadgeComPubSubEvents();
                             _badgeComPubSubEvents.Initialize(_syncSettings);
                             _badgeComPubSubEvents.BadgeComInitialized += BadgeComPubSubEvents_OnBadgeComInitialized;
@@ -168,21 +168,21 @@ namespace CloudApiPublic.BadgeNET
                         try
                         {
                             // Start listening for BadgeCom initialization events.
-                            _trace.writeToLog(9, "IconOverlay: pInitialize: Subscribe to BadgeCom init events.");
+                            _trace.writeToLog(9, "IconOverlay: threadInit: Subscribe to BadgeCom init events.");
                             _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
 
                             // Send our badging dictionary to the BadgeCom subscribers.
-                            _trace.writeToLog(9, "IconOverlay: pInitialize: Send badging dictionary.");
+                            _trace.writeToLog(9, "IconOverlay: threadInit: Send badging dictionary.");
                             BadgeComPubSubEvents_OnBadgeComInitialized(null, null);
-
+                            _trace.writeToLog(9, "IconOverlay: threadInit: Back from send badging dictionary.");
                         }
                         catch (Exception ex)
                         {
                             CLError error = ex;
                             error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception(1): Msg: <{0}>, Code: {1}.", ex.Message);
+                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
                         }
-
+                        _trace.writeToLog(9, "IconOverlay: threadInit: Exit thread.");
                     }));
                     threadInit.SetApartmentState(ApartmentState.MTA);
 
@@ -257,7 +257,7 @@ namespace CloudApiPublic.BadgeNET
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed(object sender, EventArgs e)
+        private void _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed(object sender, EventArgs e)
         {
             try
             {
@@ -349,10 +349,10 @@ namespace CloudApiPublic.BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     // Publish the remove SyncBox folder path event back to all BadgeCom instances.  This will clear any dictionaries involving those folder paths.
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, EnumCloudAppIconBadgeType.cloudAppBadgeNone /* not used */, _filePathCloudDirectory.ToString());
 
                     // Publish the add SyncBox folder path event back to all BadgeCom instances.
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, EnumCloudAppIconBadgeType.cloudAppBadgeNone /* not used */, _filePathCloudDirectory.ToString());
                     
                     // Do not want to process COM publishing logic while holding up the lock, so make a copy under the lock instead.
                     Func<Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>, object, 
@@ -381,7 +381,7 @@ namespace CloudApiPublic.BadgeNET
             }
         }
 
-        void MessageEvents_BadgePathRenamed(object sender, BadgePathRenamedArgs e)
+        private void MessageEvents_BadgePathRenamed(object sender, BadgePathRenamedArgs e)
         {
             // Just return if we aren't initialized.
             lock (this)
@@ -400,7 +400,7 @@ namespace CloudApiPublic.BadgeNET
             e.MarkHandled();
         }
 
-        void MessageEvents_BadgePathDeleted(object sender, BadgePathDeletedArgs e)
+        private void MessageEvents_BadgePathDeleted(object sender, BadgePathDeletedArgs e)
         {
             // Just return if we aren't initialized.
             lock (this)
@@ -1090,27 +1090,6 @@ namespace CloudApiPublic.BadgeNET
                                 // set runningstate to off
                                 _trace.writeToLog(9, "IconOverlay: Dispose. PipeLocker.");
                                 pipeLocker.pipeRunning = false;
-
-                                // Dispose the context menu stream
-#if TRASH
-                                try
-                                {
-                                    // cleanup initial pipe connection
-
-                                    try
-                                    {
-                                        pipeContextMenuServer.Stop();
-                                    }
-                                    catch
-                                    {
-                                        _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception stopping NamedPipeServerContextMenu for context menu.");
-                                    }
-                                }
-                                catch
-                                {
-                                    _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception (3).");
-                                }
-#endif // TRASH &&&&
                             }
 
                             // Tell BadgeCom instances that we are going down.
@@ -1155,6 +1134,8 @@ namespace CloudApiPublic.BadgeNET
                                     _currentBadges = null;
                                 }
                             }
+
+                            isInitialized = false;
                         }
                     }
                 }
@@ -1255,13 +1236,6 @@ namespace CloudApiPublic.BadgeNET
         };
 
         /// <summary>
-        /// Creates the named pipe server stream for the shell extension context menu support.
-        /// </summary>
-#if TRASH        
-        private NamedPipeServerContextMenu pipeContextMenuServer = null;
-#endif  // TRASH &&&&&
-
-        /// <summary>
         /// BadgeComInitWatcher threads subscribe and monitor initialization events from BadgeCom (Explorer shell extension).
         /// </summary>
         private BadgeComPubSubEvents _badgeComPubSubEvents = null;
@@ -1275,33 +1249,6 @@ namespace CloudApiPublic.BadgeNET
             public bool pipeRunning { get; set; }
         }
         #endregion
-
-        /// <summary>
-        /// Initializes listener threads for NamedPipeServerStreams to talk to BadgeCOM objects
-        /// </summary>
-#if TRASH         
-        private void StartBadgeCOMPipes()
-        {
-            try
-            {
-                // Set up the thread params to start the pipe to listen to shell extension context menu messages
-                _trace.writeToLog(9, "IconOverlay: StartBadgeCOMPipes. Start new server pipe for the context menu.");
-                NamedPipeServerContextMenu serverContextMenu = new NamedPipeServerContextMenu();
-                serverContextMenu.UserState = new NamedPipeServerContextMenu_UserState { FilePathCloudDirectory = _filePathCloudDirectory };
-                serverContextMenu.PipeName = Environment.UserName + "/" + PipeName + "/ContextMenu";
-                serverContextMenu.Run();
-
-                // Remember this thread for Dispose
-                pipeContextMenuServer = serverContextMenu;
-            }
-            catch (Exception ex)
-            {
-                CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                _trace.writeToLog(1, "IconOverlay: StartBadgeCOMPipes: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
-            }
-        }
-#endif // TRASH &&&&
 
         /// <summary>
         /// Determine whether this icon should be badged by this badge handler.

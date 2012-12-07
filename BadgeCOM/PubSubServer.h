@@ -110,6 +110,7 @@ public:
 	class Subscription
 	{
 	public:
+        ULONG                       uSignature_;                 // 0xCACACACACA
 		ULONG                       uSubscribingProcessId_;     // the subscribing process ID (logging only)
 		ULONG                       uSubscribingThreadId_;      // the subscribing thread ID (logging only)
 		EnumEventType               nEventType_;                // the event type being subscribed to
@@ -122,6 +123,7 @@ public:
 
 		// Constructor
 		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const void_allocator &void_alloc) :
+                            uSignature_(0xCACACACACACACACA),
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
 							nEventType_(nEventType),

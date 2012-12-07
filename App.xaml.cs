@@ -225,6 +225,7 @@ namespace win_client
             {
                 e.Handled = true;
                 _trace.writeToLog(1, "App.xaml: Application_DispatcherUnhandledException: ERROR: Exception: Msg: <{0}>.", e.Exception.Message);
+                ((CLError)e.Exception).LogErrors(_trace.TraceLocation, _trace.LogErrors);
             }
             catch
             {

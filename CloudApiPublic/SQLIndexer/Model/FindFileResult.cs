@@ -76,7 +76,8 @@ namespace CloudApiPublic.SQLIndexer.Model
             SafeSearchHandle searchHandle = null;
             try
             {
-                searchHandle = NativeMethods.FindFirstFileEx("\\\\?\\" + fullDirectoryPath + "\\*.*", // Allows searching paths up to 32,767 characters in length
+                searchHandle = NativeMethods.FindFirstFileEx(//"\\\\?\\" + // Allows searching paths up to 32,767 characters in length, but not supported on XP
+                    fullDirectoryPath + "\\*.*",
                     NativeMethods.FINDEX_INFO_LEVELS.FindExInfoStandard,// Basic would be optimal but it's only supported in Windows 7 on up
                     out fileData,
                     NativeMethods.FINDEX_SEARCH_OPS.FindExSearchNameMatch,
@@ -150,7 +151,8 @@ namespace CloudApiPublic.SQLIndexer.Model
             SafeSearchHandle searchHandle = null;
             try
             {
-                searchHandle = NativeMethods.FindFirstFileEx("\\\\?\\" + fullPath, // Allows searching paths up to 32,767 characters in length
+                searchHandle = NativeMethods.FindFirstFileEx(//"\\\\?\\" + // Allows searching paths up to 32,767 characters in length, but not supported on Windows XP
+                    fullPath,
                     NativeMethods.FINDEX_INFO_LEVELS.FindExInfoStandard,// Basic would be optimal but it's only supported in Windows 7 on up
                     out fileData,
                     NativeMethods.FINDEX_SEARCH_OPS.FindExSearchNameMatch,
