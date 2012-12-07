@@ -118,7 +118,13 @@ namespace RegisterCom
                 // Read the trace level for the Cloud trace.
                 try
                 {
-                    string traceLocation = Settings.Instance.TraceLocation; //Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\Cloud";
+                    string traceLocation = Settings.Instance.TraceLocation;
+                    if (String.IsNullOrWhiteSpace(traceLocation))
+                    {
+                        traceLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\Cloud";
+                        Settings.Instance.TraceLocation = traceLocation;
+                    }
+
                     string traceLevelFilePath = traceLocation + "\\CloudTraceLevel.ini";
                     
                     if (!Directory.Exists(traceLocation))
@@ -134,6 +140,7 @@ namespace RegisterCom
                             && int.TryParse(readIni, out readValue))
                         {
                             Settings.Instance.TraceLevel = readValue;
+                            Settings.Instance.LogErrors = true;
                         }
                     }
                 }
@@ -144,7 +151,7 @@ namespace RegisterCom
                 try
                 {
                     // Initialize the Cloud tracing.
-                    CLTrace.Initialize(TraceLocation: Settings.Instance.TraceType != TraceType.NotEnabled ? Settings.Instance.TraceLocation : null, 
+                    CLTrace.Initialize(TraceLocation: Settings.Instance.TraceLocation, 
                         TraceCategory: "RegisterCOM", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel, LogErrors: Settings.Instance.LogErrors);
                 }
                 catch

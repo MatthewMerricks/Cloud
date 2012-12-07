@@ -2993,7 +2993,6 @@
 		<col def="I2">Order</col>
 		<col def="I2">ISSetupLocation</col>
 		<col def="S255">ISReleaseFlags</col>
-		<row><td>_03B4A8B6_E96D_447E_A48C_1AE36FF3DD7A_</td><td>Microsoft Visual C++ 2010 Redistributable Package (x86).prq</td><td/><td/><td/></row>
 		<row><td>_07D4F9FD_FAA1_4415_BCE9_0B49B0383AA9_</td><td>Windows Installer 4.5 for Windows XP SP2 and later (x86).prq</td><td>0</td><td/><td/></row>
 		<row><td>_3764EFE1_7F0A_41EE_81BF_967338173235_</td><td>Windows Installer 4.5 for Windows Vista (x86).prq</td><td>1</td><td/><td/></row>
 		<row><td>_4E9C4BB6_C189_4F15_8A72_44DFDD5469EA_</td><td>Microsoft .NET Framework 4.0 Client (Web Download).prq</td><td>2</td><td/><td/></row>
