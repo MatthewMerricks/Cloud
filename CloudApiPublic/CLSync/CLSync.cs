@@ -104,7 +104,7 @@ namespace CloudApiPublic
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        public CLError Start(ISyncSettings settings)
+        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status)
         {
             try
             {
@@ -114,6 +114,23 @@ namespace CloudApiPublic
                 }
 
                 _syncSettings = settings.CopySettings();
+
+                CLError checkBadPath = Helpers.CheckForBadPath(_syncSettings.CloudRoot);
+                if (checkBadPath != null)
+                {
+                    _trace.writeToLog(1, "CLSync: ERROR: {0}.", checkBadPath.errorDescription);
+                    status = CLSyncStartStatus.ErrorBadRootPath;
+                    return new ArgumentException("CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath", checkBadPath.GrabFirstException());
+                }
+
+                int tooLongChars;
+                CLError checkPathLength = Helpers.CheckSyncRootLength(_syncSettings.CloudRoot, out tooLongChars);
+                if (checkPathLength != null)
+                {
+                    _trace.writeToLog(1, "CLSync: ERROR: {0}.", checkPathLength.errorDescription);
+                    status = CLSyncStartStatus.ErrorLongRootPath;
+                    return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.GrabFirstException());
+                }
 
                 // Initialize trace in case it is not already initialized.
                 CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
@@ -130,6 +147,7 @@ namespace CloudApiPublic
                 {
                     CLError error = new Exception("Already started");
                     _trace.writeToLog(1, "CLSync: Start: ERROR: {0}.", error.errorDescription);
+                    status = CLSyncStartStatus.ErrorUnknown;
                     return error;
                 }
 
@@ -140,6 +158,7 @@ namespace CloudApiPublic
                 {
                     _trace.writeToLog(1, "CLSync: Start: ERROR: Exception. Msg: {0}. Code: {1}.", iconOverlayError.errorDescription, iconOverlayError.errorCode);
                     ReleaseResources();
+                    status = CLSyncStartStatus.ErrorUnknown;
                     return iconOverlayError;
                 }
 
@@ -150,6 +169,7 @@ namespace CloudApiPublic
                 {
                     _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);
                     ReleaseResources();
+                    status = CLSyncStartStatus.ErrorUnknown;
                     return indexCreationError;
                 }
 
@@ -161,6 +181,7 @@ namespace CloudApiPublic
                     CLError error = new Exception("Error starting push notification");
                     _trace.writeToLog(1, "CLSync: Start: ERROR(2): {0}.", error.errorDescription);
                     ReleaseResources();
+                    status = CLSyncStartStatus.ErrorUnknown;
                     return error;
                 }
 
@@ -181,6 +202,7 @@ namespace CloudApiPublic
                     _indexer.Dispose();
                     _indexer = null;
                     ReleaseResources();
+                    status = CLSyncStartStatus.ErrorUnknown;
                     return fileMonitorCreationError;
                 }
                 else
@@ -195,6 +217,7 @@ namespace CloudApiPublic
                             {
                                 _trace.writeToLog(1, "CLSync: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, fileMonitorStartError.errorCode);
                                 ReleaseResources();
+                                status = CLSyncStartStatus.ErrorUnknown;
                                 return fileMonitorStartError;
                             }
 
@@ -205,6 +228,7 @@ namespace CloudApiPublic
                             {
                                 _trace.writeToLog(1, "CLSync: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, indexerStartError.errorCode);
                                 ReleaseResources();
+                                status = CLSyncStartStatus.ErrorUnknown;
                                 return indexerStartError;
                             }
                         }
@@ -214,10 +238,13 @@ namespace CloudApiPublic
                             error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                             _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(4).  Msg: <{0}>.", ex.Message);
                             ReleaseResources();
+                            status = CLSyncStartStatus.ErrorUnknown;
                             return ex;
                         }
                     }
                 }
+
+                status = CLSyncStartStatus.Successful;
             }
             catch (Exception ex)
             {
@@ -225,6 +252,7 @@ namespace CloudApiPublic
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(5).  Msg: <{0}>.", ex.Message);
                 ReleaseResources();
+                status = CLSyncStartStatus.ErrorUnknown;
                 return ex;
             }
 

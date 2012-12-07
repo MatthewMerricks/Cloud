@@ -20,16 +20,24 @@ namespace CloudApiPublic.Model
         /// <returns>Returns true for equality, otherwise false</returns>
         public override bool Equals(FilePath x, FilePath y)
         {
+            return RecursiveEqualityCheck(x, y, false);
+        }
+        public bool CaseInsensitiveEquals(FilePath x, FilePath y)
+        {
+            return RecursiveEqualityCheck(x, y, true);
+        }
+        private static bool RecursiveEqualityCheck(FilePath x, FilePath y, bool insensitiveNameSearch)
+        {
             // check local Name property first
             // if Parents are null then both are roots and along with equal name represents equality
             // otherwise if both Parents are not null but running Equals recursively returns true then FilePaths are also equal
             return x.Equals(y)// if object references are equal we're sure the FilePaths match, otherwise continue on to deep level compare
-                || (x.Name == y.Name
+                || (string.Equals(x.Name, y.Name, (insensitiveNameSearch ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture))
                     && ((x.Parent == null
                             && y.Parent == null)
                         || (x.Parent != null
                             && y.Parent != null
-                            && Equals((FilePath)x.Parent, (FilePath)y.Parent))));
+                            && RecursiveEqualityCheck((FilePath)x.Parent, (FilePath)y.Parent, insensitiveNameSearch))));
         }
         /// <summary>
         /// Overridden GetHashCode that gets a hash from the underlying full path string,

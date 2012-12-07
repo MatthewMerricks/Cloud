@@ -317,7 +317,7 @@ namespace CloudApiPublic.FileMonitor
                             throw new InvalidOperationException("Parameters not matched");
                         }
                     },
-                    1000,// Collect items in queue for 1 second before batch processing
+                    1000, // Collect items in queue for 1 second before batch processing
                     out newAgent.QueuesTimer,
                     new object[] { (Action<bool>)newAgent.ProcessQueuesAfterTimer, newAgent.ProcessingChanges });
                 if (queueTimerError != null)
@@ -409,49 +409,20 @@ namespace CloudApiPublic.FileMonitor
                             }
                             castAction(toCreate.Parent, root, castAction, null, null);
 
-                            if (!AllPaths.ContainsKey(toCreate))
+                            FileMetadata existingPath;
+                            Nullable<DateTime> createdLastWriteUtc;
+                            Nullable<DateTime> createdCreationUtc;
+
+                            if (AllPaths.TryGetValue(toCreate, out existingPath))
                             {
-                                DirectoryInfo createdDirectory = null;
-                                Helpers.RunActionWithRetries(() => createdDirectory = Directory.CreateDirectory(toCreate.ToString()), true);
-
-                                try
+                                if (!Directory.Exists(toCreate.ToString()))
                                 {
-                                    if (creationTime != null)
-                                    {
-                                        Helpers.RunActionWithRetries(() => createdDirectory.CreationTimeUtc = (DateTime)creationTime, true);
-                                    }
-                                    if (lastTime != null)
-                                    {
-                                        Helpers.RunActionWithRetries(() => createdDirectory.LastAccessTimeUtc = (DateTime)lastTime, true);
-                                        Helpers.RunActionWithRetries(() => createdDirectory.LastWriteTimeUtc = (DateTime)lastTime, true);
-                                    }
+                                    CreateDirectoryWithAttributes(toCreate, existingPath.HashableProperties.CreationTime, existingPath.HashableProperties.LastTime, out createdLastWriteUtc, out createdCreationUtc);
                                 }
-                                catch
-                                {
-                                    Helpers.RunActionWithRetries(() => createdDirectory.Delete(), true);
-                                    throw;
-                                }
-
-                                DateTime createdLastWriteUtc;
-                                if (lastTime == null)
-                                {
-                                    createdLastWriteUtc = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
-                                    Helpers.RunActionWithRetries(() => createdLastWriteUtc = createdDirectory.LastWriteTimeUtc, false);
-                                }
-                                else
-                                {
-                                    createdLastWriteUtc = (DateTime)lastTime;
-                                }
-                                DateTime createdCreationUtc;
-                                if (creationTime == null)
-                                {
-                                    createdCreationUtc = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
-                                    Helpers.RunActionWithRetries(() => createdCreationUtc = createdDirectory.CreationTimeUtc, false);
-                                }
-                                else
-                                {
-                                    createdCreationUtc = (DateTime)creationTime;
-                                }
+                            }
+                            else
+                            {
+                                CreateDirectoryWithAttributes(toCreate, creationTime, lastTime, out createdLastWriteUtc, out createdCreationUtc);
 
                                 AllPaths.Add(toCreate, new FileMetadata()
                                 {
@@ -538,6 +509,15 @@ namespace CloudApiPublic.FileMonitor
                                         }
                                         File.Move(oldPathString, newPathString);
                                     }
+                                    // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
+                                    catch (IOException)
+                                    {
+                                        if (File.Exists(newPathString))
+                                        {
+                                            File.Delete(newPathString);
+                                        }
+                                        File.Move(oldPathString, newPathString);
+                                    }
                                 }
                                 else
                                 {
@@ -561,6 +541,56 @@ namespace CloudApiPublic.FileMonitor
                 return ex;
             }
             return null;
+        }
+
+        // helper method to create a directory at a given path and set the time attributes for creation/last modified
+        private static void CreateDirectoryWithAttributes(FilePath toCreate, Nullable<DateTime> creationTime, Nullable<DateTime> lastTime, out Nullable<DateTime> createdLastWriteUtc, out Nullable<DateTime> createdCreationUtc)
+        {
+            DirectoryInfo createdDirectory = null;
+            Helpers.RunActionWithRetries(() => createdDirectory = Directory.CreateDirectory(toCreate.ToString()), true);
+
+            try
+            {
+                if (creationTime != null)
+                {
+                    Helpers.RunActionWithRetries(() => createdDirectory.CreationTimeUtc = (DateTime)creationTime, true);
+                }
+                if (lastTime != null)
+                {
+                    Helpers.RunActionWithRetries(() => createdDirectory.LastAccessTimeUtc = (DateTime)lastTime, true);
+                    Helpers.RunActionWithRetries(() => createdDirectory.LastWriteTimeUtc = (DateTime)lastTime, true);
+                }
+            }
+            catch
+            {
+                Helpers.RunActionWithRetries(() => createdDirectory.Delete(), true);
+                throw;
+            }
+
+
+            if (lastTime == null)
+            {
+                createdLastWriteUtc = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
+                GenericHolder<Nullable<DateTime>> successLastWriteTime = new GenericHolder<Nullable<DateTime>>(null);
+                Helpers.RunActionWithRetries(() => successLastWriteTime.Value = createdDirectory.LastWriteTimeUtc, false);
+                createdLastWriteUtc = successLastWriteTime.Value;
+            }
+            else
+            {
+                createdLastWriteUtc = lastTime;
+            }
+
+            if (creationTime == null)
+            {
+                createdCreationUtc = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
+                GenericHolder<Nullable<DateTime>> successCreationTime = new GenericHolder<Nullable<DateTime>>(null);
+                Helpers.RunActionWithRetries(() => successCreationTime.Value = createdDirectory.CreationTimeUtc, false);
+                createdCreationUtc = successCreationTime.Value;
+            }
+            else
+            {
+                createdCreationUtc = creationTime;
+            }
         }
 
         /// <summary>

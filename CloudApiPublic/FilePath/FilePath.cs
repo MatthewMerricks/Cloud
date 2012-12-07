@@ -265,7 +265,7 @@ namespace CloudApiPublic.Model
         /// <param name="outerPath">First path that may contain the second path</param>
         /// <param name="innerPath">Second path which may be contained in the first path</param>
         /// <returns>Returns true if the second path is contained within the first path, otherwise false</returns>
-        public static bool Contains(FilePath outerPath, FilePath innerPath)
+        public static bool Contains(FilePath outerPath, FilePath innerPath, bool insensitiveNameSearch = false)
         {
             if (innerPath == null)
             {
@@ -273,7 +273,9 @@ namespace CloudApiPublic.Model
             }
             while (outerPath != null)
             {
-                if (FilePathComparer.Instance.Equals(outerPath, innerPath))
+                if (insensitiveNameSearch
+                    ? FilePathComparer.Instance.CaseInsensitiveEquals(outerPath, innerPath)
+                    : FilePathComparer.Instance.Equals(outerPath, innerPath))
                 {
                     return true;
                 }
@@ -288,9 +290,9 @@ namespace CloudApiPublic.Model
         /// </summary>
         /// <param name="innerPath">The inner path which may be contained in the current path</param>
         /// <returns>Returns true if the inner path is contained within the current path, otherwise false</returns>
-        public bool Contains(FilePath innerPath)
+        public bool Contains(FilePath innerPath, bool insensitiveNameSearch = false)
         {
-            return Contains(this, innerPath);
+            return Contains(this, innerPath, insensitiveNameSearch);
         }
 
         /// <summary>
