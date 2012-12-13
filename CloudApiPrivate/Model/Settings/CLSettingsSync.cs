@@ -122,7 +122,7 @@ namespace CloudApiPrivate.Model.Settings
                 return Settings.Instance.DeviceName;
             }
         }
-        public string CloudRoot
+        public string SyncRoot
         {
             get
             {

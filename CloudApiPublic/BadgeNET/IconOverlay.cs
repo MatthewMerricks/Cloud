@@ -82,7 +82,7 @@ namespace CloudApiPublic.BadgeNET
                 CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
 
                 _trace.writeToLog(9, "IconOverlay: Initialize: Entry.");
-                return pInitialize(syncSettings.CloudRoot, initialList);
+                return pInitialize(syncSettings.SyncRoot, initialList);
             }
             catch (Exception ex)
             {

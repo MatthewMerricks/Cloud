@@ -55,7 +55,7 @@ namespace CloudApiPublic.Sync
         }
         private string _clientVersion = null;
 
-        public string CloudRoot
+        public string SyncRoot
         {
             get
             {
@@ -199,7 +199,7 @@ namespace CloudApiPublic.Sync
         }
         private string _deviceName = null; 
 
-        public string CloudRoot
+        public string SyncRoot
         {
             get
             {
@@ -264,7 +264,7 @@ namespace CloudApiPublic.Sync
                 toCopy.TempDownloadFolderFullPath,
                 toCopy.ClientVersion,
                 toCopy.DeviceName,
-                toCopy.CloudRoot,
+                toCopy.SyncRoot,
                 toCopy.DatabaseFile);
         }
 
@@ -285,7 +285,7 @@ namespace CloudApiPublic.Sync
                     null,
                     toCopy.ClientVersion,
                     Helpers.GetComputerFriendlyName(),
-                    toCopy.CloudRoot,
+                    toCopy.SyncRoot,
                     null);
             }
             else
@@ -294,27 +294,36 @@ namespace CloudApiPublic.Sync
             }
         }
 
-        public static AdvancedSyncSettings CopySettings(this IPushSettingsAdvanced toCopy)
+        public static AdvancedSyncSettings CopySettings(this IHttpSettingsAdvanced toCopy)
         {
-            return new AdvancedSyncSettings(
-                toCopy.LogErrors,
-                toCopy.TraceType,
-                toCopy.TraceLocation,
-                toCopy.TraceExcludeAuthorization,
-                toCopy.TraceLevel,
-                toCopy.Udid,
-                toCopy.Uuid,
-                toCopy.Akey,
-                null,
-                null,
-                Helpers.GetComputerFriendlyName(),
-                null,
-                null);
+            ISyncSettingsAdvanced syncCopy = toCopy as ISyncSettingsAdvanced;
+
+            if (syncCopy == null)
+            {
+                return new AdvancedSyncSettings(
+                    toCopy.LogErrors,
+                    toCopy.TraceType,
+                    toCopy.TraceLocation,
+                    toCopy.TraceExcludeAuthorization,
+                    toCopy.TraceLevel,
+                    toCopy.Udid,
+                    toCopy.Uuid,
+                    toCopy.Akey,
+                    null,
+                    null,
+                    Helpers.GetComputerFriendlyName(),
+                    null,
+                    null);
+            }
+            else
+            {
+                return syncCopy.CopySettings();
+            }
         }
 
-        public static AdvancedSyncSettings CopySettings(this IPushSettings toCopy)
+        public static AdvancedSyncSettings CopySettings(this IHttpSettings toCopy)
         {
-            IPushSettingsAdvanced advancedCopy = toCopy as IPushSettingsAdvanced;
+            IHttpSettingsAdvanced advancedCopy = toCopy as IHttpSettingsAdvanced;
             if (advancedCopy == null)
             {
                 ISyncSettings syncCopy = toCopy as ISyncSettings;

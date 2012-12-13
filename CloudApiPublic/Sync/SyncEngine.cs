@@ -22,19 +22,22 @@ using CloudApiPublic.Support;
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.JsonContracts;
 using CloudApiPublic.Sync.Model;
+using CloudApiPublic.REST;
 
 namespace CloudApiPublic.Sync
 {
     /// <summary>
     /// Processes events between an input event source (ISyncDataObject) and the server with callbacks for grabbing, rearranging, or updating events; also fires global event callbacks with status
     /// </summary>
-    public sealed class SyncEngine : IDisposable
+    internal sealed class SyncEngine : IDisposable
     {
         #region instance fields, all readonly
         // store event source
         private readonly ISyncDataObject syncData;
         // store settings source
         private readonly ISyncSettingsAdvanced syncSettings;
+        // store client for Http REST communication
+        private readonly CLHttpRest httpRestClient;
         // time to wait before presuming communication failure
         private readonly int HttpTimeoutMilliseconds;
         // number of times to retry a event dependency tree before stopping
@@ -50,12 +53,14 @@ namespace CloudApiPublic.Sync
         /// </summary>
         /// <param name="syncData">Event source</param>
         /// <param name="syncSettings">Settings source</param>
+        /// <param name="httpRestClient">Http client for REST communication</param>
         /// <param name="HttpTimeoutMilliseconds">Milliseconds to wait before presuming communication failure</param>
         /// <param name="MaxNumberOfFailureRetries">Number of times to retry an event dependency tree before stopping</param>
         /// <param name="MaxNumberOfNotFounds">Number of times to retry an event that keeps getting a not found error before presuming the event was cancelled out, should be less than MaxNumberOfFailureRetries</param>
         /// <param name="ErrorProcessingMillisecondInterval">Milliseconds to delay between each attempt at reprocessing queued failures</param>
         public SyncEngine(ISyncDataObject syncData,
             ISyncSettings syncSettings,
+            CLHttpRest httpRestClient,
             int HttpTimeoutMilliseconds = 180000,// 180 seconds
             byte MaxNumberOfFailureRetries = 20,
             byte MaxNumberOfNotFounds = 10,
@@ -69,6 +74,10 @@ namespace CloudApiPublic.Sync
             if (syncSettings == null)
             {
                 throw new NullReferenceException("syncSettings cannot be null");
+            }
+            if (httpRestClient == null)
+            {
+                throw new NullReferenceException("restHttpClient cannot be null");
             }
             if (HttpTimeoutMilliseconds <= 0)
             {
@@ -90,6 +99,9 @@ namespace CloudApiPublic.Sync
             {
                 throw new NullReferenceException("syncSettings Uuid cannot be null");
             }
+
+            // set the Http REST client
+            this.httpRestClient = httpRestClient;
 
             // Initialize trace in case it is not already initialized.
             CLTrace.Initialize(this.syncSettings.TraceLocation, "Cloud", "log", this.syncSettings.TraceLevel, this.syncSettings.LogErrors);
@@ -1224,7 +1236,7 @@ namespace CloudApiPublic.Sync
                                 newSyncId, // New Sync ID provided by server
                                 successfulEventIds, // enumerable of event ids which have been completed
                                 out syncCounter, // output incremented count of syncs
-                                (syncSettings.CloudRoot ?? string.Empty)); // pass current cloud root
+                                (syncSettings.SyncRoot ?? string.Empty)); // pass current cloud root
 
                             // if there was an error recording a new Sync, then append the exception to the return error
                             if (recordSyncError != null)
@@ -2031,7 +2043,7 @@ namespace CloudApiPublic.Sync
                     // define size to be used for status update event callbacks
                     long storeSizeForStatus = castState.FileToUpload.Metadata.HashableProperties.Size ?? 0;
                     // define relative path to be used for status update event callbacks
-                    string storeRelativePathForStatus = castState.FileToUpload.NewPath.GetRelativePath((castState.SyncSettings.CloudRoot ?? string.Empty), false);
+                    string storeRelativePathForStatus = castState.FileToUpload.NewPath.GetRelativePath((castState.SyncSettings.SyncRoot ?? string.Empty), false);
                     // retrieve and define time for when upload started (now)
                     DateTime storeStartTimeForStatus = getStartTime(startTimeHolder);
 
@@ -2371,7 +2383,7 @@ namespace CloudApiPublic.Sync
                                     ? string.Empty
                                     : castState.SyncSettings == null
                                         ? castState.FileToUpload.NewPath.ToString()
-                                        : castState.FileToUpload.NewPath.GetRelativePath((castState.SyncSettings.CloudRoot ?? string.Empty), false) ?? string.Empty),
+                                        : castState.FileToUpload.NewPath.GetRelativePath((castState.SyncSettings.SyncRoot ?? string.Empty), false) ?? string.Empty),
 
                                 // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
                                 (castState.FileToUpload.Metadata == null
@@ -2853,7 +2865,7 @@ namespace CloudApiPublic.Sync
                 // store the total size which will be used for status event callbacks
                 long storeSizeForStatus = castState.FileToDownload.Metadata.HashableProperties.Size ?? 0;
                 // store the relative path which will be used for status event callbacks
-                string storeRelativePathForStatus = castState.FileToDownload.NewPath.GetRelativePath((castState.SyncSettings.CloudRoot ?? string.Empty), false);
+                string storeRelativePathForStatus = castState.FileToDownload.NewPath.GetRelativePath((castState.SyncSettings.SyncRoot ?? string.Empty), false);
                 // store the start time for the download
                 DateTime storeStartTimeForStatus = getStartTime(startTimeHolder);
 
@@ -3138,7 +3150,7 @@ namespace CloudApiPublic.Sync
                                     ? string.Empty
                                     : castState.SyncSettings == null
                                         ? castState.FileToDownload.NewPath.ToString()
-                                        : castState.FileToDownload.NewPath.GetRelativePath((castState.SyncSettings.CloudRoot ?? string.Empty), false) ?? string.Empty),
+                                        : castState.FileToDownload.NewPath.GetRelativePath((castState.SyncSettings.SyncRoot ?? string.Empty), false) ?? string.Empty),
 
                                 // need to send a total downloaded bytes which matches the file size so they are equal to cancel the status
                                 (castState.FileToDownload.Metadata == null
@@ -3803,7 +3815,7 @@ namespace CloudApiPublic.Sync
                     if (failuresDict == null)
                     {
                         // initialize the failuresDict and store any error that occurs in the process
-                        CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncSettings.CloudRoot ?? string.Empty),
+                        CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncSettings.SyncRoot ?? string.Empty),
                             out failuresDict);
                         // if an error occurred initializing the failuresDict, then rethrow the error
                         if (createFailuresDictError != null)
@@ -3841,7 +3853,7 @@ namespace CloudApiPublic.Sync
                             runningUpDownChanges.Add(currentUpDown)));
 
                         // initialize the runningUpDownChangesDict and store any error that occurs in the process
-                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncSettings.CloudRoot ?? string.Empty),
+                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncSettings.SyncRoot ?? string.Empty),
                             out runningUpDownChangesDict);
                         // if an error occurred initializing the runningUpDownChangesDict, then rethrow the error
                         if (createUpDownDictError != null)
@@ -3872,167 +3884,22 @@ namespace CloudApiPublic.Sync
                         DeviceId = syncSettings.Udid,
                         UserId = syncSettings.Uuid
                     };
-
-                    // declare string for the body of the http request to send
-                    string requestBody;
-                    // create a memory stream to serialize the purge pending request body
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        // serialize the purge pending request object to the stream
-                        JsonContractHelpers.PurgePendingSerializer.WriteObject(ms, purge);
-                        // retrieve the serialized purge pending request as a string from the stream
-                        requestBody = Encoding.Default.GetString(ms.ToArray());
-                    }
-
-                    // create the bytes for the request by the request body string
-                    byte[] requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
-
-                    // set the parameters for the http request
-
-                    HttpWebRequest purgeRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathPurgePending); // create the request for the purge pending address
-                    purgeRequest.Method = CLDefinitions.HeaderAppendMethodPost; // purge pending is a post operation
-                    purgeRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set the client
-                    // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-                    purgeRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = syncSettings.ClientVersion;
-                    purgeRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(syncSettings.Akey); // set the authorization token
-                    purgeRequest.SendChunked = false; // do not send chunked
-                    purgeRequest.Timeout = HttpTimeoutMilliseconds; // set the timeout for the operation
-                    purgeRequest.ContentType = CLDefinitions.HeaderAppendContentTypeJson; // request body is json-formatted
-                    purgeRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding; // request body is utf8
-                    purgeRequest.ContentLength = requestBodyBytes.Length; // write the length of the request body content
-
-                    // if tracing communication, trace communication
-                    if ((syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-                    {
-                        // trace communication
-                        Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
-                            syncSettings.Udid, // device id
-                            syncSettings.Uuid, // user id
-                            CommunicationEntryDirection.Request, // direction of communication is request
-                            CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathPurgePending, // path of purge pending
-                            true, // trace is enabled
-                            purgeRequest.Headers, // request headers
-                            requestBody, // request body content
-                            null, // requests do not have a status code
-                            syncSettings.TraceExcludeAuthorization, // whether to exclude authorization from the trace (such as the authentication token)
-                            purgeRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
-                            purgeRequest.ContentLength.ToString(), // content length value which would be part of the headers (but cannot be pulled from headers directly)
-                            (purgeRequest.Expect == null ? "100-continue" : purgeRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
-                            (purgeRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
-                    }
-
-                    // retrieve the stream to write the request body
-                    using (Stream purgeRequestStream = purgeRequest.GetRequestStream())
-                    {
-                        // write the request body content
-                        purgeRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
-                    }
-
-                    // declare the response for the operation
-                    HttpWebResponse purgeResponse;
-                    // try/catch to process the operation to retrieve the response, on catch try to pull out the response from the error
-                    try
-                    {
-                        // process the operation and retrieve the response
-                        purgeResponse = (HttpWebResponse)purgeRequest.GetResponse();
-                    }
-                    catch (WebException ex)
-                    {
-                        // if the error does not contain a response, then rethrow the error
-                        if (ex.Response == null)
-                        {
-                            throw new NullReferenceException("purgeRequest Response cannot be null", ex);
-                        }
-                        // store the response from the error
-                        purgeResponse = (HttpWebResponse)ex.Response;
-                    }
-
+                    
                     // declare the json contract object for the response content
-                    PurgePendingResponse deserializedResponse;
-                    // try/finally process the response stream, finally close the response
-                    try
+                    PurgePendingResponse purgeResponse;
+                    // declare the success/failure status for the communication
+                    CLHttpRestStatus purgeStatus;
+                    // purge pending communication with the purge request content, storing any error that occurs
+                    CLError purgePendingError = httpRestClient.PurgePending(
+                        purge, // purge request content
+                        HttpTimeoutMilliseconds, // milliseconds before communication timeout
+                        out purgeStatus, // output the success/failure status
+                        out purgeResponse); // output the response content (this response content does not get used anywhere later)
+
+                    // check if an error occurred purging pending and if so, rethrow the error
+                    if (purgePendingError != null)
                     {
-                        // grab the response stream
-                        using (Stream purgeHttpWebResponseStream = purgeResponse.GetResponseStream())
-                        {
-                            // store the trace type in case it changes between two crucial points (deciding to made a stream wrapper and disposing the stream wrapper)
-                            TraceType storeTraceType = syncSettings.TraceType;
-
-                            // set the stream for processing the response by a copy of the communication stream (if trace enabled) or the communication stream itself (if trace is not enabled)
-                            Stream purgeResponseStream = (((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                                ? Helpers.CopyHttpWebResponseStreamAndClose(purgeHttpWebResponseStream) // if trace is enabled, then copy the communications stream to a memory stream
-                                : purgeHttpWebResponseStream); // if trace is not enabled, use the communication stream
-
-                            // try/finally process the response stream, finally if trace is enabled dispose the stream copy
-                            try
-                            {
-                                // if tracing communication, then trace communication
-                                if ((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                                {
-                                    // trace communication
-                                    Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
-                                        syncSettings.Udid, // device id
-                                        syncSettings.Uuid, // user id
-                                        CommunicationEntryDirection.Response, // direction of communication is response
-                                        CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathPurgePending, // purge pending path
-                                        true, // trace is enabled
-                                        purgeResponse.Headers, // response headers
-                                        purgeResponseStream, // use the copied stream as the response content (upon being read, it will seek back to origin for reuse)
-                                        (int)purgeResponse.StatusCode, // response status code
-                                        syncSettings.TraceExcludeAuthorization); // whether to exclude authorization (such as the authentication token)
-                                }
-
-                                // if response status is not one of the accepted values, then use the response content in an error message and throw
-                                if (purgeResponse.StatusCode != HttpStatusCode.OK
-                                    && purgeResponse.StatusCode != HttpStatusCode.Accepted)
-                                {
-                                    // define a string for an error message from the response content, defaulting to null
-                                    string purgeResponseString = null;
-                                    // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
-                                    // try/catch read the response content into the error string, silently failing
-                                    try
-                                    {
-                                        // create a reader for the response content
-                                        using (TextReader purgeResponseStreamReader = new StreamReader(purgeResponseStream, Encoding.UTF8))
-                                        {
-                                            // set the error string from the response
-                                            purgeResponseString = purgeResponseStreamReader.ReadToEnd();
-                                        }
-                                    }
-                                    catch
-                                    {
-                                    }
-
-                                    // throw the error
-                                    throw new Exception("Invalid HTTP response status code in Purge Pending: " + ((int)purgeResponse.StatusCode).ToString() +
-                                        (purgeResponseString == null ? string.Empty
-                                            : Environment.NewLine + "Response:" + Environment.NewLine + // if a message was retrieved for the response content, then add it to the error message
-                                                purgeResponseString));
-                                }
-
-                                // deserialize the response content into the appropriate json contract object
-                                deserializedResponse = (PurgePendingResponse)JsonContractHelpers.PurgePendingResponseSerializer.ReadObject(purgeResponseStream);
-                            }
-                            finally
-                            {
-                                // if tracing communication, then the stream had been copied and the copy must be disposed
-                                if ((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                                {
-                                    purgeResponseStream.Dispose();
-                                }
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        // try/catch dispose the response, failing silently
-                        try
-                        {
-                            purgeResponse.Close();
-                        }
-                        catch
-                        {
-                        }
+                        throw new AggregateException("Error purging existing pending items on first sync", purgePendingError.GrabExceptions());
                     }
                 }
 
@@ -4199,15 +4066,15 @@ namespace CloudApiPublic.Sync
                                     ModifiedDate = currentEvent.FileChange.Metadata.HashableProperties.LastTime, // when this file system object was last modified
                                     RelativeFromPath = (currentEvent.FileChange.OldPath == null
                                         ? null // null for a null OldPath
-                                        : currentEvent.FileChange.OldPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true) + // path relative to the root with slashes switched for an OldPath
+                                        : currentEvent.FileChange.OldPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for an OldPath
                                             (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
                                                 ? "/" // append forward slash at end of folder paths
                                                 : string.Empty)),
-                                    RelativePath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read for everything except renames, but set it anyways)
+                                    RelativePath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read for everything except renames, but set it anyways)
                                         (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
                                             ? "/" // append forward slash at end of folder paths
                                             : string.Empty),
-                                    RelativeToPath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read only for renames, but set it anyways)
+                                    RelativeToPath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read only for renames, but set it anyways)
                                         (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
                                             ? "/" // append forward slash at end of folder paths
                                             : string.Empty),
@@ -4217,7 +4084,7 @@ namespace CloudApiPublic.Sync
                                     Version = "1.0", // I do not know what value should be placed here
                                     TargetPath = (currentEvent.FileChange.Metadata.LinkTargetPath == null
                                         ? null // null for a null shortcut target path
-                                        : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true)) // for a shortcut pointing to a place within the root, this is a path relative to the root with slashes switched for the NewPath; otherwise this is the actual shortcut target path
+                                        : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true)) // for a shortcut pointing to a place within the root, this is a path relative to the root with slashes switched for the NewPath; otherwise this is the actual shortcut target path
                                 }
                             }).ToArray() // selected into a new array
                         };
@@ -4475,7 +4342,7 @@ namespace CloudApiPublic.Sync
                                             .FileChange.NewPath
 
                                         // else if the current event does have metadata (non-rename events), then build the path from the root path plus the metadata path
-                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" +
+                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" +
                                             (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')));
                                 }
                             }
@@ -4494,7 +4361,7 @@ namespace CloudApiPublic.Sync
                                 if (eventsByPath.Contains(
                                     
                                     // append Sync From event relative path to the root path to build the full path for comparison
-                                    (syncSettings.CloudRoot ?? string.Empty) + "\\" +
+                                    (syncSettings.SyncRoot ?? string.Empty) + "\\" +
                                     (deserializedResponse.Events[currentEventIndex].Metadata.RelativePathWithoutEnclosingSlashes ?? deserializedResponse.Events[currentEventIndex].Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')))
                                 {
                                     // from event is duplicate, add its index to duplicates
@@ -4526,7 +4393,7 @@ namespace CloudApiPublic.Sync
                     // declare a dictionary for already visited Sync From renames so if metadata was found for a rename in an event then later renames can carry forward the metadata
                     FilePathDictionary<FileMetadata> alreadyVisitedRenames;
                     // initialize the visited renames dictionary, storing any error that occurs
-                    CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncSettings.CloudRoot ?? string.Empty),
+                    CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncSettings.SyncRoot ?? string.Empty),
                         out alreadyVisitedRenames);
 
                     // create a dictionary mapping event id to changes which were moved as dependencies under new pseudo-Sync From changes (i.e. conflict)
@@ -4618,11 +4485,11 @@ namespace CloudApiPublic.Sync
                                 else
                                 {
                                     // set the new path by appending the relative path to the root
-                                    findNewPath = (syncSettings.CloudRoot ?? string.Empty) + "\\" +
+                                    findNewPath = (syncSettings.SyncRoot ?? string.Empty) + "\\" +
                                         (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\');
                                     // set the old path for rename events by appending the relative path to the root, or null for non-renames
                                     findOldPath = (CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action)
-                                        ? (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')
+                                        ? (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')
                                         : null);
                                     // set the MD5 hash, or null for non-files
                                     findHash = currentEvent.Metadata.Hash;
@@ -4633,7 +4500,7 @@ namespace CloudApiPublic.Sync
                                         currentEvent.Metadata.Size); // the size of a file or null for non-files
                                     findLinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
                                         ? null // if the current event has no shortcut target path, then set the target path as null
-                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")); // else if the current event has a shortcut path, then create the shortcut path by appending a relative path to the root
+                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")); // else if the current event has a shortcut path, then create the shortcut path by appending a relative path to the root
                                     // set the revision from the current file, or null for non-files
                                     findRevision = currentEvent.Metadata.Revision;
                                     // set the storage key from the current file, or null for non-files
@@ -4812,7 +4679,7 @@ namespace CloudApiPublic.Sync
                                                                 StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                                 LinkTargetPath = (newMetadata.TargetPath == null
                                                                     ? null // if server metadata does not have a shortcut file target path, then use null
-                                                                    : (syncSettings.CloudRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
                                                             }
                                                         },
                                                         newMetadata.Hash); // file MD5 hash or null for folder
@@ -5912,10 +5779,10 @@ namespace CloudApiPublic.Sync
                             CreateFileChangeFromBaseChangePlusHash(new FileChange() // create a FileChange with dependencies and set the hash, start by creating a new FileChange input
                             {
                                 Direction = SyncDirection.From, // current communcation direction is Sync From (only Sync From events, not mixed like Sync To events)
-                                NewPath = (syncSettings.CloudRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'), // new location of change
+                                NewPath = (syncSettings.SyncRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'), // new location of change
                                 OldPath = (currentEvent.Metadata.RelativeFromPath == null
                                     ? null // if the current event is not a rename, then it has no previous path
-                                    : (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')), // if the current event is a rename, grab the previous path
+                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')), // if the current event is a rename, grab the previous path
                                 Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action), // grab the type of change from the action string
                                 Metadata = new FileMetadata()
                                 {
@@ -5929,7 +5796,7 @@ namespace CloudApiPublic.Sync
                                     StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
                                     LinkTargetPath = (currentEvent.Metadata.TargetPath == null
                                         ? null // if current event is a folder or a file which is not a shortcut, then there is no shortcut target path
-                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else if the current event is a shortcut file, then grab the shortcut path
+                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else if the current event is a shortcut file, then grab the shortcut path
                                 }
                             },
                             currentEvent.Metadata.Hash), // grab the MD5 hash
@@ -5942,7 +5809,7 @@ namespace CloudApiPublic.Sync
                         // declare a dictionary for already visited Sync From renames so if metadata was found for a rename in an event then later renames can carry forward the metadata
                         FilePathDictionary<FileMetadata> alreadyVisitedRenames;
                         // initialize the visited renames dictionary, storing any error that occurs
-                        CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncSettings.CloudRoot ?? string.Empty),
+                        CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncSettings.SyncRoot ?? string.Empty),
                             out alreadyVisitedRenames);
 
                         // loop through the Sync From changes where the type is a rename event and select just the FileChange
@@ -6076,7 +5943,7 @@ namespace CloudApiPublic.Sync
                                                     StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                     LinkTargetPath = (newMetadata.TargetPath == null
                                                         ? null // if server metadata does not have a shortcut file target path, then use null
-                                                        : (syncSettings.CloudRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
                                                 }
                                             },
                                             newMetadata.Hash); // file MD5 hash or null for folder
@@ -6207,7 +6074,7 @@ namespace CloudApiPublic.Sync
                 Helpers.QueryStringBuilder(new[] // both methods grab their parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(getMetadataPath.GetRelativePath((syncSettings.CloudRoot ?? string.Empty), true) + "/")),
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(getMetadataPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true) + "/")),
 
                         // query string parameter for the current user id, should not need escaping since it should be an integer in string format, but do it anyways
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, Uri.EscapeDataString(syncSettings.Uuid))

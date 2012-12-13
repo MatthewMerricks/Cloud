@@ -87,7 +87,7 @@ namespace ContextMenuNET
                 }
 
                 _trace.writeToLog(9, "ContextMenuServer: Initialize: Entry.");
-                return Instance.pInitialize(syncSettings.CloudRoot);
+                return Instance.pInitialize(syncSettings.SyncRoot);
             }
             catch (Exception ex)
             {

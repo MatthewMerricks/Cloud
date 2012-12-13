@@ -16,7 +16,7 @@ namespace CloudApiPublic.PushNotification
     /// <summary>
     /// Simple implementation of IPushSettings
     /// </summary>
-    public sealed class PushSettings : IPushSettings
+    public sealed class PushSettings : IHttpSettings
     {
         public string Udid
         {

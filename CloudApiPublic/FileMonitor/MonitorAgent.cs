@@ -25,6 +25,7 @@ using CloudApiPublic.Interfaces;
 using CloudApiPublic.SQLIndexer;
 using JsonContracts = CloudApiPublic.JsonContracts;
 using CloudApiPublic.Sync;
+using CloudApiPublic.REST;
 
 /// <summary>
 /// Monitor a local file system folder as a SyncBox.
@@ -224,13 +225,16 @@ namespace CloudApiPublic.FileMonitor
         /// the initial index list to begin processing via BeginProcessing(initialList)
         /// </summary>
         /// <param name="syncSettings">The settings to be used with this instance of the file system monitor</param>
-        /// <param name="newAgent">returned MonitorAgent</param>
-        /// <param name="syncRun">delegate to be executed when a group of events is to be processed</param>
+        /// <param name="indexer">Created and initialized but not started SQLIndexer</param>
+        /// <param name="httpRestClient">Client for Http REST communication</param>
+        /// <param name="newAgent">(output) the return MonitorAgent created by this method</param>
+        /// <param name="syncEngine">(output) the return SyncEngine which is also created with the combination of the input SQLIndexer indexer and the output MonitorAgent</param>
         /// <param name="onQueueingCallback">(optional) action to be executed every time a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns>Returns any error that occurred, or null.</returns>
         public static CLError CreateNewAndInitialize(ISyncSettingsAdvanced syncSettings,
             IndexingAgent indexer,
+            CLHttpRest httpRestClient,
             out MonitorAgent newAgent,
             out SyncEngine syncEngine,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
@@ -254,7 +258,7 @@ namespace CloudApiPublic.FileMonitor
             try
             {
                 // Create sync engine
-                syncEngine = new SyncEngine(newAgent._syncData, syncSettings);
+                syncEngine = new SyncEngine(newAgent._syncData, syncSettings, httpRestClient);
             }
             catch (Exception ex)
             {
@@ -264,11 +268,11 @@ namespace CloudApiPublic.FileMonitor
 
             try
             {
-                if (string.IsNullOrEmpty(syncSettings.CloudRoot))
+                if (string.IsNullOrEmpty(syncSettings.SyncRoot))
                 {
                     throw new Exception("Folder path cannot be null nor empty");
                 }
-                DirectoryInfo folderInfo = new DirectoryInfo(syncSettings.CloudRoot);
+                DirectoryInfo folderInfo = new DirectoryInfo(syncSettings.SyncRoot);
                 if (!folderInfo.Exists)
                 {
                     throw new Exception("Folder not found at provided folder path");
@@ -285,7 +289,7 @@ namespace CloudApiPublic.FileMonitor
                 }
 
                 // Initialize folder paths
-                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = syncSettings.CloudRoot;
+                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = syncSettings.SyncRoot;
 
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;

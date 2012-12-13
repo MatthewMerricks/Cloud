@@ -37,7 +37,7 @@ namespace CloudApiPublic.Interfaces
         int TraceLevel { get; }
     }
 
-    public interface IPushSettings
+    public interface IHttpSettings
     {
         /// <summary>
         /// Device id (each user may contain multiple devices, each with a different id), provided by server upon authentication
@@ -53,9 +53,9 @@ namespace CloudApiPublic.Interfaces
         string Akey { get; }
     }
 
-    public interface IPushSettingsAdvanced : IPushSettings, IAddTraceSettings { }
+    public interface IHttpSettingsAdvanced : IHttpSettings, IAddTraceSettings { }
 
-    public interface ISyncSettings : IPushSettings
+    public interface ISyncSettings : IHttpSettings
     {
         /// <summary>
         /// Version letters/numbers used in communication with the server to identify the type of client (i.e. "MyClient01"); do not mimic values passed by other Cloud applications
@@ -64,7 +64,7 @@ namespace CloudApiPublic.Interfaces
         /// <summary>
         /// Full path to the directory to be synced (do not include a trailing slash except for a drive root)
         /// </summary>
-        string CloudRoot { get; }
+        string SyncRoot { get; }
     }
 
     public interface ISyncSettingsAdvanced : ISyncSettings, IAddTraceSettings

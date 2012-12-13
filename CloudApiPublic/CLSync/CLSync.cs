@@ -18,6 +18,7 @@ using CloudApiPublic.PushNotification;
 using CloudApiPublic.Static;
 using CloudApiPublic.Sync;
 using CloudApiPublic.BadgeNET;
+using CloudApiPublic.REST;
 
 namespace CloudApiPublic
 {
@@ -115,7 +116,7 @@ namespace CloudApiPublic
 
                 _syncSettings = settings.CopySettings();
 
-                CLError checkBadPath = Helpers.CheckForBadPath(_syncSettings.CloudRoot);
+                CLError checkBadPath = Helpers.CheckForBadPath(_syncSettings.SyncRoot);
                 if (checkBadPath != null)
                 {
                     _trace.writeToLog(1, "CLSync: ERROR: {0}.", checkBadPath.errorDescription);
@@ -124,7 +125,7 @@ namespace CloudApiPublic
                 }
 
                 int tooLongChars;
-                CLError checkPathLength = Helpers.CheckSyncRootLength(_syncSettings.CloudRoot, out tooLongChars);
+                CLError checkPathLength = Helpers.CheckSyncRootLength(_syncSettings.SyncRoot, out tooLongChars);
                 if (checkPathLength != null)
                 {
                     _trace.writeToLog(1, "CLSync: ERROR: {0}.", checkPathLength.errorDescription);
@@ -135,7 +136,7 @@ namespace CloudApiPublic
                 // Initialize trace in case it is not already initialized.
                 CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
 
-                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncSettings.CloudRoot);
+                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncSettings.SyncRoot);
                 if (!rootInfo.Exists)
                 {
                     rootInfo.Create();
@@ -190,15 +191,29 @@ namespace CloudApiPublic
                 _notifier.NotificationPerformManualSyncFrom += OnNotificationPerformManualSyncFrom;
                 _notifier.ConnectionError += OnNotificationConnectionError;
 
+                // Create the http rest client
+                CLHttpRest httpRestClient;
+                CLError createRestClientError = CLHttpRest.CreateAndInitialize(_syncSettings, out httpRestClient);
+                if (createRestClientError != null)
+                {
+                    _trace.writeToLog(1, "CLSync: Start: ERROR(3): Msg: {0}. Code: {1}.", createRestClientError.errorDescription, createRestClientError.errorCode);
+                    _indexer.Dispose();
+                    _indexer = null;
+                    ReleaseResources();
+                    status = CLSyncStartStatus.ErrorUnknown;
+                    return createRestClientError;
+                }
+
                 // Start the monitor
                 CLError fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(_syncSettings,
                     _indexer,
+                    httpRestClient,
                     out _monitor,
                     out _syncEngine);
 
                 if (fileMonitorCreationError != null)
                 {
-                    _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(3). Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, fileMonitorCreationError.errorCode);
+                    _trace.writeToLog(1, "CLSync: Start: ERROR(4): Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, fileMonitorCreationError.errorCode);
                     _indexer.Dispose();
                     _indexer = null;
                     ReleaseResources();
@@ -236,7 +251,7 @@ namespace CloudApiPublic
                         {
                             CLError error = ex;
                             error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                            _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(4).  Msg: <{0}>.", ex.Message);
+                            _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(5).  Msg: <{0}>.", ex.Message);
                             ReleaseResources();
                             status = CLSyncStartStatus.ErrorUnknown;
                             return ex;
@@ -250,7 +265,7 @@ namespace CloudApiPublic
             {
                 CLError error = ex;
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(5).  Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(6).  Msg: <{0}>.", ex.Message);
                 ReleaseResources();
                 status = CLSyncStartStatus.ErrorUnknown;
                 return ex;
