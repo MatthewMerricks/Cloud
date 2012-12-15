@@ -21,6 +21,35 @@ namespace CloudApiPublicSamples.Models
         public bool TraceExcludeAuthorization { get; set; }
         public int TraceLevel { get; set; }
 
+        public Settings()
+        {
+        }
+
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="settingsCopy"></param>
+        public Settings(Settings settingsCopy)
+        {
+            SyncBoxFullPath = settingsCopy.SyncBoxFullPath;
+            ApplicationKey = settingsCopy.ApplicationKey;
+            ApplicationSecret = settingsCopy.ApplicationSecret;
+            SyncBoxId = settingsCopy.SyncBoxId;
+            UniqueDeviceId = settingsCopy.UniqueDeviceId;
+            TempDownloadFolderFullPath = settingsCopy.TempDownloadFolderFullPath;
+            DatabaseFileFullPath = settingsCopy.DatabaseFileFullPath;
+            LogErrors = settingsCopy.LogErrors;
+            TraceType = settingsCopy.TraceType;
+            TraceFilesFullPath = settingsCopy.TraceFilesFullPath;
+            TraceExcludeAuthorization = settingsCopy.TraceExcludeAuthorization;
+            TraceLevel = settingsCopy.TraceLevel;
+        }
+
+        /// <summary>
+        /// Deep comparison.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public override bool Equals(object obj)
         {
             if (obj == null) return false;

@@ -555,22 +555,6 @@ namespace CloudApiPublicSamples.ViewModels
             return System.Text.RegularExpressions.Regex.IsMatch(test, @"\A\b[0-9a-fA-F]+\b\Z");
         }
 
-        private bool ConvertStringToUlong(string inString, out ulong value)
-        {
-            bool toReturn = true;
-            try
-            {
-                value = Convert.ToUInt64(inString);
-            }
-            catch
-            {
-                value = 0;
-                toReturn = false;
-            }
-
-            return toReturn;
-        }
-
         #endregion
 
 
