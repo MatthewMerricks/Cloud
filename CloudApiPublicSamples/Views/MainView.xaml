@@ -1,0 +1,93 @@
+﻿<Window x:Class="CloudApiPublicSamples.Views.MainView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ext="clr-namespace:CloudApiPublicSamples.Static"
+        Title="Sync Sample App" Height="480" Width="640">
+    <Grid>
+        <Grid.Background>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/CloudApiPublicSamples;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
+        </Grid.Background>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="40"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="40"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="1">
+            <!-- SyncBox Folder -->
+            <Grid>
+                <Label Content="SyncBox _Folder:" Target="{Binding ElementName=tbSyncBoxFolder}"/>
+                <Button x:Name="cmdBrowseSyncBoxFolder" HorizontalAlignment="Right" Width="75" Margin="2" 
+                        Height="26" Command="{Binding Path=CommandBrowseSyncBoxFolder, Mode=OneTime}" 
+                        ToolTip="Click to choose a folder to sync.">
+                    <AccessText Text="Bro_wse..."/>
+                </Button>
+            </Grid>
+            <TextBox x:Name="tbSyncBoxFolder" Margin="10,0,0,0" 
+                     Text="{Binding SyncRoot, Mode=TwoWay, ValidatesOnDataErrors=True}"
+                     ext:FocusExtension.IsFocused="{Binding IsSyncBoxPathFocused}"
+                     ToolTip="Enter the full path of the folder to sync."/>
+            <!-- Application Key -->
+            <Label Content="Application _Key:" Target="{Binding ElementName=tbApplicationKey}"/>
+            <TextBox Name="tbApplicationKey" Margin="10,0,0,0" 
+                    Text="{Binding AppKey, Mode=TwoWay, ValidatesOnDataErrors=True}"
+                     ext:FocusExtension.IsFocused="{Binding IsAppKeyFocused}"
+                    ToolTip="Paste from Cloud DashBoard."/>
+            <!-- Application Secret -->
+            <Label Content="Application _Secret:" Target="{Binding ElementName=tbApplicationSecret}"/>
+            <TextBox x:Name="tbApplicationSecret" Margin="10,0,0,0" 
+                    Text="{Binding AppSecret, Mode=TwoWay, ValidatesOnDataErrors=True}"
+                     ext:FocusExtension.IsFocused="{Binding IsAppSecretFocused}"
+                    ToolTip="Paste from Cloud DashBoard."/>
+            <!-- SyncBox ID -->
+            <Label Content="SyncBox _ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
+            <TextBox x:Name="tbSyncBoxId" Margin="10,0,0,0" 
+                     Text="{Binding SyncBoxId, Mode=TwoWay, ValidatesOnDataErrors=True}"
+                     ext:FocusExtension.IsFocused="{Binding IsSyncBoxIdFocused}"
+                     ToolTip="Paste from Cloud DashBoard."/>
+            <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
+                <Button x:Name="cmdShowAdvancedOptions" HorizontalAlignment="Left" Width="130" Height="40"
+                        Command="{Binding Path=CommandShowAdvancedOptions, Mode=OneTime}" 
+                        ToolTip="Click to set advanced options.">
+                    <AccessText Text="_Advanced Options..."/>
+                </Button>
+                <Button x:Name="cmdSaveSettings" HorizontalAlignment="Left" Width="130" Height="40" Margin="10,0,0,0"
+                        Command="{Binding Path=CommandSaveSettings, Mode=OneTime}" 
+                        ToolTip="Click to save settings.">
+                    <AccessText Text="Sa_ve Settings"/>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="cmdSyncStatus" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
+                        Command="{Binding Path=CommandShowSyncStatus, Mode=OneTime}" 
+                        ToolTip="Click to show sync status.">
+                <AccessText Text="Sync Stat_us..."/>
+            </Button>
+            <Button x:Name="cmdStartSyncing" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
+                        Command="{Binding Path=CommandStartSyncing, Mode=OneTime}" 
+                        ToolTip="Click to start syncing the SyncBox.">
+                <AccessText Text="Sta_rt Syncing"/>
+            </Button>
+            <Button x:Name="cmdStopSyncing" HorizontalAlignment="Right" Width="100"
+                        Command="{Binding Path=CommandStopSyncing, Mode=OneTime}" 
+                        ToolTip="Click to stop syncing the SyncBox.">
+                <AccessText Text="Sto_p Syncing"/>
+            </Button>
+        </StackPanel>
+        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="cmdExit" HorizontalAlignment="Right" Width="75"
+                        Command="{Binding Path=CommandExit, Mode=OneTime}" 
+                        ToolTip="Click to stop syncing and exit the application.">
+                <AccessText Text="E_xit"/>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>
