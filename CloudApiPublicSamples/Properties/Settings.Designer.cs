@@ -86,18 +86,6 @@ namespace CloudApiPublicSamples.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string FriendlyDeviceName {
-            get {
-                return ((string)(this["FriendlyDeviceName"]));
-            }
-            set {
-                this["FriendlyDeviceName"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string TempDownloadFolderFullPath {
             get {
                 return ((string)(this["TempDownloadFolderFullPath"]));
@@ -133,10 +121,10 @@ namespace CloudApiPublicSamples.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("7")]
-        public int TraceType {
+        [global::System.Configuration.DefaultSettingValueAttribute("CommunicationIncludeAuthorization, FileChangeFlow")]
+        public global::CloudApiPublic.Static.TraceType TraceType {
             get {
-                return ((int)(this["TraceType"]));
+                return ((global::CloudApiPublic.Static.TraceType)(this["TraceType"]));
             }
             set {
                 this["TraceType"] = value;

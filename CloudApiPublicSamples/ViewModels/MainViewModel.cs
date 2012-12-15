@@ -24,8 +24,8 @@ namespace CloudApiPublicSamples.ViewModels
         RelayCommand _commandStopSyncing;
         RelayCommand _commandExit;
 
-        private Settings _settingsUi;
-        //&&&&private ISyncSettingsAdvanced _syncSettingsAdvanced;
+        private Settings _settingsCurrent;
+        private Settings _settingsInitial;
 
         #endregion
 
@@ -33,7 +33,10 @@ namespace CloudApiPublicSamples.ViewModels
 
         public MainViewModel()
         {
-            _settingsUi = new Settings();
+            _settingsCurrent = new Settings();
+            _settingsInitial = new Settings();
+            _settingsCurrent.GetSavedSettings();
+            _settingsInitial.GetSavedSettings();
         }
 
         #endregion
@@ -42,15 +45,15 @@ namespace CloudApiPublicSamples.ViewModels
 
         public string SyncRoot
         {
-            get { return _settingsUi.SyncBoxFullPath; }
+            get { return _settingsCurrent.SyncBoxFullPath; }
             set
             {
-                if (value == _settingsUi.SyncBoxFullPath)
+                if (value == _settingsCurrent.SyncBoxFullPath)
                 {
                     return;
                 }
 
-                _settingsUi.SyncBoxFullPath = value;
+                _settingsCurrent.SyncBoxFullPath = value;
 
                 base.OnPropertyChanged("SyncRoot");
             }
@@ -58,15 +61,15 @@ namespace CloudApiPublicSamples.ViewModels
 
         public string AppKey
         {
-            get { return _settingsUi.ApplicationKey; }
+            get { return _settingsCurrent.ApplicationKey; }
             set
             {
-                if (value == _settingsUi.ApplicationKey)
+                if (value == _settingsCurrent.ApplicationKey)
                 {
                     return;
                 }
 
-                _settingsUi.ApplicationKey = value;
+                _settingsCurrent.ApplicationKey = value;
 
                 base.OnPropertyChanged("AppKey");
             }
@@ -74,15 +77,15 @@ namespace CloudApiPublicSamples.ViewModels
 
         public string AppSecret
         {
-            get { return _settingsUi.ApplicationSecret; }
+            get { return _settingsCurrent.ApplicationSecret; }
             set
             {
-                if (value == _settingsUi.ApplicationSecret)
+                if (value == _settingsCurrent.ApplicationSecret)
                 {
                     return;
                 }
 
-                _settingsUi.ApplicationSecret = value;
+                _settingsCurrent.ApplicationSecret = value;
 
                 base.OnPropertyChanged("AppSecret");
             }
@@ -90,17 +93,33 @@ namespace CloudApiPublicSamples.ViewModels
 
         public string SyncBoxId
         {
-            get { return _settingsUi.SyncBoxId; }
+            get { return _settingsCurrent.SyncBoxId; }
             set
             {
-                if (value == _settingsUi.SyncBoxId)
+                if (value == _settingsCurrent.SyncBoxId)
                 {
                     return;
                 }
 
-                _settingsUi.SyncBoxId = value;
+                _settingsCurrent.SyncBoxId = value;
 
                 base.OnPropertyChanged("SyncBoxId");
+            }
+        }
+
+        public string DeviceId
+        {
+            get { return _settingsCurrent.UniqueDeviceId; }
+            set
+            {
+                if (value == _settingsCurrent.UniqueDeviceId)
+                {
+                    return;
+                }
+
+                _settingsCurrent.UniqueDeviceId = value;
+
+                base.OnPropertyChanged("DeviceId");
             }
         }
 
@@ -175,6 +194,23 @@ namespace CloudApiPublicSamples.ViewModels
             }
         }
         private bool _isSyncBoxIdFocused;
+
+        public bool IsDeviceIdFocused
+        {
+            get { return _isDeviceIdFocused; }
+            set
+            {
+                if (value == _isDeviceIdFocused)
+                {
+                    _isDeviceIdFocused = false;
+                    base.OnPropertyChanged("IsDeviceIdFocused");
+                }
+
+                _isDeviceIdFocused = value;
+                base.OnPropertyChanged("IsDeviceIdFocused");
+            }
+        }
+        private bool _isDeviceIdFocused;
 
         #endregion
 
@@ -371,11 +407,22 @@ namespace CloudApiPublicSamples.ViewModels
                 return;
             }
 
+            // Validate the Device ID.
+            if (String.IsNullOrEmpty(DeviceId) ||
+                !ConvertStringToUlong(DeviceId, out value) ||
+                value == 0)
+            {
+                MessageBox.Show("The Device ID must be a positive decimal number convertible to an unsigned integer <= 18446744073709551615.");
+                this.IsDeviceIdFocused = true;
+                return;
+            }
+
             // Save the values to Settings
             Properties.Settings.Default.SyncBoxFullPath = SyncRoot;
             Properties.Settings.Default.ApplicationKey = AppKey;
             Properties.Settings.Default.ApplicationSecret = AppSecret;
             Properties.Settings.Default.SyncBoxId = SyncBoxId;
+            Properties.Settings.Default.UniqueDeviceId = DeviceId;
         }
 
         /// <summary>

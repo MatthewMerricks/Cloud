@@ -17,9 +17,6 @@
     <Setting Name="UniqueDeviceId" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="FriendlyDeviceName" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
     <Setting Name="TempDownloadFolderFullPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
@@ -29,8 +26,8 @@
     <Setting Name="LogErrors" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="TraceType" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">7</Value>
+    <Setting Name="TraceType" Type="CloudApiPublic.Static.TraceType" Scope="User">
+      <Value Profile="(Default)">CommunicationIncludeAuthorization, FileChangeFlow</Value>
     </Setting>
     <Setting Name="TraceFilesFullPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />

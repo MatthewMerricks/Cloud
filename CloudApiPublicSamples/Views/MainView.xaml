@@ -52,6 +52,12 @@
                      Text="{Binding SyncBoxId, Mode=TwoWay, ValidatesOnDataErrors=True}"
                      ext:FocusExtension.IsFocused="{Binding IsSyncBoxIdFocused}"
                      ToolTip="Paste from Cloud DashBoard."/>
+            <!-- Unique Device ID -->
+            <Label Content="Unique _Device ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
+            <TextBox x:Name="tbDeviceId" Margin="10,0,0,0" 
+                     Text="{Binding DeviceId, Mode=TwoWay, ValidatesOnDataErrors=True}"
+                     ext:FocusExtension.IsFocused="{Binding IsDeviceIdFocused}"
+                     ToolTip="A numeric ID for this device.  Must be unique for this SyncBox ID."/>
             <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
                 <Button x:Name="cmdShowAdvancedOptions" HorizontalAlignment="Left" Width="130" Height="40"
                         Command="{Binding Path=CommandShowAdvancedOptions, Mode=OneTime}" 

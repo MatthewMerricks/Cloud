@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CloudApiPublic.Static;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,13 +13,66 @@ namespace CloudApiPublicSamples.Models
         public string ApplicationSecret { get; set; }
         public string SyncBoxId { get; set; }
         public string UniqueDeviceId { get; set; }
-        public string FriendlyDeviceName { get; set; }
         public string TempDownloadFolderFullPath { get; set; }
         public string DatabaseFileFullPath { get; set; }
         public bool LogErrors { get; set; }
-        public int TraceType { get; set; }
+        public TraceType TraceType { get; set; }
         public string TraceFilesFullPath { get; set; }
         public bool TraceExcludeAuthorization { get; set; }
         public int TraceLevel { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+
+            Settings otherSettings = obj as Settings;
+            if (otherSettings == null)
+            {
+                return false;
+            }
+
+            // Use this pattern to compare reference members
+            if (!Object.Equals(SyncBoxFullPath, otherSettings.SyncBoxFullPath)) return false;
+            if (!Object.Equals(ApplicationKey, otherSettings.ApplicationKey)) return false;
+            if (!Object.Equals(ApplicationSecret, otherSettings.ApplicationSecret)) return false;
+            if (!Object.Equals(SyncBoxId, otherSettings.SyncBoxId)) return false;
+            if (!Object.Equals(UniqueDeviceId, otherSettings.UniqueDeviceId)) return false;
+            if (!Object.Equals(TempDownloadFolderFullPath, otherSettings.TempDownloadFolderFullPath)) return false;
+            if (!Object.Equals(DatabaseFileFullPath, otherSettings.DatabaseFileFullPath)) return false;
+            if (!Object.Equals(TraceFilesFullPath, otherSettings.TraceFilesFullPath)) return false;
+
+            // Use this pattern to compare value members
+            if (!LogErrors.Equals(otherSettings.LogErrors)) return false;
+            if (!TraceType.Equals(otherSettings.TraceType)) return false;
+            if (!TraceExcludeAuthorization.Equals(otherSettings.TraceExcludeAuthorization)) return false;
+            if (!TraceLevel.Equals(otherSettings.TraceLevel)) return false;
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Get the settings from this user's isolated settings.
+        /// </summary>
+        public void GetSavedSettings()
+        {
+            this.SyncBoxFullPath = Properties.Settings.Default.SyncBoxFullPath;
+            this.ApplicationKey = Properties.Settings.Default.ApplicationKey;
+            this.ApplicationSecret = Properties.Settings.Default.ApplicationSecret;
+            this.SyncBoxId = Properties.Settings.Default.SyncBoxId;
+            this.UniqueDeviceId = Properties.Settings.Default.UniqueDeviceId;
+            this.TempDownloadFolderFullPath = Properties.Settings.Default.TempDownloadFolderFullPath;
+            this.DatabaseFileFullPath = Properties.Settings.Default.DatabaseFileFullPath;
+            this.LogErrors = Properties.Settings.Default.LogErrors;
+            this.TraceType = Properties.Settings.Default.TraceType;
+            this.TraceFilesFullPath = Properties.Settings.Default.TraceFilesFullPath;
+            this.TraceExcludeAuthorization = Properties.Settings.Default.TraceExcludeAuthorization;
+            this.TraceLevel = Properties.Settings.Default.TraceLevel;
+        }
+
     }
 }
